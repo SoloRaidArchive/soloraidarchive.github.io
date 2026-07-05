@@ -100,6 +100,8 @@
     cursor:pointer; transition: background .12s;
   }
   .clip-toggle:hover{ background:#e2ddfb; }
+  [data-theme="dark"] .clip-toggle:hover{ background:#33305a; }
+  [data-theme="dark"] .clip-external:hover{ background:#33305a; }
   .clip-toggle svg{ width:11px; height:11px; }
   .clip-fallback{
     font-size:12.5px; font-weight:600; color: var(--ink-dim); text-decoration:none;
@@ -118,9 +120,10 @@
 
   .clip-external{
     display:inline-flex; align-items:center; gap:6px; margin-top:12px;
-    background: var(--ink); color:#fff; border-radius:8px; padding:8px 14px;
-    font-weight:600; font-size:13px; text-decoration:none;
+    background: var(--accent-soft); color: var(--accent-dark); border-radius:8px; padding:8px 14px;
+    font-weight:600; font-size:13px; text-decoration:none; transition: background .12s;
   }
+  .clip-external:hover{ background:#e2ddfb; }
 
   footer{
     text-align:center; padding: 24px; font-size:12px; color: var(--ink-dim);
