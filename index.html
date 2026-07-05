@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solo Raid Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #eaf4ff; --bg2: #fff7e8;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #9aa3b2;
+    --blue: #3d9dff; --blue-dark: #2b7fd6;
+    --red: #ff5b5b; --yellow: #ffc94a; --green: #4cd08a; --purple: #9b7bf0;
+    --t4: #ff5b5b; --t5: #9b7bf0; --t55: #7a5cd6; --t6: #5b3fc4; --t7: #2d2150;
+    --t3: #2fa88f; --t2: #4cbf6f; --t1: #8fd05a;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    color: var(--text); font-family: 'Nunito', sans-serif; min-height:100vh;
+    display:flex; flex-direction:column;
+  }
+
+  header{ padding: 56px 24px 20px; text-align:center; }
+  .badge-row{ display:flex; justify-content:center; gap:8px; margin-bottom:16px; }
+  .pokeball{
+    width:22px; height:22px; border-radius:50%;
+    background: linear-gradient(180deg, var(--red) 50%, #fff 50%);
+    border: 2px solid #2d3142; position:relative;
+  }
+  .pokeball::after{
+    content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:8px; height:8px; border-radius:50%; background:#fff; border:2px solid #2d3142;
+  }
+  h1{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size: clamp(34px, 6vw, 54px);
+    margin: 0 0 14px; color: var(--blue-dark); text-shadow: 3px 3px 0 rgba(61,157,255,0.15);
+  }
+  .intro{
+    color: var(--text-muted); font-size: 16.5px; line-height:1.6; font-weight:600;
+    max-width: 620px; margin: 0 auto;
+  }
+
+  .top-nav{
+    max-width: 1180px; margin: 24px auto 30px; padding: 0 24px;
+    display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+  }
+  .top-nav-link{
+    display:inline-flex; align-items:center; gap:6px;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 10px 18px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13.5px;
+    color: var(--text-muted); text-decoration:none;
+    box-shadow: 0 2px 0 rgba(45,49,66,0.05);
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .top-nav-link:hover{
+    transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark);
+  }
+
+  .page-layout{
+    flex:1; width:100%; max-width: 1180px; margin: 0 auto;
+    display:flex; gap: 32px; align-items:flex-start; padding: 20px 24px 20px;
+  }
+  .patch-sidebar{
+    flex: 0 0 280px; position:sticky; top:20px;
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 16px;
+  }
+  .patch-title{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
+    color: var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px;
+  }
+  .patch-entry{ margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .sidebar-rule{
+    font-size:12.5px; color: var(--text-muted); font-weight:600; line-height:1.55; margin-bottom:8px;
+  }
+  .sidebar-rules-note{
+    font-size:11.5px; color: var(--text-dim); font-weight:600; line-height:1.55;
+    margin-top:4px;
+  }
+  .sidebar-rules-note strong{ color: var(--text-muted); }
+  .sidebar-divider{ border-top:1px solid var(--border); margin:16px 0 14px; }
+  .sidebar-tier-grid{ display:flex; flex-direction:column; gap:10px; }
+  .sidebar-tier-row{ display:flex; align-items:flex-start; gap:10px; }
+  .sidebar-tier-info{ flex:1; min-width:0; }
+  .sidebar-tier-name{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13.5px; color: var(--text);
+    margin-bottom:2px;
+  }
+  .sidebar-tier-desc{ font-size:11.5px; color: var(--text-muted); font-weight:600; line-height:1.4; }
+  .patch-entry:last-child{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
+  .patch-date{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:11.5px; color: var(--blue-dark);
+    margin-bottom:2px;
+  }
+  .patch-desc{ font-size:12px; color: var(--text-muted); font-weight:600; line-height:1.45; }
+
+  main{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; }
+
+  .archive-list{ width:100%; max-width: 640px; display:flex; flex-direction:column; gap:16px; }
+
+  .archive-card{
+    display:flex; align-items:center; gap:18px;
+    background: var(--card); border: 2px solid var(--border); border-radius: 20px;
+    padding: 22px 24px; text-decoration:none; color: var(--text);
+    box-shadow: 0 3px 0 rgba(45,49,66,0.05);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .archive-card:hover{
+    transform: translateY(-3px); box-shadow: 0 12px 26px rgba(61,157,255,0.18);
+    border-color: var(--blue);
+  }
+  .archive-icon{
+    flex-shrink:0; width:56px; height:56px; border-radius:16px;
+    background: linear-gradient(160deg, #eef4fb, #dfeaf7);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+    overflow:hidden;
+  }
+  .archive-icon img{ width:100%; height:100%; object-fit:contain; padding:6px; }
+  .archive-body{ flex:1; min-width:0; }
+  .archive-title{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:19px; margin-bottom:3px;
+  }
+  .archive-desc{ font-size:13.5px; color: var(--text-muted); font-weight:600; line-height:1.4; }
+  .archive-arrow{
+    flex-shrink:0; font-size:20px; color: var(--text-dim); transition: transform .15s;
+  }
+  .archive-card:hover .archive-arrow{ transform: translateX(4px); color: var(--blue-dark); }
+
+  .more-note{
+    text-align:center; font-size:12.5px; color: var(--text-dim); font-weight:600; margin-top:4px;
+  }
+
+  .info-section{
+    width:100%; max-width: 720px; margin: 44px auto 0; padding: 0 24px;
+  }
+  .info-title{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:20px;
+    color: var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+
+  .rules-card{
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    padding:20px 22px; margin-bottom:16px;
+  }
+  .rules-card ol{ margin:0; padding-left:20px; }
+  .rules-card li{ font-size:14px; font-weight:600; color: var(--text-muted); line-height:1.6; margin-bottom:6px; }
+  .rules-card li:last-child{ margin-bottom:0; }
+  .rules-note{
+    font-size:12.5px; color: var(--text-dim); font-weight:600; margin-top:10px;
+    padding-top:10px; border-top:1px solid var(--border); line-height:1.5;
+  }
+  .rules-note ul{ margin:6px 0 0; padding-left:18px; }
+  .rules-note li{ font-size:12.5px; color: var(--text-dim); font-weight:600; margin-bottom:3px; }
+
+  .tier-ref-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
+  .tier-ref-row{
+    display:flex; align-items:center; gap:12px;
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:13px 16px;
+  }
+  .tier-ref-badge{
+    flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:13.5px;
+    color:#fff; padding:6px 13px; border-radius:999px; min-width:56px; text-align:center;
+  }
+  .tier-ref-badge.t4{ background: var(--t4); }
+  .tier-ref-badge.t5{ background: var(--t5); }
+  .tier-ref-badge.t55{ background: var(--t55); }
+  .tier-ref-badge.t6{ background: var(--t6); }
+  .tier-ref-badge.t7{ background: var(--t7); }
+  .tier-ref-badge.t3{ background: var(--t3); }
+  .tier-ref-badge.t2{ background: var(--t2); }
+  .tier-ref-badge.t1{ background: var(--t1); }
+  .tier-ref-divider{
+    grid-column: 1 / -1;
+    font-size:11px; font-weight:800; color: var(--text-dim); text-transform:uppercase;
+    letter-spacing:0.06em; margin: 10px 0 2px; padding-left:2px;
+  }
+  .tier-ref-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px; flex-shrink:0; }
+  .tier-ref-desc{ font-size:12.5px; color: var(--text-muted); font-weight:600; }
+
+  .vod-stats{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .vod-stat{
+    flex:1 1 120px; background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:12px 14px; text-align:center;
+  }
+  .vod-stat-num{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:22px; color: var(--blue-dark); }
+  .vod-stat-label{ font-size:11px; color: var(--text-dim); font-weight:700; margin-top:2px; }
+
+  .patch-bottom-section{
+    width:100%; margin: 32px 0 0; padding: 0;
+  }
+  .patch-bottom-title{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:18px;
+    color: var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+  .patch-bottom-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:14px;
+    background: var(--card); border:2px solid var(--border); border-radius:18px; padding:18px 20px;
+  }
+  .patch-bottom-grid .patch-entry{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
+
+  footer{
+    text-align:center; padding: 28px 24px 24px; font-size:12px; color: var(--text-dim); font-weight:600;
+    max-width:720px; margin:0 auto; line-height:1.6;
+  }
+  footer .credits-list{ font-size:11px; color: var(--text-dim); margin-top:6px; opacity:0.8; }
+
+  .ref-card{ background:#fffcf4; border-color:#ddceac; }
+  .ref-icon{ background:#efe6cf; }
+
+  [data-theme="dark"]{
+    --bg1: #10131d; --bg2: #1a1424;
+    --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff;
+  }
+  [data-theme="dark"] .pokeball{ border-color:#eef1f7; }
+  [data-theme="dark"] .pokeball::after{ background:#1c2030; border-color:#eef1f7; }
+  [data-theme="dark"] h1{ text-shadow: 3px 3px 0 rgba(90,169,255,0.2); }
+  [data-theme="dark"] .ref-card{ background:#241f3a; border-color:#3d3560; }
+  [data-theme="dark"] .ref-icon{ background:#2c2650; }
+
+  .theme-toggle{
+    position:fixed; top:18px; right:18px; z-index:20;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .theme-toggle:hover{ transform: translateY(-2px); }
+
+  @media (max-width:820px){
+    .page-layout{ flex-direction:column; }
+    .patch-sidebar{ position:static; width:100%; flex:1 1 auto; }
+  }
+  @media (max-width:640px){
+    .tier-ref-grid{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+
+<header>
+  <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
+  <h1>Solo Raid Archive</h1>
+  <p class="intro">
+    A running log of Tier 4+ Pokémon GO raids soloed without a second trainer — the boss, the weather, the exact
+    battle party used, and video proof for every entry. Pick an archive below to browse strategies by difficulty.
+  </p>
+</header>
+
+<div class="top-nav">
+  <a href="meta-battle-parties.html" class="top-nav-link">📖 Meta Battle Parties</a>
+  <a href="raid-strategies.html" class="top-nav-link">📜 Raid Strategies</a>
+  <a href="move-data.html" class="top-nav-link">⚔️ Move Data</a>
+  <a href="pokemon-stats.html" class="top-nav-link">📊 Pokémon Stats</a>
+  <a href="ct-calculator.html" class="top-nav-link">🧮 Catch Tank Calculator</a>
+  <a href="patch-notes.html" class="top-nav-link">📝 Patch Notes</a>
+</div>
+
+<div class="page-layout">
+  <aside class="patch-sidebar">
+    <div class="patch-title" style="font-size:16px;">⭐ Difficulty Reference</div>
+    <div class="sidebar-tier-grid">
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t7">7★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Special</div>
+          <div class="sidebar-tier-desc">Perfect execution required — under 0.5% win chance.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t6">6★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Nightmare</div>
+          <div class="sidebar-tier-desc">Perfect execution — roughly 1–2.5% win chance.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t55">5.5★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Very Hard</div>
+          <div class="sidebar-tier-desc">Excellent execution — roughly 10–20% win chance.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t5">5★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Hard</div>
+          <div class="sidebar-tier-desc">Good execution, favorable weather &amp; movesets recommended.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t4">4★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Challenging</div>
+          <div class="sidebar-tier-desc">Some strategic execution — Level 40+ with select movesets.</div>
+        </div>
+      </div>
+
+      <div class="tier-ref-divider" style="margin-top:6px;">Casual Raids · Max 3★</div>
+
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t3">3★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Moderate</div>
+          <div class="sidebar-tier-desc">Various counters work — Level 40+.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t2">2★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Easy</div>
+          <div class="sidebar-tier-desc">Various counters work — Level 30+.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t1">1★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Very Easy</div>
+          <div class="sidebar-tier-desc">Lots of counters work — Level 30.</div>
+        </div>
+      </div>
+      <div class="sidebar-rules-note" style="margin-top:8px;">Only 1 phone &amp; 1 account may be used.</div>
+    </div>
+  </aside>
+
+  <main>
+  <div class="archive-list">
+  <div class="info-title">📚 Raids </div>
+    <a class="archive-card" href="tier4-raids.html">
+      <div class="archive-icon"><img src="https://static.wikia.nocookie.net/soloraidpokemongo/images/a/a4/Tier_4_Raid_Egg.png/revision/latest?cb=20260515203335" alt="Tier 4 egg" onerror="this.parentElement.textContent='🛠️'"></div>
+      <div class="archive-body">
+        <div class="archive-title">Tier 4</div>
+        <div class="archive-desc">Mega Raid solo raids, spanning Casual (1★–3★) through Nightmare (6★) difficulty.</div>
+      </div>
+      <div class="archive-arrow">→</div>
+    </a>
+
+    <a class="archive-card" href="tier5-raids.html">
+      <div class="archive-icon"><img src="https://static.wikia.nocookie.net/soloraidpokemongo/images/6/66/T5raidegg-removebg-preview.png/revision/latest?cb=20260515215737" alt="Tier 5 egg" onerror="this.parentElement.textContent='🎯'"></div>
+      <div class="archive-body">
+        <div class="archive-title">Tier 5</div>
+        <div class="archive-desc">Solo raids without active adventure effects, spanning Casual (1★–3★) through Special (7★) difficulty.</div>
+      </div>
+      <div class="archive-arrow">→</div>
+    </a>
+
+    <a class="archive-card" href="tier5-ae-raids.html">
+      <div class="archive-icon"><img src="https://static.wikia.nocookie.net/soloraidpokemongo/images/6/66/T5raidegg-removebg-preview.png/revision/latest?cb=20260515215737" alt="Tier 5 egg" onerror="this.parentElement.textContent='⚡'"></div>
+      <div class="archive-body">
+        <div class="archive-title">Tier 5 with Adventure Effect</div>
+        <div class="archive-desc">Solo raids with Adventure Effects, grouped by boss with full battle parties, movesets, and VODs.</div>
+      </div>
+      <div class="archive-arrow">→</div>
+    </a>
+
+    <a class="archive-card" href="tier6-elite-raids.html">
+      <div class="archive-icon"><img src="https://static.wikia.nocookie.net/soloraidpokemongo/images/4/43/Mega_Legendary_Egg.png/revision/latest?cb=20260515205211" alt="Tier 6 egg" onerror="this.parentElement.textContent='👑'"></div>
+      <div class="archive-body">
+        <div class="archive-title">Tier 6 &amp; Elite</div>
+        <div class="archive-desc">The hardest recorded solos — Elite-tier and Tier 6 bosses, grouped by boss with full battle parties, movesets, and VODs.</div>
+      </div>
+      <div class="archive-arrow">→</div>
+    </a>
+
+    <div class="more-note">More archives coming soon.</div>
+  </div>
+
+  </main>
+</div>
+
+<footer>
+  Special thanks to X.Rage7243, Jay258, and members of the PoGoRaids Discord for helping upkeep the sheet.
+  Pokémon icons from JorMxDOS (DeviantArt). Main author: SpiritedBloom, u/Cookieblobrs.
+  <div class="credits-list">
+    Contributors: Boltblades12, Lazyboy0337, Jay258, itsTanah, DarKnight, Nikaidou_Shinku, x.Rage7243, Spiritedbloom,
+    theAaronGaming, Mission-Cancel, Makoto, Storm (JP), FreedomxHei8 (JP), LatiosUltima, HowBoutDemAp1es, DJShivaShivaUA,
+    Pogo_Raids_Gameplay (PoGoRaids Disc), PokeRaidRetos, 3v4battler, Corneal Hook, Ch1hu, CometYTT, HwangOkHone, hehexdlol, Alien13
+  </div>
+</footer>
+
+<script>
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+</script>
+
+</body>
+</html>

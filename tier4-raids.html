@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tier 4 Raids</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #eef6ff; --bg2: #fef9ec;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #9aa3b2;
+    --blue: #3d9dff; --blue-dark: #2b7fd6;
+    --red: #ff5b5b; --yellow: #ffc94a; --green: #4cd08a; --purple: #9b7bf0;
+    --t4: #ff5b5b; --t5: #9b7bf0; --t55: #7a5cd6; --t6: #5b3fc4; --t7: #2d2150;
+    --t3: #2fa88f; --t2: #4cbf6f; --t1: #8fd05a;
+  }
+  [data-theme="dark"]{
+    --bg1: #10131d; --bg2: #1a1424;
+    --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff;
+  }
+  [data-theme="dark"] .pokeball{ border-color:#eef1f7; }
+  [data-theme="dark"] .pokeball::after{ background:#1c2030; border-color:#eef1f7; }
+  [data-theme="dark"] h1{ text-shadow: 2px 2px 0 rgba(90,169,255,0.25); }
+  [data-theme="dark"] #search,
+  [data-theme="dark"] #pokemonSearch,
+  [data-theme="dark"] .count,
+  [data-theme="dark"] .filter-block{
+    background:#1c2030; border-color:#323850; color:#eef1f7;
+  }
+  [data-theme="dark"] #search::placeholder,
+  [data-theme="dark"] #pokemonSearch::placeholder{ color:#767f96; }
+  [data-theme="dark"] .strat-select{
+    background:#232840; border-color:#3a4160; color:#8cc7ff;
+  }
+  [data-theme="dark"] .strat-select option{ background:#1c2030; color:#eef1f7; }
+  [data-theme="dark"] .boss-icon{
+    background: #e9edf5; border-color:#3a4160;
+  }
+  [data-theme="dark"] .member-row{ background:#20263a; border-color:#323850; }
+  [data-theme="dark"] .member-row.main{ background:#20263a; border-color:#323850; }
+  [data-theme="dark"] .member-icon{ background:#e9edf5; border-color:#3a4160; }
+  [data-theme="dark"] .member-row.main .member-icon{ border-color:#3a4160; }
+  [data-theme="dark"] .role-chip.support{ background:rgba(76,208,138,0.18); color:#5fe0a0; }
+  [data-theme="dark"] .role-chip.catchtank{ background:rgba(61,157,255,0.18); color:#6fb8ff; }
+  [data-theme="dark"] .role-chip.executor{ background:rgba(155,123,240,0.2); color:#c1a8ff; }
+  [data-theme="dark"] .role-chip.main{ background:rgba(255,201,74,0.18); color:#ffcf6b; }
+  [data-theme="dark"] .role-chip.other{ background:#2a2f42; color:#a7afc0; }
+  [data-theme="dark"] .count-badge{ background:#2a2f42; color:#a7afc0; }
+  [data-theme="dark"] .moves > span{ background:#20263a; border-color:#323850; }
+  [data-theme="dark"] .notes-body{ background:#20263a; }
+
+
+  .theme-toggle{
+    position:fixed; top:18px; right:18px; z-index:20;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .theme-toggle:hover{ transform: translateY(-2px); }
+
+  .home-link{
+    position:fixed; top:18px; left:18px; z-index:20;
+    display:inline-flex; align-items:center;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 11px 18px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13.5px;
+    color: var(--blue-dark); text-decoration:none;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .home-link:hover{ transform: translateY(-2px); }
+  [data-theme="dark"] .home-link{ background: var(--card); color: var(--blue-dark); border-color: var(--border); }
+
+  .home-link-bottom-wrap{ text-align:center; padding: 36px 20px 50px; }
+  .home-link-bottom{
+    display:inline-flex; align-items:center;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 12px 22px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14px;
+    color: var(--blue-dark); text-decoration:none;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .home-link-bottom:hover{ transform: translateY(-2px); }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    color: var(--text); font-family: 'Nunito', sans-serif; min-height:100vh; padding-bottom: 60px;
+  }
+  header{ padding: 44px 24px 26px; text-align:center; }
+  .badge-row{ display:flex; justify-content:center; gap:8px; margin-bottom:14px; }
+  .pokeball{
+    width:20px; height:20px; border-radius:50%;
+    background: linear-gradient(180deg, var(--red) 50%, #fff 50%);
+    border: 2px solid #2d3142; position:relative;
+  }
+  .pokeball::after{
+    content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:7px; height:7px; border-radius:50%; background:#fff; border:2px solid #2d3142;
+  }
+  h1{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size: clamp(30px, 5vw, 46px);
+    margin: 0 0 10px; color: var(--blue-dark); text-shadow: 2px 2px 0 rgba(61,157,255,0.15);
+  }
+  header p{ color: var(--text-muted); font-size: 15.5px; max-width: 540px; margin: 0 auto; font-weight:600; }
+
+  .role-legend{
+    max-width: 1760px; margin: 26px auto 0; padding: 18px 22px;
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:14px;
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    box-shadow: 0 3px 0 rgba(45,49,66,0.05);
+  }
+  .role-legend-item{ display:flex; flex-direction:column; gap:6px; }
+  .role-legend-item .role-chip{ align-self:flex-start; font-size:12px; padding:4px 12px; }
+  .role-legend-desc{ font-size:12.5px; color: var(--text-muted); font-weight:600; line-height:1.4; }
+
+  .controls{
+    max-width: 1760px; margin: 22px auto 0; padding: 0 20px;
+    display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
+  }
+  .search-wrap{ position:relative; flex: 1 1 340px; max-width: 480px; }
+  .search-wrap svg{ position:absolute; left:16px; top:50%; transform:translateY(-50%); opacity:0.4; }
+  #search{
+    width:100%; background: #fff; border: 2px solid var(--border); color: var(--text);
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:15px;
+    padding: 12px 16px 12px 44px; border-radius: 999px; outline:none;
+    transition: border-color .15s, box-shadow .15s; box-shadow: 0 3px 0 rgba(0,0,0,0.04);
+  }
+  #search::placeholder{ color: var(--text-dim); font-weight:600; }
+  #search:focus{ border-color: var(--blue); box-shadow: 0 0 0 4px rgba(61,157,255,0.15); }
+  .count{
+    font-weight:700; font-size:13px; color: var(--text-dim); white-space:nowrap;
+    padding: 8px 16px; background:#fff; border-radius:999px; border: 2px solid var(--border);
+  }
+
+  .tier-section{ margin: 30px 0 0; padding: 0; }
+  .tier-header{
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .tier-header .tier-pill-lg{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:16px; color:#fff;
+    padding: 6px 16px; border-radius: 999px; box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  }
+  .tier-header .tier-pill-lg.t4{ background: var(--t4); }
+  .tier-header .tier-pill-lg.t5{ background: var(--t5); }
+  .tier-header .tier-pill-lg.t55{ background: var(--t55); }
+  .tier-header .tier-pill-lg.t6{ background: var(--t6); }
+  .tier-header .tier-pill-lg.t7{ background: var(--t7); }
+  .tier-header .tier-pill-lg.t3{ background: var(--t3); }
+  .tier-header .tier-pill-lg.t2{ background: var(--t2); }
+  .tier-header .tier-pill-lg.t1{ background: var(--t1); }
+  .tier-header .tier-name{ font-family:'Baloo 2', sans-serif; font-weight:700; color: var(--text-dim); font-size:14px; }
+  .tier-line{ flex:1; height:2px; background: var(--border); border-radius:2px; }
+
+  .tier-grid{
+    display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+  }
+  @media (max-width:1500px){ .tier-grid{ grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width:1100px){ .tier-grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width:700px){ .tier-grid{ grid-template-columns: 1fr; } }
+
+  .card{
+    background: var(--card); border: 2px solid var(--border); border-radius: 18px;
+    padding: 22px; display:flex; flex-direction:column; gap: 20px;
+    transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 2px 0 rgba(45,49,66,0.05);
+  }
+  .card:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(61,157,255,0.14); }
+
+  .card-top{ display:flex; align-items:center; gap: 12px; }
+  .boss-icon{
+    width: 56px; height: 56px; border-radius: 14px;
+    background: linear-gradient(160deg, #f4f8ff, #e9f1ff); border: 2px solid var(--border);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .boss-icon img{ width:100%; height:100%; object-fit:contain; padding:4px; }
+  .boss-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 21px; line-height:1.3; }
+  .variant-count{ font-size:12px; font-weight:700; color: var(--text-dim); margin-top:5px; }
+  .current-tier-pill{
+    flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size: 13px;
+    color: #fff; padding: 6px 13px; border-radius: 999px; box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+  }
+  .current-tier-pill.t4{ background: var(--t4); }
+  .current-tier-pill.t5{ background: var(--t5); }
+  .current-tier-pill.t55{ background: var(--t55); }
+  .current-tier-pill.t6{ background: var(--t6); }
+  .current-tier-pill.t7{ background: var(--t7); }
+  .current-tier-pill.t3{ background: var(--t3); }
+  .current-tier-pill.t2{ background: var(--t2); }
+  .current-tier-pill.t1{ background: var(--t1); }
+
+  .strat-select{
+    width:100%; font-family:'Nunito', sans-serif; font-weight:700; font-size:14px;
+    color: var(--blue-dark); background:#eef6ff; border:2px solid #d7ebff; border-radius:11px;
+    padding: 10px 14px; outline:none; cursor:pointer; appearance:none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232b7fd6' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position: right 12px center; background-size:14px;
+  }
+  .strat-static{ font-size:14px; font-weight:700; color: var(--blue-dark); }
+
+  .meta-row{ display:flex; align-items:center; gap:9px; }
+  .weather-tag{ font-size:20px; line-height:1; }
+  .weather-icon-img{ width:22px; height:22px; object-fit:contain; vertical-align:middle; }
+  .weather-icon-img.extreme{ filter: invert(1) grayscale(1) brightness(0.3); }
+  [data-theme="dark"] .weather-icon-img.extreme{ filter: none; }
+  .ae-icon{ width:22px; height:22px; }
+
+  .party-label{
+    font-size:11px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase;
+    color: var(--text-dim); margin: 10px 0 6px;
+  }
+  .party-label:first-child{ margin-top: 0; }
+  .party-list{ display:flex; flex-direction:column; gap:7px; }
+  .member-row{
+    display:flex; align-items:center; gap: 11px;
+    background: #f8fafc; border: 2px solid var(--border); border-radius: 13px; padding: 8px 11px;
+  }
+  .member-row.main{ background: #f8fafc; border-color: var(--border); }
+  .member-icon{
+    width: 40px; height: 40px; border-radius: 10px; background: #fff; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden; border: 2px solid var(--border);
+  }
+  .member-row.main .member-icon{ border-color: var(--border); }
+  .member-icon img{ width:100%; height:100%; object-fit:contain; padding:2px; }
+  .member-icon .fallback{ font-family:'Baloo 2', sans-serif; font-weight:700; color: var(--text-dim); font-size:15px; }
+  .member-info{ display:flex; flex-direction:column; gap:1px; min-width:0; flex:1; }
+  .member-name{ font-size:14.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .role-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .party-moveset{
+    font-size:11px; color: var(--text-muted); font-weight:800; margin-top:3px;
+  }
+  .role-chip{
+    align-self:flex-start; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px;
+  }
+  .role-chip.support{ background:#e5f9ee; color:#1f9d5c; }
+  .role-chip.catchtank{ background:#e6f2ff; color:#1c72c9; }
+  .role-chip.executor{ background:#f2ebff; color:#7d4fd6; }
+  .role-chip.main{ background:#fff3d2; color:#b8860b; }
+  .role-chip.other{ background:#f1f2f4; color:#6b7280; }
+  .count-badge{
+    font-size:10.5px; font-weight:800; color: var(--text-dim);
+    background:#f1f2f4; padding:2px 8px; border-radius:999px;
+  }
+
+  .moves{ display:flex; gap: 8px; font-size:13px; font-weight:800; color: var(--text-muted); }
+  .moves > span{
+    background: #f6f8fc; border: 2px solid var(--border); border-radius: 10px; padding: 7px 10px;
+    flex:1; display:flex; align-items:center; gap:6px; min-width:0;
+  }
+  .move-tag{
+    flex-shrink:0; font-size:9px; font-weight:800; letter-spacing:0.02em;
+    text-transform:uppercase; opacity:0.7; width:13px; text-align:center;
+  }
+  .move-name{
+    font-size:13px; font-weight:800; flex:1; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  details.notes-wrap{ font-size:12.5px; }
+  details.notes-wrap summary{
+    cursor:pointer; font-weight:800; color: var(--text-dim); list-style:none;
+    display:flex; align-items:center; gap:5px; user-select:none;
+  }
+  details.notes-wrap summary::-webkit-details-marker{ display:none; }
+  details.notes-wrap summary::before{ content:"▸"; font-size:10px; transition:transform .12s; }
+  details.notes-wrap[open] summary::before{ transform:rotate(90deg); }
+  details.notes-wrap .notes-body{
+    margin-top:6px; color: var(--text-muted); font-weight:600; line-height:1.5;
+    background:#f6f8fc; border-radius: 10px; padding: 9px 11px;
+  }
+
+  .card-body{ display:flex; flex-direction:column; gap:20px; flex:1; }
+  .card-bottom{ display:flex; justify-content:flex-end; margin-top:auto; }
+  .vod-btn{
+    font-family:'Baloo 2', sans-serif; font-size:13.5px; font-weight:700; color: #fff;
+    background: var(--red); border:none; border-radius:999px; padding: 8px 16px;
+    text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.12); transition: transform .15s;
+  }
+  .vod-btn:hover{ transform: translateY(-2px); }
+  .vod-btn svg{ width:11px; height:11px; }
+  .no-vod{ font-size:12px; font-weight:700; color: var(--text-dim); }
+
+  .empty{ text-align:center; color: var(--text-dim); font-weight:700; padding: 60px 20px; }
+
+  .layout{
+    max-width:1760px; margin: 24px auto 0; padding: 0 20px;
+    display:flex; gap:28px; align-items:flex-start;
+  }
+  .sidebar{
+    flex: 0 0 280px; position:sticky; top:20px;
+    display:flex; flex-direction:column; gap:20px;
+  }
+  .filter-block{
+    background:#fff; border:2px solid var(--border); border-radius:16px; padding:14px 16px;
+  }
+  .filter-title{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14px; color: var(--text);
+    margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .filter-clear{
+    font-size:10.5px; font-weight:700; color: var(--blue-dark); cursor:pointer;
+    background:none; border:none; padding:0;
+  }
+  .filter-options{ display:flex; flex-direction:column; gap:8px; }
+  .archive-nav{ display:flex; flex-direction:column; gap:4px; }
+  .archive-nav-link{
+    padding:9px 11px; border-radius:9px; font-family:'Nunito', sans-serif;
+    font-weight:700; font-size:13px; color: var(--text-muted); text-decoration:none;
+    transition: background .12s, color .12s;
+  }
+  .archive-nav-link:hover{ background:#eef6ff; color: var(--blue-dark); }
+  .archive-nav-link.current{ background: var(--blue); color:#fff; }
+  [data-theme="dark"] .archive-nav-link:hover{ background:#232840; color: var(--blue-dark); }
+  .filter-chk{
+    display:flex; align-items:flex-start; gap:9px; font-size:13px; font-weight:600;
+    color: var(--text-muted); cursor:pointer; user-select:none; line-height:1.35;
+  }
+  .filter-chk input{
+    accent-color: var(--blue); width:15px; height:15px; min-width:15px; min-height:15px;
+    flex-shrink:0; cursor:pointer; margin-top:2px; box-sizing:border-box;
+  }
+  .filter-chk:hover{ color: var(--text); }
+  #pokemonSearch{
+    width:100%; background: #f8fafc; border: 2px solid var(--border); color: var(--text);
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    padding: 9px 12px; border-radius: 10px; outline:none;
+    transition: border-color .15s;
+  }
+  #pokemonSearch:focus{ border-color: var(--blue); }
+  #pokemonSearch::placeholder{ color: var(--text-dim); font-weight:600; }
+  .main-content{ flex:1; min-width:0; }
+
+  @media (max-width:900px){
+    .layout{ flex-direction:column; }
+    .sidebar{ position:static; flex:1 1 auto; width:100%; flex-direction:row; flex-wrap:wrap; }
+    .filter-block{ flex:1 1 220px; }
+  }
+  @media (max-width:520px){
+    .tier-grid{ grid-template-columns: 1fr; }
+    header{ padding: 34px 18px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<a class="home-link" href="index.html">← Back to Home</a>
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+
+<header>
+  <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
+  <h1>Tier 4 Raids</h1>
+  <p>Solo completions against Mega Raid bosses, spanning Casual (1★–3★) through Mythical (6★) difficulty. One card per boss, sectioned by the easiest recorded difficulty, hardest to easiest inside each dropdown.</p>
+</header>
+
+<div class="role-legend">
+  <div class="role-legend-item">
+    <span class="role-chip main">Main DPS</span>
+    <span class="role-legend-desc">The primary damage dealer.</span>
+  </div>
+  <div class="role-legend-item">
+    <span class="role-chip support">Support DPS</span>
+    <span class="role-legend-desc">Steps in when the Main DPS goes down.</span>
+  </div>
+  <div class="role-legend-item">
+    <span class="role-chip catchtank">Catch Tank</span>
+    <span class="role-legend-desc">Intercepts large moves &amp; returns heavy damage.</span>
+  </div>
+  <div class="role-legend-item">
+    <span class="role-chip executor">Executor</span>
+    <span class="role-legend-desc">Fights bosses in small windows — usually to finish it off, 1-2 per team.</span>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="search" type="text" placeholder="Search raid boss name…" autocomplete="off">
+  </div>
+  <div class="count" id="count"></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="filter-block">
+      <div class="filter-title">Archives</div>
+      <div class="archive-nav">
+      <a href="tier4-raids.html" class="archive-nav-link current">Tier 4</a>
+      <a href="tier5-raids.html" class="archive-nav-link">Tier 5</a>
+      <a href="tier5-ae-raids.html" class="archive-nav-link">Tier 5 <img src="https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png" alt="AE sword" title="Adventure Effect" style="width:14px;height:14px;vertical-align:-2px;margin-left:2px;"><img src="https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41" alt="AE shield" title="Adventure Effect" style="width:14px;height:14px;vertical-align:-2px;margin-left:2px;"></a>
+      <a href="tier6-elite-raids.html" class="archive-nav-link">Tier 6 & Elite</a>
+    <div class="filter-block">
+      <div class="filter-title">Reference</div>
+      <div class="archive-nav">
+      <a href="meta-battle-parties.html" class="archive-nav-link">Meta Battle Parties</a>
+      <a href="raid-strategies.html" class="archive-nav-link">Raid Strategies</a>
+      <a href="move-data.html" class="archive-nav-link">Move Data</a>
+      <a href="pokemon-stats.html" class="archive-nav-link">Pokémon Stats</a>
+      </div>
+    </div>
+    <div class="filter-block">
+      <div class="filter-title">Tools</div>
+      <div class="archive-nav">
+      <a href="ct-calculator.html" class="archive-nav-link">Catch Tank Calculator</a>
+      <a href="patch-notes.html" class="archive-nav-link">Patch Notes</a>
+      </div>
+    </div>
+    <div class="filter-block">
+      <div class="filter-title">Pokémon in Party</div>
+      <input id="pokemonSearch" type="text" placeholder="e.g. Eternatus…" autocomplete="off">
+    </div>
+    <div class="filter-block">
+      <div class="filter-title">
+        Weather
+        <button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button>
+      </div>
+      <div class="filter-options" id="weatherFilters"></div>
+    </div>
+    <div class="filter-block">
+      <div class="filter-title">
+        Strategy
+        <button class="filter-clear" onclick="clearFilterGroup('strategy')">Clear</button>
+      </div>
+      <div class="filter-options" id="strategyFilters"></div>
+    </div>
+  </aside>
+  <div class="main-content">
+    <div id="sections"></div>
+  </div>
+</div>
+
+<div class="home-link-bottom-wrap">
+  <a class="home-link-bottom" href="index.html">← Back to Home</a>
+</div>
+
+<script>
+const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
+const SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
+
+const RAIDS = [
+{boss:"Mega Aggron",tier:"6",strategy:"Catch Tank",fast:"Dragon tail",charge:"Meteor Beam",weather:"Clear",ae:"",vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Catch Tank, 4x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Mega Blaziken",r:"Support DPS, Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
+{boss:"Mega Metagross",tier:"6",strategy:"Catch Tank",fast:"Varies",charge:"Earthquake",weather:"Extreme",ae:"sword",vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, 5x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Mega Blaziken",r:"Support DPS, Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
+{boss:"Mega Sableye",tier:"6",strategy:"Recycle",fast:"Shadow Claw",charge:"Drain Punch",weather:"Extreme",ae:"sword",vod:"https://www.youtube.com/watch?time_continue=6&v=-gzZcUVgceU&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"Zacian used to land a final play rough",party:[{n:"Mega Gardevoir",r:"Main DPS, 1x",fast:"Charm",charge:"Dazzling Gleam"},{n:"Zacian Crown",r:"Support DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"}]},
+{boss:"Mega Slowbro",tier:"6",strategy:"DBP",fast:"Water Gun",charge:"Ice Beam",weather:"Extreme",ae:"",vod:"https://x.com/hwangokhone/status/2035266999925014923",notes:"Sceptile used as an additional catch tank/Auto Recommended rejoin",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"shadow claw",charge:"moongeist beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 10x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Mega Sceptile",r:"Catch Tank, Executor, 1x",fast:"Firu Citter",charge:"Frenzy Plant"}]},
+{boss:"Mega Aggron",tier:"5",strategy:"Recycle",fast:"Any",charge:"Varies",weather:"Cloudy",ae:"sword",vod:"https://www.youtube.com/watch?v=L3nFkWMOAvc",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Aggron",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Varies",weather:"Clear",ae:"sword",vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, 3x",fast:"Fire Fang",charge:"Fusion Flare"}]},
+{boss:"Mega Gyarados",tier:"5",strategy:"Recycle",fast:"Dragon Breath",charge:"Crunch",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=Vl6gfO6oxsA",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Mawile",tier:"5",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=x3DamPjU5k8",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Groudon",r:"Support DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
+{boss:"Mega Sableye",tier:"5",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Cloudy",ae:"",vod:"https://www.youtube.com/watch?v=M9io_tpnX2M&t=1s",notes:"",party:[{n:"Mega Gardevoir",r:"Main DPS, 1x",fast:"Charm",charge:"Dazzling Gleam"}]},
+{boss:"Mega Slowbro",tier:"5",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"sword",vod:"https://www.youtube.com/watch?v=rojEgYUhuCI",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 4x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
+{boss:"Mega Steelix",tier:"5",strategy:"Recycle",fast:"Any",charge:"Varies",weather:"Cloudy",ae:"sword",vod:"https://www.youtube.com/watch?v=UigLoOXmlss&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Steelix",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Varies",weather:"Clear",ae:"sword",vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, Varies",fast:"Fire Fang",charge:"Fusion Flare"}]},
+{boss:"Mega Steelix",tier:"5",strategy:"Catch Tank",fast:"Any",charge:"Earthquake",weather:"Clear",ae:"shield",vod:"",notes:"Bash keeps reshiram alive from earthquake",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, Varies",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Mega Blaziken",r:"Support DPS, Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
+{boss:"Mega Aerodactyl",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtu.be/z4H0aVkVM6M?si=5CkGdb2AYZSIdvqn",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth blade"}]},
+{boss:"Mega Alakazam",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=i59Tubl08cc",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
+{boss:"Mega Altaria",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=lgxmUQxeQaE",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth blade"}]},
+{boss:"Mega Audino",tier:"4",strategy:"Hot Swap",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=MsrUFCV5oQ4&t",notes:"",party:[{n:"Necrozma Dusk Mane",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Sunsteel Strike"},{n:"Necrozma Dusk Mane",r:"Support DPS, 1x",fast:"Metal Claw",charge:"Sunsteel Strike"}]},
+{boss:"Mega Blastoise",tier:"4",strategy:"Catch Tank",fast:"Any",charge:"Skull Bash",weather:"Extreme",ae:"sword",vod:"https://www.youtube.com/watch?v=9cCK_-b71UE",notes:"",party:[{n:"Regieleki",r:"Main DPS, 1x",fast:"Lock On",charge:"Thunder Cage"},{n:"Regieleki",r:"Catch Tank, 4x",fast:"Lock On",charge:"Thunder Cage"}]},
+{boss:"Mega Blastoise",tier:"4",strategy:"Hot Swap",fast:"Water Gun",charge:"Flash Cannon",weather:"Extreme",ae:"sword",vod:"https://www.youtube.com/watch?v=BqxaqARrGw4&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Mega Sceptile",r:"Main DPS, 1x",fast:"Bullet seed",charge:"Frenzy Plant"},{n:"Regieleki",r:"Support DPS, 2x",fast:"Lock On",charge:"Thunder Cage"}]},
+{boss:"Mega Gardevoir",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=H_cprVsUgzg",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth blade"}]},
+{boss:"Mega Kangaskhan",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=9TbG3XTYZ3E&t=1s",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Metagross",tier:"4",strategy:"Catch Tank",fast:"Any",charge:"Any",weather:"Clear",ae:"sword",vod:"https://www.youtube.com/watch?v=g9LNDJ8VsjM",notes:"Solo'd during energy delay bug. True TTW is faster, use Groudons",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Groudon",r:"Catch Tank, Varies",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Reshiram",r:"Catch Tank, Varies",fast:"Fire Fang",charge:"Fusion Flare"}]},
+{boss:"Mega Slowbro",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Clear",ae:"",vod:"https://youtu.be/CJImh1cWr5Q?si=2qb7qlet5wACkBmI",notes:"",party:[{n:"Mega Sceptile",r:"Main DPS, 1x",fast:"Fury Cutter",charge:"Frency Plant"}]},
+{boss:"Mega Venusaur",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/shorts/hl-1sY7OpcI",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
+{boss:"Mega Ampharos",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=PjJGGHQkCCo&feature=youtu.be",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
+{boss:"Mega Banette",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/usJ-XbHFKlI?si=9wV8hVdKWo0qUYmz",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Mega Tyranitar",r:"Support DPS, 1x",fast:"Bite",charge:"Brutal Swing"}]},
+{boss:"Mega Charizard X",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=QlG7wIcVgY0",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"}]},
+{boss:"Mega Gallade",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=WlDkJHJ4jsg",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
+{boss:"Mega Garchomp",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=O1IetnDXQvA",notes:"",party:[{n:"Kyurem Black",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Freeze Shock"}]},
+{boss:"Mega Gengar",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=II4QIaCSIwM&feature=youtu.be",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
+{boss:"Mega Gyarados",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Cloudy",ae:"",vod:"https://www.youtube.com/watch?v=ufaTgYa26Zo",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Houndoom",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=kjnn62n5BWE",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Lopunny",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/NhccJ8ImIEU?si=JItpvIhq5vDWik-x",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
+{boss:"Mega Lucario",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=thfCiAXKwdc",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Manectric",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=kIDiAgFYvzA",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
+{boss:"Mega Mawile",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Clear",ae:"",vod:"https://www.youtube.com/watch?v=tuGPAdC3mPo",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
+{boss:"Mega Pidgeot",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=kI234qH5WHs",notes:"",party:[{n:"Regieleki",r:"Main DPS, 1x",fast:"Lock On",charge:"Thunder Cage"},{n:"Regieleki",r:"Support DPS, Varies",fast:"Lock On",charge:"Thunder Cage"}]},
+{boss:"Mega Pinsir",tier:"3",strategy:"",fast:"Any",charge:"Varies",weather:"Extreme",ae:"",vod:"https://youtu.be/M-kjh_jTlz8?si=IsoDYfsofvOf7N5X",notes:"Level 42.5 & level 43s; indirect vod for budget solo given the TTW",party:[{n:"Shadow Rampardos",r:"Main DPS, 1x",fast:"Smack Down",charge:"Rock Slide"},{n:"Shadow Rampardos",r:"Support DPS, 1x",fast:"Smack Down",charge:"Rock Slide"}]},
+{boss:"Mega Salamence",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=XxX2mmkEccg",notes:"",party:[{n:"Kyurem Black",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Freeze Shock"}]},
+{boss:"Mega Tyranitar",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/shorts/5jNiXhDzqZo",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Absol",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/shorts/bWWaKBRpmZ0",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Blaziken",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=DkaXDqLEd94",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
+{boss:"Mega Charizard Y",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=6qCgufHoOHY&feature=youtu.be",notes:"",party:[{n:"Shadow Tyrantrum",r:"Main DPS, 1x",fast:"Rock Throw",charge:"Meteor Beam"},{n:"Shadow Tyrantrum",r:"Support DPS, 2x",fast:"Rock Throw",charge:"Meteor Beam"}]},
+{boss:"Mega Glalie",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtu.be/qEnZWtgC7NA?si=pc7KZDtICV0QKqFW",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Medicham",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/ao5nPRXMPN8?si=cMttMMAX8gmtuuHx",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
+{boss:"Mega Sceptile",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=VlDFEXV-G7U",notes:"",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Burn",charge:"Ice Fang"}]},
+{boss:"Mega Scizor",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtu.be/JjRzzc0XhW0?si=slKfgfCRKNJ9W4f7",notes:"",party:[{n:"Mega Blaziken",r:"Main DPS, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
+{boss:"Mega Swampert",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/3-IjBdCAAlY?si=ng__GgYLwMWL0PfP",notes:"",party:[{n:"Mega Sceptile",r:"Main DPS, 1x",fast:"Bullet Seed",charge:"Frenzy Plant"}]},
+{boss:"Mega Tyranitar",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/shorts/5jNiXhDzqZo",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
+{boss:"Mega Abomasnow",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/uZu-6TEiCCY?si=Y8NBnhil_Hca5DMD",notes:"",party:[{n:"Various",r:"Main DPS, 1x",fast:"",charge:""}]},
+{boss:"Mega Beedrill",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/L2HaNrwuHAM?si=m3_yO6XNLiKgkVe3",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
+{boss:"Mega Camerupt",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtu.be/PB5Kn0YrfWM?si=WcYPuH7ROVQNo01u",notes:"",party:[{n:"Primal kyogre",r:"Main DPS, 1x",fast:"Waterfall",charge:"Origin Pulse"}]},
+{boss:"Mega Heracross",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/hdkXxn1yKMQ?feature=share",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
+{boss:"Mega Sharpedo",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?time_continue=1&v=6qiS4KM9IHE&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Various",r:"Main DPS, 1x",fast:"Varies",charge:"Varies"}]},
+];
+
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zamazenta hero":"zamazenta", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "mega heracross":"heracross-mega", "palkia origin":"palkia-origin",
+};
+const DEX_MAP = {
+  "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "dialga":483, "groudon":383, "mamoswine":473,
+  "salamence":373, "gengar":94, "tyrantrum":697, "rhyperior":464,
+  "kyogre":382, "mewtwo":150, "excadrill":530, "blaziken":257,
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  return n.replace(/\s+/g, "-");
+}
+function displayName(name){
+  return name.replace(/\s+Incarnate$/i, "-I").replace(/\s+Therian$/i, "-T");
+}
+function spriteUrl(name){
+  const key = name.trim().toLowerCase();
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
+  }
+  return `https://img.pokemondb.net/artwork/large/${toDbSlug(name)}.jpg`;
+}
+
+function normalizeStrategy(s){
+  if(!s) return s;
+  let out = s;
+  out = out.replace(/\bHS\b/gi, "Hot Swap");
+  out = out.replace(/\bCT\b/gi, "Catch Tank");
+  out = out.replace(/\bTPC\b/gi, "Tick Perfect Cast");
+  out = out.replace(/\bDBP\b/gi, "Double Battle Party");
+  out = out.replace(/\bhot\s*swap\b/gi, "Hot Swap");
+  out = out.replace(/\bcatch\s*tank\b/gi, "Catch Tank");
+
+  const parts = out.split("/").map(p => p.trim()).filter(Boolean);
+  if(parts.length >= 3) return "Various";
+  return parts.join("/");
+}
+RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
+
+const TIER_ORDER = ["7","6","5.5","5","4","3","2","1"];
+const TIER_NAMES = {"7":"Nightmare","6":"Mythical","5.5":"Elite","5":"Hard","4":"Challenging","3":"Moderate","2":"Easy","1":"Very Easy"};
+function tierClass(t){ return {"4":"t4","5":"t5","5.5":"t55","6":"t6","7":"t7","3":"t3","2":"t2","1":"t1"}[t] || "t5"; }
+function tierLabel(t){ return (t === "5.5" ? "5.5" : t) + "★"; }
+
+const TYPE_COLORS = {
+  normal:"#9199A1", fire:"#E2661C", water:"#3E8DE0", electric:"#E0B316",
+  grass:"#4E9A3A", ice:"#5AC9C9", fighting:"#A2402A", poison:"#8A3F94",
+  ground:"#6B4423", flying:"#8B93E0", psychic:"#E0426E", bug:"#7B9A1E",
+  rock:"#B5651D", ghost:"#5B4B8A", dragon:"#5B3FE0", dark:"#4A4238",
+  steel:"#7A8A9A", fairy:"#E091C9", unknown:"#9aa3b2",
+};
+const MOVE_TYPES = {
+  "smack down":"rock", "dragon breath":"dragon", "shadow claw":"ghost", "astonish":"ghost",
+  "air slash":"flying", "metal claw":"steel", "hidden power (gh)":"ghost", "hidden power":"normal",
+  "zen headbutt":"psychic", "fire fang":"fire", "fire spin":"fire", "volt switch":"electric",
+  "gust":"flying", "bullet seed":"grass", "bite":"dark", "charge beam":"electric",
+  "body slam":"normal", "draco meteor":"dragon", "shadow sneak":"ghost", "aqua tail":"water",
+  "focus blast":"fighting", "outrage":"dragon", "aura sphere":"fighting", "solar beam":"grass",
+  "psychic":"psychic", "dark pulse":"dark", "hydro pump":"water", "giga impact":"normal",
+  "overheat":"fire", "psychic fangs":"psychic", "brave bird":"flying", "earthquake":"ground",
+  "close combat":"fighting", "moonblast":"fairy", "zap cannon":"electric", "stone edge":"rock",
+  "hyper beam":"normal", "power whip":"grass", "flash cannon":"steel", "blizzard":"ice",
+  "shadow ball":"ghost", "flamethrower":"fire", "fusion flare":"fire", "rock slide":"rock",
+  "fly":"flying", "ominous wind":"ghost",
+  "steel wing":"steel", "psycho cut":"psychic", "extrasensory":"psychic", "fairy wind":"fairy",
+  "dragon tail":"dragon", "bug bite":"bug", "earth power":"ground", "grass knot":"grass",
+  "rock smash":"fighting", "dazzling gleam":"fairy", "gunk shot":"poison", "lock on":"normal",
+  "thunder":"electric", "incinerate":"fire", "mystical fire":"fire", "ancient power":"rock",
+  "fire blast":"fire",
+  "meteor beam":"rock", "drain punch":"fighting", "water gun":"water", "ice beam":"ice",
+  "crunch":"dark", "skull bash":"normal", "charm":"fairy", "megahorn":"bug",
+  "fury cutter":"bug", "poison jab":"poison", "confusion":"psychic", "force palm":"fighting",
+};
+function getMoveType(move){
+  if(!move) return null;
+  const key = move.trim().toLowerCase();
+  if(key === "any" || key === "varies") return null;
+  return MOVE_TYPES[key] || null;
+}
+const TYPE_TEXT_COLOR = {
+  normal:"#161616", fire:"#161616", water:"#ffffff", electric:"#161616",
+  grass:"#ffffff", ice:"#161616", fighting:"#ffffff", poison:"#ffffff",
+  ground:"#ffffff", flying:"#161616", psychic:"#ffffff", bug:"#ffffff",
+  rock:"#ffffff", ghost:"#ffffff", dragon:"#ffffff", dark:"#ffffff",
+  steel:"#ffffff", fairy:"#161616",
+};
+function moveChipHtml(label, move){
+  const type = getMoveType(move);
+  const color = type ? TYPE_COLORS[type] : null;
+  const textColor = color ? (TYPE_TEXT_COLOR[type] || "#ffffff") : null;
+  const style = color ? `style="background:${color}; color:${textColor}; border-color:${color};"` : "";
+  const shortTag = label === "Fast" ? "F" : "C";
+  return `<span ${style}><span class="move-tag">${shortTag}</span><span class="move-name">${move}</span></span>`;
+}
+
+const WEATHER_ICON_URLS = {
+  "clear":"https://static.wikia.nocookie.net/pokemongo/images/e/ec/Weather_Clear_Day.png/revision/latest?cb=20171206224245",
+  "sunny":"https://static.wikia.nocookie.net/pokemongo/images/e/ec/Weather_Clear_Day.png/revision/latest?cb=20171206224245",
+  "cloudy":"https://static.wikia.nocookie.net/pokemongo/images/b/b1/Weather_Overcast_Day.png/revision/latest?cb=20171206224247",
+  "partly cloudy":"https://static.wikia.nocookie.net/pokemongo/images/8/85/Weather_Partly_Cloudy_Day.png/revision/latest?cb=20171206224248",
+  "windy":"https://static.wikia.nocookie.net/pokemongo/images/5/50/Weather_Windy_Night.png/revision/latest?cb=20171206224252",
+  "wind":"https://static.wikia.nocookie.net/pokemongo/images/5/50/Weather_Windy_Night.png/revision/latest?cb=20171206224252",
+  "rain":"https://static.wikia.nocookie.net/pokemongo/images/f/f4/Weather_Rain_Day.png/revision/latest?cb=20171206224249",
+  "rainy":"https://static.wikia.nocookie.net/pokemongo/images/f/f4/Weather_Rain_Day.png/revision/latest?cb=20171206224249",
+  "snow":"https://static.wikia.nocookie.net/pokemongo/images/e/e8/Weather_Snow_Day.png/revision/latest?cb=20171206224250",
+  "fog":"https://static.wikia.nocookie.net/pokemongo/images/0/07/Weather_Fog_Day.png/revision/latest?cb=20171206224247",
+  "extreme":"https://static.wikia.nocookie.net/pokemongo/images/f/f2/Weather_Extreme.png/revision/latest?cb=20171206224246",
+};
+function weatherIcon(w){
+  const key = w.trim().toLowerCase();
+  const url = WEATHER_ICON_URLS[key];
+  if(url){
+    const cls = key === "extreme" ? "weather-icon-img extreme" : "weather-icon-img";
+    return `<img class="${cls}" src="${url}" alt="${w}" title="${w}" loading="lazy" onerror="this.remove()">`;
+  }
+  return `<span title="${w}">🌤️</span>`;
+}
+function parseRole(roleStr){
+  const parts = roleStr.split(",").map(p => p.trim());
+  let count = null;
+  const roleParts = [];
+  parts.forEach(p => {
+    if(/^\d+x$/i.test(p) || /^varies$/i.test(p)){
+      count = p;
+    } else {
+      roleParts.push(p);
+    }
+  });
+  return { role: roleParts.join(" + "), count };
+}
+
+function roleClass(role){
+  const r = role.toLowerCase();
+  if(r.includes("executor")) return "executor";
+  if(r.includes("catch tank")) return "catchtank";
+  if(r.includes("support")) return "support";
+  return "";
+}
+
+function memberRowHtml(member, isMain){
+  const cls = isMain ? "main" : roleClass(member.r) || "other";
+  const { role, count } = parseRole(member.r);
+  const hasMoveset = member.fast || member.charge;
+  return `
+  <div class="member-row ${isMain ? "main" : ""}">
+    <div class="member-icon">
+      <img src="${spriteUrl(member.n)}" alt="${member.n}" loading="lazy"
+           onerror="this.parentElement.innerHTML='<div class=&quot;fallback&quot;>${member.n[0]}</div>'">
+    </div>
+    <div class="member-info">
+      <div class="member-name">${displayName(member.n)}</div>
+      <div class="role-row">
+        <span class="role-chip ${cls}">${role}</span>
+        ${count ? `<span class="count-badge">${count === "Varies" ? "Varies" : "×" + count.replace(/x$/i,"")}</span>` : ""}
+      </div>
+      ${hasMoveset ? `<div class="party-moveset">${[member.fast, member.charge].filter(Boolean).join(" / ")}</div>` : ""}
+    </div>
+  </div>`;
+}
+function vodHtml(vod){
+  if(vod){
+    return `<a class="vod-btn" href="${vod}" target="_blank" rel="noopener">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Watch VOD
+    </a>`;
+  }
+  return `<span class="no-vod">No VOD available</span>`;
+}
+
+function variantBodyHtml(r){
+  const [main, ...rest] = r.party;
+  const mainHtml = main ? memberRowHtml(main, true) : "";
+  const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
+  return `
+    <div class="meta-row">
+      ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather)}</span>` : ""}
+      ${r.ae === "sword" ? `<img class="ae-icon" src="${AE_ICON}" alt="Behemoth Blade AE" title="Adventure Effect: Behemoth Blade" loading="lazy" onerror="this.style.display='none'">` : ""}
+      ${r.ae === "shield" ? `<img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" title="Adventure Effect: Behemoth Bash" loading="lazy" onerror="this.style.display='none'">` : ""}
+    </div>
+    <div class="party-label">Boss Moveset</div>
+    <div class="moves">
+      ${moveChipHtml("Fast", r.fast)}
+      ${moveChipHtml("Charge", r.charge)}
+    </div>
+    <div class="party-label">Battle Party</div>
+    <div class="party-list">${mainHtml}${restHtml}</div>
+    ${r.notes ? `<details class="notes-wrap"><summary>Notes</summary><div class="notes-body">${r.notes}</div></details>` : ""}
+    <div class="card-bottom">${vodHtml(r.vod)}</div>
+  `;
+}
+
+function bossCardHtml(boss, variants, cardId){
+  const hasMultiple = variants.length > 1;
+  const vodCount = variants.filter(v => v.vod).length;
+  const countLabel = hasMultiple
+    ? `${variants.length} strategies logged${vodCount > 0 ? ` · ${vodCount} with VOD` : " · no VODs yet"}`
+    : "";
+  const strategyLabel = v => v.strategy ? `${tierLabel(v.tier)} · ${v.strategy}` : tierLabel(v.tier);
+  const defaultIdx = variants.length - 1; // easiest recorded variant, matching this card's section
+  const strategySelector = hasMultiple
+    ? `<select class="strat-select" data-card="${cardId}" onchange="updateCard('${cardId}', this.value)">
+        ${variants.map((v,i) => `<option value="${i}" ${i === defaultIdx ? "selected" : ""}>${strategyLabel(v)}</option>`).join("")}
+      </select>`
+    : `<div class="strat-static">${strategyLabel(variants[0])}</div>`;
+
+  return `
+  <div class="card" data-boss="${boss.toLowerCase()}">
+    <div class="card-top">
+      <div class="boss-icon">
+        <img src="${spriteUrl(boss)}" alt="${boss}" loading="lazy" onerror="this.style.display='none'">
+      </div>
+      <div style="flex:1; min-width:0;">
+        <div class="boss-name">${displayName(boss)}</div>
+        ${hasMultiple ? `<div class="variant-count">${countLabel}</div>` : ""}
+      </div>
+      <div class="current-tier-pill ${tierClass(variants[defaultIdx].tier)}" id="pill-${cardId}">${tierLabel(variants[defaultIdx].tier)}</div>
+    </div>
+    ${strategySelector}
+    <div class="card-body" id="body-${cardId}">${variantBodyHtml(variants[defaultIdx])}</div>
+  </div>`;
+}
+
+const TIER_WEIGHT = {"7":5,"6":4,"5.5":3,"5":2,"4":1};
+
+// Group by boss only (across all tiers), sort variants hardest -> easiest
+const bossGroups = {};
+RAIDS.forEach(r => {
+  if(!bossGroups[r.boss]) bossGroups[r.boss] = [];
+  bossGroups[r.boss].push(r);
+});
+Object.keys(bossGroups).forEach(boss => {
+  bossGroups[boss].sort((a,b) => TIER_WEIGHT[b.tier] - TIER_WEIGHT[a.tier]);
+});
+// Order boss cards alphabetically within each section
+const bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
+
+const VARIANTS_BY_CARD = {};
+const activeWeathers = new Set();
+const activeStrategies = new Set();
+
+const WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
+const STRATEGY_LIST = ["Catch Tank", "Hot Swap", "Tick Perfect Cast", "Recycle", "Various", "Double Battle Party"];
+function strategyCategories(strategy){
+  if(!strategy) return [];
+  return STRATEGY_LIST.filter(cat => strategy.toLowerCase().includes(cat.toLowerCase()));
+}
+
+function renderFilterGroup(containerId, list, activeSet, toggleFnName, showIcon){
+  const el = document.getElementById(containerId);
+  el.innerHTML = list.map(val => `
+    <label class="filter-chk">
+      <input type="checkbox" ${activeSet.has(val) ? "checked" : ""} onchange="${toggleFnName}('${val.replace(/'/g,"\\'")}')">
+      ${showIcon ? weatherIcon(val) + " " : ""}${val}
+    </label>
+  `).join("");
+}
+function renderWeatherFilters(){ renderFilterGroup("weatherFilters", WEATHER_LIST, activeWeathers, "toggleWeather", true); }
+function renderStrategyFilters(){ renderFilterGroup("strategyFilters", STRATEGY_LIST, activeStrategies, "toggleStrategy", false); }
+
+function toggleWeather(w){
+  if(activeWeathers.has(w)) activeWeathers.delete(w); else activeWeathers.add(w);
+  refresh();
+}
+function toggleStrategy(s){
+  if(activeStrategies.has(s)) activeStrategies.delete(s); else activeStrategies.add(s);
+  refresh();
+}
+function clearFilterGroup(group){
+  if(group === "weather") activeWeathers.clear();
+  if(group === "strategy") activeStrategies.clear();
+  refresh();
+}
+
+function refresh(){
+  renderWeatherFilters();
+  renderStrategyFilters();
+  buildSections();
+}
+
+function buildSections(){
+  const bossQuery = search.value.trim().toLowerCase();
+  const pokemonQuery = pokemonSearch.value.trim().toLowerCase();
+  const sectionsEl = document.getElementById("sections");
+  let totalVisible = 0;
+  let html = "";
+
+  TIER_ORDER.forEach(tier => {
+    let sectionCardsHtml = "";
+
+    bossOrder.forEach((boss, i) => {
+      if(bossGroups[boss][bossGroups[boss].length - 1].tier !== tier) return; // group by lowest/easiest recorded tier
+      if(bossQuery && !boss.toLowerCase().includes(bossQuery)) return;
+
+      let variants = bossGroups[boss].filter(v => {
+        if(activeWeathers.size > 0 && !activeWeathers.has(v.weather)) return false;
+        if(activeStrategies.size > 0 && !strategyCategories(v.strategy).some(c => activeStrategies.has(c))) return false;
+        if(pokemonQuery && !v.party.some(p => p.n.toLowerCase().includes(pokemonQuery))) return false;
+        return true;
+      });
+      if(variants.length === 0) return;
+
+      const cardId = `b-${i}`;
+      VARIANTS_BY_CARD[cardId] = variants;
+      sectionCardsHtml += bossCardHtml(boss, variants, cardId);
+      totalVisible++;
+    });
+
+    if(sectionCardsHtml){
+      html += `
+      <div class="tier-section">
+        <div class="tier-header">
+          <span class="tier-pill-lg ${tierClass(tier)}">${tierLabel(tier)}</span>
+          <span class="tier-name">${TIER_NAMES[tier] || ""}</span>
+          <div class="tier-line"></div>
+        </div>
+        <div class="tier-grid">${sectionCardsHtml}</div>
+      </div>`;
+    }
+  });
+
+  sectionsEl.innerHTML = html || `<div class="empty">No raid bosses match your filters.</div>`;
+  document.getElementById("count").textContent = `${totalVisible} boss${totalVisible === 1 ? "" : "es"}`;
+}
+
+function updateCard(cardId, variantIndex){
+  const variants = VARIANTS_BY_CARD[cardId];
+  const variant = variants[variantIndex];
+  const body = document.getElementById(`body-${cardId}`);
+  const pill = document.getElementById(`pill-${cardId}`);
+  if(body) body.innerHTML = variantBodyHtml(variant);
+  if(pill){
+    pill.className = `current-tier-pill ${tierClass(variant.tier)}`;
+    pill.textContent = tierLabel(variant.tier);
+  }
+}
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+const search = document.getElementById("search");
+const pokemonSearch = document.getElementById("pokemonSearch");
+search.addEventListener("input", buildSections);
+pokemonSearch.addEventListener("input", buildSections);
+renderWeatherFilters();
+renderStrategyFilters();
+buildSections();
+</script>
+
+</body>
+</html>

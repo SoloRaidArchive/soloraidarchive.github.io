@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f6f7fb; --card: #ffffff; --border: #e6e8f0;
+    --ink: #1a1d29; --ink-muted: #5c6070; --ink-dim: #9498a8;
+    --accent: #5b4fe0; --accent-soft: #eeecfd; --accent-dark: #453ac2;
+  }
+  [data-theme="dark"]{
+    --bg: #10121b; --card: #1b1e2b; --border: #2b2f42;
+    --ink: #eef0f6; --ink-muted: #a7acbd; --ink-dim: #767c8f;
+    --accent: #8b7fff; --accent-soft: #2a2452; --accent-dark: #b8adff;
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; min-height:100vh; }
+
+  .home-link{
+    position:fixed; top:16px; left:16px; z-index:20;
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:1px solid var(--border); border-radius:10px;
+    padding: 9px 15px; font-weight:600; font-size:13px;
+    color: var(--accent); text-decoration:none; box-shadow: 0 2px 6px rgba(26,29,41,0.06);
+  }
+  .theme-toggle{
+    position:fixed; top:16px; right:16px; z-index:20;
+    width:42px; height:42px; border-radius:50%;
+    background: var(--card); border:1px solid var(--border);
+    font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 2px 6px rgba(26,29,41,0.08);
+  }
+
+  header{ padding: 60px 24px 24px; text-align:center; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.16em;
+    text-transform:uppercase; color: var(--accent); margin-bottom:12px; font-weight:600;
+  }
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size: clamp(30px, 5vw, 42px);
+    margin: 0 0 10px; color: var(--ink);
+  }
+  header p{ color: var(--ink-muted); font-size: 14.5px; max-width: 600px; margin: 0 auto; line-height:1.6; }
+
+  .controls{
+    max-width: 1100px; margin: 20px auto 0; padding: 0 20px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
+  }
+  #searchInput{
+    flex:1 1 260px; max-width:340px;
+    background: var(--card); border: 1px solid var(--border); color: var(--ink);
+    font-size:13.5px; padding: 10px 14px; border-radius: 10px; outline:none;
+  }
+  #searchInput:focus{ border-color: var(--accent); }
+  #sortSelect{
+    background: var(--card); border: 1px solid var(--border); color: var(--ink);
+    font-size:13px; font-weight:600; padding: 9px 12px; border-radius: 10px; outline:none;
+  }
+
+  .layout{
+    max-width: 1300px; margin: 0 auto; padding: 0 20px;
+    display:flex; gap:24px; align-items:flex-start;
+  }
+  .sidebar{
+    flex: 0 0 200px; position:sticky; top:20px;
+    background: var(--card); border:2px solid var(--border); border-radius:16px; padding:16px;
+  }
+  .sidebar-title{
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:11px;
+    color: var(--ink-dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;
+  }
+  .sidebar-link{
+    display:block; padding:9px 11px; border-radius:9px; margin-bottom:2px;
+    font-weight:700; font-size:13px; color: var(--ink-muted); text-decoration:none;
+    transition: background .12s, color .12s;
+  }
+  .sidebar-link:hover{ background: var(--accent-soft); color: var(--accent-dark); }
+  .sidebar-link.current{ background: var(--accent); color:#fff; }
+  .main-content{ flex:1; min-width:0; }
+  @media (max-width:860px){
+    .layout{ flex-direction:column; }
+    .sidebar{ position:static; width:100%; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+    .sidebar-title{ width:100%; margin-top:8px; }
+  }
+  .container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 70px; }
+  .count{
+    text-align:center; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color: var(--ink-dim); margin-bottom:14px;
+  }
+  .pkmn-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:12px; }
+  .pkmn-card{
+    background: var(--card); border:1px solid var(--border); border-radius:14px;
+    padding: 14px 16px; box-shadow: 0 1px 2px rgba(26,29,41,0.04);
+    display:flex; align-items:center; gap:12px;
+  }
+  .pkmn-sprite{
+    width:52px; height:52px; border-radius:10px; flex-shrink:0;
+    background: #f0f1f7; border:1px solid var(--border);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  [data-theme="dark"] .pkmn-sprite{ background:#e9edf5; border-color:#3a3f56; }
+  .pkmn-sprite img{ width:100%; height:100%; object-fit:contain; padding:3px; }
+  .pkmn-info{ flex:1; min-width:0; }
+  .pkmn-name{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pkmn-stats{ display:flex; gap:10px; font-family:'IBM Plex Mono', monospace; font-size:11px; color: var(--ink-muted); margin-top:3px; }
+  .pkmn-stats b{ color: var(--ink); display:block; font-size:12.5px; }
+  .pkmn-stats span{ display:flex; flex-direction:column; gap:1px; }
+
+  .empty{ text-align:center; color: var(--ink-dim); padding:60px 20px; font-family:'IBM Plex Mono', monospace; }
+</style>
+</head>
+<body>
+
+<a class="home-link" href="index.html">← Back to Home</a>
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+
+<header>
+  <div class="eyebrow">Reference Data</div>
+  <h1>Pokémon Stats</h1>
+  <p>Base HP / Attack / Defense for every Pokémon in the database, the same data the Catch Tank Calculator uses to compute effective stats at your chosen level and IVs.</p>
+</header>
+
+<div class="controls">
+  <input id="searchInput" type="text" placeholder="Search Pokémon name…" autocomplete="off">
+  <select id="sortSelect">
+    <option value="name">Sort: Name (A–Z)</option>
+    <option value="atk">Sort: Attack (High–Low)</option>
+    <option value="def">Sort: Defense (High–Low)</option>
+    <option value="hp">Sort: HP (High–Low)</option>
+  </select>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-title">Archives</div>
+    <a href="tier4-raids.html" class="sidebar-link">Tier 4</a>
+    <a href="tier5-raids.html" class="sidebar-link">Tier 5</a>
+    <a href="tier5-ae-raids.html" class="sidebar-link">Tier 5 (AE)</a>
+    <a href="tier6-elite-raids.html" class="sidebar-link">Tier 6 &amp; Elite</a>
+    <div class="sidebar-title" style="margin-top:16px;">Reference</div>
+    <a href="meta-battle-parties.html" class="sidebar-link">Meta Battle Parties</a>
+    <a href="raid-strategies.html" class="sidebar-link">Raid Strategies</a>
+    <a href="move-data.html" class="sidebar-link">Move Data</a>
+    <a href="pokemon-stats.html" class="sidebar-link current">Pokémon Stats</a>
+    <div class="sidebar-title" style="margin-top:16px;">Tools</div>
+    <a href="ct-calculator.html" class="sidebar-link">Catch Tank Calculator</a>
+    <a href="patch-notes.html" class="sidebar-link">Patch Notes</a>
+  </aside>
+  <div class="main-content">
+<div class="container">
+  <div class="count" id="count"></div>
+  <div class="pkmn-grid" id="pkmnGrid"></div>
+</div>
+  </div>
+</div>
+
+<script>
+const POKEMON_DB = [
+{n:"Bulbasaur",hp:128.0,atk:118.0,def:111.0},{n:"Ivysaur",hp:155.0,atk:151.0,def:143.0},{n:"Venusaur",hp:190.0,atk:198.0,def:189.0},{n:"Mega Venusaur",hp:190.0,atk:241.0,def:246.0},{n:"Charmander",hp:118.0,atk:116.0,def:93.0},{n:"Charmeleon",hp:151.0,atk:158.0,def:126.0},
+{n:"Charizard",hp:186.0,atk:223.0,def:173.0},{n:"Mega Charizard X",hp:186.0,atk:273.0,def:213.0},{n:"Mega Charizard Y",hp:186.0,atk:319.0,def:212.0},{n:"Squirtle",hp:127.0,atk:94.0,def:121.0},{n:"Wartortle",hp:153.0,atk:126.0,def:155.0},{n:"Blastoise",hp:188.0,atk:171.0,def:207.0},
+{n:"Mega Blastoise",hp:188.0,atk:264.0,def:237.0},{n:"Caterpie",hp:128.0,atk:55.0,def:55.0},{n:"Metapod",hp:137.0,atk:45.0,def:80.0},{n:"Butterfree",hp:155.0,atk:167.0,def:137.0},{n:"Weedle",hp:120.0,atk:63.0,def:50.0},{n:"Kakuna",hp:128.0,atk:46.0,def:75.0},
+{n:"Beedrill",hp:163.0,atk:169.0,def:130.0},{n:"Mega Beedrill",hp:163.0,atk:303.0,def:148.0},{n:"Pidgey",hp:120.0,atk:85.0,def:73.0},{n:"Pidgeotto",hp:160.0,atk:117.0,def:105.0},{n:"Pidgeot",hp:195.0,atk:166.0,def:154.0},{n:"Mega Pidgeot",hp:195.0,atk:280.0,def:175.0},
+{n:"Rattata",hp:102.0,atk:103.0,def:70.0},{n:"Alolan Rattata",hp:102.0,atk:103.0,def:70.0},{n:"Raticate",hp:146.0,atk:161.0,def:139.0},{n:"Alolan Raticate",hp:181.0,atk:135.0,def:154.0},{n:"Spearow",hp:120.0,atk:112.0,def:60.0},{n:"Fearow",hp:163.0,atk:182.0,def:133.0},
+{n:"Ekans",hp:111.0,atk:110.0,def:97.0},{n:"Arbok",hp:155.0,atk:167.0,def:153.0},{n:"Pikachu",hp:111.0,atk:112.0,def:96.0},{n:"Raichu",hp:155.0,atk:193.0,def:151.0},{n:"Alolan Raichu",hp:155.0,atk:201.0,def:154.0},{n:"Mega Raichu X",hp:155.0,atk:277.0,def:203.0},
+{n:"Mega Raichu Y",hp:155.0,atk:339.0,def:157.0},{n:"Sandshrew",hp:137.0,atk:126.0,def:120.0},{n:"Alolan Sandshrew",hp:137.0,atk:125.0,def:129.0},{n:"Sandslash",hp:181.0,atk:182.0,def:175.0},{n:"Alolan Sandslash",hp:181.0,atk:177.0,def:195.0},{n:"Nidoran♀",hp:146.0,atk:86.0,def:89.0},
+{n:"Nidorina",hp:172.0,atk:117.0,def:120.0},{n:"Nidoqueen",hp:207.0,atk:180.0,def:173.0},{n:"Nidoran♂",hp:130.0,atk:105.0,def:76.0},{n:"Nidorino",hp:156.0,atk:137.0,def:111.0},{n:"Nidoking",hp:191.0,atk:204.0,def:156.0},{n:"Clefairy",hp:172.0,atk:107.0,def:108.0},
+{n:"Clefable",hp:216.0,atk:178.0,def:162.0},{n:"Mega Clefable",hp:216.0,atk:253.0,def:205.0},{n:"Vulpix",hp:116.0,atk:96.0,def:109.0},{n:"Alolan Vulpix",hp:116.0,atk:96.0,def:109.0},{n:"Ninetales",hp:177.0,atk:169.0,def:190.0},{n:"Alolan Ninetales",hp:177.0,atk:170.0,def:193.0},
+{n:"Jigglypuff",hp:251.0,atk:80.0,def:41.0},{n:"Wigglytuff",hp:295.0,atk:156.0,def:90.0},{n:"Zubat",hp:120.0,atk:83.0,def:73.0},{n:"Golbat",hp:181.0,atk:161.0,def:150.0},{n:"Oddish",hp:128.0,atk:131.0,def:112.0},{n:"Gloom",hp:155.0,atk:153.0,def:136.0},
+{n:"Vileplume",hp:181.0,atk:202.0,def:167.0},{n:"Paras",hp:111.0,atk:121.0,def:99.0},{n:"Parasect",hp:155.0,atk:165.0,def:146.0},{n:"Venonat",hp:155.0,atk:100.0,def:100.0},{n:"Venomoth",hp:172.0,atk:179.0,def:143.0},{n:"Diglett",hp:67.0,atk:109.0,def:78.0},
+{n:"Alolan Diglett",hp:67.0,atk:108.0,def:81.0},{n:"Dugtrio",hp:111.0,atk:167.0,def:136.0},{n:"Alolan Dugtrio",hp:111.0,atk:201.0,def:142.0},{n:"Meowth",hp:120.0,atk:92.0,def:78.0},{n:"Alolan Meowth",hp:120.0,atk:99.0,def:78.0},{n:"Galarian Meowth",hp:137.0,atk:115.0,def:92.0},
+{n:"Persian",hp:163.0,atk:150.0,def:136.0},{n:"Alolan Persian",hp:163.0,atk:158.0,def:136.0},{n:"Psyduck",hp:137.0,atk:122.0,def:95.0},{n:"Golduck",hp:190.0,atk:191.0,def:162.0},{n:"Mankey",hp:120.0,atk:148.0,def:82.0},{n:"Primeape",hp:163.0,atk:207.0,def:138.0},
+{n:"Growlithe",hp:146.0,atk:136.0,def:93.0},{n:"Hisuian Growlithe",hp:155.0,atk:142.0,def:92.0},{n:"Arcanine",hp:207.0,atk:227.0,def:166.0},{n:"Hisuian Arcanine",hp:216.0,atk:232.0,def:165.0},{n:"Poliwag",hp:120.0,atk:101.0,def:82.0},{n:"Poliwhirl",hp:163.0,atk:130.0,def:123.0},
+{n:"Poliwrath",hp:207.0,atk:182.0,def:184.0},{n:"Abra",hp:93.0,atk:195.0,def:82.0},{n:"Kadabra",hp:120.0,atk:232.0,def:117.0},{n:"Alakazam",hp:146.0,atk:271.0,def:167.0},{n:"Mega Alakazam",hp:146.0,atk:367.0,def:207.0},{n:"Machop",hp:172.0,atk:137.0,def:82.0},
+{n:"Machoke",hp:190.0,atk:177.0,def:125.0},{n:"Machamp",hp:207.0,atk:234.0,def:159.0},{n:"Bellsprout",hp:137.0,atk:139.0,def:61.0},{n:"Weepinbell",hp:163.0,atk:172.0,def:92.0},{n:"Victreebel",hp:190.0,atk:207.0,def:135.0},{n:"Mega Victreebel",hp:190.0,atk:265.0,def:181.0},
+{n:"Tentacool",hp:120.0,atk:97.0,def:149.0},{n:"Tentacruel",hp:190.0,atk:166.0,def:209.0},{n:"Geodude",hp:120.0,atk:132.0,def:132.0},{n:"Alolan Geodude",hp:120.0,atk:132.0,def:132.0},{n:"Graveler",hp:146.0,atk:164.0,def:164.0},{n:"Alolan Graveler",hp:146.0,atk:164.0,def:164.0},
+{n:"Golem",hp:190.0,atk:211.0,def:198.0},{n:"Alolan Golem",hp:190.0,atk:211.0,def:198.0},{n:"Ponyta",hp:137.0,atk:170.0,def:127.0},{n:"Galarian Ponyta",hp:137.0,atk:170.0,def:127.0},{n:"Rapidash",hp:163.0,atk:207.0,def:162.0},{n:"Galarian Rapidash",hp:163.0,atk:207.0,def:162.0},
+{n:"Slowpoke",hp:207.0,atk:109.0,def:98.0},{n:"Galarian Slowpoke",hp:207.0,atk:109.0,def:98.0},{n:"Slowbro",hp:216.0,atk:177.0,def:180.0},{n:"Galarian Slowbro",hp:216.0,atk:182.0,def:156.0},{n:"Mega Slowbro",hp:216.0,atk:224.0,def:259.0},{n:"Magnemite",hp:93.0,atk:165.0,def:121.0},
+{n:"Magneton",hp:137.0,atk:223.0,def:169.0},{n:"Farfetch'd",hp:141.0,atk:124.0,def:115.0},{n:"Galarian Farfetch'd",hp:141.0,atk:174.0,def:114.0},{n:"Doduo",hp:111.0,atk:158.0,def:83.0},{n:"Dodrio",hp:155.0,atk:218.0,def:140.0},{n:"Seel",hp:163.0,atk:85.0,def:121.0},
+{n:"Dewgong",hp:207.0,atk:139.0,def:177.0},{n:"Grimer",hp:190.0,atk:135.0,def:90.0},{n:"Alolan Grimer",hp:190.0,atk:135.0,def:90.0},{n:"Muk",hp:233.0,atk:190.0,def:172.0},{n:"Alolan Muk",hp:233.0,atk:190.0,def:172.0},{n:"Shellder",hp:102.0,atk:116.0,def:134.0},
+{n:"Cloyster",hp:137.0,atk:186.0,def:256.0},{n:"Gastly",hp:102.0,atk:186.0,def:67.0},{n:"Haunter",hp:128.0,atk:223.0,def:107.0},{n:"Gengar",hp:155.0,atk:261.0,def:149.0},{n:"Shadow Gengar",hp:155.0,atk:261.0,def:149.0},{n:"Mega Gengar",hp:155.0,atk:349.0,def:199.0},
+{n:"Onix",hp:111.0,atk:85.0,def:232.0},{n:"Drowzee",hp:155.0,atk:89.0,def:136.0},{n:"Hypno",hp:198.0,atk:144.0,def:193.0},{n:"Krabby",hp:102.0,atk:181.0,def:124.0},{n:"Kingler",hp:146.0,atk:240.0,def:181.0},{n:"Voltorb",hp:120.0,atk:109.0,def:111.0},
+{n:"Hisuian Voltorb",hp:120.0,atk:109.0,def:111.0},{n:"Electrode",hp:155.0,atk:173.0,def:173.0},{n:"Hisuian Electrode",hp:155.0,atk:176.0,def:176.0},{n:"Exeggcute",hp:155.0,atk:107.0,def:125.0},{n:"Exeggutor",hp:216.0,atk:233.0,def:149.0},{n:"Alolan Exeggutor",hp:216.0,atk:230.0,def:153.0},
+{n:"Cubone",hp:137.0,atk:90.0,def:144.0},{n:"Marowak",hp:155.0,atk:144.0,def:186.0},{n:"Alolan Marowak",hp:155.0,atk:144.0,def:186.0},{n:"Hitmonlee",hp:137.0,atk:224.0,def:181.0},{n:"Hitmonchan",hp:137.0,atk:193.0,def:197.0},{n:"Lickitung",hp:207.0,atk:108.0,def:137.0},
+{n:"Koffing",hp:120.0,atk:119.0,def:141.0},{n:"Weezing",hp:163.0,atk:174.0,def:197.0},{n:"Galarian Weezing",hp:163.0,atk:174.0,def:197.0},{n:"Rhyhorn",hp:190.0,atk:140.0,def:127.0},{n:"Rhydon",hp:233.0,atk:222.0,def:171.0},{n:"Chansey",hp:487.0,atk:60.0,def:128.0},
+{n:"Tangela",hp:163.0,atk:183.0,def:169.0},{n:"Kangaskhan",hp:233.0,atk:181.0,def:165.0},{n:"Mega Kangaskhan",hp:233.0,atk:246.0,def:210.0},{n:"Horsea",hp:102.0,atk:129.0,def:103.0},{n:"Seadra",hp:146.0,atk:187.0,def:156.0},{n:"Goldeen",hp:128.0,atk:123.0,def:110.0},
+{n:"Seaking",hp:190.0,atk:175.0,def:147.0},{n:"Staryu",hp:102.0,atk:137.0,def:112.0},{n:"Starmie",hp:155.0,atk:210.0,def:184.0},{n:"Mega Starmie",hp:155.0,atk:303.0,def:229.0},{n:"Mr. Mime",hp:120.0,atk:192.0,def:205.0},{n:"Galarian Mr. Mime",hp:137.0,atk:183.0,def:169.0},
+{n:"Scyther",hp:172.0,atk:218.0,def:170.0},{n:"Jynx",hp:163.0,atk:223.0,def:151.0},{n:"Electabuzz",hp:163.0,atk:198.0,def:158.0},{n:"Magmar",hp:163.0,atk:206.0,def:154.0},{n:"Pinsir",hp:163.0,atk:238.0,def:182.0},{n:"Mega Pinsir",hp:163.0,atk:305.0,def:231.0},
+{n:"Tauros",hp:181.0,atk:198.0,def:183.0},{n:"Magikarp",hp:85.0,atk:29.0,def:85.0},{n:"Gyarados",hp:216.0,atk:237.0,def:186.0},{n:"Mega Gyarados",hp:216.0,atk:292.0,def:247.0},{n:"Lapras",hp:277.0,atk:165.0,def:174.0},{n:"Ditto",hp:134.0,atk:91.0,def:91.0},
+{n:"Eevee",hp:146.0,atk:104.0,def:114.0},{n:"Vaporeon",hp:277.0,atk:205.0,def:161.0},{n:"Jolteon",hp:163.0,atk:232.0,def:182.0},{n:"Flareon",hp:163.0,atk:246.0,def:179.0},{n:"Porygon",hp:163.0,atk:153.0,def:136.0},{n:"Omanyte",hp:111.0,atk:155.0,def:153.0},
+{n:"Omastar",hp:172.0,atk:207.0,def:201.0},{n:"Kabuto",hp:102.0,atk:148.0,def:140.0},{n:"Kabutops",hp:155.0,atk:220.0,def:186.0},{n:"Aerodactyl",hp:190.0,atk:221.0,def:159.0},{n:"Mega Aerodactyl",hp:190.0,atk:292.0,def:210.0},{n:"Snorlax",hp:330.0,atk:190.0,def:169.0},
+{n:"Articuno",hp:207.0,atk:192.0,def:236.0},{n:"Galarian Articuno",hp:207.0,atk:250.0,def:197.0},{n:"Zapdos",hp:207.0,atk:253.0,def:185.0},{n:"Galarian Zapdos",hp:207.0,atk:252.0,def:189.0},{n:"Moltres",hp:207.0,atk:251.0,def:181.0},{n:"Shadow Moltres",hp:207.0,atk:251.0,def:181.0},
+{n:"Galarian Moltres",hp:207.0,atk:202.0,def:231.0},{n:"Dratini",hp:121.0,atk:119.0,def:91.0},{n:"Dragonair",hp:156.0,atk:163.0,def:135.0},{n:"Dragonite",hp:209.0,atk:263.0,def:198.0},{n:"Mega Dragonite",hp:209.0,atk:299.0,def:255.0},{n:"Mewtwo",hp:214.0,atk:300.0,def:182.0},
+{n:"Mega Mewtwo X",hp:228.0,atk:399.0,def:215.0},{n:"Mega Mewtwo Y",hp:228.0,atk:413.0,def:223.0},{n:"Mewtwo Armored",hp:214.0,atk:182.0,def:278.0},{n:"Shadow Mewtwo",hp:214.0,atk:300.0,def:182.0},{n:"Mew",hp:225.0,atk:210.0,def:210.0},{n:"Chikorita",hp:128.0,atk:92.0,def:122.0},
+{n:"Bayleef",hp:155.0,atk:122.0,def:155.0},{n:"Meganium",hp:190.0,atk:168.0,def:202.0},{n:"Mega Meganium",hp:190.0,atk:276.0,def:232.0},{n:"Cyndaquil",hp:118.0,atk:116.0,def:93.0},{n:"Quilava",hp:151.0,atk:158.0,def:126.0},{n:"Typhlosion",hp:186.0,atk:223.0,def:173.0},
+{n:"Hisuian Typhlosion",hp:177.0,atk:238.0,def:172.0},{n:"Totodile",hp:137.0,atk:117.0,def:109.0},{n:"Croconaw",hp:163.0,atk:150.0,def:142.0},{n:"Feraligatr",hp:198.0,atk:205.0,def:188.0},{n:"Mega Feraligatr",hp:198.0,atk:304.0,def:227.0},{n:"Sentret",hp:111.0,atk:79.0,def:73.0},
+{n:"Furret",hp:198.0,atk:148.0,def:125.0},{n:"Hoothoot",hp:155.0,atk:67.0,def:88.0},{n:"Noctowl",hp:225.0,atk:145.0,def:156.0},{n:"Ledyba",hp:120.0,atk:72.0,def:118.0},{n:"Ledian",hp:146.0,atk:107.0,def:179.0},{n:"Spinarak",hp:120.0,atk:105.0,def:73.0},
+{n:"Ariados",hp:172.0,atk:161.0,def:124.0},{n:"Crobat",hp:198.0,atk:194.0,def:178.0},{n:"Chinchou",hp:181.0,atk:106.0,def:97.0},{n:"Lanturn",hp:268.0,atk:146.0,def:137.0},{n:"Pichu",hp:85.0,atk:77.0,def:53.0},{n:"Cleffa",hp:137.0,atk:75.0,def:79.0},
+{n:"Igglybuff",hp:207.0,atk:69.0,def:32.0},{n:"Togepi",hp:111.0,atk:67.0,def:116.0},{n:"Togetic",hp:146.0,atk:139.0,def:181.0},{n:"Natu",hp:120.0,atk:134.0,def:89.0},{n:"Xatu",hp:163.0,atk:192.0,def:146.0},{n:"Mareep",hp:146.0,atk:114.0,def:79.0},
+{n:"Flaaffy",hp:172.0,atk:145.0,def:109.0},{n:"Ampharos",hp:207.0,atk:211.0,def:169.0},{n:"Mega Ampharos",hp:207.0,atk:294.0,def:203.0},{n:"Bellossom",hp:181.0,atk:169.0,def:186.0},{n:"Marill",hp:172.0,atk:37.0,def:93.0},{n:"Azumarill",hp:225.0,atk:112.0,def:152.0},
+{n:"Sudowoodo",hp:172.0,atk:167.0,def:176.0},{n:"Politoed",hp:207.0,atk:174.0,def:179.0},{n:"Hoppip",hp:111.0,atk:67.0,def:94.0},{n:"Skiploom",hp:146.0,atk:91.0,def:120.0},{n:"Jumpluff",hp:181.0,atk:118.0,def:183.0},{n:"Aipom",hp:146.0,atk:136.0,def:112.0},
+{n:"Sunkern",hp:102.0,atk:55.0,def:55.0},{n:"Sunflora",hp:181.0,atk:185.0,def:135.0},{n:"Yanma",hp:163.0,atk:154.0,def:94.0},{n:"Wooper",hp:146.0,atk:75.0,def:66.0},{n:"Paldean Wooper",hp:146.0,atk:75.0,def:66.0},{n:"Quagsire",hp:216.0,atk:152.0,def:143.0},
+{n:"Espeon",hp:163.0,atk:261.0,def:175.0},{n:"Umbreon",hp:216.0,atk:126.0,def:240.0},{n:"Murkrow",hp:155.0,atk:175.0,def:87.0},{n:"Slowking",hp:216.0,atk:177.0,def:180.0},{n:"Galarian Slowking",hp:216.0,atk:190.0,def:180.0},{n:"Misdreavus",hp:155.0,atk:167.0,def:154.0},
+{n:"Unown",hp:134.0,atk:136.0,def:91.0},{n:"Wobbuffet",hp:382.0,atk:60.0,def:106.0},{n:"Girafarig",hp:172.0,atk:182.0,def:133.0},{n:"Pineco",hp:137.0,atk:108.0,def:122.0},{n:"Forretress",hp:181.0,atk:161.0,def:205.0},{n:"Dunsparce",hp:225.0,atk:131.0,def:128.0},
+{n:"Gligar",hp:163.0,atk:143.0,def:184.0},{n:"Steelix",hp:181.0,atk:148.0,def:272.0},{n:"Mega Steelix",hp:181.0,atk:212.0,def:327.0},{n:"Snubbull",hp:155.0,atk:137.0,def:85.0},{n:"Granbull",hp:207.0,atk:212.0,def:131.0},{n:"Qwilfish",hp:163.0,atk:184.0,def:138.0},
+{n:"Hisuian Qwilfish",hp:163.0,atk:184.0,def:151.0},{n:"Scizor",hp:172.0,atk:236.0,def:181.0},{n:"Mega Scizor",hp:172.0,atk:279.0,def:250.0},{n:"Shuckle",hp:85.0,atk:17.0,def:396.0},{n:"Heracross",hp:190.0,atk:234.0,def:179.0},{n:"Mega Heracross",hp:190.0,atk:334.0,def:223.0},
+{n:"Sneasel",hp:146.0,atk:189.0,def:146.0},{n:"Hisuian Sneasel",hp:146.0,atk:189.0,def:146.0},{n:"Teddiursa",hp:155.0,atk:142.0,def:93.0},{n:"Ursaring",hp:207.0,atk:236.0,def:144.0},{n:"Slugma",hp:120.0,atk:118.0,def:71.0},{n:"Magcargo",hp:137.0,atk:139.0,def:191.0},
+{n:"Swinub",hp:137.0,atk:90.0,def:69.0},{n:"Piloswine",hp:225.0,atk:181.0,def:138.0},{n:"Corsola",hp:146.0,atk:118.0,def:156.0},{n:"Remoraid",hp:111.0,atk:127.0,def:69.0},{n:"Octillery",hp:181.0,atk:197.0,def:141.0},{n:"Delibird",hp:128.0,atk:128.0,def:90.0},
+{n:"Mantine",hp:163.0,atk:148.0,def:226.0},{n:"Skarmory",hp:163.0,atk:148.0,def:226.0},{n:"Mega Skarmory",hp:163.0,atk:273.0,def:228.0},{n:"Houndour",hp:128.0,atk:152.0,def:83.0},{n:"Houndoom",hp:181.0,atk:224.0,def:144.0},{n:"Mega Houndoom",hp:181.0,atk:289.0,def:194.0},
+{n:"Kingdra",hp:181.0,atk:194.0,def:194.0},{n:"Phanpy",hp:207.0,atk:107.0,def:98.0},{n:"Donphan",hp:207.0,atk:214.0,def:185.0},{n:"Porygon2",hp:198.0,atk:198.0,def:180.0},{n:"Stantler",hp:177.0,atk:192.0,def:131.0},{n:"Smeargle",hp:146.0,atk:40.0,def:83.0},
+{n:"Tyrogue",hp:111.0,atk:64.0,def:64.0},{n:"Hitmontop",hp:137.0,atk:173.0,def:207.0},{n:"Smoochum",hp:128.0,atk:153.0,def:91.0},{n:"Elekid",hp:128.0,atk:135.0,def:101.0},{n:"Magby",hp:128.0,atk:151.0,def:99.0},{n:"Miltank",hp:216.0,atk:157.0,def:193.0},
+{n:"Blissey",hp:496.0,atk:129.0,def:169.0},{n:"Raikou",hp:207.0,atk:241.0,def:195.0},{n:"Shadow Raikou",hp:207.0,atk:241.0,def:195.0},{n:"Entei",hp:251.0,atk:235.0,def:171.0},{n:"Suicune",hp:225.0,atk:180.0,def:235.0},{n:"Larvitar",hp:137.0,atk:115.0,def:93.0},
+{n:"Pupitar",hp:172.0,atk:155.0,def:133.0},{n:"Tyranitar",hp:225.0,atk:251.0,def:207.0},{n:"Mega Tyranitar",hp:225.0,atk:309.0,def:276.0},{n:"Lugia",hp:235.0,atk:193.0,def:310.0},{n:"Ho-oh",hp:214.0,atk:239.0,def:244.0},{n:"Celebi",hp:225.0,atk:210.0,def:210.0},
+{n:"Treecko",hp:120.0,atk:124.0,def:94.0},{n:"Grovyle",hp:137.0,atk:172.0,def:120.0},{n:"Sceptile",hp:172.0,atk:223.0,def:169.0},{n:"Mega Sceptile",hp:172.0,atk:320.0,def:186.0},{n:"Torchic",hp:128.0,atk:130.0,def:87.0},{n:"Combusken",hp:155.0,atk:163.0,def:115.0},
+{n:"Blaziken",hp:190.0,atk:240.0,def:141.0},{n:"Shadow Blaziken",hp:190.0,atk:240.0,def:141.0},{n:"Mega Blaziken",hp:190.0,atk:329.0,def:168.0},{n:"Mudkip",hp:137.0,atk:126.0,def:93.0},{n:"Marshtomp",hp:172.0,atk:156.0,def:133.0},{n:"Swampert",hp:225.0,atk:208.0,def:175.0},
+{n:"Shadow Swampert",hp:225.0,atk:208.0,def:175.0},{n:"Mega Swampert",hp:225.0,atk:283.0,def:218.0},{n:"Poochyena",hp:111.0,atk:96.0,def:61.0},{n:"Mightyena",hp:172.0,atk:171.0,def:132.0},{n:"Zigzagoon",hp:116.0,atk:58.0,def:80.0},{n:"Galarian Zigzagoon",hp:116.0,atk:58.0,def:80.0},
+{n:"Linoone",hp:186.0,atk:142.0,def:128.0},{n:"Galarian Linoone",hp:186.0,atk:142.0,def:128.0},{n:"Wurmple",hp:128.0,atk:75.0,def:59.0},{n:"Silcoon",hp:137.0,atk:60.0,def:77.0},{n:"Beautifly",hp:155.0,atk:189.0,def:98.0},{n:"Cascoon",hp:137.0,atk:60.0,def:77.0},
+{n:"Dustox",hp:155.0,atk:98.0,def:162.0},{n:"Lotad",hp:120.0,atk:71.0,def:77.0},{n:"Lombre",hp:155.0,atk:112.0,def:119.0},{n:"Ludicolo",hp:190.0,atk:173.0,def:176.0},{n:"Seedot",hp:120.0,atk:71.0,def:77.0},{n:"Nuzleaf",hp:172.0,atk:134.0,def:78.0},
+{n:"Shiftry",hp:207.0,atk:200.0,def:121.0},{n:"Taillow",hp:120.0,atk:106.0,def:61.0},{n:"Swellow",hp:155.0,atk:185.0,def:124.0},{n:"Wingull",hp:120.0,atk:106.0,def:61.0},{n:"Pelipper",hp:155.0,atk:175.0,def:174.0},{n:"Ralts",hp:99.0,atk:79.0,def:59.0},
+{n:"Kirlia",hp:116.0,atk:117.0,def:90.0},{n:"Gardevoir",hp:169.0,atk:237.0,def:195.0},{n:"Shadow Gardevoir",hp:169.0,atk:237.0,def:195.0},{n:"Mega Gardevoir",hp:169.0,atk:326.0,def:229.0},{n:"Surskit",hp:120.0,atk:93.0,def:87.0},{n:"Masquerain",hp:172.0,atk:192.0,def:150.0},
+{n:"Shroomish",hp:155.0,atk:74.0,def:110.0},{n:"Breloom",hp:155.0,atk:241.0,def:144.0},{n:"Slakoth",hp:155.0,atk:104.0,def:92.0},{n:"Vigoroth",hp:190.0,atk:159.0,def:145.0},{n:"Slaking",hp:284.0,atk:290.0,def:166.0},{n:"Nincada",hp:104.0,atk:80.0,def:126.0},
+{n:"Ninjask",hp:156.0,atk:199.0,def:112.0},{n:"Shedinja",hp:1.0,atk:153.0,def:73.0},{n:"Whismur",hp:162.0,atk:92.0,def:42.0},{n:"Loudred",hp:197.0,atk:134.0,def:81.0},{n:"Exploud",hp:232.0,atk:179.0,def:137.0},{n:"Makuhita",hp:176.0,atk:99.0,def:54.0},
+{n:"Hariyama",hp:302.0,atk:209.0,def:114.0},{n:"Azurill",hp:137.0,atk:36.0,def:71.0},{n:"Nosepass",hp:102.0,atk:82.0,def:215.0},{n:"Skitty",hp:137.0,atk:84.0,def:79.0},{n:"Delcatty",hp:172.0,atk:132.0,def:127.0},{n:"Sableye",hp:137.0,atk:141.0,def:136.0},
+{n:"Mega Sableye",hp:137.0,atk:151.0,def:216.0},{n:"Mawile",hp:137.0,atk:155.0,def:141.0},{n:"Mega Mawile",hp:137.0,atk:188.0,def:217.0},{n:"Aron",hp:137.0,atk:121.0,def:141.0},{n:"Lairon",hp:155.0,atk:158.0,def:198.0},{n:"Aggron",hp:172.0,atk:198.0,def:257.0},
+{n:"Mega Aggron",hp:172.0,atk:247.0,def:331.0},{n:"Meditite",hp:102.0,atk:78.0,def:107.0},{n:"Medicham",hp:155.0,atk:121.0,def:152.0},{n:"Mega Medicham",hp:155.0,atk:205.0,def:179.0},{n:"Electrike",hp:120.0,atk:123.0,def:78.0},{n:"Manectric",hp:172.0,atk:215.0,def:127.0},
+{n:"Mega Manectric",hp:172.0,atk:286.0,def:179.0},{n:"Plusle",hp:155.0,atk:167.0,def:129.0},{n:"Minun",hp:155.0,atk:147.0,def:150.0},{n:"Volbeat",hp:163.0,atk:143.0,def:166.0},{n:"Illumise",hp:163.0,atk:143.0,def:166.0},{n:"Roselia",hp:137.0,atk:186.0,def:131.0},
+{n:"Gulpin",hp:172.0,atk:80.0,def:99.0},{n:"Swalot",hp:225.0,atk:140.0,def:159.0},{n:"Carvanha",hp:128.0,atk:171.0,def:39.0},{n:"Sharpedo",hp:172.0,atk:243.0,def:83.0},{n:"Mega Sharpedo",hp:172.0,atk:289.0,def:144.0},{n:"Wailmer",hp:277.0,atk:136.0,def:68.0},
+{n:"Wailord",hp:347.0,atk:175.0,def:87.0},{n:"Numel",hp:155.0,atk:119.0,def:79.0},{n:"Camerupt",hp:172.0,atk:194.0,def:136.0},{n:"Mega Camerupt",hp:172.0,atk:253.0,def:183.0},{n:"Torkoal",hp:172.0,atk:151.0,def:203.0},{n:"Spoink",hp:155.0,atk:125.0,def:122.0},
+{n:"Grumpig",hp:190.0,atk:171.0,def:188.0},{n:"Spinda",hp:155.0,atk:116.0,def:116.0},{n:"Trapinch",hp:128.0,atk:162.0,def:78.0},{n:"Vibrava",hp:137.0,atk:134.0,def:99.0},{n:"Flygon",hp:190.0,atk:205.0,def:168.0},{n:"Cacnea",hp:137.0,atk:156.0,def:74.0},
+{n:"Cacturne",hp:172.0,atk:221.0,def:115.0},{n:"Swablu",hp:128.0,atk:76.0,def:132.0},{n:"Altaria",hp:181.0,atk:141.0,def:201.0},{n:"Mega Altaria",hp:181.0,atk:222.0,def:218.0},{n:"Zangoose",hp:177.0,atk:222.0,def:124.0},{n:"Seviper",hp:177.0,atk:196.0,def:118.0},
+{n:"Lunatone",hp:207.0,atk:178.0,def:153.0},{n:"Solrock",hp:207.0,atk:178.0,def:153.0},{n:"Barboach",hp:137.0,atk:93.0,def:82.0},{n:"Whiscash",hp:242.0,atk:151.0,def:141.0},{n:"Corphish",hp:125.0,atk:141.0,def:99.0},{n:"Crawdaunt",hp:160.0,atk:224.0,def:142.0},
+{n:"Baltoy",hp:120.0,atk:77.0,def:124.0},{n:"Claydol",hp:155.0,atk:140.0,def:229.0},{n:"Lileep",hp:165.0,atk:105.0,def:150.0},{n:"Cradily",hp:200.0,atk:152.0,def:194.0},{n:"Anorith",hp:128.0,atk:176.0,def:100.0},{n:"Armaldo",hp:181.0,atk:222.0,def:174.0},
+{n:"Feebas",hp:85.0,atk:29.0,def:85.0},{n:"Milotic",hp:216.0,atk:192.0,def:219.0},{n:"Castform",hp:172.0,atk:139.0,def:139.0},{n:"Kecleon",hp:155.0,atk:161.0,def:189.0},{n:"Shuppet",hp:127.0,atk:138.0,def:65.0},{n:"Banette",hp:162.0,atk:218.0,def:126.0},
+{n:"Mega Banette",hp:162.0,atk:312.0,def:160.0},{n:"Duskull",hp:85.0,atk:70.0,def:162.0},{n:"Dusclops",hp:120.0,atk:124.0,def:234.0},{n:"Tropius",hp:223.0,atk:136.0,def:163.0},{n:"Chimecho",hp:181.0,atk:175.0,def:170.0},{n:"Mega Chimecho",hp:181.0,atk:244.0,def:228.0},
+{n:"Absol",hp:163.0,atk:246.0,def:120.0},{n:"Mega Absol",hp:163.0,atk:314.0,def:130.0},{n:"Mega Absol Z",hp:163.0,atk:332.0,def:138.0},{n:"Wynaut",hp:216.0,atk:41.0,def:86.0},{n:"Snorunt",hp:137.0,atk:95.0,def:95.0},{n:"Glalie",hp:190.0,atk:162.0,def:162.0},
+{n:"Mega Glalie",hp:190.0,atk:252.0,def:168.0},{n:"Spheal",hp:172.0,atk:95.0,def:90.0},{n:"Sealeo",hp:207.0,atk:137.0,def:132.0},{n:"Walrein",hp:242.0,atk:182.0,def:176.0},{n:"Clamperl",hp:111.0,atk:133.0,def:135.0},{n:"Huntail",hp:146.0,atk:197.0,def:179.0},
+{n:"Gorebyss",hp:146.0,atk:211.0,def:179.0},{n:"Relicanth",hp:225.0,atk:162.0,def:203.0},{n:"Luvdisc",hp:125.0,atk:81.0,def:128.0},{n:"Bagon",hp:128.0,atk:134.0,def:93.0},{n:"Shelgon",hp:163.0,atk:172.0,def:155.0},{n:"Salamence",hp:216.0,atk:277.0,def:168.0},
+{n:"Mega Salamence",hp:216.0,atk:310.0,def:251.0},{n:"Shadow Salamence",hp:216.0,atk:277.0,def:168.0},{n:"Beldum",hp:120.0,atk:96.0,def:132.0},{n:"Metang",hp:155.0,atk:138.0,def:176.0},{n:"Metagross",hp:190.0,atk:257.0,def:228.0},{n:"Shadow Metagross",hp:190.0,atk:257.0,def:228.0},
+{n:"Mega Metagross",hp:189.0,atk:300.0,def:289.0},{n:"Regirock",hp:190.0,atk:179.0,def:309.0},{n:"Regice",hp:190.0,atk:179.0,def:309.0},{n:"Registeel",hp:190.0,atk:143.0,def:285.0},{n:"Latias",hp:190.0,atk:228.0,def:246.0},{n:"Mega Latias",hp:190.0,atk:289.0,def:297.0},
+{n:"Latios",hp:190.0,atk:268.0,def:212.0},{n:"Mega Latios",hp:190.0,atk:335.0,def:241.0},{n:"Shadow Latios",hp:190.0,atk:268.0,def:212.0},{n:"Kyogre",hp:205.0,atk:270.0,def:228.0},{n:"Primal Kyogre",hp:218.0,atk:353.0,def:268.0},{n:"Shadow Kyogre",hp:205.0,atk:270.0,def:228.0},
+{n:"Groudon",hp:205.0,atk:270.0,def:228.0},{n:"Primal Groudon",hp:218.0,atk:353.0,def:268.0},{n:"Shadow Groudon",hp:205.0,atk:270.0,def:228.0},{n:"Rayquaza",hp:213.0,atk:284.0,def:170.0},{n:"Mega Rayquaza",hp:227.0,atk:377.0,def:210.0},{n:"Jirachi",hp:225.0,atk:210.0,def:210.0},
+{n:"Deoxys",hp:137.0,atk:345.0,def:115.0},{n:"Deoxys Attack",hp:137.0,atk:414.0,def:46.0},{n:"Deoxys Defense",hp:137.0,atk:144.0,def:330.0},{n:"Deoxys Speed",hp:137.0,atk:230.0,def:218.0},{n:"Turtwig",hp:146.0,atk:119.0,def:110.0},{n:"Grotle",hp:181.0,atk:157.0,def:143.0},
+{n:"Torterra",hp:216.0,atk:202.0,def:188.0},{n:"Chimchar",hp:127.0,atk:113.0,def:86.0},{n:"Monferno",hp:162.0,atk:158.0,def:105.0},{n:"Infernape",hp:183.0,atk:222.0,def:151.0},{n:"Piplup",hp:142.0,atk:112.0,def:102.0},{n:"Prinplup",hp:162.0,atk:150.0,def:139.0},
+{n:"Empoleon",hp:197.0,atk:210.0,def:186.0},{n:"Starly",hp:120.0,atk:101.0,def:58.0},{n:"Staravia",hp:146.0,atk:142.0,def:94.0},{n:"Staraptor",hp:198.0,atk:234.0,def:140.0},{n:"Mega Staraptor",hp:198.0,atk:278.0,def:207.0},{n:"Bidoof",hp:153.0,atk:80.0,def:73.0},
+{n:"Bibarel",hp:188.0,atk:162.0,def:119.0},{n:"Kricketot",hp:114.0,atk:45.0,def:74.0},{n:"Kricketune",hp:184.0,atk:160.0,def:100.0},{n:"Shinx",hp:128.0,atk:117.0,def:64.0},{n:"Luxio",hp:155.0,atk:159.0,def:95.0},{n:"Luxray",hp:190.0,atk:232.0,def:156.0},
+{n:"Budew",hp:120.0,atk:91.0,def:109.0},{n:"Roserade",hp:155.0,atk:243.0,def:185.0},{n:"Cranidos",hp:167.0,atk:218.0,def:71.0},{n:"Rampardos",hp:219.0,atk:295.0,def:109.0},{n:"Shadow Rampardos",hp:219.0,atk:295.0,def:109.0},{n:"Shieldon",hp:102.0,atk:76.0,def:195.0},
+{n:"Bastiodon",hp:155.0,atk:94.0,def:286.0},{n:"Burmy",hp:120.0,atk:53.0,def:83.0},{n:"Wormadam Plant",hp:155.0,atk:141.0,def:180.0},{n:"Wormadam Trash",hp:155.0,atk:127.0,def:175.0},{n:"Wormadam Sandy",hp:155.0,atk:141.0,def:180.0},{n:"Mothim",hp:172.0,atk:185.0,def:98.0},
+{n:"Combee",hp:102.0,atk:59.0,def:83.0},{n:"Vespiquen",hp:172.0,atk:149.0,def:190.0},{n:"Pachirisu",hp:155.0,atk:94.0,def:172.0},{n:"Buizel",hp:146.0,atk:132.0,def:67.0},{n:"Floatzel",hp:198.0,atk:221.0,def:114.0},{n:"Cherubi",hp:128.0,atk:108.0,def:92.0},
+{n:"Cherrim",hp:172.0,atk:170.0,def:153.0},{n:"Shellos",hp:183.0,atk:103.0,def:105.0},{n:"Gastrodon",hp:244.0,atk:169.0,def:143.0},{n:"Ambipom",hp:181.0,atk:205.0,def:143.0},{n:"Drifloon",hp:207.0,atk:117.0,def:80.0},{n:"Drifblim",hp:312.0,atk:180.0,def:102.0},
+{n:"Buneary",hp:146.0,atk:130.0,def:105.0},{n:"Lopunny",hp:163.0,atk:156.0,def:194.0},{n:"Mega Lopunny",hp:163.0,atk:282.0,def:214.0},{n:"Mismagius",hp:155.0,atk:211.0,def:187.0},{n:"Honchkrow",hp:225.0,atk:243.0,def:103.0},{n:"Shadow Honchkrow",hp:225.0,atk:243.0,def:103.0},
+{n:"Glameow",hp:135.0,atk:109.0,def:82.0},{n:"Purugly",hp:174.0,atk:172.0,def:133.0},{n:"Chingling",hp:128.0,atk:114.0,def:94.0},{n:"Stunky",hp:160.0,atk:121.0,def:90.0},{n:"Skuntank",hp:230.0,atk:184.0,def:132.0},{n:"Bronzor",hp:149.0,atk:43.0,def:154.0},
+{n:"Bronzong",hp:167.0,atk:161.0,def:213.0},{n:"Bonsly",hp:137.0,atk:124.0,def:133.0},{n:"Mime Jr.",hp:85.0,atk:125.0,def:142.0},{n:"Happiny",hp:225.0,atk:25.0,def:77.0},{n:"Chatot",hp:183.0,atk:183.0,def:91.0},{n:"Spiritomb",hp:137.0,atk:169.0,def:199.0},
+{n:"Gible",hp:151.0,atk:124.0,def:84.0},{n:"Gabite",hp:169.0,atk:172.0,def:125.0},{n:"Garchomp",hp:239.0,atk:261.0,def:193.0},{n:"Mega Garchomp",hp:239.0,atk:339.0,def:222.0},{n:"Mega Garchomp Z",hp:239.0,atk:321.0,def:196.0},{n:"Shadow Garchomp",hp:239.0,atk:261.0,def:193.0},
+{n:"Munchlax",hp:286.0,atk:137.0,def:117.0},{n:"Riolu",hp:120.0,atk:127.0,def:78.0},{n:"Lucario",hp:172.0,atk:236.0,def:144.0},{n:"Shadow Lucario",hp:172.0,atk:236.0,def:144.0},{n:"Mega Lucario",hp:172.0,atk:310.0,def:175.0},{n:"Mega Lucario Z",hp:172.0,atk:359.0,def:161.0},
+{n:"Hippopotas",hp:169.0,atk:124.0,def:118.0},{n:"Hippowdon",hp:239.0,atk:201.0,def:191.0},{n:"Skorupi",hp:120.0,atk:93.0,def:151.0},{n:"Drapion",hp:172.0,atk:180.0,def:202.0},{n:"Croagunk",hp:134.0,atk:116.0,def:76.0},{n:"Toxicroak",hp:195.0,atk:211.0,def:133.0},
+{n:"Carnivine",hp:179.0,atk:187.0,def:136.0},{n:"Finneon",hp:135.0,atk:96.0,def:116.0},{n:"Lumineon",hp:170.0,atk:142.0,def:170.0},{n:"Mantyke",hp:128.0,atk:105.0,def:179.0},{n:"Snover",hp:155.0,atk:115.0,def:105.0},{n:"Abomasnow",hp:207.0,atk:178.0,def:158.0},
+{n:"Mega Abomasnow",hp:207.0,atk:240.0,def:191.0},{n:"Weavile",hp:172.0,atk:243.0,def:171.0},{n:"Magnezone",hp:172.0,atk:238.0,def:205.0},{n:"Lickilicky",hp:242.0,atk:161.0,def:181.0},{n:"Rhyperior",hp:251.0,atk:241.0,def:190.0},{n:"Shadow Rhyperior",hp:251.0,atk:241.0,def:190.0},
+{n:"Tangrowth",hp:225.0,atk:207.0,def:184.0},{n:"Electivire",hp:181.0,atk:249.0,def:163.0},{n:"Magmortar",hp:181.0,atk:247.0,def:172.0},{n:"Togekiss",hp:198.0,atk:225.0,def:217.0},{n:"Yanmega",hp:200.0,atk:231.0,def:156.0},{n:"Leafeon",hp:163.0,atk:216.0,def:219.0},
+{n:"Glaceon",hp:163.0,atk:238.0,def:205.0},{n:"Gliscor",hp:181.0,atk:185.0,def:222.0},{n:"Mamoswine",hp:242.0,atk:247.0,def:146.0},{n:"Shadow Mamoswine",hp:242.0,atk:247.0,def:146.0},{n:"Porygon-Z",hp:198.0,atk:264.0,def:150.0},{n:"Gallade",hp:169.0,atk:237.0,def:195.0},
+{n:"Mega Gallade",hp:169.0,atk:326.0,def:230.0},{n:"Probopass",hp:155.0,atk:135.0,def:275.0},{n:"Dusknoir",hp:128.0,atk:180.0,def:254.0},{n:"Froslass",hp:172.0,atk:171.0,def:150.0},{n:"Mega Froslass",hp:172.0,atk:289.0,def:194.0},{n:"Rotom",hp:137.0,atk:185.0,def:159.0},
+{n:"Rotom Wash",hp:137.0,atk:204.0,def:219.0},{n:"Rotom Frost",hp:137.0,atk:204.0,def:219.0},{n:"Rotom Fan",hp:137.0,atk:204.0,def:219.0},{n:"Rotom Mow",hp:137.0,atk:204.0,def:219.0},{n:"Rotom Heat",hp:137.0,atk:204.0,def:219.0},{n:"Uxie",hp:181.0,atk:156.0,def:270.0},
+{n:"Mesprit",hp:190.0,atk:212.0,def:212.0},{n:"Azelf",hp:181.0,atk:270.0,def:151.0},{n:"Dialga",hp:205.0,atk:275.0,def:211.0},{n:"Shadow Dialga",hp:205.0,atk:275.0,def:211.0},{n:"Dialga Origin",hp:205.0,atk:270.0,def:225.0},{n:"Palkia",hp:189.0,atk:280.0,def:215.0},
+{n:"Shadow Palkia",hp:189.0,atk:280.0,def:215.0},{n:"Palkia Origin",hp:189.0,atk:286.0,def:223.0},{n:"Heatran",hp:209.0,atk:251.0,def:213.0},{n:"Mega Heatran",hp:209.0,atk:331.0,def:252.0},{n:"Regigigas",hp:221.0,atk:287.0,def:210.0},{n:"Shadow Regigigas",hp:221.0,atk:287.0,def:210.0},
+{n:"Giratina Altered",hp:284.0,atk:187.0,def:225.0},{n:"Giratina Origin",hp:284.0,atk:225.0,def:187.0},{n:"Cresselia",hp:260.0,atk:152.0,def:258.0},{n:"Phione",hp:190.0,atk:162.0,def:162.0},{n:"Manaphy",hp:225.0,atk:210.0,def:210.0},{n:"Darkrai",hp:172.0,atk:285.0,def:198.0},
+{n:"Mega Darkrai",hp:172.0,atk:325.0,def:265.0},{n:"Shadow Darkrai",hp:172.0,atk:285.0,def:198.0},{n:"Shaymin",hp:225.0,atk:210.0,def:210.0},{n:"Shaymin Sky",hp:225.0,atk:261.0,def:166.0},{n:"Arceus",hp:237.0,atk:238.0,def:238.0},{n:"Victini",hp:225.0,atk:210.0,def:210.0},
+{n:"Snivy",hp:128.0,atk:88.0,def:107.0},{n:"Servine",hp:155.0,atk:122.0,def:152.0},{n:"Serperior",hp:181.0,atk:161.0,def:204.0},{n:"Tepig",hp:163.0,atk:115.0,def:85.0},{n:"Pignite",hp:207.0,atk:173.0,def:106.0},{n:"Emboar",hp:242.0,atk:235.0,def:127.0},
+{n:"Mega Emboar",hp:242.0,atk:287.0,def:194.0},{n:"Oshawott",hp:146.0,atk:117.0,def:85.0},{n:"Dewott",hp:181.0,atk:159.0,def:116.0},{n:"Samurott",hp:216.0,atk:212.0,def:157.0},{n:"Hisuian Samurott",hp:207.0,atk:218.0,def:152.0},{n:"Patrat",hp:128.0,atk:98.0,def:73.0},
+{n:"Watchog",hp:155.0,atk:165.0,def:139.0},{n:"Lillipup",hp:128.0,atk:107.0,def:86.0},{n:"Herdier",hp:163.0,atk:145.0,def:126.0},{n:"Stoutland",hp:198.0,atk:206.0,def:182.0},{n:"Purrloin",hp:121.0,atk:98.0,def:73.0},{n:"Liepard",hp:162.0,atk:187.0,def:106.0},
+{n:"Pansage",hp:137.0,atk:104.0,def:94.0},{n:"Simisage",hp:181.0,atk:206.0,def:133.0},{n:"Pansear",hp:137.0,atk:104.0,def:94.0},{n:"Simisear",hp:181.0,atk:206.0,def:133.0},{n:"Panpour",hp:137.0,atk:104.0,def:94.0},{n:"Simipour",hp:181.0,atk:206.0,def:133.0},
+{n:"Munna",hp:183.0,atk:111.0,def:92.0},{n:"Musharna",hp:253.0,atk:183.0,def:166.0},{n:"Pidove",hp:137.0,atk:98.0,def:80.0},{n:"Tranquill",hp:158.0,atk:144.0,def:107.0},{n:"Unfezant",hp:190.0,atk:226.0,def:146.0},{n:"Blitzle",hp:128.0,atk:118.0,def:64.0},
+{n:"Zebstrika",hp:181.0,atk:211.0,def:136.0},{n:"Roggenrola",hp:146.0,atk:121.0,def:110.0},{n:"Boldore",hp:172.0,atk:174.0,def:143.0},{n:"Gigalith",hp:198.0,atk:226.0,def:201.0},{n:"Shadow Gigalith",hp:198.0,atk:226.0,def:201.0},{n:"Woobat",hp:163.0,atk:107.0,def:85.0},
+{n:"Swoobat",hp:167.0,atk:161.0,def:119.0},{n:"Drilbur",hp:155.0,atk:154.0,def:85.0},{n:"Excadrill",hp:242.0,atk:255.0,def:129.0},{n:"Shadow Excadrill",hp:242.0,atk:255.0,def:129.0},{n:"Mega Excadrill",hp:242.0,atk:322.0,def:184.0},{n:"Audino",hp:230.0,atk:114.0,def:163.0},
+{n:"Mega Audino",hp:230.0,atk:147.0,def:239.0},{n:"Timburr",hp:181.0,atk:134.0,def:87.0},{n:"Gurdurr",hp:198.0,atk:180.0,def:134.0},{n:"Conkeldurr",hp:233.0,atk:243.0,def:158.0},{n:"Shadow Conkeldurr",hp:233.0,atk:243.0,def:158.0},{n:"Tympole",hp:137.0,atk:98.0,def:78.0},
+{n:"Palpitoad",hp:181.0,atk:128.0,def:109.0},{n:"Seismitoad",hp:233.0,atk:188.0,def:150.0},{n:"Throh",hp:260.0,atk:172.0,def:160.0},{n:"Sawk",hp:181.0,atk:231.0,def:153.0},{n:"Sewaddle",hp:128.0,atk:96.0,def:124.0},{n:"Swadloon",hp:146.0,atk:115.0,def:162.0},
+{n:"Leavanny",hp:181.0,atk:205.0,def:165.0},{n:"Venipede",hp:102.0,atk:83.0,def:99.0},{n:"Whirlipede",hp:120.0,atk:100.0,def:173.0},{n:"Scolipede",hp:155.0,atk:203.0,def:175.0},{n:"Mega Scolipede",hp:155.0,atk:257.0,def:254.0},{n:"Cottonee",hp:120.0,atk:71.0,def:111.0},
+{n:"Whimsicott",hp:155.0,atk:164.0,def:176.0},{n:"Petilil",hp:128.0,atk:119.0,def:91.0},{n:"Lilligant",hp:172.0,atk:214.0,def:155.0},{n:"Hisuian Lilligant",hp:172.0,atk:208.0,def:159.0},{n:"Basculin",hp:172.0,atk:189.0,def:129.0},{n:"Hisuian Basculin",hp:172.0,atk:189.0,def:129.0},
+{n:"Sandile",hp:137.0,atk:132.0,def:69.0},{n:"Krokorok",hp:155.0,atk:155.0,def:90.0},{n:"Krookodile",hp:216.0,atk:229.0,def:158.0},{n:"Darumaka",hp:172.0,atk:153.0,def:86.0},{n:"Galarian Darumaka",hp:172.0,atk:153.0,def:86.0},{n:"Darmanitan",hp:233.0,atk:263.0,def:114.0},
+{n:"Shadow Darmanitan",hp:233.0,atk:263.0,def:114.0},{n:"Darmanitan Zen",hp:233.0,atk:243.0,def:202.0},{n:"Galarian Darmanitan",hp:233.0,atk:263.0,def:114.0},{n:"Galarian Darmanitan Zen",hp:233.0,atk:323.0,def:123.0},{n:"Maractus",hp:181.0,atk:201.0,def:130.0},{n:"Dwebble",hp:137.0,atk:118.0,def:128.0},
+{n:"Crustle",hp:172.0,atk:188.0,def:200.0},{n:"Scraggy",hp:137.0,atk:132.0,def:132.0},{n:"Scrafty",hp:163.0,atk:163.0,def:222.0},{n:"Mega Scrafty",hp:163.0,atk:238.0,def:266.0},{n:"Sigilyph",hp:176.0,atk:204.0,def:167.0},{n:"Yamask",hp:116.0,atk:95.0,def:141.0},
+{n:"Galarian Yamask",hp:116.0,atk:95.0,def:141.0},{n:"Cofagrigus",hp:151.0,atk:163.0,def:237.0},{n:"Tirtouga",hp:144.0,atk:134.0,def:146.0},{n:"Carracosta",hp:179.0,atk:192.0,def:197.0},{n:"Archen",hp:146.0,atk:213.0,def:89.0},{n:"Archeops",hp:181.0,atk:292.0,def:139.0},
+{n:"Trubbish",hp:137.0,atk:96.0,def:122.0},{n:"Garbodor",hp:190.0,atk:181.0,def:164.0},{n:"Zorua",hp:120.0,atk:153.0,def:78.0},{n:"Hisuian Zorua",hp:111.0,atk:162.0,def:79.0},{n:"Zoroark",hp:155.0,atk:250.0,def:127.0},{n:"Hisuian Zorark",hp:146.0,atk:261.0,def:128.0},
+{n:"Minccino",hp:146.0,atk:98.0,def:80.0},{n:"Cinccino",hp:181.0,atk:198.0,def:130.0},{n:"Gothita",hp:128.0,atk:98.0,def:112.0},{n:"Gothorita",hp:155.0,atk:137.0,def:153.0},{n:"Gothitelle",hp:172.0,atk:176.0,def:205.0},{n:"Solosis",hp:128.0,atk:170.0,def:83.0},
+{n:"Duosion",hp:163.0,atk:208.0,def:103.0},{n:"Reuniclus",hp:242.0,atk:214.0,def:148.0},{n:"Ducklett",hp:158.0,atk:84.0,def:96.0},{n:"Swanna",hp:181.0,atk:182.0,def:132.0},{n:"Vanillite",hp:113.0,atk:118.0,def:106.0},{n:"Vanillish",hp:139.0,atk:151.0,def:138.0},
+{n:"Vanilluxe",hp:174.0,atk:218.0,def:184.0},{n:"Deerling",hp:155.0,atk:115.0,def:100.0},{n:"Sawsbuck",hp:190.0,atk:198.0,def:146.0},{n:"Emolga",hp:146.0,atk:158.0,def:127.0},{n:"Karrablast",hp:137.0,atk:137.0,def:87.0},{n:"Escavalier",hp:172.0,atk:223.0,def:187.0},
+{n:"Foongus",hp:170.0,atk:97.0,def:91.0},{n:"Amoonguss",hp:249.0,atk:155.0,def:139.0},{n:"Frillish",hp:146.0,atk:115.0,def:134.0},{n:"Jellicent",hp:225.0,atk:159.0,def:178.0},{n:"Alomomola",hp:338.0,atk:138.0,def:131.0},{n:"Joltik",hp:137.0,atk:110.0,def:98.0},
+{n:"Galvantula",hp:172.0,atk:201.0,def:128.0},{n:"Ferroseed",hp:127.0,atk:82.0,def:155.0},{n:"Ferrothorn",hp:179.0,atk:158.0,def:223.0},{n:"Klink",hp:120.0,atk:98.0,def:121.0},{n:"Klang",hp:155.0,atk:150.0,def:174.0},{n:"Klinklang",hp:155.0,atk:199.0,def:214.0},
+{n:"Tynamo",hp:111.0,atk:105.0,def:78.0},{n:"Eelektrik",hp:163.0,atk:156.0,def:130.0},{n:"Eelektross",hp:198.0,atk:217.0,def:152.0},{n:"Mega Eelektross",hp:198.0,atk:291.0,def:175.0},{n:"Elgyem",hp:146.0,atk:148.0,def:100.0},{n:"Beheeyem",hp:181.0,atk:221.0,def:163.0},
+{n:"Litwick",hp:137.0,atk:108.0,def:98.0},{n:"Lampent",hp:155.0,atk:169.0,def:115.0},{n:"Chandelure",hp:155.0,atk:271.0,def:182.0},{n:"Shadow Chandelure",hp:155.0,atk:271.0,def:182.0},{n:"Mega Chandelure",hp:155.0,atk:335.0,def:227.0},{n:"Axew",hp:130.0,atk:154.0,def:101.0},
+{n:"Fraxure",hp:165.0,atk:212.0,def:123.0},{n:"Haxorus",hp:183.0,atk:284.0,def:172.0},{n:"Shadow Haxorus",hp:183.0,atk:284.0,def:172.0},{n:"Cubchoo",hp:146.0,atk:128.0,def:74.0},{n:"Beartic",hp:216.0,atk:233.0,def:152.0},{n:"Cryogonal",hp:190.0,atk:190.0,def:218.0},
+{n:"Shelmet",hp:137.0,atk:72.0,def:140.0},{n:"Accelgor",hp:190.0,atk:220.0,def:120.0},{n:"Stunfisk",hp:240.0,atk:144.0,def:171.0},{n:"Galarian Stunfisk",hp:240.0,atk:144.0,def:171.0},{n:"Mienfoo",hp:128.0,atk:160.0,def:98.0},{n:"Mienshao",hp:163.0,atk:258.0,def:127.0},
+{n:"Druddigon",hp:184.0,atk:213.0,def:170.0},{n:"Golett",hp:153.0,atk:127.0,def:92.0},{n:"Golurk",hp:205.0,atk:222.0,def:154.0},{n:"Mega Golurk",hp:205.0,atk:284.0,def:202.0},{n:"Pawniard",hp:128.0,atk:154.0,def:114.0},{n:"Bisharp",hp:163.0,atk:232.0,def:176.0},
+{n:"Bouffalant",hp:216.0,atk:195.0,def:182.0},{n:"Rufflet",hp:172.0,atk:150.0,def:97.0},{n:"Braviary",hp:225.0,atk:232.0,def:152.0},{n:"Hisuian Braviary",hp:242.0,atk:213.0,def:137.0},{n:"Vullaby",hp:172.0,atk:105.0,def:139.0},{n:"Mandibuzz",hp:242.0,atk:129.0,def:205.0},
+{n:"Heatmor",hp:198.0,atk:204.0,def:129.0},{n:"Durant",hp:151.0,atk:217.0,def:188.0},{n:"Deino",hp:141.0,atk:116.0,def:93.0},{n:"Zweilous",hp:176.0,atk:159.0,def:135.0},{n:"Hydreigon",hp:211.0,atk:256.0,def:188.0},{n:"Larvesta",hp:146.0,atk:156.0,def:107.0},
+{n:"Volcarona",hp:198.0,atk:264.0,def:189.0},{n:"Cobalion",hp:209.0,atk:192.0,def:229.0},{n:"Terrakion",hp:209.0,atk:260.0,def:192.0},{n:"Shadow Terrakion",hp:209.0,atk:260.0,def:192.0},{n:"Virizion",hp:209.0,atk:192.0,def:229.0},{n:"Tornadus I",hp:188.0,atk:266.0,def:164.0},
+{n:"Tornadus Incarnate",hp:188.0,atk:266.0,def:164.0},{n:"Tornadus T",hp:188.0,atk:238.0,def:189.0},{n:"Tornadus Therian",hp:188.0,atk:238.0,def:189.0},{n:"Thundurus I",hp:188.0,atk:266.0,def:164.0},{n:"Thundurus Incarnate",hp:188.0,atk:266.0,def:164.0},{n:"Thundurus T",hp:188.0,atk:295.0,def:161.0},
+{n:"Thundurus Therian",hp:188.0,atk:295.0,def:161.0},{n:"Shadow Thundurus T",hp:188.0,atk:295.0,def:161.0},{n:"Reshiram",hp:205.0,atk:275.0,def:211.0},{n:"Shadow Reshiram",hp:205.0,atk:275.0,def:211.0},{n:"Zekrom",hp:205.0,atk:275.0,def:211.0},{n:"Shadow Zekrom",hp:205.0,atk:275.0,def:211.0},
+{n:"Landorus I",hp:205.0,atk:261.0,def:182.0},{n:"Landorus Incarnate",hp:205.0,atk:261.0,def:182.0},{n:"Shadow Landorus Incarnate",hp:205.0,atk:261.0,def:182.0},{n:"Landorus-T",hp:205.0,atk:289.0,def:179.0},{n:"Landorus Therian",hp:205.0,atk:289.0,def:179.0},{n:"Shadow Landorus-T",hp:205.0,atk:289.0,def:179.0},
+{n:"Shadow Landorus Therian",hp:205.0,atk:289.0,def:179.0},{n:"Kyurem",hp:245.0,atk:246.0,def:170.0},{n:"Shadow Kyurem",hp:245.0,atk:246.0,def:170.0},{n:"Kyurem White",hp:245.0,atk:310.0,def:183.0},{n:"Kyurem Black",hp:245.0,atk:310.0,def:183.0},{n:"Keldeo",hp:209.0,atk:260.0,def:192.0},
+{n:"Keldeo Resolute",hp:209.0,atk:260.0,def:192.0},{n:"Meloetta Aria",hp:225.0,atk:250.0,def:225.0},{n:"Meloetta Pirouette",hp:225.0,atk:269.0,def:188.0},{n:"Genesect",hp:174.0,atk:252.0,def:199.0},{n:"Chespin",hp:148.0,atk:110.0,def:106.0},{n:"Quilladin",hp:156.0,atk:146.0,def:156.0},
+{n:"Chesnaught",hp:204.0,atk:201.0,def:204.0},{n:"Mega Chesnaught",hp:204.0,atk:242.0,def:282.0},{n:"Fennekin",hp:120.0,atk:116.0,def:102.0},{n:"Braixen",hp:153.0,atk:171.0,def:130.0},{n:"Delphox",hp:181.0,atk:230.0,def:189.0},{n:"Mega Delphox",hp:181.0,atk:331.0,def:235.0},
+{n:"Froakie",hp:121.0,atk:122.0,def:84.0},{n:"Frogadier",hp:144.0,atk:168.0,def:114.0},{n:"Greninja",hp:176.0,atk:223.0,def:152.0},{n:"Mega Greninja",hp:176.0,atk:299.0,def:180.0},{n:"Ash-Greninja",hp:176.0,atk:339.0,def:155.0},{n:"Bunnelby",hp:116.0,atk:68.0,def:72.0},
+{n:"Diggersby",hp:198.0,atk:112.0,def:155.0},{n:"Fletchling",hp:128.0,atk:95.0,def:80.0},{n:"Fletchinder",hp:158.0,atk:145.0,def:110.0},{n:"Talonflame",hp:186.0,atk:176.0,def:155.0},{n:"Scatterbug",hp:116.0,atk:63.0,def:63.0},{n:"Spewpa",hp:128.0,atk:48.0,def:89.0},
+{n:"Vivillon",hp:190.0,atk:176.0,def:103.0},{n:"Litleo",hp:158.0,atk:139.0,def:112.0},{n:"Pyroar",hp:200.0,atk:221.0,def:149.0},{n:"Mega Pyroar",hp:200.0,atk:273.0,def:198.0},{n:"Flabébé",hp:127.0,atk:108.0,def:120.0},{n:"Floette",hp:144.0,atk:136.0,def:151.0},
+{n:"Mega Eternal Floette",hp:179.0,atk:309.0,def:264.0},{n:"Florges",hp:186.0,atk:212.0,def:244.0},{n:"Skiddo",hp:165.0,atk:123.0,def:102.0},{n:"Gogoat",hp:265.0,atk:196.0,def:146.0},{n:"Pancham",hp:167.0,atk:145.0,def:107.0},{n:"Pangoro",hp:216.0,atk:226.0,def:146.0},
+{n:"Furfrou",hp:181.0,atk:164.0,def:167.0},{n:"Espurr",hp:158.0,atk:120.0,def:114.0},{n:"Meowstic",hp:179.0,atk:166.0,def:167.0},{n:"Mega Meowstic",hp:179.0,atk:288.0,def:201.0},{n:"Honedge",hp:128.0,atk:135.0,def:139.0},{n:"Doublade",hp:153.0,atk:188.0,def:206.0},
+{n:"Aegislash Blade",hp:155.0,atk:272.0,def:97.0},{n:"Aegislash Shield",hp:155.0,atk:97.0,def:272.0},{n:"Spritzee",hp:186.0,atk:110.0,def:113.0},{n:"Aromatisse",hp:226.0,atk:173.0,def:150.0},{n:"Swirlix",hp:158.0,atk:109.0,def:119.0},{n:"Slurpuff",hp:193.0,atk:168.0,def:163.0},
+{n:"Inkay",hp:142.0,atk:98.0,def:95.0},{n:"Malamar",hp:200.0,atk:177.0,def:165.0},{n:"Mega Malamar",hp:200.0,atk:208.0,def:222.0},{n:"Binacle",hp:123.0,atk:96.0,def:120.0},{n:"Barbaracle",hp:176.0,atk:194.0,def:205.0},{n:"Mega Barbaracle",hp:176.0,atk:268.0,def:248.0},
+{n:"Skrelp",hp:137.0,atk:109.0,def:109.0},{n:"Dragalge",hp:163.0,atk:177.0,def:207.0},{n:"Mega Dragalge",hp:163.0,atk:236.0,def:265.0},{n:"Clauncher",hp:137.0,atk:108.0,def:117.0},{n:"Clawitzer",hp:174.0,atk:221.0,def:171.0},{n:"Helioptile",hp:127.0,atk:115.0,def:78.0},
+{n:"Heliolisk",hp:158.0,atk:219.0,def:168.0},{n:"Tyrunt",hp:151.0,atk:158.0,def:123.0},{n:"Tyrantrum",hp:193.0,atk:227.0,def:191.0},{n:"Shadow Tyrantrum",hp:193.0,atk:227.0,def:191.0},{n:"Amaura",hp:184.0,atk:124.0,def:109.0},{n:"Aurorus",hp:265.0,atk:186.0,def:163.0},
+{n:"Sylveon",hp:216.0,atk:203.0,def:205.0},{n:"Hawlucha",hp:186.0,atk:195.0,def:153.0},{n:"Mega Hawlucha",hp:186.0,atk:280.0,def:212.0},{n:"Dedenne",hp:167.0,atk:164.0,def:134.0},{n:"Carbink",hp:137.0,atk:95.0,def:285.0},{n:"Goomy",hp:128.0,atk:101.0,def:112.0},
+{n:"Sliggoo",hp:169.0,atk:159.0,def:176.0},{n:"Goodra",hp:207.0,atk:220.0,def:242.0},{n:"Klefki",hp:149.0,atk:160.0,def:179.0},{n:"Phantump",hp:125.0,atk:125.0,def:103.0},{n:"Trevenant",hp:198.0,atk:201.0,def:154.0},{n:"Pumpkaboo Average",hp:135.0,atk:121.0,def:123.0},
+{n:"Pumpkaboo Small",hp:127.0,atk:122.0,def:124.0},{n:"Pumpkaboo Large",hp:144.0,atk:120.0,def:122.0},{n:"Pumpkaboo Super",hp:153.0,atk:118.0,def:120.0},{n:"Gourgeist Average",hp:163.0,atk:175.0,def:213.0},{n:"Gourgeist Small",hp:146.0,atk:171.0,def:219.0},{n:"Gourgeist Large",hp:181.0,atk:179.0,def:206.0},
+{n:"Gourgeist Super",hp:198.0,atk:182.0,def:200.0},{n:"Bergmite",hp:146.0,atk:117.0,def:120.0},{n:"Avalugg",hp:216.0,atk:196.0,def:240.0},{n:"Noibat",hp:120.0,atk:83.0,def:73.0},{n:"Noivern",hp:198.0,atk:205.0,def:175.0},{n:"Xerneas",hp:246.0,atk:250.0,def:185.0},
+{n:"Yveltal",hp:246.0,atk:250.0,def:185.0},{n:"Shadow Yveltal",hp:246.0,atk:250.0,def:185.0},{n:"Zygarde 50%",hp:239.0,atk:203.0,def:232.0},{n:"Zygarde 10%",hp:144.0,atk:205.0,def:173.0},{n:"Mega Complete Zygarde",hp:415.0,atk:403.0,def:181.0},{n:"Mega Complete Zygarde",hp:428.0,atk:416.0,def:187.0},
+{n:"Zygarde Complete",hp:389.0,atk:184.0,def:207.0},{n:"Diancie",hp:137.0,atk:190.0,def:285.0},{n:"Mega Diancie",hp:137.0,atk:342.0,def:235.0},{n:"Hoopa Confined",hp:173.0,atk:261.0,def:187.0},{n:"Hoopa Unbound",hp:173.0,atk:311.0,def:191.0},{n:"Volcanion",hp:190.0,atk:252.0,def:216.0},
+{n:"Rowlet",hp:169.0,atk:102.0,def:99.0},{n:"Dartrix",hp:186.0,atk:142.0,def:139.0},{n:"Decidueye",hp:186.0,atk:210.0,def:179.0},{n:"Hisuian Decidueye",hp:204.0,atk:213.0,def:174.0},{n:"Litten",hp:128.0,atk:128.0,def:79.0},{n:"Torracat",hp:163.0,atk:174.0,def:103.0},
+{n:"Incineroar",hp:216.0,atk:214.0,def:175.0},{n:"Popplio",hp:137.0,atk:120.0,def:103.0},{n:"Brionne",hp:155.0,atk:168.0,def:145.0},{n:"Primarina",hp:190.0,atk:232.0,def:195.0},{n:"Pikipek",hp:111.0,atk:136.0,def:59.0},{n:"Trumbeak",hp:146.0,atk:159.0,def:100.0},
+{n:"Toucannon",hp:190.0,atk:222.0,def:146.0},{n:"Shadow Toucannon",hp:190.0,atk:222.0,def:146.0},{n:"Yungoos",hp:134.0,atk:122.0,def:56.0},{n:"Gumshoos",hp:204.0,atk:194.0,def:113.0},{n:"Grubbin",hp:132.0,atk:115.0,def:85.0},{n:"Charjabug",hp:149.0,atk:145.0,def:161.0},
+{n:"Vikavolt",hp:184.0,atk:254.0,def:158.0},{n:"Crabrawler",hp:132.0,atk:150.0,def:104.0},{n:"Crabominable",hp:219.0,atk:231.0,def:138.0},{n:"Mega Crabominable",hp:219.0,atk:266.0,def:213.0},{n:"Oricorio Baile",hp:181.0,atk:196.0,def:145.0},{n:"Oricorio Pom-Pom",hp:181.0,atk:196.0,def:145.0},
+{n:"Oricorio Sensu",hp:181.0,atk:196.0,def:145.0},{n:"Oricorio Pa'u",hp:181.0,atk:196.0,def:145.0},{n:"Cutiefly",hp:120.0,atk:110.0,def:81.0},{n:"Ribombee",hp:155.0,atk:198.0,def:146.0},{n:"Rockruff",hp:128.0,atk:117.0,def:78.0},{n:"Lycanroc Midday",hp:181.0,atk:231.0,def:140.0},
+{n:"Lycanroc Dusk",hp:181.0,atk:234.0,def:139.0},{n:"Lycanroc Midnight",hp:198.0,atk:218.0,def:152.0},{n:"Wishiwashi Solo",hp:128.0,atk:46.0,def:43.0},{n:"Wishiwashi School",hp:128.0,atk:255.0,def:242.0},{n:"Mareanie",hp:137.0,atk:98.0,def:110.0},{n:"Toxapex",hp:137.0,atk:114.0,def:273.0},
+{n:"Mudbray",hp:172.0,atk:175.0,def:121.0},{n:"Mudsdale",hp:225.0,atk:214.0,def:174.0},{n:"Dewpider",hp:116.0,atk:72.0,def:117.0},{n:"Araquanid",hp:169.0,atk:126.0,def:219.0},{n:"Fomantis",hp:120.0,atk:100.0,def:64.0},{n:"Lurantis",hp:172.0,atk:192.0,def:169.0},
+{n:"Morelull",hp:120.0,atk:108.0,def:119.0},{n:"Shiinotic",hp:155.0,atk:154.0,def:168.0},{n:"Salandit",hp:134.0,atk:136.0,def:80.0},{n:"Salazzle",hp:169.0,atk:228.0,def:130.0},{n:"Stufful",hp:172.0,atk:136.0,def:95.0},{n:"Bewear",hp:260.0,atk:226.0,def:141.0},
+{n:"Bounsweet",hp:123.0,atk:55.0,def:69.0},{n:"Steenee",hp:141.0,atk:78.0,def:94.0},{n:"Tsareena",hp:176.0,atk:222.0,def:195.0},{n:"Comfey",hp:139.0,atk:165.0,def:215.0},{n:"Oranguru",hp:207.0,atk:168.0,def:192.0},{n:"Passimian",hp:225.0,atk:222.0,def:160.0},
+{n:"Wimpod",hp:93.0,atk:67.0,def:74.0},{n:"Golisopod",hp:181.0,atk:218.0,def:226.0},{n:"Mega Golisopod",hp:181.0,atk:260.0,def:287.0},{n:"Sandygast",hp:146.0,atk:120.0,def:118.0},{n:"Palossand",hp:198.0,atk:178.0,def:178.0},{n:"Pyukumuku",hp:146.0,atk:97.0,def:224.0},
+{n:"Type Null",hp:216.0,atk:184.0,def:184.0},{n:"Silvally",hp:216.0,atk:198.0,def:198.0},{n:"Minior Meteor",hp:155.0,atk:116.0,def:194.0},{n:"Minior Core",hp:155.0,atk:218.0,def:131.0},{n:"Komala",hp:163.0,atk:216.0,def:165.0},{n:"Turtonator",hp:155.0,atk:165.0,def:215.0},
+{n:"Togedemaru",hp:163.0,atk:190.0,def:145.0},{n:"Mimikyu",hp:146.0,atk:177.0,def:199.0},{n:"Bruxish",hp:169.0,atk:208.0,def:145.0},{n:"Drampa",hp:186.0,atk:231.0,def:164.0},{n:"Mega Drampa",hp:186.0,atk:278.0,def:210.0},{n:"Dhelmise",hp:172.0,atk:233.0,def:179.0},
+{n:"Jangmo-o",hp:128.0,atk:102.0,def:108.0},{n:"Hakamo-o",hp:146.0,atk:145.0,def:162.0},{n:"Kommo-o",hp:181.0,atk:222.0,def:240.0},{n:"Tapu Koko",hp:172.0,atk:250.0,def:181.0},{n:"Tapu Lele",hp:172.0,atk:259.0,def:208.0},{n:"Tapu Bulu",hp:172.0,atk:249.0,def:215.0},
+{n:"Tapu Fini",hp:172.0,atk:189.0,def:254.0},{n:"Cosmog",hp:125.0,atk:54.0,def:57.0},{n:"Cosmoem",hp:125.0,atk:54.0,def:242.0},{n:"Solgaleo",hp:264.0,atk:255.0,def:191.0},{n:"Lunala",hp:264.0,atk:255.0,def:191.0},{n:"Nihilego",hp:240.0,atk:249.0,def:210.0},
+{n:"Buzzwole",hp:216.0,atk:236.0,def:196.0},{n:"Pheromosa",hp:174.0,atk:316.0,def:85.0},{n:"Xurkitree",hp:195.0,atk:330.0,def:144.0},{n:"Shadow Xurkitree",hp:195.0,atk:330.0,def:144.0},{n:"Celesteela",hp:219.0,atk:207.0,def:199.0},{n:"Kartana",hp:139.0,atk:323.0,def:182.0},
+{n:"Shadow Kartana",hp:139.0,atk:323.0,def:182.0},{n:"Guzzlord",hp:440.0,atk:188.0,def:99.0},{n:"Necrozma",hp:219.0,atk:251.0,def:195.0},{n:"Necrozma Dusk Mane",hp:200.0,atk:277.0,def:220.0},{n:"NDM",hp:200.0,atk:277.0,def:220.0},{n:"Necrozma Dawn Wings",hp:200.0,atk:277.0,def:220.0},
+{n:"NDW",hp:200.0,atk:277.0,def:220.0},{n:"Ultra Necrozma",hp:200.0,atk:337.0,def:196.0},{n:"Magearna",hp:190.0,atk:246.0,def:225.0},{n:"Mega Magearna",hp:190.0,atk:342.0,def:239.0},{n:"Marshadow",hp:207.0,atk:265.0,def:190.0},{n:"Poipole",hp:167.0,atk:145.0,def:133.0},
+{n:"Naganadel",hp:177.0,atk:263.0,def:159.0},{n:"Stakataka",hp:156.0,atk:213.0,def:298.0},{n:"Blacephalon",hp:142.0,atk:315.0,def:148.0},{n:"Zeraora",hp:204.0,atk:252.0,def:177.0},{n:"Mega Zeraora",hp:204.0,atk:361.0,def:180.0},{n:"Meltan",hp:130.0,atk:118.0,def:99.0},
+{n:"Melmetal",hp:264.0,atk:226.0,def:190.0},{n:"Grookey",hp:137.0,atk:122.0,def:91.0},{n:"Thwackey",hp:172.0,atk:165.0,def:134.0},{n:"Rillaboom",hp:225.0,atk:239.0,def:168.0},{n:"Scorbunny",hp:137.0,atk:132.0,def:79.0},{n:"Raboot",hp:163.0,atk:170.0,def:125.0},
+{n:"Cinderace",hp:190.0,atk:238.0,def:163.0},{n:"Shadow Cinderace",hp:190.0,atk:238.0,def:163.0},{n:"Sobble",hp:137.0,atk:132.0,def:79.0},{n:"Drizzile",hp:163.0,atk:186.0,def:113.0},{n:"Inteleon",hp:142.0,atk:262.0,def:172.0},{n:"Shadow Inteleon",hp:142.0,atk:262.0,def:172.0},
+{n:"Skwovet",hp:172.0,atk:95.0,def:86.0},{n:"Greedent",hp:260.0,atk:160.0,def:156.0},{n:"Wooloo",hp:123.0,atk:76.0,def:97.0},{n:"Dubwool",hp:176.0,atk:159.0,def:198.0},{n:"Obstagoon",hp:212.0,atk:180.0,def:194.0},{n:"Perrserker",hp:172.0,atk:195.0,def:162.0},
+{n:"Sirfetch’d",hp:158.0,atk:248.0,def:176.0},{n:"Mr. Rime",hp:190.0,atk:212.0,def:179.0},{n:"Runerigus",hp:151.0,atk:163.0,def:237.0},{n:"Falinks",hp:163.0,atk:193.0,def:170.0},{n:"Mega Falinks",hp:163.0,atk:267.0,def:229.0},{n:"Dreepy",hp:99.0,atk:117.0,def:61.0},
+{n:"Drakloak",hp:169.0,atk:163.0,def:105.0},{n:"Dragapult",hp:204.0,atk:266.0,def:170.0},{n:"Zacian Hero",hp:192.0,atk:254.0,def:236.0},{n:"Zacian Crown",hp:192.0,atk:332.0,def:240.0},{n:"Zamazenta Hero",hp:192.0,atk:254.0,def:236.0},{n:"Zamazenta Crown",hp:192.0,atk:250.0,def:292.0},
+{n:"Eternatus",hp:268.0,atk:278.0,def:192.0},{n:"Kubfu",hp:150.0,atk:170.0,def:112.0},{n:"Urshifu Rapid Strike",hp:225.0,atk:254.0,def:177.0},{n:"Urshifu Single Strike",hp:225.0,atk:254.0,def:177.0},{n:"Zarude",hp:233.0,atk:242.0,def:215.0},{n:"Regieleki",hp:190.0,atk:250.0,def:125.0},
+{n:"Regidrago",hp:400.0,atk:202.0,def:101.0},{n:"Shadow Regidrago",hp:400.0,atk:202.0,def:101.0},{n:"Calyrex",hp:225.0,atk:162.0,def:162.0},{n:"Calyrex Ice Rider",hp:205.0,atk:268.0,def:246.0},{n:"Calyrex Shadow Rider",hp:205.0,atk:324.0,def:194.0},{n:"Wyrdeer",hp:230.0,atk:206.0,def:145.0},
+{n:"Kleavor",hp:172.0,atk:253.0,def:174.0},{n:"Ursaluna",hp:277.0,atk:243.0,def:181.0},{n:"Shadow Ursaluna",hp:277.0,atk:243.0,def:181.0},{n:"Basculegion",hp:260.0,atk:217.0,def:144.0},{n:"Sneasler",hp:190.0,atk:259.0,def:158.0},{n:"Overqwil",hp:198.0,atk:222.0,def:171.0},
+{n:"Enamorus Incarnate",hp:179.0,atk:281.0,def:162.0},{n:"Enamorus Therian",hp:179.0,atk:250.0,def:201.0},{n:"Sprigatito",hp:120.0,atk:116.0,def:99.0},{n:"Floragato",hp:156.0,atk:157.0,def:128.0},{n:"Meowscarada",hp:183.0,atk:233.0,def:153.0},{n:"Fuecoco",hp:167.0,atk:112.0,def:96.0},
+{n:"Crocalor",hp:191.0,atk:162.0,def:134.0},{n:"Skeledirge",hp:232.0,atk:207.0,def:178.0},{n:"Quaxly",hp:146.0,atk:120.0,def:86.0},{n:"Quaxwell",hp:172.0,atk:162.0,def:123.0},{n:"Quaquaval",hp:198.0,atk:236.0,def:159.0},{n:"Lechonk",hp:144.0,atk:81.0,def:79.0},
+{n:"Oinkologne Male",hp:242.0,atk:186.0,def:153.0},{n:"Oinkologne Female",hp:251.0,atk:169.0,def:162.0},{n:"Nymble",hp:107.0,atk:81.0,def:65.0},{n:"Lokix",hp:174.0,atk:199.0,def:144.0},{n:"Pawmi",hp:128.0,atk:95.0,def:45.0},{n:"Pawmo",hp:155.0,atk:147.0,def:82.0},
+{n:"Pawmot",hp:172.0,atk:232.0,def:141.0},{n:"Smoliv",hp:121.0,atk:100.0,def:89.0},{n:"Dolliv",hp:141.0,atk:137.0,def:131.0},{n:"Arboliva",hp:186.0,atk:219.0,def:189.0},{n:"Charcadet",hp:120.0,atk:92.0,def:74.0},{n:"Armarouge",hp:198.0,atk:234.0,def:185.0},
+{n:"Ceruledge",hp:181.0,atk:239.0,def:189.0},{n:"Tadbulb",hp:156.0,atk:104.0,def:73.0},{n:"Bellibolt",hp:240.0,atk:184.0,def:165.0},{n:"Mega Scovillain",hp:163.0,atk:276.0,def:170.0},{n:"Tinkatink",hp:137.0,atk:85.0,def:110.0},{n:"Tinkatuff",hp:163.0,atk:109.0,def:145.0},
+{n:"Tinkaton",hp:198.0,atk:155.0,def:196.0},{n:"Shadow Tinkaton",hp:198.0,atk:155.0,def:196.0},{n:"Wiglett",hp:67.0,atk:109.0,def:52.0},{n:"Wugtrio",hp:111.0,atk:205.0,def:136.0},{n:"Bombirdier",hp:172.0,atk:198.0,def:172.0},{n:"Varoom",hp:128.0,atk:123.0,def:107.0},
+{n:"Revavroom",hp:190.0,atk:229.0,def:168.0},{n:"Cyclizar",hp:172.0,atk:205.0,def:142.0},{n:"Orthworm",hp:172.0,atk:161.0,def:219.0},{n:"Glimmet",hp:134.0,atk:187.0,def:104.0},{n:"Glimmora",hp:195.0,atk:246.0,def:177.0},{n:"Mega Glimmora",hp:195.0,atk:300.0,def:214.0},
+{n:"Greavard",hp:137.0,atk:105.0,def:106.0},{n:"Houndstone",hp:176.0,atk:186.0,def:195.0},{n:"Flamigo",hp:193.0,atk:227.0,def:145.0},{n:"Cetoddle",hp:239.0,atk:119.0,def:80.0},{n:"Cetitan",hp:347.0,atk:208.0,def:123.0},{n:"Veluza",hp:207.0,atk:196.0,def:139.0},
+{n:"Dondozo",hp:312.0,atk:176.0,def:178.0},{n:"Tatsugiri",hp:169.0,atk:226.0,def:166.0},{n:"Mega Tatsugiri",hp:169.0,atk:262.0,def:232.0},{n:"Annihilape",hp:242.0,atk:220.0,def:178.0},{n:"Clodsire",hp:277.0,atk:127.0,def:151.0},{n:"Farigiraf",hp:260.0,atk:209.0,def:136.0},
+{n:"Dudunsparce",hp:268.0,atk:188.0,def:150.0},{n:"Kingambit",hp:203.0,atk:238.0,def:225.0},{n:"Great Tusk",hp:251.0,atk:249.0,def:209.0},{n:"Scream Tail",hp:234.0,atk:139.0,def:251.0},{n:"Brute Bonnet",hp:190.0,atk:232.0,def:244.0},{n:"Flutter Mane",hp:146.0,atk:280.0,def:235.0},
+{n:"Slither Wing",hp:198.0,atk:261.0,def:193.0},{n:"Sandy Shocks",hp:198.0,atk:244.0,def:195.0},{n:"Iron Treads",hp:207.0,atk:227.0,def:216.0},{n:"Iron Bundle",hp:148.0,atk:266.0,def:211.0},{n:"Iron Hands",hp:319.0,atk:245.0,def:177.0},{n:"Iron Jugulis",hp:214.0,atk:249.0,def:179.0},
+{n:"Iron Moth",hp:190.0,atk:281.0,def:196.0},{n:"Iron Thorns",hp:225.0,atk:250.0,def:200.0},{n:"Frigibax",hp:163.0,atk:134.0,def:86.0},{n:"Arctibax",hp:207.0,atk:173.0,def:128.0},{n:"Baxcalibur",hp:229.0,atk:254.0,def:168.0},{n:"Shadow Baxcalibur",hp:229.0,atk:254.0,def:168.0},
+{n:"Mega Baxcalibur",hp:244.0,atk:331.0,def:221.0},{n:"Gimmighoul Roaming",hp:128.0,atk:140.0,def:76.0},{n:"Gholdengo",hp:202.0,atk:252.0,def:190.0},{n:"Wo-Chien",hp:198.0,atk:186.0,def:242.0},{n:"Chien-Pao",hp:190.0,atk:261.0,def:167.0},{n:"Ting-Lu",hp:321.0,atk:194.0,def:203.0},
+{n:"Chi-Yu",hp:146.0,atk:269.0,def:221.0},{n:"Roaring Moon",hp:233.0,atk:280.0,def:196.0},{n:"Iron Valiant",hp:179.0,atk:279.0,def:171.0},{n:"Koraidon",hp:205.0,atk:263.0,def:223.0},{n:"Miraidon",hp:205.0,atk:263.0,def:223.0},{n:"Walking Wake",hp:188.0,atk:256.0,def:188.0},
+{n:"Iron Leaves",hp:207.0,atk:259.0,def:213.0},{n:"Dipplin",hp:190.0,atk:173.0,def:184.0},{n:"Poltchageist",hp:96.0,atk:134.0,def:120.0},{n:"Sinistea",hp:190.0,atk:225.0,def:174.0},{n:"Okidogi",hp:186.0,atk:220.0,def:191.0},{n:"Munkidori",hp:186.0,atk:238.0,def:157.0},
+{n:"Fezandipiti",hp:186.0,atk:169.0,def:208.0},{n:"Ogerpon",hp:173.0,atk:219.0,def:178.0},{n:"Ogerpon-W",hp:173.0,atk:219.0,def:178.0},{n:"Ogerpon-H",hp:173.0,atk:219.0,def:178.0},{n:"Ogerpon-C",hp:173.0,atk:219.0,def:178.0},{n:"Archuladon",hp:207.0,atk:250.0,def:215.0},
+{n:"Hydrapple",hp:235.0,atk:216.0,def:186.0},{n:"Gouging Fire",hp:213.0,atk:205.0,def:208.0},{n:"Raging Bolt",hp:245.0,atk:235.0,def:165.0},{n:"Iron Boulder",hp:189.0,atk:227.0,def:195.0},{n:"Iron Crown",hp:189.0,atk:221.0,def:200.0},{n:"Terapagos",hp:207.0,atk:126.0,def:165.0},
+{n:"Pecharunt",hp:204.0,atk:181.0,def:273.0},
+];
+// ============ SPRITE LOOKUP (same approach as the raid archives / calculator) ============
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
+  "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zamazenta hero":"zamazenta", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane",
+  "ndm":"necrozma-dusk-mane", "ndw":"necrozma-dawn-wings",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "palkia origin":"palkia-origin",
+};
+const DEX_MAP = {
+  "dialga":483, "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "groudon":383, "mamoswine":473, "salamence":373, "gengar":94,
+  "tyrantrum":697, "rhyperior":464, "kyogre":382, "mewtwo":150,
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  return n.replace(/\s+/g, "-");
+}
+function spriteUrl(name){
+  const key = name.trim().toLowerCase();
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
+  }
+  return `https://img.pokemondb.net/artwork/large/${toDbSlug(name)}.jpg`;
+}
+
+function cardHtml(p){
+  return `
+  <div class="pkmn-card">
+    <div class="pkmn-sprite">
+      <img src="${spriteUrl(p.n)}" alt="${p.n}" loading="lazy" onerror="this.style.display='none'">
+    </div>
+    <div class="pkmn-info">
+      <div class="pkmn-name">${p.n}</div>
+      <div class="pkmn-stats">
+        <span>ATK<b>${p.atk}</b></span>
+        <span>DEF<b>${p.def}</b></span>
+        <span>HP<b>${p.hp}</b></span>
+      </div>
+    </div>
+  </div>`;
+}
+
+const grid = document.getElementById("pkmnGrid");
+const countEl = document.getElementById("count");
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+
+function render(){
+  const q = searchInput.value.trim().toLowerCase();
+  let list = POKEMON_DB.filter(p => !q || p.n.toLowerCase().includes(q));
+
+  const sort = sortSelect.value;
+  if(sort === "name") list.sort((a,b) => a.n.localeCompare(b.n));
+  else list.sort((a,b) => b[sort] - a[sort]);
+
+  countEl.textContent = `${list.length} Pokémon`;
+  grid.innerHTML = list.length
+    ? list.map(cardHtml).join("")
+    : `<div class="empty">No Pokémon match your search.</div>`;
+}
+
+searchInput.addEventListener("input", render);
+sortSelect.addEventListener("change", render);
+render();
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+</script>
+</body>
+</html>
