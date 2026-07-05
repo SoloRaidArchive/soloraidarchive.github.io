@@ -104,6 +104,20 @@
   }
   header p{ color: var(--text-muted); font-size: 15.5px; max-width: 540px; margin: 0 auto; font-weight:600; }
 
+  .top-nav{
+    max-width: 1760px; margin: 20px auto 0; padding: 0 20px;
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+  }
+  .top-nav-link{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text-muted); text-decoration:none;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .top-nav-link:hover{ transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark); }
+  .top-nav-link.current{ background: var(--blue); color:#fff; border-color: var(--blue); }
+
   .role-legend{
     max-width: 1760px; margin: 26px auto 0; padding: 18px 22px;
     display:grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap:14px;
@@ -340,6 +354,19 @@
 <a class="home-link" href="index.html">← Back to Home</a>
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
+<div class="top-nav">
+  <a href="tier4-raids.html" class="top-nav-link">Tier 4</a>
+  <a href="tier5-raids.html" class="top-nav-link">Tier 5</a>
+  <a href="tier5-ae-raids.html" class="top-nav-link current">Tier 5 AE</a>
+  <a href="tier6-elite-raids.html" class="top-nav-link">Tier 6 & Elite</a>
+  <a href="meta-battle-parties.html" class="top-nav-link">Meta Battle Parties</a>
+  <a href="raid-strategies.html" class="top-nav-link">Raid Strategies</a>
+  <a href="move-data.html" class="top-nav-link">Move Data</a>
+  <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
+  <a href="ct-calculator.html" class="top-nav-link">Catch Tank Calculator</a>
+  <a href="patch-notes.html" class="top-nav-link">Patch Notes</a>
+</div>
+
 <header>
   <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
   <h1>Tier 5 Raids — Adventure Effect</h1>
@@ -375,29 +402,6 @@
 
 <div class="layout">
   <aside class="sidebar">
-    <div class="filter-block">
-      <div class="filter-title">Archives</div>
-      <div class="archive-nav">
-      <a href="tier4-raids.html" class="archive-nav-link">Tier 4</a>
-      <a href="tier5-raids.html" class="archive-nav-link">Tier 5</a>
-      <a href="tier5-ae-raids.html" class="archive-nav-link current">Tier 5 <img src="https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png" alt="AE sword" title="Adventure Effect" style="width:14px;height:14px;vertical-align:-2px;margin-left:2px;"><img src="https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41" alt="AE shield" title="Adventure Effect" style="width:14px;height:14px;vertical-align:-2px;margin-left:2px;"></a>
-      <a href="tier6-elite-raids.html" class="archive-nav-link">Tier 6 & Elite</a>
-    <div class="filter-block">
-      <div class="filter-title">Reference</div>
-      <div class="archive-nav">
-      <a href="meta-battle-parties.html" class="archive-nav-link">Meta Battle Parties</a>
-      <a href="raid-strategies.html" class="archive-nav-link">Raid Strategies</a>
-      <a href="move-data.html" class="archive-nav-link">Move Data</a>
-      <a href="pokemon-stats.html" class="archive-nav-link">Pokémon Stats</a>
-      </div>
-    </div>
-    <div class="filter-block">
-      <div class="filter-title">Tools</div>
-      <div class="archive-nav">
-      <a href="ct-calculator.html" class="archive-nav-link">Catch Tank Calculator</a>
-      <a href="patch-notes.html" class="archive-nav-link">Patch Notes</a>
-      </div>
-    </div>
     <div class="filter-block">
       <div class="filter-title">Pokémon in Party</div>
       <input id="pokemonSearch" type="text" placeholder="e.g. Eternatus…" autocomplete="off">
@@ -521,6 +525,9 @@ function toDbSlug(name){
   if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
   const megaMatch = n.match(/^mega\s+(.+)$/);
   if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  // PokemonDB uses a suffix for regional forms (e.g. "raichu-alolan"), not a prefix
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
   return n.replace(/\s+/g, "-");
 }
 function displayName(name){

@@ -72,31 +72,19 @@
   }
   .kind-btn.active{ background: var(--accent); color:#fff; border-color: var(--accent); }
 
-  .layout{
-    max-width: 1300px; margin: 0 auto; padding: 0 20px;
-    display:flex; gap:24px; align-items:flex-start;
+  .top-nav{
+    max-width: 1100px; margin: 0 auto; padding: 0 20px;
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
   }
-  .sidebar{
-    flex: 0 0 200px; position:sticky; top:20px;
-    background: var(--card); border:2px solid var(--border); border-radius:16px; padding:16px;
+  .top-nav-link{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:1px solid var(--border); border-radius:999px;
+    padding: 8px 14px; font-weight:600; font-size:12.5px;
+    color: var(--ink-muted); text-decoration:none;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
   }
-  .sidebar-title{
-    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:11px;
-    color: var(--ink-dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;
-  }
-  .sidebar-link{
-    display:block; padding:9px 11px; border-radius:9px; margin-bottom:2px;
-    font-weight:700; font-size:13px; color: var(--ink-muted); text-decoration:none;
-    transition: background .12s, color .12s;
-  }
-  .sidebar-link:hover{ background: var(--accent-soft); color: var(--accent-dark); }
-  .sidebar-link.current{ background: var(--accent); color:#fff; }
-  .main-content{ flex:1; min-width:0; }
-  @media (max-width:860px){
-    .layout{ flex-direction:column; }
-    .sidebar{ position:static; width:100%; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
-    .sidebar-title{ width:100%; margin-top:8px; }
-  }
+  .top-nav-link:hover{ transform: translateY(-2px); border-color: var(--accent); color: var(--accent-dark); }
+  .top-nav-link.current{ background: var(--accent); color:#fff; border-color: var(--accent); }
   .container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 70px; }
   .move-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap:12px; }
   .move-card{
@@ -122,6 +110,19 @@
 <a class="home-link" href="index.html">← Back to Home</a>
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
+<div class="top-nav">
+  <a href="tier4-raids.html" class="top-nav-link">Tier 4</a>
+  <a href="tier5-raids.html" class="top-nav-link">Tier 5</a>
+  <a href="tier5-ae-raids.html" class="top-nav-link">Tier 5 AE</a>
+  <a href="tier6-elite-raids.html" class="top-nav-link">Tier 6 &amp; Elite</a>
+  <a href="meta-battle-parties.html" class="top-nav-link">Meta Battle Parties</a>
+  <a href="raid-strategies.html" class="top-nav-link">Raid Strategies</a>
+  <a href="move-data.html" class="top-nav-link current">Move Data</a>
+  <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
+  <a href="ct-calculator.html" class="top-nav-link">Catch Tank Calculator</a>
+  <a href="patch-notes.html" class="top-nav-link">Patch Notes</a>
+</div>
+
 <header>
   <div class="eyebrow">Reference Data</div>
   <h1>Move Data</h1>
@@ -138,26 +139,7 @@
   </div>
 </div>
 
-<div class="layout">
-  <aside class="sidebar">
-    <div class="sidebar-title">Archives</div>
-    <a href="tier4-raids.html" class="sidebar-link">Tier 4</a>
-    <a href="tier5-raids.html" class="sidebar-link">Tier 5</a>
-    <a href="tier5-ae-raids.html" class="sidebar-link">Tier 5 (AE)</a>
-    <a href="tier6-elite-raids.html" class="sidebar-link">Tier 6 &amp; Elite</a>
-    <div class="sidebar-title" style="margin-top:16px;">Reference</div>
-    <a href="meta-battle-parties.html" class="sidebar-link">Meta Battle Parties</a>
-    <a href="raid-strategies.html" class="sidebar-link">Raid Strategies</a>
-    <a href="move-data.html" class="sidebar-link current">Move Data</a>
-    <a href="pokemon-stats.html" class="sidebar-link">Pokémon Stats</a>
-    <div class="sidebar-title" style="margin-top:16px;">Tools</div>
-    <a href="ct-calculator.html" class="sidebar-link">Catch Tank Calculator</a>
-    <a href="patch-notes.html" class="sidebar-link">Patch Notes</a>
-  </aside>
-  <div class="main-content">
 <div class="container"><div class="move-grid" id="moveGrid"></div></div>
-  </div>
-</div>
 
 <script>
 const MOVE_TYPE_COLORS = {
