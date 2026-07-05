@@ -51,7 +51,7 @@
   [data-theme="dark"] .role-chip.other{ background:#2a2f42; color:#a7afc0; }
   [data-theme="dark"] .count-badge{ background:#2a2f42; color:#a7afc0; }
   [data-theme="dark"] .moves > span{ background:#20263a; border-color:#323850; }
-  [data-theme="dark"] .notes-body{ background:#20263a; }
+  [data-theme="dark"] details.notes-wrap .notes-body{ background:#20263a; color: var(--text-muted); }
 
 
   .theme-toggle{
@@ -212,9 +212,10 @@
   }
   .strat-static{ font-size:14px; font-weight:700; color: var(--blue-dark); }
 
-  .meta-row{ display:flex; align-items:center; gap:9px; }
+  .meta-row{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-height:50px; }
   .weather-tag{ font-size:20px; line-height:1; }
   .weather-icon-img{ width:22px; height:22px; object-fit:contain; vertical-align:middle; }
+  .weather-label{ font-size:12.5px; font-weight:700; color: var(--text-muted); vertical-align:middle; }
   .weather-icon-img.extreme{ filter: invert(1) grayscale(1) brightness(0.3); }
   [data-theme="dark"] .weather-icon-img.extreme{ filter: none; }
   .ae-icon{ width:22px; height:22px; }
@@ -412,6 +413,13 @@
     <div class="filter-block">
       <div class="filter-title">Pokémon in Party</div>
       <input id="pokemonSearch" type="text" placeholder="e.g. Eternatus…" autocomplete="off">
+    </div>
+    <div class="filter-block">
+      <div class="filter-title">
+        Difficulty
+        <button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button>
+      </div>
+      <div class="filter-options" id="difficultyFilters"></div>
     </div>
     <div class="filter-block">
       <div class="filter-title">
@@ -626,26 +634,27 @@ function moveChipHtml(label, move){
 }
 
 const WEATHER_ICON_URLS = {
-  "clear":"https://static.wikia.nocookie.net/pokemongo/images/e/ec/Weather_Clear_Day.png/revision/latest?cb=20171206224245",
-  "sunny":"https://static.wikia.nocookie.net/pokemongo/images/e/ec/Weather_Clear_Day.png/revision/latest?cb=20171206224245",
-  "cloudy":"https://static.wikia.nocookie.net/pokemongo/images/b/b1/Weather_Overcast_Day.png/revision/latest?cb=20171206224247",
-  "partly cloudy":"https://static.wikia.nocookie.net/pokemongo/images/8/85/Weather_Partly_Cloudy_Day.png/revision/latest?cb=20171206224248",
-  "windy":"https://static.wikia.nocookie.net/pokemongo/images/5/50/Weather_Windy_Night.png/revision/latest?cb=20171206224252",
-  "wind":"https://static.wikia.nocookie.net/pokemongo/images/5/50/Weather_Windy_Night.png/revision/latest?cb=20171206224252",
-  "rain":"https://static.wikia.nocookie.net/pokemongo/images/f/f4/Weather_Rain_Day.png/revision/latest?cb=20171206224249",
-  "rainy":"https://static.wikia.nocookie.net/pokemongo/images/f/f4/Weather_Rain_Day.png/revision/latest?cb=20171206224249",
-  "snow":"https://static.wikia.nocookie.net/pokemongo/images/e/e8/Weather_Snow_Day.png/revision/latest?cb=20171206224250",
-  "fog":"https://static.wikia.nocookie.net/pokemongo/images/0/07/Weather_Fog_Day.png/revision/latest?cb=20171206224247",
-  "extreme":"https://static.wikia.nocookie.net/pokemongo/images/f/f2/Weather_Extreme.png/revision/latest?cb=20171206224246",
+  "clear":"assets/icons/weather-clear.jpg",
+  "sunny":"assets/icons/weather-clear.jpg",
+  "cloudy":"assets/icons/weather-cloudy.jpg",
+  "partly cloudy":"assets/icons/weather-partly-cloudy.jpg",
+  "windy":"assets/icons/weather-windy.jpg",
+  "wind":"assets/icons/weather-windy.jpg",
+  "rain":"assets/icons/weather-rain.jpg",
+  "rainy":"assets/icons/weather-rain.jpg",
+  "snow":"assets/icons/weather-snow.jpg",
+  "fog":"assets/icons/weather-fog.jpg",
+  "extreme":"assets/icons/weather-extreme.png",
 };
-function weatherIcon(w){
+function weatherIcon(w, withLabel){
   const key = w.trim().toLowerCase();
   const url = WEATHER_ICON_URLS[key];
+  const labelHtml = withLabel ? ` <span class="weather-label">${w}</span>` : "";
   if(url){
     const cls = key === "extreme" ? "weather-icon-img extreme" : "weather-icon-img";
-    return `<img class="${cls}" src="${url}" alt="${w}" title="${w}" loading="lazy" onerror="this.remove()">`;
+    return `<img class="${cls}" src="${url}" alt="${w}" title="${w}" loading="lazy" onerror="this.remove()">${labelHtml}`;
   }
-  return `<span title="${w}">🌤️</span>`;
+  return `<span title="${w}">🌤️${withLabel ? " " + w : ""}</span>`;
 }
 function parseRole(roleStr){
   const parts = roleStr.split(",").map(p => p.trim());
@@ -704,7 +713,7 @@ function variantBodyHtml(r){
   const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
   return `
     <div class="meta-row">
-      ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather)}</span>` : ""}
+      ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
     </div>
     <div class="party-label">Boss Moveset</div>
     <div class="moves">
@@ -774,12 +783,28 @@ function strategyCategories(strategy){
   return STRATEGY_LIST.filter(cat => strategy.toLowerCase().includes(cat.toLowerCase()));
 }
 
+const activeTiers = new Set();
+const DIFFICULTY_LIST = TIER_ORDER.filter(t => bossOrder.some(b => bossGroups[b][bossGroups[b].length - 1].tier === t));
+function renderDifficultyFilters(){
+  const el = document.getElementById("difficultyFilters");
+  el.innerHTML = DIFFICULTY_LIST.map(t => `
+    <label class="filter-chk">
+      <input type="checkbox" ${activeTiers.has(t) ? "checked" : ""} onchange="toggleDifficulty('${t}')">
+      ${tierLabel(t)} ${TIER_NAMES[t]}
+    </label>
+  `).join("");
+}
+function toggleDifficulty(t){
+  if(activeTiers.has(t)) activeTiers.delete(t); else activeTiers.add(t);
+  refresh();
+}
+
 function renderFilterGroup(containerId, list, activeSet, toggleFnName, showIcon){
   const el = document.getElementById(containerId);
   el.innerHTML = list.map(val => `
     <label class="filter-chk">
       <input type="checkbox" ${activeSet.has(val) ? "checked" : ""} onchange="${toggleFnName}('${val.replace(/'/g,"\\'")}')">
-      ${showIcon ? weatherIcon(val) + " " : ""}${val}
+      ${showIcon ? weatherIcon(val, false) + " " : ""}${val}
     </label>
   `).join("");
 }
@@ -795,12 +820,14 @@ function toggleStrategy(s){
   refresh();
 }
 function clearFilterGroup(group){
+  if(group === "difficulty") activeTiers.clear();
   if(group === "weather") activeWeathers.clear();
   if(group === "strategy") activeStrategies.clear();
   refresh();
 }
 
 function refresh(){
+  renderDifficultyFilters();
   renderWeatherFilters();
   renderStrategyFilters();
   buildSections();
@@ -814,6 +841,7 @@ function buildSections(){
   let html = "";
 
   TIER_ORDER.forEach(tier => {
+    if(activeTiers.size > 0 && !activeTiers.has(tier)) return;
     let sectionCardsHtml = "";
 
     bossOrder.forEach((boss, i) => {
@@ -885,6 +913,7 @@ const search = document.getElementById("search");
 const pokemonSearch = document.getElementById("pokemonSearch");
 search.addEventListener("input", buildSections);
 pokemonSearch.addEventListener("input", buildSections);
+renderDifficultyFilters();
 renderWeatherFilters();
 renderStrategyFilters();
 buildSections();
