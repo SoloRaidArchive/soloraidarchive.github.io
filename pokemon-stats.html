@@ -358,6 +358,7 @@ const DB_OVERRIDES = {
   "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
   "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
   "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega zygarde":"zygarde-complete-mega",
 };
 const DEX_MAP = {
   "dialga":483, "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
@@ -376,16 +377,8 @@ function toDbSlug(name){
   if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
   return n.replace(/\s+/g, "-");
 }
-// Some very recent Mega Evolutions aren't on PokemonDB yet - use Serebii artwork instead
-const SEREBII_OVERRIDES = {
-  "mega raichu x": "https://www.serebii.net/art/th/26-mx.png",
-  "mega raichu y": "https://www.serebii.net/art/th/26-my.png",
-  "mega zygarde": "https://www.serebii.net/art/th/718-m.png",
-  "zygarde complete": "https://www.serebii.net/art/th/718-p.png",
-};
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
-  if (SEREBII_OVERRIDES[key]) return SEREBII_OVERRIDES[key];
   if (key.startsWith("shadow ")){
     const base = key.replace(/^shadow\s+/, "");
     if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
