@@ -195,8 +195,6 @@
 </div>
 
 <script>
-const ARCHIVE_FILES = ["tier4-raids.html", "tier5-raids.html", "tier5-ae-raids.html", "tier6-elite-raids.html"];
-
 const DB_OVERRIDES = {
   "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y",
   "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
@@ -247,49 +245,27 @@ function displayName(name){
   return name.replace(/\s+Incarnate$/i, "-I").replace(/\s+Therian$/i, "-T");
 }
 
-async function fetchRaidsFrom(filename){
-  try{
-    const res = await fetch(filename);
-    if(!res.ok) return [];
-    const text = await res.text();
-    const startIdx = text.indexOf("const RAIDS = [");
-    if(startIdx === -1) return [];
-    const endIdx = text.indexOf("\n];", startIdx) + 2;
-    const arrayText = text.slice(startIdx + "const RAIDS = ".length, endIdx);
-    const raids = new Function("return " + arrayText)();
-    return raids;
-  }catch(e){
-    console.error("Failed to load", filename, e);
-    return [];
-  }
-}
-
-async function buildUsageData(){
-  const allRaidsPerFile = await Promise.all(ARCHIVE_FILES.map(fetchRaidsFrom));
-  const allRaids = allRaidsPerFile.flat();
-
-  // pokemonName -> Set of distinct boss names it's been used against
-  const usage = new Map();
-  allRaids.forEach(raid => {
-    const boss = raid.boss;
-    if(!boss || !raid.party) return;
-    const seenThisRaid = new Set();
-    raid.party.forEach(member => {
-      const name = member.n;
-      if(!name || name === "Various") return;
-      if(seenThisRaid.has(name)) return; // same party member listed twice in one raid entry, don't double count
-      seenThisRaid.add(name);
-      if(!usage.has(name)) usage.set(name, new Set());
-      usage.get(name).add(boss);
-    });
-  });
-
-  const results = [...usage.entries()].map(([name, bossSet]) => ({
-    name, count: bossSet.size, bosses: [...bossSet],
-  }));
-  results.sort((a,b) => b.count - a.count || a.name.localeCompare(b.name));
-  return { results, totalRaids: allRaids.length, totalBosses: new Set(allRaids.map(r=>r.boss)).size };
-}
+// Precomputed from all four raid archives (regenerate this block whenever raid data changes)
+const USAGE_DATA = [
+{name:"Mega Rayquaza",count:20,bosses:["Buzzwole","Giratina Altered","Giratina Origin","Kyurem","Kyurem White","Latios","Mega Beedrill","Mega Blaziken","Mega Gallade","Mega Heracross","Mega Lopunny","Mega Medicham","Mega Venusaur","Palkia","Pheromosa","Regidrago","Reshiram","Tapu Bulu","Virizion","Zekrom"]},{name:"Mega Lucario",count:17,bosses:["Darkrai","Dialga","Kyurem","Kyurem Black","Kyurem White","Mega Absol","Mega Aggron","Mega Glalie","Mega Gyarados","Mega Houndoom","Mega Kangaskhan","Mega Lucario","Mega Steelix","Mega Tyranitar","Regigigas","Stakataka","Terrakion"]},{name:"Kyurem Black",count:16,bosses:["Darkrai","Dialga","Enamorus Therian","Landorus Incarnate","Landorus Therian","Latios","Mega Garchomp","Mega Rayquaza","Mega Salamence","Rayquaza","Regidrago","Regigigas","Thundurus Therian","Tornadus Therian","Yveltal","Zekrom"]},
+{name:"Necrozma Dawn Wings",count:15,bosses:["Azelf","Blacephalon","Deoxys","Giratina Altered","Giratina Origin","Lunala","Mega Alakazam","Mega Banette","Mega Gengar","Mega Slowbro","Mewtwo","NDM","NDW","Necrozma","Solgaleo"]},{name:"Eternatus",count:13,bosses:["Dialga","Giratina Altered","Giratina Origin","Kyurem","Kyurem Black","Kyurem White","Latios","Mega Charizard X","Palkia","Regidrago","Reshiram","Tapu Bulu","Zekrom"]},{name:"Primal Groudon",count:12,bosses:["Blacephalon","Entei","Heatran","Mega Ampharos","Mega Manectric","Mega Mawile","Mega Metagross","Nihilego","Regieleki","Tapu Koko","Terrakion","Xurkitree"]},
+{name:"Zacian Crown",count:12,bosses:["Enamorus Incarnate","Enamorus Therian","Enamorus therian","Kyurem","Kyurem White","Mega Aerodactyl","Mega Altaria","Mega Gardevoir","Mega Sableye","Tapu Lele","Terrakion","Xerneas"]},{name:"Kyurem White",count:10,bosses:["Landorus Incarnate","Landorus Therian","Mega Rayquaza","Mega Sceptile","Thundurus Incarnate","Thundurus Therian","Tornadus Incarnate","Tornadus Therian","Yveltal","Zapdos"]},{name:"Shadow Groudon",count:9,bosses:["Blacephalon","Entei","Heatran","Mega Mawile","Mega Metagross","Nihilego","Regieleki","Tapu Koko","Xurkitree"]},
+{name:"Mega Blaziken",count:8,bosses:["Celesteela","Genesect","Kartana","Mega Aggron","Mega Metagross","Mega Scizor","Mega Steelix","Solgaleo"]},{name:"Shadow Rampardos",count:7,bosses:["Articuno","Ho-Oh","Mega Pinsir","Moltres","Thundurus Therian","Tornadus Incarnate","Tornadus Therian"]},{name:"Shadow Regigigas",count:7,bosses:["Regieleki","Regigigas","Reshiram","Thundurus Therian","Tornadus Incarnate","Tornadus Therian","Xerneas"]},
+{name:"Shadow Reshiram",count:6,bosses:["Celesteela","Kartana","Mega Aggron","Mega Metagross","Mega Steelix","Solgaleo"]},{name:"Shadow Mamoswine",count:5,bosses:["Blacephalon","Nihilego","Regieleki","Tapu Koko","Xurkitree"]},{name:"Blacephalon",count:4,bosses:["Celesteela","Genesect","Kartana","Solgaleo"]},
+{name:"Keldeo Resolute",count:4,bosses:["Darkrai","Dialga","Kyurem Black","Regigigas"]},{name:"Necrozma Dusk Mane",count:4,bosses:["Enamorus Incarnate","Kyurem White","Mega Audino","Terrakion"]},{name:"Shadow Garchomp",count:4,bosses:["Blacephalon","Latios","Palkia","Solgaleo"]},
+{name:"Shadow Tyrantrum",count:4,bosses:["Articuno","Ho-Oh","Mega Charizard Y","Moltres"]},{name:"Mega Gengar",count:3,bosses:["Azelf","Blacephalon","Necrozma"]},{name:"Mega Sceptile",count:3,bosses:["Mega Blastoise","Mega Slowbro","Mega Swampert"]},
+{name:"Regieleki",count:3,bosses:["Mega Blastoise","Mega Pidgeot","Tornadus Incarnate"]},{name:"Baxcalibur",count:2,bosses:["Kyurem Black","Latios"]},{name:"Mega Gardevoir",count:2,bosses:["Guzzlord","Mega Sableye"]},
+{name:"Primal Kyogre",count:2,bosses:["Blacephalon","Entei"]},{name:"Shadow Dialga",count:2,bosses:["Palkia","Reshiram"]},{name:"Shadow Gengar",count:2,bosses:["Blacephalon","Tapu Bulu"]},
+{name:"Shadow Kyogre",count:2,bosses:["Blacephalon","Entei"]},{name:"Shadow Salamence",count:2,bosses:["Reshiram","Zamazenta Hero"]},{name:"Zamazenta Crown",count:2,bosses:["Enamorus therian","Tapu Lele"]},
+{name:"Landorus Therian",count:1,bosses:["Heatran"]},{name:"Landorus therian",count:1,bosses:["Solgaleo"]},{name:"Mega Alakazam",count:1,bosses:["Terrakion"]},
+{name:"Mega Beedrill",count:1,bosses:["Tapu Bulu"]},{name:"Mega Diancie",count:1,bosses:["Articuno"]},{name:"Mega Garchomp",count:1,bosses:["Reshiram"]},
+{name:"Mega Heracross",count:1,bosses:["Azelf"]},{name:"Mega Mewtwo Y",count:1,bosses:["Zamazenta Hero"]},{name:"Mega Tyranitar",count:1,bosses:["Mega Banette"]},
+{name:"Mega heracross",count:1,bosses:["Hoopa Unbound"]},{name:"Palkia Origin",count:1,bosses:["Kyurem"]},{name:"Primal kyogre",count:1,bosses:["Mega Camerupt"]},
+{name:"Reshiram",count:1,bosses:["Mega Metagross"]},{name:"Shadow Blaziken",count:1,bosses:["Kyurem Black"]},{name:"Shadow Excadrill",count:1,bosses:["Heatran"]},
+{name:"Shadow Mewtwo",count:1,bosses:["Terrakion"]},{name:"Shadow Palkia",count:1,bosses:["Latios"]},{name:"Shadow Rhyperior",count:1,bosses:["Articuno"]},
+];
+const TOTAL_RAID_ENTRIES = 193;
+const TOTAL_DISTINCT_BOSSES = 98;
 
 let ALL_RESULTS = [];
 let currentLimit = 20;
@@ -351,18 +327,9 @@ document.querySelectorAll(".view-btn").forEach(btn => {
   });
 });
 
-buildUsageData().then(({results, totalRaids, totalBosses}) => {
-  ALL_RESULTS = results;
-  renderStats(results.length, totalRaids, totalBosses);
-  renderLeaderboard();
-}).catch(err => {
-  document.getElementById("container").innerHTML = `
-    <div class="error-msg">
-      Couldn't load raid data. This page needs to be served over http(s) — opening the file directly
-      (file://) blocks the same-origin requests it depends on. Try the live site instead.
-    </div>`;
-  console.error(err);
-});
+ALL_RESULTS = USAGE_DATA;
+renderStats(USAGE_DATA.length, TOTAL_RAID_ENTRIES, TOTAL_DISTINCT_BOSSES);
+renderLeaderboard();
 
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
