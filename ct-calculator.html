@@ -103,6 +103,21 @@
   .check-item input{ width:14px; height:14px; flex-shrink:0; accent-color: var(--blue); cursor:pointer; }
 
   .subhead{ font-size:11.5px; font-weight:800; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.05em; margin: 18px 0 8px; }
+  .vs-columns{ display:grid; grid-template-columns: 1fr 1fr; gap:24px; }
+  .vs-col{ min-width:0; }
+  .vs-col-title{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
+    margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--border);
+  }
+  @media (max-width:760px){
+    .vs-columns{ grid-template-columns: 1fr; }
+    .vs-col + .vs-col{ margin-top:8px; padding-top:20px; border-top:2px solid var(--border); }
+  }
+  .auto-badge{
+    display:inline-block; background: var(--accent-soft, #eef6ff); color: var(--blue-dark);
+    font-size:9.5px; font-weight:800; text-transform:none; letter-spacing:0;
+    padding:2px 7px; border-radius:999px; margin-left:6px; vertical-align:middle;
+  }
   .subhead:first-child{ margin-top:0; }
 
   .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
@@ -133,6 +148,10 @@
   .results-table td:last-child{ border-right:2px solid var(--border); border-radius:0 10px 10px 0; }
   .row-label{ font-family:'Baloo 2', sans-serif; font-weight:700; color: var(--blue-dark); }
   .dps-val{ font-family:'IBM Plex Mono', monospace; font-weight:700; }
+  .fainted-row td{ background:#fff0f0 !important; }
+  [data-theme="dark"] .fainted-row td{ background:#3a1f24 !important; }
+  .fainted-msg{ font-weight:700; color:#c0392b; text-align:center; }
+  [data-theme="dark"] .fainted-msg{ color:#ff8a80; }
 
   .empty-result{ text-align:center; color: var(--text-dim); font-weight:700; padding: 30px; font-size:13px; }
 
@@ -153,6 +172,10 @@
   .loadout-role{ font-size:12px; color: var(--text-dim); font-weight:700; margin:2px 0 6px; }
   .loadout-stats{ display:flex; gap:14px; font-family:'IBM Plex Mono', monospace; font-size:14px; color: var(--text-muted); }
   .loadout-stats b{ color: var(--text); font-size:15px; }
+  .loadout-dmg-line{
+    margin-top:6px; font-size:12px; font-weight:700; color: var(--text-dim);
+  }
+  .loadout-dmg-line b{ color:#ff5b5b; font-family:'IBM Plex Mono', monospace; }
   .loadout-vs{
     font-family:'Baloo 2', sans-serif; font-weight:800; font-size:15px; color: var(--text-dim);
     flex-shrink:0;
@@ -185,6 +208,16 @@
   .mini-preview-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; }
   .mini-preview-stats{ display:flex; gap:12px; font-family:'IBM Plex Mono', monospace; font-size:13px; color: var(--text-muted); margin-top:3px; }
   .mini-preview-stats b{ color: var(--text); font-size:13.5px; }
+  .boss-dmg-preview{
+    margin-top:10px; background: var(--bg1); border:2px solid var(--border); border-radius:12px;
+    padding:10px 14px;
+  }
+  [data-theme="dark"] .boss-dmg-preview{ background:#161a28; }
+  .boss-dmg-row{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:13px; font-weight:700; color: var(--text-muted); padding:4px 0;
+  }
+  .boss-dmg-row b{ color:#ff5b5b; font-family:'IBM Plex Mono', monospace; font-size:14px; }
   datalist{ display:none; }
 
   .top-nav{
@@ -208,15 +241,15 @@
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
 <div class="top-nav">
-  <a href="tier4-raids.html" class="top-nav-link">Mega</a>
-  <a href="tier5-raids.html" class="top-nav-link">Legendary</a>
-  <a href="tier5-ae-raids.html" class="top-nav-link current">Legendary AE</a>
-  <a href="tier6-elite-raids.html" class="top-nav-link">Mega Legendary & Elite</a>
+  <a href="tier4-raids.html" class="top-nav-link">Tier 4</a>
+  <a href="tier5-raids.html" class="top-nav-link">Tier 5</a>
+  <a href="tier5-ae-raids.html" class="top-nav-link">Tier 5 AE</a>
+  <a href="tier6-elite-raids.html" class="top-nav-link">Tier 6 &amp; Elite</a>
   <a href="meta-battle-parties.html" class="top-nav-link">Meta Battle Parties</a>
   <a href="raid-strategies.html" class="top-nav-link">Raid Strategies</a>
   <a href="move-data.html" class="top-nav-link">Move Data</a>
   <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
-  <a href="ct-calculator.html" class="top-nav-link">Catch Tank Calculator</a>
+  <a href="ct-calculator.html" class="top-nav-link current">Catch Tank Calculator</a>
   <a href="patch-notes.html" class="top-nav-link">Patch Notes</a>
 </div>
 
@@ -232,96 +265,167 @@
 
 <div class="container">
 
-  <!-- STEP 1 -->
+  <!-- STEP 1: SIDE BY SIDE -->
   <div class="step-card">
     <div class="step-head">
       <div class="step-num">1</div>
       <div>
-        <div class="step-title">Select Your Pokémon</div>
-        <div class="step-sub">Your catch tank / attacker</div>
+        <div class="step-title">Your Pokémon vs. The Raid Boss</div>
+        <div class="step-sub">Enter both sides to see live stats, damage, and auto-detected typing</div>
       </div>
     </div>
-    <div class="field-grid">
-      <div class="field wide">
-        <label>Pokémon</label>
-        <input id="pokemonName" placeholder="e.g. Shadow Honchkrow" autocomplete="off">
+
+    <div class="vs-columns">
+      <!-- PLAYER COLUMN -->
+      <div class="vs-col">
+        <div class="vs-col-title">🧢 Your Pokémon</div>
+        <div class="field-grid compact">
+          <div class="field wide">
+            <label>Pokémon</label>
+            <input id="pokemonName" placeholder="e.g. Shadow Honchkrow" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Level (40–51)</label>
+            <input id="pokemonLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50">
+            <div class="field-error" id="pokemonLevelError"></div>
+          </div>
+          <div class="field">
+            <label>Atk IV</label>
+            <input id="ivAtk" type="text" inputmode="numeric" value="15" placeholder="0–15">
+            <div class="field-error" id="ivAtkError"></div>
+          </div>
+          <div class="field">
+            <label>Def IV</label>
+            <input id="ivDef" type="text" inputmode="numeric" value="15" placeholder="0–15">
+            <div class="field-error" id="ivDefError"></div>
+          </div>
+          <div class="field">
+            <label>HP IV</label>
+            <input id="ivHp" type="text" inputmode="numeric" value="15" placeholder="0–15">
+            <div class="field-error" id="ivHpError"></div>
+          </div>
+        </div>
+        <div id="playerPreview"></div>
+
+        <div class="subhead">Moves</div>
+        <div class="field-grid compact">
+          <div class="field">
+            <label>Charge Move</label>
+            <input id="playerCM" placeholder="e.g. Brave Bird" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Fast Move</label>
+            <input id="playerFM" placeholder="e.g. Peck" autocomplete="off">
+          </div>
+        </div>
+        <div id="playerMovePreview"></div>
+
+        <div class="subhead">Auto-Detected <span class="auto-badge">editable</span></div>
+        <div class="mod-row narrow">
+          <div class="mod-cell">
+            <label>Charge Move Eff.</label>
+            <select id="effCM">
+              <option value="0.39">0.39x — Immune</option>
+              <option value="0.625">0.625x — Not Eff.</option>
+              <option value="1" selected>1x — Effective</option>
+              <option value="1.6">1.6x — Super Eff.</option>
+              <option value="2.56">2.56x — V. Super Eff.</option>
+            </select>
+          </div>
+          <div class="mod-cell">
+            <label>Fast Move Eff.</label>
+            <select id="effFM">
+              <option value="0.39">0.39x — Immune</option>
+              <option value="0.625">0.625x — Not Eff.</option>
+              <option value="1" selected>1x — Effective</option>
+              <option value="1.6">1.6x — Super Eff.</option>
+              <option value="2.56">2.56x — V. Super Eff.</option>
+            </select>
+          </div>
+        </div>
+        <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
+          <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
+          <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
+        </div>
       </div>
-      <div class="field">
-        <label>Level (40–51)</label>
-        <input id="pokemonLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50">
-        <div class="field-error" id="pokemonLevelError"></div>
-      </div>
-      <div class="field">
-        <label>Attack IV (0–15)</label>
-        <input id="ivAtk" type="text" inputmode="numeric" value="15" placeholder="0–15">
-        <div class="field-error" id="ivAtkError"></div>
-      </div>
-      <div class="field">
-        <label>Defense IV (0–15)</label>
-        <input id="ivDef" type="text" inputmode="numeric" value="15" placeholder="0–15">
-        <div class="field-error" id="ivDefError"></div>
-      </div>
-      <div class="field">
-        <label>HP IV (0–15)</label>
-        <input id="ivHp" type="text" inputmode="numeric" value="15" placeholder="0–15">
-        <div class="field-error" id="ivHpError"></div>
+
+      <!-- BOSS COLUMN -->
+      <div class="vs-col">
+        <div class="vs-col-title">👑 Raid Boss</div>
+        <div class="field-grid compact">
+          <div class="field wide">
+            <label>Raid Boss</label>
+            <input id="bossName" placeholder="e.g. Great Tusk" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Tier</label>
+            <select id="bossTier">
+              <option value="0.79">T4/T5/T6/T7</option>
+              <option value="1">Elite</option>
+            </select>
+          </div>
+        </div>
+        <div id="bossPreview"></div>
+
+        <div class="subhead">Moves</div>
+        <div class="field-grid compact">
+          <div class="field">
+            <label>Boss Charge Move</label>
+            <input id="bossCM" placeholder="e.g. Close Combat" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Boss Fast Move</label>
+            <input id="bossFM" placeholder="e.g. Mud Slap" autocomplete="off">
+          </div>
+        </div>
+
+        <div class="subhead">Auto-Detected <span class="auto-badge">editable</span></div>
+        <div class="mod-row narrow">
+          <div class="mod-cell">
+            <label>Charge Move → You</label>
+            <select id="effBossCM">
+              <option value="0.24375">0.24375x — Imm/NE</option>
+              <option value="0.39">0.39x — Immune</option>
+              <option value="0.39625">0.39625x — NE x2</option>
+              <option value="0.625">0.625x — Not Eff.</option>
+              <option value="1" selected>1x — Effective</option>
+              <option value="1.6">1.6x — Super Eff.</option>
+              <option value="2.56">2.56x — V. Super Eff.</option>
+            </select>
+          </div>
+          <div class="mod-cell">
+            <label>Fast Move → You</label>
+            <select id="effBossFM">
+              <option value="0.24375">0.24375x — Imm/NE</option>
+              <option value="0.39">0.39x — Immune</option>
+              <option value="0.39625">0.39625x — NE x2</option>
+              <option value="0.625">0.625x — Not Eff.</option>
+              <option value="1" selected>1x — Effective</option>
+              <option value="1.6">1.6x — Super Eff.</option>
+              <option value="2.56">2.56x — V. Super Eff.</option>
+            </select>
+          </div>
+        </div>
+        <div class="check-grid" style="grid-template-columns:repeat(3,1fr);">
+          <label class="check-item"><input type="checkbox" id="bossStabCM"> Stab CM</label>
+          <label class="check-item"><input type="checkbox" id="bossStabFM"> Stab FM</label>
+          <label class="check-item"><input type="checkbox" id="shadowDebuff"> Shadow Debuff</label>
+        </div>
       </div>
     </div>
-    <div id="playerPreview"></div>
   </div>
 
-  <!-- STEP 2 -->
+  <!-- STEP 2: ADDITIONAL MODIFIERS -->
   <div class="step-card">
     <div class="step-head">
       <div class="step-num">2</div>
       <div>
-        <div class="step-title">Your Moves &amp; Modifiers</div>
-        <div class="step-sub">Boosts affecting your own damage output</div>
+        <div class="step-title">Additional Modifiers</div>
+        <div class="step-sub">Select anything else that applies to this encounter</div>
       </div>
     </div>
 
-    <div class="subhead">Moves</div>
-    <div class="field-grid compact">
-      <div class="field">
-        <label>Charge Move</label>
-        <input id="playerCM" placeholder="e.g. Brave Bird" autocomplete="off">
-      </div>
-      <div class="field">
-        <label>Fast Move</label>
-        <input id="playerFM" placeholder="e.g. Peck" autocomplete="off">
-      </div>
-      <div class="field">
-        <label># of Charge Moves</label>
-        <select id="numCM">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="subhead">Effectiveness</div>
     <div class="mod-row compact">
-      <div class="mod-cell">
-        <label>Charge Move</label>
-        <select id="effCM">
-          <option value="0.39">0.39x — Immune</option>
-          <option value="0.625">0.625x — Not Eff.</option>
-          <option value="1" selected>1x — Effective</option>
-          <option value="1.6">1.6x — Super Eff.</option>
-          <option value="2.56">2.56x — V. Super Eff.</option>
-        </select>
-      </div>
-      <div class="mod-cell">
-        <label>Fast Move</label>
-        <select id="effFM">
-          <option value="0.39">0.39x — Immune</option>
-          <option value="0.625">0.625x — Not Eff.</option>
-          <option value="1" selected>1x — Effective</option>
-          <option value="1.6">1.6x — Super Eff.</option>
-          <option value="2.56">2.56x — V. Super Eff.</option>
-        </select>
-      </div>
       <div class="mod-cell">
         <label>Friendship</label>
         <select id="friendship">
@@ -341,93 +445,40 @@
           <option value="1.3">Stab (1.3x)</option>
         </select>
       </div>
+      <div class="mod-cell">
+        <label># of Charge Moves</label>
+        <select id="numCM">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+        </select>
+      </div>
     </div>
 
-    <div class="subhead">Toggles</div>
+    <div class="mod-row compact">
+      <div class="mod-cell">
+        <label>Weather</label>
+        <select id="weatherSelect">
+          <option value="">None</option>
+          <option value="sunny">Sunny / Clear</option>
+          <option value="partlycloudy">Partly Cloudy</option>
+          <option value="cloudy">Cloudy</option>
+          <option value="windy">Windy</option>
+          <option value="rain">Rain</option>
+          <option value="snow">Snow</option>
+          <option value="fog">Fog</option>
+        </select>
+      </div>
+    </div>
     <div class="check-grid fixed-4">
-      <label class="check-item"><input type="checkbox" id="weatherFM"> Weather FM</label>
-      <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
-      <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade</label>
+      <label class="check-item"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
+      <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
+      <label class="check-item"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
+      <label class="check-item"><input type="checkbox" id="shieldAE"> Behemoth Bash</label>
+      <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
       <label class="check-item"><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
-      <label class="check-item"><input type="checkbox" id="weatherCM"> Weather CM</label>
-      <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
       <label class="check-item"><input type="checkbox" id="partyPower"> Party Power</label>
       <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
-    </div>
-  </div>
-
-  <!-- STEP 3 -->
-  <div class="step-card">
-    <div class="step-head">
-      <div class="step-num">3</div>
-      <div>
-        <div class="step-title">Raid Boss &amp; Its Modifiers</div>
-        <div class="step-sub">Damage dealt to you</div>
-      </div>
-    </div>
-
-    <div class="field-grid">
-      <div class="field wide">
-        <label>Raid Boss</label>
-        <input id="bossName" placeholder="e.g. Great Tusk" autocomplete="off">
-      </div>
-      <div class="field">
-        <label>Tier</label>
-        <select id="bossTier">
-          <option value="0.79">T4/T5/T6/T7</option>
-          <option value="1">Elite</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Boss Charge Move</label>
-        <input id="bossCM" placeholder="e.g. Close Combat" autocomplete="off">
-      </div>
-      <div class="field">
-        <label>Boss Fast Move</label>
-        <input id="bossFM" placeholder="e.g. Mud Slap" autocomplete="off">
-      </div>
-    </div>
-    <div id="bossPreview"></div>
-
-    <div class="subhead">Effectiveness</div>
-    <div class="mod-row narrow">
-      <div class="mod-cell">
-        <label>Charge Move → You</label>
-        <select id="effBossCM">
-          <option value="0.24375">0.24375x — Imm/NE</option>
-          <option value="0.39">0.39x — Immune</option>
-          <option value="0.39625">0.39625x — NE x2</option>
-          <option value="0.625">0.625x — Not Eff.</option>
-          <option value="1" selected>1x — Effective</option>
-          <option value="1.6">1.6x — Super Eff.</option>
-          <option value="2.56">2.56x — V. Super Eff.</option>
-        </select>
-      </div>
-      <div class="mod-cell">
-        <label>Fast Move → You</label>
-        <select id="effBossFM">
-          <option value="0.24375">0.24375x — Imm/NE</option>
-          <option value="0.39">0.39x — Immune</option>
-          <option value="0.39625">0.39625x — NE x2</option>
-          <option value="0.625">0.625x — Not Eff.</option>
-          <option value="1" selected>1x — Effective</option>
-          <option value="1.6">1.6x — Super Eff.</option>
-          <option value="2.56">2.56x — V. Super Eff.</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="subhead">Toggles</div>
-    <div class="check-grid fixed-4">
-      <label class="check-item"><input type="checkbox" id="bossWeatherFM"> Weather FM</label>
-      <label class="check-item"><input type="checkbox" id="bossStabFM"> Stab FM</label>
-      <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
-      <label class="check-item"><input type="checkbox" id="shadowDebuff"> Shadow Debuff</label>
-      <label class="check-item"><input type="checkbox" id="bossWeatherCM"> Weather CM</label>
-      <label class="check-item"><input type="checkbox" id="bossStabCM"> Stab CM</label>
-      <label class="check-item"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
-      <label class="check-item"><input type="checkbox" id="t7Enraged"> T7 Enraged</label>
-      <label class="check-item"><input type="checkbox" id="shieldAE"> Behemoth Bash AE</label>
     </div>
   </div>
 
@@ -472,14 +523,298 @@ const DEX_MAP = {
   "palkia":484, "groudon":383, "mamoswine":473, "salamence":373, "gengar":94,
   "tyrantrum":697, "rhyperior":464, "kyogre":382, "mewtwo":150,
 };
+// Very recent Legends: Z-A Mega Evolutions - use PokemonGoHub direct artwork instead of guessing PokemonDB slugs
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+};
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
   if (key.startsWith("shadow ")){
     const base = key.replace(/^shadow\s+/, "");
     if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
   }
   return `https://img.pokemondb.net/artwork/large/${toDbSlug(name)}.jpg`;
 }
+
+const POKEMON_TYPES = [
+{n:"Bulbasaur",t1:"Grass",t2:"Poison"},{n:"Ivysaur",t1:"Grass",t2:"Poison"},{n:"Venusaur",t1:"Grass",t2:"Poison"},{n:"Charmander",t1:"Fire",t2:""},{n:"Charmeleon",t1:"Fire",t2:""},{n:"Charizard",t1:"Fire",t2:"Flying"},
+{n:"Squirtle",t1:"Water",t2:""},{n:"Wartortle",t1:"Water",t2:""},{n:"Blastoise",t1:"Water",t2:""},{n:"Caterpie",t1:"Bug",t2:""},{n:"Metapod",t1:"Bug",t2:""},{n:"Butterfree",t1:"Bug",t2:"Flying"},
+{n:"Weedle",t1:"Bug",t2:"Poison"},{n:"Kakuna",t1:"Bug",t2:"Poison"},{n:"Beedrill",t1:"Bug",t2:"Poison"},{n:"Pidgey",t1:"Normal",t2:"Flying"},{n:"Pidgeotto",t1:"Normal",t2:"Flying"},{n:"Pidgeot",t1:"Normal",t2:"Flying"},
+{n:"Rattata",t1:"Normal",t2:""},{n:"Raticate",t1:"Normal",t2:""},{n:"Spearow",t1:"Normal",t2:"Flying"},{n:"Fearow",t1:"Normal",t2:"Flying"},{n:"Ekans",t1:"Poison",t2:""},{n:"Arbok",t1:"Poison",t2:""},
+{n:"Pikachu",t1:"Electric",t2:""},{n:"Raichu",t1:"Electric",t2:""},{n:"Sandshrew",t1:"Ground",t2:""},{n:"Sandslash",t1:"Ground",t2:""},{n:"Nidoran♀",t1:"Poison",t2:""},{n:"Nidorina",t1:"Poison",t2:""},
+{n:"Nidoqueen",t1:"Poison",t2:"Ground"},{n:"Nidoran♂",t1:"Poison",t2:""},{n:"Nidorino",t1:"Poison",t2:""},{n:"Nidoking",t1:"Poison",t2:"Ground"},{n:"Clefairy",t1:"Fairy",t2:""},{n:"Clefable",t1:"Fairy",t2:""},
+{n:"Vulpix",t1:"Fire",t2:""},{n:"Ninetales",t1:"Fire",t2:""},{n:"Jigglypuff",t1:"Normal",t2:"Fairy"},{n:"Wigglytuff",t1:"Normal",t2:"Fairy"},{n:"Zubat",t1:"Poison",t2:"Flying"},{n:"Golbat",t1:"Poison",t2:"Flying"},
+{n:"Oddish",t1:"Grass",t2:"Poison"},{n:"Gloom",t1:"Grass",t2:"Poison"},{n:"Vileplume",t1:"Grass",t2:"Poison"},{n:"Paras",t1:"Bug",t2:"Grass"},{n:"Parasect",t1:"Bug",t2:"Grass"},{n:"Venonat",t1:"Bug",t2:"Poison"},
+{n:"Venomoth",t1:"Bug",t2:"Poison"},{n:"Diglett",t1:"Ground",t2:""},{n:"Dugtrio",t1:"Ground",t2:""},{n:"Meowth",t1:"Normal",t2:""},{n:"Persian",t1:"Normal",t2:""},{n:"Psyduck",t1:"Water",t2:""},
+{n:"Golduck",t1:"Water",t2:""},{n:"Mankey",t1:"Fighting",t2:""},{n:"Primeape",t1:"Fighting",t2:""},{n:"Growlithe",t1:"Fire",t2:""},{n:"Arcanine",t1:"Fire",t2:""},{n:"Poliwag",t1:"Water",t2:""},
+{n:"Poliwhirl",t1:"Water",t2:""},{n:"Poliwrath",t1:"Water",t2:"Fighting"},{n:"Abra",t1:"Psychic",t2:""},{n:"Kadabra",t1:"Psychic",t2:""},{n:"Alakazam",t1:"Psychic",t2:""},{n:"Machop",t1:"Fighting",t2:""},
+{n:"Machoke",t1:"Fighting",t2:""},{n:"Machamp",t1:"Fighting",t2:""},{n:"Bellsprout",t1:"Grass",t2:"Poison"},{n:"Weepinbell",t1:"Grass",t2:"Poison"},{n:"Victreebel",t1:"Grass",t2:"Poison"},{n:"Tentacool",t1:"Water",t2:"Poison"},
+{n:"Tentacruel",t1:"Water",t2:"Poison"},{n:"Geodude",t1:"Rock",t2:"Ground"},{n:"Graveler",t1:"Rock",t2:"Ground"},{n:"Golem",t1:"Rock",t2:"Ground"},{n:"Ponyta",t1:"Fire",t2:""},{n:"Rapidash",t1:"Fire",t2:""},
+{n:"Slowpoke",t1:"Water",t2:"Psychic"},{n:"Slowbro",t1:"Water",t2:"Psychic"},{n:"Magnemite",t1:"Electric",t2:"Steel"},{n:"Magneton",t1:"Electric",t2:"Steel"},{n:"Farfetch'd",t1:"Normal",t2:"Flying"},{n:"Doduo",t1:"Normal",t2:"Flying"},
+{n:"Dodrio",t1:"Normal",t2:"Flying"},{n:"Seel",t1:"Water",t2:""},{n:"Dewgong",t1:"Water",t2:"Ice"},{n:"Grimer",t1:"Poison",t2:""},{n:"Muk",t1:"Poison",t2:""},{n:"Shellder",t1:"Water",t2:""},
+{n:"Cloyster",t1:"Water",t2:"Ice"},{n:"Gastly",t1:"Ghost",t2:"Poison"},{n:"Haunter",t1:"Ghost",t2:"Poison"},{n:"Gengar",t1:"Ghost",t2:"Poison"},{n:"Onix",t1:"Rock",t2:"Ground"},{n:"Drowzee",t1:"Psychic",t2:""},
+{n:"Hypno",t1:"Psychic",t2:""},{n:"Krabby",t1:"Water",t2:""},{n:"Kingler",t1:"Water",t2:""},{n:"Voltorb",t1:"Electric",t2:""},{n:"Electrode",t1:"Electric",t2:""},{n:"Exeggcute",t1:"Grass",t2:"Psychic"},
+{n:"Exeggutor",t1:"Grass",t2:"Psychic"},{n:"Cubone",t1:"Ground",t2:""},{n:"Marowak",t1:"Ground",t2:""},{n:"Hitmonlee",t1:"Fighting",t2:""},{n:"Hitmonchan",t1:"Fighting",t2:""},{n:"Lickitung",t1:"Normal",t2:""},
+{n:"Koffing",t1:"Poison",t2:""},{n:"Weezing",t1:"Poison",t2:""},{n:"Rhyhorn",t1:"Ground",t2:"Rock"},{n:"Rhydon",t1:"Ground",t2:"Rock"},{n:"Chansey",t1:"Normal",t2:""},{n:"Tangela",t1:"Grass",t2:""},
+{n:"Kangaskhan",t1:"Normal",t2:""},{n:"Horsea",t1:"Water",t2:""},{n:"Seadra",t1:"Water",t2:""},{n:"Goldeen",t1:"Water",t2:""},{n:"Seaking",t1:"Water",t2:""},{n:"Staryu",t1:"Water",t2:""},
+{n:"Starmie",t1:"Water",t2:"Psychic"},{n:"Mr. Mime",t1:"Psychic",t2:"Fairy"},{n:"Scyther",t1:"Bug",t2:"Flying"},{n:"Jynx",t1:"Ice",t2:"Psychic"},{n:"Electabuzz",t1:"Electric",t2:""},{n:"Magmar",t1:"Fire",t2:""},
+{n:"Pinsir",t1:"Bug",t2:""},{n:"Tauros",t1:"Normal",t2:""},{n:"Magikarp",t1:"Water",t2:""},{n:"Gyarados",t1:"Water",t2:"Flying"},{n:"Lapras",t1:"Water",t2:"Ice"},{n:"Ditto",t1:"Normal",t2:""},
+{n:"Eevee",t1:"Normal",t2:""},{n:"Vaporeon",t1:"Water",t2:""},{n:"Jolteon",t1:"Electric",t2:""},{n:"Flareon",t1:"Fire",t2:""},{n:"Porygon",t1:"Normal",t2:""},{n:"Omanyte",t1:"Rock",t2:"Water"},
+{n:"Omastar",t1:"Rock",t2:"Water"},{n:"Kabuto",t1:"Rock",t2:"Water"},{n:"Kabutops",t1:"Rock",t2:"Water"},{n:"Aerodactyl",t1:"Rock",t2:"Flying"},{n:"Snorlax",t1:"Normal",t2:""},{n:"Articuno",t1:"Ice",t2:"Flying"},
+{n:"Zapdos",t1:"Electric",t2:"Flying"},{n:"Moltres",t1:"Fire",t2:"Flying"},{n:"Dratini",t1:"Dragon",t2:""},{n:"Dragonair",t1:"Dragon",t2:""},{n:"Dragonite",t1:"Dragon",t2:"Flying"},{n:"Mewtwo",t1:"Psychic",t2:""},
+{n:"Mew",t1:"Psychic",t2:""},{n:"Chikorita",t1:"Grass",t2:""},{n:"Bayleef",t1:"Grass",t2:""},{n:"Meganium",t1:"Grass",t2:""},{n:"Cyndaquil",t1:"Fire",t2:""},{n:"Quilava",t1:"Fire",t2:""},
+{n:"Typhlosion",t1:"Fire",t2:""},{n:"Totodile",t1:"Water",t2:""},{n:"Croconaw",t1:"Water",t2:""},{n:"Feraligatr",t1:"Water",t2:""},{n:"Sentret",t1:"Normal",t2:""},{n:"Furret",t1:"Normal",t2:""},
+{n:"Hoothoot",t1:"Normal",t2:"Flying"},{n:"Noctowl",t1:"Normal",t2:"Flying"},{n:"Ledyba",t1:"Bug",t2:"Flying"},{n:"Ledian",t1:"Bug",t2:"Flying"},{n:"Spinarak",t1:"Bug",t2:"Poison"},{n:"Ariados",t1:"Bug",t2:"Poison"},
+{n:"Crobat",t1:"Poison",t2:"Flying"},{n:"Chinchou",t1:"Water",t2:"Electric"},{n:"Lanturn",t1:"Water",t2:"Electric"},{n:"Pichu",t1:"Electric",t2:""},{n:"Cleffa",t1:"Fairy",t2:""},{n:"Igglybuff",t1:"Normal",t2:"Fairy"},
+{n:"Togepi",t1:"Fairy",t2:""},{n:"Togetic",t1:"Fairy",t2:"Flying"},{n:"Natu",t1:"Psychic",t2:"Flying"},{n:"Xatu",t1:"Psychic",t2:"Flying"},{n:"Mareep",t1:"Electric",t2:""},{n:"Flaaffy",t1:"Electric",t2:""},
+{n:"Ampharos",t1:"Electric",t2:""},{n:"Bellossom",t1:"Grass",t2:""},{n:"Marill",t1:"Water",t2:"Fairy"},{n:"Azumarill",t1:"Water",t2:"Fairy"},{n:"Sudowoodo",t1:"Rock",t2:""},{n:"Politoed",t1:"Water",t2:""},
+{n:"Hoppip",t1:"Grass",t2:"Flying"},{n:"Skiploom",t1:"Grass",t2:"Flying"},{n:"Jumpluff",t1:"Grass",t2:"Flying"},{n:"Aipom",t1:"Normal",t2:""},{n:"Sunkern",t1:"Grass",t2:""},{n:"Sunflora",t1:"Grass",t2:""},
+{n:"Yanma",t1:"Bug",t2:"Flying"},{n:"Wooper",t1:"Water",t2:"Ground"},{n:"Quagsire",t1:"Water",t2:"Ground"},{n:"Espeon",t1:"Psychic",t2:""},{n:"Umbreon",t1:"Dark",t2:""},{n:"Murkrow",t1:"Dark",t2:"Flying"},
+{n:"Slowking",t1:"Water",t2:"Psychic"},{n:"Misdreavus",t1:"Ghost",t2:""},{n:"Unown",t1:"Psychic",t2:""},{n:"Wobbuffet",t1:"Psychic",t2:""},{n:"Girafarig",t1:"Normal",t2:"Psychic"},{n:"Pineco",t1:"Bug",t2:""},
+{n:"Forretress",t1:"Bug",t2:"Steel"},{n:"Dunsparce",t1:"Normal",t2:""},{n:"Gligar",t1:"Ground",t2:"Flying"},{n:"Steelix",t1:"Steel",t2:"Ground"},{n:"Snubbull",t1:"Fairy",t2:""},{n:"Granbull",t1:"Fairy",t2:""},
+{n:"Qwilfish",t1:"Water",t2:"Poison"},{n:"Scizor",t1:"Bug",t2:"Steel"},{n:"Shuckle",t1:"Bug",t2:"Rock"},{n:"Heracross",t1:"Bug",t2:"Fighting"},{n:"Sneasel",t1:"Dark",t2:"Ice"},{n:"Teddiursa",t1:"Normal",t2:""},
+{n:"Ursaring",t1:"Normal",t2:""},{n:"Slugma",t1:"Fire",t2:""},{n:"Magcargo",t1:"Fire",t2:"Rock"},{n:"Swinub",t1:"Ice",t2:"Ground"},{n:"Piloswine",t1:"Ice",t2:"Ground"},{n:"Corsola",t1:"Water",t2:"Rock"},
+{n:"Remoraid",t1:"Water",t2:""},{n:"Octillery",t1:"Water",t2:""},{n:"Delibird",t1:"Ice",t2:"Flying"},{n:"Mantine",t1:"Water",t2:"Flying"},{n:"Skarmory",t1:"Steel",t2:"Flying"},{n:"Houndour",t1:"Dark",t2:"Fire"},
+{n:"Houndoom",t1:"Dark",t2:"Fire"},{n:"Kingdra",t1:"Water",t2:"Dragon"},{n:"Phanpy",t1:"Ground",t2:""},{n:"Donphan",t1:"Ground",t2:""},{n:"Porygon2",t1:"Normal",t2:""},{n:"Stantler",t1:"Normal",t2:""},
+{n:"Smeargle",t1:"Normal",t2:""},{n:"Tyrogue",t1:"Fighting",t2:""},{n:"Hitmontop",t1:"Fighting",t2:""},{n:"Smoochum",t1:"Ice",t2:"Psychic"},{n:"Elekid",t1:"Electric",t2:""},{n:"Magby",t1:"Fire",t2:""},
+{n:"Miltank",t1:"Normal",t2:""},{n:"Blissey",t1:"Normal",t2:""},{n:"Raikou",t1:"Electric",t2:""},{n:"Entei",t1:"Fire",t2:""},{n:"Suicune",t1:"Water",t2:""},{n:"Larvitar",t1:"Rock",t2:"Ground"},
+{n:"Pupitar",t1:"Rock",t2:"Ground"},{n:"Tyranitar",t1:"Rock",t2:"Dark"},{n:"Lugia",t1:"Psychic",t2:"Flying"},{n:"Ho-oh",t1:"Fire",t2:"Flying"},{n:"Celebi",t1:"Psychic",t2:"Grass"},{n:"Treecko",t1:"Grass",t2:""},
+{n:"Grovyle",t1:"Grass",t2:""},{n:"Sceptile",t1:"Grass",t2:""},{n:"Torchic",t1:"Fire",t2:""},{n:"Combusken",t1:"Fire",t2:"Fighting"},{n:"Blaziken",t1:"Fire",t2:"Fighting"},{n:"Mudkip",t1:"Water",t2:""},
+{n:"Marshtomp",t1:"Water",t2:"Ground"},{n:"Swampert",t1:"Water",t2:"Ground"},{n:"Poochyena",t1:"Dark",t2:""},{n:"Mightyena",t1:"Dark",t2:""},{n:"Zigzagoon",t1:"Normal",t2:""},{n:"Linoone",t1:"Normal",t2:""},
+{n:"Wurmple",t1:"Bug",t2:""},{n:"Silcoon",t1:"Bug",t2:""},{n:"Beautifly",t1:"Bug",t2:"Flying"},{n:"Cascoon",t1:"Bug",t2:""},{n:"Dustox",t1:"Bug",t2:"Poison"},{n:"Lotad",t1:"Water",t2:"Grass"},
+{n:"Lombre",t1:"Water",t2:"Grass"},{n:"Ludicolo",t1:"Water",t2:"Grass"},{n:"Seedot",t1:"Grass",t2:""},{n:"Nuzleaf",t1:"Grass",t2:"Dark"},{n:"Shiftry",t1:"Grass",t2:"Dark"},{n:"Taillow",t1:"Normal",t2:"Flying"},
+{n:"Swellow",t1:"Normal",t2:"Flying"},{n:"Wingull",t1:"Water",t2:"Flying"},{n:"Pelipper",t1:"Water",t2:"Flying"},{n:"Ralts",t1:"Psychic",t2:"Fairy"},{n:"Kirlia",t1:"Psychic",t2:"Fairy"},{n:"Gardevoir",t1:"Psychic",t2:"Fairy"},
+{n:"Surskit",t1:"Bug",t2:"Water"},{n:"Masquerain",t1:"Bug",t2:"Flying"},{n:"Shroomish",t1:"Grass",t2:""},{n:"Breloom",t1:"Grass",t2:"Fighting"},{n:"Slakoth",t1:"Normal",t2:""},{n:"Vigoroth",t1:"Normal",t2:""},
+{n:"Slaking",t1:"Normal",t2:""},{n:"Nincada",t1:"Bug",t2:"Ground"},{n:"Ninjask",t1:"Bug",t2:"Flying"},{n:"Shedinja",t1:"Bug",t2:"Ghost"},{n:"Whismur",t1:"Normal",t2:""},{n:"Loudred",t1:"Normal",t2:""},
+{n:"Exploud",t1:"Normal",t2:""},{n:"Makuhita",t1:"Fighting",t2:""},{n:"Hariyama",t1:"Fighting",t2:""},{n:"Azurill",t1:"Normal",t2:"Fairy"},{n:"Nosepass",t1:"Rock",t2:""},{n:"Skitty",t1:"Normal",t2:""},
+{n:"Delcatty",t1:"Normal",t2:""},{n:"Sableye",t1:"Dark",t2:"Ghost"},{n:"Mawile",t1:"Steel",t2:"Fairy"},{n:"Aron",t1:"Steel",t2:"Rock"},{n:"Lairon",t1:"Steel",t2:"Rock"},{n:"Aggron",t1:"Steel",t2:"Rock"},
+{n:"Meditite",t1:"Fighting",t2:"Psychic"},{n:"Medicham",t1:"Fighting",t2:"Psychic"},{n:"Electrike",t1:"Electric",t2:""},{n:"Manectric",t1:"Electric",t2:""},{n:"Plusle",t1:"Electric",t2:""},{n:"Minun",t1:"Electric",t2:""},
+{n:"Volbeat",t1:"Bug",t2:""},{n:"Illumise",t1:"Bug",t2:""},{n:"Roselia",t1:"Grass",t2:"Poison"},{n:"Gulpin",t1:"Poison",t2:""},{n:"Swalot",t1:"Poison",t2:""},{n:"Carvanha",t1:"Water",t2:"Dark"},
+{n:"Sharpedo",t1:"Water",t2:"Dark"},{n:"Wailmer",t1:"Water",t2:""},{n:"Wailord",t1:"Water",t2:""},{n:"Numel",t1:"Fire",t2:"Ground"},{n:"Camerupt",t1:"Fire",t2:"Ground"},{n:"Torkoal",t1:"Fire",t2:""},
+{n:"Spoink",t1:"Psychic",t2:""},{n:"Grumpig",t1:"Psychic",t2:""},{n:"Spinda",t1:"Normal",t2:""},{n:"Trapinch",t1:"Ground",t2:""},{n:"Vibrava",t1:"Ground",t2:"Dragon"},{n:"Flygon",t1:"Ground",t2:"Dragon"},
+{n:"Cacnea",t1:"Grass",t2:""},{n:"Cacturne",t1:"Grass",t2:"Dark"},{n:"Swablu",t1:"Normal",t2:"Flying"},{n:"Altaria",t1:"Dragon",t2:"Flying"},{n:"Zangoose",t1:"Normal",t2:""},{n:"Seviper",t1:"Poison",t2:""},
+{n:"Lunatone",t1:"Rock",t2:"Psychic"},{n:"Solrock",t1:"Rock",t2:"Psychic"},{n:"Barboach",t1:"Water",t2:"Ground"},{n:"Whiscash",t1:"Water",t2:"Ground"},{n:"Corphish",t1:"Water",t2:""},{n:"Crawdaunt",t1:"Water",t2:"Dark"},
+{n:"Baltoy",t1:"Ground",t2:"Psychic"},{n:"Claydol",t1:"Ground",t2:"Psychic"},{n:"Lileep",t1:"Rock",t2:"Grass"},{n:"Cradily",t1:"Rock",t2:"Grass"},{n:"Anorith",t1:"Rock",t2:"Bug"},{n:"Armaldo",t1:"Rock",t2:"Bug"},
+{n:"Feebas",t1:"Water",t2:""},{n:"Milotic",t1:"Water",t2:""},{n:"Castform",t1:"Normal",t2:""},{n:"Kecleon",t1:"Normal",t2:""},{n:"Shuppet",t1:"Ghost",t2:""},{n:"Banette",t1:"Ghost",t2:""},
+{n:"Duskull",t1:"Ghost",t2:""},{n:"Dusclops",t1:"Ghost",t2:""},{n:"Tropius",t1:"Grass",t2:"Flying"},{n:"Chimecho",t1:"Psychic",t2:""},{n:"Absol",t1:"Dark",t2:""},{n:"Wynaut",t1:"Psychic",t2:""},
+{n:"Snorunt",t1:"Ice",t2:""},{n:"Glalie",t1:"Ice",t2:""},{n:"Spheal",t1:"Ice",t2:"Water"},{n:"Sealeo",t1:"Ice",t2:"Water"},{n:"Walrein",t1:"Ice",t2:"Water"},{n:"Clamperl",t1:"Water",t2:""},
+{n:"Huntail",t1:"Water",t2:""},{n:"Gorebyss",t1:"Water",t2:""},{n:"Relicanth",t1:"Water",t2:"Rock"},{n:"Luvdisc",t1:"Water",t2:""},{n:"Bagon",t1:"Dragon",t2:""},{n:"Shelgon",t1:"Dragon",t2:""},
+{n:"Salamence",t1:"Dragon",t2:"Flying"},{n:"Beldum",t1:"Steel",t2:"Psychic"},{n:"Metang",t1:"Steel",t2:"Psychic"},{n:"Metagross",t1:"Steel",t2:"Psychic"},{n:"Regirock",t1:"Rock",t2:""},{n:"Regice",t1:"Ice",t2:""},
+{n:"Registeel",t1:"Steel",t2:""},{n:"Latias",t1:"Dragon",t2:"Psychic"},{n:"Latios",t1:"Dragon",t2:"Psychic"},{n:"Kyogre",t1:"Water",t2:""},{n:"Groudon",t1:"Ground",t2:""},{n:"Rayquaza",t1:"Dragon",t2:"Flying"},
+{n:"Jirachi",t1:"Steel",t2:"Psychic"},{n:"Deoxys",t1:"Psychic",t2:""},{n:"Turtwig",t1:"Grass",t2:""},{n:"Grotle",t1:"Grass",t2:""},{n:"Torterra",t1:"Grass",t2:"Ground"},{n:"Chimchar",t1:"Fire",t2:""},
+{n:"Monferno",t1:"Fire",t2:"Fighting"},{n:"Infernape",t1:"Fire",t2:"Fighting"},{n:"Piplup",t1:"Water",t2:""},{n:"Prinplup",t1:"Water",t2:""},{n:"Empoleon",t1:"Water",t2:"Steel"},{n:"Starly",t1:"Normal",t2:"Flying"},
+{n:"Staravia",t1:"Normal",t2:"Flying"},{n:"Staraptor",t1:"Normal",t2:"Flying"},{n:"Bidoof",t1:"Normal",t2:""},{n:"Bibarel",t1:"Normal",t2:"Water"},{n:"Kricketot",t1:"Bug",t2:""},{n:"Kricketune",t1:"Bug",t2:""},
+{n:"Shinx",t1:"Electric",t2:""},{n:"Luxio",t1:"Electric",t2:""},{n:"Luxray",t1:"Electric",t2:""},{n:"Budew",t1:"Grass",t2:"Poison"},{n:"Roserade",t1:"Grass",t2:"Poison"},{n:"Cranidos",t1:"Rock",t2:""},
+{n:"Rampardos",t1:"Rock",t2:""},{n:"Shieldon",t1:"Rock",t2:"Steel"},{n:"Bastiodon",t1:"Rock",t2:"Steel"},{n:"Burmy",t1:"Bug",t2:""},{n:"Wormadam",t1:"Bug",t2:"Grass"},{n:"Mothim",t1:"Bug",t2:"Flying"},
+{n:"Combee",t1:"Bug",t2:"Flying"},{n:"Vespiquen",t1:"Bug",t2:"Flying"},{n:"Pachirisu",t1:"Electric",t2:""},{n:"Buizel",t1:"Water",t2:""},{n:"Floatzel",t1:"Water",t2:""},{n:"Cherubi",t1:"Grass",t2:""},
+{n:"Cherrim",t1:"Grass",t2:""},{n:"Shellos",t1:"Water",t2:""},{n:"Gastrodon",t1:"Water",t2:"Ground"},{n:"Ambipom",t1:"Normal",t2:""},{n:"Drifloon",t1:"Ghost",t2:"Flying"},{n:"Drifblim",t1:"Ghost",t2:"Flying"},
+{n:"Buneary",t1:"Normal",t2:""},{n:"Lopunny",t1:"Normal",t2:""},{n:"Mismagius",t1:"Ghost",t2:""},{n:"Honchkrow",t1:"Dark",t2:"Flying"},{n:"Glameow",t1:"Normal",t2:""},{n:"Purugly",t1:"Normal",t2:""},
+{n:"Chingling",t1:"Psychic",t2:""},{n:"Stunky",t1:"Poison",t2:"Dark"},{n:"Skuntank",t1:"Poison",t2:"Dark"},{n:"Bronzor",t1:"Steel",t2:"Psychic"},{n:"Bronzong",t1:"Steel",t2:"Psychic"},{n:"Bonsly",t1:"Rock",t2:""},
+{n:"Mime Jr.",t1:"Psychic",t2:"Fairy"},{n:"Happiny",t1:"Normal",t2:""},{n:"Chatot",t1:"Normal",t2:"Flying"},{n:"Spiritomb",t1:"Ghost",t2:"Dark"},{n:"Gible",t1:"Dragon",t2:"Ground"},{n:"Gabite",t1:"Dragon",t2:"Ground"},
+{n:"Garchomp",t1:"Dragon",t2:"Ground"},{n:"Munchlax",t1:"Normal",t2:""},{n:"Riolu",t1:"Fighting",t2:""},{n:"Lucario",t1:"Fighting",t2:"Steel"},{n:"Hippopotas",t1:"Ground",t2:""},{n:"Hippowdon",t1:"Ground",t2:""},
+{n:"Skorupi",t1:"Poison",t2:"Bug"},{n:"Drapion",t1:"Poison",t2:"Dark"},{n:"Croagunk",t1:"Poison",t2:"Fighting"},{n:"Toxicroak",t1:"Poison",t2:"Fighting"},{n:"Carnivine",t1:"Grass",t2:""},{n:"Finneon",t1:"Water",t2:""},
+{n:"Lumineon",t1:"Water",t2:""},{n:"Mantyke",t1:"Water",t2:"Flying"},{n:"Snover",t1:"Grass",t2:"Ice"},{n:"Abomasnow",t1:"Grass",t2:"Ice"},{n:"Weavile",t1:"Dark",t2:"Ice"},{n:"Magnezone",t1:"Electric",t2:"Steel"},
+{n:"Lickilicky",t1:"Normal",t2:""},{n:"Rhyperior",t1:"Ground",t2:"Rock"},{n:"Tangrowth",t1:"Grass",t2:""},{n:"Electivire",t1:"Electric",t2:""},{n:"Magmortar",t1:"Fire",t2:""},{n:"Togekiss",t1:"Fairy",t2:"Flying"},
+{n:"Yanmega",t1:"Bug",t2:"Flying"},{n:"Leafeon",t1:"Grass",t2:""},{n:"Glaceon",t1:"Ice",t2:""},{n:"Gliscor",t1:"Ground",t2:"Flying"},{n:"Mamoswine",t1:"Ice",t2:"Ground"},{n:"Porygon-Z",t1:"Normal",t2:""},
+{n:"Gallade",t1:"Psychic",t2:"Fighting"},{n:"Probopass",t1:"Rock",t2:"Steel"},{n:"Dusknoir",t1:"Ghost",t2:""},{n:"Froslass",t1:"Ice",t2:"Ghost"},{n:"Rotom",t1:"Electric",t2:"Ghost"},{n:"Uxie",t1:"Psychic",t2:""},
+{n:"Mesprit",t1:"Psychic",t2:""},{n:"Azelf",t1:"Psychic",t2:""},{n:"Dialga",t1:"Steel",t2:"Dragon"},{n:"Palkia",t1:"Water",t2:"Dragon"},{n:"Heatran",t1:"Fire",t2:"Steel"},{n:"Regigigas",t1:"Normal",t2:""},
+{n:"Giratina",t1:"Ghost",t2:"Dragon"},{n:"Cresselia",t1:"Psychic",t2:""},{n:"Phione",t1:"Water",t2:""},{n:"Manaphy",t1:"Water",t2:""},{n:"Darkrai",t1:"Dark",t2:""},{n:"Shaymin",t1:"Grass",t2:""},
+{n:"Arceus",t1:"Normal",t2:""},{n:"Victini",t1:"Psychic",t2:"Fire"},{n:"Snivy",t1:"Grass",t2:""},{n:"Servine",t1:"Grass",t2:""},{n:"Serperior",t1:"Grass",t2:""},{n:"Tepig",t1:"Fire",t2:""},
+{n:"Pignite",t1:"Fire",t2:"Fighting"},{n:"Emboar",t1:"Fire",t2:"Fighting"},{n:"Oshawott",t1:"Water",t2:""},{n:"Dewott",t1:"Water",t2:""},{n:"Samurott",t1:"Water",t2:""},{n:"Patrat",t1:"Normal",t2:""},
+{n:"Watchog",t1:"Normal",t2:""},{n:"Lillipup",t1:"Normal",t2:""},{n:"Herdier",t1:"Normal",t2:""},{n:"Stoutland",t1:"Normal",t2:""},{n:"Purrloin",t1:"Dark",t2:""},{n:"Liepard",t1:"Dark",t2:""},
+{n:"Pansage",t1:"Grass",t2:""},{n:"Simisage",t1:"Grass",t2:""},{n:"Pansear",t1:"Fire",t2:""},{n:"Simisear",t1:"Fire",t2:""},{n:"Panpour",t1:"Water",t2:""},{n:"Simipour",t1:"Water",t2:""},
+{n:"Munna",t1:"Psychic",t2:""},{n:"Musharna",t1:"Psychic",t2:""},{n:"Pidove",t1:"Normal",t2:"Flying"},{n:"Tranquill",t1:"Normal",t2:"Flying"},{n:"Unfezant",t1:"Normal",t2:"Flying"},{n:"Blitzle",t1:"Electric",t2:""},
+{n:"Zebstrika",t1:"Electric",t2:""},{n:"Roggenrola",t1:"Rock",t2:""},{n:"Boldore",t1:"Rock",t2:""},{n:"Gigalith",t1:"Rock",t2:""},{n:"Woobat",t1:"Psychic",t2:"Flying"},{n:"Swoobat",t1:"Psychic",t2:"Flying"},
+{n:"Drilbur",t1:"Ground",t2:""},{n:"Excadrill",t1:"Ground",t2:"Steel"},{n:"Audino",t1:"Normal",t2:""},{n:"Timburr",t1:"Fighting",t2:""},{n:"Gurdurr",t1:"Fighting",t2:""},{n:"Conkeldurr",t1:"Fighting",t2:""},
+{n:"Tympole",t1:"Water",t2:""},{n:"Palpitoad",t1:"Water",t2:"Ground"},{n:"Seismitoad",t1:"Water",t2:"Ground"},{n:"Throh",t1:"Fighting",t2:""},{n:"Sawk",t1:"Fighting",t2:""},{n:"Sewaddle",t1:"Bug",t2:"Grass"},
+{n:"Swadloon",t1:"Bug",t2:"Grass"},{n:"Leavanny",t1:"Bug",t2:"Grass"},{n:"Venipede",t1:"Bug",t2:"Poison"},{n:"Whirlipede",t1:"Bug",t2:"Poison"},{n:"Scolipede",t1:"Bug",t2:"Poison"},{n:"Cottonee",t1:"Grass",t2:"Fairy"},
+{n:"Whimsicott",t1:"Grass",t2:"Fairy"},{n:"Petilil",t1:"Grass",t2:""},{n:"Lilligant",t1:"Grass",t2:""},{n:"Basculin",t1:"Water",t2:""},{n:"Sandile",t1:"Ground",t2:"Dark"},{n:"Krokorok",t1:"Ground",t2:"Dark"},
+{n:"Krookodile",t1:"Ground",t2:"Dark"},{n:"Darumaka",t1:"Fire",t2:""},{n:"Darmanitan",t1:"Fire",t2:""},{n:"Maractus",t1:"Grass",t2:""},{n:"Dwebble",t1:"Bug",t2:"Rock"},{n:"Crustle",t1:"Bug",t2:"Rock"},
+{n:"Scraggy",t1:"Dark",t2:"Fighting"},{n:"Scrafty",t1:"Dark",t2:"Fighting"},{n:"Sigilyph",t1:"Psychic",t2:"Flying"},{n:"Yamask",t1:"Ghost",t2:""},{n:"Cofagrigus",t1:"Ghost",t2:""},{n:"Tirtouga",t1:"Water",t2:"Rock"},
+{n:"Carracosta",t1:"Water",t2:"Rock"},{n:"Archen",t1:"Rock",t2:"Flying"},{n:"Archeops",t1:"Rock",t2:"Flying"},{n:"Trubbish",t1:"Poison",t2:""},{n:"Garbodor",t1:"Poison",t2:""},{n:"Zorua",t1:"Dark",t2:""},
+{n:"Zoroark",t1:"Dark",t2:""},{n:"Minccino",t1:"Normal",t2:""},{n:"Cinccino",t1:"Normal",t2:""},{n:"Gothita",t1:"Psychic",t2:""},{n:"Gothorita",t1:"Psychic",t2:""},{n:"Gothitelle",t1:"Psychic",t2:""},
+{n:"Solosis",t1:"Psychic",t2:""},{n:"Duosion",t1:"Psychic",t2:""},{n:"Reuniclus",t1:"Psychic",t2:""},{n:"Ducklett",t1:"Water",t2:"Flying"},{n:"Swanna",t1:"Water",t2:"Flying"},{n:"Vanillite",t1:"Ice",t2:""},
+{n:"Vanillish",t1:"Ice",t2:""},{n:"Vanilluxe",t1:"Ice",t2:""},{n:"Deerling",t1:"Normal",t2:"Grass"},{n:"Sawsbuck",t1:"Normal",t2:"Grass"},{n:"Emolga",t1:"Electric",t2:"Flying"},{n:"Karrablast",t1:"Bug",t2:""},
+{n:"Escavalier",t1:"Bug",t2:"Steel"},{n:"Foongus",t1:"Grass",t2:"Poison"},{n:"Amoonguss",t1:"Grass",t2:"Poison"},{n:"Frillish",t1:"Water",t2:"Ghost"},{n:"Jellicent",t1:"Water",t2:"Ghost"},{n:"Alomomola",t1:"Water",t2:""},
+{n:"Joltik",t1:"Bug",t2:"Electric"},{n:"Galvantula",t1:"Bug",t2:"Electric"},{n:"Ferroseed",t1:"Grass",t2:"Steel"},{n:"Ferrothorn",t1:"Grass",t2:"Steel"},{n:"Klink",t1:"Steel",t2:""},{n:"Klang",t1:"Steel",t2:""},
+{n:"Klinklang",t1:"Steel",t2:""},{n:"Tynamo",t1:"Electric",t2:""},{n:"Eelektrik",t1:"Electric",t2:""},{n:"Eelektross",t1:"Electric",t2:""},{n:"Elgyem",t1:"Psychic",t2:""},{n:"Beheeyem",t1:"Psychic",t2:""},
+{n:"Litwick",t1:"Ghost",t2:"Fire"},{n:"Lampent",t1:"Ghost",t2:"Fire"},{n:"Chandelure",t1:"Ghost",t2:"Fire"},{n:"Axew",t1:"Dragon",t2:""},{n:"Fraxure",t1:"Dragon",t2:""},{n:"Haxorus",t1:"Dragon",t2:""},
+{n:"Cubchoo",t1:"Ice",t2:""},{n:"Beartic",t1:"Ice",t2:""},{n:"Cryogonal",t1:"Ice",t2:""},{n:"Shelmet",t1:"Bug",t2:""},{n:"Accelgor",t1:"Bug",t2:""},{n:"Stunfisk",t1:"Ground",t2:"Electric"},
+{n:"Mienfoo",t1:"Fighting",t2:""},{n:"Mienshao",t1:"Fighting",t2:""},{n:"Druddigon",t1:"Dragon",t2:""},{n:"Golett",t1:"Ground",t2:"Ghost"},{n:"Golurk",t1:"Ground",t2:"Ghost"},{n:"Pawniard",t1:"Dark",t2:"Steel"},
+{n:"Bisharp",t1:"Dark",t2:"Steel"},{n:"Bouffalant",t1:"Normal",t2:""},{n:"Rufflet",t1:"Normal",t2:"Flying"},{n:"Braviary",t1:"Normal",t2:"Flying"},{n:"Vullaby",t1:"Dark",t2:"Flying"},{n:"Mandibuzz",t1:"Dark",t2:"Flying"},
+{n:"Heatmor",t1:"Fire",t2:""},{n:"Durant",t1:"Bug",t2:"Steel"},{n:"Deino",t1:"Dark",t2:"Dragon"},{n:"Zweilous",t1:"Dark",t2:"Dragon"},{n:"Hydreigon",t1:"Dark",t2:"Dragon"},{n:"Larvesta",t1:"Bug",t2:"Fire"},
+{n:"Volcarona",t1:"Bug",t2:"Fire"},{n:"Cobalion",t1:"Steel",t2:"Fighting"},{n:"Terrakion",t1:"Rock",t2:"Fighting"},{n:"Virizion",t1:"Grass",t2:"Fighting"},{n:"Tornadus",t1:"Flying",t2:""},{n:"Thundurus",t1:"Electric",t2:"Flying"},
+{n:"Reshiram",t1:"Dragon",t2:"Fire"},{n:"Zekrom",t1:"Dragon",t2:"Electric"},{n:"Landorus",t1:"Ground",t2:"Flying"},{n:"Kyurem",t1:"Dragon",t2:"Ice"},{n:"Keldeo",t1:"Water",t2:"Fighting"},{n:"Meloetta",t1:"Normal",t2:"Psychic"},
+{n:"Genesect",t1:"Bug",t2:"Steel"},{n:"Chespin",t1:"Grass",t2:""},{n:"Quilladin",t1:"Grass",t2:""},{n:"Chesnaught",t1:"Grass",t2:"Fighting"},{n:"Fennekin",t1:"Fire",t2:""},{n:"Braixen",t1:"Fire",t2:""},
+{n:"Delphox",t1:"Fire",t2:"Psychic"},{n:"Froakie",t1:"Water",t2:""},{n:"Frogadier",t1:"Water",t2:""},{n:"Greninja",t1:"Water",t2:"Dark"},{n:"Bunnelby",t1:"Normal",t2:""},{n:"Diggersby",t1:"Normal",t2:"Ground"},
+{n:"Fletchling",t1:"Normal",t2:"Flying"},{n:"Fletchinder",t1:"Fire",t2:"Flying"},{n:"Talonflame",t1:"Fire",t2:"Flying"},{n:"Scatterbug",t1:"Bug",t2:""},{n:"Spewpa",t1:"Bug",t2:""},{n:"Vivillon",t1:"Bug",t2:"Flying"},
+{n:"Litleo",t1:"Fire",t2:"Normal"},{n:"Pyroar",t1:"Fire",t2:"Normal"},{n:"Flabébé",t1:"Fairy",t2:""},{n:"Floette",t1:"Fairy",t2:""},{n:"Florges",t1:"Fairy",t2:""},{n:"Skiddo",t1:"Grass",t2:""},
+{n:"Gogoat",t1:"Grass",t2:""},{n:"Pancham",t1:"Fighting",t2:""},{n:"Pangoro",t1:"Fighting",t2:"Dark"},{n:"Furfrou",t1:"Normal",t2:""},{n:"Espurr",t1:"Psychic",t2:""},{n:"Meowstic",t1:"Psychic",t2:""},
+{n:"Honedge",t1:"Steel",t2:"Ghost"},{n:"Doublade",t1:"Steel",t2:"Ghost"},{n:"Aegislash",t1:"Steel",t2:"Ghost"},{n:"Spritzee",t1:"Fairy",t2:""},{n:"Aromatisse",t1:"Fairy",t2:""},{n:"Swirlix",t1:"Fairy",t2:""},
+{n:"Slurpuff",t1:"Fairy",t2:""},{n:"Inkay",t1:"Dark",t2:"Psychic"},{n:"Malamar",t1:"Dark",t2:"Psychic"},{n:"Binacle",t1:"Rock",t2:"Water"},{n:"Barbaracle",t1:"Rock",t2:"Water"},{n:"Skrelp",t1:"Poison",t2:"Water"},
+{n:"Dragalge",t1:"Poison",t2:"Dragon"},{n:"Clauncher",t1:"Water",t2:""},{n:"Clawitzer",t1:"Water",t2:""},{n:"Helioptile",t1:"Electric",t2:"Normal"},{n:"Heliolisk",t1:"Electric",t2:"Normal"},{n:"Tyrunt",t1:"Rock",t2:"Dragon"},
+{n:"Tyrantrum",t1:"Rock",t2:"Dragon"},{n:"Amaura",t1:"Rock",t2:"Ice"},{n:"Aurorus",t1:"Rock",t2:"Ice"},{n:"Sylveon",t1:"Fairy",t2:""},{n:"Hawlucha",t1:"Fighting",t2:"Flying"},{n:"Dedenne",t1:"Electric",t2:"Fairy"},
+{n:"Carbink",t1:"Rock",t2:"Fairy"},{n:"Goomy",t1:"Dragon",t2:""},{n:"Sliggoo",t1:"Dragon",t2:""},{n:"Goodra",t1:"Dragon",t2:""},{n:"Klefki",t1:"Steel",t2:"Fairy"},{n:"Phantump",t1:"Ghost",t2:"Grass"},
+{n:"Trevenant",t1:"Ghost",t2:"Grass"},{n:"Pumpkaboo",t1:"Ghost",t2:"Grass"},{n:"Gourgeist",t1:"Ghost",t2:"Grass"},{n:"Bergmite",t1:"Ice",t2:""},{n:"Avalugg",t1:"Ice",t2:""},{n:"Noibat",t1:"Flying",t2:"Dragon"},
+{n:"Noivern",t1:"Flying",t2:"Dragon"},{n:"Xerneas",t1:"Fairy",t2:""},{n:"Yveltal",t1:"Dark",t2:"Flying"},{n:"Zygarde",t1:"Dragon",t2:"Ground"},{n:"Diancie",t1:"Rock",t2:"Fairy"},{n:"Hoopa",t1:"Psychic",t2:"Ghost"},
+{n:"Volcanion",t1:"Fire",t2:"Water"},{n:"Rowlet",t1:"Grass",t2:"Flying"},{n:"Dartrix",t1:"Grass",t2:"Flying"},{n:"Decidueye",t1:"Grass",t2:"Ghost"},{n:"Litten",t1:"Fire",t2:""},{n:"Torracat",t1:"Fire",t2:""},
+{n:"Incineroar",t1:"Fire",t2:"Dark"},{n:"Popplio",t1:"Water",t2:""},{n:"Brionne",t1:"Water",t2:""},{n:"Primarina",t1:"Water",t2:"Fairy"},{n:"Pikipek",t1:"Normal",t2:"Flying"},{n:"Trumbeak",t1:"Normal",t2:"Flying"},
+{n:"Toucannon",t1:"Normal",t2:"Flying"},{n:"Yungoos",t1:"Normal",t2:""},{n:"Gumshoos",t1:"Normal",t2:""},{n:"Grubbin",t1:"Bug",t2:""},{n:"Charjabug",t1:"Bug",t2:"Electric"},{n:"Vikavolt",t1:"Bug",t2:"Electric"},
+{n:"Crabrawler",t1:"Fighting",t2:""},{n:"Crabominable",t1:"Fighting",t2:"Ice"},{n:"Oricorio",t1:"Fire",t2:"Flying"},{n:"Cutiefly",t1:"Bug",t2:"Fairy"},{n:"Ribombee",t1:"Bug",t2:"Fairy"},{n:"Rockruff",t1:"Rock",t2:""},
+{n:"Lycanroc",t1:"Rock",t2:""},{n:"Wishiwashi",t1:"Water",t2:""},{n:"Mareanie",t1:"Poison",t2:"Water"},{n:"Toxapex",t1:"Poison",t2:"Water"},{n:"Mudbray",t1:"Ground",t2:""},{n:"Mudsdale",t1:"Ground",t2:""},
+{n:"Dewpider",t1:"Water",t2:"Bug"},{n:"Araquanid",t1:"Water",t2:"Bug"},{n:"Fomantis",t1:"Grass",t2:""},{n:"Lurantis",t1:"Grass",t2:""},{n:"Morelull",t1:"Grass",t2:"Fairy"},{n:"Shiinotic",t1:"Grass",t2:"Fairy"},
+{n:"Salandit",t1:"Poison",t2:"Fire"},{n:"Salazzle",t1:"Poison",t2:"Fire"},{n:"Stufful",t1:"Normal",t2:"Fighting"},{n:"Bewear",t1:"Normal",t2:"Fighting"},{n:"Bounsweet",t1:"Grass",t2:""},{n:"Steenee",t1:"Grass",t2:""},
+{n:"Tsareena",t1:"Grass",t2:""},{n:"Comfey",t1:"Fairy",t2:""},{n:"Oranguru",t1:"Normal",t2:"Psychic"},{n:"Passimian",t1:"Fighting",t2:""},{n:"Wimpod",t1:"Bug",t2:"Water"},{n:"Golisopod",t1:"Bug",t2:"Water"},
+{n:"Sandygast",t1:"Ghost",t2:"Ground"},{n:"Palossand",t1:"Ghost",t2:"Ground"},{n:"Pyukumuku",t1:"Water",t2:""},{n:"Type: Null",t1:"Normal",t2:""},{n:"Silvally",t1:"Normal",t2:""},{n:"Minior",t1:"Rock",t2:"Flying"},
+{n:"Komala",t1:"Normal",t2:""},{n:"Turtonator",t1:"Fire",t2:"Dragon"},{n:"Togedemaru",t1:"Electric",t2:"Steel"},{n:"Mimikyu",t1:"Ghost",t2:"Fairy"},{n:"Bruxish",t1:"Water",t2:"Psychic"},{n:"Drampa",t1:"Normal",t2:"Dragon"},
+{n:"Dhelmise",t1:"Ghost",t2:"Grass"},{n:"Jangmo-o",t1:"Dragon",t2:""},{n:"Hakamo-o",t1:"Dragon",t2:"Fighting"},{n:"Kommo-o",t1:"Dragon",t2:"Fighting"},{n:"Tapu Koko",t1:"Electric",t2:"Fairy"},{n:"Tapu Lele",t1:"Psychic",t2:"Fairy"},
+{n:"Tapu Bulu",t1:"Grass",t2:"Fairy"},{n:"Tapu Fini",t1:"Water",t2:"Fairy"},{n:"Cosmog",t1:"Psychic",t2:""},{n:"Cosmoem",t1:"Psychic",t2:""},{n:"Solgaleo",t1:"Psychic",t2:"Steel"},{n:"Lunala",t1:"Psychic",t2:"Ghost"},
+{n:"Nihilego",t1:"Rock",t2:"Poison"},{n:"Buzzwole",t1:"Bug",t2:"Fighting"},{n:"Pheromosa",t1:"Bug",t2:"Fighting"},{n:"Xurkitree",t1:"Electric",t2:""},{n:"Celesteela",t1:"Steel",t2:"Flying"},{n:"Kartana",t1:"Grass",t2:"Steel"},
+{n:"Guzzlord",t1:"Dark",t2:"Dragon"},{n:"Necrozma",t1:"Psychic",t2:""},{n:"Magearna",t1:"Steel",t2:"Fairy"},{n:"Marshadow",t1:"Fighting",t2:"Ghost"},{n:"Poipole",t1:"Poison",t2:""},{n:"Naganadel",t1:"Poison",t2:"Dragon"},
+{n:"Stakataka",t1:"Rock",t2:"Steel"},{n:"Blacephalon",t1:"Fire",t2:"Ghost"},{n:"Zeraora",t1:"Electric",t2:""},{n:"Meltan",t1:"Steel",t2:""},{n:"Melmetal",t1:"Steel",t2:""},{n:"Grookey",t1:"Grass",t2:""},
+{n:"Thwackey",t1:"Grass",t2:""},{n:"Rillaboom",t1:"Grass",t2:""},{n:"Scorbunny",t1:"Fire",t2:""},{n:"Raboot",t1:"Fire",t2:""},{n:"Cinderace",t1:"Fire",t2:""},{n:"Sobble",t1:"Water",t2:""},
+{n:"Drizzile",t1:"Water",t2:""},{n:"Inteleon",t1:"Water",t2:""},{n:"Skwovet",t1:"Normal",t2:""},{n:"Greedent",t1:"Normal",t2:""},{n:"Rookidee",t1:"Flying",t2:""},{n:"Corvisquire",t1:"Flying",t2:""},
+{n:"Corviknight",t1:"Flying",t2:"Steel"},{n:"Blipbug",t1:"Bug",t2:""},{n:"Dottler",t1:"Bug",t2:"Psychic"},{n:"Orbeetle",t1:"Bug",t2:"Psychic"},{n:"Nickit",t1:"Dark",t2:""},{n:"Thievul",t1:"Dark",t2:""},
+{n:"Gossifleur",t1:"Grass",t2:""},{n:"Eldegoss",t1:"Grass",t2:""},{n:"Wooloo",t1:"Normal",t2:""},{n:"Dubwool",t1:"Normal",t2:""},{n:"Chewtle",t1:"Water",t2:""},{n:"Drednaw",t1:"Water",t2:"Rock"},
+{n:"Yamper",t1:"Electric",t2:""},{n:"Boltund",t1:"Electric",t2:""},{n:"Rolycoly",t1:"Rock",t2:""},{n:"Carkol",t1:"Rock",t2:"Fire"},{n:"Coalossal",t1:"Rock",t2:"Fire"},{n:"Applin",t1:"Grass",t2:"Dragon"},
+{n:"Flapple",t1:"Grass",t2:"Dragon"},{n:"Appletun",t1:"Grass",t2:"Dragon"},{n:"Silicobra",t1:"Ground",t2:""},{n:"Sandaconda",t1:"Ground",t2:""},{n:"Cramorant",t1:"Flying",t2:"Water"},{n:"Arrokuda",t1:"Water",t2:""},
+{n:"Barraskewda",t1:"Water",t2:""},{n:"Toxel",t1:"Electric",t2:"Poison"},{n:"Toxtricity",t1:"Electric",t2:"Poison"},{n:"Sizzlipede",t1:"Fire",t2:"Bug"},{n:"Centiskorch",t1:"Fire",t2:"Bug"},{n:"Clobbopus",t1:"Fighting",t2:""},
+{n:"Grapploct",t1:"Fighting",t2:""},{n:"Sinistea",t1:"Ghost",t2:""},{n:"Polteageist",t1:"Ghost",t2:""},{n:"Hatenna",t1:"Psychic",t2:""},{n:"Hattrem",t1:"Psychic",t2:""},{n:"Hatterene",t1:"Psychic",t2:"Fairy"},
+{n:"Impidimp",t1:"Dark",t2:"Fairy"},{n:"Morgrem",t1:"Dark",t2:"Fairy"},{n:"Grimmsnarl",t1:"Dark",t2:"Fairy"},{n:"Obstagoon",t1:"Dark",t2:"Normal"},{n:"Perrserker",t1:"Steel",t2:""},{n:"Cursola",t1:"Ghost",t2:""},
+{n:"Sirfetch'd",t1:"Fighting",t2:""},{n:"Mr. Rime",t1:"Ice",t2:"Psychic"},{n:"Runerigus",t1:"Ground",t2:"Ghost"},{n:"Milcery",t1:"Fairy",t2:""},{n:"Alcremie",t1:"Fairy",t2:""},{n:"Falinks",t1:"Fighting",t2:""},
+{n:"Pincurchin",t1:"Electric",t2:""},{n:"Snom",t1:"Ice",t2:"Bug"},{n:"Frosmoth",t1:"Ice",t2:"Bug"},{n:"Stonjourner",t1:"Rock",t2:""},{n:"Eiscue",t1:"Ice",t2:""},{n:"Indeedee",t1:"Psychic",t2:"Normal"},
+{n:"Morpeko",t1:"Electric",t2:"Dark"},{n:"Cufant",t1:"Steel",t2:""},{n:"Copperajah",t1:"Steel",t2:""},{n:"Dracozolt",t1:"Electric",t2:"Dragon"},{n:"Arctozolt",t1:"Electric",t2:"Ice"},{n:"Dracovish",t1:"Water",t2:"Dragon"},
+{n:"Arctovish",t1:"Water",t2:"Ice"},{n:"Duraludon",t1:"Steel",t2:"Dragon"},{n:"Dreepy",t1:"Dragon",t2:"Ghost"},{n:"Drakloak",t1:"Dragon",t2:"Ghost"},{n:"Dragapult",t1:"Dragon",t2:"Ghost"},{n:"Zacian",t1:"Fairy",t2:""},
+{n:"Zamazenta",t1:"Fighting",t2:""},{n:"Eternatus",t1:"Poison",t2:"Dragon"},{n:"Kubfu",t1:"Fighting",t2:""},{n:"Urshifu",t1:"Fighting",t2:"Dark"},{n:"Zarude",t1:"Dark",t2:"Grass"},{n:"Regieleki",t1:"Electric",t2:""},
+{n:"Regidrago",t1:"Dragon",t2:""},{n:"Glastrier",t1:"Ice",t2:""},{n:"Spectrier",t1:"Ghost",t2:""},{n:"Calyrex",t1:"Psychic",t2:"Grass"},{n:"Wyrdeer",t1:"Normal",t2:"Psychic"},{n:"Kleavor",t1:"Bug",t2:"Rock"},
+{n:"Ursaluna",t1:"Ground",t2:"Normal"},{n:"Basculegion",t1:"Water",t2:"Ghost"},{n:"Sneasler",t1:"Fighting",t2:"Poison"},{n:"Overqwil",t1:"Dark",t2:"Poison"},{n:"Enamorus",t1:"Fairy",t2:"Flying"},{n:"Sprigatito",t1:"Grass",t2:""},
+{n:"Floragato",t1:"Grass",t2:""},{n:"Meowscarada",t1:"Grass",t2:"Dark"},{n:"Fuecoco",t1:"Fire",t2:""},{n:"Crocalor",t1:"Fire",t2:""},{n:"Skeledirge",t1:"Fire",t2:"Ghost"},{n:"Quaxly",t1:"Water",t2:""},
+{n:"Quaxwell",t1:"Water",t2:""},{n:"Quaquaval",t1:"Water",t2:"Fighting"},{n:"Lechonk",t1:"Normal",t2:""},{n:"Oinkologne",t1:"Normal",t2:""},{n:"Tarountula",t1:"Bug",t2:""},{n:"Spidops",t1:"Bug",t2:""},
+{n:"Nymble",t1:"Bug",t2:""},{n:"Lokix",t1:"Bug",t2:"Dark"},{n:"Pawmi",t1:"Electric",t2:""},{n:"Pawmo",t1:"Electric",t2:"Fighting"},{n:"Pawmot",t1:"Electric",t2:"Fighting"},{n:"Tandemaus",t1:"Normal",t2:""},
+{n:"Maushold",t1:"Normal",t2:""},{n:"Fidough",t1:"Fairy",t2:""},{n:"Dachsbun",t1:"Fairy",t2:""},{n:"Smoliv",t1:"Grass",t2:"Normal"},{n:"Dolliv",t1:"Grass",t2:"Normal"},{n:"Arboliva",t1:"Grass",t2:"Normal"},
+{n:"Squawkabilly",t1:"Normal",t2:"Flying"},{n:"Nacli",t1:"Rock",t2:""},{n:"Naclstack",t1:"Rock",t2:""},{n:"Garganacl",t1:"Rock",t2:""},{n:"Charcadet",t1:"Fire",t2:""},{n:"Armarouge",t1:"Fire",t2:"Psychic"},
+{n:"Ceruledge",t1:"Fire",t2:"Ghost"},{n:"Tadbulb",t1:"Electric",t2:""},{n:"Bellibolt",t1:"Electric",t2:""},{n:"Wattrel",t1:"Electric",t2:"Flying"},{n:"Kilowattrel",t1:"Electric",t2:"Flying"},{n:"Maschiff",t1:"Dark",t2:""},
+{n:"Mabosstiff",t1:"Dark",t2:""},{n:"Shroodle",t1:"Poison",t2:"Normal"},{n:"Grafaiai",t1:"Poison",t2:"Normal"},{n:"Bramblin",t1:"Grass",t2:"Ghost"},{n:"Brambleghast",t1:"Grass",t2:"Ghost"},{n:"Toedscool",t1:"Ground",t2:"Grass"},
+{n:"Toedscruel",t1:"Ground",t2:"Grass"},{n:"Klawf",t1:"Rock",t2:""},{n:"Capsakid",t1:"Grass",t2:""},{n:"Scovillain",t1:"Grass",t2:"Fire"},{n:"Rellor",t1:"Bug",t2:""},{n:"Rabsca",t1:"Bug",t2:"Psychic"},
+{n:"Flittle",t1:"Psychic",t2:""},{n:"Espathra",t1:"Psychic",t2:""},{n:"Tinkatink",t1:"Fairy",t2:"Steel"},{n:"Tinkatuff",t1:"Fairy",t2:"Steel"},{n:"Tinkaton",t1:"Fairy",t2:"Steel"},{n:"Wiglett",t1:"Water",t2:""},
+{n:"Wugtrio",t1:"Water",t2:""},{n:"Bombirdier",t1:"Flying",t2:"Dark"},{n:"Finizen",t1:"Water",t2:""},{n:"Palafin",t1:"Water",t2:""},{n:"Varoom",t1:"Steel",t2:"Poison"},{n:"Revavroom",t1:"Steel",t2:"Poison"},
+{n:"Cyclizar",t1:"Dragon",t2:"Normal"},{n:"Orthworm",t1:"Steel",t2:""},{n:"Glimmet",t1:"Rock",t2:"Poison"},{n:"Glimmora",t1:"Rock",t2:"Poison"},{n:"Greavard",t1:"Ghost",t2:""},{n:"Houndstone",t1:"Ghost",t2:""},
+{n:"Flamigo",t1:"Flying",t2:"Fighting"},{n:"Cetoddle",t1:"Ice",t2:""},{n:"Cetitan",t1:"Ice",t2:""},{n:"Veluza",t1:"Water",t2:"Psychic"},{n:"Dondozo",t1:"Water",t2:""},{n:"Tatsugiri",t1:"Dragon",t2:"Water"},
+{n:"Annihilape",t1:"Fighting",t2:"Ghost"},{n:"Clodsire",t1:"Poison",t2:"Ground"},{n:"Farigiraf",t1:"Normal",t2:"Psychic"},{n:"Dudunsparce",t1:"Normal",t2:""},{n:"Kingambit",t1:"Dark",t2:"Steel"},{n:"Great Tusk",t1:"Ground",t2:"Fighting"},
+{n:"Scream Tail",t1:"Fairy",t2:"Psychic"},{n:"Brute Bonnet",t1:"Grass",t2:"Dark"},{n:"Flutter Mane",t1:"Ghost",t2:"Fairy"},{n:"Slither Wing",t1:"Bug",t2:"Fighting"},{n:"Sandy Shocks",t1:"Electric",t2:"Ground"},{n:"Iron Treads",t1:"Ground",t2:"Steel"},
+{n:"Iron Bundle",t1:"Ice",t2:"Water"},{n:"Iron Hands",t1:"Fighting",t2:"Electric"},{n:"Iron Jugulis",t1:"Dark",t2:"Flying"},{n:"Iron Moth",t1:"Fire",t2:"Poison"},{n:"Iron Thorns",t1:"Rock",t2:"Electric"},{n:"Frigibax",t1:"Dragon",t2:"Ice"},
+{n:"Arctibax",t1:"Dragon",t2:"Ice"},{n:"Baxcalibur",t1:"Dragon",t2:"Ice"},{n:"Gimmighoul",t1:"Ghost",t2:""},{n:"Gholdengo",t1:"Steel",t2:"Ghost"},{n:"Wo-Chien",t1:"Dark",t2:"Grass"},{n:"Chien-Pao",t1:"Dark",t2:"Ice"},
+{n:"Ting-Lu",t1:"Dark",t2:"Ground"},{n:"Chi-Yu",t1:"Dark",t2:"Fire"},{n:"Roaring Moon",t1:"Dragon",t2:"Dark"},{n:"Iron Valiant",t1:"Fairy",t2:"Fighting"},{n:"Koraidon",t1:"Fighting",t2:"Dragon"},{n:"Miraidon",t1:"Electric",t2:"Dragon"},
+{n:"Walking Wake",t1:"Water",t2:"Dragon"},{n:"Iron Leaves",t1:"Grass",t2:"Psychic"},{n:"Dipplin",t1:"Grass",t2:"Dragon"},{n:"Poltchageist",t1:"Grass",t2:"Ghost"},{n:"Sinistcha",t1:"Grass",t2:"Ghost"},{n:"Okidogi",t1:"Poison",t2:"Fighting"},
+{n:"Munkidori",t1:"Poison",t2:"Psychic"},{n:"Fezandipiti",t1:"Poison",t2:"Fairy"},{n:"Ogerpon",t1:"Grass",t2:""},{n:"Archaludon",t1:"Steel",t2:"Dragon"},{n:"Hydrapple",t1:"Grass",t2:"Dragon"},{n:"Gouging Fire",t1:"Fire",t2:"Dragon"},
+{n:"Raging Bolt",t1:"Electric",t2:"Dragon"},{n:"Iron Boulder",t1:"Rock",t2:"Psychic"},{n:"Iron Crown",t1:"Steel",t2:"Psychic"},{n:"Terapagos",t1:"Normal",t2:""},{n:"Pecharunt",t1:"Poison",t2:"Ghost"},
+];
+// ============ TYPE EFFECTIVENESS (PoGo-specific tiers: 1.6 / 1 / 0.625 / 0.39) ============
+const TYPE_CHART = {
+  normal:   { rock:0.625, steel:0.625, ghost:0.39 },
+  fire:     { grass:1.6, ice:1.6, bug:1.6, steel:1.6, fire:0.625, water:0.625, rock:0.625, dragon:0.625 },
+  water:    { fire:1.6, ground:1.6, rock:1.6, water:0.625, grass:0.625, dragon:0.625 },
+  electric: { water:1.6, flying:1.6, electric:0.625, grass:0.625, dragon:0.625, ground:0.39 },
+  grass:    { water:1.6, ground:1.6, rock:1.6, fire:0.625, grass:0.625, poison:0.625, flying:0.625, bug:0.625, dragon:0.625, steel:0.625 },
+  ice:      { grass:1.6, ground:1.6, flying:1.6, dragon:1.6, fire:0.625, water:0.625, ice:0.625, steel:0.625 },
+  fighting: { normal:1.6, ice:1.6, rock:1.6, dark:1.6, steel:1.6, poison:0.625, flying:0.625, psychic:0.625, bug:0.625, fairy:0.625, ghost:0.39 },
+  poison:   { grass:1.6, fairy:1.6, poison:0.625, ground:0.625, rock:0.625, ghost:0.625, steel:0.39 },
+  ground:   { fire:1.6, electric:1.6, poison:1.6, rock:1.6, steel:1.6, grass:0.625, bug:0.625, flying:0.39 },
+  flying:   { grass:1.6, fighting:1.6, bug:1.6, electric:0.625, rock:0.625, steel:0.625 },
+  psychic:  { fighting:1.6, poison:1.6, psychic:0.625, steel:0.625, dark:0.39 },
+  bug:      { grass:1.6, psychic:1.6, dark:1.6, fire:0.625, fighting:0.625, poison:0.625, flying:0.625, ghost:0.625, steel:0.625, fairy:0.625 },
+  rock:     { fire:1.6, ice:1.6, flying:1.6, bug:1.6, fighting:0.625, ground:0.625, steel:0.625 },
+  ghost:    { ghost:1.6, psychic:1.6, dark:0.625, normal:0.39 },
+  dragon:   { dragon:1.6, steel:0.625, fairy:0.39 },
+  dark:     { ghost:1.6, psychic:1.6, fighting:0.625, dark:0.625, fairy:0.625 },
+  steel:    { ice:1.6, rock:1.6, fairy:1.6, fire:0.625, water:0.625, electric:0.625, steel:0.625 },
+  fairy:    { fighting:1.6, dragon:1.6, dark:1.6, fire:0.625, poison:0.625, steel:0.625 },
+};
+
+// Variant forms whose typing differs from their base species (Shadow/regional-without-override fall back to base)
+const TYPE_OVERRIDES = {
+  "mega aggron": {t1:"steel", t2:""},
+  "mega sceptile": {t1:"grass", t2:"dragon"},
+  "mega gyarados": {t1:"water", t2:"dark"},
+  "mega ampharos": {t1:"electric", t2:"dragon"},
+  "primal groudon": {t1:"ground", t2:"fire"},
+  "necrozma dusk mane": {t1:"psychic", t2:"steel"},
+  "necrozma dawn wings": {t1:"psychic", t2:"ghost"},
+  "ndm": {t1:"psychic", t2:"steel"},
+  "ndw": {t1:"psychic", t2:"ghost"},
+  "zacian crown": {t1:"fairy", t2:"steel"},
+  "zamazenta crown": {t1:"fighting", t2:"steel"},
+  "kyurem black": {t1:"dragon", t2:"ice"},
+  "kyurem white": {t1:"dragon", t2:"ice"},
+  "alolan raichu": {t1:"electric", t2:"psychic"},
+  "alolan marowak": {t1:"fire", t2:"ghost"},
+  "alolan ninetales": {t1:"ice", t2:"fairy"},
+  "alolan sandslash": {t1:"ice", t2:"steel"},
+  "alolan muk": {t1:"poison", t2:"dark"},
+  "alolan persian": {t1:"dark", t2:""},
+  "galarian ponyta": {t1:"psychic", t2:""},
+  "galarian rapidash": {t1:"psychic", t2:"fairy"},
+  "galarian slowking": {t1:"poison", t2:"psychic"},
+  "galarian weezing": {t1:"poison", t2:"fairy"},
+  "galarian zigzagoon": {t1:"dark", t2:"normal"},
+  "hisuian typhlosion": {t1:"fire", t2:"ghost"},
+  "hisuian decidueye": {t1:"grass", t2:"fighting"},
+};
+
+function findPokemonTypes(name){
+  const key = name.trim().toLowerCase();
+  if (TYPE_OVERRIDES[key]) return TYPE_OVERRIDES[key];
+  // strip Shadow/Mega prefixes and retry, since those usually don't change typing unless overridden above
+  const stripped = key.replace(/^(shadow|mega|primal)\s+/, "");
+  if (TYPE_OVERRIDES[stripped]) return TYPE_OVERRIDES[stripped];
+  const exact = POKEMON_TYPES.find(p => p.n.toLowerCase() === key);
+  if (exact) return { t1: exact.t1.toLowerCase(), t2: exact.t2.toLowerCase() };
+  const base = POKEMON_TYPES.find(p => p.n.toLowerCase() === stripped);
+  if (base) return { t1: base.t1.toLowerCase(), t2: base.t2.toLowerCase() };
+  return null;
+}
+function typeMultiplier(attackType, defType){
+  if(!attackType || !defType) return 1;
+  const chart = TYPE_CHART[attackType.toLowerCase()];
+  if(!chart) return 1;
+  return chart[defType.toLowerCase()] ?? 1;
+}
+// ============ WEATHER BOOST (per PoGo, not mainline weather rules) ============
+const WEATHER_BOOST_TYPES = {
+  sunny:    ["fire", "grass", "ground"],
+  partlycloudy: ["normal", "rock"],
+  cloudy:   ["fairy", "fighting", "poison"],
+  windy:    ["dragon", "flying", "psychic"],
+  rain:     ["water", "electric", "bug"],
+  snow:     ["ice", "steel"],
+  fog:      ["dark", "ghost"],
+};
+function isWeatherBoosted(elem){
+  const weather = document.getElementById("weatherSelect").value;
+  if(!weather || !elem) return false;
+  const boosted = WEATHER_BOOST_TYPES[weather];
+  return boosted ? boosted.includes(elem.toLowerCase()) : false;
+}
+
+function computeEffectiveness(attackType, defTypes){
+  if(!defTypes) return null;
+  let mult = typeMultiplier(attackType, defTypes.t1);
+  if(defTypes.t2) mult *= typeMultiplier(attackType, defTypes.t2);
+  return mult;
+}
+function snapToOption(raw, options){
+  let best = options[0], bestDiff = Infinity;
+  for(const v of options){
+    const diff = Math.abs(v - raw);
+    if(diff < bestDiff){ bestDiff = diff; best = v; }
+  }
+  return best;
+}
+const PLAYER_EFF_OPTIONS = [0.39, 0.625, 1, 1.6, 2.56];
+const BOSS_EFF_OPTIONS = [0.24375, 0.39, 0.39625, 0.625, 1, 1.6, 2.56];
 
 const POKEMON_DB = [
 {n:"Bulbasaur",hp:128.0,atk:118.0,def:111.0},{n:"Ivysaur",hp:155.0,atk:151.0,def:143.0},{n:"Venusaur",hp:190.0,atk:198.0,def:189.0},{n:"Mega Venusaur",hp:190.0,atk:241.0,def:246.0},{n:"Charmander",hp:118.0,atk:116.0,def:93.0},{n:"Charmeleon",hp:151.0,atk:158.0,def:126.0},
@@ -684,90 +1019,90 @@ const POKEMON_DB = [
 {n:"Pecharunt",hp:204.0,atk:181.0,def:273.0},
 ];
 const MOVE_DB = [
-{n:"Dragon Tail",dmg:14.0,energy:8.0,ad:2.0,type:"Fast"},{n:"Dragon Breath",dmg:6.0,energy:4.0,ad:1.0,type:"Fast"},{n:"Hidden Power (Dr)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Outrage",dmg:110.0,energy:-50.0,ad:8.0,type:"Charge"},
-{n:"Draco Meteor",dmg:150.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"Breaking Swipe",dmg:45.0,energy:-33.0,ad:2.0,type:"Charge"},{n:"Spacial Rend",dmg:160.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Roar Of Time",dmg:160.0,energy:-100.0,ad:4.0,type:"Charge"},
-{n:"Dragon Pulse",dmg:90.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Dragon Claw",dmg:45.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Twister",dmg:50.0,energy:-33.0,ad:6.0,type:"Charge"},{n:"Dragon Energy",dmg:155.0,energy:-50.0,ad:7.0,type:"Charge"},
-{n:"Clanging Scales",dmg:120.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"Dynamax Cannon",dmg:215.0,energy:-100.0,ad:3.0,type:"Charge"},{n:"Glaive Rush",dmg:105.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Fire Spin",dmg:13.0,energy:9.0,ad:2.0,type:"Fast"},
-{n:"Fire Fang",dmg:13.0,energy:9.0,ad:2.0,type:"Fast"},{n:"Hidden Power (Fi)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Incinerate",dmg:32.0,energy:22.0,ad:5.0,type:"Fast"},{n:"Ember",dmg:10.0,energy:10.0,ad:2.0,type:"Fast"},
-{n:"Fusion Flare",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Overheat",dmg:160.0,energy:-100.0,ad:8.0,type:"Charge"},{n:"Fire Blast",dmg:130.0,energy:-100.0,ad:8.0,type:"Charge"},{n:"Blast Burn",dmg:120.0,energy:-50.0,ad:7.0,type:"Charge"},
-{n:"Mystical Fire",dmg:60.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Magma Storm",dmg:75.0,energy:-33.0,ad:5.0,type:"Charge"},{n:"Torch Song",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Sacred Fire++",dmg:155.0,energy:-100.0,ad:5.0,type:"Charge"},
-{n:"Sacred Fire+",dmg:135.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Sacred Fire",dmg:120.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"V-Create",dmg:105.0,energy:-33.0,ad:6.0,type:"Charge"},{n:"Techno Blast (Fire)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge"},
-{n:"Blaze Kick",dmg:40.0,energy:-33.0,ad:2.0,type:"Charge"},{n:"Flame Burst",dmg:70.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Flame Charge",dmg:70.0,energy:-33.0,ad:8.0,type:"Charge"},{n:"Fire Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge"},
-{n:"Weather Ball (Fire)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Heat Wave",dmg:95.0,energy:-100.0,ad:6.0,type:"Charge"},{n:"Flamethrower",dmg:65.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Flame Wheel",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge"},
-{n:"Mind Blown",dmg:130.0,energy:-33.0,ad:8.0,type:"Charge"},{n:"Pyro Ball",dmg:150.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Metal Claw",dmg:6.0,energy:5.0,ad:1.0,type:"Fast"},{n:"Hidden Power (St)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},
-{n:"Steel Wing",dmg:14.0,energy:8.0,ad:2.0,type:"Fast"},{n:"Bullet Punch",dmg:10.0,energy:11.0,ad:2.0,type:"Fast"},{n:"Iron Tail",dmg:14.0,energy:6.0,ad:2.0,type:"Fast"},{n:"Metal Sound",dmg:4.0,energy:6.0,ad:1.0,type:"Fast"},
-{n:"Sunsteel Strike",dmg:230.0,energy:-100.0,ad:6.0,type:"Charge"},{n:"Behemoth Blade",dmg:200.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"Behemoth Bash",dmg:125.0,energy:-50.0,ad:3.0,type:"Charge"},{n:"Meteor Mash",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge"},
-{n:"Iron Head",dmg:60.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Heavy Slam",dmg:70.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Double Iron Bash",dmg:70.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Mirror Shot",dmg:50.0,energy:-33.0,ad:5.0,type:"Charge"},
-{n:"Doom Desire",dmg:65.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Magnet Bomb",dmg:75.0,energy:-33.0,ad:6.0,type:"Charge"},{n:"Flash Cannon",dmg:100.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Gyro Ball",dmg:85.0,energy:-50.0,ad:7.0,type:"Charge"},
-{n:"Gigaton Hammer",dmg:300.0,energy:-100.0,ad:6.0,type:"Charge"},{n:"Bubble",dmg:10.0,energy:12.0,ad:2.0,type:"Fast"},{n:"Splash",dmg:0.0,energy:17.0,ad:3.0,type:"Fast"},{n:"Hidden Power (Wa)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},
-{n:"Water Gun",dmg:5.0,energy:5.0,ad:1.0,type:"Fast"},{n:"Water Shuriken",dmg:9.0,energy:14.0,ad:2.0,type:"Fast"},{n:"Waterfall",dmg:13.0,energy:7.0,ad:2.0,type:"Fast"},{n:"Aqua Jet",dmg:45.0,energy:-33.0,ad:5.0,type:"Charge"},
-{n:"Aqua Step",dmg:55.0,energy:-33.0,ad:7.0,type:"Charge"},{n:"Aqua Tail",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Brine",dmg:65.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Bubble Beam",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge"},
-{n:"Crabhammer",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Hydro Cannon",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Hydro Pump",dmg:135.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"Liquidation",dmg:70.0,energy:-33.0,ad:6.0,type:"Charge"},
-{n:"Muddy Water",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Octazooka",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Origin Pulse",dmg:120.0,energy:-100.0,ad:3.0,type:"Charge"},{n:"Razor Shell",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge"},
-{n:"Scald",dmg:75.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Sparkling Aria",dmg:85.0,energy:-33.0,ad:6.0,type:"Charge"},{n:"Snipe Shot",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Surf",dmg:60.0,energy:-33.0,ad:3.0,type:"Charge"},
-{n:"Techno Blast (Water)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Water Pulse",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Weather Ball (Water)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Hex",dmg:8.0,energy:13.0,ad:2.0,type:"Fast"},
-{n:"Lick",dmg:5.0,energy:6.0,ad:1.0,type:"Fast"},{n:"Hidden Power (Gh)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Shadow Claw",dmg:6.0,energy:4.0,ad:1.0,type:"Fast"},{n:"Astonish",dmg:7.0,energy:13.0,ad:2.0,type:"Fast"},
-{n:"Shadow Ball",dmg:100.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Moongeist Beam",dmg:230.0,energy:-100.0,ad:6.0,type:"Charge"},{n:"Shadow Force",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Poltergeist",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge"},
-{n:"Spirit Shackle",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge"},{n:"Rage Fist",dmg:100.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Shadow Sneak",dmg:50.0,energy:-33.0,ad:6.0,type:"Charge"},{n:"Shadow Punch",dmg:35.0,energy:-33.0,ad:3.0,type:"Charge"},
-{n:"Ominous Wind",dmg:55.0,energy:-33.0,ad:5.0,type:"Charge"},{n:"Night Shade",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Shadow Bone",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Astral Barrage (Test)",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge"},
-{n:"Psycho Cut",dmg:4.0,energy:7.0,ad:1.0,type:"Fast"},{n:"Confusion",dmg:19.0,energy:14.0,ad:3.0,type:"Fast"},{n:"Hidden Power (Ps)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Psywave",dmg:4.0,energy:7.0,ad:1.0,type:"Fast"},
-{n:"Zen Headbutt",dmg:11.0,energy:9.0,ad:2.0,type:"Fast"},{n:"Extrasensory",dmg:11.0,energy:11.0,ad:2.0,type:"Fast"},{n:"Psystrike",dmg:95.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Psystrike Rework",dmg:115.0,energy:-50.0,ad:5.0,type:"Charge"},
-{n:"Psychic",dmg:95.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Future Sight",dmg:115.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Psyshock",dmg:60.0,energy:-33.0,ad:5.0,type:"Charge"},{n:"Heart Stamp",dmg:40.0,energy:-33.0,ad:4.0,type:"Charge"},
-{n:"Psybeam",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Mirror Coat",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Psycho Boost",dmg:70.0,energy:-50.0,ad:8.0,type:"Charge"},{n:"Synchronoise",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge"},
-{n:"Luster Purge",dmg:100.0,energy:-100.0,ad:3.0,type:"Charge"},{n:"Mist Ball",dmg:105.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Psychic Fangs",dmg:25.0,energy:-33.0,ad:2.0,type:"Charge"},{n:"Bullet Seed",dmg:7.0,energy:13.0,ad:2.0,type:"Fast"},
-{n:"Leafage",dmg:6.0,energy:4.0,ad:1.0,type:"Fast"},{n:"Hidden Power (Gra)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Magical Leaf",dmg:17.0,energy:17.0,ad:3.0,type:"Fast"},{n:"Razor Leaf",dmg:13.0,energy:7.0,ad:2.0,type:"Fast"},
-{n:"Vine Whip",dmg:6.0,energy:5.0,ad:1.0,type:"Fast"},{n:"Petal Blizzard",dmg:110.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Mega Drain",dmg:25.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Seed Bomb",dmg:55.0,energy:-33.0,ad:4.0,type:"Charge"},
-{n:"Giga Drain",dmg:50.0,energy:-100.0,ad:8.0,type:"Charge"},{n:"Solar Beam",dmg:180.0,energy:-100.0,ad:10.0,type:"Charge"},{n:"Leaf Blade",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge"},{n:"Power Whip",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge"},
-{n:"Grass Knot",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Energy Ball",dmg:90.0,energy:-50.0,ad:8.0,type:"Charge"},{n:"Frenzy Plant",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Leaf Tornado",dmg:45.0,energy:-33.0,ad:6.0,type:"Charge"},
-{n:"Leaf Storm",dmg:130.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Seed Flare",dmg:115.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Trailblaze",dmg:65.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Flower Trick",dmg:75.0,energy:-33.0,ad:5.0,type:"Charge"},
-{n:"Ivy Cludgel Test",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Mud Shot",dmg:4.0,energy:6.0,ad:1.0,type:"Fast"},{n:"Mud Slap",dmg:19.0,energy:13.0,ad:3.0,type:"Fast"},{n:"Hidden Power (Gro)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},
-{n:"Sand Attack",dmg:4.0,energy:7.0,ad:1.0,type:"Fast"},{n:"Earthquake",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"Precipice Blades",dmg:120.0,energy:-100.0,ad:3.0,type:"Charge"},{n:"High Horsepower",dmg:105.0,energy:-100.0,ad:3.0,type:"Charge"},
-{n:"Sandsear Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Dig",dmg:100.0,energy:-50.0,ad:9.0,type:"Charge"},{n:"Drill Run",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Bulldoze",dmg:80.0,energy:-50.0,ad:7.0,type:"Charge"},
-{n:"Earth Power",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Scorching Sands",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Bone Club",dmg:40.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Mud Bomb",dmg:60.0,energy:-33.0,ad:5.0,type:"Charge"},
-{n:"Sand Tomb",dmg:60.0,energy:-33.0,ad:8.0,type:"Charge"},{n:"Smack Down",dmg:13.0,energy:7.0,ad:2.0,type:"Fast"},{n:"Rock Throw",dmg:13.0,energy:8.0,ad:2.0,type:"Fast"},{n:"Rollout",dmg:15.0,energy:19.0,ad:3.0,type:"Fast"},
-{n:"Hidden Power (Ro)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Stone Edge",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Meteor Beam",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Rock Tomb",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge"},
-{n:"Rock Slide",dmg:75.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Power Gem",dmg:80.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Rock Wrecker",dmg:110.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Ancient Power",dmg:70.0,energy:-33.0,ad:7.0,type:"Charge"},
-{n:"Rock Blast",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Weather Ball (Ro)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Ivy Cludgel (Ro) Test",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Charm",dmg:20.0,energy:11.0,ad:3.0,type:"Fast"},
-{n:"Fairy Wind",dmg:9.0,energy:13.0,ad:2.0,type:"Fast"},{n:"Geomancy",dmg:20.0,energy:14.0,ad:3.0,type:"Fast"},{n:"Disarming Voice",dmg:70.0,energy:-33.0,ad:8.0,type:"Charge"},{n:"Draining Kiss",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge"},
-{n:"Dazzling Gleam",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Moonblast",dmg:130.0,energy:-100.0,ad:8.0,type:"Charge"},{n:"Play Rough",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Nature's Madness",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge"},
-{n:"Low Kick",dmg:5.0,energy:5.0,ad:1.0,type:"Fast"},{n:"Karate Chop",dmg:10.0,energy:13.0,ad:2.0,type:"Fast"},{n:"Hidden Power (Fig)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Rock Smash",dmg:17.0,energy:12.0,ad:3.0,type:"Fast"},
-{n:"Counter",dmg:13.0,energy:9.0,ad:2.0,type:"Fast"},{n:"Double Kick",dmg:10.0,energy:13.0,ad:2.0,type:"Fast"},{n:"Force Palm",dmg:10.0,energy:16.0,ad:2.0,type:"Fast"},{n:"Close Combat",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge"},
-{n:"Focus Blast",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"High Jump Kick",dmg:90.0,energy:-100.0,ad:3.0,type:"Charge"},{n:"Cross Chop",dmg:50.0,energy:-50.0,ad:3.0,type:"Charge"},{n:"Submission",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge"},
-{n:"Dynamic Punch",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Dynamic Punch+",dmg:95.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Superpower",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Flying Press",dmg:115.0,energy:-50.0,ad:5.0,type:"Charge"},
-{n:"Aura Sphere",dmg:100.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Low Sweep",dmg:40.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Brick Break",dmg:50.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Drain Punch",dmg:50.0,energy:-33.0,ad:5.0,type:"Charge"},
-{n:"Power-Up Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Sacred Sword",dmg:50.0,energy:-33.0,ad:2.0,type:"Charge"},{n:"Secret Sword",dmg:120.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Collision Course (Test)",dmg:200.0,energy:-100.0,ad:8.0,type:"Charge"},
-{n:"Wing Attack",dmg:10.0,energy:11.0,ad:2.0,type:"Fast"},{n:"Peck",dmg:10.0,energy:10.0,ad:2.0,type:"Fast"},{n:"Hidden Power (Fl)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Air Slash",dmg:12.0,energy:8.0,ad:2.0,type:"Fast"},
-{n:"Gust",dmg:25.0,energy:20.0,ad:4.0,type:"Fast"},{n:"Hurricane",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Brave Bird",dmg:130.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Aeroblast",dmg:180.0,energy:-100.0,ad:7.0,type:"Charge"},
-{n:"Aeroblast+",dmg:200.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"Aeroblast++",dmg:225.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"Acrobatics",dmg:100.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Bleakwind Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge"},
-{n:"Air Cutter",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Sky Attack",dmg:80.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Fly",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Feather Dance",dmg:35.0,energy:-50.0,ad:6.0,type:"Charge"},
-{n:"Dragon Ascent",dmg:140.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Oblivion Wing",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Drill Peck",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge"},{n:"Aerial Ace",dmg:55.0,energy:-33.0,ad:5.0,type:"Charge"},
-{n:"Beak Blast",dmg:125.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Ice Shard",dmg:10.0,energy:10.0,ad:2.0,type:"Fast"},{n:"Frost Breath",dmg:11.0,energy:9.0,ad:2.0,type:"Fast"},{n:"Hidden Power (I)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},
-{n:"Powder Snow",dmg:6.0,energy:15.0,ad:2.0,type:"Fast"},{n:"Ice Fang",dmg:12.0,energy:20.0,ad:3.0,type:"Fast"},{n:"Blizzard",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge"},{n:"Techno Blast (Ice)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge"},
-{n:"Glaciate",dmg:160.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Freeze Shock",dmg:160.0,energy:-100.0,ad:3.0,type:"Charge"},{n:"Ice Beam",dmg:95.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Aurora Beam",dmg:80.0,energy:-50.0,ad:7.0,type:"Charge"},
-{n:"Avalanche",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Ice Burn",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Ice Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Icy Wind",dmg:65.0,energy:-33.0,ad:7.0,type:"Charge"},
-{n:"Weather Ball (Ice)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Icicle Spear",dmg:55.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Triple Axel",dmg:60.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Glacial Lance (Test)",dmg:130.0,energy:-50.0,ad:4.0,type:"Charge"},
-{n:"Poison Jab",dmg:13.0,energy:9.0,ad:2.0,type:"Fast"},{n:"Acid",dmg:11.0,energy:10.0,ad:2.0,type:"Fast"},{n:"Hidden Power (Po)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Poison Sting",dmg:4.0,energy:6.0,ad:1.0,type:"Fast"},
-{n:"Sludge",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Poison Fang",dmg:30.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Cross Poison",dmg:40.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Sludge Bomb",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge"},
-{n:"Sludge Wave",dmg:105.0,energy:-100.0,ad:6.0,type:"Charge"},{n:"Gunk Shot",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge"},{n:"Acid Spray",dmg:20.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Bite",dmg:6.0,energy:4.0,ad:1.0,type:"Fast"},
-{n:"Sucker Punch",dmg:5.0,energy:6.0,ad:1.0,type:"Fast"},{n:"Hidden Power (Da)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Feint Attack",dmg:11.0,energy:10.0,ad:2.0,type:"Fast"},{n:"Snarl",dmg:11.0,energy:13.0,ad:2.0,type:"Fast"},
-{n:"Payback",dmg:95.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Dark Pulse",dmg:80.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Foul Play",dmg:70.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Darkest Lariat",dmg:80.0,energy:-50.0,ad:4.0,type:"Charge"},
-{n:"Aura Wheel",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Night Slash",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Crunch",dmg:65.0,energy:-33.0,ad:6.0,type:"Charge"},{n:"Brutal Swing",dmg:65.0,energy:-33.0,ad:4.0,type:"Charge"},
-{n:"Obstruct",dmg:20.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Dark Void (Test)",dmg:105.0,energy:-50.0,ad:4.0,type:"Charge"},{n:"Hyperspace Hole (Test)",dmg:160.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Quick Attack",dmg:10.0,energy:13.0,ad:2.0,type:"Fast"},
-{n:"Scratch",dmg:6.0,energy:4.0,ad:1.0,type:"Fast"},{n:"Tackle",dmg:5.0,energy:5.0,ad:1.0,type:"Fast"},{n:"Pound",dmg:6.0,energy:5.0,ad:1.0,type:"Fast"},{n:"Cut",dmg:5.0,energy:5.0,ad:1.0,type:"Fast"},
-{n:"Hidden Power",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Take Down",dmg:7.0,energy:8.0,ad:2.0,type:"Fast"},{n:"Yawn",dmg:0.0,energy:13.0,ad:3.0,type:"Fast"},{n:"Present",dmg:6.0,energy:23.0,ad:3.0,type:"Fast"},
-{n:"Lock On",dmg:2.0,energy:10.0,ad:1.0,type:"Fast"},{n:"Hyper Beam",dmg:150.0,energy:-100.0,ad:8.0,type:"Charge"},{n:"Skull Bash",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge"},{n:"Giga Impact",dmg:200.0,energy:-100.0,ad:9.0,type:"Charge"},
-{n:"Technoblast (Normal)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Boomburst",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Swift",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Stomp",dmg:50.0,energy:-50.0,ad:3.0,type:"Charge"},
-{n:"Hyper Fang",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Last Resort",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"Tri Attack",dmg:75.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Wrap",dmg:60.0,energy:-33.0,ad:6.0,type:"Charge"},
-{n:"Vise Grip",dmg:35.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Horn Attack",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Body Slam",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Crush Grip",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge"},
-{n:"Thunder Shock",dmg:4.0,energy:7.0,ad:1.0,type:"Fast"},{n:"Spark",dmg:4.0,energy:6.0,ad:1.0,type:"Fast"},{n:"Hidden Power (El)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Charge Beam",dmg:7.0,energy:14.0,ad:2.0,type:"Fast"},
-{n:"Volt Switch",dmg:13.0,energy:20.0,ad:3.0,type:"Fast"},{n:"Thunder Fang",dmg:10.0,energy:13.0,ad:2.0,type:"Fast"},{n:"Thunder",dmg:100.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Zap Cannon",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge"},
-{n:"Technoblast (Electric)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Fusion Bolt",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge"},{n:"Wildbolt Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge"},{n:"Parabolic Charge",dmg:70.0,energy:-50.0,ad:6.0,type:"Charge"},
-{n:"Thunderbolt",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Wild Charge",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Aura Wheel",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge"},{n:"Discharge",dmg:65.0,energy:-33.0,ad:5.0,type:"Charge"},
-{n:"Thunder Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge"},{n:"Volt Tackle",dmg:90.0,energy:-33.0,ad:7.0,type:"Charge"},{n:"Thunder Cage",dmg:220.0,energy:-100.0,ad:7.0,type:"Charge"},{n:"Electro Drift (Test)",dmg:115.0,energy:-50.0,ad:3.0,type:"Charge"},
-{n:"Plasma Fists",dmg:135.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Fury Cutter",dmg:4.0,energy:8.0,ad:1.0,type:"Fast"},{n:"Hidden Power (Bu)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Bug Bite",dmg:5.0,energy:6.0,ad:1.0,type:"Fast"},
-{n:"Infestation",dmg:9.0,energy:13.0,ad:2.0,type:"Fast"},{n:"Struggle Bug",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Hidden Power (Bug)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast"},{n:"Megahorn",dmg:105.0,energy:-100.0,ad:4.0,type:"Charge"},
-{n:"Bug Buzz",dmg:95.0,energy:-50.0,ad:7.0,type:"Charge"},{n:"Signal Beam",dmg:75.0,energy:-50.0,ad:6.0,type:"Charge"},{n:"X-Scissor",dmg:45.0,energy:-33.0,ad:3.0,type:"Charge"},{n:"Silver Wind",dmg:65.0,energy:-33.0,ad:7.0,type:"Charge"},
-{n:"Lunge",dmg:55.0,energy:-33.0,ad:6.0,type:"Charge"},{n:"Fell Stinger",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge"},
+{n:"Dragon Tail",dmg:14.0,energy:8.0,ad:2.0,type:"Fast",elem:"Dragon"},{n:"Dragon Breath",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Dragon"},{n:"Hidden Power (Dr)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Dragon"},{n:"Outrage",dmg:110.0,energy:-50.0,ad:8.0,type:"Charge",elem:"Dragon"},
+{n:"Draco Meteor",dmg:150.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Dragon"},{n:"Breaking Swipe",dmg:45.0,energy:-33.0,ad:2.0,type:"Charge",elem:"Dragon"},{n:"Spacial Rend",dmg:160.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Dragon"},{n:"Roar Of Time",dmg:160.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Dragon"},
+{n:"Dragon Pulse",dmg:90.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Dragon"},{n:"Dragon Claw",dmg:45.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Dragon"},{n:"Twister",dmg:50.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Dragon"},{n:"Dragon Energy",dmg:155.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Dragon"},
+{n:"Clanging Scales",dmg:120.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Dragon"},{n:"Dynamax Cannon",dmg:215.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Dragon"},{n:"Glaive Rush",dmg:105.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Dragon"},{n:"Fire Spin",dmg:13.0,energy:9.0,ad:2.0,type:"Fast",elem:"Fire"},
+{n:"Fire Fang",dmg:13.0,energy:9.0,ad:2.0,type:"Fast",elem:"Fire"},{n:"Hidden Power (Fi)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Fire"},{n:"Incinerate",dmg:32.0,energy:22.0,ad:5.0,type:"Fast",elem:"Fire"},{n:"Ember",dmg:10.0,energy:10.0,ad:2.0,type:"Fast",elem:"Fire"},
+{n:"Fusion Flare",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Fire"},{n:"Overheat",dmg:160.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Fire"},{n:"Fire Blast",dmg:130.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Fire"},{n:"Blast Burn",dmg:120.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Fire"},
+{n:"Mystical Fire",dmg:60.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Fire"},{n:"Magma Storm",dmg:75.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Fire"},{n:"Torch Song",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Fire"},{n:"Sacred Fire++",dmg:155.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Fire"},
+{n:"Sacred Fire+",dmg:135.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Fire"},{n:"Sacred Fire",dmg:120.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Fire"},{n:"V-Create",dmg:105.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Fire"},{n:"Techno Blast (Fire)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Fire"},
+{n:"Blaze Kick",dmg:40.0,energy:-33.0,ad:2.0,type:"Charge",elem:"Fire"},{n:"Flame Burst",dmg:70.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fire"},{n:"Flame Charge",dmg:70.0,energy:-33.0,ad:8.0,type:"Charge",elem:"Fire"},{n:"Fire Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Fire"},
+{n:"Weather Ball (Fire)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Fire"},{n:"Heat Wave",dmg:95.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Fire"},{n:"Flamethrower",dmg:65.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fire"},{n:"Flame Wheel",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fire"},
+{n:"Mind Blown",dmg:130.0,energy:-33.0,ad:8.0,type:"Charge",elem:"Fire"},{n:"Pyro Ball",dmg:150.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Fire"},{n:"Metal Claw",dmg:6.0,energy:5.0,ad:1.0,type:"Fast",elem:"Steel"},{n:"Hidden Power (St)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Steel"},
+{n:"Steel Wing",dmg:14.0,energy:8.0,ad:2.0,type:"Fast",elem:"Steel"},{n:"Bullet Punch",dmg:10.0,energy:11.0,ad:2.0,type:"Fast",elem:"Steel"},{n:"Iron Tail",dmg:14.0,energy:6.0,ad:2.0,type:"Fast",elem:"Steel"},{n:"Metal Sound",dmg:4.0,energy:6.0,ad:1.0,type:"Fast",elem:"Steel"},
+{n:"Sunsteel Strike",dmg:230.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Steel"},{n:"Behemoth Blade",dmg:200.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Steel"},{n:"Behemoth Bash",dmg:125.0,energy:-50.0,ad:3.0,type:"Charge",elem:"Steel"},{n:"Meteor Mash",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Steel"},
+{n:"Iron Head",dmg:60.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Steel"},{n:"Heavy Slam",dmg:70.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Steel"},{n:"Double Iron Bash",dmg:70.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Steel"},{n:"Mirror Shot",dmg:50.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Steel"},
+{n:"Doom Desire",dmg:65.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Steel"},{n:"Magnet Bomb",dmg:75.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Steel"},{n:"Flash Cannon",dmg:100.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Steel"},{n:"Gyro Ball",dmg:85.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Steel"},
+{n:"Gigaton Hammer",dmg:300.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Steel"},{n:"Bubble",dmg:10.0,energy:12.0,ad:2.0,type:"Fast",elem:"Water"},{n:"Splash",dmg:0.0,energy:17.0,ad:3.0,type:"Fast",elem:"Water"},{n:"Hidden Power (Wa)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Water"},
+{n:"Water Gun",dmg:5.0,energy:5.0,ad:1.0,type:"Fast",elem:"Water"},{n:"Water Shuriken",dmg:9.0,energy:14.0,ad:2.0,type:"Fast",elem:"Water"},{n:"Waterfall",dmg:13.0,energy:7.0,ad:2.0,type:"Fast",elem:"Water"},{n:"Aqua Jet",dmg:45.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Water"},
+{n:"Aqua Step",dmg:55.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Water"},{n:"Aqua Tail",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Brine",dmg:65.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Water"},{n:"Bubble Beam",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Water"},
+{n:"Crabhammer",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Hydro Cannon",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Hydro Pump",dmg:135.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Water"},{n:"Liquidation",dmg:70.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Water"},
+{n:"Muddy Water",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Octazooka",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Water"},{n:"Origin Pulse",dmg:120.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Water"},{n:"Razor Shell",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Water"},
+{n:"Scald",dmg:75.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Water"},{n:"Sparkling Aria",dmg:85.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Water"},{n:"Snipe Shot",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Water"},{n:"Surf",dmg:60.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Water"},
+{n:"Techno Blast (Water)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Water Pulse",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Water"},{n:"Weather Ball (Water)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Water"},{n:"Hex",dmg:8.0,energy:13.0,ad:2.0,type:"Fast",elem:"Ghost"},
+{n:"Lick",dmg:5.0,energy:6.0,ad:1.0,type:"Fast",elem:"Ghost"},{n:"Hidden Power (Gh)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Ghost"},{n:"Shadow Claw",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Ghost"},{n:"Astonish",dmg:7.0,energy:13.0,ad:2.0,type:"Fast",elem:"Ghost"},
+{n:"Shadow Ball",dmg:100.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Moongeist Beam",dmg:230.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Shadow Force",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Ghost"},{n:"Poltergeist",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Ghost"},
+{n:"Spirit Shackle",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Ghost"},{n:"Rage Fist",dmg:100.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Shadow Sneak",dmg:50.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Shadow Punch",dmg:35.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Ghost"},
+{n:"Ominous Wind",dmg:55.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Ghost"},{n:"Night Shade",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Ghost"},{n:"Shadow Bone",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Astral Barrage (Test)",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Ghost"},
+{n:"Psycho Cut",dmg:4.0,energy:7.0,ad:1.0,type:"Fast",elem:"Psychic"},{n:"Confusion",dmg:19.0,energy:14.0,ad:3.0,type:"Fast",elem:"Psychic"},{n:"Hidden Power (Ps)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Psychic"},{n:"Psywave",dmg:4.0,energy:7.0,ad:1.0,type:"Fast",elem:"Psychic"},
+{n:"Zen Headbutt",dmg:11.0,energy:9.0,ad:2.0,type:"Fast",elem:"Psychic"},{n:"Extrasensory",dmg:11.0,energy:11.0,ad:2.0,type:"Fast",elem:"Psychic"},{n:"Psystrike",dmg:95.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Psychic"},{n:"Psystrike Rework",dmg:115.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Psychic"},
+{n:"Psychic",dmg:95.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Psychic"},{n:"Future Sight",dmg:115.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Psychic"},{n:"Psyshock",dmg:60.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Psychic"},{n:"Heart Stamp",dmg:40.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Psychic"},
+{n:"Psybeam",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Psychic"},{n:"Mirror Coat",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Psychic"},{n:"Psycho Boost",dmg:70.0,energy:-50.0,ad:8.0,type:"Charge",elem:"Psychic"},{n:"Synchronoise",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Psychic"},
+{n:"Luster Purge",dmg:100.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Psychic"},{n:"Mist Ball",dmg:105.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Psychic"},{n:"Psychic Fangs",dmg:25.0,energy:-33.0,ad:2.0,type:"Charge",elem:"Psychic"},{n:"Bullet Seed",dmg:7.0,energy:13.0,ad:2.0,type:"Fast",elem:"Grass"},
+{n:"Leafage",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Grass"},{n:"Hidden Power (Gra)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Grass"},{n:"Magical Leaf",dmg:17.0,energy:17.0,ad:3.0,type:"Fast",elem:"Grass"},{n:"Razor Leaf",dmg:13.0,energy:7.0,ad:2.0,type:"Fast",elem:"Grass"},
+{n:"Vine Whip",dmg:6.0,energy:5.0,ad:1.0,type:"Fast",elem:"Grass"},{n:"Petal Blizzard",dmg:110.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Mega Drain",dmg:25.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Seed Bomb",dmg:55.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Grass"},
+{n:"Giga Drain",dmg:50.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Grass"},{n:"Solar Beam",dmg:180.0,energy:-100.0,ad:10.0,type:"Charge",elem:"Grass"},{n:"Leaf Blade",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Power Whip",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Grass"},
+{n:"Grass Knot",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Energy Ball",dmg:90.0,energy:-50.0,ad:8.0,type:"Charge",elem:"Grass"},{n:"Frenzy Plant",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Leaf Tornado",dmg:45.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Grass"},
+{n:"Leaf Storm",dmg:130.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Seed Flare",dmg:115.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Trailblaze",dmg:65.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Grass"},{n:"Flower Trick",dmg:75.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Grass"},
+{n:"Ivy Cludgel Test",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Grass"},{n:"Mud Shot",dmg:4.0,energy:6.0,ad:1.0,type:"Fast",elem:"Ground"},{n:"Mud Slap",dmg:19.0,energy:13.0,ad:3.0,type:"Fast",elem:"Ground"},{n:"Hidden Power (Gro)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Ground"},
+{n:"Sand Attack",dmg:4.0,energy:7.0,ad:1.0,type:"Fast",elem:"Ground"},{n:"Earthquake",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Ground"},{n:"Precipice Blades",dmg:120.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Ground"},{n:"High Horsepower",dmg:105.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Ground"},
+{n:"Sandsear Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Ground"},{n:"Dig",dmg:100.0,energy:-50.0,ad:9.0,type:"Charge",elem:"Ground"},{n:"Drill Run",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ground"},{n:"Bulldoze",dmg:80.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Ground"},
+{n:"Earth Power",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Ground"},{n:"Scorching Sands",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ground"},{n:"Bone Club",dmg:40.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Ground"},{n:"Mud Bomb",dmg:60.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Ground"},
+{n:"Sand Tomb",dmg:60.0,energy:-33.0,ad:8.0,type:"Charge",elem:"Ground"},{n:"Smack Down",dmg:13.0,energy:7.0,ad:2.0,type:"Fast",elem:"Rock"},{n:"Rock Throw",dmg:13.0,energy:8.0,ad:2.0,type:"Fast",elem:"Rock"},{n:"Rollout",dmg:15.0,energy:19.0,ad:3.0,type:"Fast",elem:"Rock"},
+{n:"Hidden Power (Ro)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Rock"},{n:"Stone Edge",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Rock"},{n:"Meteor Beam",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Rock"},{n:"Rock Tomb",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Rock"},
+{n:"Rock Slide",dmg:75.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Rock"},{n:"Power Gem",dmg:80.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Rock"},{n:"Rock Wrecker",dmg:110.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Rock"},{n:"Ancient Power",dmg:70.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Rock"},
+{n:"Rock Blast",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Rock"},{n:"Weather Ball (Ro)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Rock"},{n:"Ivy Cludgel (Ro) Test",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Rock"},{n:"Charm",dmg:20.0,energy:11.0,ad:3.0,type:"Fast",elem:"Fairy"},
+{n:"Fairy Wind",dmg:9.0,energy:13.0,ad:2.0,type:"Fast",elem:"Fairy"},{n:"Geomancy",dmg:20.0,energy:14.0,ad:3.0,type:"Fast",elem:"Fairy"},{n:"Disarming Voice",dmg:70.0,energy:-33.0,ad:8.0,type:"Charge",elem:"Fairy"},{n:"Draining Kiss",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fairy"},
+{n:"Dazzling Gleam",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Fairy"},{n:"Moonblast",dmg:130.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Fairy"},{n:"Play Rough",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Fairy"},{n:"Nature's Madness",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fairy"},
+{n:"Low Kick",dmg:5.0,energy:5.0,ad:1.0,type:"Fast",elem:"Fighting"},{n:"Karate Chop",dmg:10.0,energy:13.0,ad:2.0,type:"Fast",elem:"Fighting"},{n:"Hidden Power (Fig)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Fighting"},{n:"Rock Smash",dmg:17.0,energy:12.0,ad:3.0,type:"Fast",elem:"Fighting"},
+{n:"Counter",dmg:13.0,energy:9.0,ad:2.0,type:"Fast",elem:"Fighting"},{n:"Double Kick",dmg:10.0,energy:13.0,ad:2.0,type:"Fast",elem:"Fighting"},{n:"Force Palm",dmg:10.0,energy:16.0,ad:2.0,type:"Fast",elem:"Fighting"},{n:"Close Combat",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Fighting"},
+{n:"Focus Blast",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Fighting"},{n:"High Jump Kick",dmg:90.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Fighting"},{n:"Cross Chop",dmg:50.0,energy:-50.0,ad:3.0,type:"Charge",elem:"Fighting"},{n:"Submission",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fighting"},
+{n:"Dynamic Punch",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fighting"},{n:"Dynamic Punch+",dmg:95.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fighting"},{n:"Superpower",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Fighting"},{n:"Flying Press",dmg:115.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fighting"},
+{n:"Aura Sphere",dmg:100.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fighting"},{n:"Low Sweep",dmg:40.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Fighting"},{n:"Brick Break",dmg:50.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Fighting"},{n:"Drain Punch",dmg:50.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Fighting"},
+{n:"Power-Up Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Fighting"},{n:"Sacred Sword",dmg:50.0,energy:-33.0,ad:2.0,type:"Charge",elem:"Fighting"},{n:"Secret Sword",dmg:120.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fighting"},{n:"Collision Course (Test)",dmg:200.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Fighting"},
+{n:"Wing Attack",dmg:10.0,energy:11.0,ad:2.0,type:"Fast",elem:"Flying"},{n:"Peck",dmg:10.0,energy:10.0,ad:2.0,type:"Fast",elem:"Flying"},{n:"Hidden Power (Fl)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Flying"},{n:"Air Slash",dmg:12.0,energy:8.0,ad:2.0,type:"Fast",elem:"Flying"},
+{n:"Gust",dmg:25.0,energy:20.0,ad:4.0,type:"Fast",elem:"Flying"},{n:"Hurricane",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Flying"},{n:"Brave Bird",dmg:130.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Aeroblast",dmg:180.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Flying"},
+{n:"Aeroblast+",dmg:200.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Flying"},{n:"Aeroblast++",dmg:225.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Flying"},{n:"Acrobatics",dmg:100.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Bleakwind Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Flying"},
+{n:"Air Cutter",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Flying"},{n:"Sky Attack",dmg:80.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Fly",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Feather Dance",dmg:35.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Flying"},
+{n:"Dragon Ascent",dmg:140.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Flying"},{n:"Oblivion Wing",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Drill Peck",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Flying"},{n:"Aerial Ace",dmg:55.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Flying"},
+{n:"Beak Blast",dmg:125.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Flying"},{n:"Ice Shard",dmg:10.0,energy:10.0,ad:2.0,type:"Fast",elem:"Ice"},{n:"Frost Breath",dmg:11.0,energy:9.0,ad:2.0,type:"Fast",elem:"Ice"},{n:"Hidden Power (I)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Ice"},
+{n:"Powder Snow",dmg:6.0,energy:15.0,ad:2.0,type:"Fast",elem:"Ice"},{n:"Ice Fang",dmg:12.0,energy:20.0,ad:3.0,type:"Fast",elem:"Ice"},{n:"Blizzard",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Ice"},{n:"Techno Blast (Ice)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Ice"},
+{n:"Glaciate",dmg:160.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Ice"},{n:"Freeze Shock",dmg:160.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Ice"},{n:"Ice Beam",dmg:95.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Ice"},{n:"Aurora Beam",dmg:80.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Ice"},
+{n:"Avalanche",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Ice"},{n:"Ice Burn",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Ice"},{n:"Ice Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Ice"},{n:"Icy Wind",dmg:65.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Ice"},
+{n:"Weather Ball (Ice)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Ice"},{n:"Icicle Spear",dmg:55.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Ice"},{n:"Triple Axel",dmg:60.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Ice"},{n:"Glacial Lance (Test)",dmg:130.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Ice"},
+{n:"Poison Jab",dmg:13.0,energy:9.0,ad:2.0,type:"Fast",elem:"Poison"},{n:"Acid",dmg:11.0,energy:10.0,ad:2.0,type:"Fast",elem:"Poison"},{n:"Hidden Power (Po)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Poison"},{n:"Poison Sting",dmg:4.0,energy:6.0,ad:1.0,type:"Fast",elem:"Poison"},
+{n:"Sludge",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Poison"},{n:"Poison Fang",dmg:30.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Poison"},{n:"Cross Poison",dmg:40.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Poison"},{n:"Sludge Bomb",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Poison"},
+{n:"Sludge Wave",dmg:105.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Poison"},{n:"Gunk Shot",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Poison"},{n:"Acid Spray",dmg:20.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Poison"},{n:"Bite",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Dark"},
+{n:"Sucker Punch",dmg:5.0,energy:6.0,ad:1.0,type:"Fast",elem:"Dark"},{n:"Hidden Power (Da)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Dark"},{n:"Feint Attack",dmg:11.0,energy:10.0,ad:2.0,type:"Fast",elem:"Dark"},{n:"Snarl",dmg:11.0,energy:13.0,ad:2.0,type:"Fast",elem:"Dark"},
+{n:"Payback",dmg:95.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Dark Pulse",dmg:80.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Dark"},{n:"Foul Play",dmg:70.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Darkest Lariat",dmg:80.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Dark"},
+{n:"Aura Wheel",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Night Slash",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Crunch",dmg:65.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Dark"},{n:"Brutal Swing",dmg:65.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Dark"},
+{n:"Obstruct",dmg:20.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Dark"},{n:"Dark Void (Test)",dmg:105.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Hyperspace Hole (Test)",dmg:160.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Quick Attack",dmg:10.0,energy:13.0,ad:2.0,type:"Fast",elem:"Normal"},
+{n:"Scratch",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Normal"},{n:"Tackle",dmg:5.0,energy:5.0,ad:1.0,type:"Fast",elem:"Normal"},{n:"Pound",dmg:6.0,energy:5.0,ad:1.0,type:"Fast",elem:"Normal"},{n:"Cut",dmg:5.0,energy:5.0,ad:1.0,type:"Fast",elem:"Normal"},
+{n:"Hidden Power",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Normal"},{n:"Take Down",dmg:7.0,energy:8.0,ad:2.0,type:"Fast",elem:"Normal"},{n:"Yawn",dmg:0.0,energy:13.0,ad:3.0,type:"Fast",elem:"Normal"},{n:"Present",dmg:6.0,energy:23.0,ad:3.0,type:"Fast",elem:"Normal"},
+{n:"Lock On",dmg:2.0,energy:10.0,ad:1.0,type:"Fast",elem:"Normal"},{n:"Hyper Beam",dmg:150.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Normal"},{n:"Skull Bash",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Normal"},{n:"Giga Impact",dmg:200.0,energy:-100.0,ad:9.0,type:"Charge",elem:"Normal"},
+{n:"Technoblast (Normal)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Normal"},{n:"Boomburst",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Normal"},{n:"Swift",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Normal"},{n:"Stomp",dmg:50.0,energy:-50.0,ad:3.0,type:"Charge",elem:"Normal"},
+{n:"Hyper Fang",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Normal"},{n:"Last Resort",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Normal"},{n:"Tri Attack",dmg:75.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Normal"},{n:"Wrap",dmg:60.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Normal"},
+{n:"Vise Grip",dmg:35.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Normal"},{n:"Horn Attack",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Normal"},{n:"Body Slam",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Normal"},{n:"Crush Grip",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Normal"},
+{n:"Thunder Shock",dmg:4.0,energy:7.0,ad:1.0,type:"Fast",elem:"Electric"},{n:"Spark",dmg:4.0,energy:6.0,ad:1.0,type:"Fast",elem:"Electric"},{n:"Hidden Power (El)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Electric"},{n:"Charge Beam",dmg:7.0,energy:14.0,ad:2.0,type:"Fast",elem:"Electric"},
+{n:"Volt Switch",dmg:13.0,energy:20.0,ad:3.0,type:"Fast",elem:"Electric"},{n:"Thunder Fang",dmg:10.0,energy:13.0,ad:2.0,type:"Fast",elem:"Electric"},{n:"Thunder",dmg:100.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Zap Cannon",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Electric"},
+{n:"Technoblast (Electric)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Electric"},{n:"Fusion Bolt",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Electric"},{n:"Wildbolt Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Parabolic Charge",dmg:70.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Electric"},
+{n:"Thunderbolt",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Wild Charge",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Aura Wheel",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Discharge",dmg:65.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Electric"},
+{n:"Thunder Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Electric"},{n:"Volt Tackle",dmg:90.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Electric"},{n:"Thunder Cage",dmg:220.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Electric"},{n:"Electro Drift (Test)",dmg:115.0,energy:-50.0,ad:3.0,type:"Charge",elem:"Electric"},
+{n:"Plasma Fists",dmg:135.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Electric"},{n:"Fury Cutter",dmg:4.0,energy:8.0,ad:1.0,type:"Fast",elem:"Bug"},{n:"Hidden Power (Bu)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Bug"},{n:"Bug Bite",dmg:5.0,energy:6.0,ad:1.0,type:"Fast",elem:"Bug"},
+{n:"Infestation",dmg:9.0,energy:13.0,ad:2.0,type:"Fast",elem:"Bug"},{n:"Struggle Bug",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Bug"},{n:"Hidden Power (Bug)",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Bug"},{n:"Megahorn",dmg:105.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Bug"},
+{n:"Bug Buzz",dmg:95.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Bug"},{n:"Signal Beam",dmg:75.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Bug"},{n:"X-Scissor",dmg:45.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Bug"},{n:"Silver Wind",dmg:65.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Bug"},
+{n:"Lunge",dmg:55.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Bug"},{n:"Fell Stinger",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Bug"},
 ];
 // ============ CPM TABLE (levels 40-51, half-level increments) ============
 const CPM = {
@@ -904,14 +1239,14 @@ function runCalculation(){
 
   const bossCMMods = {
     eff: parseFloat(document.getElementById("effBossCM").value),
-    weather: document.getElementById("bossWeatherCM").checked,
+    weather: isWeatherBoosted(bossCMMove.elem),
     shadowDebuff: document.getElementById("shadowDebuff").checked,
     stab: document.getElementById("bossStabCM").checked,
     shieldAE: document.getElementById("shieldAE").checked,
   };
   const bossFMMods = {
     eff: parseFloat(document.getElementById("effBossFM").value),
-    weather: document.getElementById("bossWeatherFM").checked,
+    weather: isWeatherBoosted(bossFMMove.elem),
     shadowDebuff: document.getElementById("shadowDebuff").checked,
     stab: document.getElementById("bossStabFM").checked,
     shieldAE: document.getElementById("shieldAE").checked,
@@ -923,12 +1258,12 @@ function runCalculation(){
   // --- player move damage (attacking the boss) ---
   const cmModsPlayer = Object.assign({}, playerMods, {
     eff: parseFloat(document.getElementById("effCM").value),
-    weather: document.getElementById("weatherCM").checked,
+    weather: isWeatherBoosted(cm.elem),
     stab: document.getElementById("stabCM").checked,
   });
   const fmModsPlayer = Object.assign({}, playerMods, {
     eff: parseFloat(document.getElementById("effFM").value),
-    weather: document.getElementById("weatherFM").checked,
+    weather: isWeatherBoosted(fm.elem),
     stab: document.getElementById("stabFM").checked,
     partyPower: false, // party power is charge-move only
   });
@@ -989,13 +1324,18 @@ function runCalculation(){
 
     let numerator = (chargeDamage * numCM) + (fastMoveCountForDPS * fastDamage);
 
-    const mainDPS = numerator / Math.max(seconds, 0.1);
-    const trailingDPS = numerator / Math.max(seconds + 0.5, 0.1);
-    const ctDPS = numerator / Math.max(seconds + 1.0, 0.1);
+    // faint check: if the boss's charge move hit plus any tanked fast moves would exceed the player's HP,
+    // the Pokemon doesn't survive to complete the rotation - DPS is 0, not a misleadingly high number
+    const cumulativeDamage = bossCMDamage + n * bossFMDamage;
+    const fainted = cumulativeDamage >= playerHp;
+
+    const mainDPS = fainted ? 0 : numerator / Math.max(seconds, 0.1);
+    const trailingDPS = fainted ? 0 : numerator / Math.max(seconds + 0.5, 0.1);
+    const ctDPS = fainted ? 0 : numerator / Math.max(seconds + 1.0, 0.1);
 
     return {
       n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
-      mainDPS, trailingDPS, ctDPS,
+      mainDPS, trailingDPS, ctDPS, fainted, cumulativeDamage,
     };
   });
 
@@ -1014,6 +1354,7 @@ function runCalculation(){
             <span>DEF <b>${playerDef.toFixed(1)}</b></span>
             <span>HP <b>${playerHp.toFixed(1)}</b></span>
           </div>
+          <div class="loadout-dmg-line">${cm.n} <b>${chargeDamage}</b> &nbsp;·&nbsp; ${fm.n} <b>${fastDamage}</b></div>
         </div>
       </div>
       <div class="loadout-vs">VS</div>
@@ -1029,6 +1370,7 @@ function runCalculation(){
             <span>DEF <b>${bossDef.toFixed(1)}</b></span>
             <span>HP <b>${bossHp.toFixed(1)}</b></span>
           </div>
+          <div class="loadout-dmg-line">${bossCMMove.n} <b>${bossCMDamage}</b> &nbsp;·&nbsp; ${bossFMMove.n} <b>${bossFMDamage}</b></div>
         </div>
       </div>
     </div>
@@ -1048,13 +1390,16 @@ function runCalculation(){
       </thead>
       <tbody>
         ${rows.map(r => `
-          <tr>
+          <tr class="${r.fainted ? "fainted-row" : ""}">
             <td class="row-label">${r.n}</td>
             <td>${r.seconds.toFixed(2)}s</td>
             <td>${r.ticks.toFixed(1)}t</td>
+            ${r.fainted
+              ? `<td colspan="3" class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp.toFixed(0)} HP</td>`
+              : `
             <td class="dps-val">${r.mainDPS.toFixed(1)} dps</td>
             <td class="dps-val">${r.trailingDPS.toFixed(1)} dps</td>
-            <td class="dps-val">${r.ctDPS.toFixed(1)} dps</td>
+            <td class="dps-val">${r.ctDPS.toFixed(1)} dps</td>`}
           </tr>
         `).join("")}
       </tbody>
@@ -1140,6 +1485,97 @@ function updatePlayerPreview(){
   });
 }
 
+function playerMoveDamagePreviewHtml(){
+  const level = document.getElementById("pokemonLevel").value.trim();
+  const ivAtkRaw = document.getElementById("ivAtk").value.trim();
+  if(!validateLevel(level) || !validateIV(ivAtkRaw)) return "";
+  const pkmnName = document.getElementById("pokemonName").value.trim();
+  const pkmn = findPokemon(pkmnName);
+  if(!pkmn) return "";
+  const playerAtk = calcStat(pkmn.atk, parseInt(ivAtkRaw), level);
+
+  const bossName = document.getElementById("bossName").value.trim();
+  const boss = findPokemon(bossName);
+  if(!boss) return "";
+  const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
+  const t7Enraged = document.getElementById("t7Enraged").checked;
+  let bossDef = (boss.def + 15) * bossCPMVal;
+  if(t7Enraged) bossDef *= 4;
+
+  const cmName = document.getElementById("playerCM").value.trim();
+  const fmName = document.getElementById("playerFM").value.trim();
+  const cm = findMove(cmName);
+  const fm = findMove(fmName);
+  if(!cm || !fm) return "";
+
+  const playerMods = {
+    partyPower: document.getElementById("partyPower").checked,
+    zacian: document.getElementById("zacianBlade").checked,
+    primalMega: parseFloat(document.getElementById("primalMega").value),
+    friendship: parseFloat(document.getElementById("friendship").value),
+  };
+  const cmDmg = playerMoveDamage(cm, pkmnName, playerAtk, bossDef, Object.assign({}, playerMods, {
+    eff: parseFloat(document.getElementById("effCM").value),
+    weather: isWeatherBoosted(cm.elem),
+    stab: document.getElementById("stabCM").checked,
+  }));
+  const fmDmg = playerMoveDamage(fm, pkmnName, playerAtk, bossDef, Object.assign({}, playerMods, {
+    eff: parseFloat(document.getElementById("effFM").value),
+    weather: isWeatherBoosted(fm.elem),
+    stab: document.getElementById("stabFM").checked,
+    partyPower: false,
+  }));
+
+  return `
+    <div class="boss-dmg-preview">
+      <div class="boss-dmg-row player-dmg"><span>Charge Move — ${cm.n}</span><b>${cmDmg} dmg</b></div>
+      <div class="boss-dmg-row player-dmg"><span>Fast Move — ${fm.n}</span><b>${fmDmg} dmg</b></div>
+    </div>`;
+}
+function updatePlayerMovePreview(){
+  document.getElementById("playerMovePreview").innerHTML = playerMoveDamagePreviewHtml();
+}
+
+function bossMoveDamagePreviewHtml(bAtk){
+  const level = document.getElementById("pokemonLevel").value.trim();
+  const ivDefRaw = document.getElementById("ivDef").value.trim();
+  if(!validateLevel(level) || !validateIV(ivDefRaw)) return "";
+  const pkmnName = document.getElementById("pokemonName").value.trim();
+  const pkmn = findPokemon(pkmnName);
+  if(!pkmn) return "";
+  const playerDef = calcStat(pkmn.def, parseInt(ivDefRaw), level);
+
+  const bossCMName = document.getElementById("bossCM").value.trim();
+  const bossFMName = document.getElementById("bossFM").value.trim();
+  const bossCMMove = findMove(bossCMName);
+  const bossFMMove = findMove(bossFMName);
+  if(!bossCMMove || !bossFMMove) return "";
+
+  const shadowDebuffOn = document.getElementById("shadowDebuff").checked;
+  const shieldAEOn = document.getElementById("shieldAE").checked;
+
+  const cmDmg = bossMoveDamage(bossCMMove, bAtk, playerDef, {
+    eff: parseFloat(document.getElementById("effBossCM").value),
+    weather: isWeatherBoosted(bossCMMove.elem),
+    shadowDebuff: shadowDebuffOn,
+    stab: document.getElementById("bossStabCM").checked,
+    shieldAE: shieldAEOn,
+  });
+  const fmDmg = bossMoveDamage(bossFMMove, bAtk, playerDef, {
+    eff: parseFloat(document.getElementById("effBossFM").value),
+    weather: isWeatherBoosted(bossFMMove.elem),
+    shadowDebuff: shadowDebuffOn,
+    stab: document.getElementById("bossStabFM").checked,
+    shieldAE: shieldAEOn,
+  });
+
+  return `
+    <div class="boss-dmg-preview">
+      <div class="boss-dmg-row"><span>Charge Move — ${bossCMMove.n}</span><b>${cmDmg} dmg</b></div>
+      <div class="boss-dmg-row"><span>Fast Move — ${bossFMMove.n}</span><b>${fmDmg} dmg</b></div>
+    </div>`;
+}
+
 function updateBossPreview(){
   const name = document.getElementById("bossName").value.trim();
   const boss = findPokemon(name);
@@ -1152,16 +1588,100 @@ function updateBossPreview(){
   let bDef = (boss.def + 15) * bossCPMVal;
   let bHp = (boss.hp + 15) * bossCPMVal;
   if(t7Enraged){ bDef *= 4; bAtk *= 1.5; }
-  el.innerHTML = renderMiniPreview(name, { atk: bAtk, def: bDef, hp: bHp });
+  el.innerHTML = renderMiniPreview(name, { atk: bAtk, def: bDef, hp: bHp }) + bossMoveDamagePreviewHtml(bAtk);
 }
 
 ["pokemonName","pokemonLevel","ivAtk","ivDef","ivHp"].forEach(id => {
   document.getElementById(id).addEventListener("input", updatePlayerPreview);
   document.getElementById(id).addEventListener("change", updatePlayerPreview);
-});
-["bossName","bossTier","t7Enraged"].forEach(id => {
   document.getElementById(id).addEventListener("input", updateBossPreview);
   document.getElementById(id).addEventListener("change", updateBossPreview);
+  document.getElementById(id).addEventListener("input", updatePlayerMovePreview);
+  document.getElementById(id).addEventListener("change", updatePlayerMovePreview);
+});
+[
+  "playerCM","playerFM","effCM","effFM","stabCM","stabFM",
+  "partyPower","zacianBlade","primalMega","friendship",
+].forEach(id => {
+  document.getElementById(id).addEventListener("input", updatePlayerMovePreview);
+  document.getElementById(id).addEventListener("change", updatePlayerMovePreview);
+});
+[
+  "bossName","bossTier","t7Enraged","bossCM","bossFM",
+  "effBossCM","effBossFM",
+  "bossStabCM","bossStabFM","shadowDebuff","shieldAE",
+].forEach(id => {
+  document.getElementById(id).addEventListener("input", updateBossPreview);
+  document.getElementById(id).addEventListener("change", updateBossPreview);
+  document.getElementById(id).addEventListener("input", updatePlayerMovePreview);
+  document.getElementById(id).addEventListener("change", updatePlayerMovePreview);
+});
+document.getElementById("weatherSelect").addEventListener("change", () => {
+  updatePlayerMovePreview();
+  updateBossPreview();
+});
+
+// ============ AUTO-EFFECTIVENESS (based on typing) ============
+function isStabMatch(elem, types){
+  if(!elem || !types) return false;
+  const t = elem.toLowerCase();
+  return t === types.t1 || (types.t2 && t === types.t2);
+}
+
+function autoSetEffectiveness(){
+  const pkmnName = document.getElementById("pokemonName").value.trim();
+  const bossName = document.getElementById("bossName").value.trim();
+  const playerTypes = pkmnName ? findPokemonTypes(pkmnName) : null;
+  const bossTypes = bossName ? findPokemonTypes(bossName) : null;
+
+  // Shadow debuff: auto-toggle when the player's own Pokemon is Shadow
+  if(pkmnName){
+    document.getElementById("shadowDebuff").checked = /shadow/i.test(pkmnName);
+  }
+
+  const cm = findMove(document.getElementById("playerCM").value.trim());
+  const fm = findMove(document.getElementById("playerFM").value.trim());
+  const bcm = findMove(document.getElementById("bossCM").value.trim());
+  const bfm = findMove(document.getElementById("bossFM").value.trim());
+
+  // Player-side: effectiveness needs boss typing, STAB only needs the player's own typing
+  if(cm){
+    if(bossTypes){
+      const raw = computeEffectiveness(cm.elem, bossTypes);
+      if(raw !== null) document.getElementById("effCM").value = snapToOption(raw, PLAYER_EFF_OPTIONS);
+    }
+    if(playerTypes) document.getElementById("stabCM").checked = isStabMatch(cm.elem, playerTypes);
+  }
+  if(fm){
+    if(bossTypes){
+      const raw = computeEffectiveness(fm.elem, bossTypes);
+      if(raw !== null) document.getElementById("effFM").value = snapToOption(raw, PLAYER_EFF_OPTIONS);
+    }
+    if(playerTypes) document.getElementById("stabFM").checked = isStabMatch(fm.elem, playerTypes);
+  }
+
+  // Boss-side: effectiveness needs player typing, STAB only needs the boss's own typing
+  if(bcm){
+    if(playerTypes){
+      const raw = computeEffectiveness(bcm.elem, playerTypes);
+      if(raw !== null) document.getElementById("effBossCM").value = snapToOption(raw, BOSS_EFF_OPTIONS);
+    }
+    if(bossTypes) document.getElementById("bossStabCM").checked = isStabMatch(bcm.elem, bossTypes);
+  }
+  if(bfm){
+    if(playerTypes){
+      const raw = computeEffectiveness(bfm.elem, playerTypes);
+      if(raw !== null) document.getElementById("effBossFM").value = snapToOption(raw, BOSS_EFF_OPTIONS);
+    }
+    if(bossTypes) document.getElementById("bossStabFM").checked = isStabMatch(bfm.elem, bossTypes);
+  }
+
+  updatePlayerMovePreview();
+  updateBossPreview();
+}
+["pokemonName","bossName","playerCM","playerFM","bossCM","bossFM"].forEach(id => {
+  document.getElementById(id).addEventListener("input", autoSetEffectiveness);
+  document.getElementById(id).addEventListener("change", autoSetEffectiveness);
 });
 
 document.getElementById("calcBtn").addEventListener("click", runCalculation);
