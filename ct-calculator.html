@@ -401,6 +401,7 @@
             <input id="bossFM" placeholder="e.g. Mud Slap" autocomplete="off">
           </div>
         </div>
+        <div id="bossMovePreview"></div>
 
         <div class="subhead">Auto-Detected <span class="auto-badge">editable</span></div>
         <div class="mod-row narrow">
@@ -1687,15 +1688,17 @@ function updateBossPreview(){
   const name = document.getElementById("bossName").value.trim();
   const boss = findPokemon(name);
   const el = document.getElementById("bossPreview");
-  if(!name){ el.innerHTML = ""; return; }
-  if(!boss){ el.innerHTML = renderMiniPreview(name, null); return; }
+  const dmgEl = document.getElementById("bossMovePreview");
+  if(!name){ el.innerHTML = ""; if(dmgEl) dmgEl.innerHTML = ""; return; }
+  if(!boss){ el.innerHTML = renderMiniPreview(name, null); if(dmgEl) dmgEl.innerHTML = ""; return; }
   const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
   const t7Enraged = document.getElementById("t7Enraged").checked;
   let bAtk = (boss.atk + 15) * bossCPMVal;
   let bDef = (boss.def + 15) * bossCPMVal;
   let bHp = (boss.hp + 15) * bossCPMVal;
   if(t7Enraged){ bDef *= 4; bAtk *= 1.5; }
-  el.innerHTML = renderMiniPreview(name, { atk: bAtk, def: bDef, hp: bHp }) + bossMoveDamagePreviewHtml(bAtk);
+  el.innerHTML = renderMiniPreview(name, { atk: bAtk, def: bDef, hp: bHp });
+  if(dmgEl) dmgEl.innerHTML = bossMoveDamagePreviewHtml(bAtk);
 }
 
 ["pokemonName","pokemonLevel","ivAtk","ivDef","ivHp"].forEach(id => {
