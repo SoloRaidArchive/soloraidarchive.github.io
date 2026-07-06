@@ -465,62 +465,128 @@
 const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
 const SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
 
-const RAIDS = [
-{boss:"Mega Aggron",tier:"6",strategy:"Catch Tank",fast:"Dragon tail",charge:"Meteor Beam",weather:"Clear",ae:"",vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Catch Tank, 4x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Mega Blaziken",r:"Support DPS, Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
-{boss:"Mega Metagross",tier:"6",strategy:"Catch Tank",fast:"Varies",charge:"Earthquake",weather:"Extreme",ae:"sword",vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, 5x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Mega Blaziken",r:"Support DPS, Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
-{boss:"Mega Sableye",tier:"6",strategy:"Recycle",fast:"Shadow Claw",charge:"Drain Punch",weather:"Extreme",ae:"sword",vod:"https://www.youtube.com/watch?time_continue=6&v=-gzZcUVgceU&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"Zacian used to land a final play rough",party:[{n:"Mega Gardevoir",r:"Main DPS, 1x",fast:"Charm",charge:"Dazzling Gleam"},{n:"Zacian Crown",r:"Support DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"}]},
-{boss:"Mega Slowbro",tier:"6",strategy:"DBP",fast:"Water Gun",charge:"Ice Beam",weather:"Extreme",ae:"",vod:"https://x.com/hwangokhone/status/2035266999925014923",notes:"Sceptile used as an additional catch tank/Auto Recommended rejoin",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"shadow claw",charge:"moongeist beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 10x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Mega Sceptile",r:"Catch Tank, Executor, 1x",fast:"Firu Citter",charge:"Frenzy Plant"}]},
-{boss:"Mega Aggron",tier:"5",strategy:"Recycle",fast:"Any",charge:"Varies",weather:"Cloudy",ae:"sword",vod:"https://www.youtube.com/watch?v=L3nFkWMOAvc",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Aggron",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Varies",weather:"Clear",ae:"sword",vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, 3x",fast:"Fire Fang",charge:"Fusion Flare"}]},
-{boss:"Mega Gyarados",tier:"5",strategy:"Recycle",fast:"Dragon Breath",charge:"Crunch",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=Vl6gfO6oxsA",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Mawile",tier:"5",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=x3DamPjU5k8",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Groudon",r:"Support DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Mega Sableye",tier:"5",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Cloudy",ae:"",vod:"https://www.youtube.com/watch?v=M9io_tpnX2M&t=1s",notes:"",party:[{n:"Mega Gardevoir",r:"Main DPS, 1x",fast:"Charm",charge:"Dazzling Gleam"}]},
-{boss:"Mega Slowbro",tier:"5",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"sword",vod:"https://www.youtube.com/watch?v=rojEgYUhuCI",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 4x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
-{boss:"Mega Steelix",tier:"5",strategy:"Recycle",fast:"Any",charge:"Varies",weather:"Cloudy",ae:"sword",vod:"https://www.youtube.com/watch?v=UigLoOXmlss&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Steelix",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Varies",weather:"Clear",ae:"sword",vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, Varies",fast:"Fire Fang",charge:"Fusion Flare"}]},
-{boss:"Mega Steelix",tier:"5",strategy:"Catch Tank",fast:"Any",charge:"Earthquake",weather:"Clear",ae:"shield",vod:"",notes:"Bash keeps reshiram alive from earthquake",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, Varies",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Mega Blaziken",r:"Support DPS, Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
-{boss:"Mega Aerodactyl",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtu.be/z4H0aVkVM6M?si=5CkGdb2AYZSIdvqn",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth blade"}]},
-{boss:"Mega Alakazam",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=i59Tubl08cc",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
-{boss:"Mega Altaria",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=lgxmUQxeQaE",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth blade"}]},
-{boss:"Mega Audino",tier:"4",strategy:"Hot Swap",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=MsrUFCV5oQ4&t",notes:"",party:[{n:"Necrozma Dusk Mane",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Sunsteel Strike"},{n:"Necrozma Dusk Mane",r:"Support DPS, 1x",fast:"Metal Claw",charge:"Sunsteel Strike"}]},
-{boss:"Mega Blastoise",tier:"4",strategy:"Catch Tank",fast:"Any",charge:"Skull Bash",weather:"Extreme",ae:"sword",vod:"https://www.youtube.com/watch?v=9cCK_-b71UE",notes:"",party:[{n:"Regieleki",r:"Main DPS, 1x",fast:"Lock On",charge:"Thunder Cage"},{n:"Regieleki",r:"Catch Tank, 4x",fast:"Lock On",charge:"Thunder Cage"}]},
-{boss:"Mega Blastoise",tier:"4",strategy:"Hot Swap",fast:"Water Gun",charge:"Flash Cannon",weather:"Extreme",ae:"sword",vod:"https://www.youtube.com/watch?v=BqxaqARrGw4&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Mega Sceptile",r:"Main DPS, 1x",fast:"Bullet seed",charge:"Frenzy Plant"},{n:"Regieleki",r:"Support DPS, 2x",fast:"Lock On",charge:"Thunder Cage"}]},
-{boss:"Mega Gardevoir",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=H_cprVsUgzg",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth blade"}]},
-{boss:"Mega Kangaskhan",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=9TbG3XTYZ3E&t=1s",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Metagross",tier:"4",strategy:"Catch Tank",fast:"Any",charge:"Any",weather:"Clear",ae:"sword",vod:"https://www.youtube.com/watch?v=g9LNDJ8VsjM",notes:"Solo'd during energy delay bug. True TTW is faster, use Groudons",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Groudon",r:"Catch Tank, Varies",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Reshiram",r:"Catch Tank, Varies",fast:"Fire Fang",charge:"Fusion Flare"}]},
-{boss:"Mega Slowbro",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Clear",ae:"",vod:"https://youtu.be/CJImh1cWr5Q?si=2qb7qlet5wACkBmI",notes:"",party:[{n:"Mega Sceptile",r:"Main DPS, 1x",fast:"Fury Cutter",charge:"Frency Plant"}]},
-{boss:"Mega Venusaur",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/shorts/hl-1sY7OpcI",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
-{boss:"Mega Ampharos",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=PjJGGHQkCCo&feature=youtu.be",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Mega Banette",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/usJ-XbHFKlI?si=9wV8hVdKWo0qUYmz",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Mega Tyranitar",r:"Support DPS, 1x",fast:"Bite",charge:"Brutal Swing"}]},
-{boss:"Mega Charizard X",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=QlG7wIcVgY0",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"}]},
-{boss:"Mega Gallade",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=WlDkJHJ4jsg",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
-{boss:"Mega Garchomp",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=O1IetnDXQvA",notes:"",party:[{n:"Kyurem Black",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Mega Gengar",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=II4QIaCSIwM&feature=youtu.be",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
-{boss:"Mega Gyarados",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Cloudy",ae:"",vod:"https://www.youtube.com/watch?v=ufaTgYa26Zo",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Houndoom",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=kjnn62n5BWE",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Lopunny",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/NhccJ8ImIEU?si=JItpvIhq5vDWik-x",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
-{boss:"Mega Lucario",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=thfCiAXKwdc",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Manectric",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=kIDiAgFYvzA",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Mega Mawile",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Clear",ae:"",vod:"https://www.youtube.com/watch?v=tuGPAdC3mPo",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Mega Pidgeot",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=kI234qH5WHs",notes:"",party:[{n:"Regieleki",r:"Main DPS, 1x",fast:"Lock On",charge:"Thunder Cage"},{n:"Regieleki",r:"Support DPS, Varies",fast:"Lock On",charge:"Thunder Cage"}]},
-{boss:"Mega Pinsir",tier:"3",strategy:"",fast:"Any",charge:"Varies",weather:"Extreme",ae:"",vod:"https://youtu.be/M-kjh_jTlz8?si=IsoDYfsofvOf7N5X",notes:"Level 42.5 & level 43s; indirect vod for budget solo given the TTW",party:[{n:"Shadow Rampardos",r:"Main DPS, 1x",fast:"Smack Down",charge:"Rock Slide"},{n:"Shadow Rampardos",r:"Support DPS, 1x",fast:"Smack Down",charge:"Rock Slide"}]},
-{boss:"Mega Salamence",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=XxX2mmkEccg",notes:"",party:[{n:"Kyurem Black",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Mega Tyranitar",tier:"3",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/shorts/5jNiXhDzqZo",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Absol",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/shorts/bWWaKBRpmZ0",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Blaziken",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=DkaXDqLEd94",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
-{boss:"Mega Charizard Y",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=6qCgufHoOHY&feature=youtu.be",notes:"",party:[{n:"Shadow Tyrantrum",r:"Main DPS, 1x",fast:"Rock Throw",charge:"Meteor Beam"},{n:"Shadow Tyrantrum",r:"Support DPS, 2x",fast:"Rock Throw",charge:"Meteor Beam"}]},
-{boss:"Mega Glalie",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtu.be/qEnZWtgC7NA?si=pc7KZDtICV0QKqFW",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Medicham",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/ao5nPRXMPN8?si=cMttMMAX8gmtuuHx",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
-{boss:"Mega Sceptile",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?v=VlDFEXV-G7U",notes:"",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Burn",charge:"Ice Fang"}]},
-{boss:"Mega Scizor",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtu.be/JjRzzc0XhW0?si=slKfgfCRKNJ9W4f7",notes:"",party:[{n:"Mega Blaziken",r:"Main DPS, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
-{boss:"Mega Swampert",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/3-IjBdCAAlY?si=ng__GgYLwMWL0PfP",notes:"",party:[{n:"Mega Sceptile",r:"Main DPS, 1x",fast:"Bullet Seed",charge:"Frenzy Plant"}]},
-{boss:"Mega Tyranitar",tier:"2",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/shorts/5jNiXhDzqZo",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Mega Abomasnow",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/uZu-6TEiCCY?si=Y8NBnhil_Hca5DMD",notes:"",party:[{n:"Various",r:"Main DPS, 1x",fast:"",charge:""}]},
-{boss:"Mega Beedrill",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/L2HaNrwuHAM?si=m3_yO6XNLiKgkVe3",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
-{boss:"Mega Camerupt",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtu.be/PB5Kn0YrfWM?si=WcYPuH7ROVQNo01u",notes:"",party:[{n:"Primal kyogre",r:"Main DPS, 1x",fast:"Waterfall",charge:"Origin Pulse"}]},
-{boss:"Mega Heracross",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://youtube.com/shorts/hdkXxn1yKMQ?feature=share",notes:"",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"}]},
-{boss:"Mega Sharpedo",tier:"1",strategy:"",fast:"Any",charge:"Any",weather:"Extreme",ae:"",vod:"https://www.youtube.com/watch?time_continue=1&v=6qiS4KM9IHE&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Various",r:"Main DPS, 1x",fast:"Varies",charge:"Varies"}]},
-];
+// ============ LIVE CSV LOADING ============
+// Update raids by replacing tier4-data.csv in the repo — no HTML editing needed.
+let RAIDS = [];
+const CSV_URL = "tier4-data.csv";
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ","){ row.push(field); field = ""; }
+      else if(c === "\r"){ /* skip, handled by \n */ }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+const WEATHER_NAME_MAP = {
+  "clear":"Clear","cloudy":"Cloudy","partly cloudy":"Partly Cloudy","windy":"Windy",
+  "rain":"Rain","rainy":"Rain","snow":"Snow","fog":"Fog","extreme":"Extreme",
+};
+function normalizeWeather(w){
+  w = (w || "").trim();
+  if(!w) return w;
+  const key = WEATHER_NAME_MAP[w.toLowerCase()];
+  return key || (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+// Tier 4 CSV column layout: boss=1, tier=2, strategy=3, fast=5, charge=7, weather=9, ae=11
+// Party slots (6 max): base=13+5*i -> icon,name,fast,charge,role (role LAST for this sheet)
+function rowsToRaids(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 20) continue;
+    const boss = (row[1] || "").trim();
+    const tierRaw = (row[2] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[3] || "").trim();
+    const fast = (row[5] || "").trim();
+    const charge = (row[7] || "").trim();
+    const weather = normalizeWeather(row[9]);
+
+    const aeCell = (row[11] || "").trim();
+    let ae = "";
+    if(aeCell){
+      ae = aeCell.includes("steamgriddb") ? "sword"
+         : aeCell.includes("396c21d1") ? "shield"
+         : "sword";
+    }
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 13 + 5*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      const role = (row[base+4] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(28).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+async function loadRaidsFromCSV(){
+  const container = document.getElementById("sections");
+  try{
+    const res = await fetch(CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    RAIDS = rowsToRaids(rows);
+    initializeFromRaids();
+  }catch(e){
+    console.error("Failed to load raid data:", e);
+    if(container){
+      container.innerHTML = `<div class="empty">Couldn't load raid data from ${CSV_URL}. This page needs to be served over http(s) — opening the file directly (file://) blocks this. Check the live site, and make sure ${CSV_URL} exists in the repo root.</div>`;
+    }
+  }
+}
 
 const DB_OVERRIDES = {
   "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y",
@@ -587,7 +653,6 @@ function normalizeStrategy(s){
   if(parts.length >= 3) return "Various";
   return parts.join("/");
 }
-RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
 
 const TIER_ORDER = ["7","6","5.5","5","4","3","2","1"];
 const TIER_NAMES = {"7":"Nightmare","6":"Mythical","5.5":"Elite","5":"Hard","4":"Challenging","3":"Moderate","2":"Easy","1":"Very Easy"};
@@ -775,22 +840,13 @@ function bossCardHtml(boss, variants, cardId){
 const TIER_WEIGHT = {"7":5,"6":4,"5.5":3,"5":2,"4":1};
 
 // Group by boss only (across all tiers), sort variants hardest -> easiest
-const bossGroups = {};
-RAIDS.forEach(r => {
-  if(!bossGroups[r.boss]) bossGroups[r.boss] = [];
-  bossGroups[r.boss].push(r);
-});
-Object.keys(bossGroups).forEach(boss => {
-  bossGroups[boss].sort((a,b) => TIER_WEIGHT[b.tier] - TIER_WEIGHT[a.tier]);
-});
-// Order boss cards alphabetically within each section
-const bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
-
+let bossGroups = {};
+let bossOrder = [];
 const VARIANTS_BY_CARD = {};
 const activeWeathers = new Set();
 const activeStrategies = new Set();
 
-const WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
+let WEATHER_LIST = [];
 const STRATEGY_LIST = ["Catch Tank", "Hot Swap", "Tick Perfect Cast", "Recycle", "Various", "Double Battle Party"];
 function strategyCategories(strategy){
   if(!strategy) return [];
@@ -798,7 +854,28 @@ function strategyCategories(strategy){
 }
 
 const activeTiers = new Set();
-const DIFFICULTY_LIST = TIER_ORDER.filter(t => bossOrder.some(b => bossGroups[b][bossGroups[b].length - 1].tier === t));
+let DIFFICULTY_LIST = [];
+
+function initializeFromRaids(){
+  RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
+  bossGroups = {};
+  RAIDS.forEach(r => {
+    if(!bossGroups[r.boss]) bossGroups[r.boss] = [];
+    bossGroups[r.boss].push(r);
+  });
+  Object.keys(bossGroups).forEach(boss => {
+    bossGroups[boss].sort((a,b) => TIER_WEIGHT[b.tier] - TIER_WEIGHT[a.tier]);
+  });
+  bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
+  WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
+  DIFFICULTY_LIST = TIER_ORDER.filter(t => bossOrder.some(b => bossGroups[b][bossGroups[b].length - 1].tier === t));
+
+  renderDifficultyFilters();
+  renderWeatherFilters();
+  renderStrategyFilters();
+  buildSections();
+}
+
 function renderDifficultyFilters(){
   const el = document.getElementById("difficultyFilters");
   el.innerHTML = DIFFICULTY_LIST.map(t => `
@@ -927,10 +1004,7 @@ const search = document.getElementById("search");
 const pokemonSearch = document.getElementById("pokemonSearch");
 search.addEventListener("input", buildSections);
 pokemonSearch.addEventListener("input", buildSections);
-renderDifficultyFilters();
-renderWeatherFilters();
-renderStrategyFilters();
-buildSections();
+loadRaidsFromCSV();
 </script>
 
 </body>

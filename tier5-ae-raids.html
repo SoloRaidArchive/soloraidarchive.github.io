@@ -457,72 +457,129 @@
 <script>
 const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
 
-const RAIDS = [
-{boss:"Celesteela",tier:"7",strategy:"DBP",fast:"Smack Down",charge:"Body Slam",weather:"Clear",ae:true,vod:"https://youtube.com/shorts/ZozVhPoZGcc?si=TfZG_qZ4OMFKUxEP",notes:"Game autoloads second party as recommended; mirroring a healskip",party:[{n:"Blacephalon",r:"Main DPS, 1x",fast:"Incinerate",charge:"Mind Blown"},{n:"Blacephalon",r:"Support DPS, 10x",fast:"Incinerate",charge:"Mind Blown"},{n:"Mega Blaziken",r:"Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
-{boss:"Dialga",tier:"7",strategy:"Catch Tank",fast:"Dragon Breath",charge:"Draco Meteor",weather:"Cloudy",ae:true,vod:"",notes:"Possibly 6 star raid",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"},{n:"Kyurem Black",r:"Catch Tank, Varies",fast:"Dragon tail",charge:"Freeze Shock"},{n:"Eternatus",r:"Catch Tank, 1x",fast:"Poison Jab",charge:"Dynamax Cannon"},{n:"Keldeo Resolute",r:"Catch Tank, Executor, Varies",fast:"Low Kick",charge:"Secret Sword"}]},
-{boss:"Giratina Altered",tier:"7",strategy:"Hot Swap",fast:"Shadow Claw",charge:"Shadow Sneak",weather:"Windy",ae:true,vod:"",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Necrozma Dawn Wings",r:"Support DPS, 2x",fast:"Psycho Cut",charge:"Moongeist Beam"},{n:"Mega Rayquaza",r:"Support DPS, 1x, Executor",fast:"Dragon Tail",charge:"Breaking Swipe"}]},
-{boss:"Palkia",tier:"7",strategy:"Hot Swap",fast:"Dragon Breath",charge:"Aqua Tail",weather:"Windy",ae:true,vod:"",notes:"Requires 4 DYN per Rejoin, very hard rng",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon Tail",charge:"Breaking Swipe"}]},
-{boss:"Tornadus Therian",tier:"7",strategy:"Catch Tank",fast:"Astonish",charge:"Focus Blast",weather:"Partly Cloudy",ae:true,vod:"",notes:"BB Main Shadow Gigas w/ 14 attack breakpoint; HP Rock; Rampardos to execute",party:[{n:"Shadow Regigigas",r:"Main DPS, 1x",fast:"Hidden Power Rock",charge:"Crush Grip"},{n:"Shadow Regigigas",r:"Catch Tank, 5x",fast:"Hidden Power Rock",charge:"Crush Grip"},{n:"Shadow Rampardos",r:"Executor, 1x",fast:"Smack Down",charge:"Rock Slide"}]},
-{boss:"Celesteela",tier:"6",strategy:"HS/CT",fast:"Air Slash",charge:"Varies",weather:"Clear",ae:true,vod:"",notes:"Bulldoze for highest DPS but harder RNG",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, 4x",fast:"Fire Fang",charge:"Fusion Flare"}]},
-{boss:"Darkrai",tier:"6",strategy:"Catch Tank",fast:"Any",charge:"Focus Blast",weather:"Cloudy",ae:true,vod:"https://fixupx.com/hwangokhone/status/2030093056435966014?s=46&t=MtHJoHw2nNGhb4jtXq3o1w",notes:"CT Sh-Blaziken: 1-2 Aura Sphere per Shadow Ball",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"},{n:"Kyurem Black",r:"Catch Tank, 3x",fast:"Shadow Claw",charge:"Freeze Shock"},{n:"Keldeo Resolute",r:"Catch Tank, Executor, 2x",fast:"Low Kick",charge:"Secret Sword"}]},
-{boss:"Kyurem Black",tier:"6",strategy:"Catch Tank",fast:"Shadow Claw",charge:"Outrage",weather:"Extreme",ae:true,vod:"",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Baxcalibur",r:"Catch Tank, 5x",fast:"Dragon Breath",charge:"Glaive Rush"}]},
-{boss:"Latios",tier:"6",strategy:"Hot Swap/CT",fast:"Dragon Breath",charge:"Aura Sphere",weather:"Windy",ae:true,vod:"",notes:"Baxcalibur as a trailing CT for Aura Sphere, Shadow Garchomp for Solar Beam",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Kyurem Black",r:"Catch Tank, Varies",fast:"Dragon tail",charge:"Freeze Shock"},{n:"Baxcalibur",r:"Catch Tank, Executor, 1x",fast:"Dragon Breath",charge:"Glaive Rush"}]},
-{boss:"Latios",tier:"6",strategy:"Catch tank",fast:"Dragon Breath",charge:"Solar Beam",weather:"Windy",ae:true,vod:"",notes:"Palkia is used sparingly to keep the raid within 3 rejoins, Shadow Garchomp trails",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Shadow Garchomp",r:"Catch Tank, Executor, 1x",fast:"Dragon Tail",charge:"Breaking Swipe"},{n:"Shadow Palkia",r:"Catch Tank, Varies",fast:"Dragon tail",charge:"Draco Meteor"}]},
-{boss:"Latios",tier:"6",strategy:"Double CT",fast:"Dragon Breath",charge:"Psychic",weather:"Windy",ae:true,vod:"",notes:"Double Catch Tank, Kyurem Black catches 2 psychics (switching in between each)",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Kyurem Black",r:"Catch Tank, 3x",fast:"Dragon tail",charge:"Freeze Shock"},{n:"Shadow Garchomp",r:"Catch Tank, Executor, 1x",fast:"Dragon tail",charge:"Breaking Swipe"}]},
-{boss:"NDM",tier:"6",strategy:"CT/TPC",fast:"Metal Claw",charge:"Dark Pulse",weather:"Fog",ae:true,vod:"",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Catch Tank, 5x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
-{boss:"Palkia",tier:"6",strategy:"Catch Tank",fast:"Dragon Breath",charge:"Draco Meteor",weather:"Windy",ae:true,vod:"",notes:"Dodging on Eternatus is okay. Level 50 Dialgas w/ 7 def and 10 hp minimum",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Shadow Dialga",r:"Catch Tank, 5x",fast:"Dragon Breath",charge:"Draco Meteor"},{n:"Mega Rayquaza",r:"Executor, 1x",fast:"Dragon Tail",charge:"Breaking Swipe"}]},
-{boss:"Palkia",tier:"6",strategy:"Catch Tank",fast:"Dragon Breath",charge:"Hydro Pump",weather:"Windy",ae:true,vod:"https://x.com/hwangokhone/status/2020059558450954262?s=46&t=MtHJoHw2nNGhb4jtXq3o1w",notes:"Uses Shadow CT on a few rejoins, still Eternatus & Mega Ray focused",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, Executor, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Shadow Garchomp",r:"Catch Tank, Executor, 3x",fast:"Dragon Tail",charge:"Breaking Swipe"}]},
-{boss:"Regigigas",tier:"6",strategy:"Hot Swap",fast:"Hidden Power (Gh)",charge:"Giga Impact",weather:"Cloudy",ae:true,vod:"",notes:"Boss using Hidden Power Ghost Preferred; High def & HP IV's for CT Regigigas",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"},{n:"Shadow Regigigas",r:"Catch Tank, Varies",fast:"Zen headbutt",charge:"Crush Grip"},{n:"Keldeo Resolute",r:"Catch Tank, Executor, Varies",fast:"Low Kick",charge:"Secret Sword"}]},
-{boss:"Regigigas",tier:"6",strategy:"Hot Swap",fast:"Zen Headbutt",charge:"Focus Blast",weather:"Cloudy",ae:true,vod:"",notes:"Shadow Claw Kyurem Black",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"},{n:"Kyurem Black",r:"Catch Tank, Varies",fast:"Shadow Claw",charge:"Freeze Shock"},{n:"Keldeo Resolute",r:"Catch Tank, Executor, Varies",fast:"Low Kick",charge:"Secret Sword"}]},
-{boss:"Reshiram",tier:"6",strategy:"Catch Tank",fast:"Fire Fang",charge:"Overheat",weather:"Windy",ae:true,vod:"https://www.youtube.com/watch?v=rayU7NEH9j4",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, Executor, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Shadow Regigigas",r:"Catch Tank, 2x",fast:"Hidden power",charge:"Crush Grip"},{n:"Shadow Dialga",r:"Catch Tank, 2x",fast:"Dragon Breath",charge:"Draco Meteor"}]},
-{boss:"Reshiram",tier:"6",strategy:"Catch Tank",fast:"Dragon Breath",charge:"Draco Meteor",weather:"Windy",ae:true,vod:"",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Garchomp",r:"Catch Tank, Executor, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Shadow Regigigas",r:"Catch Tank, 3x",fast:"Hidden power",charge:"Crush Grip"},{n:"Shadow Dialga",r:"Catch Tank, 1x",fast:"Dragon Breath",charge:"Draco Meteor"}]},
-{boss:"Solgaleo",tier:"6",strategy:"Hot Swap",fast:"Fire Spin",charge:"Psychic Fangs",weather:"Clear",ae:true,vod:"https://fixupx.com/hwangokhone/status/2023586344761794920?s=46&t=MtHJoHw2nNGhb4jtXq3o1w",notes:"Damage is there, however RNG & Control isn't. Very Hard",party:[{n:"Blacephalon",r:"Main DPS, 1x",fast:"Incinerate",charge:"Mind Blown"},{n:"Blacephalon",r:"Support DPS, 4x",fast:"Incinerate",charge:"Mind Blown"},{n:"Mega Blaziken",r:"Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
-{boss:"Tapu Koko",tier:"6",strategy:"HS/TPC/CT",fast:"Volt Switch",charge:"Brave Bird",weather:"Clear",ae:true,vod:"https://fixupx.com/hwangokhone/status/2046937324391641449/en",notes:"Due to TPC, this is very mechanically intensive",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Groudon",r:"Catch Tank, 4x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Mamoswine",r:"Executor, Catch Tank, 1x",fast:"Mud Slap",charge:"High Horsepower"}]},
-{boss:"Terrakion",tier:"6",strategy:"HS/TPC",fast:"Varies",charge:"Earthquake",weather:"Clear",ae:true,vod:"https://x.com/22storm77pg/status/1945454151510749225",notes:"Zacian-C catch tank can also be used to lesser effectiveness",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Necrozma Dusk Mane",r:"Catch Tank, 5x",fast:"Pscyho Cut",charge:"Sunsteel Strike"}]},
-{boss:"Terrakion",tier:"6",strategy:"HS/TPC",fast:"Varies",charge:"Earthquake",weather:"Clear",ae:true,vod:"https://www.youtube.com/watch?v=60ckEUuAoMA",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Necrozma Dusk Mane",r:"Catch Tank, 3x",fast:"Psycho Cut",charge:"Sunsteel Strike"},{n:"Zacian Crown",r:"Catch Tank, 2x",fast:"Metal Claw",charge:"Behemoth Blade"}]},
-{boss:"Tornadus Therian",tier:"6",strategy:"DBP",fast:"Gust",charge:"Focus Blast",weather:"Snow",ae:true,vod:"",notes:"Aggressive Cadence Required (2.0 gust per focus blast)",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem Black",r:"Catch Tank, 5x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Xerneas",tier:"6",strategy:"HS/TPC",fast:"Zen Headbutt",charge:"Close Combat",weather:"Cloudy",ae:true,vod:"",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Zacian Crown",r:"Support DPS, 4x",fast:"Metal Claw",charge:"Behemoth Blade"}]},
-{boss:"Xerneas",tier:"6",strategy:"CT/TPC",fast:"Zen Headbutt",charge:"Giga Impact",weather:"Partly Cloudy",ae:true,vod:"",notes:"High RNG. Any HP, 14 or lower def @ lvl 50 for Gigas CT",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Shadow Regigigas",r:"Catch Tank, 5x",fast:"Hidden Power",charge:"Crush Grip"}]},
-{boss:"Xurkitree",tier:"6",strategy:"HS/TPC",fast:"Any",charge:"Power Whip",weather:"Extreme",ae:true,vod:"https://www.youtube.com/watch?v=WEy7uUXCz-U",notes:"Shadow Groudon is affected by Resolve bug, making this harder",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Groudon",r:"Catch Tank, 5x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Zamazenta Hero",tier:"6",strategy:"Catch Tank",fast:"Metal Claw",charge:"Moonblast",weather:"Windy",ae:true,vod:"",notes:"2.9 rejoins. Lv 49 Shadow Salamence. 2 Fly per Moonblast",party:[{n:"Mega Mewtwo Y",r:"Main DPS, 1x",fast:"Confusion",charge:"Psystrike"},{n:"Shadow Salamence",r:"Catch Tank, 5x",fast:"Dragon tail",charge:"Fly"}]},
-{boss:"Zapdos",tier:"6",strategy:"Hot Swap",fast:"Any",charge:"Zap Cannon",weather:"Snow",ae:true,vod:"https://www.youtube.com/watch?v=h8ldhgMS-U4&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"1.8 - 1.9 Rejoins",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem White",r:"Support DPS, 5x",fast:"Ice Fang",charge:"Ice Burn"}]},
-{boss:"Necrozma",tier:"5.5",strategy:"Hot Swap",fast:"Any",charge:"Varies",weather:"Fog",ae:true,vod:"https://www.youtube.com/watch?v=6vNd1b9roC0&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 3x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Mega Gengar",r:"Executor, 1x",fast:"Lick",charge:"Shadow Ball"}]},
-{boss:"Reshiram",tier:"5.5",strategy:"Hot Swap/CT",fast:"Fire Fang",charge:"Stone Edge",weather:"Windy",ae:true,vod:"https://www.youtube.com/watch?time_continue=299&v=soM2IvRyFgo&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"Mega Rayquaza used as a Catch tank",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Shadow Salamence",r:"Catch Tank, 4x",fast:"Dragon Tail",charge:"Draco Meteor"}]},
-{boss:"Tapu Bulu",tier:"5.5",strategy:"Catch Tank",fast:"Bullet Seed",charge:"Solar Beam",weather:"Windy",ae:true,vod:"https://youtu.be/aObPtqHi9D4",notes:"Gengar swapped in early to build energy for 2 sludge bombs.",party:[{n:"Mega Rayquaza",r:"Main DPS, 1x",fast:"Air Slash",charge:"Dragon Ascent"},{n:"Shadow Gengar",r:"Catch Tank, 4x",fast:"Shadow Claw",charge:"Sludge Bomb"}]},
-{boss:"Tornadus Incarnate",tier:"5.5",strategy:"HS/TPC",fast:"Bite",charge:"Varies",weather:"Rain",ae:true,vod:"https://www.youtube.com/watch?v=73-n5B53tOU",notes:"Shadow Rampardos used to execute at low hp. Uses level 40s",party:[{n:"Regieleki",r:"Main DPS, 1x",fast:"Lock On",charge:"Thunder Cage"},{n:"Regieleki",r:"Catch Tank, 5x",fast:"Lock On",charge:"Thunder Cage"},{n:"Shadow Rampardos",r:"Executor, 1x",fast:"Smack Down",charge:"Rock Slide"}]},
-{boss:"Tornadus Incarnate",tier:"5.5",strategy:"Catch Tank",fast:"Bite",charge:"Hyper Beam",weather:"Partly Cloudy",ae:true,vod:"",notes:"Breakpoint at level 48, 9 attack. Level 50 15 attack for main Sh-Gigas",party:[{n:"Shadow Regigigas",r:"Main DPS, 1x",fast:"Hidden Power Rock",charge:"Crush grip"},{n:"Shadow Regigigas",r:"Catch Tank, 4x",fast:"Hidden Power Rock",charge:"Crush grip"},{n:"Shadow Rampardos",r:"Executor, 1x",fast:"Smack Down",charge:"Rock Slide"}]},
-{boss:"Xurkitree",tier:"5.5",strategy:"Hot Swap/CT",fast:"Any",charge:"Power Whip",weather:"Extreme",ae:true,vod:"https://www.youtube.com/watch?v=t4w2MLVhGj4&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"Shadow Mamoswine is unaffected by Resolve bug. Precise CT",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Mamoswine",r:"Catch Tank, 5x",fast:"Mud Slap",charge:"High horse power"}]},
-{boss:"Zekrom",tier:"5.5",strategy:"Hot Swap/CT",fast:"Charge Beam",charge:"Flash Cannon",weather:"Windy",ae:true,vod:"https://www.youtube.com/watch?v=Di-45hrraHo&feature=youtu.be",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Kyurem Black",r:"Catch Tank, 2x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Articuno",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Any",weather:"Partly Cloudy",ae:true,vod:"https://youtu.be/I28jq97sjEM?si=QbKVagJOSGJGkEUQ",notes:"Level ~40s",party:[{n:"Shadow Rampardos",r:"Main DPS, 1x",fast:"Smack Down",charge:"Rock Slide"},{n:"Shadow Rampardos",r:"Support DPS, 2x",fast:"Smack Down",charge:"Rock Slide"},{n:"Shadow Tyrantrum",r:"Support DPS, 1x",fast:"Rock throw",charge:"Meteor Beam"},{n:"Shadow Rhyperior",r:"Support DPS, 1x",fast:"Smack Down",charge:"Rock Wrecker"},{n:"Mega Diancie",r:"Support DPS, 1x",fast:"Rock throw",charge:"Rock Slide"}]},
-{boss:"Articuno",tier:"5",strategy:"Catch Tank",fast:"Any",charge:"Blizzard",weather:"Partly Cloudy",ae:true,vod:"https://www.youtube.com/watch?v=Z_nI0zDTeJo",notes:"Level ~43 avg Tyrantrums, Lv 47 avg Rampardos",party:[{n:"Shadow Rampardos",r:"Main DPS, 1x",fast:"Smack Down",charge:"Rock Slide"},{n:"Shadow Rampardos",r:"Support DPS, 1x",fast:"Smack Down",charge:"Rock Slide"},{n:"Shadow Tyrantrum",r:"Catch Tank, 4x",fast:"Rock throw",charge:"Meteor Beam"}]},
-{boss:"Blacephalon",tier:"5",strategy:"Hot Swap/CT",fast:"Any",charge:"Shadow Ball",weather:"Extreme",ae:true,vod:"https://youtu.be/6mUGoQhtTKQ?si=vp0tsFpACV-34CYg",notes:"VOD contains Faint Swap Bug & a rubber band animation bug",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Necrozma Dawn Wings",r:"Catch Tank, 1x",fast:"Psycho Cut",charge:"Moongeist Beam"},{n:"Shadow Groudon",r:"Support DPS, 4x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Enamorus therian",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Varies",weather:"Snow",ae:true,vod:"https://www.youtube.com/watch?v=ml9Fp9nShpc&lc=Ugwr03aVYcRUHi2B5k14AaABAg",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Zacian Crown",r:"Support DPS, 4x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Zamazenta Crown",r:"Executor, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Entei",tier:"5",strategy:"Recycle",fast:"Any",charge:"Flamethrower",weather:"Rain",ae:true,vod:"https://www.youtube.com/watch?v=ijryCmsy3LA&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Primal Kyogre",r:"Main DPS, 1x",fast:"Waterfall",charge:"Origin Pulse"},{n:"Shadow Kyogre",r:"Support DPS, 1x",fast:"Waterfall",charge:"Origin Pulse"}]},
-{boss:"Entei",tier:"5",strategy:"Catch Tank",fast:"Any",charge:"Overheat",weather:"Clear",ae:true,vod:"https://www.youtube.com/watch?v=Qddf3rTMCf0",notes:"",party:[{n:"Primal Groudon",r:"Main DPS, 1x",fast:"Mud Shot",charge:"Precipice Blades"},{n:"Shadow Groudon",r:"Catch Tank, 5x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Giratina Origin",tier:"5",strategy:"Catch Tank",fast:"Any",charge:"Shadow Ball",weather:"Extreme",ae:true,vod:"",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Necrozma Dawn Wings",r:"Catch Tank, 5x",fast:"Psycho Cut",charge:"Moongeist Beam"},{n:"Mega Rayquaza",r:"Executor, 1x",fast:"Dragon tail",charge:"Breaking Swipe"}]},
-{boss:"Kyurem",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Any",weather:"Extreme",ae:true,vod:"https://www.youtube.com/watch?v=NEByFeZE47E&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Zacian Crown",r:"Support DPS, 4x",fast:"Metal Claw",charge:"Behemoth Blade"}]},
-{boss:"Kyurem White",tier:"5",strategy:"Various",fast:"Any",charge:"Varies",weather:"Extreme",ae:true,vod:"https://www.youtube.com/watch?v=8-Ifxt9GmmU&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Necrozma Dusk Mane",r:"Catch Tank, Varies",fast:"Metal Claw",charge:"Sunsteel Strike"},{n:"Zacian Crown",r:"Support DPS, Varies",fast:"Metal Claw",charge:"Behemoth Blade"}]},
-{boss:"Kyurem White",tier:"5",strategy:"Catch Tank",fast:"Any",charge:"Fusion Flare",weather:"Extreme",ae:true,vod:"https://www.youtube.com/watch?v=HHkdn8m5azU",notes:"Mega Rayquaza as secondary DPSer",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Necrozma Dusk Mane",r:"Catch Tank, 4x",fast:"Metal Claw",charge:"Sunsteel Strike"}]},
-{boss:"Mewtwo",tier:"5",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Fog",ae:true,vod:"https://youtu.be/4qQ3b81Ah20?si=NGqbtUW9l0eQ2iud",notes:"Uses a glitched Forever Friend Boost without fog hence by TTW it's a tentative vod",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
-{boss:"Necrozma",tier:"5",strategy:"Catch Tank",fast:"Any",charge:"Dark Pulse",weather:"Fog",ae:true,vod:"https://www.youtube.com/watch?v=TA1ikglsJtc&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Catch Tank, 5x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
-{boss:"Solgaleo",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Any",weather:"Fog",ae:true,vod:"https://www.youtube.com/watch?v=ySNvSSKyzuk",notes:"1-2 rejoin",party:[{n:"Necrozma Dawn Wings",r:"Main DPS, 1x",fast:"Shadow Claw",charge:"Moongeist Beam"},{n:"Necrozma Dawn Wings",r:"Support DPS, 3x",fast:"Shadow Claw",charge:"Moongeist Beam"}]},
-{boss:"Solgaleo",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Any",weather:"Clear",ae:true,vod:"",notes:"",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, 4x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Mega Blaziken",r:"Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
-{boss:"Solgaleo",tier:"5",strategy:"Catch Tank",fast:"Fire Spin",charge:"Solar Beam",weather:"Clear",ae:true,vod:"",notes:"Shadow Garchomp, NDW, Lando T are strong CT options",party:[{n:"Shadow Reshiram",r:"Main DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Shadow Reshiram",r:"Support DPS, 1x",fast:"Fire Fang",charge:"Fusion Flare"},{n:"Landorus therian",r:"Catch Tank, Varies",fast:"Mud Shot",charge:"Sandsear Storm"},{n:"Shadow Garchomp",r:"Catch Tank, Varies",fast:"Dragon Tail",charge:"Breaking Swipe"},{n:"Necrozma Dawn Wings",r:"Catch Tank, Varies",fast:"Psycho Cut",charge:"Moongeist Beam"},{n:"Mega Blaziken",r:"Executor, 1x",fast:"Fire Spin",charge:"Blast Burn & Blaze Kick"}]},
-{boss:"Tapu Lele",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Focus Blast",weather:"Snow",ae:true,vod:"https://x.com/HwangOkHone/status/1988032354842275990",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Zacian Crown",r:"Support DPS, 4x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Zamazenta Crown",r:"Executor, 1x",fast:"Mud Shot",charge:"Precipice Blades"}]},
-{boss:"Tapu Lele",tier:"5",strategy:"HS/TPC",fast:"Any",charge:"Varies",weather:"Snow",ae:true,vod:"https://youtu.be/ki0JY_ATAuM?si=gVuFfm46C6Pi0LRQ",notes:"TPC pushes this raid to a faster TTW",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Zacian Crown",r:"Support DPS, 5x",fast:"Metal Claw",charge:"Behemoth Blade"}]},
-{boss:"Terrakion",tier:"5",strategy:"Hot Swap",fast:"Any",charge:"Close Combat",weather:"Windy",ae:true,vod:"https://www.youtube.com/watch?v=nDEJ3yplqjE&t=323s",notes:"",party:[{n:"Shadow Mewtwo",r:"Main DPS, 1x",fast:"Psycho Cut",charge:"Psystrike"},{n:"Shadow Mewtwo",r:"Support DPS, 4x, Executor",fast:"Psycho Cut",charge:"Psystrike"},{n:"Mega Alakazam",r:"Executor, 1x",fast:"Psycho Cut",charge:"Psychic"}]},
-{boss:"Terrakion",tier:"5",strategy:"Recycle",fast:"Varies",charge:"Rock Slide",weather:"Cloudy",ae:true,vod:"https://x.com/i/status/1944797484967932215",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"}]},
-{boss:"Terrakion",tier:"5",strategy:"Hot Swap",fast:"Varies",charge:"Earthquake",weather:"Cloudy",ae:true,vod:"https://www.youtube.com/watch?v=Cwl_hVuJdAw",notes:"",party:[{n:"Mega Lucario",r:"Main DPS, 1x",fast:"Force Palm",charge:"Aura Sphere"},{n:"Necrozma Dusk Mane",r:"Catch Tank, 3x",fast:"Metal Claw",charge:"Sunsteel strike"},{n:"Zacian Crown",r:"Catch Tank, 2x",fast:"Metal Claw",charge:"Behemoth Blade"}]},
-{boss:"Enamorus Incarnate",tier:"4",strategy:"Hot Swap",fast:"Any",charge:"Fly",weather:"Extreme",ae:true,vod:"",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Zacian Crown",r:"Support DPS, 3x",fast:"Metal Claw",charge:"Behemoth Blade"}]},
-{boss:"Enamorus Therian",tier:"4",strategy:"Catch Tank",fast:"Any",charge:"Moonblast",weather:"Snow",ae:true,vod:"http://youtube.com/watch?v=AGXn6Q_9ZTM&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F",notes:"",party:[{n:"Zacian Crown",r:"Main DPS, 1x",fast:"Metal Claw",charge:"Behemoth Blade"},{n:"Kyurem Black",r:"Catch Tank, 4x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Giratina Origin",tier:"4",strategy:"Hot Swap",fast:"Any",charge:"Ominous Wind",weather:"Windy",ae:true,vod:"",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Necrozma Dawn Wings",r:"Support DPS, 1x",fast:"Psycho Cut",charge:"Moongeist Beam"}]},
-{boss:"Ho-Oh",tier:"4",strategy:"Catch Tank",fast:"Varies",charge:"Solar beam",weather:"Partly Cloudy",ae:true,vod:"https://www.youtube.com/watch?v=lGT7HzDRXdA",notes:"",party:[{n:"Shadow Rampardos",r:"Main DPS, 1x",fast:"Smack Down",charge:"Rock Slide"},{n:"Shadow Tyrantrum",r:"Catch Tank, 4x",fast:"Rock Throw",charge:"Meteor Beam"}]},
-{boss:"Tapu Bulu",tier:"4",strategy:"Recycle",fast:"Any",charge:"Any",weather:"Cloudy",ae:true,vod:"https://youtu.be/p440Ino_F4w?si=8uOHWCgJVSlCOr_j",notes:"",party:[{n:"Mega Beedrill",r:"Main DPS, 1x",fast:"Poison jab",charge:"Sludge Bomb"}]},
-{boss:"Thundurus Incarnate",tier:"4",strategy:"Hot Swap",fast:"Any",charge:"Any",weather:"Snow",ae:true,vod:"https://www.youtube.com/watch?v=MHDtipHN8bs",notes:"",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem White",r:"Support DPS, 2x",fast:"Ice Fang",charge:"Ice Burn"}]},
-{boss:"Tornadus Incarnate",tier:"4",strategy:"Hot Swap",fast:"Any",charge:"Any",weather:"Snow",ae:true,vod:"https://youtu.be/9XGM-pr1hs8?si=q_82hIxoUqx0ceLQ",notes:"6 Kyurem is not needed & Vod intentionally includes mistakes",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem White",r:"Support DPS, 3x",fast:"Ice Fang",charge:"Ice Burn"}]},
-{boss:"Yveltal",tier:"4",strategy:"Catch Tank",fast:"Any",charge:"Focus Blast",weather:"Snow",ae:true,vod:"https://www.youtube.com/watch?v=4RTsw1rcPYY",notes:"Vod has lots of mistakes",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem Black",r:"Catch Tank, 4x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Zekrom",tier:"4",strategy:"Hot Swap/CT",fast:"Any",charge:"Outrage",weather:"Windy",ae:true,vod:"https://www.reddit.com/r/TheSilphRoad/comments/1psk02l/zekrom_solo_ae_windy_dragon_breathoutrage/",notes:"Dragon Breath + Outrage/Wild Charge is tough",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Kyurem Black",r:"Catch Tank, 4x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-];
+// ============ LIVE CSV LOADING ============
+// Update raids by replacing tier5-ae-data.csv in the repo — no HTML editing needed.
+let RAIDS = [];
+const CSV_URL = "tier5-ae-data.csv";
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ","){ row.push(field); field = ""; }
+      else if(c === "\r"){ /* skip */ }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+const WEATHER_NAME_MAP = {
+  "clear":"Clear","cloudy":"Cloudy","partly cloudy":"Partly Cloudy","windy":"Windy",
+  "rain":"Rain","rainy":"Rain","snow":"Snow","fog":"Fog","extreme":"Extreme",
+};
+function normalizeWeather(w){
+  w = (w || "").trim();
+  if(!w) return w;
+  const key = WEATHER_NAME_MAP[w.toLowerCase()];
+  return key || (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+// Tier 5 AE column layout: boss=1, tier=2, strategy=3, fast=5, charge=7, weather=8, ae=10 (boolean presence)
+// Party slots (6 max): base=13+5*i. Slots 0-1: name,role,fast,charge. Slots 2+: name,fast,charge,role (reversed).
+function rowsToRaids(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 18) continue;
+    const boss = (row[1] || "").trim();
+    const tierRaw = (row[2] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[3] || "").trim();
+    const fast = (row[5] || "").trim();
+    const charge = (row[7] || "").trim();
+    const weather = normalizeWeather(row[8]);
+    const ae = !!(row[10] || "").trim();
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 13 + 5*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      let name, role, pfast, pcharge;
+      if(i < 2){
+        name = (row[base] || "").trim();
+        role = (row[base+1] || "").trim();
+        pfast = (row[base+2] || "").trim();
+        pcharge = (row[base+3] || "").trim();
+      } else {
+        name = (row[base] || "").trim();
+        pfast = (row[base+1] || "").trim();
+        pcharge = (row[base+2] || "").trim();
+        role = (row[base+3] || "").trim();
+      }
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(35).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+async function loadRaidsFromCSV(){
+  const container = document.getElementById("sections");
+  try{
+    const res = await fetch(CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    RAIDS = rowsToRaids(rows);
+    initializeFromRaids();
+  }catch(e){
+    console.error("Failed to load raid data:", e);
+    if(container){
+      container.innerHTML = `<div class="empty">Couldn't load raid data from ${CSV_URL}. This page needs to be served over http(s) — opening the file directly (file://) blocks this. Check the live site, and make sure ${CSV_URL} exists in the repo root.</div>`;
+    }
+  }
+}
 
 const DB_OVERRIDES = {
   "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y",
@@ -588,7 +645,6 @@ function normalizeStrategy(s){
   if(parts.length >= 3) return "Various";
   return parts.join("/");
 }
-RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
 
 const TIER_ORDER = ["7","6","5.5","5","4"];
 const TIER_NAMES = {"7":"Nightmare","6":"Mythical","5.5":"Elite","5":"Standard Legendary","4":"Sub-Legendary"};
@@ -766,22 +822,13 @@ function bossCardHtml(boss, variants, cardId){
 const TIER_WEIGHT = {"7":5,"6":4,"5.5":3,"5":2,"4":1};
 
 // Group by boss only (across all tiers), sort variants hardest -> easiest
-const bossGroups = {};
-RAIDS.forEach(r => {
-  if(!bossGroups[r.boss]) bossGroups[r.boss] = [];
-  bossGroups[r.boss].push(r);
-});
-Object.keys(bossGroups).forEach(boss => {
-  bossGroups[boss].sort((a,b) => TIER_WEIGHT[b.tier] - TIER_WEIGHT[a.tier]);
-});
-// Order boss cards alphabetically within each section
-const bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
-
+let bossGroups = {};
+let bossOrder = [];
 const VARIANTS_BY_CARD = {};
 const activeWeathers = new Set();
 const activeStrategies = new Set();
 
-const WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
+let WEATHER_LIST = [];
 const STRATEGY_LIST = ["Catch Tank", "Hot Swap", "Tick Perfect Cast", "Recycle", "Various", "Double Battle Party"];
 function strategyCategories(strategy){
   if(!strategy) return [];
@@ -789,7 +836,28 @@ function strategyCategories(strategy){
 }
 
 const activeTiers = new Set();
-const DIFFICULTY_LIST = TIER_ORDER.filter(t => bossOrder.some(b => bossGroups[b][bossGroups[b].length - 1].tier === t));
+let DIFFICULTY_LIST = [];
+
+function initializeFromRaids(){
+  RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
+  bossGroups = {};
+  RAIDS.forEach(r => {
+    if(!bossGroups[r.boss]) bossGroups[r.boss] = [];
+    bossGroups[r.boss].push(r);
+  });
+  Object.keys(bossGroups).forEach(boss => {
+    bossGroups[boss].sort((a,b) => TIER_WEIGHT[b.tier] - TIER_WEIGHT[a.tier]);
+  });
+  bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
+  WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
+  DIFFICULTY_LIST = TIER_ORDER.filter(t => bossOrder.some(b => bossGroups[b][bossGroups[b].length - 1].tier === t));
+
+  renderDifficultyFilters();
+  renderWeatherFilters();
+  renderStrategyFilters();
+  buildSections();
+}
+
 function renderDifficultyFilters(){
   const el = document.getElementById("difficultyFilters");
   el.innerHTML = DIFFICULTY_LIST.map(t => `
@@ -918,10 +986,7 @@ const search = document.getElementById("search");
 const pokemonSearch = document.getElementById("pokemonSearch");
 search.addEventListener("input", buildSections);
 pokemonSearch.addEventListener("input", buildSections);
-renderDifficultyFilters();
-renderWeatherFilters();
-renderStrategyFilters();
-buildSections();
+loadRaidsFromCSV();
 </script>
 
 </body>

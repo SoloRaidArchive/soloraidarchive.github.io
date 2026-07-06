@@ -457,12 +457,125 @@
 <script>
 const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
 
-const RAIDS = [
-{boss:"Regidrago",category:"Elite",tier:"5",strategy:"Catch Tank",fast:"Dragon Breath",charge:"Outrage",weather:"Windy",ae:true,vod:"",notes:"",party:[{n:"Eternatus",r:"Main DPS, 1x",fast:"Dragon tail",charge:"Dynamax Cannon"},{n:"Mega Rayquaza",r:"Support DPS, Executor, 1x",fast:"Dragon tail",charge:"Breaking Swipe"},{n:"Kyurem Black",r:"Catch Tank, 4x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Mega Rayquaza",category:"T6",tier:"7",strategy:"DBP / CT",fast:"Air Slash",charge:"Outrage",weather:"Extreme",ae:true,vod:"",notes:"",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem White",r:"Support DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem Black",r:"Catch Tank, 10x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Mega Rayquaza",category:"T6",tier:"6",strategy:"Catch Tank",fast:"Air Slash",charge:"Outrage",weather:"Snow",ae:false,vod:"",notes:"",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem Black",r:"Catch Tank, 5x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-{boss:"Mega Rayquaza",category:"T6",tier:"5",strategy:"Catch Tank",fast:"Air Slash",charge:"Outrage",weather:"Snow",ae:true,vod:"https://www.youtube.com/watch?v=deB3X4utM0c",notes:"Intense lag, several FM rejoin bugs, 1 CM rejoin bug, 250+ KW lost energy",party:[{n:"Kyurem White",r:"Main DPS, 1x",fast:"Ice Fang",charge:"Ice Burn"},{n:"Kyurem Black",r:"Catch Tank, 5x",fast:"Dragon tail",charge:"Freeze Shock"}]},
-];
+// ============ LIVE CSV LOADING ============
+// Update raids by replacing tier6-data.csv in the repo — no HTML editing needed.
+let RAIDS = [];
+const CSV_URL = "tier6-data.csv";
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ","){ row.push(field); field = ""; }
+      else if(c === "\r"){ /* skip */ }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+const WEATHER_NAME_MAP = {
+  "clear":"Clear","cloudy":"Cloudy","partly cloudy":"Partly Cloudy","windy":"Windy",
+  "rain":"Rain","rainy":"Rain","snow":"Snow","fog":"Fog","extreme":"Extreme",
+};
+function normalizeWeather(w){
+  w = (w || "").trim();
+  if(!w) return w;
+  const key = WEATHER_NAME_MAP[w.toLowerCase()];
+  return key || (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+// Tier 6/Elite column layout: category=0, boss=2, tier=3, strategy=4, fast=6, charge=8, weather=10, ae=12
+// (shifted +1 vs other sheets due to the leading category column)
+// Party slots (6 max): base=14+5*i -> name,role,fast,charge,blank
+function rowsToRaids(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 18) continue;
+    const categoryRaw = (row[0] || "").trim();
+    if(!categoryRaw) continue;
+    const category = /elite/i.test(categoryRaw) ? "Elite" : "T6";
+    const boss = (row[2] || "").trim();
+    const tierRaw = (row[3] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[4] || "").trim();
+    const fast = (row[6] || "").trim();
+    const charge = (row[8] || "").trim();
+    const weather = normalizeWeather(row[10]);
+    const ae = !!(row[12] || "").trim();
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 15 + 5*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(29).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, category, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+async function loadRaidsFromCSV(){
+  const container = document.getElementById("sections");
+  try{
+    const res = await fetch(CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    RAIDS = rowsToRaids(rows);
+    initializeFromRaids();
+  }catch(e){
+    console.error("Failed to load raid data:", e);
+    if(container){
+      container.innerHTML = `<div class="empty">Couldn't load raid data from ${CSV_URL}. This page needs to be served over http(s) — opening the file directly (file://) blocks this. Check the live site, and make sure ${CSV_URL} exists in the repo root.</div>`;
+    }
+  }
+}
 
 const DB_OVERRIDES = {
   "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y",
@@ -527,7 +640,6 @@ function normalizeStrategy(s){
   if(parts.length >= 3) return "Various";
   return parts.join("/");
 }
-RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
 
 const CATEGORY_ORDER = ["Elite","T6"];
 const CATEGORY_NAMES = {"Elite":"Elite Tier","T6":"Mega Legendary"};
@@ -704,22 +816,13 @@ function bossCardHtml(boss, variants, cardId){
 const TIER_WEIGHT = {"7":5,"6":4,"5.5":3,"5":2,"4":1};
 
 // Group by boss only (across all tiers), sort variants hardest -> easiest
-const bossGroups = {};
-RAIDS.forEach(r => {
-  if(!bossGroups[r.boss]) bossGroups[r.boss] = [];
-  bossGroups[r.boss].push(r);
-});
-Object.keys(bossGroups).forEach(boss => {
-  bossGroups[boss].sort((a,b) => TIER_WEIGHT[b.tier] - TIER_WEIGHT[a.tier]);
-});
-// Order boss cards alphabetically within each section
-const bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
-
+let bossGroups = {};
+let bossOrder = [];
 const VARIANTS_BY_CARD = {};
 const activeWeathers = new Set();
 const activeStrategies = new Set();
 
-const WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
+let WEATHER_LIST = [];
 const STRATEGY_LIST = ["Catch Tank", "Hot Swap", "Tick Perfect Cast", "Recycle", "Various", "Double Battle Party"];
 function strategyCategories(strategy){
   if(!strategy) return [];
@@ -727,6 +830,26 @@ function strategyCategories(strategy){
 }
 
 const activeCategories = new Set();
+
+function initializeFromRaids(){
+  RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
+  bossGroups = {};
+  RAIDS.forEach(r => {
+    if(!bossGroups[r.boss]) bossGroups[r.boss] = [];
+    bossGroups[r.boss].push(r);
+  });
+  Object.keys(bossGroups).forEach(boss => {
+    bossGroups[boss].sort((a,b) => TIER_WEIGHT[b.tier] - TIER_WEIGHT[a.tier]);
+  });
+  bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
+  WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
+
+  renderDifficultyFilters();
+  renderWeatherFilters();
+  renderStrategyFilters();
+  buildSections();
+}
+
 function renderDifficultyFilters(){
   const el = document.getElementById("difficultyFilters");
   el.innerHTML = CATEGORY_ORDER.map(cat => `
@@ -854,10 +977,7 @@ const search = document.getElementById("search");
 const pokemonSearch = document.getElementById("pokemonSearch");
 search.addEventListener("input", buildSections);
 pokemonSearch.addEventListener("input", buildSections);
-renderDifficultyFilters();
-renderWeatherFilters();
-renderStrategyFilters();
-buildSections();
+loadRaidsFromCSV();
 </script>
 
 </body>
