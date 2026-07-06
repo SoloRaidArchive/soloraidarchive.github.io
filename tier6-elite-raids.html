@@ -178,6 +178,11 @@
     padding: 22px; display:flex; flex-direction:column; gap: 20px;
     transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 2px 0 rgba(45,49,66,0.05);
   }
+  .highlight-flash{ animation: flashHighlight 2.2s ease; }
+  @keyframes flashHighlight{
+    0%, 100%{ box-shadow: none; }
+    15%, 60%{ box-shadow: 0 0 0 3px var(--blue); }
+  }
   .card:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(61,157,255,0.14); }
 
   .card-top{ display:flex; align-items:center; gap: 12px; }
@@ -224,8 +229,8 @@
   .weather-icon-img{ width:22px; height:22px; object-fit:contain; mix-blend-mode:multiply; }
   .weather-icon-wrap.extreme .weather-icon-img{ mix-blend-mode:normal; }
   .weather-label{ font-size:12.5px; font-weight:700; color: var(--text-muted); vertical-align:middle; }
-  .weather-icon-img.extreme{ filter: invert(1) grayscale(1) brightness(0.3); }
-  [data-theme="dark"] .weather-icon-img.extreme{ filter: none; }
+  .weather-icon-wrap.extreme .weather-icon-img{ filter: invert(1) grayscale(1) brightness(0.3); }
+  [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
   .ae-icon{ width:22px; height:22px; }
 
   .party-label{
@@ -326,6 +331,7 @@
     background:none; border:none; padding:0;
   }
   .filter-options{ display:flex; flex-direction:column; gap:8px; }
+  .filter-note{ font-size:10.5px; font-weight:600; color: var(--text-dim); margin-top:6px; line-height:1.4; }
   .archive-nav{ display:flex; flex-direction:column; gap:4px; }
   .archive-nav-link{
     padding:9px 11px; border-radius:9px; font-family:'Nunito', sans-serif;
@@ -436,6 +442,7 @@
         <button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button>
       </div>
       <div class="filter-options" id="weatherFilters"></div>
+      <div class="filter-note">"Extreme" means no weather boost is active.</div>
     </div>
     <div class="filter-block">
       <div class="filter-title">
@@ -560,6 +567,20 @@ function rowsToRaids(rows){
   return raids;
 }
 
+function scrollToHashTarget(){
+  const hash = window.location.hash;
+  if(!hash) return;
+  // give the DOM a moment to finish painting the freshly-built cards
+  setTimeout(() => {
+    const el = document.querySelector(hash);
+    if(el){
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("highlight-flash");
+      setTimeout(() => el.classList.remove("highlight-flash"), 2200);
+    }
+  }, 150);
+}
+
 async function loadRaidsFromCSV(){
   const container = document.getElementById("sections");
   try{
@@ -569,6 +590,7 @@ async function loadRaidsFromCSV(){
     const rows = parseCSV(text);
     RAIDS = rowsToRaids(rows);
     initializeFromRaids();
+    scrollToHashTarget();
   }catch(e){
     console.error("Failed to load raid data:", e);
     if(container){
@@ -797,7 +819,7 @@ function bossCardHtml(boss, variants, cardId){
     : `<div class="strat-static">${tierLabel(variants[0].tier)} · ${variants[0].strategy}</div>`;
 
   return `
-  <div class="card" data-boss="${boss.toLowerCase()}">
+  <div class="card" id="boss-${boss.toLowerCase().replace(/[^a-z0-9]+/g,'-')}" data-boss="${boss.toLowerCase()}">
     <div class="card-top">
       <div class="boss-icon">
         <img src="${spriteUrl(boss)}" alt="${boss}" loading="lazy" onerror="this.style.display='none'">
@@ -829,7 +851,10 @@ function strategyCategories(strategy){
   return STRATEGY_LIST.filter(cat => strategy.toLowerCase().includes(cat.toLowerCase()));
 }
 
-const activeCategories = new Set();
+const TIER_ORDER = ["7","6","5.5","5","4","3","2","1"];
+const TIER_NAMES = {"7":"Special","6":"Nightmare","5.5":"Very Hard","5":"Hard","4":"Challenging","3":"Moderate","2":"Easy","1":"Very Easy"};
+const activeTiers = new Set();
+let DIFFICULTY_LIST = [];
 
 function initializeFromRaids(){
   RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
@@ -843,6 +868,7 @@ function initializeFromRaids(){
   });
   bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
   WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
+  DIFFICULTY_LIST = TIER_ORDER.filter(t => bossOrder.some(b => bossGroups[b][bossGroups[b].length - 1].tier === t));
 
   renderDifficultyFilters();
   renderWeatherFilters();
@@ -852,15 +878,15 @@ function initializeFromRaids(){
 
 function renderDifficultyFilters(){
   const el = document.getElementById("difficultyFilters");
-  el.innerHTML = CATEGORY_ORDER.map(cat => `
+  el.innerHTML = DIFFICULTY_LIST.map(t => `
     <label class="filter-chk">
-      <input type="checkbox" ${activeCategories.has(cat) ? "checked" : ""} onchange="toggleDifficulty('${cat}')">
-      ${cat === "T6" ? "Mega Legendary" : cat}
+      <input type="checkbox" ${activeTiers.has(t) ? "checked" : ""} onchange="toggleDifficulty('${t}')">
+      ${tierLabel(t)} ${TIER_NAMES[t]}
     </label>
   `).join("");
 }
-function toggleDifficulty(cat){
-  if(activeCategories.has(cat)) activeCategories.delete(cat); else activeCategories.add(cat);
+function toggleDifficulty(t){
+  if(activeTiers.has(t)) activeTiers.delete(t); else activeTiers.add(t);
   refresh();
 }
 
@@ -885,7 +911,7 @@ function toggleStrategy(s){
   refresh();
 }
 function clearFilterGroup(group){
-  if(group === "difficulty") activeCategories.clear();
+  if(group === "difficulty") activeTiers.clear();
   if(group === "weather") activeWeathers.clear();
   if(group === "strategy") activeStrategies.clear();
   refresh();
@@ -906,11 +932,12 @@ function buildSections(){
   let html = "";
 
   CATEGORY_ORDER.forEach(category => {
-    if(activeCategories.size > 0 && !activeCategories.has(category)) return;
     let sectionCardsHtml = "";
 
     bossOrder.forEach((boss, i) => {
       if(bossGroups[boss][0].category !== category) return; // only bosses whose hardest entry belongs to this category
+      const easiestTier = bossGroups[boss][bossGroups[boss].length - 1].tier;
+      if(activeTiers.size > 0 && !activeTiers.has(easiestTier)) return;
       if(bossQuery && !boss.toLowerCase().includes(bossQuery)) return;
 
       let variants = bossGroups[boss].filter(v => {
