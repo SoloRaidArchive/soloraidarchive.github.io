@@ -109,13 +109,14 @@
 <div class="top-nav">
   <a href="tier4-raids.html" class="top-nav-link">Mega</a>
   <a href="tier5-raids.html" class="top-nav-link">Legendary</a>
-  <a href="tier5-ae-raids.html" class="top-nav-link current">Legendary AE</a>
-  <a href="tier6-elite-raids.html" class="top-nav-link">Mega Legendary & Elite</a>
+  <a href="tier5-ae-raids.html" class="top-nav-link">Legendary AE</a>
+  <a href="tier6-elite-raids.html" class="top-nav-link">Mega Legendary &amp; Elite</a>
   <a href="meta-battle-parties.html" class="top-nav-link">Meta Battle Parties</a>
   <a href="raid-strategies.html" class="top-nav-link">Raid Strategies</a>
   <a href="move-data.html" class="top-nav-link">Move Data</a>
-  <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
+  <a href="pokemon-stats.html" class="top-nav-link current">Pokémon Stats</a>
   <a href="ct-calculator.html" class="top-nav-link">Catch Tank Calculator</a>
+  <a href="research.html" class="top-nav-link">Research</a>
   <a href="patch-notes.html" class="top-nav-link">Patch Notes</a>
 </div>
 
@@ -377,8 +378,15 @@ function toDbSlug(name){
   if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
   return n.replace(/\s+/g, "-");
 }
+// Very recent Legends: Z-A Mega Evolutions - use PokemonGoHub direct artwork instead of guessing PokemonDB slugs
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+};
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
   if (key.startsWith("shadow ")){
     const base = key.replace(/^shadow\s+/, "");
     if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;

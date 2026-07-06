@@ -124,6 +124,26 @@
   @media (max-width:600px){ .two-col{ grid-template-columns:1fr; } }
   .col-title{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14px; margin-bottom:10px; color: var(--blue-dark); }
 
+  .history-panel{ margin-top:8px; }
+  .history-empty{
+    font-size:12.5px; color: var(--text-dim); font-weight:600; padding:14px;
+    text-align:center; background: var(--bg1); border:2px dashed var(--border); border-radius:12px;
+  }
+  .history-list{ display:flex; flex-direction:column; gap:6px; }
+  .history-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+    background: var(--card); border:2px solid var(--border); border-radius:10px;
+    padding:9px 12px; cursor:pointer; text-align:left; font-family:'Nunito', sans-serif;
+    transition: border-color .12s, transform .12s;
+  }
+  .history-item:hover{ border-color: var(--blue); transform: translateX(2px); }
+  .history-label{ font-weight:700; font-size:13px; color: var(--text); }
+  .history-time{ font-size:10.5px; color: var(--text-dim); font-weight:600; white-space:nowrap; }
+  .history-remove{
+    background:none; border:none; color: var(--text-dim); font-size:15px; cursor:pointer;
+    padding:0 4px; line-height:1; flex-shrink:0;
+  }
+  .history-remove:hover{ color:#ff5b5b; }
   .calc-btn{
     display:block; width:100%; margin-top:10px;
     font-family:'Baloo 2', sans-serif; font-weight:800; font-size:17px;
@@ -184,6 +204,8 @@
   .mod-row{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; }
   .mod-row.compact{ grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:10px; }
   .mod-row.narrow{ grid-template-columns: repeat(auto-fit, minmax(140px, 200px)); gap:12px; }
+  .mod-row.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:10px; }
+  @media (max-width:560px){ .mod-row.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
   .mod-cell{ display:flex; flex-direction:column; gap:5px; }
   .mod-cell label{ font-size:10px; font-weight:800; color: var(--text-dim); }
   .mod-cell select{
@@ -241,15 +263,16 @@
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
 <div class="top-nav">
-  <a href="tier4-raids.html" class="top-nav-link">Tier 4</a>
-  <a href="tier5-raids.html" class="top-nav-link">Tier 5</a>
-  <a href="tier5-ae-raids.html" class="top-nav-link">Tier 5 AE</a>
-  <a href="tier6-elite-raids.html" class="top-nav-link">Tier 6 &amp; Elite</a>
+  <a href="tier4-raids.html" class="top-nav-link">Mega</a>
+  <a href="tier5-raids.html" class="top-nav-link">Legendary</a>
+  <a href="tier5-ae-raids.html" class="top-nav-link">Legendary AE</a>
+  <a href="tier6-elite-raids.html" class="top-nav-link">Mega Legendary &amp; Elite</a>
   <a href="meta-battle-parties.html" class="top-nav-link">Meta Battle Parties</a>
   <a href="raid-strategies.html" class="top-nav-link">Raid Strategies</a>
   <a href="move-data.html" class="top-nav-link">Move Data</a>
   <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
   <a href="ct-calculator.html" class="top-nav-link current">Catch Tank Calculator</a>
+  <a href="research.html" class="top-nav-link">Research</a>
   <a href="patch-notes.html" class="top-nav-link">Patch Notes</a>
 </div>
 
@@ -425,7 +448,7 @@
       </div>
     </div>
 
-    <div class="mod-row compact">
+    <div class="mod-row fixed-4">
       <div class="mod-cell">
         <label>Friendship</label>
         <select id="friendship">
@@ -453,9 +476,6 @@
           <option value="3">3</option>
         </select>
       </div>
-    </div>
-
-    <div class="mod-row compact">
       <div class="mod-cell">
         <label>Weather</label>
         <select id="weatherSelect">
@@ -470,6 +490,7 @@
         </select>
       </div>
     </div>
+
     <div class="check-grid fixed-4">
       <label class="check-item"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
       <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
@@ -480,6 +501,11 @@
       <label class="check-item"><input type="checkbox" id="partyPower"> Party Power</label>
       <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
     </div>
+  </div>
+
+  <div class="history-panel">
+    <div class="subhead" style="margin-top:0;">Recent Setups <span class="auto-badge">saved on this device</span></div>
+    <div id="setupHistory"></div>
   </div>
 
   <button class="calc-btn" id="calcBtn">Calculate</button>
@@ -1405,7 +1431,88 @@ function runCalculation(){
       </tbody>
     </table>
   `;
+
+  addToHistory(captureSetup());
 }
+
+// ============ SETUP HISTORY (saved via localStorage on this device/browser) ============
+const SETUP_FIELD_IDS = [
+  "pokemonName","pokemonLevel","ivAtk","ivDef","ivHp",
+  "playerCM","playerFM","effCM","effFM","stabCM","stabFM",
+  "friendship","primalMega","numCM",
+  "weatherSelect","dodgeCM","dodgeFM","t7Enraged","shieldAE","zacianBlade","cmBuffer","partyPower","resolveNerf",
+  "bossName","bossTier","bossCM","bossFM",
+  "effBossCM","effBossFM","bossStabCM","bossStabFM","shadowDebuff",
+];
+function captureSetup(){
+  const setup = {};
+  SETUP_FIELD_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    setup[id] = el.type === "checkbox" ? el.checked : el.value;
+  });
+  return setup;
+}
+function applySetup(setup){
+  SETUP_FIELD_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if(!(id in setup)) return;
+    if(el.type === "checkbox") el.checked = !!setup[id];
+    else el.value = setup[id];
+  });
+  ["pokemonLevel","ivAtk","ivDef","ivHp"].forEach(id => {
+    const el = document.getElementById(id);
+    el.dispatchEvent(new Event("input"));
+  });
+  updatePlayerPreview();
+  updateBossPreview();
+  updatePlayerMovePreview();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem("ctCalcHistory") || "[]"); }
+  catch(e){ return []; }
+}
+function saveHistoryList(history){
+  try{ localStorage.setItem("ctCalcHistory", JSON.stringify(history)); }catch(e){}
+}
+function addToHistory(setup){
+  let history = loadHistory();
+  const setupStr = JSON.stringify(setup);
+  history = history.filter(h => JSON.stringify(h.setup) !== setupStr);
+  const label = `${setup.pokemonName || "?"} vs ${setup.bossName || "?"}`;
+  history.unshift({ setup, label, time: Date.now() });
+  history = history.slice(0, 5);
+  saveHistoryList(history);
+  renderHistory();
+}
+function removeHistoryItem(i, evt){
+  evt.stopPropagation();
+  const history = loadHistory();
+  history.splice(i, 1);
+  saveHistoryList(history);
+  renderHistory();
+}
+function restoreSetup(i){
+  const history = loadHistory();
+  if(history[i]) applySetup(history[i].setup);
+}
+function renderHistory(){
+  const el = document.getElementById("setupHistory");
+  if(!el) return;
+  const history = loadHistory();
+  if(history.length === 0){
+    el.innerHTML = `<div class="history-empty">No previous setups yet — run a calculation to save one here.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="history-list">${history.map((h,i) => `
+    <button type="button" class="history-item" onclick="restoreSetup(${i})">
+      <span class="history-label">${h.label}</span>
+      <span class="history-time">${new Date(h.time).toLocaleString([], {month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"})}</span>
+      <button type="button" class="history-remove" onclick="removeHistoryItem(${i}, event)" aria-label="Remove">✕</button>
+    </button>
+  `).join("")}</div>`;
+}
+renderHistory();
 
 // ============ UI SETUP ============
 function populateSelect(id, values, formatFn){

@@ -380,13 +380,14 @@
   <a href="move-data.html" class="top-nav-link">Move Data</a>
   <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
   <a href="ct-calculator.html" class="top-nav-link">Catch Tank Calculator</a>
+  <a href="research.html" class="top-nav-link">Research</a>
   <a href="patch-notes.html" class="top-nav-link">Patch Notes</a>
 </div>
 
 <header>
   <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
   <h1>Legendary Raids — Adventure Effect</h1>
-  <p>Tier 4+ raids soloed without a second trainer, one card per boss. Bosses with multiple recorded solos have a dropdown covering every difficulty, hardest to easiest.</p>
+  <p>Mega+ raids soloed without a second trainer, one card per boss. Bosses with multiple recorded solos have a dropdown covering every difficulty, hardest to easiest.</p>
 </header>
 
 <div class="role-legend">
@@ -557,8 +558,15 @@ function toDbSlug(name){
 function displayName(name){
   return name.replace(/\s+Incarnate$/i, "-I").replace(/\s+Therian$/i, "-T");
 }
+// Very recent Legends: Z-A Mega Evolutions - use PokemonGoHub direct artwork instead of guessing PokemonDB slugs
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+};
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
   if (key.startsWith("shadow ")){
     const base = key.replace(/^shadow\s+/, "");
     if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
