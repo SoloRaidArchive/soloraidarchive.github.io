@@ -43,10 +43,60 @@
     max-width: 620px; margin: 0 auto;
   }
 
-  .top-nav{
-    max-width: 1180px; margin: 24px auto 30px; padding: 0 24px;
-    display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
+  .updates-sidebar{
+    flex: 0 0 280px; position:sticky; top:20px;
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 16px; max-height: calc(100vh - 40px); overflow-y:auto;
   }
+  .update-list-item{
+    padding: 10px 0; border-bottom:1px solid var(--border);
+  }
+  .update-list-item:last-child{ border-bottom:none; }
+  .update-list-date{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:10px;
+    color: var(--blue-dark); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:3px;
+  }
+  .update-list-text{
+    font-size:12.5px; font-weight:700; color: var(--text); line-height:1.45;
+    white-space:pre-line;
+  }
+  .update-list-empty{
+    font-size:12.5px; font-weight:600; color: var(--text-dim); text-align:center; padding:10px 0;
+  }
+
+  .top-nav-wrap{
+    max-width: 1180px; margin: 24px auto 30px; padding: 0 24px;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px;
+  }
+  .top-nav-label{
+    font-weight:800; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em;
+    color: var(--text-dim);
+  }
+  .nav-dropdown{ position:relative; }
+  .nav-dropdown-trigger{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text-muted); cursor:pointer;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .nav-dropdown-trigger:hover{ transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark); }
+  .nav-dropdown-trigger.has-current{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .nav-dropdown-panel{
+    position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%);
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:8px; min-width:230px; box-shadow:0 10px 28px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:2px; z-index:30;
+  }
+  .nav-dropdown-panel.open{ display:flex; }
+  .nav-dropdown-item{
+    display:block; padding:9px 12px; border-radius:9px;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    color: var(--text-muted); text-decoration:none; white-space:nowrap;
+  }
+  .nav-dropdown-item:hover{ background: var(--bg1); color: var(--blue-dark); }
+  .nav-dropdown-item.current{ background: var(--blue); color:#fff; }
+  .top-nav-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   .top-nav-link{
     display:inline-flex; align-items:center; gap:6px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
@@ -236,6 +286,7 @@
   @media (max-width:820px){
     .page-layout{ flex-direction:column; }
     .patch-sidebar{ position:static; width:100%; flex:1 1 auto; }
+    .updates-sidebar{ position:static; width:100%; flex:1 1 auto; max-height:none; }
   }
   @media (max-width:640px){
     .tier-ref-grid{ grid-template-columns: 1fr; }
@@ -255,13 +306,13 @@
   </p>
 </header>
 
-<div class="top-nav">
+<div class="top-nav-wrap">
   <a href="meta-battle-parties.html" class="top-nav-link">📖 Meta Battle Parties</a>
   <a href="raid-strategies.html" class="top-nav-link">📜 Raid Strategies</a>
   <a href="move-data.html" class="top-nav-link">⚔️ Move Data</a>
   <a href="pokemon-stats.html" class="top-nav-link">📊 Pokémon Stats</a>
   <a href="ct-calculator.html" class="top-nav-link">🧮 Catch Tank Calculator</a>
-  <a href="research.html" class="top-nav-link">🔬 Research</a>
+  <a href="research.html" class="top-nav-link">🔬 Most Used Raiders</a>
 </div>
 
 <div class="page-layout">
@@ -374,6 +425,11 @@
   </div>
 
   </main>
+
+  <aside class="updates-sidebar">
+    <div class="patch-title" style="font-size:16px;">📢 Recent Updates</div>
+    <div id="updatesList"><div class="update-list-empty">Loading recent updates…</div></div>
+  </aside>
 </div>
 
 <footer>
@@ -404,6 +460,60 @@ try{
   else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
 }catch(e){}
 applyTheme(initialTheme);
+
+// ============ RECENT UPDATES LIST (pulled from live GitHub commit history) ============
+const UPDATES_REPO = "soloraidarchive/soloraidarchive.github.io";
+
+function escapeHtml(s){
+  const div = document.createElement("div");
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+async function loadUpdates(){
+  const listEl = document.getElementById("updatesList");
+  try{
+    const res = await fetch(`https://api.github.com/repos/${UPDATES_REPO}/commits?per_page=10`);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const commits = await res.json();
+    const updates = commits.map(c => {
+      const lines = c.commit.message.split("\n");
+      const title = lines[0].trim();
+      const body = lines.slice(1).join("\n").trim();
+      return {
+        text: body || title, // prefer the extended description; fall back to the title if none was written
+        date: new Date(c.commit.author.date),
+      };
+    }).filter(u => u.text);
+
+    if(updates.length === 0){
+      listEl.innerHTML = `<div class="update-list-empty">No recent updates yet.</div>`;
+      return;
+    }
+    listEl.innerHTML = updates.map(u => {
+      const dateStr = u.date.toLocaleDateString([], {month:"short", day:"numeric", year:"numeric"});
+      return `
+        <div class="update-list-item">
+          <div class="update-list-date">${dateStr}</div>
+          <div class="update-list-text">${escapeHtml(u.text)}</div>
+        </div>`;
+    }).join("");
+  }catch(e){
+    console.error("Failed to load recent updates:", e);
+    listEl.innerHTML = `<div class="update-list-empty">Couldn't load recent updates right now.</div>`;
+  }
+}
+loadUpdates();
+
+function toggleNavDropdown(e){
+  e.stopPropagation();
+  const panel = document.getElementById("navDropdownPanel");
+  if(panel) panel.classList.toggle("open");
+}
+document.addEventListener("click", () => {
+  const panel = document.getElementById("navDropdownPanel");
+  if(panel) panel.classList.remove("open");
+});
 </script>
 
 </body>
