@@ -837,6 +837,8 @@ const TYPE_OVERRIDES = {
   "galarian zigzagoon": {t1:"dark", t2:"normal"},
   "hisuian typhlosion": {t1:"fire", t2:"ghost"},
   "hisuian decidueye": {t1:"grass", t2:"fighting"},
+  "thundurus therian": {t1:"electric", t2:""},
+  "enamorus therian": {t1:"fairy", t2:""},
 };
 
 function findPokemonTypes(name){
@@ -849,6 +851,15 @@ function findPokemonTypes(name){
   if (exact) return { t1: exact.t1.toLowerCase(), t2: exact.t2.toLowerCase() };
   const base = POKEMON_TYPES.find(p => p.n.toLowerCase() === stripped);
   if (base) return { t1: base.t1.toLowerCase(), t2: base.t2.toLowerCase() };
+  // strip common forme suffixes (Origin/Altered/Incarnate/Therian/Resolute/Hero) and retry against the base species -
+  // most formes don't change typing; the ones that do (e.g. Thundurus/Enamorus Therian) are already caught by the
+  // explicit overrides above, which are checked first
+  const suffixStripped = key.replace(/\s+(origin|altered|incarnate|therian|resolute|hero)$/, "");
+  if (suffixStripped !== key) {
+    if (TYPE_OVERRIDES[suffixStripped]) return TYPE_OVERRIDES[suffixStripped];
+    const baseBySuffix = POKEMON_TYPES.find(p => p.n.toLowerCase() === suffixStripped);
+    if (baseBySuffix) return { t1: baseBySuffix.t1.toLowerCase(), t2: baseBySuffix.t2.toLowerCase() };
+  }
   return null;
 }
 function typeMultiplier(attackType, defType){
