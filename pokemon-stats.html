@@ -61,10 +61,45 @@
     font-size:13px; font-weight:600; padding: 9px 12px; border-radius: 10px; outline:none;
   }
 
-  .top-nav{
+  .top-nav-wrap{
     max-width: 1760px; margin: 64px auto 0; padding: 0 20px;
-    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    display:flex; flex-direction:row; align-items:flex-start; justify-content:center;
+    gap:28px; flex-wrap:wrap;
   }
+  .top-nav-group{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .top-nav-group + .top-nav-group{ padding-left:28px; border-left:2px solid var(--border); }
+  @media (max-width:760px){
+    .top-nav-group + .top-nav-group{ padding-left:0; border-left:none; }
+  }
+  .top-nav-label{
+    font-weight:800; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em;
+    color: var(--text-dim);
+  }
+  .nav-dropdown{ position:relative; }
+  .nav-dropdown-trigger{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text-muted); cursor:pointer;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .nav-dropdown-trigger:hover{ transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark); }
+  .nav-dropdown-trigger.has-current{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .nav-dropdown-panel{
+    position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%);
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:8px; min-width:230px; box-shadow:0 10px 28px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:2px; z-index:30;
+  }
+  .nav-dropdown-panel.open{ display:flex; }
+  .nav-dropdown-item{
+    display:block; padding:9px 12px; border-radius:9px;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    color: var(--text-muted); text-decoration:none; white-space:nowrap;
+  }
+  .nav-dropdown-item:hover{ background: var(--bg1); color: var(--blue-dark); }
+  .nav-dropdown-item.current{ background: var(--blue); color:#fff; }
+  .top-nav-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
   .top-nav-link{
     display:inline-flex; align-items:center; gap:5px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
@@ -106,17 +141,31 @@
 <a class="home-link" href="index.html">← Back to Home</a>
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
-<div class="top-nav">
-  <a href="tier4-raids.html" class="top-nav-link">Mega</a>
-  <a href="tier5-raids.html" class="top-nav-link">Legendary</a>
-  <a href="tier5-ae-raids.html" class="top-nav-link">Legendary AE</a>
-  <a href="tier6-elite-raids.html" class="top-nav-link">Mega Legendary &amp; Elite</a>
-  <a href="meta-battle-parties.html" class="top-nav-link">Meta Battle Parties</a>
-  <a href="raid-strategies.html" class="top-nav-link">Raid Strategies</a>
-  <a href="move-data.html" class="top-nav-link">Move Data</a>
-  <a href="pokemon-stats.html" class="top-nav-link current">Pokémon Stats</a>
-  <a href="ct-calculator.html" class="top-nav-link">Catch Tank Calculator</a>
-  <a href="research.html" class="top-nav-link">Research</a>
+<div class="top-nav-wrap">
+  <div class="top-nav-group">
+    <div class="nav-dropdown">
+      <button type="button" class="nav-dropdown-trigger" onclick="toggleNavDropdown(event, 'archivesDropdownPanel')">Raid Archives ▾</button>
+      <div class="nav-dropdown-panel" id="archivesDropdownPanel">
+        <a href="tier4-raids.html" class="nav-dropdown-item">Mega</a>
+        <a href="tier5-raids.html" class="nav-dropdown-item">Legendary</a>
+        <a href="tier5-ae-raids.html" class="nav-dropdown-item">Legendary AE</a>
+        <a href="tier6-elite-raids.html" class="nav-dropdown-item">Mega Legendary &amp; Elite</a>
+      </div>
+    </div>
+  </div>
+  <div class="top-nav-group">
+    <div class="nav-dropdown">
+      <button type="button" class="nav-dropdown-trigger has-current" onclick="toggleNavDropdown(event, 'navDropdownPanel')">Research &amp; Tools ▾</button>
+      <div class="nav-dropdown-panel" id="navDropdownPanel">
+        <a href="meta-battle-parties.html" class="nav-dropdown-item">Meta Battle Parties</a>
+        <a href="raid-strategies.html" class="nav-dropdown-item">Raid Strategies</a>
+        <a href="move-data.html" class="nav-dropdown-item">Move Data</a>
+        <a href="pokemon-stats.html" class="nav-dropdown-item current">Pokémon Stats</a>
+        <a href="ct-calculator.html" class="nav-dropdown-item">Catch Tank Calculator</a>
+        <a href="research.html" class="nav-dropdown-item">Most Used Raiders</a>
+      </div>
+    </div>
+  </div>
 </div>
 
 <header>
@@ -313,8 +362,8 @@ const POKEMON_DB = [
 {n:"Jangmo-o",hp:128.0,atk:102.0,def:108.0},{n:"Hakamo-o",hp:146.0,atk:145.0,def:162.0},{n:"Kommo-o",hp:181.0,atk:222.0,def:240.0},{n:"Tapu Koko",hp:172.0,atk:250.0,def:181.0},{n:"Tapu Lele",hp:172.0,atk:259.0,def:208.0},{n:"Tapu Bulu",hp:172.0,atk:249.0,def:215.0},
 {n:"Tapu Fini",hp:172.0,atk:189.0,def:254.0},{n:"Cosmog",hp:125.0,atk:54.0,def:57.0},{n:"Cosmoem",hp:125.0,atk:54.0,def:242.0},{n:"Solgaleo",hp:264.0,atk:255.0,def:191.0},{n:"Lunala",hp:264.0,atk:255.0,def:191.0},{n:"Nihilego",hp:240.0,atk:249.0,def:210.0},
 {n:"Buzzwole",hp:216.0,atk:236.0,def:196.0},{n:"Pheromosa",hp:174.0,atk:316.0,def:85.0},{n:"Xurkitree",hp:195.0,atk:330.0,def:144.0},{n:"Shadow Xurkitree",hp:195.0,atk:330.0,def:144.0},{n:"Celesteela",hp:219.0,atk:207.0,def:199.0},{n:"Kartana",hp:139.0,atk:323.0,def:182.0},
-{n:"Shadow Kartana",hp:139.0,atk:323.0,def:182.0},{n:"Guzzlord",hp:440.0,atk:188.0,def:99.0},{n:"Necrozma",hp:219.0,atk:251.0,def:195.0},{n:"Necrozma Dusk Mane",hp:200.0,atk:277.0,def:220.0},{n:"NDM",hp:200.0,atk:277.0,def:220.0},{n:"Necrozma Dawn Wings",hp:200.0,atk:277.0,def:220.0},
-{n:"NDW",hp:200.0,atk:277.0,def:220.0},{n:"Ultra Necrozma",hp:200.0,atk:337.0,def:196.0},{n:"Magearna",hp:190.0,atk:246.0,def:225.0},{n:"Mega Magearna",hp:190.0,atk:342.0,def:239.0},{n:"Marshadow",hp:207.0,atk:265.0,def:190.0},{n:"Poipole",hp:167.0,atk:145.0,def:133.0},
+{n:"Shadow Kartana",hp:139.0,atk:323.0,def:182.0},{n:"Guzzlord",hp:440.0,atk:188.0,def:99.0},{n:"Necrozma",hp:219.0,atk:251.0,def:195.0},{n:"Necrozma Dusk Mane",hp:200.0,atk:277.0,def:220.0},{n:"Necrozma Dawn Wings",hp:200.0,atk:277.0,def:220.0},
+{n:"Ultra Necrozma",hp:200.0,atk:337.0,def:196.0},{n:"Magearna",hp:190.0,atk:246.0,def:225.0},{n:"Mega Magearna",hp:190.0,atk:342.0,def:239.0},{n:"Marshadow",hp:207.0,atk:265.0,def:190.0},{n:"Poipole",hp:167.0,atk:145.0,def:133.0},
 {n:"Naganadel",hp:177.0,atk:263.0,def:159.0},{n:"Stakataka",hp:156.0,atk:213.0,def:298.0},{n:"Blacephalon",hp:142.0,atk:315.0,def:148.0},{n:"Zeraora",hp:204.0,atk:252.0,def:177.0},{n:"Mega Zeraora",hp:204.0,atk:361.0,def:180.0},{n:"Meltan",hp:130.0,atk:118.0,def:99.0},
 {n:"Melmetal",hp:264.0,atk:226.0,def:190.0},{n:"Grookey",hp:137.0,atk:122.0,def:91.0},{n:"Thwackey",hp:172.0,atk:165.0,def:134.0},{n:"Rillaboom",hp:225.0,atk:239.0,def:168.0},{n:"Scorbunny",hp:137.0,atk:132.0,def:79.0},{n:"Raboot",hp:163.0,atk:170.0,def:125.0},
 {n:"Cinderace",hp:190.0,atk:238.0,def:163.0},{n:"Shadow Cinderace",hp:190.0,atk:238.0,def:163.0},{n:"Sobble",hp:137.0,atk:132.0,def:79.0},{n:"Drizzile",hp:163.0,atk:186.0,def:113.0},{n:"Inteleon",hp:142.0,atk:262.0,def:172.0},{n:"Shadow Inteleon",hp:142.0,atk:262.0,def:172.0},
@@ -450,6 +499,18 @@ try{
   else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
 }catch(e){}
 applyTheme(initialTheme);
+
+function toggleNavDropdown(e, panelId){
+  e.stopPropagation();
+  const panel = document.getElementById(panelId);
+  if(!panel) return;
+  const isOpen = panel.classList.contains("open");
+  document.querySelectorAll(".nav-dropdown-panel.open").forEach(p => p.classList.remove("open"));
+  if(!isOpen) panel.classList.add("open");
+}
+document.addEventListener("click", () => {
+  document.querySelectorAll(".nav-dropdown-panel.open").forEach(p => p.classList.remove("open"));
+});
 </script>
 </body>
 </html>

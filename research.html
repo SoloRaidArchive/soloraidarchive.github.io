@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Research — Pokémon Usage</title>
+<title>Most Used Raiders — Pokémon Usage</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -39,10 +39,45 @@
     font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
     box-shadow: 0 3px 0 rgba(0,0,0,0.06);
   }
-  .top-nav{
+  .top-nav-wrap{
     max-width: 1760px; margin: 64px auto 0; padding: 0 20px;
-    display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    display:flex; flex-direction:row; align-items:flex-start; justify-content:center;
+    gap:28px; flex-wrap:wrap;
   }
+  .top-nav-group{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .top-nav-group + .top-nav-group{ padding-left:28px; border-left:2px solid var(--border); }
+  @media (max-width:760px){
+    .top-nav-group + .top-nav-group{ padding-left:0; border-left:none; }
+  }
+  .top-nav-label{
+    font-weight:800; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em;
+    color: var(--text-dim);
+  }
+  .nav-dropdown{ position:relative; }
+  .nav-dropdown-trigger{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text-muted); cursor:pointer;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .nav-dropdown-trigger:hover{ transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark); }
+  .nav-dropdown-trigger.has-current{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .nav-dropdown-panel{
+    position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%);
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:8px; min-width:230px; box-shadow:0 10px 28px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:2px; z-index:30;
+  }
+  .nav-dropdown-panel.open{ display:flex; }
+  .nav-dropdown-item{
+    display:block; padding:9px 12px; border-radius:9px;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    color: var(--text-muted); text-decoration:none; white-space:nowrap;
+  }
+  .nav-dropdown-item:hover{ background: var(--bg1); color: var(--blue-dark); }
+  .nav-dropdown-item.current{ background: var(--blue); color:#fff; }
+  .top-nav-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
   .top-nav-link{
     display:inline-flex; align-items:center; gap:5px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
@@ -162,22 +197,36 @@
 <a class="home-link" href="index.html">← Back to Home</a>
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
-<div class="top-nav">
-  <a href="tier4-raids.html" class="top-nav-link">Mega</a>
-  <a href="tier5-raids.html" class="top-nav-link">Legendary</a>
-  <a href="tier5-ae-raids.html" class="top-nav-link">Legendary AE</a>
-  <a href="tier6-elite-raids.html" class="top-nav-link">Mega Legendary &amp; Elite</a>
-  <a href="meta-battle-parties.html" class="top-nav-link">Meta Battle Parties</a>
-  <a href="raid-strategies.html" class="top-nav-link">Raid Strategies</a>
-  <a href="move-data.html" class="top-nav-link">Move Data</a>
-  <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
-  <a href="ct-calculator.html" class="top-nav-link">Catch Tank Calculator</a>
-  <a href="research.html" class="top-nav-link current">Research</a>
+<div class="top-nav-wrap">
+  <div class="top-nav-group">
+    <div class="nav-dropdown">
+      <button type="button" class="nav-dropdown-trigger" onclick="toggleNavDropdown(event, 'archivesDropdownPanel')">Raid Archives ▾</button>
+      <div class="nav-dropdown-panel" id="archivesDropdownPanel">
+        <a href="tier4-raids.html" class="nav-dropdown-item">Mega</a>
+        <a href="tier5-raids.html" class="nav-dropdown-item">Legendary</a>
+        <a href="tier5-ae-raids.html" class="nav-dropdown-item">Legendary AE</a>
+        <a href="tier6-elite-raids.html" class="nav-dropdown-item">Mega Legendary &amp; Elite</a>
+      </div>
+    </div>
+  </div>
+  <div class="top-nav-group">
+    <div class="nav-dropdown">
+      <button type="button" class="nav-dropdown-trigger has-current" onclick="toggleNavDropdown(event, 'navDropdownPanel')">Research &amp; Tools ▾</button>
+      <div class="nav-dropdown-panel" id="navDropdownPanel">
+        <a href="meta-battle-parties.html" class="nav-dropdown-item">Meta Battle Parties</a>
+        <a href="raid-strategies.html" class="nav-dropdown-item">Raid Strategies</a>
+        <a href="move-data.html" class="nav-dropdown-item">Move Data</a>
+        <a href="pokemon-stats.html" class="nav-dropdown-item">Pokémon Stats</a>
+        <a href="ct-calculator.html" class="nav-dropdown-item">Catch Tank Calculator</a>
+        <a href="research.html" class="nav-dropdown-item current">Most Used Raiders</a>
+      </div>
+    </div>
+  </div>
 </div>
 
 <header>
-  <div class="eyebrow">Research</div>
-  <h1>Most-Used Pokémon</h1>
+  <div class="eyebrow">Most Used Raiders</div>
+  <h1>Most Used Raiders</h1>
   <p>How many distinct raid bosses each Pokémon has been used to solo, counted once per boss regardless of how many strategies use it. Pulled live from every archive on this site.</p>
 </header>
 
@@ -250,7 +299,7 @@ function displayName(name){
 // Precomputed from all four raid archives (regenerate this block whenever raid data changes)
 const USAGE_DATA = [
 {name:"Mega Rayquaza",count:20,bosses:[{name:"Buzzwole",file:"tier5-raids.html"},{name:"Giratina Altered",file:"tier5-ae-raids.html"},{name:"Giratina Origin",file:"tier5-raids.html"},{name:"Kyurem",file:"tier5-raids.html"},{name:"Kyurem White",file:"tier5-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"},{name:"Mega Beedrill",file:"tier4-raids.html"},{name:"Mega Blaziken",file:"tier4-raids.html"},{name:"Mega Gallade",file:"tier4-raids.html"},{name:"Mega Heracross",file:"tier4-raids.html"},{name:"Mega Lopunny",file:"tier4-raids.html"},{name:"Mega Medicham",file:"tier4-raids.html"},{name:"Mega Venusaur",file:"tier4-raids.html"},{name:"Palkia",file:"tier5-ae-raids.html"},{name:"Pheromosa",file:"tier5-raids.html"},{name:"Regidrago",file:"tier6-elite-raids.html"},{name:"Reshiram",file:"tier5-ae-raids.html"},{name:"Tapu Bulu",file:"tier5-ae-raids.html"},{name:"Virizion",file:"tier5-raids.html"},{name:"Zekrom",file:"tier5-raids.html"}],roles:["Support DPS","Main DPS"]},{name:"Mega Lucario",count:17,bosses:[{name:"Darkrai",file:"tier5-ae-raids.html"},{name:"Dialga",file:"tier5-ae-raids.html"},{name:"Kyurem",file:"tier5-raids.html"},{name:"Kyurem Black",file:"tier5-raids.html"},{name:"Kyurem White",file:"tier5-raids.html"},{name:"Mega Absol",file:"tier4-raids.html"},{name:"Mega Aggron",file:"tier4-raids.html"},{name:"Mega Glalie",file:"tier4-raids.html"},{name:"Mega Gyarados",file:"tier4-raids.html"},{name:"Mega Houndoom",file:"tier4-raids.html"},{name:"Mega Kangaskhan",file:"tier4-raids.html"},{name:"Mega Lucario",file:"tier4-raids.html"},{name:"Mega Steelix",file:"tier4-raids.html"},{name:"Mega Tyranitar",file:"tier4-raids.html"},{name:"Regigigas",file:"tier5-ae-raids.html"},{name:"Stakataka",file:"tier5-raids.html"},{name:"Terrakion",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},
-{name:"Kyurem Black",count:16,bosses:[{name:"Darkrai",file:"tier5-ae-raids.html"},{name:"Dialga",file:"tier5-ae-raids.html"},{name:"Enamorus Therian",file:"tier5-raids.html"},{name:"Landorus Incarnate",file:"tier5-raids.html"},{name:"Landorus Therian",file:"tier5-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"},{name:"Mega Garchomp",file:"tier4-raids.html"},{name:"Mega Rayquaza",file:"tier6-elite-raids.html"},{name:"Mega Salamence",file:"tier4-raids.html"},{name:"Rayquaza",file:"tier5-raids.html"},{name:"Regidrago",file:"tier6-elite-raids.html"},{name:"Regigigas",file:"tier5-ae-raids.html"},{name:"Thundurus Therian",file:"tier5-raids.html"},{name:"Tornadus Therian",file:"tier5-ae-raids.html"},{name:"Yveltal",file:"tier5-ae-raids.html"},{name:"Zekrom",file:"tier5-raids.html"}],roles:["Catch Tank","Main DPS"]},{name:"Necrozma Dawn Wings",count:15,bosses:[{name:"Azelf",file:"tier5-raids.html"},{name:"Blacephalon",file:"tier5-raids.html"},{name:"Deoxys",file:"tier5-raids.html"},{name:"Giratina Altered",file:"tier5-ae-raids.html"},{name:"Giratina Origin",file:"tier5-raids.html"},{name:"Lunala",file:"tier5-raids.html"},{name:"Mega Alakazam",file:"tier4-raids.html"},{name:"Mega Banette",file:"tier4-raids.html"},{name:"Mega Gengar",file:"tier4-raids.html"},{name:"Mega Slowbro",file:"tier4-raids.html"},{name:"Mewtwo",file:"tier5-raids.html"},{name:"NDM",file:"tier5-ae-raids.html"},{name:"NDW",file:"tier5-raids.html"},{name:"Necrozma",file:"tier5-raids.html"},{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},
+{name:"Kyurem Black",count:16,bosses:[{name:"Darkrai",file:"tier5-ae-raids.html"},{name:"Dialga",file:"tier5-ae-raids.html"},{name:"Enamorus Therian",file:"tier5-raids.html"},{name:"Landorus Incarnate",file:"tier5-raids.html"},{name:"Landorus Therian",file:"tier5-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"},{name:"Mega Garchomp",file:"tier4-raids.html"},{name:"Mega Rayquaza",file:"tier6-elite-raids.html"},{name:"Mega Salamence",file:"tier4-raids.html"},{name:"Rayquaza",file:"tier5-raids.html"},{name:"Regidrago",file:"tier6-elite-raids.html"},{name:"Regigigas",file:"tier5-ae-raids.html"},{name:"Thundurus Therian",file:"tier5-raids.html"},{name:"Tornadus Therian",file:"tier5-ae-raids.html"},{name:"Yveltal",file:"tier5-ae-raids.html"},{name:"Zekrom",file:"tier5-raids.html"}],roles:["Catch Tank","Main DPS"]},{name:"Necrozma Dawn Wings",count:15,bosses:[{name:"Azelf",file:"tier5-raids.html"},{name:"Blacephalon",file:"tier5-raids.html"},{name:"Deoxys",file:"tier5-raids.html"},{name:"Giratina Altered",file:"tier5-ae-raids.html"},{name:"Giratina Origin",file:"tier5-raids.html"},{name:"Lunala",file:"tier5-raids.html"},{name:"Mega Alakazam",file:"tier4-raids.html"},{name:"Mega Banette",file:"tier4-raids.html"},{name:"Mega Gengar",file:"tier4-raids.html"},{name:"Mega Slowbro",file:"tier4-raids.html"},{name:"Mewtwo",file:"tier5-raids.html"},{name:"Necrozma",file:"tier5-raids.html"},{name:"Necrozma Dawn Wings",file:"tier5-raids.html"},{name:"Necrozma Dusk Mane",file:"tier5-ae-raids.html"},{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},
 {name:"Eternatus",count:13,bosses:[{name:"Dialga",file:"tier5-ae-raids.html"},{name:"Giratina Altered",file:"tier5-ae-raids.html"},{name:"Giratina Origin",file:"tier5-raids.html"},{name:"Kyurem",file:"tier5-raids.html"},{name:"Kyurem Black",file:"tier5-ae-raids.html"},{name:"Kyurem White",file:"tier5-ae-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"},{name:"Mega Charizard X",file:"tier4-raids.html"},{name:"Palkia",file:"tier5-ae-raids.html"},{name:"Regidrago",file:"tier5-raids.html"},{name:"Reshiram",file:"tier5-ae-raids.html"},{name:"Tapu Bulu",file:"tier5-raids.html"},{name:"Zekrom",file:"tier5-raids.html"}],roles:["Main DPS","Support DPS"]},{name:"Primal Groudon",count:12,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Entei",file:"tier5-ae-raids.html"},{name:"Heatran",file:"tier5-raids.html"},{name:"Mega Ampharos",file:"tier4-raids.html"},{name:"Mega Manectric",file:"tier4-raids.html"},{name:"Mega Mawile",file:"tier4-raids.html"},{name:"Mega Metagross",file:"tier4-raids.html"},{name:"Nihilego",file:"tier5-raids.html"},{name:"Regieleki",file:"tier5-raids.html"},{name:"Tapu Koko",file:"tier5-ae-raids.html"},{name:"Terrakion",file:"tier5-ae-raids.html"},{name:"Xurkitree",file:"tier5-raids.html"}],roles:["Main DPS"]},
 {name:"Zacian Crown",count:12,bosses:[{name:"Enamorus Incarnate",file:"tier5-raids.html"},{name:"Enamorus Therian",file:"tier5-raids.html"},{name:"Enamorus therian",file:"tier5-ae-raids.html"},{name:"Kyurem",file:"tier5-raids.html"},{name:"Kyurem White",file:"tier5-ae-raids.html"},{name:"Mega Aerodactyl",file:"tier4-raids.html"},{name:"Mega Altaria",file:"tier4-raids.html"},{name:"Mega Gardevoir",file:"tier4-raids.html"},{name:"Mega Sableye",file:"tier4-raids.html"},{name:"Tapu Lele",file:"tier5-ae-raids.html"},{name:"Terrakion",file:"tier5-raids.html"},{name:"Xerneas",file:"tier5-raids.html"}],roles:["Main DPS","Support DPS"]},{name:"Kyurem White",count:10,bosses:[{name:"Landorus Incarnate",file:"tier5-raids.html"},{name:"Landorus Therian",file:"tier5-raids.html"},{name:"Mega Rayquaza",file:"tier6-elite-raids.html"},{name:"Mega Sceptile",file:"tier4-raids.html"},{name:"Thundurus Incarnate",file:"tier5-raids.html"},{name:"Thundurus Therian",file:"tier5-raids.html"},{name:"Tornadus Incarnate",file:"tier5-raids.html"},{name:"Tornadus Therian",file:"tier5-ae-raids.html"},{name:"Yveltal",file:"tier5-ae-raids.html"},{name:"Zapdos",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},
 {name:"Shadow Groudon",count:9,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Entei",file:"tier5-ae-raids.html"},{name:"Heatran",file:"tier5-raids.html"},{name:"Mega Mawile",file:"tier4-raids.html"},{name:"Mega Metagross",file:"tier4-raids.html"},{name:"Nihilego",file:"tier5-raids.html"},{name:"Regieleki",file:"tier5-raids.html"},{name:"Tapu Koko",file:"tier5-ae-raids.html"},{name:"Xurkitree",file:"tier5-ae-raids.html"}],roles:["Support DPS","Catch Tank"]},{name:"Mega Blaziken",count:8,bosses:[{name:"Celesteela",file:"tier5-ae-raids.html"},{name:"Genesect",file:"tier5-raids.html"},{name:"Kartana",file:"tier5-raids.html"},{name:"Mega Aggron",file:"tier4-raids.html"},{name:"Mega Metagross",file:"tier4-raids.html"},{name:"Mega Scizor",file:"tier4-raids.html"},{name:"Mega Steelix",file:"tier4-raids.html"},{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Executor","Support DPS"]},
@@ -364,6 +413,18 @@ try{
   else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
 }catch(e){}
 applyTheme(initialTheme);
+
+function toggleNavDropdown(e, panelId){
+  e.stopPropagation();
+  const panel = document.getElementById(panelId);
+  if(!panel) return;
+  const isOpen = panel.classList.contains("open");
+  document.querySelectorAll(".nav-dropdown-panel.open").forEach(p => p.classList.remove("open"));
+  if(!isOpen) panel.classList.add("open");
+}
+document.addEventListener("click", () => {
+  document.querySelectorAll(".nav-dropdown-panel.open").forEach(p => p.classList.remove("open"));
+});
 </script>
 </body>
 </html>
