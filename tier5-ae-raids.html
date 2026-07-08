@@ -294,8 +294,18 @@
     font-size:11px; color: var(--text-muted); font-weight:800; margin-top:4px;
     display:flex; flex-direction:column; gap:2px;
   }
-  .move-stat-line{ font-size:11px; color: var(--text-muted); font-weight:600; line-height:1.4; }
-  .move-stat-line b{ color: var(--text); font-weight:800; }
+  .move-stat-line{ margin-bottom:5px; }
+  .move-stat-line:last-child{ margin-bottom:0; }
+  .move-stat-name{ display:flex; align-items:center; gap:6px; font-size:11.5px; }
+  .move-stat-name b{ color: var(--text); font-weight:800; }
+  .move-type-badge{
+    width:32px; height:14px; border-radius:3px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Nunito', sans-serif; font-weight:900; font-size:7px;
+    letter-spacing:0.01em; text-transform:uppercase; line-height:1;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.15); overflow:hidden; white-space:nowrap;
+  }
+  .move-stat-detail{ font-size:10.5px; color: var(--text-dim); font-weight:600; line-height:1.4; margin-left:38px; margin-top:1px; }
   .role-chip{
     align-self:flex-start; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px;
   }
@@ -556,20 +566,23 @@ function normalizeWeather(w){
 
 // Tier 5 AE column layout: boss=1, tier=2, strategy=3, fast=5, charge=7, weather=8, ae=10 (boolean presence)
 // Party slots (6 max): base=13+5*i. Slots 0-1: name,role,fast,charge. Slots 2+: name,fast,charge,role (reversed).
+// New clean CSV layout (single header row, no blank spacer columns):
+// boss=0, tier=1, strategy=2, fast=3, charge=4, weather=5, ae=6 (URL presence)
+// Party slots (6 max, uniform order): base=7+4*i -> name,role,fast,charge
 function rowsToRaids(rows){
   const raids = [];
   for(const row of rows){
-    if(row.length < 18) continue;
-    const boss = (row[1] || "").trim();
-    const tierRaw = (row[2] || "").trim();
+    if(row.length < 10) continue;
+    const boss = (row[0] || "").trim();
+    const tierRaw = (row[1] || "").trim();
     const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
     if(!boss || !tierMatch) continue;
     const tier = tierMatch[1];
-    const strategy = (row[3] || "").trim();
-    const fast = (row[5] || "").trim();
-    const charge = (row[7] || "").trim();
-    const weather = normalizeWeather(row[8]);
-    const ae = !!(row[10] || "").trim();
+    const strategy = (row[2] || "").trim();
+    const fast = (row[3] || "").trim();
+    const charge = (row[4] || "").trim();
+    const weather = normalizeWeather(row[5]);
+    const ae = !!(row[6] || "").trim();
 
     let vodIdx = -1;
     for(let i = 0; i < row.length; i++){
@@ -578,20 +591,12 @@ function rowsToRaids(rows){
 
     const party = [];
     for(let i = 0; i < 6; i++){
-      const base = 13 + 5*i;
+      const base = 7 + 4*i;
       if(vodIdx !== -1 && base >= vodIdx) break;
-      let name, role, pfast, pcharge;
-      if(i < 2){
-        name = (row[base] || "").trim();
-        role = (row[base+1] || "").trim();
-        pfast = (row[base+2] || "").trim();
-        pcharge = (row[base+3] || "").trim();
-      } else {
-        name = (row[base] || "").trim();
-        pfast = (row[base+1] || "").trim();
-        pcharge = (row[base+2] || "").trim();
-        role = (row[base+3] || "").trim();
-      }
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
       if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
     }
 
@@ -600,7 +605,7 @@ function rowsToRaids(rows){
       vod = (row[vodIdx+1] || "").trim();
       notes = (row[vodIdx+2] || "").trim();
     } else {
-      const trail = row.slice(35).map(x => x.trim()).filter(Boolean);
+      const trail = row.slice(31).map(x => x.trim()).filter(Boolean);
       if(trail.length) notes = trail[trail.length-1];
     }
 
@@ -877,14 +882,30 @@ function findMoveStats(moveName){
   const key = moveName.trim().toLowerCase();
   return MOVE_DB.find(m => m.n.toLowerCase() === key) || null;
 }
+const BADGE_COLORS = {normal:"#9199A1", fire:"#B8300A", water:"#285B91", electric:"#E0B316", grass:"#326425", ice:"#5AC9C9", fighting:"#69291B", poison:"#592860", ground:"#452C16", flying:"#8B93E0", psychic:"#912A47", bug:"#4F6413", rock:"#754112", ghost:"#3B3059", dragon:"#3B2891", dark:"#302A24", steel:"#4F5964", fairy:"#E091C9"};
+const BADGE_TEXT = {normal:"#161616", fire:"#ffffff", water:"#ffffff", electric:"#161616", grass:"#ffffff", ice:"#161616", fighting:"#ffffff", poison:"#ffffff", ground:"#ffffff", flying:"#161616", psychic:"#ffffff", bug:"#ffffff", rock:"#ffffff", ghost:"#ffffff", dragon:"#ffffff", dark:"#ffffff", steel:"#ffffff", fairy:"#161616"};
+const TYPE_ABBR = {normal:"NOR", fire:"FIRE", water:"WAT", electric:"ELE", grass:"GRA", ice:"ICE", fighting:"FIG", poison:"POI", ground:"GRO", flying:"FLY", psychic:"PSY", bug:"BUG", rock:"ROCK", ghost:"GHO", dragon:"DRA", dark:"DARK", steel:"STE", fairy:"FAI"};
+function moveTypeBadgeHtml(moveName, stats){
+  const type = stats ? stats.elem.toLowerCase() : getMoveType(moveName);
+  if(!type || !BADGE_COLORS[type]) return "";
+  const bg = BADGE_COLORS[type];
+  const textColor = BADGE_TEXT[type];
+  const shadow = textColor === "#ffffff" ? "0 0 2px rgba(0,0,0,0.5)" : "0 0 2px rgba(255,255,255,0.6)";
+  const abbr = TYPE_ABBR[type];
+  return `<span class="move-type-badge" style="background:${bg}; color:${textColor}; text-shadow:${shadow};" title="${type}">${abbr}</span>`;
+}
 function moveStatLineHtml(moveName, kind){
   const stats = findMoveStats(moveName);
+  const badge = moveTypeBadgeHtml(moveName, stats);
   if(!stats){
-    return `<div class="move-stat-line"><b>${moveName}</b></div>`;
+    return `<div class="move-stat-line"><div class="move-stat-name">${badge}<b>${moveName}</b></div></div>`;
   }
   const seconds = (stats.ad * 0.5).toFixed(1);
   const energyLabel = kind === "Charge" ? `${Math.abs(stats.energy)} energy cost` : `${stats.energy} energy`;
-  return `<div class="move-stat-line"><b>${moveName}</b> — ${stats.dmg} dmg, ${energyLabel}, ${seconds}s AD | ${stats.ad}t</div>`;
+  return `<div class="move-stat-line">
+    <div class="move-stat-name">${badge}<b>${moveName}</b></div>
+    <div class="move-stat-detail">${stats.dmg} dmg, ${energyLabel}, ${seconds}s AD | ${stats.ad}t</div>
+  </div>`;
 }
 function moveStatLinesHtml(moveStr, kind){
   if(!moveStr) return "";
