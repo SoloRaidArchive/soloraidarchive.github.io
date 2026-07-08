@@ -298,8 +298,11 @@
   .member-name{ font-size:14.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .role-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .party-moveset{
-    font-size:11px; color: var(--text-muted); font-weight:800; margin-top:3px;
+    font-size:11px; color: var(--text-muted); font-weight:800; margin-top:4px;
+    display:flex; flex-direction:column; gap:2px;
   }
+  .move-stat-line{ font-size:11px; color: var(--text-muted); font-weight:600; line-height:1.4; }
+  .move-stat-line b{ color: var(--text); font-weight:800; }
   .role-chip{
     align-self:flex-start; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px;
   }
@@ -772,13 +775,152 @@ const TYPE_TEXT_COLOR = {
   rock:"#ffffff", ghost:"#ffffff", dragon:"#ffffff", dark:"#ffffff",
   steel:"#ffffff", fairy:"#161616",
 };
+// Hidden Power is entered in the CSV abbreviated (e.g. "HP Fig", "Hidden Power (Fi)") - expand it for display
+const HP_TYPE_MAP = {
+  "bug":"Bug", "bu":"Bug",
+  "da":"Dark", "dark":"Dark",
+  "dr":"Dragon", "dragon":"Dragon",
+  "el":"Electric", "electric":"Electric",
+  "fig":"Fighting", "fighting":"Fighting",
+  "fi":"Fire", "fire":"Fire",
+  "fl":"Flying", "flying":"Flying",
+  "gh":"Ghost", "ghost":"Ghost",
+  "gra":"Grass", "gr":"Grass", "grass":"Grass",
+  "gro":"Ground", "ground":"Ground",
+  "i":"Ice", "ice":"Ice",
+  "po":"Poison", "poison":"Poison",
+  "ps":"Psychic", "psychic":"Psychic",
+  "ro":"Rock", "rock":"Rock",
+  "st":"Steel", "steel":"Steel",
+  "wa":"Water", "water":"Water",
+};
+const MOVE_DB = [
+{n:"Dragon Tail",dmg:14.0,energy:8.0,ad:2.0,type:"Fast",elem:"Dragon"},{n:"Dragon Breath",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Dragon"},{n:"Hidden Power Dragon",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Dragon"},{n:"Outrage",dmg:110.0,energy:-50.0,ad:8.0,type:"Charge",elem:"Dragon"},
+{n:"Draco Meteor",dmg:150.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Dragon"},{n:"Breaking Swipe",dmg:45.0,energy:-33.0,ad:2.0,type:"Charge",elem:"Dragon"},{n:"Spacial Rend",dmg:160.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Dragon"},{n:"Roar Of Time",dmg:160.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Dragon"},
+{n:"Dragon Pulse",dmg:90.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Dragon"},{n:"Dragon Claw",dmg:45.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Dragon"},{n:"Twister",dmg:50.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Dragon"},{n:"Dragon Energy",dmg:155.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Dragon"},
+{n:"Clanging Scales",dmg:120.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Dragon"},{n:"Dynamax Cannon",dmg:215.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Dragon"},{n:"Glaive Rush",dmg:105.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Dragon"},{n:"Fire Spin",dmg:13.0,energy:9.0,ad:2.0,type:"Fast",elem:"Fire"},
+{n:"Fire Fang",dmg:13.0,energy:9.0,ad:2.0,type:"Fast",elem:"Fire"},{n:"Hidden Power Fire",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Fire"},{n:"Incinerate",dmg:32.0,energy:22.0,ad:5.0,type:"Fast",elem:"Fire"},{n:"Ember",dmg:10.0,energy:10.0,ad:2.0,type:"Fast",elem:"Fire"},
+{n:"Fusion Flare",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Fire"},{n:"Overheat",dmg:160.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Fire"},{n:"Fire Blast",dmg:130.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Fire"},{n:"Blast Burn",dmg:120.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Fire"},
+{n:"Mystical Fire",dmg:60.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Fire"},{n:"Magma Storm",dmg:75.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Fire"},{n:"Torch Song",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Fire"},{n:"Sacred Fire++",dmg:155.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Fire"},
+{n:"Sacred Fire+",dmg:135.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Fire"},{n:"Sacred Fire",dmg:120.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Fire"},{n:"V-Create",dmg:105.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Fire"},{n:"Techno Blast (Fire)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Fire"},
+{n:"Blaze Kick",dmg:40.0,energy:-33.0,ad:2.0,type:"Charge",elem:"Fire"},{n:"Flame Burst",dmg:70.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fire"},{n:"Flame Charge",dmg:70.0,energy:-33.0,ad:8.0,type:"Charge",elem:"Fire"},{n:"Fire Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Fire"},
+{n:"Weather Ball (Fire)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Fire"},{n:"Heat Wave",dmg:95.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Fire"},{n:"Flamethrower",dmg:65.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fire"},{n:"Flame Wheel",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fire"},
+{n:"Mind Blown",dmg:130.0,energy:-33.0,ad:8.0,type:"Charge",elem:"Fire"},{n:"Pyro Ball",dmg:150.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Fire"},{n:"Metal Claw",dmg:6.0,energy:5.0,ad:1.0,type:"Fast",elem:"Steel"},{n:"Hidden Power Steel",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Steel"},
+{n:"Steel Wing",dmg:14.0,energy:8.0,ad:2.0,type:"Fast",elem:"Steel"},{n:"Bullet Punch",dmg:10.0,energy:11.0,ad:2.0,type:"Fast",elem:"Steel"},{n:"Iron Tail",dmg:14.0,energy:6.0,ad:2.0,type:"Fast",elem:"Steel"},{n:"Metal Sound",dmg:4.0,energy:6.0,ad:1.0,type:"Fast",elem:"Steel"},
+{n:"Sunsteel Strike",dmg:230.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Steel"},{n:"Behemoth Blade",dmg:200.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Steel"},{n:"Behemoth Bash",dmg:125.0,energy:-50.0,ad:3.0,type:"Charge",elem:"Steel"},{n:"Meteor Mash",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Steel"},
+{n:"Iron Head",dmg:60.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Steel"},{n:"Heavy Slam",dmg:70.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Steel"},{n:"Double Iron Bash",dmg:70.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Steel"},{n:"Mirror Shot",dmg:50.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Steel"},
+{n:"Doom Desire",dmg:65.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Steel"},{n:"Magnet Bomb",dmg:75.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Steel"},{n:"Flash Cannon",dmg:100.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Steel"},{n:"Gyro Ball",dmg:85.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Steel"},
+{n:"Gigaton Hammer",dmg:300.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Steel"},{n:"Bubble",dmg:10.0,energy:12.0,ad:2.0,type:"Fast",elem:"Water"},{n:"Splash",dmg:0.0,energy:17.0,ad:3.0,type:"Fast",elem:"Water"},{n:"Hidden Power Water",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Water"},
+{n:"Water Gun",dmg:5.0,energy:5.0,ad:1.0,type:"Fast",elem:"Water"},{n:"Water Shuriken",dmg:9.0,energy:14.0,ad:2.0,type:"Fast",elem:"Water"},{n:"Waterfall",dmg:13.0,energy:7.0,ad:2.0,type:"Fast",elem:"Water"},{n:"Aqua Jet",dmg:45.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Water"},
+{n:"Aqua Step",dmg:55.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Water"},{n:"Aqua Tail",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Brine",dmg:65.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Water"},{n:"Bubble Beam",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Water"},
+{n:"Crabhammer",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Hydro Cannon",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Hydro Pump",dmg:135.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Water"},{n:"Liquidation",dmg:70.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Water"},
+{n:"Muddy Water",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Octazooka",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Water"},{n:"Origin Pulse",dmg:120.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Water"},{n:"Razor Shell",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Water"},
+{n:"Scald",dmg:75.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Water"},{n:"Sparkling Aria",dmg:85.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Water"},{n:"Snipe Shot",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Water"},{n:"Surf",dmg:60.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Water"},
+{n:"Techno Blast (Water)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Water"},{n:"Water Pulse",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Water"},{n:"Weather Ball (Water)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Water"},{n:"Hex",dmg:8.0,energy:13.0,ad:2.0,type:"Fast",elem:"Ghost"},
+{n:"Lick",dmg:5.0,energy:6.0,ad:1.0,type:"Fast",elem:"Ghost"},{n:"Hidden Power Ghost",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Ghost"},{n:"Shadow Claw",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Ghost"},{n:"Astonish",dmg:7.0,energy:13.0,ad:2.0,type:"Fast",elem:"Ghost"},
+{n:"Shadow Ball",dmg:100.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Moongeist Beam",dmg:230.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Shadow Force",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Ghost"},{n:"Poltergeist",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Ghost"},
+{n:"Spirit Shackle",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Ghost"},{n:"Rage Fist",dmg:100.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Shadow Sneak",dmg:50.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Shadow Punch",dmg:35.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Ghost"},
+{n:"Ominous Wind",dmg:55.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Ghost"},{n:"Night Shade",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Ghost"},{n:"Shadow Bone",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ghost"},{n:"Astral Barrage (Test)",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Ghost"},
+{n:"Psycho Cut",dmg:4.0,energy:7.0,ad:1.0,type:"Fast",elem:"Psychic"},{n:"Confusion",dmg:19.0,energy:14.0,ad:3.0,type:"Fast",elem:"Psychic"},{n:"Hidden Power Psychic",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Psychic"},{n:"Psywave",dmg:4.0,energy:7.0,ad:1.0,type:"Fast",elem:"Psychic"},
+{n:"Zen Headbutt",dmg:11.0,energy:9.0,ad:2.0,type:"Fast",elem:"Psychic"},{n:"Extrasensory",dmg:11.0,energy:11.0,ad:2.0,type:"Fast",elem:"Psychic"},{n:"Psystrike",dmg:95.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Psychic"},{n:"Psystrike Rework",dmg:115.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Psychic"},
+{n:"Psychic",dmg:95.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Psychic"},{n:"Future Sight",dmg:115.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Psychic"},{n:"Psyshock",dmg:60.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Psychic"},{n:"Heart Stamp",dmg:40.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Psychic"},
+{n:"Psybeam",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Psychic"},{n:"Mirror Coat",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Psychic"},{n:"Psycho Boost",dmg:70.0,energy:-50.0,ad:8.0,type:"Charge",elem:"Psychic"},{n:"Synchronoise",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Psychic"},
+{n:"Luster Purge",dmg:100.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Psychic"},{n:"Mist Ball",dmg:105.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Psychic"},{n:"Psychic Fangs",dmg:25.0,energy:-33.0,ad:2.0,type:"Charge",elem:"Psychic"},{n:"Bullet Seed",dmg:7.0,energy:13.0,ad:2.0,type:"Fast",elem:"Grass"},
+{n:"Leafage",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Grass"},{n:"Hidden Power Grass",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Grass"},{n:"Magical Leaf",dmg:17.0,energy:17.0,ad:3.0,type:"Fast",elem:"Grass"},{n:"Razor Leaf",dmg:13.0,energy:7.0,ad:2.0,type:"Fast",elem:"Grass"},
+{n:"Vine Whip",dmg:6.0,energy:5.0,ad:1.0,type:"Fast",elem:"Grass"},{n:"Petal Blizzard",dmg:110.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Mega Drain",dmg:25.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Seed Bomb",dmg:55.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Grass"},
+{n:"Giga Drain",dmg:50.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Grass"},{n:"Solar Beam",dmg:180.0,energy:-100.0,ad:10.0,type:"Charge",elem:"Grass"},{n:"Leaf Blade",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Power Whip",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Grass"},
+{n:"Grass Knot",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Energy Ball",dmg:90.0,energy:-50.0,ad:8.0,type:"Charge",elem:"Grass"},{n:"Frenzy Plant",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Leaf Tornado",dmg:45.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Grass"},
+{n:"Leaf Storm",dmg:130.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Seed Flare",dmg:115.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Grass"},{n:"Trailblaze",dmg:65.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Grass"},{n:"Flower Trick",dmg:75.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Grass"},
+{n:"Ivy Cludgel Test",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Grass"},{n:"Mud Shot",dmg:4.0,energy:6.0,ad:1.0,type:"Fast",elem:"Ground"},{n:"Mud Slap",dmg:19.0,energy:13.0,ad:3.0,type:"Fast",elem:"Ground"},{n:"Hidden Power Ground",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Ground"},
+{n:"Sand Attack",dmg:4.0,energy:7.0,ad:1.0,type:"Fast",elem:"Ground"},{n:"Earthquake",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Ground"},{n:"Precipice Blades",dmg:120.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Ground"},{n:"High Horsepower",dmg:105.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Ground"},
+{n:"Sandsear Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Ground"},{n:"Dig",dmg:100.0,energy:-50.0,ad:9.0,type:"Charge",elem:"Ground"},{n:"Drill Run",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ground"},{n:"Bulldoze",dmg:80.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Ground"},
+{n:"Earth Power",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Ground"},{n:"Scorching Sands",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Ground"},{n:"Bone Club",dmg:40.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Ground"},{n:"Mud Bomb",dmg:60.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Ground"},
+{n:"Sand Tomb",dmg:60.0,energy:-33.0,ad:8.0,type:"Charge",elem:"Ground"},{n:"Smack Down",dmg:13.0,energy:7.0,ad:2.0,type:"Fast",elem:"Rock"},{n:"Rock Throw",dmg:13.0,energy:8.0,ad:2.0,type:"Fast",elem:"Rock"},{n:"Rollout",dmg:15.0,energy:19.0,ad:3.0,type:"Fast",elem:"Rock"},
+{n:"Hidden Power Rock",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Rock"},{n:"Stone Edge",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Rock"},{n:"Meteor Beam",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Rock"},{n:"Rock Tomb",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Rock"},
+{n:"Rock Slide",dmg:75.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Rock"},{n:"Power Gem",dmg:80.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Rock"},{n:"Rock Wrecker",dmg:110.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Rock"},{n:"Ancient Power",dmg:70.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Rock"},
+{n:"Rock Blast",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Rock"},{n:"Weather Ball (Ro)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Rock"},{n:"Ivy Cludgel (Ro) Test",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Rock"},{n:"Charm",dmg:20.0,energy:11.0,ad:3.0,type:"Fast",elem:"Fairy"},
+{n:"Fairy Wind",dmg:9.0,energy:13.0,ad:2.0,type:"Fast",elem:"Fairy"},{n:"Geomancy",dmg:20.0,energy:14.0,ad:3.0,type:"Fast",elem:"Fairy"},{n:"Disarming Voice",dmg:70.0,energy:-33.0,ad:8.0,type:"Charge",elem:"Fairy"},{n:"Draining Kiss",dmg:60.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fairy"},
+{n:"Dazzling Gleam",dmg:100.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Fairy"},{n:"Moonblast",dmg:130.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Fairy"},{n:"Play Rough",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Fairy"},{n:"Nature's Madness",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fairy"},
+{n:"Low Kick",dmg:5.0,energy:5.0,ad:1.0,type:"Fast",elem:"Fighting"},{n:"Karate Chop",dmg:10.0,energy:13.0,ad:2.0,type:"Fast",elem:"Fighting"},{n:"Hidden Power Fighting",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Fighting"},{n:"Rock Smash",dmg:17.0,energy:12.0,ad:3.0,type:"Fast",elem:"Fighting"},
+{n:"Counter",dmg:13.0,energy:9.0,ad:2.0,type:"Fast",elem:"Fighting"},{n:"Double Kick",dmg:10.0,energy:13.0,ad:2.0,type:"Fast",elem:"Fighting"},{n:"Force Palm",dmg:10.0,energy:16.0,ad:2.0,type:"Fast",elem:"Fighting"},{n:"Close Combat",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Fighting"},
+{n:"Focus Blast",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Fighting"},{n:"High Jump Kick",dmg:90.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Fighting"},{n:"Cross Chop",dmg:50.0,energy:-50.0,ad:3.0,type:"Charge",elem:"Fighting"},{n:"Submission",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fighting"},
+{n:"Dynamic Punch",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fighting"},{n:"Dynamic Punch+",dmg:95.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fighting"},{n:"Superpower",dmg:85.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Fighting"},{n:"Flying Press",dmg:115.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Fighting"},
+{n:"Aura Sphere",dmg:100.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fighting"},{n:"Low Sweep",dmg:40.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Fighting"},{n:"Brick Break",dmg:50.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Fighting"},{n:"Drain Punch",dmg:50.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Fighting"},
+{n:"Power-Up Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Fighting"},{n:"Sacred Sword",dmg:50.0,energy:-33.0,ad:2.0,type:"Charge",elem:"Fighting"},{n:"Secret Sword",dmg:120.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Fighting"},{n:"Collision Course (Test)",dmg:200.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Fighting"},
+{n:"Wing Attack",dmg:10.0,energy:11.0,ad:2.0,type:"Fast",elem:"Flying"},{n:"Peck",dmg:10.0,energy:10.0,ad:2.0,type:"Fast",elem:"Flying"},{n:"Hidden Power Flying",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Flying"},{n:"Air Slash",dmg:12.0,energy:8.0,ad:2.0,type:"Fast",elem:"Flying"},
+{n:"Gust",dmg:25.0,energy:20.0,ad:4.0,type:"Fast",elem:"Flying"},{n:"Hurricane",dmg:105.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Flying"},{n:"Brave Bird",dmg:130.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Aeroblast",dmg:180.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Flying"},
+{n:"Aeroblast+",dmg:200.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Flying"},{n:"Aeroblast++",dmg:225.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Flying"},{n:"Acrobatics",dmg:100.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Bleakwind Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Flying"},
+{n:"Air Cutter",dmg:55.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Flying"},{n:"Sky Attack",dmg:80.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Fly",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Feather Dance",dmg:35.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Flying"},
+{n:"Dragon Ascent",dmg:140.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Flying"},{n:"Oblivion Wing",dmg:85.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Flying"},{n:"Drill Peck",dmg:70.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Flying"},{n:"Aerial Ace",dmg:55.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Flying"},
+{n:"Beak Blast",dmg:125.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Flying"},{n:"Ice Shard",dmg:10.0,energy:10.0,ad:2.0,type:"Fast",elem:"Ice"},{n:"Frost Breath",dmg:11.0,energy:9.0,ad:2.0,type:"Fast",elem:"Ice"},{n:"Hidden Power Ice",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Ice"},
+{n:"Powder Snow",dmg:6.0,energy:15.0,ad:2.0,type:"Fast",elem:"Ice"},{n:"Ice Fang",dmg:12.0,energy:20.0,ad:3.0,type:"Fast",elem:"Ice"},{n:"Blizzard",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Ice"},{n:"Techno Blast (Ice)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Ice"},
+{n:"Glaciate",dmg:160.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Ice"},{n:"Freeze Shock",dmg:160.0,energy:-100.0,ad:3.0,type:"Charge",elem:"Ice"},{n:"Ice Beam",dmg:95.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Ice"},{n:"Aurora Beam",dmg:80.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Ice"},
+{n:"Avalanche",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Ice"},{n:"Ice Burn",dmg:90.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Ice"},{n:"Ice Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Ice"},{n:"Icy Wind",dmg:65.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Ice"},
+{n:"Weather Ball (Ice)",dmg:55.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Ice"},{n:"Icicle Spear",dmg:55.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Ice"},{n:"Triple Axel",dmg:60.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Ice"},{n:"Glacial Lance (Test)",dmg:130.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Ice"},
+{n:"Poison Jab",dmg:13.0,energy:9.0,ad:2.0,type:"Fast",elem:"Poison"},{n:"Acid",dmg:11.0,energy:10.0,ad:2.0,type:"Fast",elem:"Poison"},{n:"Hidden Power Poison",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Poison"},{n:"Poison Sting",dmg:4.0,energy:6.0,ad:1.0,type:"Fast",elem:"Poison"},
+{n:"Sludge",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Poison"},{n:"Poison Fang",dmg:30.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Poison"},{n:"Cross Poison",dmg:40.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Poison"},{n:"Sludge Bomb",dmg:85.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Poison"},
+{n:"Sludge Wave",dmg:105.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Poison"},{n:"Gunk Shot",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Poison"},{n:"Acid Spray",dmg:20.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Poison"},{n:"Bite",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Dark"},
+{n:"Sucker Punch",dmg:5.0,energy:6.0,ad:1.0,type:"Fast",elem:"Dark"},{n:"Hidden Power Dark",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Dark"},{n:"Feint Attack",dmg:11.0,energy:10.0,ad:2.0,type:"Fast",elem:"Dark"},{n:"Snarl",dmg:11.0,energy:13.0,ad:2.0,type:"Fast",elem:"Dark"},
+{n:"Payback",dmg:95.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Dark Pulse",dmg:80.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Dark"},{n:"Foul Play",dmg:70.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Darkest Lariat",dmg:80.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Dark"},
+{n:"Aura Wheel",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Night Slash",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Crunch",dmg:65.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Dark"},{n:"Brutal Swing",dmg:65.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Dark"},
+{n:"Obstruct",dmg:20.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Dark"},{n:"Dark Void (Test)",dmg:105.0,energy:-50.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Hyperspace Hole (Test)",dmg:160.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Dark"},{n:"Quick Attack",dmg:10.0,energy:13.0,ad:2.0,type:"Fast",elem:"Normal"},
+{n:"Scratch",dmg:6.0,energy:4.0,ad:1.0,type:"Fast",elem:"Normal"},{n:"Tackle",dmg:5.0,energy:5.0,ad:1.0,type:"Fast",elem:"Normal"},{n:"Pound",dmg:6.0,energy:5.0,ad:1.0,type:"Fast",elem:"Normal"},{n:"Cut",dmg:5.0,energy:5.0,ad:1.0,type:"Fast",elem:"Normal"},
+{n:"Hidden Power",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Normal"},{n:"Take Down",dmg:7.0,energy:8.0,ad:2.0,type:"Fast",elem:"Normal"},{n:"Yawn",dmg:0.0,energy:13.0,ad:3.0,type:"Fast",elem:"Normal"},{n:"Present",dmg:6.0,energy:23.0,ad:3.0,type:"Fast",elem:"Normal"},
+{n:"Lock On",dmg:2.0,energy:10.0,ad:1.0,type:"Fast",elem:"Normal"},{n:"Hyper Beam",dmg:150.0,energy:-100.0,ad:8.0,type:"Charge",elem:"Normal"},{n:"Skull Bash",dmg:130.0,energy:-100.0,ad:6.0,type:"Charge",elem:"Normal"},{n:"Giga Impact",dmg:200.0,energy:-100.0,ad:9.0,type:"Charge",elem:"Normal"},
+{n:"Technoblast (Normal)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Normal"},{n:"Boomburst",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Normal"},{n:"Swift",dmg:65.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Normal"},{n:"Stomp",dmg:50.0,energy:-50.0,ad:3.0,type:"Charge",elem:"Normal"},
+{n:"Hyper Fang",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Normal"},{n:"Last Resort",dmg:90.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Normal"},{n:"Tri Attack",dmg:75.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Normal"},{n:"Wrap",dmg:60.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Normal"},
+{n:"Vise Grip",dmg:35.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Normal"},{n:"Horn Attack",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Normal"},{n:"Body Slam",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Normal"},{n:"Crush Grip",dmg:210.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Normal"},
+{n:"Thunder Shock",dmg:4.0,energy:7.0,ad:1.0,type:"Fast",elem:"Electric"},{n:"Spark",dmg:4.0,energy:6.0,ad:1.0,type:"Fast",elem:"Electric"},{n:"Hidden Power Electric",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Electric"},{n:"Charge Beam",dmg:7.0,energy:14.0,ad:2.0,type:"Fast",elem:"Electric"},
+{n:"Volt Switch",dmg:13.0,energy:20.0,ad:3.0,type:"Fast",elem:"Electric"},{n:"Thunder Fang",dmg:10.0,energy:13.0,ad:2.0,type:"Fast",elem:"Electric"},{n:"Thunder",dmg:100.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Zap Cannon",dmg:140.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Electric"},
+{n:"Technoblast (Electric)",dmg:120.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Electric"},{n:"Fusion Bolt",dmg:140.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Electric"},{n:"Wildbolt Storm",dmg:150.0,energy:-100.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Parabolic Charge",dmg:70.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Electric"},
+{n:"Thunderbolt",dmg:80.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Wild Charge",dmg:90.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Aura Wheel",dmg:100.0,energy:-50.0,ad:5.0,type:"Charge",elem:"Electric"},{n:"Discharge",dmg:65.0,energy:-33.0,ad:5.0,type:"Charge",elem:"Electric"},
+{n:"Thunder Punch",dmg:50.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Electric"},{n:"Volt Tackle",dmg:90.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Electric"},{n:"Thunder Cage",dmg:220.0,energy:-100.0,ad:7.0,type:"Charge",elem:"Electric"},{n:"Electro Drift (Test)",dmg:115.0,energy:-50.0,ad:3.0,type:"Charge",elem:"Electric"},
+{n:"Plasma Fists",dmg:135.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Electric"},{n:"Fury Cutter",dmg:4.0,energy:8.0,ad:1.0,type:"Fast",elem:"Bug"},{n:"Bug Bite",dmg:5.0,energy:6.0,ad:1.0,type:"Fast",elem:"Bug"},
+{n:"Infestation",dmg:9.0,energy:13.0,ad:2.0,type:"Fast",elem:"Bug"},{n:"Struggle Bug",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Bug"},{n:"Hidden Power Bug",dmg:15.0,energy:15.0,ad:3.0,type:"Fast",elem:"Bug"},{n:"Megahorn",dmg:105.0,energy:-100.0,ad:4.0,type:"Charge",elem:"Bug"},
+{n:"Bug Buzz",dmg:95.0,energy:-50.0,ad:7.0,type:"Charge",elem:"Bug"},{n:"Signal Beam",dmg:75.0,energy:-50.0,ad:6.0,type:"Charge",elem:"Bug"},{n:"X-Scissor",dmg:45.0,energy:-33.0,ad:3.0,type:"Charge",elem:"Bug"},{n:"Silver Wind",dmg:65.0,energy:-33.0,ad:7.0,type:"Charge",elem:"Bug"},
+{n:"Lunge",dmg:55.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Bug"},{n:"Fell Stinger",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Bug"},
+];
+
+function normalizeHiddenPower(moveName){
+  if(!moveName) return moveName;
+  const m = moveName.trim().match(/^(?:HP|Hidden\s*Power)\s*\(?\s*([A-Za-z]+)\s*\)?\s*$/i);
+  if(!m) return moveName;
+  const fullType = HP_TYPE_MAP[m[1].toLowerCase()];
+  return fullType ? `Hidden Power ${fullType}` : moveName;
+}
+
+function findMoveStats(moveName){
+  const key = moveName.trim().toLowerCase();
+  return MOVE_DB.find(m => m.n.toLowerCase() === key) || null;
+}
+function moveStatLineHtml(moveName, kind){
+  const stats = findMoveStats(moveName);
+  if(!stats){
+    return `<div class="move-stat-line"><b>${moveName}</b></div>`;
+  }
+  const seconds = (stats.ad * 0.5).toFixed(1);
+  const energyLabel = kind === "Charge" ? `${Math.abs(stats.energy)} energy cost` : `${stats.energy} energy`;
+  return `<div class="move-stat-line"><b>${moveName}</b> — ${stats.dmg} dmg, ${energyLabel}, ${seconds}s AD | ${stats.ad}t</div>`;
+}
+function moveStatLinesHtml(moveStr, kind){
+  if(!moveStr) return "";
+  const lower = moveStr.trim().toLowerCase();
+  if(lower === "any" || lower === "varies"){
+    return `<div class="move-stat-line"><b>${moveStr}</b></div>`;
+  }
+  // some entries record two charge moves used in the same strategy, e.g. "Blast Burn & Blaze Kick"
+  const parts = moveStr.split(/\s*&\s*/).map(s => normalizeHiddenPower(s.trim())).filter(Boolean);
+  return parts.map(p => moveStatLineHtml(p, kind)).join("");
+}
+
 function moveChipHtml(label, move){
+  const displayMove = normalizeHiddenPower(move);
   const type = getMoveType(move);
   const color = type ? TYPE_COLORS[type] : null;
   const textColor = color ? (TYPE_TEXT_COLOR[type] || "#ffffff") : null;
   const style = color ? `style="background:${color}; color:${textColor}; border-color:${color};"` : "";
   const shortTag = label === "Fast" ? "F" : "C";
-  return `<span ${style}><span class="move-tag">${shortTag}</span><span class="move-name">${move}</span></span>`;
+  return `<span ${style}><span class="move-tag">${shortTag}</span><span class="move-name">${displayMove}</span></span>`;
 }
 
 const WEATHER_ICON_URLS = {
@@ -842,7 +984,10 @@ function memberRowHtml(member, isMain){
         <span class="role-chip ${cls}">${role}</span>
         ${count ? `<span class="count-badge">${count === "Varies" ? "Varies" : "×" + count.replace(/x$/i,"")}</span>` : ""}
       </div>
-      ${hasMoveset ? `<div class="party-moveset">${[member.fast, member.charge].filter(Boolean).join(" / ")}</div>` : ""}
+      ${hasMoveset ? `<div class="party-moveset">
+        ${member.fast ? moveStatLinesHtml(member.fast, "Fast") : ""}
+        ${member.charge ? moveStatLinesHtml(member.charge, "Charge") : ""}
+      </div>` : ""}
     </div>
   </div>`;
 }
