@@ -281,6 +281,24 @@
   }
   .party-label:first-child{ margin-top: 0; }
   .party-list{ display:flex; flex-direction:column; gap:7px; }
+  .party-wrap{ margin-top: 10px; }
+  .party-summary{
+    display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
+    list-style:none; margin: 0 0 6px;
+  }
+  .party-summary::-webkit-details-marker{ display:none; }
+  .party-summary::marker{ display:none; content:""; }
+  .party-count-badge{
+    background: var(--bg1); color: var(--text-dim); font-size:10px; font-weight:800;
+    padding:1px 7px; border-radius:99px; text-transform:none; letter-spacing:normal;
+  }
+  [data-theme="dark"] .party-count-badge{ background:#20263a; }
+  .party-chevron{
+    margin-left:auto; font-size:15px; color: var(--text-dim); font-weight:800;
+    transition: transform .18s ease;
+  }
+  .party-wrap[open] .party-chevron{ transform: rotate(90deg); }
+  .party-wrap:not([open]) .party-summary{ margin-bottom:0; }
   .member-row{
     display:flex; align-items:center; gap: 11px;
     background: #f8fafc; border: 2px solid var(--border); border-radius: 13px; padding: 8px 11px;
@@ -1016,6 +1034,7 @@ function variantBodyHtml(r){
   const [main, ...rest] = r.party;
   const mainHtml = main ? memberRowHtml(main, true) : "";
   const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
+  const isMobile = window.innerWidth < 820;
   return `
     <div class="meta-row">
       ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
@@ -1025,8 +1044,14 @@ function variantBodyHtml(r){
       ${moveChipHtml("Fast", r.fast)}
       ${moveChipHtml("Charge", r.charge)}
     </div>
-    <div class="party-label">Battle Party</div>
-    <div class="party-list">${mainHtml}${restHtml}</div>
+    <details class="party-wrap"${isMobile ? "" : " open"}>
+      <summary class="party-label party-summary">
+        <span>Battle Party</span>
+        <span class="party-count-badge">${r.party.length}</span>
+        <span class="party-chevron">›</span>
+      </summary>
+      <div class="party-list">${mainHtml}${restHtml}</div>
+    </details>
     ${r.notes ? `<details class="notes-wrap"><summary>Notes</summary><div class="notes-body">${r.notes}</div></details>` : ""}
     <div class="card-bottom">${vodHtml(r.vod)}</div>
   `;
