@@ -261,7 +261,8 @@
     padding: 10px 14px;
   }
 
-  .meta-row{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; min-height:50px; }
+  .meta-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; min-height:50px; }
+  .meta-left{ display:flex; flex-direction:column; gap:6px; }
   .weather-tag{ font-size:20px; line-height:1; display:flex; align-items:center; gap:6px; }
   .ae-tag{ display:flex; align-items:center; gap:6px; }
   .weather-icon-wrap{
@@ -276,31 +277,63 @@
   [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
   .ae-icon{ width:22px; height:22px; }
 
+  .moveset-col{ display:flex; flex-direction:column; gap:6px; flex-shrink:0; min-width:118px; }
+
   .party-label{
     font-size:11px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase;
     color: var(--text-dim); margin: 10px 0 6px;
   }
   .party-label:first-child{ margin-top: 0; }
   .party-list{ display:flex; flex-direction:column; gap:7px; }
-  .party-wrap{ margin-top: 10px; }
-  .party-summary{
-    display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none;
-    list-style:none; margin: 0 0 6px;
-  }
-  .party-summary::-webkit-details-marker{ display:none; }
-  .party-summary::marker{ display:none; content:""; }
+  .party-wrap{ margin-top: 12px; }
   .party-count-badge{
     background: var(--bg1); color: var(--text-dim); font-size:10px; font-weight:800;
     padding:1px 7px; border-radius:99px; text-transform:none; letter-spacing:normal;
   }
   [data-theme="dark"] .party-count-badge{ background:#20263a; }
   .party-chevron{
-    margin-left:auto; font-size:15px; color: var(--text-dim); font-weight:800;
+    font-size:15px; color: var(--blue-dark); font-weight:800;
     transition: transform .18s ease;
   }
   .party-wrap[open] .party-chevron{ transform: rotate(90deg); }
-  .party-wrap:not([open]) .party-summary{ margin-bottom:0; }
+
+  .expand-btn{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background: var(--bg1); border:2px solid var(--border); border-radius:12px;
+    padding:10px 14px; cursor:pointer; user-select:none; list-style:none;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13px; color: var(--text-muted);
+    transition: border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .expand-btn::-webkit-details-marker{ display:none; }
+  .expand-btn::marker{ display:none; content:""; }
+  .expand-btn:hover{ border-color: var(--blue); color: var(--blue-dark); background: rgba(90,169,255,0.08); }
+  .expand-strategy{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+  .expand-action{ display:flex; align-items:center; gap:5px; flex-shrink:0; white-space:nowrap; }
+  .expand-hide{ display:none; }
+  .party-wrap[open] .expand-see{ display:none; }
+  .party-wrap[open] .expand-hide{ display:inline; }
+  .details-panel{ margin-top:12px; }
+
+  .strategy-chip{
+    display:inline-block; background: var(--card); border:1.5px solid var(--border);
+    color: var(--blue-dark); font-family:'Nunito', sans-serif; font-weight:800; font-size:11px;
+    padding:2px 8px; border-radius:7px; text-decoration:none; position:relative; cursor:help;
+  }
+  a.strategy-chip{ cursor:pointer; }
+  a.strategy-chip:hover{ border-color: var(--blue); background: rgba(90,169,255,0.1); }
+  .strategy-chip-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .strategy-chip[data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; bottom: calc(100% + 8px); left:0; z-index:40;
+    width:220px; max-width:60vw; background: var(--text); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transform: translateY(4px);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .strategy-chip[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
   .member-row{
+
     display:flex; align-items:center; gap: 11px;
     background: #f8fafc; border: 2px solid var(--border); border-radius: 13px; padding: 8px 11px;
   }
@@ -907,6 +940,25 @@ const MOVE_DB = [
 {n:"Lunge",dmg:55.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Bug"},{n:"Fell Stinger",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Bug"},
 ];
 
+// Strategy abbreviations with hover definitions, pulled from raid-strategies.html
+const STRATEGY_INFO = {
+  "catch tank": {abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move, then return their own quick, high-damage charge move.", slug:"catch-tank"},
+  "hot swap": {abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", slug:"hot-swap"},
+  "tick perfect cast": {abbr:"TPC", desc:"Precisely timing the final tap just before a charge move cast, avoiding the energy resolve DPS nerf. Very hard to execute consistently.", slug:"tick-perfect-cast"},
+  "double battle party": {abbr:"DBP", desc:"Using two identical battle parties; reduces every other rejoin time by about 40%.", slug:"double-battle-party"},
+  "recycle": {abbr:"RCY", desc:"Reusing the same battle party across multiple rejoins instead of a fresh party each time.", slug:"recycle"},
+  "various": {abbr:"Various", desc:"Multiple different strategies were used across recorded attempts.", slug:""},
+};
+function strategyChipsHtml(strategyStr){
+  if(!strategyStr) return "";
+  const parts = strategyStr.split(/\s*\/\s*/).map(s => s.trim()).filter(Boolean);
+  return parts.map(p => {
+    const info = STRATEGY_INFO[p.toLowerCase()];
+    if(!info) return `<span class="strategy-chip">${p}</span>`;
+    const href = info.slug ? `raid-strategies.html#strategy-${info.slug}` : "raid-strategies.html";
+    return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${info.abbr}</a>`;
+  }).join(" / ");
+}
 function normalizeHiddenPower(moveName){
   if(!moveName) return moveName;
   const m = moveName.trim().match(/^(?:HP|Hidden\s*Power)\s*\(?\s*([A-Za-z]+)\s*\)?\s*$/i);
@@ -939,7 +991,7 @@ function moveStatLineHtml(moveName, kind){
   const energyLabel = kind === "Charge" ? `${Math.abs(stats.energy)} energy cost` : `${stats.energy} energy`;
   return `<div class="move-stat-line">
     <div class="move-stat-name">${badge}<b>${moveName}</b></div>
-    <div class="move-stat-detail">${stats.dmg} dmg, ${energyLabel}, ${seconds}s AD | ${stats.ad}t</div>
+    <div class="move-stat-detail">${stats.dmg} dmg, ${energyLabel}, ${seconds}s</div>
   </div>`;
 }
 function moveStatLinesHtml(moveStr, kind){
@@ -1040,32 +1092,53 @@ function vodHtml(vod){
   return `<span class="no-vod">No VOD available</span>`;
 }
 
-function variantBodyHtml(r){
+function variantBodyHtml(r, variants, cardId){
   const [main, ...rest] = r.party;
   const mainHtml = main ? memberRowHtml(main, true) : "";
   const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
   const isMobile = window.innerWidth < 820;
+  const hasMultiple = variants.length > 1;
+
+  const strategySelector = hasMultiple
+    ? `<select class="strat-select" data-card="${cardId}" onchange="updateCard('${cardId}', this.value)">
+        ${variants.map((v,i) => `<option value="${i}" ${v === r ? "selected" : ""}>${tierLabel(v.tier)}${v.strategy ? " · " + v.strategy : ""}</option>`).join("")}
+      </select>`
+    : "";
+
+  // Collapsed toggle shows a plain hoverable (non-clickable) summary; the clickable version lives in the expanded panel below
+  const toggleSummary = hasMultiple
+    ? `${variants.length} strategies logged`
+    : (r.strategy ? r.strategy.split(/\s*\/\s*/).map(p => {
+        const info = STRATEGY_INFO[p.trim().toLowerCase()];
+        return info ? `<span class="strategy-chip" data-tooltip="${info.desc.replace(/"/g,"&quot;")}">${info.abbr}</span>` : p;
+      }).join(" / ") : tierLabel(r.tier));
+
   return `
     <div class="meta-row">
-      ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
-      ${r.ae === "sword" ? `<span class="ae-tag"><img class="ae-icon" src="${AE_ICON}" alt="Behemoth Blade AE" title="Adventure Effect: Behemoth Blade" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Behemoth Blade Boost</span></span>` : ""}
-      ${r.ae === "shield" ? `<span class="ae-tag"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" title="Adventure Effect: Behemoth Bash" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Behemoth Bash Boost</span></span>` : ""}
-    </div>
-    <div class="party-label">Boss Moveset</div>
-    <div class="moves">
-      ${moveChipHtml("Fast", r.fast)}
-      ${moveChipHtml("Charge", r.charge)}
+      <div class="meta-left">
+        ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
+        ${r.ae === "sword" ? `<span class="ae-tag"><img class="ae-icon" src="${AE_ICON}" alt="Behemoth Blade AE" title="Adventure Effect: Behemoth Blade" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
+        ${r.ae === "shield" ? `<span class="ae-tag"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" title="Adventure Effect: Behemoth Bash" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
+      </div>
+      <div class="moveset-col">
+        ${moveChipHtml("Fast", r.fast)}
+        ${moveChipHtml("Charge", r.charge)}
+      </div>
     </div>
     <details class="party-wrap"${isMobile ? "" : " open"}>
-      <summary class="party-label party-summary">
-        <span>Battle Party</span>
-        <span class="party-count-badge">${r.party.length}</span>
-        <span class="party-chevron">›</span>
+      <summary class="expand-btn">
+        <span class="expand-strategy">${toggleSummary}</span>
+        <span class="expand-action"><span class="expand-see">See details</span><span class="expand-hide">Hide details</span><span class="party-chevron">›</span></span>
       </summary>
-      <div class="party-list">${mainHtml}${restHtml}</div>
+      <div class="details-panel">
+        ${strategySelector}
+        ${r.strategy ? `<div class="strategy-chip-row">${strategyChipsHtml(r.strategy)}</div>` : ""}
+        <div class="party-label">Battle Party <span class="party-count-badge">${r.party.length}</span></div>
+        <div class="party-list">${mainHtml}${restHtml}</div>
+        ${r.notes ? `<details class="notes-wrap"><summary>Notes</summary><div class="notes-body">${r.notes}</div></details>` : ""}
+        <div class="card-bottom">${vodHtml(r.vod)}</div>
+      </div>
     </details>
-    ${r.notes ? `<details class="notes-wrap"><summary>Notes</summary><div class="notes-body">${r.notes}</div></details>` : ""}
-    <div class="card-bottom">${vodHtml(r.vod)}</div>
   `;
 }
 
@@ -1075,13 +1148,7 @@ function bossCardHtml(boss, variants, cardId){
   const countLabel = hasMultiple
     ? `${variants.length} strategies logged${vodCount > 0 ? ` · ${vodCount} with VOD` : " · no VODs yet"}`
     : "";
-  const strategyLabel = v => v.strategy ? `${tierLabel(v.tier)} · ${v.strategy}` : tierLabel(v.tier);
   const defaultIdx = variants.length - 1; // easiest recorded variant, matching this card's section
-  const strategySelector = hasMultiple
-    ? `<select class="strat-select" data-card="${cardId}" onchange="updateCard('${cardId}', this.value)">
-        ${variants.map((v,i) => `<option value="${i}" ${i === defaultIdx ? "selected" : ""}>${strategyLabel(v)}</option>`).join("")}
-      </select>`
-    : `<div class="strat-static">${strategyLabel(variants[0])}</div>`;
 
   return `
   <div class="card" id="boss-${boss.toLowerCase().replace(/[^a-z0-9]+/g,'-')}" data-boss="${boss.toLowerCase()}">
@@ -1095,8 +1162,7 @@ function bossCardHtml(boss, variants, cardId){
       </div>
       <div class="current-tier-pill ${tierClass(variants[defaultIdx].tier)}" id="pill-${cardId}">${tierLabel(variants[defaultIdx].tier)}</div>
     </div>
-    ${strategySelector}
-    <div class="card-body" id="body-${cardId}">${variantBodyHtml(variants[defaultIdx])}</div>
+    <div class="card-body" id="body-${cardId}">${variantBodyHtml(variants[defaultIdx], variants, cardId)}</div>
   </div>`;
 }
 
@@ -1238,7 +1304,7 @@ function updateCard(cardId, variantIndex){
   const variant = variants[variantIndex];
   const body = document.getElementById(`body-${cardId}`);
   const pill = document.getElementById(`pill-${cardId}`);
-  if(body) body.innerHTML = variantBodyHtml(variant);
+  if(body) body.innerHTML = variantBodyHtml(variant, variants, cardId);
   if(pill){
     pill.className = `current-tier-pill ${tierClass(variant.tier)}`;
     pill.textContent = tierLabel(variant.tier);

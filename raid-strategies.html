@@ -220,6 +220,7 @@ const SECTIONS = [
       {name:"Rejoin", abbr:"Rejoin", desc:"A rejoin lasting 6.5–7 seconds, only utilizing potions to quickly re-enter the fight.", clip:"https://youtu.be/B6wbCjdpUL8?t=144"},
       {name:"Execute", abbr:"Execute", desc:"Executing a boss with a low animation-duration or low-cost charge move.", clip:"https://youtube.com/clip/UgkxE8y4C0-2XWwhoEJQyuRYVCJtszv0vnzn?si=sCK7P6n3dwRwe-wj"},
       {name:"Hot Swap", abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", clip:"https://youtu.be/B6wbCjdpUL8?t=144"},
+      {name:"Recycle", abbr:"RCY", desc:"PLACEHOLDER — please edit this definition. Reusing the same battle party across multiple rejoins instead of a fresh party each time.", clip:""},
     ]
   },
   {
@@ -278,9 +279,10 @@ const EMBEDS = {};
 
 function entryHtml(e, sectionIdx, entryIdx){
   const uid = `${sectionIdx}-${entryIdx}`;
+  const slug = e.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   if(e.clip) EMBEDS[uid] = parseEmbed(e.clip);
   return `
-  <div class="entry">
+  <div class="entry" id="strategy-${slug}">
     <div class="entry-head">
       <span class="entry-name">${e.name}</span>
       <span class="entry-abbrev">${e.abbr}</span>
