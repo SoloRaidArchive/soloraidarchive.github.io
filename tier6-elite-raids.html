@@ -317,13 +317,11 @@
   .move-stat-name{ display:flex; align-items:center; gap:6px; font-size:11.5px; }
   .move-stat-name b{ color: var(--text); font-weight:800; }
   .move-type-badge{
-    width:32px; height:14px; border-radius:3px; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Nunito', sans-serif; font-weight:900; font-size:7px;
-    letter-spacing:0.01em; text-transform:uppercase; line-height:1;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.15); overflow:hidden; white-space:nowrap;
+    flex-shrink:0; display:inline-block;
+    font-family:'Nunito', sans-serif; font-size:9px; font-weight:700; color:#fff;
+    padding:2px 8px; border-radius:999px; line-height:1.4;
   }
-  .move-stat-detail{ font-size:10.5px; color: var(--text-dim); font-weight:600; line-height:1.4; margin-left:38px; margin-top:1px; }
+  .move-stat-detail{ font-size:10.5px; color: var(--text-dim); font-weight:600; line-height:1.4; margin-left:2px; margin-top:2px; }
   .role-chip{
     align-self:flex-start; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px;
   }
@@ -900,17 +898,15 @@ function findMoveStats(moveName){
   const key = moveName.trim().toLowerCase();
   return MOVE_DB.find(m => m.n.toLowerCase() === key) || null;
 }
-const BADGE_COLORS = {normal:"#9199A1", fire:"#B8300A", water:"#285B91", electric:"#E0B316", grass:"#326425", ice:"#5AC9C9", fighting:"#69291B", poison:"#592860", ground:"#452C16", flying:"#8B93E0", psychic:"#912A47", bug:"#4F6413", rock:"#754112", ghost:"#3B3059", dragon:"#3B2891", dark:"#302A24", steel:"#4F5964", fairy:"#E091C9"};
+const BADGE_COLORS = {normal:"#9199A1", fire:"#E2661C", water:"#3E8DE0", electric:"#E0B316", grass:"#4E9A3A", ice:"#5AC9C9", fighting:"#A2402A", poison:"#8A3F94", ground:"#6B4423", flying:"#8B93E0", psychic:"#E0426E", bug:"#7B9A1E", rock:"#B5651D", ghost:"#5B4B8A", dragon:"#5B3FE0", dark:"#4A4238", steel:"#7A8A9A", fairy:"#E091C9"};
 const BADGE_TEXT = {normal:"#161616", fire:"#ffffff", water:"#ffffff", electric:"#161616", grass:"#ffffff", ice:"#161616", fighting:"#ffffff", poison:"#ffffff", ground:"#ffffff", flying:"#161616", psychic:"#ffffff", bug:"#ffffff", rock:"#ffffff", ghost:"#ffffff", dragon:"#ffffff", dark:"#ffffff", steel:"#ffffff", fairy:"#161616"};
 const TYPE_ABBR = {normal:"NOR", fire:"FIRE", water:"WAT", electric:"ELE", grass:"GRA", ice:"ICE", fighting:"FIG", poison:"POI", ground:"GRO", flying:"FLY", psychic:"PSY", bug:"BUG", rock:"ROCK", ghost:"GHO", dragon:"DRA", dark:"DARK", steel:"STE", fairy:"FAI"};
 function moveTypeBadgeHtml(moveName, stats){
   const type = stats ? stats.elem.toLowerCase() : getMoveType(moveName);
   if(!type || !BADGE_COLORS[type]) return "";
   const bg = BADGE_COLORS[type];
-  const textColor = BADGE_TEXT[type];
-  const shadow = textColor === "#ffffff" ? "0 0 2px rgba(0,0,0,0.5)" : "0 0 2px rgba(255,255,255,0.6)";
-  const abbr = TYPE_ABBR[type];
-  return `<span class="move-type-badge" style="background:${bg}; color:${textColor}; text-shadow:${shadow};" title="${type}">${abbr}</span>`;
+  const label = type.charAt(0).toUpperCase() + type.slice(1);
+  return `<span class="move-type-badge" style="background:${bg};">${label}</span>`;
 }
 function moveStatLineHtml(moveName, kind){
   const stats = findMoveStats(moveName);
