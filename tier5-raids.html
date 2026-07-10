@@ -307,6 +307,7 @@
   .expand-btn::marker{ display:none; content:""; }
   .expand-btn:hover{ border-color: var(--blue); color: var(--blue-dark); background: rgba(90,169,255,0.08); }
   .expand-strategy{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+  .strategy-select-hint{ font-size:9px; color: var(--blue-dark); opacity:0.75; }
   .expand-action{ display:flex; align-items:center; gap:5px; flex-shrink:0; white-space:nowrap; }
   .expand-hide{ display:none; }
   .party-wrap[open] .expand-see{ display:none; }
@@ -373,17 +374,16 @@
     background:#f1f2f4; padding:2px 8px; border-radius:999px;
   }
 
-  .moves{ display:flex; gap: 8px; font-size:13px; font-weight:800; color: var(--text-muted); }
-  .moves > span{
-    background: #f6f8fc; border: 2px solid var(--border); border-radius: 10px; padding: 7px 10px;
-    flex:1; display:flex; align-items:center; gap:6px; min-width:0;
+  .moveset-col > span{
+    background: #f6f8fc; border: 2px solid var(--border); border-radius: 999px; padding: 6px 12px;
+    display:flex; align-items:center; gap:6px; min-width:0; font-size:13px; font-weight:800; color: var(--text-muted);
   }
   .move-tag{
     flex-shrink:0; font-size:9px; font-weight:800; letter-spacing:0.02em;
-    text-transform:uppercase; opacity:0.7; width:13px; text-align:center;
+    text-transform:uppercase; opacity:0.85; width:13px; text-align:center;
   }
   .move-name{
-    font-size:13px; font-weight:800; flex:1; min-width:0;
+    font-size:12.5px; font-weight:800; flex:1; min-width:0;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
 
@@ -401,7 +401,7 @@
   }
 
   .card-body{ display:flex; flex-direction:column; gap:20px; flex:1; }
-  .card-bottom{ display:flex; justify-content:flex-end; margin-top:auto; }
+  .card-bottom{ display:flex; justify-content:flex-end; margin-top:18px; padding-top:12px; border-top:1px solid var(--border); }
   .vod-btn{
     font-family:'Baloo 2', sans-serif; font-size:13.5px; font-weight:700; color: #fff;
     background: var(--red); border:none; border-radius:999px; padding: 8px 16px;
@@ -951,7 +951,7 @@ const STRATEGY_INFO = {
   "hot swap": {abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", slug:"hot-swap"},
   "tick perfect cast": {abbr:"TPC", desc:"Precisely timing the final tap just before a charge move cast, avoiding the energy resolve DPS nerf. Very hard to execute consistently.", slug:"tick-perfect-cast"},
   "double battle party": {abbr:"DBP", desc:"Using two identical battle parties; reduces every other rejoin time by about 40%.", slug:"double-battle-party"},
-  "recycle": {abbr:"RCY", desc:"Reusing the same battle party across multiple rejoins instead of a fresh party each time.", slug:"recycle"},
+  "recycle": {abbr:"RCY", desc:"Reusing the same Main DPS Pokémon across multiple rejoins instead of a fresh one each time.", slug:"recycle"},
   "various": {abbr:"Various", desc:"Multiple different strategies were used across recorded attempts.", slug:""},
 };
 function strategyChipsHtml(strategyStr){
@@ -1014,8 +1014,7 @@ function moveChipHtml(label, move){
   const displayMove = normalizeHiddenPower(move);
   const type = getMoveType(move);
   const color = type ? TYPE_COLORS[type] : null;
-  const textColor = color ? (TYPE_TEXT_COLOR[type] || "#ffffff") : null;
-  const style = color ? `style="background:${color}; color:${textColor}; border-color:${color};"` : "";
+  const style = color ? `style="background:${color}; color:#fff; border-color:${color};"` : "";
   const shortTag = label === "Fast" ? "F" : "C";
   return `<span ${style}><span class="move-tag">${shortTag}</span><span class="move-name">${displayMove}</span></span>`;
 }
@@ -1110,7 +1109,7 @@ function variantBodyHtml(r, variants, cardId){
     : "";
 
   const toggleSummary = hasMultiple
-    ? `${variants.length} strategies logged`
+    ? `${variants.length} strategies logged <span class="strategy-select-hint" title="Choose a strategy once expanded">▾</span>`
     : (r.strategy ? r.strategy.split(/\s*\/\s*/).map(p => {
         const info = STRATEGY_INFO[p.trim().toLowerCase()];
         return info ? `<span class="strategy-chip" data-tooltip="${info.desc.replace(/"/g,"&quot;")}">${info.abbr}</span>` : p;
