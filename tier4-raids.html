@@ -323,7 +323,11 @@
   a.strategy-chip{ cursor:pointer; }
   a.strategy-chip:hover{ border-color: var(--blue); background: rgba(90,169,255,0.1); }
   .strategy-chip-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
-  .strategy-chip[data-tooltip]::after{
+  .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .moveset-col > span[data-tooltip]{ position:relative; cursor:help; }
+  .strategy-chip[data-tooltip]::after,
+  .weather-icon-wrap[data-tooltip]::after,
+  .ae-tag[data-tooltip]::after,
+  .moveset-col > span[data-tooltip]::after{
     content: attr(data-tooltip);
     position:absolute; bottom: calc(100% + 8px); left:0; z-index:40;
     width:220px; max-width:60vw; background: var(--text); color: var(--card);
@@ -332,7 +336,10 @@
     opacity:0; pointer-events:none; transform: translateY(4px);
     transition: opacity .15s ease, transform .15s ease;
   }
-  .strategy-chip[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
+  .strategy-chip[data-tooltip]:hover::after,
+  .weather-icon-wrap[data-tooltip]:hover::after,
+  .ae-tag[data-tooltip]:hover::after,
+  .moveset-col > span[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
   .member-row{
 
     display:flex; align-items:center; gap: 11px;
@@ -1063,9 +1070,17 @@ function moveChipHtml(label, move){
   const displayMove = normalizeHiddenPower(move);
   const type = getMoveType(move);
   const color = type ? TYPE_COLORS[type] : null;
+  const stats = findMoveStats(displayMove);
+  let tooltipAttr = "";
+  if(stats){
+    const seconds = (stats.ad * 0.5).toFixed(1);
+    const energyLabel = label === "Charge" ? `${Math.abs(stats.energy)} energy cost` : `${stats.energy} energy`;
+    const tooltip = `${stats.dmg} dmg, ${energyLabel}, ${seconds}s`;
+    tooltipAttr = ` data-tooltip="${tooltip}"`;
+  }
   const style = color ? `style="background:${color}; color:#fff; border-color:${color};"` : "";
   const shortTag = label === "Fast" ? "F" : "C";
-  return `<span ${style}><span class="move-tag">${shortTag}</span><span class="move-name">${displayMove}</span></span>`;
+  return `<span ${style}${tooltipAttr}><span class="move-tag">${shortTag}</span><span class="move-name">${displayMove}</span></span>`;
 }
 
 const WEATHER_ICON_URLS = {
@@ -1081,15 +1096,32 @@ const WEATHER_ICON_URLS = {
   "fog":"assets/icons/weather-fog.jpg",
   "extreme":"assets/icons/weather-extreme.png",
 };
+const WEATHER_BOOST_INFO = {
+  "clear": ["Fire","Grass","Ground"], "sunny": ["Fire","Grass","Ground"],
+  "partly cloudy": ["Normal","Rock"],
+  "cloudy": ["Fairy","Fighting","Poison"],
+  "windy": ["Dragon","Flying","Psychic"], "wind": ["Dragon","Flying","Psychic"],
+  "rain": ["Water","Electric","Bug"], "rainy": ["Water","Electric","Bug"],
+  "snow": ["Ice","Steel"],
+  "fog": ["Dark","Ghost"],
+};
+function weatherTooltip(key, w){
+  const types = WEATHER_BOOST_INFO[key];
+  if(!types) return key === "extreme" ? "No weather boost is active" : "";
+  const list = types.length > 1 ? types.slice(0, -1).join(", ") + " and " + types[types.length-1] : types[0];
+  return `+20% ${list} damage dealt in raids`;
+}
 function weatherIcon(w, withLabel){
   const key = w.trim().toLowerCase();
   const url = WEATHER_ICON_URLS[key];
+  const tooltip = weatherTooltip(key, w);
+  const tooltipAttr = tooltip ? ` data-tooltip="${tooltip}"` : "";
   const labelHtml = withLabel ? ` <span class="weather-label">${w}</span>` : "";
   if(url){
     const wrapCls = key === "extreme" ? "weather-icon-wrap extreme" : "weather-icon-wrap";
-    return `<span class="${wrapCls}"><img class="weather-icon-img" src="${url}" alt="${w}" title="${w}" loading="lazy" onerror="this.parentElement.remove()"></span>${labelHtml}`;
+    return `<span class="${wrapCls}"${tooltipAttr}><img class="weather-icon-img" src="${url}" alt="${w}" loading="lazy" onerror="this.parentElement.remove()"></span>${labelHtml}`;
   }
-  return `<span title="${w}">🌤️${withLabel ? " " + w : ""}</span>`;
+  return `<span${tooltipAttr}>🌤️${withLabel ? " " + w : ""}</span>`;
 }
 function parseRole(roleStr){
   const parts = roleStr.split(",").map(p => p.trim());
@@ -1169,8 +1201,8 @@ function variantBodyHtml(r, variants, cardId){
     <div class="meta-row">
       <div class="meta-left">
         ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
-        ${r.ae === "sword" ? `<span class="ae-tag"><img class="ae-icon" src="${AE_ICON}" alt="Behemoth Blade AE" title="Adventure Effect: Behemoth Blade" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
-        ${r.ae === "shield" ? `<span class="ae-tag"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" title="Adventure Effect: Behemoth Bash" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
+        ${r.ae === "sword" ? `<span class="ae-tag" data-tooltip="+10% damage dealt from your pokemon in raids"><img class="ae-icon" src="${AE_ICON}" alt="Behemoth Blade AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
+        ${r.ae === "shield" ? `<span class="ae-tag" data-tooltip="+10% damage reduction for your pokemon in raids"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
       </div>
       <div class="moveset-col">
         ${moveChipHtml("Fast", r.fast)}
