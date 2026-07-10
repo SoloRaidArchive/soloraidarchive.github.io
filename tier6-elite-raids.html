@@ -767,6 +767,40 @@ const GOHUB_OVERRIDES = {
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
   "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega skarmory": "https://db.pokemongohub.net/images/official/full/227_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega audino": "https://db.pokemongohub.net/images/official/full/531_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
 };
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
@@ -954,7 +988,7 @@ function strategyChipsHtml(strategyStr){
     const info = STRATEGY_INFO[p.toLowerCase()];
     if(!info) return `<span class="strategy-chip">${p}</span>`;
     const href = info.slug ? `raid-strategies.html#strategy-${info.slug}` : "raid-strategies.html";
-    return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${info.abbr}</a>`;
+    return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${p}</a>`;
   }).join(" / ");
 }
 function normalizeHiddenPower(moveName){
