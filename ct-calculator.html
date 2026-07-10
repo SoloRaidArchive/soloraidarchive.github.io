@@ -583,7 +583,7 @@
 <script>
 // ============ SPRITE LOOKUP (same approach as the raid archives) ============
 const DB_OVERRIDES = {
-  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y",
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
   "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
   "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
   "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega",
@@ -828,6 +828,7 @@ const TYPE_CHART = {
 
 // Variant forms whose typing differs from their base species (Shadow/regional-without-override fall back to base)
 const TYPE_OVERRIDES = {
+  "mega charizard x": {t1:"fire", t2:"dragon"},
   "mega aggron": {t1:"steel", t2:""},
   "mega sceptile": {t1:"grass", t2:"dragon"},
   "mega gyarados": {t1:"water", t2:"dark"},
