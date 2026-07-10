@@ -356,8 +356,8 @@
   .move-stat-name b{ color: var(--text); font-weight:800; }
   .move-type-badge{
     flex-shrink:0; display:inline-block;
-    font-family:'Nunito', sans-serif; font-size:9px; font-weight:700; color:#fff;
-    padding:2px 8px; border-radius:999px; line-height:1.4;
+    font-family:'Nunito', sans-serif; font-size:10px; font-weight:700; color:#fff;
+    padding:3px 9px; border-radius:999px; line-height:1.4;
   }
   .move-stat-detail{ font-size:10.5px; color: var(--text-dim); font-weight:600; line-height:1.4; margin-left:2px; margin-top:2px; }
   .role-chip{
@@ -434,6 +434,21 @@
     background:none; border:none; padding:0;
   }
   .filter-options{ display:flex; flex-direction:column; gap:8px; }
+  .filter-dropdown{ width:100%; }
+  .filter-dropdown-btn{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
+    padding:9px 12px; cursor:pointer; user-select:none; list-style:none;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px; color: var(--text);
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .filter-dropdown-btn::-webkit-details-marker{ display:none; }
+  .filter-dropdown-btn::marker{ display:none; content:""; }
+  .filter-dropdown-btn:hover{ border-color: var(--blue); background: rgba(90,169,255,0.08); }
+  .filter-dropdown-btn .filter-chevron{
+    font-size:14px; color: var(--text-dim); font-weight:800; transition: transform .18s ease; flex-shrink:0;
+  }
+  .filter-dropdown[open] .filter-chevron{ transform: rotate(90deg); }
   .filter-note{ font-size:10.5px; font-weight:600; color: var(--text-dim); margin-top:6px; line-height:1.4; }
   .archive-nav{ display:flex; flex-direction:column; gap:4px; }
   .archive-nav-link{
@@ -550,22 +565,27 @@
         Difficulty
         <button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button>
       </div>
-      <div class="filter-options" id="difficultyFilters"></div>
+      <details class="filter-dropdown">
+        <summary class="filter-dropdown-btn">
+          <span id="difficultySummaryText">All Difficulties</span>
+          <span class="filter-chevron">›</span>
+        </summary>
+        <div class="filter-options" id="difficultyFilters"></div>
+      </details>
     </div>
     <div class="filter-block">
       <div class="filter-title">
         Weather
         <button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button>
       </div>
-      <div class="filter-options" id="weatherFilters"></div>
+      <details class="filter-dropdown">
+        <summary class="filter-dropdown-btn">
+          <span id="weatherSummaryText">All Weather</span>
+          <span class="filter-chevron">›</span>
+        </summary>
+        <div class="filter-options" id="weatherFilters"></div>
+      </details>
       <div class="filter-note">"Extreme" means no weather boost is active.</div>
-    </div>
-    <div class="filter-block">
-      <div class="filter-title">
-        Strategy
-        <button class="filter-clear" onclick="clearFilterGroup('strategy')">Clear</button>
-      </div>
-      <div class="filter-options" id="strategyFilters"></div>
     </div>
   </aside>
   <div class="main-content">
@@ -1081,7 +1101,6 @@ function variantBodyHtml(r, variants, cardId){
   const [main, ...rest] = r.party;
   const mainHtml = main ? memberRowHtml(main, true) : "";
   const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
-  const isMobile = window.innerWidth < 820;
   const hasMultiple = variants.length > 1;
 
   const strategySelector = hasMultiple
@@ -1107,7 +1126,7 @@ function variantBodyHtml(r, variants, cardId){
         ${moveChipHtml("Charge", r.charge)}
       </div>
     </div>
-    <details class="party-wrap"${isMobile ? "" : " open"}>
+    <details class="party-wrap">
       <summary class="expand-btn">
         <span class="expand-strategy">${toggleSummary}</span>
         <span class="expand-action"><span class="expand-see">See details</span><span class="expand-hide">Hide details</span><span class="party-chevron">›</span></span>
@@ -1155,7 +1174,6 @@ let bossGroups = {};
 let bossOrder = [];
 const VARIANTS_BY_CARD = {};
 const activeWeathers = new Set();
-const activeStrategies = new Set();
 
 let WEATHER_LIST = [];
 const STRATEGY_LIST = ["Catch Tank", "Hot Swap", "Tick Perfect Cast", "Recycle", "Various", "Double Battle Party"];
@@ -1183,7 +1201,6 @@ function initializeFromRaids(){
 
   renderDifficultyFilters();
   renderWeatherFilters();
-  renderStrategyFilters();
   buildSections();
 }
 
@@ -1195,6 +1212,11 @@ function renderDifficultyFilters(){
       ${tierLabel(t)} ${TIER_NAMES[t]}
     </label>
   `).join("");
+  const summary = document.getElementById("difficultySummaryText");
+  if(summary){
+    summary.textContent = activeTiers.size === 0 ? "All Difficulties" :
+      (activeTiers.size <= 2 ? [...activeTiers].map(t => tierLabel(t)).join(", ") : `${activeTiers.size} selected`);
+  }
 }
 function toggleDifficulty(t){
   if(activeTiers.has(t)) activeTiers.delete(t); else activeTiers.add(t);
@@ -1210,28 +1232,28 @@ function renderFilterGroup(containerId, list, activeSet, toggleFnName, showIcon)
     </label>
   `).join("");
 }
-function renderWeatherFilters(){ renderFilterGroup("weatherFilters", WEATHER_LIST, activeWeathers, "toggleWeather", true); }
-function renderStrategyFilters(){ renderFilterGroup("strategyFilters", STRATEGY_LIST, activeStrategies, "toggleStrategy", false); }
+function renderWeatherFilters(){
+  renderFilterGroup("weatherFilters", WEATHER_LIST, activeWeathers, "toggleWeather", true);
+  const summary = document.getElementById("weatherSummaryText");
+  if(summary){
+    summary.textContent = activeWeathers.size === 0 ? "All Weather" :
+      (activeWeathers.size <= 2 ? [...activeWeathers].join(", ") : `${activeWeathers.size} selected`);
+  }
+}
 
 function toggleWeather(w){
   if(activeWeathers.has(w)) activeWeathers.delete(w); else activeWeathers.add(w);
   refresh();
 }
-function toggleStrategy(s){
-  if(activeStrategies.has(s)) activeStrategies.delete(s); else activeStrategies.add(s);
-  refresh();
-}
 function clearFilterGroup(group){
   if(group === "difficulty") activeTiers.clear();
   if(group === "weather") activeWeathers.clear();
-  if(group === "strategy") activeStrategies.clear();
   refresh();
 }
 
 function refresh(){
   renderDifficultyFilters();
   renderWeatherFilters();
-  renderStrategyFilters();
   buildSections();
 }
 
@@ -1252,7 +1274,6 @@ function buildSections(){
 
       let variants = bossGroups[boss].filter(v => {
         if(activeWeathers.size > 0 && !activeWeathers.has(v.weather)) return false;
-        if(activeStrategies.size > 0 && !strategyCategories(v.strategy).some(c => activeStrategies.has(c))) return false;
         if(pokemonQuery && !v.party.some(p => p.n.toLowerCase().includes(pokemonQuery))) return false;
         return true;
       });
