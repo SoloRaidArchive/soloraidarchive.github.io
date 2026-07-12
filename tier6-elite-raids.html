@@ -1016,14 +1016,19 @@ const BOSS_BASE_STATS = [
 {n:"Regidrago",hp:400.0,atk:202.0,def:101.0}
 ];
 const BOSS_CPM = 0.7903;
+const ELITE_CPM = 1.0;
+const ELITE_HP = 20000;
 const BOSS_HP = 22500;
-function bossStatsHtml(bossName){
+function bossStatsHtml(bossName, category){
   const key = bossName.trim().toLowerCase();
   const stats = BOSS_BASE_STATS.find(s => s.n.toLowerCase() === key);
   if(!stats) return "";
-  const atk = Math.round(stats.atk * BOSS_CPM);
-  const def = Math.round(stats.def * BOSS_CPM);
-  return `<div class="boss-stats-line" data-tooltip="Base stats × ${BOSS_CPM} CPM (same multiplier as the Catch Tank Calculator), HP is a fixed raid pool">ATK ${atk} &middot; DEF ${def} &middot; HP ${BOSS_HP}</div>`;
+  const isElite = category === "Elite";
+  const cpm = isElite ? ELITE_CPM : BOSS_CPM;
+  const hp = isElite ? ELITE_HP : BOSS_HP;
+  const atk = Math.round(stats.atk * cpm);
+  const def = Math.round(stats.def * cpm);
+  return `<div class="boss-stats-line" data-tooltip="Base stats × ${cpm} CPM${isElite ? " (Elite tier)" : " (same multiplier as the Catch Tank Calculator)"}, HP is a fixed raid pool">ATK ${atk} &middot; DEF ${def} &middot; HP ${hp}</div>`;
 }
 
 function normalizeHiddenPower(moveName){
@@ -1208,7 +1213,7 @@ function variantBodyHtml(r, variants, cardId){
         ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
         ${r.ae === "sword" ? `<span class="ae-tag" data-tooltip="+10% damage dealt from your pokemon in raids"><img class="ae-icon" src="${AE_ICON}" alt="AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
         ${r.ae === "shield" ? `<span class="ae-tag" data-tooltip="+10% damage reduction for your pokemon in raids"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
-        ${bossStatsHtml(r.boss)}
+        ${bossStatsHtml(r.boss, r.category)}
       </div>
       <div class="moveset-col">
         ${moveChipHtml("Fast", r.fast)}
