@@ -203,7 +203,15 @@
   .tier-header .tier-pill-lg.t2{ background: var(--t2); }
   .tier-header .tier-pill-lg.t1{ background: var(--t1); }
   .tier-header .tier-name{ font-family:'Baloo 2', sans-serif; font-weight:700; color: var(--text-dim); font-size:14px; }
-  .tier-line{ flex:1; height:2px; background: var(--border); border-radius:2px; }
+  .tier-header{ cursor:pointer; user-select:none; border-radius:10px; transition: background .15s ease; margin: 0 -8px 14px; padding: 6px 8px; }
+  .tier-header:hover{ background: rgba(90,169,255,0.08); }
+  .tier-header:hover .tier-line{ background: var(--blue); }
+  .tier-line{ flex:1; height:2px; background: var(--border); border-radius:2px; transition: background .15s ease; }
+  .tier-collapse-chevron{
+    font-size:16px; color: var(--text-dim); font-weight:800; flex-shrink:0;
+    transition: transform .18s ease;
+  }
+  .tier-collapse-chevron.collapsed{ transform: rotate(-90deg); }
 
   .tier-grid{
     display:grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
@@ -273,6 +281,7 @@
   .weather-icon-img{ width:22px; height:22px; object-fit:contain; mix-blend-mode:multiply; }
   .weather-icon-wrap.extreme .weather-icon-img{ mix-blend-mode:normal; }
   .weather-label{ font-size:12.5px; font-weight:700; color: var(--text-muted); vertical-align:middle; }
+  .boss-stats-line{ font-size:11.5px; font-weight:700; color: var(--text-dim); position:relative; cursor:help; width:fit-content; }
   .weather-icon-wrap.extreme .weather-icon-img{ filter: invert(1) grayscale(1) brightness(0.3); }
   [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
   .ae-icon{ width:22px; height:22px; }
@@ -323,11 +332,12 @@
   a.strategy-chip{ cursor:pointer; }
   a.strategy-chip:hover{ border-color: var(--blue); background: rgba(90,169,255,0.1); }
   .strategy-chip-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
-  .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .moveset-col > span[data-tooltip]{ position:relative; cursor:help; }
+  .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .moveset-col > span[data-tooltip], .boss-stats-line[data-tooltip]{ position:relative; cursor:help; }
   .strategy-chip[data-tooltip]::after,
   .weather-icon-wrap[data-tooltip]::after,
   .ae-tag[data-tooltip]::after,
-  .moveset-col > span[data-tooltip]::after{
+  .moveset-col > span[data-tooltip]::after,
+  .boss-stats-line[data-tooltip]::after{
     content: attr(data-tooltip);
     position:absolute; bottom: calc(100% + 8px); left:0; z-index:40;
     width:220px; max-width:60vw; background: var(--text); color: var(--card);
@@ -339,7 +349,8 @@
   .strategy-chip[data-tooltip]:hover::after,
   .weather-icon-wrap[data-tooltip]:hover::after,
   .ae-tag[data-tooltip]:hover::after,
-  .moveset-col > span[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
+  .moveset-col > span[data-tooltip]:hover::after,
+  .boss-stats-line[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
   .member-row{
 
     display:flex; align-items:center; gap: 11px;
@@ -1020,6 +1031,61 @@ function strategyChipsHtml(strategyStr){
     return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${p}</a>`;
   }).join(" / ");
 }
+const BOSS_BASE_STATS = [
+{n:"Mega Abomasnow",hp:207.0,atk:240.0,def:191.0},
+{n:"Mega Absol",hp:163.0,atk:314.0,def:130.0},
+{n:"Mega Aerodactyl",hp:190.0,atk:292.0,def:210.0},
+{n:"Mega Aggron",hp:172.0,atk:247.0,def:331.0},
+{n:"Mega Alakazam",hp:146.0,atk:367.0,def:207.0},
+{n:"Mega Altaria",hp:181.0,atk:222.0,def:218.0},
+{n:"Mega Ampharos",hp:207.0,atk:294.0,def:203.0},
+{n:"Mega Audino",hp:230.0,atk:147.0,def:239.0},
+{n:"Mega Banette",hp:162.0,atk:312.0,def:160.0},
+{n:"Mega Beedrill",hp:163.0,atk:303.0,def:148.0},
+{n:"Mega Blastoise",hp:188.0,atk:264.0,def:237.0},
+{n:"Mega Blaziken",hp:190.0,atk:329.0,def:168.0},
+{n:"Mega Camerupt",hp:172.0,atk:253.0,def:183.0},
+{n:"Mega Charizard X",hp:186.0,atk:273.0,def:213.0},
+{n:"Mega Charizard Y",hp:186.0,atk:319.0,def:212.0},
+{n:"Mega Gallade",hp:169.0,atk:326.0,def:230.0},
+{n:"Mega Garchomp",hp:239.0,atk:339.0,def:222.0},
+{n:"Mega Gardevoir",hp:169.0,atk:326.0,def:229.0},
+{n:"Mega Gengar",hp:155.0,atk:349.0,def:199.0},
+{n:"Mega Glalie",hp:190.0,atk:252.0,def:168.0},
+{n:"Mega Gyarados",hp:216.0,atk:292.0,def:247.0},
+{n:"Mega Heracross",hp:190.0,atk:334.0,def:223.0},
+{n:"Mega Houndoom",hp:181.0,atk:289.0,def:194.0},
+{n:"Mega Kangaskhan",hp:233.0,atk:246.0,def:210.0},
+{n:"Mega Lopunny",hp:163.0,atk:282.0,def:214.0},
+{n:"Mega Lucario",hp:172.0,atk:310.0,def:175.0},
+{n:"Mega Manectric",hp:172.0,atk:286.0,def:179.0},
+{n:"Mega Mawile",hp:137.0,atk:188.0,def:217.0},
+{n:"Mega Medicham",hp:155.0,atk:205.0,def:179.0},
+{n:"Mega Metagross",hp:189.0,atk:300.0,def:289.0},
+{n:"Mega Pidgeot",hp:195.0,atk:280.0,def:175.0},
+{n:"Mega Pinsir",hp:163.0,atk:305.0,def:231.0},
+{n:"Mega Sableye",hp:137.0,atk:151.0,def:216.0},
+{n:"Mega Salamence",hp:216.0,atk:310.0,def:251.0},
+{n:"Mega Sceptile",hp:172.0,atk:320.0,def:186.0},
+{n:"Mega Scizor",hp:172.0,atk:279.0,def:250.0},
+{n:"Mega Sharpedo",hp:172.0,atk:289.0,def:144.0},
+{n:"Mega Slowbro",hp:216.0,atk:224.0,def:259.0},
+{n:"Mega Steelix",hp:181.0,atk:212.0,def:327.0},
+{n:"Mega Swampert",hp:225.0,atk:283.0,def:218.0},
+{n:"Mega Tyranitar",hp:225.0,atk:309.0,def:276.0},
+{n:"Mega Venusaur",hp:190.0,atk:241.0,def:246.0}
+];
+const BOSS_CPM = 0.7903;
+const BOSS_HP = 9000;
+function bossStatsHtml(bossName){
+  const key = bossName.trim().toLowerCase();
+  const stats = BOSS_BASE_STATS.find(s => s.n.toLowerCase() === key);
+  if(!stats) return "";
+  const atk = Math.round(stats.atk * BOSS_CPM);
+  const def = Math.round(stats.def * BOSS_CPM);
+  return `<div class="boss-stats-line" data-tooltip="Base stats × ${BOSS_CPM} CPM (same multiplier as the Catch Tank Calculator), HP is a fixed raid pool">ATK ${atk} &middot; DEF ${def} &middot; HP ${BOSS_HP}</div>`;
+}
+
 function normalizeHiddenPower(moveName){
   if(!moveName) return moveName;
   const m = moveName.trim().match(/^(?:HP|Hidden\s*Power)\s*\(?\s*([A-Za-z]+)\s*\)?\s*$/i);
@@ -1203,6 +1269,7 @@ function variantBodyHtml(r, variants, cardId){
         ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
         ${r.ae === "sword" ? `<span class="ae-tag" data-tooltip="+10% damage dealt from your pokemon in raids"><img class="ae-icon" src="${AE_ICON}" alt="Behemoth Blade AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
         ${r.ae === "shield" ? `<span class="ae-tag" data-tooltip="+10% damage reduction for your pokemon in raids"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
+        ${bossStatsHtml(r.boss)}
       </div>
       <div class="moveset-col">
         ${moveChipHtml("Fast", r.fast)}
@@ -1340,6 +1407,11 @@ function refresh(){
   buildSections();
 }
 
+const collapsedTiers = new Set();
+function toggleTierCollapse(tier){
+  if(collapsedTiers.has(tier)) collapsedTiers.delete(tier); else collapsedTiers.add(tier);
+  buildSections();
+}
 function buildSections(){
   const bossQuery = search.value.trim().toLowerCase();
   const pokemonQuery = pokemonSearch.value.trim().toLowerCase();
@@ -1369,14 +1441,16 @@ function buildSections(){
     });
 
     if(sectionCardsHtml){
+      const isCollapsed = collapsedTiers.has(tier);
       html += `
       <div class="tier-section">
-        <div class="tier-header">
+        <div class="tier-header" onclick="toggleTierCollapse('${tier}')">
           <span class="tier-pill-lg ${tierClass(tier)}">${tierLabel(tier)}</span>
           <span class="tier-name">${TIER_NAMES[tier] || ""}</span>
           <div class="tier-line"></div>
+          <span class="tier-collapse-chevron${isCollapsed ? " collapsed" : ""}">›</span>
         </div>
-        <div class="tier-grid">${sectionCardsHtml}</div>
+        <div class="tier-grid"${isCollapsed ? ' style="display:none;"' : ""}>${sectionCardsHtml}</div>
       </div>`;
     }
   });
