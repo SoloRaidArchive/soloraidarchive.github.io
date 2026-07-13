@@ -136,11 +136,17 @@
   .error-msg{ color: var(--red); }
 
   .leaderboard{ display:flex; flex-direction:column; gap:10px; }
+  .lb-row-wrap{
+    background: var(--card); border:2px solid var(--border); border-radius:14px; overflow:hidden;
+  }
   .lb-row{
     display:flex; align-items:center; gap:14px;
-    background: var(--card); border:2px solid var(--border); border-radius:14px;
-    padding: 12px 16px;
+    padding: 12px 16px; cursor:pointer; user-select:none; list-style:none;
   }
+  .lb-row::-webkit-details-marker{ display:none; }
+  .lb-row::marker{ display:none; content:""; }
+  .lb-chevron{ font-size:15px; color: var(--text-dim); font-weight:800; flex-shrink:0; transition: transform .18s ease; }
+  .lb-row-wrap[open] .lb-chevron{ transform: rotate(90deg); }
   .lb-rank{
     font-family:'Baloo 2', sans-serif; font-weight:800; font-size:14px; color: var(--text-dim);
     width:26px; flex-shrink:0; text-align:center;
@@ -175,10 +181,9 @@
   .lb-boss-icon{
     display:block; width:26px; height:26px; border-radius:7px; overflow:hidden;
     background:#f0f1f7; border:2px solid var(--card); box-shadow:0 0 0 1px var(--border);
-    margin-left:-8px; text-decoration:none; transition: transform .12s ease, z-index 0s;
+    margin-left:-8px; transition: transform .12s ease, z-index 0s;
     position:relative;
   }
-  .lb-boss-icon:hover{ transform: translateY(-3px) scale(1.12); z-index:2; box-shadow:0 0 0 2px var(--blue); }
   [data-theme="dark"] .lb-boss-icon{ background:#e9edf5; }
   .lb-boss-icon:first-child{ margin-left:0; }
   .lb-boss-icon img{ width:100%; height:100%; object-fit:contain; padding:2px; mix-blend-mode:multiply; }
@@ -187,8 +192,50 @@
     margin-left:4px; align-self:center;
   }
 
+  .lb-breakdown{
+    border-top:2px solid var(--border); padding:6px 16px 12px;
+    display:flex; flex-direction:column;
+  }
+  .bd-heading{
+    display:flex; align-items:center; gap:10px; padding:8px 4px 4px;
+    font-size:10px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; color: var(--text-dim);
+  }
+  .bd-heading-name{ flex:1; min-width:0; padding-left:40px; }
+  .bd-heading-weather{ min-width:70px; flex-shrink:0; }
+  .bd-heading-tier{ width:38px; flex-shrink:0; text-align:center; }
+  .bd-item{
+    display:flex; align-items:center; gap:10px; padding:8px 4px;
+    border-top:1px solid var(--border); text-decoration:none; color: var(--text);
+    transition: background .12s ease;
+  }
+  .bd-item:first-child{ border-top:none; }
+  .bd-item:hover{ background: var(--bg1); border-radius:8px; }
+  .bd-boss-icon{
+    width:30px; height:30px; border-radius:8px; flex-shrink:0; overflow:hidden;
+    background:#f0f1f7; display:flex; align-items:center; justify-content:center;
+  }
+  [data-theme="dark"] .bd-boss-icon{ background:#e9edf5; }
+  .bd-boss-icon img{ width:100%; height:100%; object-fit:contain; padding:2px; mix-blend-mode:multiply; }
+  .bd-name{ font-size:12.5px; font-weight:700; color: var(--text); flex:1; min-width:0; }
+  .bd-tier{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:11px; color: var(--blue-dark);
+    background: rgba(90,169,255,0.12); border-radius:999px; padding:2px 8px; flex-shrink:0;
+  }
+  .bd-weather{ display:flex; align-items:center; gap:5px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
+  .bd-wicon-wrap{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:#eef4fb; border-radius:5px; width:16px; height:16px; flex-shrink:0;
+  }
+  .bd-wicon{ width:16px; height:16px; object-fit:contain; mix-blend-mode:multiply; }
+  .bd-wicon-wrap.extreme{ background:none; }
+  .bd-wicon-wrap.extreme .bd-wicon{ filter: invert(1) grayscale(1) brightness(0.3); }
+  [data-theme="dark"] .bd-wicon-wrap.extreme .bd-wicon{ filter:none; }
+
   @media (max-width:600px){
     .lb-bosses{ display:none; }
+    .bd-name{ font-size:12px; }
+    .bd-weather{ min-width:0; }
+    .bd-weather span{ display:none; }
   }
 </style>
 </head>
@@ -639,13 +686,14 @@ function computeUsageData(allRaids){
       const name = (member.n || "").trim();
       if(!name || name.toLowerCase() === "various") continue;
       if(!usage[name]){
-        usage[name] = { name, count: 0, bossMap: new Map(), roleCounts: {} };
+        usage[name] = { name, count: 0, bossMap: new Map(), roleCounts: {}, instances: [] };
       }
       const u = usage[name];
       const nameKey = name.toLowerCase();
       if(!countedThisEntry.has(nameKey)){
         countedThisEntry.add(nameKey);
         u.count++;
+        u.instances.push({ boss: r.boss, file: r.file, weather: r.weather, tier: r.tier });
       }
       const bossKey = r.boss.toLowerCase();
       if(!u.bossMap.has(bossKey)) u.bossMap.set(bossKey, { name: r.boss, file: r.file });
@@ -656,7 +704,7 @@ function computeUsageData(allRaids){
 
   const results = Object.values(usage).map(u => {
     const roles = Object.entries(u.roleCounts).sort((a,b) => b[1]-a[1]).slice(0,2).map(x => x[0]);
-    return { name: u.name, count: u.count, bosses: [...u.bossMap.values()], roles };
+    return { name: u.name, count: u.count, bosses: [...u.bossMap.values()], roles, instances: u.instances };
   }).sort((a,b) => b.count - a.count);
 
   return { results, qualifyingEntries, totalDistinctBosses: distinctBosses.size };
@@ -699,6 +747,29 @@ function renderStats(totalPokemon, totalRaids, totalBosses){
   `;
 }
 
+function tierLabel(t){ return (t === "5.5" ? "5.5" : t) + "★"; }
+const WEATHER_ICON_URLS = {
+  "clear":"assets/icons/weather-clear.jpg",
+  "sunny":"assets/icons/weather-clear.jpg",
+  "cloudy":"assets/icons/weather-cloudy.jpg",
+  "partly cloudy":"assets/icons/weather-partly-cloudy.jpg",
+  "windy":"assets/icons/weather-windy.jpg",
+  "wind":"assets/icons/weather-windy.jpg",
+  "rain":"assets/icons/weather-rain.jpg",
+  "rainy":"assets/icons/weather-rain.jpg",
+  "snow":"assets/icons/weather-snow.jpg",
+  "fog":"assets/icons/weather-fog.jpg",
+  "extreme":"assets/icons/weather-extreme.png",
+};
+function smallWeatherIconHtml(w){
+  if(!w) return "";
+  const key = w.trim().toLowerCase();
+  const url = WEATHER_ICON_URLS[key];
+  const wrapCls = key === "extreme" ? "bd-wicon-wrap extreme" : "bd-wicon-wrap";
+  if(url) return `<span class="${wrapCls}"><img class="bd-wicon" src="${url}" alt="${w}" onerror="this.parentElement.remove()"></span>`;
+  return "";
+}
+
 function bossSlug(name){
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }
@@ -721,20 +792,38 @@ function renderLeaderboard(){
     const extra = r.bosses.length - shownBosses.length;
     const roleText = r.roles.length ? r.roles.join(", ") : "";
     return `
-    <div class="lb-row">
-      <div class="lb-rank ${rankClass}">${i+1}</div>
-      <div class="lb-sprite"><img src="${spriteUrl(r.name)}" alt="${r.name}" loading="lazy" onerror="this.style.display='none'"></div>
-      <div class="lb-main">
-        <div class="lb-name">${displayName(r.name)}</div>
-        ${roleText ? `<div class="lb-roles">${roleText}</div>` : ""}
-        <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(r.count/maxCount*100).toFixed(1)}"></div></div>
+    <details class="lb-row-wrap">
+      <summary class="lb-row">
+        <div class="lb-rank ${rankClass}">${i+1}</div>
+        <div class="lb-sprite"><img src="${spriteUrl(r.name)}" alt="${r.name}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="lb-main">
+          <div class="lb-name">${displayName(r.name)}</div>
+          ${roleText ? `<div class="lb-roles">${roleText}</div>` : ""}
+          <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(r.count/maxCount*100).toFixed(1)}"></div></div>
+        </div>
+        <div class="lb-bosses">
+          ${shownBosses.map(b => `<span class="lb-boss-icon" title="${b.name}"><img src="${spriteUrl(b.name)}" alt="${b.name}" loading="lazy" onerror="this.style.display='none'"></span>`).join("")}
+          ${extra > 0 ? `<span class="lb-boss-more">+${extra}</span>` : ""}
+        </div>
+        <div class="lb-count">${r.count}<span>use${r.count===1?"":"s"}</span></div>
+        <span class="lb-chevron">›</span>
+      </summary>
+      <div class="lb-breakdown">
+        <div class="bd-heading">
+          <span class="bd-heading-name">Boss Name</span>
+          <span class="bd-heading-weather">Weather</span>
+          <span class="bd-heading-tier">Difficulty</span>
+        </div>
+        ${r.instances.map(inst => `
+          <a class="bd-item" href="${inst.file}#boss-${bossSlug(inst.boss)}">
+            <div class="bd-boss-icon"><img src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="this.style.display='none'"></div>
+            <div class="bd-name">${inst.boss}</div>
+            <div class="bd-weather">${smallWeatherIconHtml(inst.weather)}<span>${inst.weather || "—"}</span></div>
+            <div class="bd-tier">${tierLabel(inst.tier)}</div>
+          </a>
+        `).join("")}
       </div>
-      <div class="lb-bosses">
-        ${shownBosses.map(b => `<a class="lb-boss-icon" href="${b.file}#boss-${bossSlug(b.name)}" title="View ${b.name} in the archive"><img src="${spriteUrl(b.name)}" alt="${b.name}" loading="lazy" onerror="this.style.display='none'"></a>`).join("")}
-        ${extra > 0 ? `<span class="lb-boss-more">+${extra}</span>` : ""}
-      </div>
-      <div class="lb-count">${r.count}<span>use${r.count===1?"":"s"}</span></div>
-    </div>`;
+    </details>`;
   }).join("")}</div>`;
 
   requestAnimationFrame(() => {
