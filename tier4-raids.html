@@ -241,7 +241,7 @@
   }
   .boss-icon img{ width:100%; height:100%; object-fit:contain; padding:5px; mix-blend-mode:multiply; }
   .boss-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 21px; line-height:1.3; min-height:55px; display:flex; align-items:center; }
-  .variant-count{ font-size:12px; font-weight:700; color: var(--text-dim); margin-top:5px; min-height:32px; line-height:1.35; }
+  .boss-moveset-row{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
   .current-tier-pill{
     flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size: 13px;
     color: #fff; padding: 6px 13px; border-radius: 999px; box-shadow: 0 2px 0 rgba(0,0,0,0.12);
@@ -286,7 +286,6 @@
   [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
   .ae-icon{ width:22px; height:22px; }
 
-  .moveset-col{ display:flex; flex-direction:column; gap:6px; flex-shrink:0; min-width:118px; }
 
   .party-label{
     font-size:11px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase;
@@ -659,29 +658,24 @@ function normalizeWeather(w){
   return key || (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
 
-// Tier 4 CSV column layout: boss=1, tier=2, strategy=3, fast=5, charge=7, weather=9, ae=11
-// Party slots (6 max): base=13+5*i -> icon,name,fast,charge,role (role LAST for this sheet)
+// New clean CSV layout (single header row, no blank spacer columns):
+// boss=0, tier=1, strategy=2, fast=3, charge=4, weather=5, ae=6 (text; "shield"/"bash" keyword -> shield, else truthy -> sword)
+// Party slots (6 max, uniform order): base=7+4*i -> name,role,fast,charge
 function rowsToRaids(rows){
   const raids = [];
   for(const row of rows){
-    if(row.length < 20) continue;
-    const boss = (row[1] || "").trim();
-    const tierRaw = (row[2] || "").trim();
+    if(row.length < 10) continue;
+    const boss = (row[0] || "").trim();
+    const tierRaw = (row[1] || "").trim();
     const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
     if(!boss || !tierMatch) continue;
     const tier = tierMatch[1];
-    const strategy = (row[3] || "").trim();
-    const fast = (row[5] || "").trim();
-    const charge = (row[7] || "").trim();
-    const weather = normalizeWeather(row[9]);
-
-    const aeCell = (row[11] || "").trim();
-    let ae = "";
-    if(aeCell){
-      ae = aeCell.includes("steamgriddb") ? "sword"
-         : aeCell.includes("396c21d1") ? "shield"
-         : "sword";
-    }
+    const strategy = (row[2] || "").trim();
+    const fast = (row[3] || "").trim();
+    const charge = (row[4] || "").trim();
+    const weather = normalizeWeather(row[5]);
+    const aeCell = (row[6] || "").trim();
+    const ae = /shield|bash/i.test(aeCell) ? "shield" : (aeCell ? "sword" : "");
 
     let vodIdx = -1;
     for(let i = 0; i < row.length; i++){
@@ -690,12 +684,12 @@ function rowsToRaids(rows){
 
     const party = [];
     for(let i = 0; i < 6; i++){
-      const base = 13 + 5*i;
+      const base = 7 + 4*i;
       if(vodIdx !== -1 && base >= vodIdx) break;
-      const name = (row[base+1] || "").trim();
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
       const pfast = (row[base+2] || "").trim();
       const pcharge = (row[base+3] || "").trim();
-      const role = (row[base+4] || "").trim();
       if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
     }
 
@@ -704,7 +698,7 @@ function rowsToRaids(rows){
       vod = (row[vodIdx+1] || "").trim();
       notes = (row[vodIdx+2] || "").trim();
     } else {
-      const trail = row.slice(28).map(x => x.trim()).filter(Boolean);
+      const trail = row.slice(31).map(x => x.trim()).filter(Boolean);
       if(trail.length) notes = trail[trail.length-1];
     }
 
@@ -1271,10 +1265,6 @@ function variantBodyHtml(r, variants, cardId){
         ${r.ae === "shield" ? `<span class="ae-tag" data-tooltip="+10% damage reduction for your pokemon in raids"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
         ${bossStatsHtml(r.boss)}
       </div>
-      <div class="moveset-col">
-        ${moveChipHtml("Fast", r.fast)}
-        ${moveChipHtml("Charge", r.charge)}
-      </div>
     </div>
     <details class="party-wrap">
       <summary class="expand-btn">
@@ -1294,11 +1284,6 @@ function variantBodyHtml(r, variants, cardId){
 }
 
 function bossCardHtml(boss, variants, cardId){
-  const hasMultiple = variants.length > 1;
-  const vodCount = variants.filter(v => v.vod).length;
-  const countLabel = hasMultiple
-    ? `${variants.length} strategies logged${vodCount > 0 ? ` · ${vodCount} with VOD` : " · no VODs yet"}`
-    : "";
   const defaultIdx = variants.length - 1; // easiest recorded variant, matching this card's section
 
   return `
@@ -1309,7 +1294,7 @@ function bossCardHtml(boss, variants, cardId){
       </div>
       <div style="flex:1; min-width:0;">
         <div class="boss-name">${displayName(boss)}</div>
-        <div class="variant-count">${countLabel || "&nbsp;"}</div>
+        <div class="boss-moveset-row" id="moveset-${cardId}">${moveChipHtml("Fast", variants[defaultIdx].fast)}${moveChipHtml("Charge", variants[defaultIdx].charge)}</div>
       </div>
       <div class="current-tier-pill ${tierClass(variants[defaultIdx].tier)}" id="pill-${cardId}">${tierLabel(variants[defaultIdx].tier)}</div>
     </div>
@@ -1464,11 +1449,13 @@ function updateCard(cardId, variantIndex){
   const variant = variants[variantIndex];
   const body = document.getElementById(`body-${cardId}`);
   const pill = document.getElementById(`pill-${cardId}`);
+  const moveset = document.getElementById(`moveset-${cardId}`);
   if(body) body.innerHTML = variantBodyHtml(variant, variants, cardId);
   if(pill){
     pill.className = `current-tier-pill ${tierClass(variant.tier)}`;
     pill.textContent = tierLabel(variant.tier);
   }
+  if(moveset) moveset.innerHTML = `${moveChipHtml("Fast", variant.fast)}${moveChipHtml("Charge", variant.charge)}`;
 }
 
 const themeToggle = document.getElementById("themeToggle");
