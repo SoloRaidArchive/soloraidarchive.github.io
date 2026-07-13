@@ -227,7 +227,7 @@
 <header>
   <div class="eyebrow">Most Used Raiders</div>
   <h1>Most Used Raiders</h1>
-  <p>How many distinct raid bosses each Pokémon has been used to solo, counted once per boss regardless of how many strategies use it. Pulled live from every archive on this site.</p>
+  <p>How many recorded raid strategies each Pokémon has appeared in, pulled live from every archive on this site. Each qualifying strategy for a boss counts separately — so a boss with two different recorded strategies (different weather, moveset, etc.) can contribute twice. A Pokémon filling multiple roles within the same strategy (e.g. Main DPS and Support DPS) only counts once for that entry. Strategies without a VOD link aren't included.</p>
 </header>
 
 <div class="stat-strip" id="statStrip"></div>
@@ -733,7 +733,7 @@ function renderLeaderboard(){
         ${shownBosses.map(b => `<a class="lb-boss-icon" href="${b.file}#boss-${bossSlug(b.name)}" title="View ${b.name} in the archive"><img src="${spriteUrl(b.name)}" alt="${b.name}" loading="lazy" onerror="this.style.display='none'"></a>`).join("")}
         ${extra > 0 ? `<span class="lb-boss-more">+${extra}</span>` : ""}
       </div>
-      <div class="lb-count">${r.count}<span>boss${r.count===1?"":"es"}</span></div>
+      <div class="lb-count">${r.count}<span>use${r.count===1?"":"s"}</span></div>
     </div>`;
   }).join("")}</div>`;
 
