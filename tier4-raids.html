@@ -331,11 +331,11 @@
   a.strategy-chip{ cursor:pointer; }
   a.strategy-chip:hover{ border-color: var(--blue); background: rgba(90,169,255,0.1); }
   .strategy-chip-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
-  .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .moveset-col > span[data-tooltip], .boss-stats-line[data-tooltip]{ position:relative; cursor:help; }
+  .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .boss-moveset-row > span[data-tooltip], .boss-stats-line[data-tooltip]{ position:relative; cursor:help; }
   .strategy-chip[data-tooltip]::after,
   .weather-icon-wrap[data-tooltip]::after,
   .ae-tag[data-tooltip]::after,
-  .moveset-col > span[data-tooltip]::after,
+  .boss-moveset-row > span[data-tooltip]::after,
   .boss-stats-line[data-tooltip]::after{
     content: attr(data-tooltip);
     position:absolute; bottom: calc(100% + 8px); left:0; z-index:40;
@@ -348,7 +348,7 @@
   .strategy-chip[data-tooltip]:hover::after,
   .weather-icon-wrap[data-tooltip]:hover::after,
   .ae-tag[data-tooltip]:hover::after,
-  .moveset-col > span[data-tooltip]:hover::after,
+  .boss-moveset-row > span[data-tooltip]:hover::after,
   .boss-stats-line[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
   .member-row{
 
@@ -393,7 +393,7 @@
     background:#f1f2f4; padding:2px 8px; border-radius:999px;
   }
 
-  .moveset-col > span{
+  .boss-moveset-row > span{
     background: #f6f8fc; border: 2px solid var(--border); border-radius: 999px; padding: 6px 12px;
     display:flex; align-items:center; gap:6px; min-width:0; font-size:13px; font-weight:800; color: var(--text-muted);
   }
