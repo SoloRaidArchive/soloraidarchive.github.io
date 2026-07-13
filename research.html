@@ -631,6 +631,10 @@ function computeUsageData(allRaids){
     qualifyingEntries++;
     distinctBosses.add(r.boss.toLowerCase());
 
+    // A Pokemon filling multiple role-slots in the SAME entry (e.g. Main DPS + Support DPS)
+    // should only count once toward its total usage for this entry.
+    const countedThisEntry = new Set();
+
     for(const member of r.party){
       const name = (member.n || "").trim();
       if(!name || name.toLowerCase() === "various") continue;
@@ -638,7 +642,11 @@ function computeUsageData(allRaids){
         usage[name] = { name, count: 0, bossMap: new Map(), roleCounts: {} };
       }
       const u = usage[name];
-      u.count++;
+      const nameKey = name.toLowerCase();
+      if(!countedThisEntry.has(nameKey)){
+        countedThisEntry.add(nameKey);
+        u.count++;
+      }
       const bossKey = r.boss.toLowerCase();
       if(!u.bossMap.has(bossKey)) u.bossMap.set(bossKey, { name: r.boss, file: r.file });
       const roleCategory = (member.r || "").split(",")[0].trim();
