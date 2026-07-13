@@ -271,6 +271,40 @@ const GOHUB_OVERRIDES = {
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
   "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega skarmory": "https://db.pokemongohub.net/images/official/full/227_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega audino": "https://db.pokemongohub.net/images/official/full/531_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
 };
 function toDbSlug(name){
   let n = name.trim().toLowerCase();
@@ -297,34 +331,354 @@ function displayName(name){
 }
 
 // Precomputed from all four raid archives (regenerate this block whenever raid data changes)
-const USAGE_DATA = [
-{name:"Mega Rayquaza",count:20,bosses:[{name:"Buzzwole",file:"tier5-raids.html"},{name:"Giratina Altered",file:"tier5-ae-raids.html"},{name:"Giratina Origin",file:"tier5-raids.html"},{name:"Kyurem",file:"tier5-raids.html"},{name:"Kyurem White",file:"tier5-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"},{name:"Mega Beedrill",file:"tier4-raids.html"},{name:"Mega Blaziken",file:"tier4-raids.html"},{name:"Mega Gallade",file:"tier4-raids.html"},{name:"Mega Heracross",file:"tier4-raids.html"},{name:"Mega Lopunny",file:"tier4-raids.html"},{name:"Mega Medicham",file:"tier4-raids.html"},{name:"Mega Venusaur",file:"tier4-raids.html"},{name:"Palkia",file:"tier5-ae-raids.html"},{name:"Pheromosa",file:"tier5-raids.html"},{name:"Regidrago",file:"tier6-elite-raids.html"},{name:"Reshiram",file:"tier5-ae-raids.html"},{name:"Tapu Bulu",file:"tier5-ae-raids.html"},{name:"Virizion",file:"tier5-raids.html"},{name:"Zekrom",file:"tier5-raids.html"}],roles:["Support DPS","Main DPS"]},{name:"Mega Lucario",count:17,bosses:[{name:"Darkrai",file:"tier5-ae-raids.html"},{name:"Dialga",file:"tier5-ae-raids.html"},{name:"Kyurem",file:"tier5-raids.html"},{name:"Kyurem Black",file:"tier5-raids.html"},{name:"Kyurem White",file:"tier5-raids.html"},{name:"Mega Absol",file:"tier4-raids.html"},{name:"Mega Aggron",file:"tier4-raids.html"},{name:"Mega Glalie",file:"tier4-raids.html"},{name:"Mega Gyarados",file:"tier4-raids.html"},{name:"Mega Houndoom",file:"tier4-raids.html"},{name:"Mega Kangaskhan",file:"tier4-raids.html"},{name:"Mega Lucario",file:"tier4-raids.html"},{name:"Mega Steelix",file:"tier4-raids.html"},{name:"Mega Tyranitar",file:"tier4-raids.html"},{name:"Regigigas",file:"tier5-ae-raids.html"},{name:"Stakataka",file:"tier5-raids.html"},{name:"Terrakion",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},
-{name:"Kyurem Black",count:16,bosses:[{name:"Darkrai",file:"tier5-ae-raids.html"},{name:"Dialga",file:"tier5-ae-raids.html"},{name:"Enamorus Therian",file:"tier5-raids.html"},{name:"Landorus Incarnate",file:"tier5-raids.html"},{name:"Landorus Therian",file:"tier5-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"},{name:"Mega Garchomp",file:"tier4-raids.html"},{name:"Mega Rayquaza",file:"tier6-elite-raids.html"},{name:"Mega Salamence",file:"tier4-raids.html"},{name:"Rayquaza",file:"tier5-raids.html"},{name:"Regidrago",file:"tier6-elite-raids.html"},{name:"Regigigas",file:"tier5-ae-raids.html"},{name:"Thundurus Therian",file:"tier5-raids.html"},{name:"Tornadus Therian",file:"tier5-ae-raids.html"},{name:"Yveltal",file:"tier5-ae-raids.html"},{name:"Zekrom",file:"tier5-raids.html"}],roles:["Catch Tank","Main DPS"]},{name:"Necrozma Dawn Wings",count:15,bosses:[{name:"Azelf",file:"tier5-raids.html"},{name:"Blacephalon",file:"tier5-raids.html"},{name:"Deoxys",file:"tier5-raids.html"},{name:"Giratina Altered",file:"tier5-ae-raids.html"},{name:"Giratina Origin",file:"tier5-raids.html"},{name:"Lunala",file:"tier5-raids.html"},{name:"Mega Alakazam",file:"tier4-raids.html"},{name:"Mega Banette",file:"tier4-raids.html"},{name:"Mega Gengar",file:"tier4-raids.html"},{name:"Mega Slowbro",file:"tier4-raids.html"},{name:"Mewtwo",file:"tier5-raids.html"},{name:"Necrozma",file:"tier5-raids.html"},{name:"Necrozma Dawn Wings",file:"tier5-raids.html"},{name:"Necrozma Dusk Mane",file:"tier5-ae-raids.html"},{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},
-{name:"Eternatus",count:13,bosses:[{name:"Dialga",file:"tier5-ae-raids.html"},{name:"Giratina Altered",file:"tier5-ae-raids.html"},{name:"Giratina Origin",file:"tier5-raids.html"},{name:"Kyurem",file:"tier5-raids.html"},{name:"Kyurem Black",file:"tier5-ae-raids.html"},{name:"Kyurem White",file:"tier5-ae-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"},{name:"Mega Charizard X",file:"tier4-raids.html"},{name:"Palkia",file:"tier5-ae-raids.html"},{name:"Regidrago",file:"tier5-raids.html"},{name:"Reshiram",file:"tier5-ae-raids.html"},{name:"Tapu Bulu",file:"tier5-raids.html"},{name:"Zekrom",file:"tier5-raids.html"}],roles:["Main DPS","Support DPS"]},{name:"Primal Groudon",count:12,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Entei",file:"tier5-ae-raids.html"},{name:"Heatran",file:"tier5-raids.html"},{name:"Mega Ampharos",file:"tier4-raids.html"},{name:"Mega Manectric",file:"tier4-raids.html"},{name:"Mega Mawile",file:"tier4-raids.html"},{name:"Mega Metagross",file:"tier4-raids.html"},{name:"Nihilego",file:"tier5-raids.html"},{name:"Regieleki",file:"tier5-raids.html"},{name:"Tapu Koko",file:"tier5-ae-raids.html"},{name:"Terrakion",file:"tier5-ae-raids.html"},{name:"Xurkitree",file:"tier5-raids.html"}],roles:["Main DPS"]},
-{name:"Zacian Crown",count:12,bosses:[{name:"Enamorus Incarnate",file:"tier5-raids.html"},{name:"Enamorus Therian",file:"tier5-raids.html"},{name:"Enamorus therian",file:"tier5-ae-raids.html"},{name:"Kyurem",file:"tier5-raids.html"},{name:"Kyurem White",file:"tier5-ae-raids.html"},{name:"Mega Aerodactyl",file:"tier4-raids.html"},{name:"Mega Altaria",file:"tier4-raids.html"},{name:"Mega Gardevoir",file:"tier4-raids.html"},{name:"Mega Sableye",file:"tier4-raids.html"},{name:"Tapu Lele",file:"tier5-ae-raids.html"},{name:"Terrakion",file:"tier5-raids.html"},{name:"Xerneas",file:"tier5-raids.html"}],roles:["Main DPS","Support DPS"]},{name:"Kyurem White",count:10,bosses:[{name:"Landorus Incarnate",file:"tier5-raids.html"},{name:"Landorus Therian",file:"tier5-raids.html"},{name:"Mega Rayquaza",file:"tier6-elite-raids.html"},{name:"Mega Sceptile",file:"tier4-raids.html"},{name:"Thundurus Incarnate",file:"tier5-raids.html"},{name:"Thundurus Therian",file:"tier5-raids.html"},{name:"Tornadus Incarnate",file:"tier5-raids.html"},{name:"Tornadus Therian",file:"tier5-ae-raids.html"},{name:"Yveltal",file:"tier5-ae-raids.html"},{name:"Zapdos",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},
-{name:"Shadow Groudon",count:9,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Entei",file:"tier5-ae-raids.html"},{name:"Heatran",file:"tier5-raids.html"},{name:"Mega Mawile",file:"tier4-raids.html"},{name:"Mega Metagross",file:"tier4-raids.html"},{name:"Nihilego",file:"tier5-raids.html"},{name:"Regieleki",file:"tier5-raids.html"},{name:"Tapu Koko",file:"tier5-ae-raids.html"},{name:"Xurkitree",file:"tier5-ae-raids.html"}],roles:["Support DPS","Catch Tank"]},{name:"Mega Blaziken",count:8,bosses:[{name:"Celesteela",file:"tier5-ae-raids.html"},{name:"Genesect",file:"tier5-raids.html"},{name:"Kartana",file:"tier5-raids.html"},{name:"Mega Aggron",file:"tier4-raids.html"},{name:"Mega Metagross",file:"tier4-raids.html"},{name:"Mega Scizor",file:"tier4-raids.html"},{name:"Mega Steelix",file:"tier4-raids.html"},{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Executor","Support DPS"]},
-{name:"Shadow Rampardos",count:7,bosses:[{name:"Articuno",file:"tier5-raids.html"},{name:"Ho-Oh",file:"tier5-raids.html"},{name:"Mega Pinsir",file:"tier4-raids.html"},{name:"Moltres",file:"tier5-raids.html"},{name:"Thundurus Therian",file:"tier5-raids.html"},{name:"Tornadus Incarnate",file:"tier5-ae-raids.html"},{name:"Tornadus Therian",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},{name:"Shadow Regigigas",count:7,bosses:[{name:"Regieleki",file:"tier5-raids.html"},{name:"Regigigas",file:"tier5-ae-raids.html"},{name:"Reshiram",file:"tier5-ae-raids.html"},{name:"Thundurus Therian",file:"tier5-raids.html"},{name:"Tornadus Incarnate",file:"tier5-ae-raids.html"},{name:"Tornadus Therian",file:"tier5-ae-raids.html"},{name:"Xerneas",file:"tier5-ae-raids.html"}],roles:["Catch Tank","Main DPS"]},
-{name:"Shadow Reshiram",count:6,bosses:[{name:"Celesteela",file:"tier5-ae-raids.html"},{name:"Kartana",file:"tier5-raids.html"},{name:"Mega Aggron",file:"tier4-raids.html"},{name:"Mega Metagross",file:"tier4-raids.html"},{name:"Mega Steelix",file:"tier4-raids.html"},{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},{name:"Shadow Mamoswine",count:5,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Nihilego",file:"tier5-raids.html"},{name:"Regieleki",file:"tier5-raids.html"},{name:"Tapu Koko",file:"tier5-ae-raids.html"},{name:"Xurkitree",file:"tier5-ae-raids.html"}],roles:["Catch Tank","Executor"]},
-{name:"Blacephalon",count:4,bosses:[{name:"Celesteela",file:"tier5-ae-raids.html"},{name:"Genesect",file:"tier5-raids.html"},{name:"Kartana",file:"tier5-raids.html"},{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},{name:"Keldeo Resolute",count:4,bosses:[{name:"Darkrai",file:"tier5-ae-raids.html"},{name:"Dialga",file:"tier5-ae-raids.html"},{name:"Kyurem Black",file:"tier5-raids.html"},{name:"Regigigas",file:"tier5-ae-raids.html"}],roles:["Catch Tank","Executor"]},
-{name:"Necrozma Dusk Mane",count:4,bosses:[{name:"Enamorus Incarnate",file:"tier5-raids.html"},{name:"Kyurem White",file:"tier5-raids.html"},{name:"Mega Audino",file:"tier4-raids.html"},{name:"Terrakion",file:"tier5-ae-raids.html"}],roles:["Catch Tank","Main DPS"]},{name:"Shadow Garchomp",count:4,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"},{name:"Palkia",file:"tier5-ae-raids.html"},{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Catch Tank","Executor"]},
-{name:"Shadow Tyrantrum",count:4,bosses:[{name:"Articuno",file:"tier5-raids.html"},{name:"Ho-Oh",file:"tier5-raids.html"},{name:"Mega Charizard Y",file:"tier4-raids.html"},{name:"Moltres",file:"tier5-raids.html"}],roles:["Catch Tank","Support DPS"]},{name:"Mega Gengar",count:3,bosses:[{name:"Azelf",file:"tier5-raids.html"},{name:"Blacephalon",file:"tier5-raids.html"},{name:"Necrozma",file:"tier5-ae-raids.html"}],roles:["Executor","Main DPS"]},
-{name:"Mega Sceptile",count:3,bosses:[{name:"Mega Blastoise",file:"tier4-raids.html"},{name:"Mega Slowbro",file:"tier4-raids.html"},{name:"Mega Swampert",file:"tier4-raids.html"}],roles:["Main DPS","Catch Tank"]},{name:"Regieleki",count:3,bosses:[{name:"Mega Blastoise",file:"tier4-raids.html"},{name:"Mega Pidgeot",file:"tier4-raids.html"},{name:"Tornadus Incarnate",file:"tier5-raids.html"}],roles:["Main DPS","Catch Tank"]},
-{name:"Baxcalibur",count:2,bosses:[{name:"Kyurem Black",file:"tier5-ae-raids.html"},{name:"Latios",file:"tier5-ae-raids.html"}],roles:["Catch Tank","Executor"]},{name:"Mega Gardevoir",count:2,bosses:[{name:"Guzzlord",file:"tier5-raids.html"},{name:"Mega Sableye",file:"tier4-raids.html"}],roles:["Main DPS"]},
-{name:"Primal Kyogre",count:2,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Entei",file:"tier5-ae-raids.html"}],roles:["Main DPS"]},{name:"Shadow Dialga",count:2,bosses:[{name:"Palkia",file:"tier5-ae-raids.html"},{name:"Reshiram",file:"tier5-ae-raids.html"}],roles:["Catch Tank"]},
-{name:"Shadow Gengar",count:2,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Tapu Bulu",file:"tier5-raids.html"}],roles:["Catch Tank"]},{name:"Shadow Kyogre",count:2,bosses:[{name:"Blacephalon",file:"tier5-raids.html"},{name:"Entei",file:"tier5-ae-raids.html"}],roles:["Support DPS"]},
-{name:"Shadow Salamence",count:2,bosses:[{name:"Reshiram",file:"tier5-ae-raids.html"},{name:"Zamazenta Hero",file:"tier5-ae-raids.html"}],roles:["Catch Tank"]},{name:"Zamazenta Crown",count:2,bosses:[{name:"Enamorus therian",file:"tier5-ae-raids.html"},{name:"Tapu Lele",file:"tier5-ae-raids.html"}],roles:["Executor"]},
-{name:"Landorus Therian",count:1,bosses:[{name:"Heatran",file:"tier5-raids.html"}],roles:["Catch Tank"]},{name:"Landorus therian",count:1,bosses:[{name:"Solgaleo",file:"tier5-ae-raids.html"}],roles:["Catch Tank"]},
-{name:"Mega Alakazam",count:1,bosses:[{name:"Terrakion",file:"tier5-ae-raids.html"}],roles:["Executor"]},{name:"Mega Beedrill",count:1,bosses:[{name:"Tapu Bulu",file:"tier5-raids.html"}],roles:["Main DPS"]},
-{name:"Mega Diancie",count:1,bosses:[{name:"Articuno",file:"tier5-ae-raids.html"}],roles:["Support DPS"]},{name:"Mega Garchomp",count:1,bosses:[{name:"Reshiram",file:"tier5-ae-raids.html"}],roles:["Catch Tank","Executor"]},
-{name:"Mega Heracross",count:1,bosses:[{name:"Azelf",file:"tier5-raids.html"}],roles:["Catch Tank"]},{name:"Mega Mewtwo Y",count:1,bosses:[{name:"Zamazenta Hero",file:"tier5-ae-raids.html"}],roles:["Main DPS"]},
-{name:"Mega Tyranitar",count:1,bosses:[{name:"Mega Banette",file:"tier4-raids.html"}],roles:["Support DPS"]},{name:"Mega heracross",count:1,bosses:[{name:"Hoopa Unbound",file:"tier5-raids.html"}],roles:["Main DPS"]},
-{name:"Palkia Origin",count:1,bosses:[{name:"Kyurem",file:"tier5-raids.html"}],roles:["Catch Tank"]},{name:"Primal kyogre",count:1,bosses:[{name:"Mega Camerupt",file:"tier4-raids.html"}],roles:["Main DPS"]},
-{name:"Reshiram",count:1,bosses:[{name:"Mega Metagross",file:"tier4-raids.html"}],roles:["Catch Tank"]},{name:"Shadow Blaziken",count:1,bosses:[{name:"Kyurem Black",file:"tier5-raids.html"}],roles:["Catch Tank"]},
-{name:"Shadow Excadrill",count:1,bosses:[{name:"Heatran",file:"tier5-raids.html"}],roles:["Catch Tank"]},{name:"Shadow Mewtwo",count:1,bosses:[{name:"Terrakion",file:"tier5-ae-raids.html"}],roles:["Main DPS","Support DPS"]},
-{name:"Shadow Palkia",count:1,bosses:[{name:"Latios",file:"tier5-ae-raids.html"}],roles:["Catch Tank"]},{name:"Shadow Rhyperior",count:1,bosses:[{name:"Articuno",file:"tier5-ae-raids.html"}],roles:["Support DPS"]},
-];
-const TOTAL_RAID_ENTRIES = 193;
-const TOTAL_DISTINCT_BOSSES = 98;
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ","){ row.push(field); field = ""; }
+      else if(c === "\r"){ /* skip, handled by \n */ }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+const WEATHER_NAME_MAP = {
+  "clear":"Clear","cloudy":"Cloudy","partly cloudy":"Partly Cloudy","windy":"Windy",
+  "rain":"Rain","rainy":"Rain","snow":"Snow","fog":"Fog","extreme":"Extreme",
+};
+function normalizeWeather(w){
+  w = (w || "").trim();
+  if(!w) return w;
+  const key = WEATHER_NAME_MAP[w.toLowerCase()];
+  return key || (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+function rowsToRaidsTier4(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 10) continue;
+    const boss = (row[0] || "").trim();
+    const tierRaw = (row[1] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[2] || "").trim();
+    const fast = (row[3] || "").trim();
+    const charge = (row[4] || "").trim();
+    const weather = normalizeWeather(row[5]);
+    const aeCell = (row[6] || "").trim();
+    const ae = /shield|bash/i.test(aeCell) ? "shield" : (aeCell ? "sword" : "");
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 7 + 4*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(31).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+function rowsToRaidsTier5(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 10) continue;
+    const boss = (row[0] || "").trim();
+    const tierRaw = (row[1] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[2] || "").trim();
+    const fast = (row[3] || "").trim();
+    const charge = (row[4] || "").trim();
+    const weather = normalizeWeather(row[5]);
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 6 + 4*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(30).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, tier, strategy, fast, charge, weather, vod, notes, party });
+  }
+  return raids;
+}
+
+function rowsToRaidsTier5AE(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 10) continue;
+    const boss = (row[0] || "").trim();
+    const tierRaw = (row[1] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[2] || "").trim();
+    const fast = (row[3] || "").trim();
+    const charge = (row[4] || "").trim();
+    const weather = normalizeWeather(row[5]);
+    const aeCell = (row[6] || "").trim();
+    const ae = /shield|bash/i.test(aeCell) ? "shield" : (aeCell ? "sword" : "");
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 7 + 4*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(31).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+function rowsToRaidsTier6(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 11) continue;
+    const categoryRaw = (row[0] || "").trim();
+    if(!categoryRaw) continue;
+    const category = /elite/i.test(categoryRaw) ? "Elite" : "T6";
+    const boss = (row[1] || "").trim();
+    const tierRaw = (row[2] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[3] || "").trim();
+    const fast = (row[4] || "").trim();
+    const charge = (row[5] || "").trim();
+    const weather = normalizeWeather(row[6]);
+    const aeCell = (row[7] || "").trim();
+    const ae = /shield|bash/i.test(aeCell) ? "shield" : (aeCell ? "sword" : "");
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 8 + 4*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(32).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, category, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+async function fetchAndParse(url, parseFn){
+  try {
+    const res = await fetch(url);
+    if(!res.ok) return [];
+    const text = await res.text();
+    const rows = parseCSV(text);
+    return parseFn(rows);
+  } catch(e) {
+    console.error("Failed to fetch/parse", url, e);
+    return [];
+  }
+}
+
+// Builds usage stats from every parsed raid entry across all four archives.
+// Each recorded strategy/variant for a boss counts separately (not deduplicated by boss),
+// but only entries that have a VOD link are included.
+function computeUsageData(allRaids){
+  const usage = {};
+  let qualifyingEntries = 0;
+  const distinctBosses = new Set();
+
+  for(const r of allRaids){
+    if(!r.vod || !r.vod.trim()) continue;
+    qualifyingEntries++;
+    distinctBosses.add(r.boss.toLowerCase());
+
+    for(const member of r.party){
+      const name = (member.n || "").trim();
+      if(!name || name.toLowerCase() === "various") continue;
+      if(!usage[name]){
+        usage[name] = { name, count: 0, bossMap: new Map(), roleCounts: {} };
+      }
+      const u = usage[name];
+      u.count++;
+      const bossKey = r.boss.toLowerCase();
+      if(!u.bossMap.has(bossKey)) u.bossMap.set(bossKey, { name: r.boss, file: r.file });
+      const roleCategory = (member.r || "").split(",")[0].trim();
+      if(roleCategory) u.roleCounts[roleCategory] = (u.roleCounts[roleCategory] || 0) + 1;
+    }
+  }
+
+  const results = Object.values(usage).map(u => {
+    const roles = Object.entries(u.roleCounts).sort((a,b) => b[1]-a[1]).slice(0,2).map(x => x[0]);
+    return { name: u.name, count: u.count, bosses: [...u.bossMap.values()], roles };
+  }).sort((a,b) => b.count - a.count);
+
+  return { results, qualifyingEntries, totalDistinctBosses: distinctBosses.size };
+}
+
+async function loadAllData(){
+  const container = document.getElementById("container");
+  container.innerHTML = `<div class="loading-msg">Loading raid data...</div>`;
+
+  const [t4, t5, t5ae, t6] = await Promise.all([
+    fetchAndParse("tier4-data.csv", rowsToRaidsTier4),
+    fetchAndParse("tier5-data.csv", rowsToRaidsTier5),
+    fetchAndParse("tier5-ae-data.csv", rowsToRaidsTier5AE),
+    fetchAndParse("tier6-data.csv", rowsToRaidsTier6),
+  ]);
+
+  const tag = (arr, file) => arr.map(r => Object.assign({}, r, { file }));
+  const allRaids = [
+    ...tag(t4, "tier4-raids.html"),
+    ...tag(t5, "tier5-raids.html"),
+    ...tag(t5ae, "tier5-ae-raids.html"),
+    ...tag(t6, "tier6-elite-raids.html"),
+  ];
+
+  const { results, qualifyingEntries, totalDistinctBosses } = computeUsageData(allRaids);
+  ALL_RESULTS = results;
+  renderStats(results.length, qualifyingEntries, totalDistinctBosses);
+  renderLeaderboard();
+}
+
 
 let ALL_RESULTS = [];
 let currentLimit = 20;
@@ -392,8 +746,7 @@ document.querySelectorAll(".view-btn").forEach(btn => {
   });
 });
 
-ALL_RESULTS = USAGE_DATA;
-renderStats(USAGE_DATA.length, TOTAL_RAID_ENTRIES, TOTAL_DISTINCT_BOSSES);
+loadAllData();
 renderLeaderboard();
 
 const themeToggle = document.getElementById("themeToggle");
