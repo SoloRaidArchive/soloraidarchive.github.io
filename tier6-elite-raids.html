@@ -245,7 +245,7 @@
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
   }
   .boss-icon img{ width:100%; height:100%; object-fit:contain; padding:5px; mix-blend-mode:multiply; }
-  .boss-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 21px; line-height:1.3; min-height:55px; display:flex; align-items:center; }
+  .boss-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 21px; line-height:1.3; min-height:55px; display:flex; align-items:center; margin:0; }
   .boss-moveset-row{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
   .current-tier-pill{
     flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size: 13px;
@@ -1270,7 +1270,7 @@ function bossCardHtml(boss, variants, cardId){
         <img src="${spriteUrl(boss)}" alt="${boss}" loading="lazy" onerror="this.style.display='none'">
       </div>
       <div style="flex:1; min-width:0;">
-        <div class="boss-name">${displayName(boss)}</div>
+        <h2 class="boss-name">${displayName(boss)}</h2>
         <div class="boss-moveset-row" id="moveset-${cardId}">${moveChipHtml("Fast", variants[defaultIdx].fast)}${moveChipHtml("Charge", variants[defaultIdx].charge)}</div>
       </div>
       <div class="current-tier-pill ${tierClass(variants[defaultIdx].tier)}" id="pill-${cardId}">${tierLabel(variants[defaultIdx].tier)}</div>
