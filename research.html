@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Most Used Raiders — Pokémon Usage</title>
+<meta name="description" content="See which Pokémon are most commonly used to solo Pokémon GO raids, pulled live from every recorded strategy across the archive.">
+<link rel="canonical" href="https://soloraidarchive.github.io/research.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Most Used Raiders — Pokémon Usage Stats | Solo Raid Archive">
+<meta property="og:description" content="See which Pokémon are most commonly used to solo Pokémon GO raids, pulled live from every recorded strategy across the archive.">
+<meta property="og:url" content="https://soloraidarchive.github.io/research.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Most Used Raiders — Pokémon Usage Stats | Solo Raid Archive">
+<meta name="twitter:description" content="See which Pokémon are most commonly used to solo Pokémon GO raids, pulled live from every recorded strategy across the archive.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -940,7 +949,7 @@ function renderLeaderboard(){
           <span class="bd-heading-tier">Difficulty</span>
         </div>
         ${groupInstances(r.instances).map(({inst, count}) => `
-          <a class="bd-item" href="${inst.file}#boss-${bossSlug(inst.boss)}">
+          <a class="bd-item" href="${inst.file}?weather=${encodeURIComponent(inst.weather || "")}&tier=${encodeURIComponent(inst.tier || "")}#boss-${bossSlug(inst.boss)}">
             <div class="bd-top-row">
               <div class="bd-boss-icon"><img src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="this.style.display='none'"></div>
               <div class="bd-name">${inst.boss}${count > 1 ? ` <span class="bd-dupe-badge" data-tooltip="Logged ${count} times with the same boss, weather, difficulty and moveset shown here — the battle parties used in each recorded attempt were different.">×${count}</span>` : ""}</div>

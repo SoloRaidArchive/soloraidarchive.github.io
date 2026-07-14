@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Legendary Raids — Adventure Effect</title>
+<meta name="description" content="Legendary raid solo strategies with Adventure Effect boosts active — battle parties, weather, and VODs for soloing the toughest Legendary Pokémon GO raids.">
+<link rel="canonical" href="https://soloraidarchive.github.io/tier5-ae-raids.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Legendary Raid Solo Strategies — Adventure Effect | Solo Raid Archive">
+<meta property="og:description" content="Legendary raid solo strategies with Adventure Effect boosts active — battle parties, weather, and VODs for soloing the toughest Legendary Pokémon GO raids.">
+<meta property="og:url" content="https://soloraidarchive.github.io/tier5-ae-raids.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Legendary Raid Solo Strategies — Adventure Effect | Solo Raid Archive">
+<meta name="twitter:description" content="Legendary raid solo strategies with Adventure Effect boosts active — battle parties, weather, and VODs for soloing the toughest Legendary Pokémon GO raids.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -722,6 +731,25 @@ function scrollToHashTarget(){
   setTimeout(() => {
     const el = document.querySelector(hash);
     if(el){
+      // if arriving from a deep link with weather/tier params, select the matching strategy and expand the card
+      const params = new URLSearchParams(window.location.search);
+      const wantWeather = params.get("weather");
+      const wantTier = params.get("tier");
+      const cardId = el.getAttribute("data-card-id");
+      if(cardId && (wantWeather || wantTier)){
+        const variants = VARIANTS_BY_CARD[cardId];
+        if(variants){
+          const matchIdx = variants.findIndex(v =>
+            (!wantWeather || (v.weather || "").toLowerCase() === wantWeather.toLowerCase()) &&
+            (!wantTier || v.tier === wantTier)
+          );
+          if(matchIdx !== -1) updateCard(cardId, matchIdx);
+        }
+      }
+      if(cardId){
+        const wrap = el.querySelector(".party-wrap");
+        if(wrap) wrap.setAttribute("open", "");
+      }
       el.scrollIntoView({ behavior: "smooth", block: "center" });
       el.classList.add("highlight-flash");
       setTimeout(() => el.classList.remove("highlight-flash"), 2200);
@@ -1264,7 +1292,7 @@ function bossCardHtml(boss, variants, cardId){
   const defaultIdx = variants.length - 1; // easiest recorded variant, matching this card's section
 
   return `
-  <div class="card" id="boss-${boss.toLowerCase().replace(/[^a-z0-9]+/g,'-')}" data-boss="${boss.toLowerCase()}">
+  <div class="card" id="boss-${boss.toLowerCase().replace(/[^a-z0-9]+/g,'-')}" data-boss="${boss.toLowerCase()}" data-card-id="${cardId}">
     <div class="card-top">
       <div class="boss-icon">
         <img src="${spriteUrl(boss)}" alt="${boss}" loading="lazy" onerror="this.style.display='none'">
@@ -1427,7 +1455,13 @@ function updateCard(cardId, variantIndex){
   const body = document.getElementById(`body-${cardId}`);
   const pill = document.getElementById(`pill-${cardId}`);
   const moveset = document.getElementById(`moveset-${cardId}`);
+  const existingWrap = body ? body.querySelector(".party-wrap") : null;
+  const wasOpen = existingWrap ? existingWrap.hasAttribute("open") : false;
   if(body) body.innerHTML = variantBodyHtml(variant, variants, cardId);
+  if(wasOpen){
+    const newWrap = body ? body.querySelector(".party-wrap") : null;
+    if(newWrap) newWrap.setAttribute("open", "");
+  }
   if(pill){
     pill.className = `current-tier-pill ${tierClass(variant.tier)}`;
     pill.textContent = tierLabel(variant.tier);
