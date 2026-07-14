@@ -204,12 +204,13 @@
   .bd-heading-weather{ min-width:70px; flex-shrink:0; }
   .bd-heading-tier{ width:38px; flex-shrink:0; text-align:center; }
   .bd-item{
-    display:flex; align-items:center; gap:10px; padding:8px 4px;
+    display:block; padding:8px 4px;
     border-top:1px solid var(--border); text-decoration:none; color: var(--text);
     transition: background .12s ease;
   }
   .bd-item:first-child{ border-top:none; }
   .bd-item:hover{ background: var(--bg1); border-radius:8px; }
+  .bd-top-row{ display:flex; align-items:center; gap:10px; }
   .bd-boss-icon{
     width:30px; height:30px; border-radius:8px; flex-shrink:0; overflow:hidden;
     background:#f0f1f7; display:flex; align-items:center; justify-content:center;
@@ -222,20 +223,40 @@
     background: rgba(90,169,255,0.12); border-radius:999px; padding:2px 8px; flex-shrink:0;
   }
   .bd-weather{ display:flex; align-items:center; gap:5px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
+  .bd-moves-row{ display:flex; align-items:center; gap:6px; margin-top:6px; padding-left:40px; flex-wrap:wrap; }
+  .bd-move-chip{
+    display:flex; align-items:center; gap:5px; font-family:'Nunito', sans-serif; font-weight:800;
+    font-size:10.5px; padding:4px 9px; border-radius:999px; color:#fff;
+  }
+  .bd-move-tag{ font-size:8px; opacity:0.85; }
+  .bd-ae-icon{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:20px; height:20px; border-radius:5px; background:#eef4fb; position:relative; cursor:help;
+  }
+  .bd-ae-icon img{ width:14px; height:14px; object-fit:contain; }
+  .bd-ae-icon[data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; bottom: calc(100% + 8px); left:50%; transform:translateX(-50%);
+    z-index:40; width:190px; max-width:60vw; background: var(--text); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transition: opacity .15s ease;
+  }
+  .bd-ae-icon[data-tooltip]:hover::after{ opacity:1; pointer-events:auto; }
   .bd-wicon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
     background:#eef4fb; border-radius:5px; width:16px; height:16px; flex-shrink:0;
   }
   .bd-wicon{ width:16px; height:16px; object-fit:contain; mix-blend-mode:multiply; }
   .bd-wicon-wrap.extreme{ background:none; }
-  .bd-wicon-wrap.extreme .bd-wicon{ filter: invert(1) grayscale(1) brightness(0.3); }
+  .bd-wicon-wrap.extreme .bd-wicon{ filter: invert(1) grayscale(1) brightness(0.3); mix-blend-mode:normal; }
   [data-theme="dark"] .bd-wicon-wrap.extreme .bd-wicon{ filter:none; }
 
   @media (max-width:600px){
     .lb-bosses{ display:none; }
     .bd-name{ font-size:12px; }
-    .bd-weather{ min-width:0; }
-    .bd-weather span{ display:none; }
+    .bd-weather{ min-width:20px; gap:0; }
+    .bd-weather-label{ display:none; }
   }
 </style>
 </head>
@@ -693,7 +714,7 @@ function computeUsageData(allRaids){
       if(!countedThisEntry.has(nameKey)){
         countedThisEntry.add(nameKey);
         u.count++;
-        u.instances.push({ boss: r.boss, file: r.file, weather: r.weather, tier: r.tier });
+        u.instances.push({ boss: r.boss, file: r.file, weather: r.weather, tier: r.tier, fast: r.fast, charge: r.charge, ae: r.ae });
       }
       const bossKey = r.boss.toLowerCase();
       if(!u.bossMap.has(bossKey)) u.bossMap.set(bossKey, { name: r.boss, file: r.file });
@@ -747,6 +768,72 @@ function renderStats(totalPokemon, totalRaids, totalBosses){
   `;
 }
 
+const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
+const SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
+
+const TYPE_COLORS = {
+  normal:"#9199A1", fire:"#E2661C", water:"#3E8DE0", electric:"#E0B316",
+  grass:"#4E9A3A", ice:"#5AC9C9", fighting:"#A2402A", poison:"#8A3F94",
+  ground:"#6B4423", flying:"#8B93E0", psychic:"#E0426E", bug:"#7B9A1E",
+  rock:"#B5651D", ghost:"#5B4B8A", dragon:"#5B3FE0", dark:"#4A4238",
+  steel:"#7A8A9A", fairy:"#E091C9", unknown:"#9aa3b2",
+};
+const MOVE_TYPES = {
+  "smack down":"rock", "dragon breath":"dragon", "shadow claw":"ghost", "astonish":"ghost",
+  "air slash":"flying", "metal claw":"steel", "hidden power (gh)":"ghost", "hidden power":"normal",
+  "zen headbutt":"psychic", "fire fang":"fire", "fire spin":"fire", "volt switch":"electric",
+  "gust":"flying", "bullet seed":"grass", "bite":"dark", "charge beam":"electric",
+  "body slam":"normal", "draco meteor":"dragon", "shadow sneak":"ghost", "aqua tail":"water",
+  "focus blast":"fighting", "outrage":"dragon", "aura sphere":"fighting", "solar beam":"grass",
+  "psychic":"psychic", "dark pulse":"dark", "hydro pump":"water", "giga impact":"normal",
+  "overheat":"fire", "psychic fangs":"psychic", "brave bird":"flying", "earthquake":"ground",
+  "close combat":"fighting", "moonblast":"fairy", "zap cannon":"electric", "stone edge":"rock",
+  "hyper beam":"normal", "power whip":"grass", "flash cannon":"steel", "blizzard":"ice",
+  "shadow ball":"ghost", "flamethrower":"fire", "fusion flare":"fire", "rock slide":"rock",
+  "fly":"flying", "ominous wind":"ghost",
+  "steel wing":"steel", "psycho cut":"psychic", "extrasensory":"psychic", "fairy wind":"fairy",
+  "dragon tail":"dragon", "bug bite":"bug", "earth power":"ground", "grass knot":"grass",
+  "rock smash":"fighting", "dazzling gleam":"fairy", "gunk shot":"poison", "lock on":"normal",
+  "thunder":"electric", "incinerate":"fire", "mystical fire":"fire", "ancient power":"rock",
+  "fire blast":"fire",
+  "meteor beam":"rock", "drain punch":"fighting", "water gun":"water", "ice beam":"ice",
+  "crunch":"dark", "skull bash":"normal", "charm":"fairy", "megahorn":"bug",
+  "fury cutter":"bug", "poison jab":"poison", "confusion":"psychic", "force palm":"fighting",
+};
+function getMoveType(move){
+  if(!move) return null;
+  const key = move.trim().toLowerCase();
+  if(key === "any" || key === "varies") return null;
+  return MOVE_TYPES[key] || null;
+}
+
+const HP_TYPE_MAP = {
+  "bug":"Bug", "bu":"Bug",
+  "da":"Dark", "dark":"Dark",
+  "dr":"Dragon", "dragon":"Dragon",
+  "el":"Electric", "electric":"Electric",
+  "fig":"Fighting", "fighting":"Fighting",
+  "fi":"Fire", "fire":"Fire",
+  "fl":"Flying", "flying":"Flying",
+  "gh":"Ghost", "ghost":"Ghost",
+  "gra":"Grass", "gr":"Grass", "grass":"Grass",
+  "gro":"Ground", "ground":"Ground",
+  "i":"Ice", "ice":"Ice",
+  "po":"Poison", "poison":"Poison",
+  "ps":"Psychic", "psychic":"Psychic",
+  "ro":"Rock", "rock":"Rock",
+  "st":"Steel", "steel":"Steel",
+  "wa":"Water", "water":"Water",
+};
+
+function normalizeHiddenPower(moveName){
+  if(!moveName) return moveName;
+  const m = moveName.trim().match(/^(?:HP|Hidden\s*Power)\s*\(?\s*([A-Za-z]+)\s*\)?\s*$/i);
+  if(!m) return moveName;
+  const fullType = HP_TYPE_MAP[m[1].toLowerCase()];
+  return fullType ? `Hidden Power ${fullType}` : moveName;
+}
+
 function tierLabel(t){ return (t === "5.5" ? "5.5" : t) + "★"; }
 const WEATHER_ICON_URLS = {
   "clear":"assets/icons/weather-clear.jpg",
@@ -768,6 +855,15 @@ function smallWeatherIconHtml(w){
   const wrapCls = key === "extreme" ? "bd-wicon-wrap extreme" : "bd-wicon-wrap";
   if(url) return `<span class="${wrapCls}"><img class="bd-wicon" src="${url}" alt="${w}" onerror="this.parentElement.remove()"></span>`;
   return "";
+}
+
+function bdMoveChipHtml(label, move){
+  if(!move || move.trim().toLowerCase() === "any" || move.trim().toLowerCase() === "varies") return "";
+  const displayMove = normalizeHiddenPower(move);
+  const type = getMoveType(move);
+  const color = type ? TYPE_COLORS[type] : TYPE_COLORS.unknown;
+  const shortTag = label === "Fast" ? "F" : "C";
+  return `<span class="bd-move-chip" style="background:${color};"><span class="bd-move-tag">${shortTag}</span>${displayMove}</span>`;
 }
 
 function bossSlug(name){
@@ -814,12 +910,20 @@ function renderLeaderboard(){
           <span class="bd-heading-weather">Weather</span>
           <span class="bd-heading-tier">Difficulty</span>
         </div>
-        ${r.instances.map(inst => `
+        ${[...r.instances].sort((a,b) => a.boss.localeCompare(b.boss)).map(inst => `
           <a class="bd-item" href="${inst.file}#boss-${bossSlug(inst.boss)}">
-            <div class="bd-boss-icon"><img src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="this.style.display='none'"></div>
-            <div class="bd-name">${inst.boss}</div>
-            <div class="bd-weather">${smallWeatherIconHtml(inst.weather)}<span>${inst.weather || "—"}</span></div>
-            <div class="bd-tier">${tierLabel(inst.tier)}</div>
+            <div class="bd-top-row">
+              <div class="bd-boss-icon"><img src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="this.style.display='none'"></div>
+              <div class="bd-name">${inst.boss}</div>
+              <div class="bd-weather">${smallWeatherIconHtml(inst.weather)}<span class="bd-weather-label">${inst.weather || "—"}</span></div>
+              <div class="bd-tier">${tierLabel(inst.tier)}</div>
+            </div>
+            ${(inst.fast || inst.charge || inst.ae) ? `<div class="bd-moves-row">
+              ${inst.fast ? bdMoveChipHtml("Fast", inst.fast) : ""}
+              ${inst.charge ? bdMoveChipHtml("Charge", inst.charge) : ""}
+              ${inst.ae === "sword" ? `<span class="bd-ae-icon" data-tooltip="+10% damage dealt from your pokemon in raids"><img src="${AE_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
+              ${inst.ae === "shield" ? `<span class="bd-ae-icon" data-tooltip="+10% damage reduction for your pokemon in raids"><img src="${SHIELD_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
+            </div>` : ""}
           </a>
         `).join("")}
       </div>
