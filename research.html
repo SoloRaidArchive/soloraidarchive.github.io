@@ -89,15 +89,15 @@
   .top-nav-link.current{ background: var(--blue); color:#fff; border-color: var(--blue); }
 
   header{ padding: 44px 24px 20px; text-align:center; }
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.16em;
-    text-transform:uppercase; color: var(--blue-dark); margin-bottom:10px; font-weight:700;
-  }
   h1{
     font-family:'Baloo 2', sans-serif; font-weight:800; font-size: clamp(30px, 5vw, 44px);
     margin: 0 0 10px; color: var(--text);
   }
   header p{ color: var(--text-muted); font-size: 15px; max-width: 640px; margin: 0 auto; font-weight:600; line-height:1.6; }
+  .footer-desc{
+    color: var(--text-dim); font-size: 13px; max-width: 640px; margin: 30px auto 10px;
+    font-weight:600; line-height:1.6; text-align:center; padding-top:20px; border-top:2px solid var(--border);
+  }
 
   .stat-strip{
     max-width: 900px; margin: 24px auto 0; padding: 0 20px;
@@ -243,6 +243,25 @@
     opacity:0; pointer-events:none; transition: opacity .15s ease;
   }
   .bd-ae-icon[data-tooltip]:hover::after{ opacity:1; pointer-events:auto; }
+  .bd-dupe-badge{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:700;
+    color: var(--text-dim); background: var(--bg1); border-radius:999px; padding:1px 6px;
+    position:relative; cursor:help; vertical-align:middle;
+  }
+  [data-theme="dark"] .bd-dupe-badge{ background:#20263a; }
+  .bd-dupe-badge[data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; bottom: calc(100% + 8px); left:50%; transform:translateX(-50%);
+    z-index:40; width:220px; max-width:60vw; background: var(--text); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transition: opacity .15s ease; text-transform:none; letter-spacing:normal;
+  }
+  .bd-dupe-badge[data-tooltip]:hover::after{ opacity:1; pointer-events:auto; }
+  .bd-note{
+    font-size:11px; color: var(--text-dim); font-weight:600; line-height:1.5;
+    padding:10px 8px 2px; font-style:italic;
+  }
   .bd-wicon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
     background:#eef4fb; border-radius:5px; width:16px; height:16px; flex-shrink:0;
@@ -293,9 +312,7 @@
 </div>
 
 <header>
-  <div class="eyebrow">Most Used Raiders</div>
   <h1>Most Used Raiders</h1>
-  <p>How many recorded raid strategies each Pokémon has appeared in, pulled live from every archive on this site. Each qualifying strategy for a boss counts separately — so a boss with two different recorded strategies (different weather, moveset, etc.) can contribute twice. A Pokémon filling multiple roles within the same strategy (e.g. Main DPS and Support DPS) only counts once for that entry. Strategies without a VOD link aren't included.</p>
 </header>
 
 <div class="stat-strip" id="statStrip"></div>
@@ -312,6 +329,8 @@
 <div class="container" id="container">
   <div class="loading-msg">Loading raid data from all archives…</div>
 </div>
+
+<p class="footer-desc">How many recorded raid strategies each Pokémon has appeared in, pulled live from every archive on this site. Each qualifying strategy for a boss counts separately — so a boss with two different recorded strategies (different weather, moveset, etc.) can contribute twice. A Pokémon filling multiple roles within the same strategy (e.g. Main DPS and Support DPS) only counts once for that entry. Strategies without a VOD link aren't included.</p>
 
 <script>
 const DB_OVERRIDES = {
@@ -858,12 +877,22 @@ function smallWeatherIconHtml(w){
 }
 
 function bdMoveChipHtml(label, move){
-  if(!move || move.trim().toLowerCase() === "any" || move.trim().toLowerCase() === "varies") return "";
-  const displayMove = normalizeHiddenPower(move);
-  const type = getMoveType(move);
+  const displayRaw = (move && move.trim()) ? move.trim() : "Any";
+  const displayMove = normalizeHiddenPower(displayRaw);
+  const type = getMoveType(displayRaw);
   const color = type ? TYPE_COLORS[type] : TYPE_COLORS.unknown;
   const shortTag = label === "Fast" ? "F" : "C";
   return `<span class="bd-move-chip" style="background:${color};"><span class="bd-move-tag">${shortTag}</span>${displayMove}</span>`;
+}
+
+function groupInstances(instances){
+  const groups = new Map();
+  for(const inst of instances){
+    const sig = [inst.boss, inst.weather || "", inst.tier, (inst.fast||"").trim(), (inst.charge||"").trim(), inst.ae || ""].join("|").toLowerCase();
+    if(!groups.has(sig)) groups.set(sig, { inst, count: 0 });
+    groups.get(sig).count++;
+  }
+  return [...groups.values()].sort((a,b) => a.inst.boss.localeCompare(b.inst.boss));
 }
 
 function bossSlug(name){
@@ -910,22 +939,23 @@ function renderLeaderboard(){
           <span class="bd-heading-weather">Weather</span>
           <span class="bd-heading-tier">Difficulty</span>
         </div>
-        ${[...r.instances].sort((a,b) => a.boss.localeCompare(b.boss)).map(inst => `
+        ${groupInstances(r.instances).map(({inst, count}) => `
           <a class="bd-item" href="${inst.file}#boss-${bossSlug(inst.boss)}">
             <div class="bd-top-row">
               <div class="bd-boss-icon"><img src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="this.style.display='none'"></div>
-              <div class="bd-name">${inst.boss}</div>
+              <div class="bd-name">${inst.boss}${count > 1 ? ` <span class="bd-dupe-badge" data-tooltip="Logged ${count} times with the same boss, weather, difficulty and moveset shown here — the battle parties used in each recorded attempt were different.">×${count}</span>` : ""}</div>
               <div class="bd-weather">${smallWeatherIconHtml(inst.weather)}<span class="bd-weather-label">${inst.weather || "—"}</span></div>
               <div class="bd-tier">${tierLabel(inst.tier)}</div>
             </div>
-            ${(inst.fast || inst.charge || inst.ae) ? `<div class="bd-moves-row">
-              ${inst.fast ? bdMoveChipHtml("Fast", inst.fast) : ""}
-              ${inst.charge ? bdMoveChipHtml("Charge", inst.charge) : ""}
+            <div class="bd-moves-row">
+              ${bdMoveChipHtml("Fast", inst.fast)}
+              ${bdMoveChipHtml("Charge", inst.charge)}
               ${inst.ae === "sword" ? `<span class="bd-ae-icon" data-tooltip="+10% damage dealt from your pokemon in raids"><img src="${AE_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
               ${inst.ae === "shield" ? `<span class="bd-ae-icon" data-tooltip="+10% damage reduction for your pokemon in raids"><img src="${SHIELD_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
-            </div>` : ""}
+            </div>
           </a>
         `).join("")}
+        ${r.instances.length > groupInstances(r.instances).length ? `<div class="bd-note">Rows marked ×N were logged multiple times with the same boss, weather, difficulty and moveset — the battle parties used differed between attempts.</div>` : ""}
       </div>
     </details>`;
   }).join("")}</div>`;
