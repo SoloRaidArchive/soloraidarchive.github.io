@@ -472,6 +472,43 @@ function escapeHtml(s){
 
 async function loadUpdates(){
   const listEl = document.getElementById("updatesList");
+  const CACHE_KEY = "raidArchiveUpdatesCache";
+  const CACHE_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
+
+  function readCache(){
+    try{
+      const raw = localStorage.getItem(CACHE_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+  function writeCache(updates){
+    try{
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), updates }));
+    }catch(e){ /* localStorage unavailable or full; not critical */ }
+  }
+  function render(updates){
+    if(updates.length === 0){
+      listEl.innerHTML = `<div class="update-list-empty">No recent updates yet.</div>`;
+      return;
+    }
+    listEl.innerHTML = updates.map(u => {
+      const dateStr = new Date(u.date).toLocaleDateString([], {month:"short", day:"numeric", year:"numeric"});
+      return `
+        <div class="update-list-item">
+          <div class="update-list-date">${dateStr}</div>
+          <div class="update-list-text">${escapeHtml(u.text)}</div>
+        </div>`;
+    }).join("");
+  }
+
+  const cached = readCache();
+  const cacheIsFresh = cached && (Date.now() - cached.savedAt < CACHE_MAX_AGE_MS);
+
+  // Show cached data immediately if we have it (even if stale) so the sidebar never sits empty while fetching.
+  if(cached) render(cached.updates);
+  if(cacheIsFresh) return; // recent enough — skip the network call entirely
+
   try{
     const res = await fetch(`https://api.github.com/repos/${UPDATES_REPO}/commits?per_page=10`);
     if(!res.ok) throw new Error("HTTP " + res.status);
@@ -482,25 +519,18 @@ async function loadUpdates(){
       const body = lines.slice(1).join("\n").trim();
       return {
         text: body || title, // prefer the extended description; fall back to the title if none was written
-        date: new Date(c.commit.author.date),
+        date: c.commit.author.date,
       };
     }).filter(u => u.text);
 
-    if(updates.length === 0){
-      listEl.innerHTML = `<div class="update-list-empty">No recent updates yet.</div>`;
-      return;
-    }
-    listEl.innerHTML = updates.map(u => {
-      const dateStr = u.date.toLocaleDateString([], {month:"short", day:"numeric", year:"numeric"});
-      return `
-        <div class="update-list-item">
-          <div class="update-list-date">${dateStr}</div>
-          <div class="update-list-text">${escapeHtml(u.text)}</div>
-        </div>`;
-    }).join("");
+    writeCache(updates);
+    render(updates);
   }catch(e){
     console.error("Failed to load recent updates:", e);
-    listEl.innerHTML = `<div class="update-list-empty">Couldn't load recent updates right now.</div>`;
+    // If we already rendered stale cached data above, leave it showing rather than replacing it with an error.
+    if(!cached){
+      listEl.innerHTML = `<div class="update-list-empty">Couldn't load recent updates right now.</div>`;
+    }
   }
 }
 loadUpdates();
