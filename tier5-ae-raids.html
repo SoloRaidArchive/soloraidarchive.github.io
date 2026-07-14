@@ -237,7 +237,8 @@
   }
   .card:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(61,157,255,0.14); }
 
-  .card-top{ display:flex; align-items:center; gap: 12px; }
+  .card-header-row{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:14px; text-align:center; }
+  .card-top{ display:flex; align-items:flex-start; gap: 12px; margin-bottom:12px; }
   .boss-icon{
     width: 76px; height: 76px; border-radius: 16px;
     background: linear-gradient(160deg, #d7e6fc, #c3d9fb); border: 2px solid var(--border);
@@ -245,8 +246,8 @@
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
   }
   .boss-icon img{ width:100%; height:100%; object-fit:contain; padding:5px; mix-blend-mode:multiply; }
-  .boss-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 21px; line-height:1.3; min-height:55px; display:flex; align-items:center; margin:0; }
-  .boss-moveset-row{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+  .boss-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 21px; line-height:1.3; margin:0; }
+  .boss-moveset-row{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; flex:1; min-width:0; }
   .current-tier-pill{
     flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size: 13px;
     color: #fff; padding: 6px 13px; border-radius: 999px; box-shadow: 0 2px 0 rgba(0,0,0,0.12);
@@ -1293,15 +1294,15 @@ function bossCardHtml(boss, variants, cardId){
 
   return `
   <div class="card" id="boss-${boss.toLowerCase().replace(/[^a-z0-9]+/g,'-')}" data-boss="${boss.toLowerCase()}" data-card-id="${cardId}">
+    <div class="card-header-row">
+      <h2 class="boss-name">${displayName(boss)}</h2>
+      <div class="current-tier-pill ${tierClass(variants[defaultIdx].tier)}" id="pill-${cardId}">${tierLabel(variants[defaultIdx].tier)}</div>
+    </div>
     <div class="card-top">
       <div class="boss-icon">
         <img src="${spriteUrl(boss)}" alt="${boss}" loading="lazy" onerror="this.style.display='none'">
       </div>
-      <div style="flex:1; min-width:0;">
-        <h2 class="boss-name">${displayName(boss)}</h2>
-        <div class="boss-moveset-row" id="moveset-${cardId}">${moveChipHtml("Fast", variants[defaultIdx].fast)}${moveChipHtml("Charge", variants[defaultIdx].charge)}</div>
-      </div>
-      <div class="current-tier-pill ${tierClass(variants[defaultIdx].tier)}" id="pill-${cardId}">${tierLabel(variants[defaultIdx].tier)}</div>
+      <div class="boss-moveset-row" id="moveset-${cardId}">${moveChipHtml("Fast", variants[defaultIdx].fast)}${moveChipHtml("Charge", variants[defaultIdx].charge)}</div>
     </div>
     <div class="card-body" id="body-${cardId}">${variantBodyHtml(variants[defaultIdx], variants, cardId)}</div>
   </div>`;
