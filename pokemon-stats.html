@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pokémon Stats</title>
+<meta name="description" content="Base stats reference for every Pokémon used in Pokémon GO solo raid strategies, including Mega Evolutions.">
+<link rel="canonical" href="https://soloraidarchive.github.io/pokemon-stats.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pokémon Stats Reference | Solo Raid Archive">
+<meta property="og:description" content="Base stats reference for every Pokémon used in Pokémon GO solo raid strategies, including Mega Evolutions.">
+<meta property="og:url" content="https://soloraidarchive.github.io/pokemon-stats.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Pokémon Stats Reference | Solo Raid Archive">
+<meta name="twitter:description" content="Base stats reference for every Pokémon used in Pokémon GO solo raid strategies, including Mega Evolutions.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -60,6 +69,19 @@
     background: var(--card); border: 1px solid var(--border); color: var(--ink);
     font-size:13px; font-weight:600; padding: 9px 12px; border-radius: 10px; outline:none;
   }
+  .level-control{
+    display:flex; align-items:center; gap:8px; background: var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:6px 12px;
+  }
+  .level-control label{ font-size:11px; font-weight:800; color: var(--ink-dim); text-transform:uppercase; letter-spacing:0.04em; }
+  .level-control input{
+    width:52px; background:none; border:none; color: var(--accent); font-family:'Baloo 2', sans-serif;
+    font-weight:800; font-size:14px; text-align:center; outline:none;
+  }
+  .stats-blurb{
+    max-width:700px; margin:14px auto 0; padding:10px 16px; text-align:center;
+    font-size:12px; color: var(--ink-dim); line-height:1.5;
+  }
 
   .top-nav-wrap{
     max-width: 1760px; margin: 64px auto 0; padding: 0 20px;
@@ -114,7 +136,7 @@
     text-align:center; font-family:'Nunito', sans-serif; font-size:12px;
     color: var(--ink-dim); margin-bottom:14px;
   }
-  .pkmn-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:12px; }
+  .pkmn-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:12px; }
   .pkmn-card{
     background: var(--card); border:2px solid var(--border); border-radius:14px;
     padding: 14px 16px; box-shadow: 0 1px 2px rgba(26,29,41,0.04);
@@ -128,10 +150,17 @@
   [data-theme="dark"] .pkmn-sprite{ background:#e9edf5; border-color:#3a3f56; }
   .pkmn-sprite img{ width:100%; height:100%; object-fit:contain; padding:3px; mix-blend-mode:multiply; }
   .pkmn-info{ flex:1; min-width:0; }
-  .pkmn-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .pkmn-stats{ display:flex; gap:10px; font-family:'Nunito', sans-serif; font-size:11px; color: var(--ink-muted); margin-top:3px; }
-  .pkmn-stats b{ color: var(--ink); display:block; font-size:12.5px; }
-  .pkmn-stats span{ display:flex; flex-direction:column; gap:1px; }
+  .pkmn-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:6px; }
+  .stat-row{ margin-bottom:7px; }
+  .stat-row:last-child{ margin-bottom:0; }
+  .stat-label-row{ display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; color: var(--ink-muted); margin-bottom:2px; }
+  .stat-label-row b{ color: var(--ink); font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:700; }
+  .bar-track{ height:7px; background: var(--bg1); border-radius:999px; overflow:hidden; }
+  [data-theme="dark"] .bar-track{ background:#161a28; }
+  .bar-fill{ height:100%; border-radius:999px; }
+  .bar-fill.atk{ background: linear-gradient(90deg,#ff7a7a,#ff5b5b); }
+  .bar-fill.def{ background: linear-gradient(90deg,#5aa9ff,#3d9dff); }
+  .bar-fill.hp{ background: linear-gradient(90deg,#6fe0a0,#4cd08a); }
 
   .empty{ text-align:center; color: var(--ink-dim); padding:60px 20px; font-family:'Nunito', sans-serif; }
 </style>
@@ -182,7 +211,13 @@
     <option value="def">Sort: Defense (High–Low)</option>
     <option value="hp">Sort: HP (High–Low)</option>
   </select>
+  <div class="level-control">
+    <label for="levelInput">Level</label>
+    <input id="levelInput" type="number" value="40" min="40" max="53" step="0.5">
+  </div>
 </div>
+
+<div class="stats-blurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
 
 <div class="container">
   <div class="count" id="count"></div>
@@ -431,6 +466,40 @@ const GOHUB_OVERRIDES = {
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
   "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega skarmory": "https://db.pokemongohub.net/images/official/full/227_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega audino": "https://db.pokemongohub.net/images/official/full/531_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
 };
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
@@ -442,7 +511,35 @@ function spriteUrl(name){
   return `https://img.pokemondb.net/artwork/large/${toDbSlug(name)}.jpg`;
 }
 
+const CPM = {
+  "40":0.7903, "40.5":0.792803968, "41":0.79530001, "41.5":0.797800015, "42":0.8003,
+  "42.5":0.802799995, "43":0.8053, "43.5":0.8078, "44":0.81029999, "44.5":0.812799985,
+  "45":0.8153, "45.5":0.81779999, "46":0.820299990, "46.5":0.822799990, "47":0.825299990,
+  "47.5":0.827799990, "48":0.830299990, "48.5":0.832799990, "49":0.835299990,
+  "49.5":0.837799990, "50":0.840299990, "50.5":0.842799990, "51":0.845300000,
+  "51.5":0.847803686002838, "52":0.85030, "52.5":0.852803664391751, "53":0.85530,
+};
+const MAX_STAT = {
+  atk: Math.max(...POKEMON_DB.map(p => p.atk)),
+  def: Math.max(...POKEMON_DB.map(p => p.def)),
+  hp: Math.max(...POKEMON_DB.map(p => p.hp)),
+};
+
+function statBarHtml(kind, label, adjustedValue){
+  const pct = Math.min(100, (adjustedValue / MAX_STAT[kind]) * 100).toFixed(1);
+  return `
+    <div class="stat-row">
+      <div class="stat-label-row"><span>${label}</span><b>${adjustedValue}</b></div>
+      <div class="bar-track"><div class="bar-fill ${kind}" style="width:${pct}%;"></div></div>
+    </div>`;
+}
+
 function cardHtml(p){
+  const level = String(document.getElementById("levelInput").value);
+  const cpm = CPM[level] || CPM["40"];
+  const adjAtk = Math.round((p.atk + 15) * cpm * 10) / 10;
+  const adjDef = Math.round((p.def + 15) * cpm * 10) / 10;
+  const adjHp = Math.floor((p.hp + 15) * cpm);
   return `
   <div class="pkmn-card">
     <div class="pkmn-sprite">
@@ -450,11 +547,9 @@ function cardHtml(p){
     </div>
     <div class="pkmn-info">
       <div class="pkmn-name">${p.n}</div>
-      <div class="pkmn-stats">
-        <span>ATK<b>${p.atk}</b></span>
-        <span>DEF<b>${p.def}</b></span>
-        <span>HP<b>${p.hp}</b></span>
-      </div>
+      ${statBarHtml("atk", "ATK", adjAtk)}
+      ${statBarHtml("def", "DEF", adjDef)}
+      ${statBarHtml("hp", "HP", adjHp)}
     </div>
   </div>`;
 }
@@ -480,6 +575,7 @@ function render(){
 
 searchInput.addEventListener("input", render);
 sortSelect.addEventListener("change", render);
+document.getElementById("levelInput").addEventListener("input", render);
 render();
 
 const themeToggle = document.getElementById("themeToggle");

@@ -418,7 +418,7 @@ function spriteUrl(name){
   if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
   if (key.startsWith("shadow ")){
     const base = key.replace(/^shadow\s+/, "");
-    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${String(DEX_MAP[base]).padStart(3,"0")}_shadow.webp`;
   }
   return `https://img.pokemondb.net/artwork/large/${toDbSlug(name)}.jpg`;
 }
