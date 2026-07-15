@@ -982,7 +982,7 @@ function renderLeaderboard(){
     const rankClass = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
     const shownBosses = r.bosses.slice(0, 4);
     const extra = r.bosses.length - shownBosses.length;
-    const roleText = r.roles.length ? r.roles.join(", ") : "";
+    const roleText = currentRole ? currentRole : (r.roles.length ? r.roles.join(", ") : "");
     const displayCount = roleSpecificCount(r);
     return `
     <details class="lb-row-wrap">
