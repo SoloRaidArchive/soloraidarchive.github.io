@@ -792,7 +792,7 @@ function computeUsageData(allRaids){
     const primaryRoleEntries = Object.entries(u.primaryRoleCounts).sort((a,b) => b[1]-a[1]);
     const primaryRole = primaryRoleEntries.length > 0 ? primaryRoleEntries[0][0] : "";
     const hasExecutorTag = u.executorCount > 0;
-    return { name: u.name, count: u.count, bosses: [...u.bossMap.values()], roles, primaryRole, hasExecutorTag, instances: u.instances };
+    return { name: u.name, count: u.count, bosses: [...u.bossMap.values()], roles, primaryRole, hasExecutorTag, roleUsageCounts: u.primaryRoleCounts, executorCount: u.executorCount, instances: u.instances };
   }).sort((a,b) => b.count - a.count);
 
   return { results, qualifyingEntries, totalDistinctBosses: distinctBosses.size };
@@ -951,12 +951,25 @@ function bossSlug(name){
 function renderLeaderboard(){
   const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
   let filtered = ALL_RESULTS.filter(r => !query || r.name.toLowerCase().includes(query));
-  if(currentRole === "Executor"){
-    filtered = filtered.filter(r => r.hasExecutorTag);
-  } else if(currentRole){
-    filtered = filtered.filter(r => r.primaryRole === currentRole);
+
+  // When a role filter is active, each Pokemon's relevant count reflects ONLY how many times
+  // it was used in that specific role for that entry — not its total usage across all roles.
+  function roleSpecificCount(r){
+    if(currentRole === "Executor") return r.executorCount;
+    if(currentRole) return r.roleUsageCounts[currentRole] || 0;
+    return r.count;
   }
-  const maxCount = ALL_RESULTS.length ? ALL_RESULTS[0].count : 1;
+
+  if(currentRole === "Executor"){
+    filtered = filtered.filter(r => r.executorCount > 0);
+  } else if(currentRole){
+    filtered = filtered.filter(r => (r.roleUsageCounts[currentRole] || 0) > 0);
+  }
+  if(currentRole){
+    filtered = [...filtered].sort((a,b) => roleSpecificCount(b) - roleSpecificCount(a));
+  }
+
+  const maxCount = filtered.length ? roleSpecificCount(filtered[0]) : 1;
   if(currentLimit > 0) filtered = filtered.slice(0, currentLimit);
 
   const container = document.getElementById("container");
@@ -970,6 +983,7 @@ function renderLeaderboard(){
     const shownBosses = r.bosses.slice(0, 4);
     const extra = r.bosses.length - shownBosses.length;
     const roleText = r.roles.length ? r.roles.join(", ") : "";
+    const displayCount = roleSpecificCount(r);
     return `
     <details class="lb-row-wrap">
       <summary class="lb-row">
@@ -978,13 +992,13 @@ function renderLeaderboard(){
         <div class="lb-main">
           <div class="lb-name">${displayName(r.name)}</div>
           ${roleText ? `<div class="lb-roles">${roleText}</div>` : ""}
-          <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(r.count/maxCount*100).toFixed(1)}"></div></div>
+          <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(displayCount/maxCount*100).toFixed(1)}"></div></div>
         </div>
         <div class="lb-bosses">
           ${shownBosses.map(b => `<span class="lb-boss-icon" title="${b.name}"><img src="${spriteUrl(b.name)}" alt="${b.name}" loading="lazy" onerror="this.style.display='none'"></span>`).join("")}
           ${extra > 0 ? `<span class="lb-boss-more">+${extra}</span>` : ""}
         </div>
-        <div class="lb-count">${r.count}<span>use${r.count===1?"":"s"}</span></div>
+        <div class="lb-count">${displayCount}<span>use${displayCount===1?"":"s"}</span></div>
         <span class="lb-chevron">›</span>
       </summary>
       <div class="lb-breakdown">
