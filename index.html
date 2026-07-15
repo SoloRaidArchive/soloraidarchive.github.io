@@ -72,7 +72,8 @@
   .update-list-empty{
     font-size:12.5px; font-weight:600; color: var(--text-dim); text-align:center; padding:10px 0;
   }
-  .secondary-resources{ margin-top:18px; padding-top:14px; border-top:2px solid var(--border); }
+  .secondary-resources{}
+  .recent-updates{ margin-top:18px; padding-top:14px; border-top:2px solid var(--border); }
   .resource-link{
     display:block; text-decoration:none; margin-top:8px; padding:10px 12px;
     background: var(--bg1); border:2px solid var(--border); border-radius:10px;
@@ -445,9 +446,6 @@
   </main>
 
   <aside class="updates-sidebar">
-    <div class="patch-title" style="font-size:16px;">📢 Recent Updates</div>
-    <div id="updatesList"><div class="update-list-empty">Loading recent updates…</div></div>
-
     <div class="secondary-resources">
       <div class="patch-title" style="font-size:16px;">🔗 Secondary Resources</div>
       <a class="resource-link" href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">
@@ -466,6 +464,11 @@
         <div class="resource-name">Pokébattler</div>
         <div class="resource-desc">Credible raid battle simulator for intermediate-level raids, with customizable teams and fast results.</div>
       </a>
+    </div>
+
+    <div class="recent-updates">
+      <div class="patch-title" style="font-size:16px;">📢 Recent Updates</div>
+      <div id="updatesList"><div class="update-list-empty">Loading recent updates…</div></div>
     </div>
   </aside>
 </div>

@@ -581,7 +581,7 @@
 <script>
 // ============ SPRITE LOOKUP (same approach as the raid archives) ============
 const DB_OVERRIDES = {
-  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
   "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
   "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
   "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega",
@@ -594,7 +594,7 @@ const DB_OVERRIDES = {
   "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
   "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
   "palkia origin":"palkia-origin",
-  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega zygarde":"zygarde-complete-mega",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
 };
 function toDbSlug(name){
   let n = name.trim().toLowerCase();
@@ -617,7 +617,7 @@ const DEX_MAP = {
 const GOHUB_OVERRIDES = {
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
-  "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
   "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
   "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
   "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
@@ -887,8 +887,8 @@ const TYPE_OVERRIDES = {
   "galarian zigzagoon": {t1:"dark", t2:"normal"},
   "hisuian typhlosion": {t1:"fire", t2:"ghost"},
   "hisuian decidueye": {t1:"grass", t2:"fighting"},
-  "thundurus therian": {t1:"electric", t2:"flying"},
-  "enamorus therian": {t1:"fairy", t2:"flying"},
+  "thundurus therian": {t1:"electric", t2:""},
+  "enamorus therian": {t1:"fairy", t2:""},
 };
 
 function findPokemonTypes(name){
@@ -1827,7 +1827,17 @@ const BOSS_CPM_T4T7 = 0.7903;
 // ============ LOOKUPS ============
 function findPokemon(name){
   const key = (name||"").trim().toLowerCase();
-  return POKEMON_DB.find(p => p.n.toLowerCase() === key) || null;
+  const exact = POKEMON_DB.find(p => p.n.toLowerCase() === key);
+  if (exact) return exact;
+  // Shadow Pokemon share identical base stats with their non-shadow form (only the
+  // shadow ATK/DEF multiplier, applied separately via the Shadow Debuff toggle, differs).
+  // Fall back to the base species if no exact "Shadow X" entry exists.
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    const baseMatch = POKEMON_DB.find(p => p.n.toLowerCase() === base);
+    if (baseMatch) return baseMatch;
+  }
+  return null;
 }
 function findMove(name){
   const key = (name||"").trim().toLowerCase();

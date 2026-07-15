@@ -149,6 +149,10 @@
   }
   [data-theme="dark"] .pkmn-sprite{ background:#e9edf5; border-color:#3a3f56; }
   .pkmn-sprite img{ width:100%; height:100%; object-fit:contain; padding:3px; mix-blend-mode:multiply; }
+  .pkmn-sprite-fallback{
+    display:none; width:100%; height:100%; align-items:center; justify-content:center;
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:22px; color: var(--ink-dim);
+  }
   .pkmn-info{ flex:1; min-width:0; }
   .pkmn-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:6px; }
   .stat-row{ margin-bottom:7px; }
@@ -429,7 +433,7 @@ const POKEMON_DB = [
 ];
 // ============ SPRITE LOOKUP (same approach as the raid archives / calculator) ============
 const DB_OVERRIDES = {
-  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
   "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
   "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
   "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega",
@@ -442,7 +446,7 @@ const DB_OVERRIDES = {
   "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
   "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
   "palkia origin":"palkia-origin",
-  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega zygarde":"zygarde-complete-mega",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
 };
 const DEX_MAP = {
   "dialga":483, "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
@@ -465,7 +469,7 @@ function toDbSlug(name){
 const GOHUB_OVERRIDES = {
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
-  "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
   "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
   "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
   "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
@@ -500,6 +504,11 @@ const GOHUB_OVERRIDES = {
   "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
   "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
   "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "mega heatran": "https://i.pokebase.app/pokemongo/1NEIKLeb_FEopFvUGwWNi.png",
+  "mega lucario z": "https://i.pokebase.app/pokemongo/reXolE7NB52Hq4WOJE5lO.png",
+  "mega absol z": "https://i.pokebase.app/pokemongo/Y63vJhRW7YqmFB5qoaUIX.png",
+  "mega complete zygarde": "https://i.pokebase.app/pokemongo/QgUu3Rg6oE0JsS8iVvBVo.png",
+  "mega garchomp z": "https://i.pokebase.app/pokemongo/VwEO6D9Dg7e04EeDmS940.png",
 };
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
@@ -543,7 +552,8 @@ function cardHtml(p){
   return `
   <div class="pkmn-card">
     <div class="pkmn-sprite">
-      <img src="${spriteUrl(p.n)}" alt="${p.n}" loading="lazy" onerror="this.style.display='none'">
+      <img src="${spriteUrl(p.n)}" alt="${p.n}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div class="pkmn-sprite-fallback">?</div>
     </div>
     <div class="pkmn-info">
       <div class="pkmn-name">${p.n}</div>
