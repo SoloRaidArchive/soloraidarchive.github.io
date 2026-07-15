@@ -121,21 +121,27 @@
 
   .controls{
     max-width: 900px; margin: 24px auto 0; padding: 0 20px;
-    display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center;
+    display:flex; flex-direction:column; gap:12px; align-items:center;
   }
+  .filter-row{ display:flex; gap:10px; flex-wrap:nowrap; justify-content:center; align-items:center; }
   #pokemonSearch{
-    flex:1 1 260px; max-width:320px;
+    width:100%; max-width:320px;
     background: var(--card); border: 2px solid var(--border); color: var(--text);
     font-size:14px; font-weight:700; padding: 10px 14px; border-radius: 10px; outline:none;
   }
   #pokemonSearch:focus{ border-color: var(--blue); }
-  .view-toggle{ display:flex; gap:6px; }
+  .view-toggle{ display:flex; gap:6px; flex-shrink:0; }
   .view-btn{
     background: var(--card); border:2px solid var(--border); border-radius:999px;
     padding:9px 16px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
-    color: var(--text-muted); cursor:pointer;
+    color: var(--text-muted); cursor:pointer; flex-shrink:0; white-space:nowrap;
   }
   .view-btn.active{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  #roleFilter{
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding:9px 16px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text-muted); cursor:pointer; outline:none; flex-shrink:0;
+  }
 
   .container{ max-width: 900px; margin: 0 auto; padding: 24px 20px 80px; }
 
@@ -327,12 +333,21 @@
 <div class="stat-strip" id="statStrip"></div>
 
 <div class="controls">
-  <input id="pokemonSearch" type="text" placeholder="Search Pokémon…" autocomplete="off">
-  <div class="view-toggle">
-    <button class="view-btn active" data-n="20">Top 20</button>
-    <button class="view-btn" data-n="50">Top 50</button>
-    <button class="view-btn" data-n="0">Show All</button>
+  <div class="filter-row">
+    <div class="view-toggle">
+      <button class="view-btn active" data-n="20">Top 20</button>
+      <button class="view-btn" data-n="50">Top 50</button>
+      <button class="view-btn" data-n="0">Show All</button>
+    </div>
+    <select id="roleFilter">
+      <option value="">All Roles</option>
+      <option value="Catch Tank">Catch Tank</option>
+      <option value="Main DPS">Main DPS</option>
+      <option value="Support DPS">Support DPS</option>
+      <option value="Executor">Executor</option>
+    </select>
   </div>
+  <input id="pokemonSearch" type="text" placeholder="Search Pokémon…" autocomplete="off">
 </div>
 
 <div class="container" id="container">
@@ -343,7 +358,7 @@
 
 <script>
 const DB_OVERRIDES = {
-  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
   "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
   "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
   "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega", "mega aggron":"aggron-mega",
@@ -366,7 +381,7 @@ const DEX_MAP = {
 const GOHUB_OVERRIDES = {
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
-  "mega zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
   "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
   "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
   "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
@@ -418,7 +433,7 @@ function spriteUrl(name){
   if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
   if (key.startsWith("shadow ")){
     const base = key.replace(/^shadow\s+/, "");
-    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${String(DEX_MAP[base]).padStart(3,"0")}_shadow.webp`;
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
   }
   return `https://img.pokemondb.net/artwork/large/${toDbSlug(name)}.jpg`;
 }
@@ -717,6 +732,19 @@ async function fetchAndParse(url, parseFn){
 // Builds usage stats from every parsed raid entry across all four archives.
 // Each recorded strategy/variant for a boss counts separately (not deduplicated by boss),
 // but only entries that have a VOD link are included.
+// Parses a role string like "Support DPS, Executor, 1x" or "Executor, Catch Tank, 1x" into
+// a primary role (the non-Executor role tag, since Executor is a modifier that can appear
+// in any position and isn't itself a primary role category) and whether Executor was tagged at all.
+function parseRoleTags(roleStr){
+  if(!roleStr) return { primary: "", hasExecutor: false };
+  const segments = roleStr.split(",").map(s => s.trim()).filter(Boolean);
+  const roleTags = segments.filter(s => !/^\d+x$/i.test(s) && s.toLowerCase() !== "varies");
+  const hasExecutor = roleTags.some(t => t.toLowerCase() === "executor");
+  const nonExecutorTags = roleTags.filter(t => t.toLowerCase() !== "executor");
+  const primary = nonExecutorTags.length > 0 ? nonExecutorTags[0] : (roleTags[0] || "");
+  return { primary, hasExecutor };
+}
+
 function computeUsageData(allRaids){
   const usage = {};
   let qualifyingEntries = 0;
@@ -735,7 +763,7 @@ function computeUsageData(allRaids){
       const name = (member.n || "").trim();
       if(!name || name.toLowerCase() === "various") continue;
       if(!usage[name]){
-        usage[name] = { name, count: 0, bossMap: new Map(), roleCounts: {}, instances: [] };
+        usage[name] = { name, count: 0, bossMap: new Map(), roleCounts: {}, primaryRoleCounts: {}, executorCount: 0, instances: [] };
       }
       const u = usage[name];
       const nameKey = name.toLowerCase();
@@ -746,6 +774,11 @@ function computeUsageData(allRaids){
       }
       const bossKey = r.boss.toLowerCase();
       if(!u.bossMap.has(bossKey)) u.bossMap.set(bossKey, { name: r.boss, file: r.file });
+
+      const { primary, hasExecutor } = parseRoleTags(member.r);
+      if(primary) u.primaryRoleCounts[primary] = (u.primaryRoleCounts[primary] || 0) + 1;
+      if(hasExecutor) u.executorCount++;
+
       const roleCategory = (member.r || "").split(",")[0].trim();
       if(roleCategory) u.roleCounts[roleCategory] = (u.roleCounts[roleCategory] || 0) + 1;
     }
@@ -753,7 +786,10 @@ function computeUsageData(allRaids){
 
   const results = Object.values(usage).map(u => {
     const roles = Object.entries(u.roleCounts).sort((a,b) => b[1]-a[1]).slice(0,2).map(x => x[0]);
-    return { name: u.name, count: u.count, bosses: [...u.bossMap.values()], roles, instances: u.instances };
+    const primaryRoleEntries = Object.entries(u.primaryRoleCounts).sort((a,b) => b[1]-a[1]);
+    const primaryRole = primaryRoleEntries.length > 0 ? primaryRoleEntries[0][0] : "";
+    const hasExecutorTag = u.executorCount > 0;
+    return { name: u.name, count: u.count, bosses: [...u.bossMap.values()], roles, primaryRole, hasExecutorTag, instances: u.instances };
   }).sort((a,b) => b.count - a.count);
 
   return { results, qualifyingEntries, totalDistinctBosses: distinctBosses.size };
@@ -787,6 +823,7 @@ async function loadAllData(){
 
 let ALL_RESULTS = [];
 let currentLimit = 20;
+let currentRole = "";
 
 function renderStats(totalPokemon, totalRaids, totalBosses){
   document.getElementById("statStrip").innerHTML = `
@@ -911,6 +948,11 @@ function bossSlug(name){
 function renderLeaderboard(){
   const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
   let filtered = ALL_RESULTS.filter(r => !query || r.name.toLowerCase().includes(query));
+  if(currentRole === "Executor"){
+    filtered = filtered.filter(r => r.hasExecutorTag);
+  } else if(currentRole){
+    filtered = filtered.filter(r => r.primaryRole === currentRole);
+  }
   const maxCount = ALL_RESULTS.length ? ALL_RESULTS[0].count : 1;
   if(currentLimit > 0) filtered = filtered.slice(0, currentLimit);
 
@@ -984,6 +1026,10 @@ document.querySelectorAll(".view-btn").forEach(btn => {
     currentLimit = parseInt(btn.dataset.n);
     renderLeaderboard();
   });
+});
+document.getElementById("roleFilter").addEventListener("change", (e) => {
+  currentRole = e.target.value;
+  renderLeaderboard();
 });
 
 loadAllData();
