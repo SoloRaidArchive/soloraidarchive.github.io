@@ -764,11 +764,16 @@ function computeUsageData(allRaids){
     for(const member of r.party){
       const name = (member.n || "").trim();
       if(!name || name.toLowerCase() === "various") continue;
-      if(!usage[name]){
-        usage[name] = { name, count: 0, bossMap: new Map(), roleCounts: {}, primaryRoleCounts: {}, executorCount: 0, instances: [] };
-      }
-      const u = usage[name];
       const nameKey = name.toLowerCase();
+      if(!usage[nameKey]){
+        usage[nameKey] = { name, count: 0, bossMap: new Map(), roleCounts: {}, primaryRoleCounts: {}, executorCount: 0, instances: [] };
+      }
+      const u = usage[nameKey];
+      // if this occurrence is more properly capitalized (every word starts uppercase) than what's
+      // currently stored, prefer it as the display name
+      const isProperCase = name.split(/\s+/).every(w => !w || w[0] === w[0].toUpperCase());
+      const storedIsProperCase = u.name.split(/\s+/).every(w => !w || w[0] === w[0].toUpperCase());
+      if(isProperCase && !storedIsProperCase) u.name = name;
       if(!countedThisEntry.has(nameKey)){
         countedThisEntry.add(nameKey);
         u.count++;
