@@ -32,7 +32,7 @@
     display:flex; flex-direction:column;
   }
 
-  header{ padding: 56px 24px 20px; text-align:center; }
+  header{ padding: 70px 24px 8px; text-align:center; }
   .badge-row{ display:flex; justify-content:center; gap:8px; margin-bottom:16px; }
   .pokeball{
     width:22px; height:22px; border-radius:50%;
@@ -45,7 +45,11 @@
   }
   h1{
     font-family:'Baloo 2', sans-serif; font-weight:800; font-size: clamp(34px, 6vw, 54px);
-    margin: 0 0 14px; color: var(--blue-dark); text-shadow: 3px 3px 0 rgba(61,157,255,0.15);
+    margin: 0 0 6px; color: var(--blue-dark); text-shadow: 3px 3px 0 rgba(61,157,255,0.15);
+  }
+  .credit-line{
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text-dim); margin-bottom: 8px;
   }
   .intro{
     color: var(--text-muted); font-size: 16.5px; line-height:1.6; font-weight:600;
@@ -94,7 +98,7 @@
   .resource-logo{ width:32px; height:32px; border-radius:8px; object-fit:cover; flex-shrink:0; }
 
   .top-nav-wrap{
-    max-width: 1180px; margin: 70px auto 30px; padding: 0 24px;
+    max-width: 1180px; margin: 4px auto 20px; padding: 0 24px;
     display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px;
   }
 
@@ -242,6 +246,12 @@
 
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
+<header>
+  <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
+  <h1>Solo Raid Archive</h1>
+  <div class="credit-line">Created by Spiritedbloom</div>
+</header>
+
 <div class="top-nav-wrap">
   <a href="meta-battle-parties.html" class="top-nav-link">📖 Meta Battle Parties</a>
   <a href="raid-strategies.html" class="top-nav-link">📜 Raid Strategies</a>
@@ -250,11 +260,6 @@
   <a href="ct-calculator.html" class="top-nav-link">🧮 Catch Tank Calculator</a>
   <a href="research.html" class="top-nav-link">🔬 Most Used Raiders</a>
 </div>
-
-<header>
-  <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
-  <h1>Solo Raid Archive</h1>
-</header>
 
 <div class="page-layout">
 <main>
@@ -337,7 +342,7 @@
           <img class="resource-logo" src="https://play-lh.googleusercontent.com/j-Rt27EerDIy8r7Hk3xrHLNXkuHIuvGqbtN5y4APyQ8ny1RvfSWfn33jjGGeTHBKmjDyvXCMcggGYBaoECexvFI=w240-h480-rw" alt="Pokébattler logo" onerror="this.style.display='none'">
           <div>
             <div class="resource-name">Pokébattler</div>
-            <div class="resource-desc">Credible raid battle simulator for intermediate-level raids, with customizable teams and fast results.</div>
+            <div class="resource-desc">Credible raid simulator for intermediate level raids with preset teams and fast results.</div>
           </div>
         </div>
       </a>
