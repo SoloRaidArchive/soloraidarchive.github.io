@@ -53,7 +53,7 @@
   }
 
   .updates-sidebar{
-    flex:0 0 340px;
+    flex:1 1 0; min-width:0;
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px 16px;
   }
@@ -82,7 +82,7 @@
     padding:14px 16px;
   }
   .resource-link{
-    display:flex; align-items:center; min-height:110.8px; box-sizing:border-box;
+    display:flex; align-items:center; box-sizing:border-box;
     text-decoration:none; padding:10px 12px;
     background: var(--bg1); border:2px solid var(--border); border-radius:10px;
     transition: border-color .15s ease, background .15s ease;
@@ -114,7 +114,7 @@
     flex:1; width:100%; max-width: 1180px; margin: 0 auto;
     display:flex; flex-direction:column; gap: 18px; align-items:stretch; padding: 20px 24px 20px;
   }
-  .two-col-row{ display:flex; gap:18px; align-items:stretch; width:100%; }
+  .two-col-row{ display:flex; gap:18px; align-items:flex-start; width:100%; }
   .patch-sidebar{
     flex: 0 0 280px; position:sticky; top:20px;
     background: var(--card); border:2px solid var(--border); border-radius:16px;
@@ -141,7 +141,7 @@
   }
   .sidebar-tier-desc{ font-size:11.5px; color: var(--text-muted); font-weight:600; line-height:1.4; }
 
-  main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+  main{ width:100%; display:flex; flex-direction:column; }
 
   .archive-list{
     width:100%; display:flex; flex-direction:column; gap:16px;
@@ -149,7 +149,7 @@
   }
 
   .archive-card{
-    display:flex; align-items:center; gap:18px; min-height:110.8px; box-sizing:border-box;
+    display:flex; align-items:center; gap:18px;
     background: var(--card); border: 2px solid var(--border); border-radius: 20px;
     padding: 22px 24px; text-decoration:none; color: var(--text);
     box-shadow: 0 3px 0 rgba(45,49,66,0.05);
@@ -232,9 +232,9 @@
   .theme-toggle:hover{ transform: translateY(-2px); }
 
   @media (max-width:820px){
-    .page-layout{ flex-direction:column; }
-    .patch-sidebar{ position:static; width:100%; flex:1 1 auto; }
-    .updates-sidebar{ position:static; width:100%; flex:1 1 auto; max-height:none; }
+    .two-col-row{ flex-direction:column; }
+    .updates-sidebar{ flex:1 1 auto; width:100%; }
+    .archive-card, .resource-link{ min-height:0; }
   }
 </style>
 </head>
@@ -257,8 +257,7 @@
 </header>
 
 <div class="page-layout">
-<div class="two-col-row">
-  <main>
+<main>
   <div class="archive-list">
   <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">📚 Raids</div>
     <a class="archive-card" href="tier4-raids.html">
@@ -302,6 +301,7 @@
 
   </main>
 
+<div class="two-col-row">
   <aside class="updates-sidebar">
     <div class="secondary-resources">
       <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">🔗 Secondary Resources</div>
@@ -338,6 +338,57 @@
           <div>
             <div class="resource-name">Pokébattler</div>
             <div class="resource-desc">Credible raid battle simulator for intermediate-level raids, with customizable teams and fast results.</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </aside>
+
+  <aside class="updates-sidebar" style="display:flex; flex-direction:column;">
+    <div class="patch-title" style="font-size:16px; margin-bottom:8px;">🎥 Submit a VOD</div>
+    <div style="font-size:12px; color:var(--text-dim); font-weight:600; margin-bottom:10px; line-height:1.4;">
+      Soloed a raid we don't have on record? Submit your VOD and party details below.
+    </div>
+    <iframe
+      src="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform?embedded=true"
+      style="width:100%; flex:1; min-height:420px; border:2px solid var(--border); border-radius:12px;"
+      loading="lazy">
+      Loading form…
+    </iframe>
+  </aside>
+
+  <aside class="updates-sidebar">
+    <div class="secondary-resources">
+      <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">🔬 Research</div>
+      <a class="resource-link" href="research.html">
+        <div class="resource-row">
+          <div>
+            <div class="resource-name">Most Used Raiders <span style="font-size:10px; font-weight:800; color:var(--blue-dark); background:rgba(90,169,255,0.15); padding:2px 7px; border-radius:999px; margin-left:4px; vertical-align:middle;">Popular</span></div>
+            <div class="resource-desc">See which Pokémon show up most across every recorded solo raid.</div>
+          </div>
+        </div>
+      </a>
+      <a class="resource-link" href="meta-battle-parties.html">
+        <div class="resource-row">
+          <div>
+            <div class="resource-name">Meta Battle Parties</div>
+            <div class="resource-desc">Reference battle parties for current top-meta raid bosses.</div>
+          </div>
+        </div>
+      </a>
+      <a class="resource-link" href="raid-strategies.html">
+        <div class="resource-row">
+          <div>
+            <div class="resource-name">Strategies</div>
+            <div class="resource-desc">Explanations of core solo-raid strategies like Catch Tank and Hot Swap.</div>
+          </div>
+        </div>
+      </a>
+      <a class="resource-link" href="ct-calculator.html">
+        <div class="resource-row">
+          <div>
+            <div class="resource-name">Catch Tank Calculator</div>
+            <div class="resource-desc">Check whether a Pokémon can survive and return a given charge move.</div>
           </div>
         </div>
       </a>
