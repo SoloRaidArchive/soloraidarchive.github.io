@@ -173,7 +173,7 @@
   }
 
   .roles-strip{
-    max-width: 1760px; margin: 14px auto 0; padding: 10px 20px;
+    width: fit-content; margin: 14px auto 0; padding: 9px 18px;
     display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:14px;
     background: var(--card); border:2px solid var(--border); border-radius:12px;
   }
@@ -476,12 +476,39 @@
     font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14px; color: var(--text);
     margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;
   }
+
+  .sidebar-tier-grid{ display:flex; flex-direction:column; gap:14px; }
+  .sidebar-tier-row{ display:flex; align-items:flex-start; gap:11px; }
+  .sidebar-tier-info{ flex:1; min-width:0; }
+  .sidebar-tier-name{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14px; color: var(--text);
+    margin-bottom:3px;
+  }
+  .sidebar-tier-desc{ font-family:'Nunito', sans-serif; font-size:12px; color: var(--text-muted); font-weight:600; line-height:1.45; }
+  .tier-ref-badge{
+    flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:12.5px;
+    color:#fff; padding:5px 11px; border-radius:999px; min-width:50px; text-align:center;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+  }
+  .tier-ref-badge.t7{ background: var(--t7); }
+  .tier-ref-badge.t6{ background: var(--t6); }
+  .tier-ref-badge.t55{ background: var(--t55); }
+  .tier-ref-badge.t5{ background: var(--t5); }
+  .tier-ref-badge.t4{ background: var(--t4); }
+  .tier-ref-badge.t3{ background: var(--t3); }
+  .tier-ref-badge.t2{ background: var(--t2); }
+  .tier-ref-badge.t1{ background: var(--t1); }
+  .tier-ref-divider{
+    font-family:'Nunito', sans-serif; font-size:11px; font-weight:800; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.06em; padding-top:4px; padding-bottom:2px;
+  }
   .filter-clear{
     font-size:10.5px; font-weight:700; color: var(--blue-dark); cursor:pointer;
     background:none; border:none; padding:0;
   }
   .filter-options{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
   .filter-dropdown{ width:100%; }
+  .controls .filter-dropdown.top-filter{ width:auto; }
   .filter-dropdown-btn{
     display:flex; align-items:center; justify-content:space-between; gap:8px;
     background: var(--bg1); border:2px solid var(--border); border-radius:10px;
@@ -551,7 +578,7 @@
   <span class="roles-strip-item"><span class="role-chip main">Main DPS</span> The primary damage dealer.</span>
   <span class="roles-strip-item"><span class="role-chip support">Support DPS</span> Steps in when Main DPS goes down.</span>
   <span class="roles-strip-item"><span class="role-chip catchtank">Catch Tank</span> Intercepts large moves &amp; returns heavy damage.</span>
-  <span class="roles-strip-item"><span class="role-chip executor">Executor</span> Fights bosses in small windows, 1-2 per team.</span>
+  <span class="roles-strip-item"><span class="role-chip executor">Executor</span> Fights bosses in small windows.</span>
 </div>
 
 <div class="controls">
