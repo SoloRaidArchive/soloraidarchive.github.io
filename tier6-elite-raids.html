@@ -277,6 +277,10 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232b7fd6' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position: right 12px center; background-size:14px;
   }
+  .strat-select-inline{
+    width:auto; font-size:13px; padding: 4px 26px 4px 10px; border-radius:8px;
+    background-position: right 8px center; background-size:11px; margin:0;
+  }
   .meta-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
   .meta-left{ display:flex; flex-direction:column; gap:6px; }
   .weather-tag{ font-size:20px; line-height:1; display:flex; align-items:center; gap:6px; }
@@ -1303,14 +1307,13 @@ function variantBodyHtml(r, variants, cardId){
   const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
   const hasMultiple = variants.length > 1;
 
-  const strategySelector = hasMultiple
-    ? `<select class="strat-select" data-card="${cardId}" onchange="updateCard('${cardId}', this.value)">
+  // When multiple strategies exist, the strategy selector lives directly in the summary bar
+  // itself (rather than as a separate control inside the expanded panel), so there's only
+  // one clickable element to choose a variant instead of two stacked ones.
+  const toggleSummary = hasMultiple
+    ? `<select class="strat-select strat-select-inline" data-card="${cardId}" onclick="event.stopPropagation()" onchange="event.stopPropagation(); updateCard('${cardId}', this.value)">
         ${variants.map((v,i) => `<option value="${i}" ${v === r ? "selected" : ""}>${tierLabel(v.tier)}${v.strategy ? " · " + v.strategy : ""}</option>`).join("")}
       </select>`
-    : "";
-
-  const toggleSummary = hasMultiple
-    ? `${variants.length} strategies logged`
     : (r.strategy ? r.strategy.split(/\s*\/\s*/).map(p => {
         const info = STRATEGY_INFO[p.trim().toLowerCase()];
         return info ? `<span class="strategy-chip" data-tooltip="${info.desc.replace(/"/g,"&quot;")}">${info.abbr}</span>` : p;
@@ -1330,7 +1333,6 @@ function variantBodyHtml(r, variants, cardId){
         <span class="expand-action"><span class="expand-see">See details</span><span class="expand-hide">Hide details</span><span class="party-chevron">›</span></span>
       </summary>
       <div class="details-panel">
-        ${strategySelector}
         ${r.strategy ? `<div class="strategy-chip-row">${strategyChipsHtml(r.strategy)}</div>` : ""}
         <div class="party-label">Battle Party <span class="party-count-badge">${r.party.length}</span></div>
         <div class="party-list">${mainHtml}${restHtml}</div>
