@@ -30,24 +30,16 @@
     --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
     --blue: #5aa9ff; --blue-dark: #8cc7ff;
   }
-  [data-theme="dark"] .pokeball{ border-color:#eef1f7; }
-  [data-theme="dark"] .pokeball::after{ background:#1c2030; border-color:#eef1f7; }
-  [data-theme="dark"] h1{ text-shadow: 2px 2px 0 rgba(90,169,255,0.25); }
   [data-theme="dark"] #search,
-  [data-theme="dark"] #pokemonSearch,
   [data-theme="dark"] .count,
   [data-theme="dark"] .filter-block{
     background:#1c2030; border-color:#323850; color:#eef1f7;
   }
-  [data-theme="dark"] #search::placeholder,
-  [data-theme="dark"] #pokemonSearch::placeholder{ color:#767f96; }
+  [data-theme="dark"] #search::placeholder{ color:#767f96; }
   [data-theme="dark"] .strat-select{
     background-color:#232840; border-color:#3a4160; color:#8cc7ff;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238cc7ff' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position: right 12px center; background-size:14px;
-  }
-  [data-theme="dark"] .strat-static{
-    background:#232840; border-color:#3a4160; color:#8cc7ff;
   }
   [data-theme="dark"] .strat-select option{ background:#1c2030; color:#eef1f7; }
   [data-theme="dark"] .boss-icon{
@@ -101,20 +93,6 @@
     color: var(--text); font-family: 'Nunito', sans-serif; min-height:100vh; padding-bottom: 60px;
   }
   header{ padding: 44px 24px 26px; text-align:center; }
-  .badge-row{ display:flex; justify-content:center; gap:8px; margin-bottom:14px; }
-  .pokeball{
-    width:20px; height:20px; border-radius:50%;
-    background: linear-gradient(180deg, var(--red) 50%, #fff 50%);
-    border: 2px solid #2d3142; position:relative;
-  }
-  .pokeball::after{
-    content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:7px; height:7px; border-radius:50%; background:#fff; border:2px solid #2d3142;
-  }
-  h1{
-    font-family:'Baloo 2', sans-serif; font-weight:800; font-size: clamp(30px, 5vw, 46px);
-    margin: 0 0 10px; color: var(--blue-dark); text-shadow: 2px 2px 0 rgba(61,157,255,0.15);
-  }
   header p{ color: var(--text-muted); font-size: 15.5px; max-width: 540px; margin: 0 auto; font-weight:600; }
 
   .top-nav-wrap{
@@ -134,10 +112,6 @@
   @media (min-width:761px){
     .mini-nav-row{ justify-content:flex-start; max-width:1760px; margin:10px auto 0; padding:0 20px; }
   }
-  .top-nav-label{
-    font-weight:800; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em;
-    color: var(--text-dim);
-  }
   .nav-dropdown{ position:relative; }
   .nav-dropdown-trigger{
     display:inline-flex; align-items:center; gap:5px;
@@ -147,7 +121,6 @@
     transition: transform .12s ease, border-color .12s ease, color .12s ease;
   }
   .nav-dropdown-trigger:hover{ transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark); }
-  .nav-dropdown-trigger.has-current{ background: var(--blue); color:#fff; border-color: var(--blue); }
   .nav-dropdown-panel{
     position:absolute; top:calc(100% + 8px); left:0; transform:none;
     background: var(--card); border:2px solid var(--border); border-radius:14px;
@@ -196,6 +169,31 @@
   .count{
     font-weight:700; font-size:13px; color: var(--text-dim); white-space:nowrap;
     padding: 8px 16px; background:#fff; border-radius:999px; border: 2px solid var(--border);
+  }
+
+  .roles-strip{
+    width: fit-content; margin: 14px auto 0; padding: 9px 18px;
+    display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:14px;
+    background: var(--card); border:2px solid var(--border); border-radius:12px;
+  }
+  .roles-strip-item{ display:flex; align-items:center; gap:6px; font-size:11.5px; font-weight:600; color: var(--text-muted); white-space:nowrap; }
+  .roles-strip-item .role-chip{ font-size:10.5px; padding:3px 10px; }
+
+  .top-filter{ width:auto; flex-shrink:0; }
+  .top-filter .filter-dropdown-btn{ white-space:nowrap; }
+  .control-label-tag{
+    font-size:9px; text-transform:uppercase; letter-spacing:0.04em; font-weight:800;
+    color: var(--blue-dark); background:rgba(90,169,255,0.15); padding:2px 6px; border-radius:5px;
+    flex-shrink:0;
+  }
+  .sort-pill-wrap{
+    display:flex; align-items:center; gap:7px;
+    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
+    padding:9px 12px;
+  }
+  #sortMode{
+    border:none; background:none; outline:none; cursor:pointer;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px; color: var(--text);
   }
 
   .tier-section{ margin: 14px 0 0; padding: 0; }
@@ -279,13 +277,10 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232b7fd6' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position: right 12px center; background-size:14px;
   }
-  .strat-static{
-    display:flex; align-items:center; width:100%; box-sizing:border-box;
-    font-family:'Nunito', sans-serif; font-weight:700; font-size:14px;
-    color: var(--blue-dark); background:#eef6ff; border:2px solid #d7ebff; border-radius:11px;
-    padding: 10px 14px;
+  .strat-select-inline{
+    width:auto; font-size:13px; padding: 4px 26px 4px 10px; border-radius:8px;
+    background-position: right 8px center; background-size:11px; margin:0;
   }
-
   .meta-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
   .meta-left{ display:flex; flex-direction:column; gap:6px; }
   .weather-tag{ font-size:20px; line-height:1; display:flex; align-items:center; gap:6px; }
@@ -333,7 +328,6 @@
   .expand-btn::marker{ display:none; content:""; }
   .expand-btn:hover{ border-color: var(--blue); color: var(--blue-dark); background: rgba(90,169,255,0.08); }
   .expand-strategy{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
-  .strategy-select-hint{ font-size:9px; color: var(--blue-dark); opacity:0.75; }
   .expand-action{ display:flex; align-items:center; gap:5px; flex-shrink:0; white-space:nowrap; }
   .expand-hide{ display:none; }
   .party-wrap[open] .expand-see{ display:none; }
@@ -410,7 +404,6 @@
     font-family:'Nunito', sans-serif; font-size:10px; font-weight:700; color:#fff;
     padding:3px 9px; border-radius:999px; line-height:1.4;
   }
-  .move-stat-detail{ font-size:10.5px; color: var(--text-dim); font-weight:600; line-height:1.4; margin-left:2px; margin-top:2px; }
   .role-chip{
     align-self:flex-start; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px;
   }
@@ -479,12 +472,39 @@
     font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14px; color: var(--text);
     margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;
   }
+
+  .sidebar-tier-grid{ display:flex; flex-direction:column; gap:14px; }
+  .sidebar-tier-row{ display:flex; align-items:flex-start; gap:11px; }
+  .sidebar-tier-info{ flex:1; min-width:0; }
+  .sidebar-tier-name{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14px; color: var(--text);
+    margin-bottom:3px;
+  }
+  .sidebar-tier-desc{ font-family:'Nunito', sans-serif; font-size:12px; color: var(--text-muted); font-weight:600; line-height:1.45; }
+  .tier-ref-badge{
+    flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:12.5px;
+    color:#fff; padding:5px 11px; border-radius:999px; min-width:50px; text-align:center;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+  }
+  .tier-ref-badge.t7{ background: var(--t7); }
+  .tier-ref-badge.t6{ background: var(--t6); }
+  .tier-ref-badge.t55{ background: var(--t55); }
+  .tier-ref-badge.t5{ background: var(--t5); }
+  .tier-ref-badge.t4{ background: var(--t4); }
+  .tier-ref-badge.t3{ background: var(--t3); }
+  .tier-ref-badge.t2{ background: var(--t2); }
+  .tier-ref-badge.t1{ background: var(--t1); }
+  .tier-ref-divider{
+    font-family:'Nunito', sans-serif; font-size:11px; font-weight:800; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.06em; padding-top:4px; padding-bottom:2px;
+  }
   .filter-clear{
     font-size:10.5px; font-weight:700; color: var(--blue-dark); cursor:pointer;
     background:none; border:none; padding:0;
   }
   .filter-options{ display:flex; flex-direction:column; gap:8px; }
   .filter-dropdown{ width:100%; }
+  .controls .filter-dropdown.top-filter{ width:auto; }
   .filter-dropdown-btn{
     display:flex; align-items:center; justify-content:space-between; gap:8px;
     background: var(--bg1); border:2px solid var(--border); border-radius:10px;
@@ -500,15 +520,6 @@
   }
   .filter-dropdown[open] .filter-chevron{ transform: rotate(90deg); }
   .filter-note{ font-size:10.5px; font-weight:600; color: var(--text-dim); margin-top:6px; line-height:1.4; }
-  .archive-nav{ display:flex; flex-direction:column; gap:4px; }
-  .archive-nav-link{
-    padding:9px 11px; border-radius:9px; font-family:'Nunito', sans-serif;
-    font-weight:700; font-size:13px; color: var(--text-muted); text-decoration:none;
-    transition: background .12s, color .12s;
-  }
-  .archive-nav-link:hover{ background:#eef6ff; color: var(--blue-dark); }
-  .archive-nav-link.current{ background: var(--blue); color:#fff; }
-  [data-theme="dark"] .archive-nav-link:hover{ background:#232840; color: var(--blue-dark); }
   .filter-chk{
     display:flex; align-items:flex-start; gap:9px; font-size:13px; font-weight:600;
     color: var(--text-muted); cursor:pointer; user-select:none; line-height:1.35;
@@ -518,14 +529,6 @@
     flex-shrink:0; cursor:pointer; margin-top:2px; box-sizing:border-box;
   }
   .filter-chk:hover{ color: var(--text); }
-  #pokemonSearch{
-    width:100%; background: #f8fafc; border: 2px solid var(--border); color: var(--text);
-    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
-    padding: 9px 12px; border-radius: 10px; outline:none;
-    transition: border-color .15s;
-  }
-  #pokemonSearch:focus{ border-color: var(--blue); }
-  #pokemonSearch::placeholder{ color: var(--text-dim); font-weight:600; }
   .main-content{ flex:1; min-width:0; }
 
   @media (max-width:900px){
@@ -567,71 +570,110 @@
   </div>
 </div>
 
+<div class="roles-strip">
+  <span class="roles-strip-item"><span class="role-chip main">Main DPS</span> The primary damage dealer.</span>
+  <span class="roles-strip-item"><span class="role-chip support">Support DPS</span> Steps in when Main DPS goes down.</span>
+  <span class="roles-strip-item"><span class="role-chip catchtank">Catch Tank</span> Intercepts large moves &amp; returns heavy damage.</span>
+  <span class="roles-strip-item"><span class="role-chip executor">Executor</span> Fights bosses in small windows.</span>
+</div>
+
 <div class="controls">
   <div class="search-wrap">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input id="search" type="text" placeholder="Search raid boss name…" autocomplete="off">
   </div>
-  <select id="sortMode">
-    <option value="difficulty">Sort: By Difficulty</option>
-    <option value="alphabetical">Sort: A–Z (all difficulties)</option>
-  </select>
-  <div class="count" id="count"></div>
+  <details class="filter-dropdown top-filter">
+    <summary class="filter-dropdown-btn">
+      <span class="control-label-tag">Filter</span>
+      <span id="difficultySummaryText">Difficulty: All</span>
+      <span class="filter-chevron">›</span>
+    </summary>
+    <div class="filter-options" id="difficultyFilters"></div>
+    <div style="padding:8px 10px 2px;"><button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button></div>
+  </details>
+  <details class="filter-dropdown top-filter">
+    <summary class="filter-dropdown-btn">
+      <span class="control-label-tag">Filter</span>
+      <span id="weatherSummaryText">Weather: All</span>
+      <span class="filter-chevron">›</span>
+    </summary>
+    <div class="filter-options" id="weatherFilters"></div>
+    <div class="filter-note" style="padding:0 10px;">"Extreme" means no weather boost is active.</div>
+    <div style="padding:8px 10px 2px;"><button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button></div>
+  </details>
+  <div class="top-filter sort-pill-wrap">
+    <span class="control-label-tag">Sort</span>
+    <select id="sortMode">
+      <option value="difficulty">By Difficulty</option>
+      <option value="alphabetical">A–Z (all difficulties)</option>
+    </select>
+  </div>
 </div>
 
 <div class="layout">
   <aside class="sidebar">
     <div class="filter-block">
-      <div class="filter-title">Pokémon in Party</div>
-      <input id="pokemonSearch" type="text" placeholder="e.g. Eternatus…" autocomplete="off">
-    </div>
-    <div class="filter-block">
-      <div class="filter-title">
-        Difficulty
-        <button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button>
+      <div class="filter-title">⭐ Difficulty Reference</div>
+      <div class="sidebar-tier-grid">
+        <div class="sidebar-tier-row">
+          <span class="tier-ref-badge t7">7★</span>
+          <div class="sidebar-tier-info">
+            <div class="sidebar-tier-name">Special</div>
+            <div class="sidebar-tier-desc">Perfect execution required — under 0.5% win chance.</div>
+          </div>
+        </div>
+        <div class="sidebar-tier-row">
+          <span class="tier-ref-badge t6">6★</span>
+          <div class="sidebar-tier-info">
+            <div class="sidebar-tier-name">Nightmare</div>
+            <div class="sidebar-tier-desc">Perfect execution — roughly 1–2.5% win chance.</div>
+          </div>
+        </div>
+        <div class="sidebar-tier-row">
+          <span class="tier-ref-badge t55">5.5★</span>
+          <div class="sidebar-tier-info">
+            <div class="sidebar-tier-name">Very Hard</div>
+            <div class="sidebar-tier-desc">Excellent execution — roughly 10–20% win chance.</div>
+          </div>
+        </div>
+        <div class="sidebar-tier-row">
+          <span class="tier-ref-badge t5">5★</span>
+          <div class="sidebar-tier-info">
+            <div class="sidebar-tier-name">Hard</div>
+            <div class="sidebar-tier-desc">Good execution, favorable weather &amp; movesets recommended.</div>
+          </div>
+        </div>
+        <div class="sidebar-tier-row">
+          <span class="tier-ref-badge t4">4★</span>
+          <div class="sidebar-tier-info">
+            <div class="sidebar-tier-name">Challenging</div>
+            <div class="sidebar-tier-desc">Some strategic execution — Level 40+ with select movesets.</div>
+          </div>
+        </div>
+        <div class="tier-ref-divider" style="margin-top:6px;">Casual Raids · Max 3★</div>
+        <div class="sidebar-tier-row">
+          <span class="tier-ref-badge t3">3★</span>
+          <div class="sidebar-tier-info">
+            <div class="sidebar-tier-name">Moderate</div>
+            <div class="sidebar-tier-desc">Various counters work — Level 40+.</div>
+          </div>
+        </div>
+        <div class="sidebar-tier-row">
+          <span class="tier-ref-badge t2">2★</span>
+          <div class="sidebar-tier-info">
+            <div class="sidebar-tier-name">Easy</div>
+            <div class="sidebar-tier-desc">Various counters work — Level 30+.</div>
+          </div>
+        </div>
+        <div class="sidebar-tier-row">
+          <span class="tier-ref-badge t1">1★</span>
+          <div class="sidebar-tier-info">
+            <div class="sidebar-tier-name">Very Easy</div>
+            <div class="sidebar-tier-desc">Lots of counters work — Level 30.</div>
+          </div>
+        </div>
       </div>
-      <details class="filter-dropdown">
-        <summary class="filter-dropdown-btn">
-          <span id="difficultySummaryText">All Difficulties</span>
-          <span class="filter-chevron">›</span>
-        </summary>
-        <div class="filter-options" id="difficultyFilters"></div>
-      </details>
-    </div>
-    <div class="filter-block">
-      <div class="filter-title">
-        Weather
-        <button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button>
-      </div>
-      <details class="filter-dropdown">
-        <summary class="filter-dropdown-btn">
-          <span id="weatherSummaryText">All Weather</span>
-          <span class="filter-chevron">›</span>
-        </summary>
-        <div class="filter-options" id="weatherFilters"></div>
-      </details>
-      <div class="filter-note">"Extreme" means no weather boost is active.</div>
-    </div>
-    <div class="filter-block">
-      <div class="filter-title">Roles</div>
-      <div class="role-legend">
-  <div class="role-legend-item">
-    <span class="role-chip main">Main DPS</span>
-    <span class="role-legend-desc">The primary damage dealer.</span>
-  </div>
-  <div class="role-legend-item">
-    <span class="role-chip support">Support DPS</span>
-    <span class="role-legend-desc">Steps in when the Main DPS goes down.</span>
-  </div>
-  <div class="role-legend-item">
-    <span class="role-chip catchtank">Catch Tank</span>
-    <span class="role-legend-desc">Intercepts large moves &amp; returns heavy damage.</span>
-  </div>
-  <div class="role-legend-item">
-    <span class="role-chip executor">Executor</span>
-    <span class="role-legend-desc">Fights bosses in small windows — usually to finish it off, 1-2 per team.</span>
-  </div>
-</div>
+      <div class="sidebar-rules-note" style="margin-top:8px;">Only 1 phone &amp; 1 account may be used.</div>
     </div>
   </aside>
   <div class="main-content">
@@ -888,12 +930,17 @@ function spriteUrl(name){
 function normalizeStrategy(s){
   if(!s) return s;
   let out = s;
-  out = out.replace(/\bHS\b/gi, "Hot Swap");
-  out = out.replace(/\bCT\b/gi, "Catch Tank");
-  out = out.replace(/\bTPC\b/gi, "Tick Perfect Cast");
-  out = out.replace(/\bDBP\b/gi, "Double Battle Party");
-  out = out.replace(/\bhot\s*swap\b/gi, "Hot Swap");
-  out = out.replace(/\bcatch\s*tank\b/gi, "Catch Tank");
+  // Contract every known strategy name down to its short abbreviation, so the
+  // toggle bar always has room for "See details" regardless of how it was entered in the sheet.
+  out = out.replace(/\bdouble\s*catch\s*tank\b/gi, "2x CT");
+  out = out.replace(/\bdouble\s*ct\b/gi, "2x CT");
+  out = out.replace(/\bhot\s*swap\s*chain\b/gi, "HS Chain");
+  out = out.replace(/\bhot\s*swap\b/gi, "HS");
+  out = out.replace(/\bcatch\s*tank\b/gi, "CT");
+  out = out.replace(/\btick\s*perfect\s*cast\b/gi, "TPC");
+  out = out.replace(/\bdouble\s*battle\s*party\b/gi, "DBP");
+  out = out.replace(/\brecycle\b/gi, "RCY");
+  out = out.replace(/\bvaries\b/gi, "Various");
 
   const parts = out.split("/").map(p => p.trim()).filter(Boolean);
   if(parts.length >= 3) return "Various";
@@ -1048,11 +1095,21 @@ const MOVE_DB = [
 // Strategy abbreviations with hover definitions, pulled from raid-strategies.html
 const STRATEGY_INFO = {
   "catch tank": {abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move, then return their own quick, high-damage charge move.", slug:"catch-tank"},
+  "ct": {abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move, then return their own quick, high-damage charge move.", slug:"catch-tank"},
   "hot swap": {abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", slug:"hot-swap"},
+  "hs": {abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", slug:"hot-swap"},
+  "hs chain": {abbr:"HS Chain", desc:"A chain of consecutive Hot Swaps across multiple attackers within a single attempt.", slug:"hot-swap"},
   "tick perfect cast": {abbr:"TPC", desc:"Precisely timing the final tap just before a charge move cast, avoiding the energy resolve DPS nerf. Very hard to execute consistently.", slug:"tick-perfect-cast"},
+  "tpc": {abbr:"TPC", desc:"Precisely timing the final tap just before a charge move cast, avoiding the energy resolve DPS nerf. Very hard to execute consistently.", slug:"tick-perfect-cast"},
   "double battle party": {abbr:"DBP", desc:"Using two identical battle parties; reduces every other rejoin time by about 40%.", slug:"double-battle-party"},
+  "dbp": {abbr:"DBP", desc:"Using two identical battle parties; reduces every other rejoin time by about 40%.", slug:"double-battle-party"},
   "recycle": {abbr:"RCY", desc:"Reusing the same Main DPS Pokémon across multiple rejoins instead of a fresh one each time.", slug:"recycle"},
+  "rcy": {abbr:"RCY", desc:"Reusing the same Main DPS Pokémon across multiple rejoins instead of a fresh one each time.", slug:"recycle"},
+  "dodge": {abbr:"Dodge", desc:"Manually dodging the boss's charge move animations to reduce incoming damage.", slug:""},
+  "double ct": {abbr:"2x CT", desc:"Using two separate Catch Tank Pokémon across the attempt instead of just one.", slug:"catch-tank"},
+  "2x ct": {abbr:"2x CT", desc:"Using two separate Catch Tank Pokémon across the attempt instead of just one.", slug:"catch-tank"},
   "various": {abbr:"Various", desc:"Multiple different strategies were used across recorded attempts.", slug:""},
+  "varies": {abbr:"Various", desc:"Multiple different strategies were used across recorded attempts.", slug:""},
 };
 function strategyChipsHtml(strategyStr){
   if(!strategyStr) return "";
@@ -1259,20 +1316,27 @@ function vodHtml(vod){
   return `<span class="no-vod">No VOD available</span>`;
 }
 
+function abbreviateStrategy(strategyText){
+  if(!strategyText) return "";
+  return strategyText.split(/\s*\/\s*/).map(p => {
+    const info = STRATEGY_INFO[p.trim().toLowerCase()];
+    return info ? info.abbr : p;
+  }).join(" / ");
+}
+
 function variantBodyHtml(r, variants, cardId){
   const [main, ...rest] = r.party;
   const mainHtml = main ? memberRowHtml(main, true) : "";
   const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
   const hasMultiple = variants.length > 1;
 
-  const strategySelector = hasMultiple
-    ? `<select class="strat-select" data-card="${cardId}" onchange="updateCard('${cardId}', this.value)">
-        ${variants.map((v,i) => `<option value="${i}" ${v === r ? "selected" : ""}>${tierLabel(v.tier)}${v.strategy ? " · " + v.strategy : ""}</option>`).join("")}
-      </select>`
-    : "";
-
+  // When multiple strategies exist, the strategy selector lives directly in the summary bar
+  // itself (rather than as a separate control inside the expanded panel), so there's only
+  // one clickable element to choose a variant instead of two stacked ones.
   const toggleSummary = hasMultiple
-    ? `${variants.length} strategies logged`
+    ? `<select class="strat-select strat-select-inline" data-card="${cardId}" onclick="event.stopPropagation()" onchange="event.stopPropagation(); updateCard('${cardId}', this.value)">
+        ${variants.map((v,i) => `<option value="${i}" ${v === r ? "selected" : ""}>${tierLabel(v.tier)}${v.strategy ? " · " + abbreviateStrategy(v.strategy) : ""}</option>`).join("")}
+      </select>`
     : (r.strategy ? r.strategy.split(/\s*\/\s*/).map(p => {
         const info = STRATEGY_INFO[p.trim().toLowerCase()];
         return info ? `<span class="strategy-chip" data-tooltip="${info.desc.replace(/"/g,"&quot;")}">${info.abbr}</span>` : p;
@@ -1292,7 +1356,6 @@ function variantBodyHtml(r, variants, cardId){
         <span class="expand-action"><span class="expand-see">See details</span><span class="expand-hide">Hide details</span><span class="party-chevron">›</span></span>
       </summary>
       <div class="details-panel">
-        ${strategySelector}
         ${r.strategy ? `<div class="strategy-chip-row">${strategyChipsHtml(r.strategy)}</div>` : ""}
         <div class="party-label">Battle Party <span class="party-count-badge">${r.party.length}</span></div>
         <div class="party-list">${mainHtml}${restHtml}</div>
@@ -1377,8 +1440,8 @@ function renderDifficultyFilters(){
   `).join("");
   const summary = document.getElementById("difficultySummaryText");
   if(summary){
-    summary.textContent = activeTiers.size === 0 ? "All Difficulties" :
-      (activeTiers.size <= 2 ? [...activeTiers].map(t => tierLabel(t)).join(", ") : `${activeTiers.size} selected`);
+    summary.textContent = activeTiers.size === 0 ? "Difficulty: All" :
+      "Difficulty: " + (activeTiers.size <= 2 ? [...activeTiers].map(t => tierLabel(t)).join(", ") : `${activeTiers.size} selected`);
   }
 }
 function toggleDifficulty(t){
@@ -1399,8 +1462,8 @@ function renderWeatherFilters(){
   renderFilterGroup("weatherFilters", WEATHER_LIST, activeWeathers, "toggleWeather", true);
   const summary = document.getElementById("weatherSummaryText");
   if(summary){
-    summary.textContent = activeWeathers.size === 0 ? "All Weather" :
-      (activeWeathers.size <= 2 ? [...activeWeathers].join(", ") : `${activeWeathers.size} selected`);
+    summary.textContent = activeWeathers.size === 0 ? "Weather: All" :
+      "Weather: " + (activeWeathers.size <= 2 ? [...activeWeathers].join(", ") : `${activeWeathers.size} selected`);
   }
 }
 
@@ -1427,7 +1490,6 @@ function toggleTierCollapse(key){
 }
 function buildSections(){
   const bossQuery = search.value.trim().toLowerCase();
-  const pokemonQuery = pokemonSearch.value.trim().toLowerCase();
   const sectionsEl = document.getElementById("sections");
   const alphabetical = document.getElementById("sortMode").value === "alphabetical";
   let totalVisible = 0;
@@ -1441,7 +1503,6 @@ function buildSections(){
     if(bossQuery && !boss.toLowerCase().includes(bossQuery)) return;
     let variants = bossGroups[boss].filter(v => {
       if(activeWeathers.size > 0 && !activeWeathers.has(v.weather)) return false;
-      if(pokemonQuery && !v.party.some(p => p.n.toLowerCase().includes(pokemonQuery))) return false;
       return true;
     });
     if(variants.length === 0) return;
@@ -1465,7 +1526,6 @@ function buildSections(){
 
     html = cardsHtml ? `<div class="tier-grid">${cardsHtml}</div>` : "";
     sectionsEl.innerHTML = html || `<div class="empty">No raid bosses match your filters.</div>`;
-    document.getElementById("count").textContent = `${totalVisible} boss${totalVisible === 1 ? "" : "es"}`;
     return;
   }
 
@@ -1499,7 +1559,6 @@ function buildSections(){
   });
 
   sectionsEl.innerHTML = html || `<div class="empty">No raid bosses match your filters.</div>`;
-  document.getElementById("count").textContent = `${totalVisible} boss${totalVisible === 1 ? "" : "es"}`;
 }
 
 function updateCard(cardId, variantIndex){
@@ -1541,9 +1600,7 @@ try{
 applyTheme(initialTheme);
 
 const search = document.getElementById("search");
-const pokemonSearch = document.getElementById("pokemonSearch");
 search.addEventListener("input", buildSections);
-pokemonSearch.addEventListener("input", buildSections);
 document.getElementById("sortMode").addEventListener("change", buildSections);
 loadRaidsFromCSV();
 
