@@ -86,10 +86,38 @@
   .resource-logo{ width:32px; height:32px; border-radius:8px; object-fit:cover; flex-shrink:0; }
 
   .top-nav-wrap{
-    max-width: 1180px; margin: 70px auto 30px; padding: 0 24px;
+    max-width: 1180px; margin: 24px auto 30px; padding: 0 24px;
     display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px;
   }
-
+  .top-nav-label{
+    font-weight:800; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em;
+    color: var(--text-dim);
+  }
+  .nav-dropdown{ position:relative; }
+  .nav-dropdown-trigger{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text-muted); cursor:pointer;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .nav-dropdown-trigger:hover{ transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark); }
+  .nav-dropdown-trigger.has-current{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .nav-dropdown-panel{
+    position:absolute; top:calc(100% + 8px); left:50%; transform:translateX(-50%);
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:8px; min-width:230px; box-shadow:0 10px 28px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:2px; z-index:30;
+  }
+  .nav-dropdown-panel.open{ display:flex; }
+  .nav-dropdown-item{
+    display:block; padding:9px 12px; border-radius:9px;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    color: var(--text-muted); text-decoration:none; white-space:nowrap;
+  }
+  .nav-dropdown-item:hover{ background: var(--bg1); color: var(--blue-dark); }
+  .nav-dropdown-item.current{ background: var(--blue); color:#fff; }
+  .top-nav-row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
   .top-nav-link{
     display:inline-flex; align-items:center; gap:6px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
@@ -104,7 +132,7 @@
 
   .page-layout{
     flex:1; width:100%; max-width: 1180px; margin: 0 auto;
-    display:flex; gap: 32px; align-items:flex-start; justify-content:center; padding: 20px 24px 20px;
+    display:flex; gap: 32px; align-items:flex-start; padding: 20px 24px 20px;
   }
   .patch-sidebar{
     flex: 0 0 280px; position:sticky; top:20px;
@@ -115,6 +143,7 @@
     font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
     color: var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px;
   }
+  .patch-entry{ margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--border); }
   .sidebar-rule{
     font-size:12.5px; color: var(--text-muted); font-weight:600; line-height:1.55; margin-bottom:8px;
   }
@@ -123,6 +152,7 @@
     margin-top:4px;
   }
   .sidebar-rules-note strong{ color: var(--text-muted); }
+  .sidebar-divider{ border-top:1px solid var(--border); margin:16px 0 14px; }
   .sidebar-tier-grid{ display:flex; flex-direction:column; gap:10px; }
   .sidebar-tier-row{ display:flex; align-items:flex-start; gap:10px; }
   .sidebar-tier-info{ flex:1; min-width:0; }
@@ -131,8 +161,14 @@
     margin-bottom:2px;
   }
   .sidebar-tier-desc{ font-size:11.5px; color: var(--text-muted); font-weight:600; line-height:1.4; }
+  .patch-entry:last-child{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
+  .patch-date{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:11.5px; color: var(--blue-dark);
+    margin-bottom:2px;
+  }
+  .patch-desc{ font-size:12px; color: var(--text-muted); font-weight:600; line-height:1.45; }
 
-  main{ flex:0 1 640px; min-width:0; display:flex; flex-direction:column; align-items:center; }
+  main{ flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; }
 
   .archive-list{
     width:100%; max-width: 640px; display:flex; flex-direction:column; gap:16px;
@@ -172,6 +208,21 @@
     text-align:center; font-size:12.5px; color: var(--text-dim); font-weight:600; margin-top:4px;
   }
 
+  .info-section{
+    width:100%; max-width: 720px; margin: 44px auto 0; padding: 0 24px;
+  }
+  .info-title{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:20px;
+    color: var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+
+  .rules-card{
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    padding:20px 22px; margin-bottom:16px;
+  }
+  .rules-card ol{ margin:0; padding-left:20px; }
+  .rules-card li{ font-size:14px; font-weight:600; color: var(--text-muted); line-height:1.6; margin-bottom:6px; }
+  .rules-card li:last-child{ margin-bottom:0; }
   .rules-note{
     font-size:12.5px; color: var(--text-dim); font-weight:600; margin-top:10px;
     padding-top:10px; border-top:1px solid var(--border); line-height:1.5;
@@ -179,6 +230,12 @@
   .rules-note ul{ margin:6px 0 0; padding-left:18px; }
   .rules-note li{ font-size:12.5px; color: var(--text-dim); font-weight:600; margin-bottom:3px; }
 
+  .tier-ref-grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; }
+  .tier-ref-row{
+    display:flex; align-items:center; gap:12px;
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:13px 16px;
+  }
   .tier-ref-badge{
     flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:13.5px;
     color:#fff; padding:6px 13px; border-radius:999px; min-width:56px; text-align:center;
@@ -196,12 +253,38 @@
     font-size:11px; font-weight:800; color: var(--text-dim); text-transform:uppercase;
     letter-spacing:0.06em; margin: 10px 0 2px; padding-left:2px;
   }
+  .tier-ref-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px; flex-shrink:0; }
+  .tier-ref-desc{ font-size:12.5px; color: var(--text-muted); font-weight:600; }
+
+  .vod-stats{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .vod-stat{
+    flex:1 1 120px; background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:12px 14px; text-align:center;
+  }
+  .vod-stat-num{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:22px; color: var(--blue-dark); }
+  .vod-stat-label{ font-size:11px; color: var(--text-dim); font-weight:700; margin-top:2px; }
+
+  .patch-bottom-section{
+    width:100%; margin: 32px 0 0; padding: 0;
+  }
+  .patch-bottom-title{
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:18px;
+    color: var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+  .patch-bottom-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap:14px;
+    background: var(--card); border:2px solid var(--border); border-radius:18px; padding:18px 20px;
+  }
+  .patch-bottom-grid .patch-entry{ margin-bottom:0; padding-bottom:0; border-bottom:none; }
 
   footer{
     text-align:center; padding: 28px 24px 24px; font-size:12px; color: var(--text-dim); font-weight:600;
     max-width:720px; margin:0 auto; line-height:1.6;
   }
   footer .credits-list{ font-size:11px; color: var(--text-dim); margin-top:6px; opacity:0.8; }
+
+  .ref-card{ background:#fffcf4; border-color:#ddceac; }
+  .ref-icon{ background:#efe6cf; }
 
   [data-theme="dark"]{
     --bg1: #10131d; --bg2: #1a1424;
@@ -212,6 +295,8 @@
   [data-theme="dark"] .pokeball{ border-color:#eef1f7; }
   [data-theme="dark"] .pokeball::after{ background:#1c2030; border-color:#eef1f7; }
   [data-theme="dark"] h1{ text-shadow: 3px 3px 0 rgba(90,169,255,0.2); }
+  [data-theme="dark"] .ref-card{ background:#241f3a; border-color:#3d3560; }
+  [data-theme="dark"] .ref-icon{ background:#2c2650; }
 
   .theme-toggle{
     position:fixed; top:18px; right:18px; z-index:20;
@@ -227,11 +312,23 @@
     .patch-sidebar{ position:static; width:100%; flex:1 1 auto; }
     .updates-sidebar{ position:static; width:100%; flex:1 1 auto; max-height:none; }
   }
+  @media (max-width:640px){
+    .tier-ref-grid{ grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+
+<header>
+  <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
+  <h1>Solo Raid Archive</h1>
+  <p class="intro">
+    A running log of Mega, Legendary, and Mega Legendary Pokémon GO raids soloed without a second trainer — the boss, the weather, the exact
+    battle party used, and video proof for every entry. Pick an archive below to browse strategies by difficulty.
+  </p>
+</header>
 
 <div class="top-nav-wrap">
   <a href="meta-battle-parties.html" class="top-nav-link">📖 Meta Battle Parties</a>
@@ -242,13 +339,74 @@
   <a href="research.html" class="top-nav-link">🔬 Most Used Raiders</a>
 </div>
 
-<header>
-  <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
-  <h1>Solo Raid Archive</h1>
-</header>
-
 <div class="page-layout">
-    <main>
+  <aside class="patch-sidebar">
+    <div class="patch-title" style="font-size:16px;">⭐ Difficulty Reference</div>
+    <div class="sidebar-tier-grid">
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t7">7★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Special</div>
+          <div class="sidebar-tier-desc">Perfect execution required — under 0.5% win chance.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t6">6★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Nightmare</div>
+          <div class="sidebar-tier-desc">Perfect execution — roughly 1–2.5% win chance.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t55">5.5★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Very Hard</div>
+          <div class="sidebar-tier-desc">Excellent execution — roughly 10–20% win chance.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t5">5★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Hard</div>
+          <div class="sidebar-tier-desc">Good execution, favorable weather &amp; movesets recommended.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t4">4★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Challenging</div>
+          <div class="sidebar-tier-desc">Some strategic execution — Level 40+ with select movesets.</div>
+        </div>
+      </div>
+
+      <div class="tier-ref-divider" style="margin-top:6px;">Casual Raids · Max 3★</div>
+
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t3">3★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Moderate</div>
+          <div class="sidebar-tier-desc">Various counters work — Level 40+.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t2">2★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Easy</div>
+          <div class="sidebar-tier-desc">Various counters work — Level 30+.</div>
+        </div>
+      </div>
+      <div class="sidebar-tier-row">
+        <span class="tier-ref-badge t1">1★</span>
+        <div class="sidebar-tier-info">
+          <div class="sidebar-tier-name">Very Easy</div>
+          <div class="sidebar-tier-desc">Lots of counters work — Level 30.</div>
+        </div>
+      </div>
+      <div class="sidebar-rules-note" style="margin-top:8px;">Only 1 phone &amp; 1 account may be used.</div>
+    </div>
+  </aside>
+
+  <main>
   <div class="archive-list">
   <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">📚 Raids</div>
     <a class="archive-card" href="tier4-raids.html">
@@ -289,11 +447,6 @@
 
     <div class="more-note">More archives coming soon.</div>
   </div>
-
-  <p class="intro" style="max-width:640px; margin:20px auto 0; text-align:center;">
-    A running log of Mega, Legendary, and Mega Legendary Pokémon GO raids soloed without a second trainer — the boss, the weather, the exact
-    battle party used, and video proof for every entry. Pick an archive below to browse strategies by difficulty.
-  </p>
 
   </main>
 
