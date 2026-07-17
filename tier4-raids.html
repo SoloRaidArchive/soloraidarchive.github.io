@@ -43,6 +43,7 @@
     background-repeat:no-repeat; background-position: right 12px center; background-size:14px;
   }
   [data-theme="dark"] .strat-select option{ background:#1c2030; color:#eef1f7; }
+  [data-theme="dark"] #sortMode option{ background:#1c2030; color:#eef1f7; }
   [data-theme="dark"] .boss-icon{
     background: linear-gradient(160deg, #d7e6fc, #c3d9fb); border-color:#3a4160;
   }
@@ -117,7 +118,7 @@
   .nav-dropdown-trigger{
     display:inline-flex; align-items:center; gap:5px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    padding: 11px 18px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px;
     color: var(--text-muted); cursor:pointer;
     transition: transform .12s ease, border-color .12s ease, color .12s ease;
   }
@@ -130,8 +131,8 @@
   }
   .nav-dropdown-panel.open{ display:flex; }
   .nav-dropdown-item{
-    display:block; padding:9px 12px; border-radius:9px;
-    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    display:block; padding:11px 16px; border-radius:9px;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px;
     color: var(--text-muted); text-decoration:none; white-space:nowrap;
   }
   .nav-dropdown-item:hover{ background: var(--bg1); color: var(--blue-dark); }
@@ -511,7 +512,14 @@
     background:none; border:none; padding:0;
   }
   .filter-options{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
-  .filter-dropdown{ width:100%; }
+  .filter-dropdown{ width:100%; position:relative; }
+  .filter-panel{
+    position:absolute; top:calc(100% + 6px); left:0; z-index:40;
+    min-width:240px; max-width:320px;
+    background: var(--card); border:2px solid var(--border); border-radius:12px;
+    padding:12px 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.18);
+  }
+  .filter-panel .filter-options{ margin-top:0; padding:0 2px; }
   .controls .filter-dropdown.top-filter{ width:auto; }
   .filter-dropdown-btn{
     display:flex; align-items:center; justify-content:space-between; gap:8px;
@@ -596,8 +604,10 @@
       <span id="difficultySummaryText">Difficulty: All</span>
       <span class="filter-chevron">›</span>
     </summary>
-    <div class="filter-options" id="difficultyFilters"></div>
-    <div style="padding:8px 10px 2px;"><button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button></div>
+    <div class="filter-panel">
+      <div class="filter-options" id="difficultyFilters"></div>
+      <div style="padding:8px 10px 2px;"><button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button></div>
+    </div>
   </details>
   <details class="filter-dropdown top-filter">
     <summary class="filter-dropdown-btn">
@@ -605,9 +615,11 @@
       <span id="weatherSummaryText">Weather: All</span>
       <span class="filter-chevron">›</span>
     </summary>
-    <div class="filter-options" id="weatherFilters"></div>
-    <div class="filter-note" style="padding:0 10px;">"Extreme" means no weather boost is active.</div>
-    <div style="padding:8px 10px 2px;"><button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button></div>
+    <div class="filter-panel">
+      <div class="filter-options" id="weatherFilters"></div>
+      <div class="filter-note" style="padding:0 10px;">"Extreme" means no weather boost is active.</div>
+      <div style="padding:8px 10px 2px;"><button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button></div>
+    </div>
   </details>
   <div class="top-filter sort-pill-wrap">
     <span class="control-label-tag">Sort</span>
