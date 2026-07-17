@@ -239,6 +239,40 @@
     .two-col-row{ flex-direction:column; }
     .updates-sidebar{ flex:1 1 auto; width:100%; }
     .archive-card, .resource-link{ min-height:0; }
+  }  .boss-search-wrap{
+    max-width: 640px; margin: 0 auto 18px; padding: 0 24px; position:relative;
+  }
+  .boss-search-box{
+    position:relative; display:flex; align-items:center;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 12px 18px; gap:10px; color: var(--text-dim);
+  }
+  .boss-search-box svg{ flex-shrink:0; }
+  #bossSearch{
+    flex:1; border:none; background:none; outline:none;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:14px; color: var(--text);
+  }
+  #bossSearch::placeholder{ color: var(--text-dim); }
+  .boss-search-results{
+    position:absolute; top:calc(100% + 6px); left:24px; right:24px; z-index:50;
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:6px; max-height:340px; overflow-y:auto;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    display:none;
+  }
+  .boss-search-results.open{ display:block; }
+  .boss-search-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; border-radius:10px; text-decoration:none;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13.5px; color: var(--text);
+  }
+  .boss-search-item:hover{ background: var(--bg1); }
+  .boss-search-item-archive{
+    font-size:11px; font-weight:800; color: var(--blue-dark);
+    background: rgba(90,169,255,0.15); padding:3px 9px; border-radius:999px; flex-shrink:0;
+  }
+  .boss-search-empty{
+    font-size:12.5px; font-weight:600; color: var(--text-dim); text-align:center; padding:14px 0;
   }
 </style>
 </head>
@@ -259,6 +293,14 @@
   <a href="pokemon-stats.html" class="top-nav-link">📊 Pokémon Stats</a>
   <a href="ct-calculator.html" class="top-nav-link">🧮 Catch Tank Calculator</a>
   <a href="research.html" class="top-nav-link">🔬 Most Used Raiders</a>
+</div>
+
+<div class="boss-search-wrap">
+  <div class="boss-search-box">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="bossSearch" type="text" placeholder="Find a specific boss across every archive…" autocomplete="off">
+  </div>
+  <div id="bossSearchResults" class="boss-search-results"></div>
 </div>
 
 <div class="page-layout">
@@ -363,7 +405,6 @@
         <div>
           <div class="resource-name">Fill out a google form here!</div>
           <div class="resource-desc">Make sure to have a link to the uploaded video recording.</div>
-          <div class="resource-desc">Please check the solo raid sheet for raids we don't have recorded!</div>
         </div>
       </div>
     </a>
@@ -442,6 +483,98 @@ try{
   else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
 }catch(e){}
 applyTheme(initialTheme);
+
+// ============ CROSS-ARCHIVE BOSS SEARCH ============
+// Each entry: { boss: "Mewtwo", slug: "mewtwo", archive: "tier5-raids.html", label: "Legendary" }
+// A boss can legitimately appear in multiple archives (e.g. many Legendaries are solo'd both
+// with and without an active Adventure Effect) - each is kept as its own separate result rather
+// than merged, so the label always makes clear which specific archive/version it points to.
+const SEARCH_SOURCES = [
+  { csv: "tier4-data.csv", archive: "tier4-raids.html", label: "Mega", col: 0 },
+  { csv: "tier5-data.csv", archive: "tier5-raids.html", label: "Legendary", col: 0 },
+  { csv: "tier5-ae-data.csv", archive: "tier5-ae-raids.html", label: "Legendary AE", col: 0 },
+  { csv: "tier6-data.csv", archive: "tier6-elite-raids.html", label: "Mega Legendary & Elite", col: 1 },
+];
+
+function parseCsvLine(line){
+  // minimal CSV split that respects quoted fields, matching the parser used on the archive pages
+  const cells = [];
+  let cur = "", inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const c = line[i];
+    if(inQuotes){
+      if(c === '"' && line[i+1] === '"'){ cur += '"'; i++; }
+      else if(c === '"'){ inQuotes = false; }
+      else cur += c;
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ cells.push(cur); cur = ""; }
+      else cur += c;
+    }
+  }
+  cells.push(cur);
+  return cells;
+}
+
+let BOSS_SEARCH_INDEX = [];
+
+async function buildBossSearchIndex(){
+  const seen = new Set(); // avoid duplicate rows within the same archive (multiple recorded difficulties)
+  for(const source of SEARCH_SOURCES){
+    try{
+      const res = await fetch(source.csv);
+      if(!res.ok) continue;
+      const text = await res.text();
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      for(let i = 1; i < lines.length; i++){
+        const cells = parseCsvLine(lines[i]);
+        const boss = (cells[source.col] || "").trim();
+        if(!boss) continue;
+        const dedupeKey = source.archive + "|" + boss.toLowerCase();
+        if(seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
+        BOSS_SEARCH_INDEX.push({
+          boss,
+          slug: boss.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          archive: source.archive,
+          label: source.label,
+        });
+      }
+    }catch(e){ /* one archive failing to load shouldn't block the others */ }
+  }
+  BOSS_SEARCH_INDEX.sort((a,b) => a.boss.localeCompare(b.boss));
+}
+
+function renderBossSearchResults(query){
+  const resultsEl = document.getElementById("bossSearchResults");
+  const q = query.trim().toLowerCase();
+  if(!q){ resultsEl.classList.remove("open"); resultsEl.innerHTML = ""; return; }
+
+  const matches = BOSS_SEARCH_INDEX.filter(entry => entry.boss.toLowerCase().includes(q)).slice(0, 25);
+  if(matches.length === 0){
+    resultsEl.innerHTML = `<div class="boss-search-empty">No bosses match "${escapeHtml(query)}"</div>`;
+    resultsEl.classList.add("open");
+    return;
+  }
+
+  resultsEl.innerHTML = matches.map(m =>
+    `<a class="boss-search-item" href="${m.archive}#boss-${m.slug}">
+      <span>${escapeHtml(m.boss)}</span>
+      <span class="boss-search-item-archive">${escapeHtml(m.label)}</span>
+    </a>`
+  ).join("");
+  resultsEl.classList.add("open");
+}
+
+const bossSearchInput = document.getElementById("bossSearch");
+bossSearchInput.addEventListener("input", () => renderBossSearchResults(bossSearchInput.value));
+bossSearchInput.addEventListener("focus", () => { if(bossSearchInput.value.trim()) renderBossSearchResults(bossSearchInput.value); });
+document.addEventListener("click", (e) => {
+  if(!e.target.closest(".boss-search-wrap")){
+    document.getElementById("bossSearchResults").classList.remove("open");
+  }
+});
+buildBossSearchIndex();
 
 // ============ RECENT UPDATES LIST (pulled from live GitHub commit history) ============
 const UPDATES_REPO = "soloraidarchive/soloraidarchive.github.io";
