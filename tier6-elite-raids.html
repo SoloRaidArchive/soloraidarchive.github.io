@@ -252,14 +252,7 @@
   .boss-moveset-row > span{ opacity:0.55; filter:saturate(0.35); }
   .type-icon-row{ display:flex; gap:4px; }
 
-  .meta-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; min-height:44px; flex-wrap:wrap; }
-  .meta-right{ flex-shrink:0; max-width:150px; margin-left:auto; }
-  .party-twin-note{
-    display:block; font-size:10px; font-weight:700; color: #a16207; background: rgba(234,179,8,0.14);
-    border:1px solid rgba(234,179,8,0.35); border-radius:8px; padding:5px 8px;
-    cursor:help; line-height:1.25; text-align:right;
-  }
-  [data-theme="dark"] .party-twin-note{ color:#facc15; background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.3); }
+  .meta-row{ display:flex; align-items:flex-start; min-height:44px; }
   .meta-left{ display:flex; flex-direction:column; gap:6px; }
   .weather-tag{ font-size:20px; line-height:1; display:flex; align-items:center; gap:6px; }
   .ae-tag{ display:flex; align-items:center; gap:6px; }
@@ -308,6 +301,12 @@
   .expand-strategy{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
   .expand-action{ display:flex; align-items:center; gap:5px; flex-shrink:0; white-space:nowrap; }
   .expand-hide{ display:none; }
+  .twin-badge-inline{
+    display:inline-flex; align-items:center; gap:4px; min-width:0; flex-shrink:1;
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:12px; color:#a16207;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help;
+  }
+  [data-theme="dark"] .twin-badge-inline{ color:#facc15; }
   .party-wrap[open] .expand-see{ display:none; }
   .party-wrap[open] .expand-hide{ display:inline; }
   .details-panel{ margin-top:12px; }
@@ -320,13 +319,14 @@
   a.strategy-chip{ cursor:pointer; }
   a.strategy-chip:hover{ border-color: var(--blue); background: rgba(90,169,255,0.1); }
   .strategy-chip-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
-  .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .boss-moveset-row > span[data-tooltip], .boss-stats-line[data-tooltip], .move-stat-line[data-tooltip]{ position:relative; cursor:help; }
+  .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .boss-moveset-row > span[data-tooltip], .boss-stats-line[data-tooltip], .move-stat-line[data-tooltip], .twin-badge-inline[data-tooltip]{ position:relative; cursor:help; }
   .strategy-chip[data-tooltip]::after,
   .weather-icon-wrap[data-tooltip]::after,
   .ae-tag[data-tooltip]::after,
   .boss-moveset-row > span[data-tooltip]::after,
   .boss-stats-line[data-tooltip]::after,
-  .move-stat-line[data-tooltip]::after{
+  .move-stat-line[data-tooltip]::after,
+  .twin-badge-inline[data-tooltip]::after{
     content: attr(data-tooltip);
     position:absolute; bottom: calc(100% + 8px); left:0; z-index:40;
     width:220px; max-width:60vw; background: var(--text); color: var(--card);
@@ -340,7 +340,8 @@
   .ae-tag[data-tooltip]:hover::after,
   .boss-moveset-row > span[data-tooltip]:hover::after,
   .boss-stats-line[data-tooltip]:hover::after,
-  .move-stat-line[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
+  .move-stat-line[data-tooltip]:hover::after,
+  .twin-badge-inline[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
 
   /* Touch devices have no hover state, so the move stats would otherwise be permanently hidden.
      Show them as a normal always-visible line instead of a floating tooltip in that case. */
@@ -1339,10 +1340,10 @@ function variantBodyHtml(r, cardId){
         ${r.ae === "sword" ? `<span class="ae-tag" data-tooltip="+10% damage dealt from your pokemon in raids"><img class="ae-icon" src="${AE_ICON}" alt="AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Blade Boost</span></span>` : ""}
         ${r.ae === "shield" ? `<span class="ae-tag" data-tooltip="+10% damage reduction for your pokemon in raids"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
       </div>
-      ${r.hasPartyTwin ? `<div class="meta-right"><span class="party-twin-note" data-tooltip="Another recorded attempt uses the same weather, difficulty, and moveset, but a different battle party. Check both to compare.">🔁 Alternate battle party used</span></div>` : ""}
     </div>
     <details class="party-wrap">
       <summary class="expand-btn">
+        ${r.hasPartyTwin ? `<span class="twin-badge-inline" data-tooltip="Another recorded attempt uses the same weather, difficulty, and moveset, but a different battle party. Check both to compare.">🔁 Alternate Battle Party</span>` : ""}
         <span class="expand-action"><span class="expand-see">See details</span><span class="expand-hide">Hide details</span><span class="party-chevron">›</span></span>
       </summary>
       <div class="details-panel">
