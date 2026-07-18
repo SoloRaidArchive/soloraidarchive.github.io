@@ -260,11 +260,12 @@
   .boss-moveset-row > span{ opacity:0.55; filter:saturate(0.35); }
   .type-icon-row{ display:flex; gap:4px; }
 
-  .meta-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+  .meta-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .meta-right{ flex-shrink:0; max-width:150px; margin-left:auto; }
   .party-twin-note{
-    font-size:11px; font-weight:700; color: #a16207; background: rgba(234,179,8,0.14);
-    border:1px solid rgba(234,179,8,0.35); border-radius:8px; padding:6px 9px;
-    cursor:help; line-height:1.3;
+    display:block; font-size:10px; font-weight:700; color: #a16207; background: rgba(234,179,8,0.14);
+    border:1px solid rgba(234,179,8,0.35); border-radius:8px; padding:5px 8px;
+    cursor:help; line-height:1.25; text-align:right;
   }
   [data-theme="dark"] .party-twin-note{ color:#facc15; background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.3); }
   .meta-left{ display:flex; flex-direction:column; gap:6px; }
@@ -1395,8 +1396,8 @@ function variantBodyHtml(r, cardId){
       <div class="meta-left">
         ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
       </div>
+      ${r.hasPartyTwin ? `<div class="meta-right"><span class="party-twin-note" data-tooltip="Another recorded attempt uses the same weather, difficulty, and moveset, but a different battle party. Check both to compare.">🔁 Alternate battle party used</span></div>` : ""}
     </div>
-    ${r.hasPartyTwin ? `<div class="party-twin-note" data-tooltip="Another recorded attempt uses the same weather, difficulty, and moveset, but a different battle party. Check both to compare.">🔁 Alt battle party recorded for this weather/difficulty</div>` : ""}
     <details class="party-wrap">
       <summary class="expand-btn">
         <span class="expand-action"><span class="expand-see">See details</span><span class="expand-hide">Hide details</span><span class="party-chevron">›</span></span>
