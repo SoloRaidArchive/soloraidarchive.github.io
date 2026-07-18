@@ -119,31 +119,10 @@
     display:flex; flex-direction:column; gap: 18px; align-items:stretch; padding: 20px 24px 20px;
   }
   .two-col-row{ display:flex; gap:18px; align-items:flex-start; width:100%; }
-  .patch-sidebar{
-    flex: 0 0 280px; position:sticky; top:20px;
-    background: var(--card); border:2px solid var(--border); border-radius:16px;
-    padding:14px 16px;
-  }
   .patch-title{
     font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
     color: var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px;
   }
-  .sidebar-rule{
-    font-size:12.5px; color: var(--text-muted); font-weight:600; line-height:1.55; margin-bottom:8px;
-  }
-  .sidebar-rules-note{
-    font-size:11.5px; color: var(--text-dim); font-weight:600; line-height:1.55;
-    margin-top:4px;
-  }
-  .sidebar-rules-note strong{ color: var(--text-muted); }
-  .sidebar-tier-grid{ display:flex; flex-direction:column; gap:10px; }
-  .sidebar-tier-row{ display:flex; align-items:flex-start; gap:10px; }
-  .sidebar-tier-info{ flex:1; min-width:0; }
-  .sidebar-tier-name{
-    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13.5px; color: var(--text);
-    margin-bottom:2px;
-  }
-  .sidebar-tier-desc{ font-size:11.5px; color: var(--text-muted); font-weight:600; line-height:1.4; }
 
   main{ width:100%; display:flex; flex-direction:column; }
 
@@ -180,35 +159,6 @@
     flex-shrink:0; font-size:20px; color: var(--text-dim); transition: transform .15s;
   }
   .archive-card:hover .archive-arrow{ transform: translateX(4px); color: var(--blue-dark); }
-
-  .more-note{
-    text-align:center; font-size:12.5px; color: var(--text-dim); font-weight:600; margin-top:4px;
-  }
-
-  .rules-note{
-    font-size:12.5px; color: var(--text-dim); font-weight:600; margin-top:10px;
-    padding-top:10px; border-top:1px solid var(--border); line-height:1.5;
-  }
-  .rules-note ul{ margin:6px 0 0; padding-left:18px; }
-  .rules-note li{ font-size:12.5px; color: var(--text-dim); font-weight:600; margin-bottom:3px; }
-
-  .tier-ref-badge{
-    flex-shrink:0; font-family:'Baloo 2', sans-serif; font-weight:800; font-size:13.5px;
-    color:#fff; padding:6px 13px; border-radius:999px; min-width:56px; text-align:center;
-  }
-  .tier-ref-badge.t4{ background: var(--t4); }
-  .tier-ref-badge.t5{ background: var(--t5); }
-  .tier-ref-badge.t55{ background: var(--t55); }
-  .tier-ref-badge.t6{ background: var(--t6); }
-  .tier-ref-badge.t7{ background: var(--t7); }
-  .tier-ref-badge.t3{ background: var(--t3); }
-  .tier-ref-badge.t2{ background: var(--t2); }
-  .tier-ref-badge.t1{ background: var(--t1); }
-  .tier-ref-divider{
-    grid-column: 1 / -1;
-    font-size:11px; font-weight:800; color: var(--text-dim); text-transform:uppercase;
-    letter-spacing:0.06em; margin: 10px 0 2px; padding-left:2px;
-  }
 
   footer{
     text-align:center; padding: 28px 24px 24px; font-size:12px; color: var(--text-dim); font-weight:600;
@@ -343,7 +293,6 @@
       <div class="archive-arrow">→</div>
     </a>
 
-    <div class="more-note">More archives coming soon.</div>
   </div>
 
   </main>
