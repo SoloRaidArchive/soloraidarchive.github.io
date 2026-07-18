@@ -88,8 +88,11 @@
     margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
     color: var(--text); font-family: 'Nunito', sans-serif; min-height:100vh; padding-bottom: 60px;
   }
-  header{ padding: 44px 24px 26px; text-align:center; }
-  header p{ color: var(--text-muted); font-size: 15.5px; max-width: 540px; margin: 0 auto; font-weight:600; }
+  header{ padding: 22px 24px 14px; text-align:center; }
+  h1{
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size: 22px;
+    margin: 0; color: var(--text);
+  }
 
   .top-nav-wrap{
     max-width: 1760px; margin: 70px auto 0; padding: 0 20px;
@@ -535,7 +538,7 @@
   }
   @media (max-width:520px){
     .tier-grid{ grid-template-columns: 1fr; }
-    header{ padding: 34px 18px 22px; }
+    header{ padding: 16px 18px 10px; }
   }
 </style>
 </head>
@@ -566,6 +569,10 @@
     </div>
   </div>
 </div>
+
+<header>
+  <h1>Mega Raids</h1>
+</header>
 
 <div class="roles-strip">
   <span class="roles-strip-item"><span class="role-chip main">Main DPS</span> The primary damage dealer.</span>

@@ -48,16 +48,11 @@
     box-shadow: 0 3px 0 rgba(0,0,0,0.06);
   }
 
-  header{ padding: 56px 24px 20px; text-align:center; }
-  .eyebrow{
-    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.16em;
-    text-transform:uppercase; color: var(--blue-dark); margin-bottom:10px; font-weight:700;
-  }
+  header{ padding: 22px 24px 14px; text-align:center; }
   h1{
-    font-family:'Baloo 2', sans-serif; font-weight:800; font-size: clamp(30px, 5vw, 44px);
-    margin: 0 0 12px; color: var(--text);
+    font-family:'Baloo 2', sans-serif; font-weight:800; font-size: 22px;
+    margin: 0; color: var(--text);
   }
-  header p{ color: var(--text-muted); font-size: 15px; max-width: 640px; margin: 0 auto; font-weight:600; line-height:1.6; }
 
   .container{ max-width: 1100px; margin: 0 auto; padding: 30px 20px 80px; }
 
@@ -178,6 +173,12 @@
   [data-theme="dark"] .fainted-row td{ background:#3a1f24 !important; }
   .fainted-msg{ font-weight:700; color:#c0392b; text-align:center; }
   [data-theme="dark"] .fainted-msg{ color:#ff8a80; }
+  .risky-badge{
+    display:inline-block; font-size:10px; font-weight:800; color:#a05a00;
+    background:#fff1cf; border:1px solid #f0c96b; border-radius:999px;
+    padding:2px 7px; margin-left:6px; cursor:help; vertical-align:middle;
+  }
+  [data-theme="dark"] .risky-badge{ color:#ffd680; background:#3a2e10; border-color:#7a5f1f; }
 
   .empty-result{ text-align:center; color: var(--text-dim); font-weight:700; padding: 30px; font-size:13px; }
 
@@ -336,9 +337,7 @@
 </div>
 
 <header>
-  <div class="eyebrow">Tools</div>
   <h1>Catch Tank Calculator</h1>
-  <p>Estimate energy gained, damage dealt, and DPS across Main DPS, Trailing Catch Tank, and Catch Tank roles — built from the same formulas as the original spreadsheet calculator.</p>
 </header>
 
 <div class="container">
@@ -1885,6 +1884,22 @@ function energyFromDamage(dmg){
   return Math.ceil(0.5 * dmg);
 }
 
+// ============ BOSS ATTACK TIMING MODEL (deterministic) ============
+// After a boss charge move lands, the boss chains fast moves back-to-back.
+// First chained FM lands: chargeLandTime + 1 tick (fixed post-CM delay) + FM animation ticks.
+// Every FM after that lands: (previous FM landing tick) + 4 ticks (2.0s) + FM animation ticks.
+// Landing ticks are relative to the boss charge move landing at tick 0.
+// Verified against a real Xerneas Giga Impact + Zen Headbutt sample (6th-tick landing).
+function bossFMLandingTicks(bossFMAnimTicks, count){
+  const landings = [];
+  let t = 0;
+  for(let i = 1; i <= count; i++){
+    t = (i === 1) ? (1 + bossFMAnimTicks) : (t + 4 + bossFMAnimTicks);
+    landings.push(t);
+  }
+  return landings;
+}
+
 // ============ MAIN CALCULATION ============
 function runCalculation(){
   const resultsWrap = document.getElementById("resultsWrap");
@@ -2055,9 +2070,25 @@ function runCalculation(){
     const trailingDPS = fainted ? 0 : numerator / Math.max(seconds + 0.5, 0.1);
     const ctDPS = fainted ? 0 : numerator / Math.max(seconds + 1.0, 0.1);
 
+    // timing-based risk check: does the boss actually have time to land all n tanked fast moves
+    // within this row's own rotation duration, per the deterministic landing-time model?
+    // This doesn't replace the fainted check above - it flags rows where the static damage sum
+    // and the real attack-timing schedule disagree, so the "n FMs tanked" premise itself may not
+    // hold up in an actual raid.
+    let risky = false;
+    let riskyNote = "";
+    if(!fainted && n > 0){
+      const landings = bossFMLandingTicks(bossFMAD_ticks, n);
+      const nthLandingTick = landings[n - 1];
+      if(nthLandingTick > ticks){
+        risky = true;
+        riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+      }
+    }
+
     return {
       n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
-      mainDPS, trailingDPS, ctDPS, fainted, cumulativeDamage,
+      mainDPS, trailingDPS, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
     };
   });
 
@@ -2121,7 +2152,7 @@ function runCalculation(){
               : `
             <td class="dps-val">${r.mainDPS.toFixed(1)} dps</td>
             <td class="dps-val">${r.trailingDPS.toFixed(1)} dps</td>
-            <td class="dps-val">${r.ctDPS.toFixed(1)} dps</td>`}
+            <td class="dps-val">${r.ctDPS.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}</td>`}
           </tr>
         `).join("")}
       </tbody>

@@ -56,21 +56,15 @@
     color: var(--accent); text-decoration:none; box-shadow: 0 2px 6px rgba(26,29,41,0.06);
   }
 
-  header{ padding: 60px 24px 24px; text-align:center; }
-  .eyebrow{
-    font-family:'Nunito', sans-serif; font-size:11px; letter-spacing:0.16em;
-    text-transform:uppercase; color: var(--accent); margin-bottom:12px; font-weight:600;
-  }
+  header{ padding: 22px 24px 14px; text-align:center; }
   h1{
-    font-family:'Baloo 2', sans-serif; font-weight:700; font-size: clamp(32px, 5vw, 46px);
-    margin: 0 0 12px; color: var(--ink);
-  }
-  header p{
-    color: var(--ink-muted); font-size: 15.5px; max-width: 600px; margin: 0 auto; line-height:1.65;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 22px;
+    margin: 0; color: var(--ink);
   }
 
+  .search-row{ display:flex; justify-content:center; padding: 0 24px; margin: 4px 0 18px; }
   #pokemonSearch{
-    margin-top:20px; width:100%; max-width:360px;
+    width:100%; max-width:360px;
     background: var(--card); border: 1px solid var(--border); color: var(--ink);
     font-size:14px; padding: 11px 16px; border-radius: 10px; outline:none;
     box-shadow: 0 1px 2px rgba(26,29,41,0.04);
@@ -244,11 +238,12 @@
 </div>
 
 <header>
-  <div class="eyebrow">Reference Library</div>
   <h1>Meta Battle Parties</h1>
-  <p>Proven battle party compositions, organized by type. Each entry lists the recorded roster, movesets, and how many were used per role.</p>
-  <input id="pokemonSearch" type="text" placeholder="Search by Pokémon name…" autocomplete="off">
 </header>
+
+<div class="search-row">
+  <input id="pokemonSearch" type="text" placeholder="Search by Pokémon name…" autocomplete="off">
+</div>
 
 <div class="layout">
   <aside class="index" id="typeIndex">
