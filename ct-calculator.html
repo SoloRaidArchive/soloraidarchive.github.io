@@ -2304,7 +2304,7 @@ function runCalculation(){
     </table>
     ${anyQualifies ? `
     <div class="submit-panel">
-      <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> raids only. Rows scoring ${CT_SUBMIT_THRESHOLD}+ Catch Tank DPS are eligible — check <b>one row</b> to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
+      <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> raids only. Rows scoring ${CT_SUBMIT_THRESHOLD}+ Catch Tank DPS are eligible — check <b>one row</b> to submit for review, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
       <button type="button" class="submit-btn" onclick="submitSelectedRows()">Submit Selected to CT Database</button>
     </div>` : bossName && !bossQualifies ? `
     <div class="submit-panel submit-panel-disabled">
