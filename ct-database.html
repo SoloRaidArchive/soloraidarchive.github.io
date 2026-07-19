@@ -445,7 +445,7 @@ function render(){
   else if(sort === "maindps") list.sort((a,b) => parseFloat(b.mainDPS) - parseFloat(a.mainDPS));
   else if(sort === "boss") list.sort((a,b) => a.boss.localeCompare(b.boss));
 
-  countEl.textContent = `${list.length} submitted interaction${list.length !== 1 ? "s" : ""}`;
+  countEl.textContent = `${list.length} submitted test interaction${list.length !== 1 ? "s" : ""}`;
   grid.innerHTML = list.length
     ? list.map(subRowHtml).join("")
     : `<tr><td colspan="8"><div class="empty">No submissions match your search yet.</div></td></tr>`;
