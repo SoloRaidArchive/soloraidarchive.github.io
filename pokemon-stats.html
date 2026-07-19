@@ -68,6 +68,12 @@
     border-radius:10px; padding:6px 12px;
   }
   .level-control label{ font-size:11px; font-weight:800; color: var(--ink-dim); text-transform:uppercase; letter-spacing:0.04em; }
+  .cpm-toggle{
+    display:flex; align-items:center; gap:7px; background: var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:6px 12px; cursor:pointer; font-size:12.5px; font-weight:700; color: var(--ink-muted);
+  }
+  .cpm-toggle input{ width:15px; height:15px; accent-color: var(--accent); cursor:pointer; }
+  .level-control.disabled{ opacity:0.45; pointer-events:none; }
   .level-control input{
     width:52px; background:none; border:none; color: var(--accent); font-family:'Baloo 2', sans-serif;
     font-weight:800; font-size:14px; text-align:center; outline:none;
@@ -214,9 +220,13 @@
     <label for="levelInput">Level</label>
     <input id="levelInput" type="number" value="40" min="40" max="53" step="0.5">
   </div>
+  <label class="cpm-toggle">
+    <input id="noCpmToggle" type="checkbox">
+    <span>Base stats (no CPM)</span>
+  </label>
 </div>
 
-<div class="stats-blurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
+<div class="stats-blurb" id="statsBlurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
 
 <div class="container">
   <div class="count" id="count"></div>
@@ -544,8 +554,9 @@ function statBarHtml(kind, label, adjustedValue){
 }
 
 function cardHtml(p){
+  const noCpm = document.getElementById("noCpmToggle").checked;
   const level = String(document.getElementById("levelInput").value);
-  const cpm = CPM[level] || CPM["40"];
+  const cpm = noCpm ? 1 : (CPM[level] || CPM["40"]);
   const adjAtk = Math.round((p.atk + 15) * cpm * 10) / 10;
   const adjDef = Math.round((p.def + 15) * cpm * 10) / 10;
   const adjHp = Math.floor((p.hp + 15) * cpm);
@@ -577,6 +588,12 @@ function render(){
   if(sort === "name") list.sort((a,b) => a.n.localeCompare(b.n));
   else list.sort((a,b) => b[sort] - a[sort]);
 
+  const noCpm = document.getElementById("noCpmToggle").checked;
+  document.getElementById("levelInput").closest(".level-control").classList.toggle("disabled", noCpm);
+  document.getElementById("statsBlurb").textContent = noCpm
+    ? "Stats shown are base stats with perfect IVs (15/15/15) applied — no Combat Power Multiplier (CPM), so these values don't change with level. Each bar is scaled against the highest value for that stat across every Pokémon tracked."
+    : "Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.";
+
   countEl.textContent = `${list.length} Pokémon`;
   grid.innerHTML = list.length
     ? list.map(cardHtml).join("")
@@ -586,6 +603,7 @@ function render(){
 searchInput.addEventListener("input", render);
 sortSelect.addEventListener("change", render);
 document.getElementById("levelInput").addEventListener("input", render);
+document.getElementById("noCpmToggle").addEventListener("change", render);
 render();
 
 const themeToggle = document.getElementById("themeToggle");
