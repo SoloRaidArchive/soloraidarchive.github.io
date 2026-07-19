@@ -107,10 +107,11 @@
   .sub-table{ width:100%; border-collapse:separate; border-spacing:0 8px; min-width:900px; }
   .sub-table th{
     font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;
-    color: var(--ink-dim); text-align:left; padding:0 12px 4px;
+    color: var(--ink); text-align:left; padding:0 12px 4px;
   }
   .sub-table th.col-boss{ text-align:right; }
   .sub-table th.col-dps{ text-align:center; }
+  .th-tooltip{ cursor:help; border-bottom:1px dotted var(--ink-dim); }
   .sub-table tr.sub-row{ background: var(--card); }
   .sub-table td{ padding:12px; border-top:2px solid var(--border); border-bottom:2px solid var(--border); }
   .sub-table td:first-child{ border-left:2px solid var(--border); border-radius:14px 0 0 14px; }
@@ -123,11 +124,20 @@
     flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
   .sub-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .weather-icon-wrap{
+    display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;
+    background:#eef4fb; border-radius:6px; padding:1px; isolation:isolate;
+  }
+  .weather-icon-wrap.extreme{ background:none; padding:0; }
+  .weather-icon-img{ width:18px; height:18px; object-fit:contain; mix-blend-mode:multiply; }
+  .weather-icon-wrap.extreme .weather-icon-img{ mix-blend-mode:normal; filter: invert(1) grayscale(1) brightness(0.3); }
+  [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
+  .weather-label{ font-size:11px; font-weight:700; color: var(--ink); vertical-align:middle; }
   .sub-mon-name{ font-weight:800; font-size:13px; color: var(--ink); white-space:nowrap; }
-  .sub-moveset{ font-size:10.5px; color: var(--ink-muted); font-weight:600; line-height:1.4; white-space:nowrap; margin-top:1px; }
-  .sub-moveset .fm{ color: var(--ink-dim); }
+  .sub-moveset{ font-size:10.5px; color: var(--ink); font-weight:600; line-height:1.4; white-space:nowrap; margin-top:1px; }
+  .sub-moveset .fm{ color: var(--ink); }
 
-  .sub-details{ font-size:11px; color: var(--ink-muted); font-weight:600; line-height:1.5; white-space:nowrap; }
+  .sub-details{ font-size:11px; color: var(--ink); font-weight:600; line-height:1.5; white-space:nowrap; }
 
   .sub-tags{ display:flex; flex-wrap:wrap; gap:4px; }
   .sub-tag{
@@ -198,7 +208,7 @@
         <th>Weather</th>
         <th>Modifiers</th>
         <th class="col-dps">Main</th>
-        <th class="col-dps">Trailing</th>
+        <th class="col-dps"><span class="th-tooltip" title="A 6th Pokémon used to catch trailing charge moves when nearing a rejoin. This trailing Pokémon typically uses low energy-cost moves (Breaking Swipe, Aura Sphere, etc.) to increase consistency.">Trailing</span></th>
         <th class="col-dps">CT DPS</th>
         <th class="col-boss">Raid Boss</th>
       </tr>
@@ -320,6 +330,25 @@ function spriteUrl(name){
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
+
+const WEATHER_ICON_URLS = {
+  "clear":"assets/icons/weather-clear.jpg", "sunny":"assets/icons/weather-clear.jpg",
+  "cloudy":"assets/icons/weather-cloudy.jpg", "partly cloudy":"assets/icons/weather-partly-cloudy.jpg",
+  "windy":"assets/icons/weather-windy.jpg", "wind":"assets/icons/weather-windy.jpg",
+  "rain":"assets/icons/weather-rain.jpg", "rainy":"assets/icons/weather-rain.jpg",
+  "snow":"assets/icons/weather-snow.jpg", "fog":"assets/icons/weather-fog.jpg",
+  "extreme":"assets/icons/weather-extreme.png",
+};
+function weatherIcon(w){
+  const key = (w || "").trim().toLowerCase();
+  const url = WEATHER_ICON_URLS[key];
+  if(url){
+    const wrapCls = key === "extreme" ? "weather-icon-wrap extreme" : "weather-icon-wrap";
+    return `<span class="${wrapCls}" title="${w}"><img class="weather-icon-img" src="${url}" alt="${w}" loading="lazy" onerror="this.parentElement.remove()"></span> <span class="weather-label">${w}</span>`;
+  }
+  return `<span class="weather-label">${w}</span>`;
+}
+
 // ============ LIVE CSV LOADING ============
 // Update the database by replacing ct-database.csv in the repo - no HTML editing needed.
 // This is the same pattern the tier4/5/5ae/6 raid archives already use for their own data.
@@ -406,7 +435,7 @@ function subRowHtml(s){
       </div>
     </td>
     <td><div class="sub-details">Lv ${s.level}<br>IVs ${s.ivs}</div></td>
-    <td><div class="sub-details">${s.weather}</div></td>
+    <td><div class="sub-details">${weatherIcon(s.weather)}</div></td>
     <td>
       <div class="sub-tags">
         ${s.zacianBlade === "Yes" ? `<span class="sub-tag">⚔️ Blade Boost</span>` : ""}
@@ -445,7 +474,7 @@ function render(){
   else if(sort === "maindps") list.sort((a,b) => parseFloat(b.mainDPS) - parseFloat(a.mainDPS));
   else if(sort === "boss") list.sort((a,b) => a.boss.localeCompare(b.boss));
 
-  countEl.textContent = `${list.length} submitted test interaction${list.length !== 1 ? "s" : ""}`;
+  countEl.textContent = `${list.length} submitted interaction${list.length !== 1 ? "s" : ""}`;
   grid.innerHTML = list.length
     ? list.map(subRowHtml).join("")
     : `<tr><td colspan="8"><div class="empty">No submissions match your search yet.</div></td></tr>`;
