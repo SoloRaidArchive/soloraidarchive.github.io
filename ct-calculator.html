@@ -2262,7 +2262,7 @@ function runCalculation(){
           const qualifies = bossQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
           return `
           <tr class="${r.fainted ? "fainted-row" : ""}">
-            ${anyQualifies ? `<td class="submit-col">${qualifies ? `<input type="checkbox" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</td>` : ""}
+            ${anyQualifies ? `<td class="submit-col">${qualifies ? `<input type="radio" name="submitRow" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</td>` : ""}
             <td class="row-label">${r.n}</td>
             <td>${r.seconds.toFixed(2)}s</td>
             <td>${r.ticks.toFixed(1)}t</td>
@@ -2279,7 +2279,7 @@ function runCalculation(){
     </table>
     ${anyQualifies ? `
     <div class="submit-panel">
-      <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> raids only. Rows scoring ${CT_SUBMIT_THRESHOLD}+ Catch Tank DPS are eligible — check the ones you'd like to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer).</div>
+      <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> raids only. Rows scoring ${CT_SUBMIT_THRESHOLD}+ Catch Tank DPS are eligible — check <b>one row</b> to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
       <button type="button" class="submit-btn" onclick="submitSelectedRows()">Submit Selected to CT Database</button>
     </div>` : bossName && !bossQualifies ? `
     <div class="submit-panel submit-panel-disabled">
@@ -2290,50 +2290,53 @@ function runCalculation(){
   addToHistory(captureSetup());
 }
 
-// ============ CT DATABASE SUBMISSION (client-side CSV export, no backend) ============
-function csvEscape(val){
-  const s = String(val);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
+// ============ CT DATABASE SUBMISSION (opens a pre-filled Google Form, no backend) ============
+const CT_FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSdNhodTO-dLmto3mI09IMgA4UmjSNtFcpaZFLViQIrd5yaOhw/viewform";
+const CT_FORM_ENTRIES = {
+  pokemon: "884894955", level: "391332725", ivs: "1087192",
+  playerMoveset: "2082089241", zacianBlade: "2099362724",
+  boss: "40267820", weather: "1173901629", bossMoveset: "1438052943",
+  shieldAE: "1864788093", dodges: "2043854718", timingMods: "247891686",
+  chargeCasts: "1550834516", fmsTanked: "490095272",
+  mainDPS: "1592139824", trailingDPS: "376297052", ctDPS: "37575726", risky: "1742382831",
+};
 function submitSelectedRows(){
   if(!lastCalcContext) return;
   const checked = [...document.querySelectorAll(".submit-checkbox:checked")];
   if(checked.length === 0){
-    alert("Check at least one row before submitting.");
+    alert("Check a row before submitting.");
+    return;
+  }
+  if(checked.length > 1){
+    alert("Submit one row at a time - check just the single row you want to send.");
     return;
   }
   const f = lastCalcContext.fields;
-  const headers = [
-    "Timestamp","Pokemon","Level","IVs","Player Moveset","Zacian Blade Boost",
-    "Boss","Weather","Boss Moveset","Shield AE","Dodges","Timing Modifiers",
-    "Charge Casts","Boss FMs Tanked","Main DPS","Trailing CT DPS","Catch Tank DPS","Risky",
-  ];
-  const timestamp = new Date().toISOString();
-  const lines = [headers.join(",")];
-  checked.forEach(cb => {
-    const n = parseInt(cb.dataset.n);
-    const r = lastCalcContext.rowsByN[n];
-    const dodges = (f.dodgeCM && f.dodgeFM) ? "Both" : f.dodgeCM ? "CM" : f.dodgeFM ? "FM" : "None";
-    const timingMods = (f.cmBuffer && f.resolveNerf) ? "Both" : f.cmBuffer ? "CM Buffer" : f.resolveNerf ? "Resolve Nerf" : "None";
-    const row = [
-      timestamp, f.pokemonName, f.level, `${f.ivAtk}/${f.ivDef}/${f.ivHp}`, `${f.playerFM} / ${f.playerCM}`, f.zacianBlade ? "Yes" : "No",
-      lastCalcContext.bossName, f.weather, `${f.bossFM} / ${f.bossCM}`, f.shieldAE ? "Yes" : "No", dodges, timingMods,
-      f.numCM, n, r.mainDPS.toFixed(1), r.trailingDPS.toFixed(1), r.ctDPS.toFixed(1), r.risky ? "Yes" : "No",
-    ];
-    lines.push(row.map(csvEscape).join(","));
-  });
-  const csvContent = lines.join("\n");
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  const safeBoss = lastCalcContext.bossName.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-  const safePkmn = f.pokemonName.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-  a.href = url;
-  a.download = `ct-submission-${safeBoss}-${safePkmn}-${Date.now()}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const n = parseInt(checked[0].dataset.n);
+  const r = lastCalcContext.rowsByN[n];
+  const dodges = (f.dodgeCM && f.dodgeFM) ? "Both" : f.dodgeCM ? "CM" : f.dodgeFM ? "FM" : "None";
+  const timingMods = (f.cmBuffer && f.resolveNerf) ? "Both" : f.cmBuffer ? "CM Buffer" : f.resolveNerf ? "Resolve Nerf" : "None";
+
+  const params = new URLSearchParams();
+  params.set(`entry.${CT_FORM_ENTRIES.pokemon}`, f.pokemonName);
+  params.set(`entry.${CT_FORM_ENTRIES.level}`, f.level);
+  params.set(`entry.${CT_FORM_ENTRIES.ivs}`, `${f.ivAtk}/${f.ivDef}/${f.ivHp}`);
+  params.set(`entry.${CT_FORM_ENTRIES.playerMoveset}`, `${f.playerFM} / ${f.playerCM}`);
+  params.set(`entry.${CT_FORM_ENTRIES.zacianBlade}`, f.zacianBlade ? "Yes" : "No");
+  params.set(`entry.${CT_FORM_ENTRIES.boss}`, lastCalcContext.bossName);
+  params.set(`entry.${CT_FORM_ENTRIES.weather}`, f.weather);
+  params.set(`entry.${CT_FORM_ENTRIES.bossMoveset}`, `${f.bossFM} / ${f.bossCM}`);
+  params.set(`entry.${CT_FORM_ENTRIES.shieldAE}`, f.shieldAE ? "Yes" : "No");
+  params.set(`entry.${CT_FORM_ENTRIES.dodges}`, dodges);
+  params.set(`entry.${CT_FORM_ENTRIES.timingMods}`, timingMods);
+  params.set(`entry.${CT_FORM_ENTRIES.chargeCasts}`, String(f.numCM));
+  params.set(`entry.${CT_FORM_ENTRIES.fmsTanked}`, String(n));
+  params.set(`entry.${CT_FORM_ENTRIES.mainDPS}`, r.mainDPS.toFixed(1));
+  params.set(`entry.${CT_FORM_ENTRIES.trailingDPS}`, r.trailingDPS.toFixed(1));
+  params.set(`entry.${CT_FORM_ENTRIES.ctDPS}`, r.ctDPS.toFixed(1));
+  params.set(`entry.${CT_FORM_ENTRIES.risky}`, r.risky ? "Yes" : "No");
+
+  window.open(`${CT_FORM_BASE}?${params.toString()}`, "_blank");
 }
 
 // ============ SETUP HISTORY (saved via localStorage on this device/browser) ============
