@@ -335,6 +335,7 @@
     <a href="move-data.html" class="top-nav-link">Move Data</a>
     <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
     <a href="ct-calculator.html" class="top-nav-link current">CT Simulator</a>
+    <a href="ct-database.html" class="top-nav-link">CT Database</a>
     <a href="research.html" class="top-nav-link">Most Used Raiders</a>
   </div>
   <div class="nav-spacer"></div>
@@ -1000,21 +1001,45 @@ const PLAYER_EFF_OPTIONS = [0.39, 0.625, 1, 1.6, 2.56];
 const BOSS_EFF_OPTIONS = [0.24375, 0.39, 0.39625, 0.625, 1, 1.6, 2.56];
 
 // Master list for CT Database submission eligibility - pilot is Tier 5 solo Catch Tank only.
-// Boss must match this list (case-insensitive) for the submit option to appear.
-const TIER5_BOSSES = [
-  "Articuno","Zapdos","Moltres","Mewtwo","Raikou","Entei","Suicune","Lugia","Ho-oh",
-  "Regirock","Regice","Registeel","Latias","Latios","Kyogre","Groudon","Rayquaza",
-  "Deoxys","Deoxys Attack","Deoxys Defense","Deoxys Speed","Uxie","Mesprit","Azelf",
-  "Dialga","Dialga Origin","Palkia","Palkia Origin","Heatran","Regigigas",
-  "Giratina Origin","Giratina Altered","Cresselia","Darkrai","Cobalion","Terrakion","Virizion",
-  "Tornadus Incarnate","Tornadus Therian","Thundurus Incarnate","Thundurus Therian","Zekrom","Reshiram",
-  "Landorus Incarnate","Landorus Therian","Kyurem White","Kyurem Black","Genesect",
-  "Xerneas","Yveltal","Hoopa Unbound","Tapu Koko","Tapu Lele","Tapu Bulu","Tapu Fini",
-  "Solgaleo","Lunala","Nihilego","Buzzwole","Pheromosa","Celesteela","Kartana","Guzzlord",
-  "Necrozma","Necrozma Dusk Mane","Necrozma Dawn Wings","Stakataka","Blacephalon",
-  "Zacian Hero","Zacian Crown","Zamazenta Hero","Zamazenta Crown","Regieleki","Regidrago",
-  "Enamorus Incarnate","Enamorus Therian",
-];
+// Loaded live from tier5-bosses.csv in the repo - update that file to change the list, no HTML/JS editing needed.
+let TIER5_BOSSES = [];
+const TIER5_BOSSES_CSV_URL = "tier5-bosses.csv";
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ","){ row.push(field); field = ""; }
+      else if(c === "\r"){ /* skip, handled by \n */ }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+async function loadTier5BossesFromCSV(){
+  try{
+    const res = await fetch(TIER5_BOSSES_CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    TIER5_BOSSES = rows.slice(1).map(r => (r[0] || "").trim()).filter(Boolean);
+  }catch(e){
+    console.error("Failed to load Tier 5 boss list:", e);
+  }
+}
+loadTier5BossesFromCSV();
+
 function isTier5Boss(name){
   const key = (name || "").trim().toLowerCase();
   return TIER5_BOSSES.some(b => b.toLowerCase() === key);
