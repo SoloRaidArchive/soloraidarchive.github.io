@@ -150,7 +150,20 @@
   .move-stats{ display:flex; gap:14px; font-family:'Nunito', sans-serif; font-size:12px; color: var(--ink-muted); }
   .move-stats b{ color: var(--ink); display:block; font-size:14px; }
   .move-stats span{ display:flex; flex-direction:column; gap:2px; }
-  .score-label{ cursor:help; border-bottom:1px dotted var(--ink-dim); width:fit-content; }
+  .score-label{
+    position:relative; display:inline-block; cursor:help;
+    border-bottom:1px dotted var(--ink-dim);
+  }
+  .score-label::after{
+    content: attr(data-tooltip);
+    position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%) translateY(4px);
+    width:210px; background: var(--ink); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transition: opacity .15s ease, transform .15s ease;
+    z-index:40; white-space:normal;
+  }
+  .score-label:hover::after{ opacity:1; transform:translateX(-50%) translateY(0); }
 
   .empty{ text-align:center; color: var(--ink-dim); padding:60px 20px; font-family:'Nunito', sans-serif; }
 </style>
@@ -322,7 +335,7 @@ function moveCardHtml(m){
       <span>Power<b>${m.dmg}</b></span>
       <span>Energy<b>${m.energy}</b></span>
       <span>AD<b>${m.ad}t</b></span>
-      <span><span class="score-label" title="Charge moves: DPS × DPE. Fast moves: EPS × DPS.">Score</span><b>${moveScore(m).toFixed(1)}</b></span>
+      <span><span class="score-label" data-tooltip="Charge moves: DPS × DPE. Fast moves: EPS × DPS.">Score</span><b>${moveScore(m).toFixed(1)}</b></span>
     </div>
   </div>`;
 }
