@@ -653,15 +653,37 @@ const GOHUB_OVERRIDES = {
   "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
   "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
   "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+// Filenames in the animated GIF repo don't always match PokemonDB's own slug convention -
+// e.g. Crowned formes append "sword"/"shield" with no hyphen, Necrozma fusions drop the
+// internal hyphen in the form suffix, and the Tapu deities have no hyphen at all.
+const ANI_OVERRIDES = {
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+};
+// A few Origin formes aren't in the animated "ani" set at all - they live as static
+// PNGs in a differently-named directory with no per-Pokemon slug pattern to guess from.
+const ANI_URL_OVERRIDES = {
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
 };
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
   if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
+  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
   if (key.startsWith("shadow ")){
     const base = key.replace(/^shadow\s+/, "");
     if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
   }
-  return `https://img.pokemondb.net/artwork/large/${toDbSlug(name)}.jpg`;
+  const slug = ANI_OVERRIDES[key] || toDbSlug(name);
+  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
 
 const POKEMON_TYPES = [
