@@ -175,7 +175,6 @@
 
 <header>
   <h1>Catch Tank Database</h1>
-  <h3>Currently only accepting tier 5 entries with CT > 50 DPS</h3>
 </header>
 
 
@@ -355,7 +354,8 @@ function parseCSV(text){
 function rowsToSubmissions(rows){
   if(rows.length < 2) return [];
   const header = rows[0].map(h => h.trim());
-  const idx = name => header.indexOf(name);
+  const headerLower = header.map(h => h.toLowerCase());
+  const idx = name => headerLower.indexOf(name.toLowerCase());
   const col = {
     pokemon: idx("Pokemon"), level: idx("Level"), ivs: idx("IVs"),
     playerMoveset: idx("Player Moveset"), zacianBlade: idx("Zacian Blade boost"),
