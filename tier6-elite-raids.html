@@ -23,6 +23,7 @@
     --blue: #3d9dff; --blue-dark: #2b7fd6;
     --red: #ff5b5b; --yellow: #ffc94a; --green: #4cd08a; --purple: #9b7bf0;
     --t4: #e2661c; --t5: #ff5b5b; --t55: #b0203a; --t6: #9b7bf0; --t7: #5aa9ff;
+    --t3: #e0b316; --t2: #4cbf6f; --t1: #e091c9;
   }
   [data-theme="dark"]{
     --bg1: #0b0714; --bg2: #1f0f2e;
@@ -200,6 +201,9 @@
   .tier-header .tier-pill-lg.t55{ background: var(--t55); }
   .tier-header .tier-pill-lg.t6{ background: var(--t6); }
   .tier-header .tier-pill-lg.t7{ background: var(--t7); }
+  .tier-header .tier-pill-lg.t3{ background: var(--t3); }
+  .tier-header .tier-pill-lg.t2{ background: var(--t2); }
+  .tier-header .tier-pill-lg.t1{ background: var(--t1); }
   .tier-header .tier-name{ font-family:'Baloo 2', sans-serif; font-weight:700; color: var(--text-dim); font-size:14px; }
   .tier-header{ cursor:pointer; user-select:none; border-radius:10px; transition: background .15s ease; margin: 0 -8px 14px; padding: 6px 8px; }
   .tier-header:hover{ background: rgba(90,169,255,0.08); }
@@ -246,7 +250,7 @@
     flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden;
     box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
   }
-  .boss-icon img{ width:100%; height:100%; object-fit:contain; padding:5px; mix-blend-mode:multiply; }
+  .boss-icon img{ width:100%; height:100%; object-fit:contain; padding:2px; }
   .boss-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 21px; line-height:1.15; margin:0; text-align:left; min-width:0; }
   .boss-moveset-row{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; flex:1; min-width:0; }
   .boss-moveset-row > span{ opacity:0.55; filter:saturate(0.35); }
@@ -365,7 +369,7 @@
     display:flex; align-items:center; justify-content:center; overflow:hidden; border: 2px solid var(--border);
   }
   .member-row.main .member-icon{ border-color: var(--border); }
-  .member-icon img{ width:100%; height:100%; object-fit:contain; padding:3px; mix-blend-mode:multiply; }
+  .member-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
   .member-icon .fallback{ font-family:'Baloo 2', sans-serif; font-weight:700; color: var(--text-dim); font-size:15px; }
   .member-info{ display:flex; flex-direction:column; gap:1px; min-width:0; flex:1; }
   .member-name{ font-size:14.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -1002,7 +1006,7 @@ function normalizeStrategy(s){
 
 const CATEGORY_ORDER = ["Elite","T6"];
 const CATEGORY_NAMES = {"Elite":"Elite Tier","T6":"Mega Legendary"};
-function tierClass(t){ return {"4":"t4","5":"t5","5.5":"t55","6":"t6","7":"t7"}[t] || "t5"; }
+function tierClass(t){ return {"4":"t4","5":"t5","5.5":"t55","6":"t6","7":"t7","3":"t3","2":"t2","1":"t1"}[t] || "t5"; }
 function tierLabel(t){ return (t === "5.5" ? "5.5" : t) + "★"; }
 
 const TYPE_COLORS = {
