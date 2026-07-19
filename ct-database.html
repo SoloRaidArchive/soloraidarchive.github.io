@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catch Tank Database — Solo Raid Archive</title>
+<meta name="description" content="Community-submitted Catch Tank interactions for solo Pokémon GO raids, verified against the Catch Tank Calculator.">
+<link rel="canonical" href="https://soloraidarchive.github.io/ct-database.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #eaf4ff; --bg2: #fff7e8; --bg: #eaf4ff; --card: #ffffff; --border: #e7edf5;
+    --ink: #2d3142; --ink-muted: #6b7280; --ink-dim: #9aa3b2;
+    --accent: #3d9dff; --accent-soft: #eaf4ff; --accent-dark: #2b7fd6;
+  }
+  [data-theme="dark"]{
+    --bg1: #10131d; --bg2: #1a1424; --bg: #10131d; --card: #1c2030; --border: #323850;
+    --ink: #eef1f7; --ink-muted: #a7afc0; --ink-dim: #767f96;
+    --accent: #5aa9ff; --accent-soft: #232840; --accent-dark: #8cc7ff;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%); color: var(--ink);
+    font-family: 'Nunito', sans-serif; min-height:100vh;
+  }
+  .theme-toggle{
+    position:fixed; top:16px; right:16px; z-index:20;
+    width:42px; height:42px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 2px 6px rgba(26,29,41,0.08); transition: transform .15s;
+  }
+  .theme-toggle:hover{ transform: translateY(-2px); }
+  .home-link{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:2px solid var(--border); border-radius:10px;
+    padding: 9px 15px; font-weight:600; font-size:13px;
+    color: var(--accent); text-decoration:none; box-shadow: 0 2px 6px rgba(26,29,41,0.06);
+  }
+  .top-nav-wrap{
+    max-width: 1760px; margin: 70px auto 0; padding: 0 20px;
+    display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; gap:16px;
+  }
+  .top-nav-wrap .home-link{ justify-self:start; grid-column:1; }
+  .top-nav-wrap .top-nav-row{ grid-column:2; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .top-nav-wrap .nav-spacer{ grid-column:3; }
+  @media (max-width:760px){
+    .top-nav-wrap{ grid-template-columns: 1fr; justify-items:center; gap:12px; }
+    .top-nav-wrap .home-link{ justify-self:center; grid-column:1; }
+    .top-nav-wrap .top-nav-row{ grid-column:1; }
+    .top-nav-wrap .nav-spacer{ display:none; }
+  }
+  .top-nav-link{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 8px 14px; font-weight:700; font-size:12.5px;
+    color: var(--ink-muted); text-decoration:none;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .top-nav-link:hover{ transform: translateY(-2px); border-color: var(--accent); color: var(--accent-dark); }
+  .top-nav-link.current{ background: var(--accent); color:#fff; border-color: var(--accent); }
+  .mini-nav-row{ display:flex; justify-content:center; margin-top:6px; }
+  @media (min-width:761px){
+    .mini-nav-row{ justify-content:flex-start; max-width:1760px; margin:6px auto 0; padding:0 20px; }
+  }
+  .nav-dropdown{ position:relative; }
+  .nav-dropdown-trigger{
+    display:inline-flex; align-items:center; gap:5px;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--ink-muted); cursor:pointer;
+    transition: transform .12s ease, border-color .12s ease, color .12s ease;
+  }
+  .nav-dropdown-trigger:hover{ transform: translateY(-2px); border-color: var(--accent); color: var(--accent-dark); }
+  .nav-dropdown-panel{
+    display:none; position:absolute; top:calc(100% + 8px); left:0; z-index:30;
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:8px; min-width:230px; box-shadow: 0 12px 28px rgba(26,29,41,0.14); flex-direction:column; gap:2px;
+  }
+  .nav-dropdown-panel.open{ display:flex; }
+  .nav-dropdown-item{
+    display:block; padding:9px 12px; border-radius:9px;
+    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    color: var(--ink-muted); text-decoration:none; white-space:nowrap;
+  }
+  .nav-dropdown-item:hover{ background: var(--bg1); color: var(--accent-dark); }
+
+  header{ padding: 12px 24px 10px; text-align:center; }
+  h1{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 27px; margin: 0; color: var(--ink); }
+
+  .controls{
+    max-width: 1100px; margin: 20px auto 0; padding: 0 20px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
+  }
+  .controls input, .controls select{
+    background: var(--card); border: 1px solid var(--border); color: var(--ink);
+    font-size:13px; padding: 10px 14px; border-radius: 10px; outline:none;
+    font-family:'Nunito', sans-serif; font-weight:600;
+  }
+  .controls input{ flex:1; min-width:200px; max-width:340px; }
+  .controls input:focus, .controls select:focus{ border-color: var(--accent); }
+
+  .container{ max-width: 1300px; margin: 0 auto; padding: 20px 20px 70px; overflow-x:auto; }
+  .count{ text-align:center; font-size:12.5px; font-weight:700; color: var(--ink-dim); margin-bottom:16px; }
+
+  .sub-table{ width:100%; border-collapse:separate; border-spacing:0 8px; min-width:900px; }
+  .sub-table th{
+    font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;
+    color: var(--ink-dim); text-align:left; padding:0 12px 4px;
+  }
+  .sub-table th.col-boss{ text-align:right; }
+  .sub-table th.col-dps{ text-align:center; }
+  .sub-table tr.sub-row{ background: var(--card); }
+  .sub-table td{ padding:12px; border-top:2px solid var(--border); border-bottom:2px solid var(--border); }
+  .sub-table td:first-child{ border-left:2px solid var(--border); border-radius:14px 0 0 14px; }
+  .sub-table td:last-child{ border-right:2px solid var(--border); border-radius:0 14px 14px 0; }
+
+  .sub-mon{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .sub-mon.col-boss{ flex-direction:row-reverse; text-align:right; }
+  .sub-icon{
+    width:40px; height:40px; border-radius:9px; background:#f0f0f2; border:2px solid var(--border);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .sub-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .sub-mon-name{ font-weight:800; font-size:13px; color: var(--ink); white-space:nowrap; }
+  .sub-moveset{ font-size:10.5px; color: var(--ink-muted); font-weight:600; line-height:1.4; white-space:nowrap; margin-top:1px; }
+  .sub-moveset .fm{ color: var(--ink-dim); }
+
+  .sub-details{ font-size:11px; color: var(--ink-muted); font-weight:600; line-height:1.5; white-space:nowrap; }
+
+  .sub-tags{ display:flex; flex-wrap:wrap; gap:4px; }
+  .sub-tag{
+    font-size:9.5px; font-weight:800; padding:3px 8px; border-radius:999px; white-space:nowrap;
+    background: var(--accent-soft); color: var(--accent-dark); border:1px solid var(--border);
+  }
+  .sub-tag.risky{ background: rgba(234,179,8,0.14); color:#a16207; border-color: rgba(234,179,8,0.35); }
+  [data-theme="dark"] .sub-tag.risky{ color:#facc15; background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.3); }
+
+  .sub-dps-cell{ text-align:center; }
+  .sub-dps-val{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:15px; color: var(--ink); }
+  .sub-dps-cell.highlight .sub-dps-val{ color: var(--accent-dark); }
+
+  .empty{ text-align:center; padding:60px 20px; color: var(--ink-dim); font-weight:600; }
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+
+<div class="top-nav-wrap">
+  <a class="home-link" href="index.html">← Back to Home</a>
+  <div class="top-nav-row">
+    <a href="meta-battle-parties.html" class="top-nav-link">Battle Parties</a>
+    <a href="raid-strategies.html" class="top-nav-link">Strategies</a>
+    <a href="move-data.html" class="top-nav-link">Move Data</a>
+    <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
+    <a href="ct-calculator.html" class="top-nav-link">CT Simulator</a>
+    <a href="ct-database.html" class="top-nav-link current">CT Database</a>
+    <a href="research.html" class="top-nav-link">Most Used Raiders</a>
+  </div>
+  <div class="nav-spacer"></div>
+</div>
+<div class="mini-nav-row">
+  <div class="nav-dropdown">
+    <button type="button" class="nav-dropdown-trigger" onclick="toggleNavDropdown(event, 'archivesDropdownPanel')">Raid Archives ▾</button>
+    <div class="nav-dropdown-panel" id="archivesDropdownPanel">
+      <a href="tier4-raids.html" class="nav-dropdown-item">Mega</a>
+      <a href="tier5-raids.html" class="nav-dropdown-item">Legendary</a>
+      <a href="tier5-ae-raids.html" class="nav-dropdown-item">Legendary AE</a>
+      <a href="tier6-elite-raids.html" class="nav-dropdown-item">Mega Legendary &amp; Elite</a>
+    </div>
+  </div>
+</div>
+
+<header>
+  <h1>Catch Tank Database</h1>
+</header>
+
+
+
+<div class="controls">
+  <input id="searchInput" type="text" placeholder="Search by Pokémon or Boss…" autocomplete="off">
+  <select id="sortSelect">
+    <option value="ctdps">Sort: CT DPS (High–Low)</option>
+    <option value="maindps">Sort: Main DPS (High–Low)</option>
+    <option value="boss">Sort: Boss (A–Z)</option>
+  </select>
+</div>
+
+<div class="container">
+  <div class="count" id="count"></div>
+  <table class="sub-table">
+    <thead>
+      <tr>
+        <th class="col-mon">Catch Tank</th>
+        <th>Level / IVs</th>
+        <th>Weather</th>
+        <th>Modifiers</th>
+        <th class="col-dps">Main</th>
+        <th class="col-dps">Trailing</th>
+        <th class="col-dps">CT DPS</th>
+        <th class="col-boss">Raid Boss</th>
+      </tr>
+    </thead>
+    <tbody id="grid"></tbody>
+  </table>
+</div>
+
+<script>
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
+  "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zamazenta hero":"zamazenta", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane",
+  "ndm":"necrozma-dusk-mane", "ndw":"necrozma-dawn-wings",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
+
+const DEX_MAP = {
+  "dialga":483, "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "groudon":383, "mamoswine":473, "salamence":373, "gengar":94,
+  "tyrantrum":697, "rhyperior":464, "kyogre":382, "mewtwo":150,
+};
+
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega skarmory": "https://db.pokemongohub.net/images/official/full/227_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega audino": "https://db.pokemongohub.net/images/official/full/531_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, ""); // fall back to base species if no shadow-specific sprite exists
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
+}
+
+const ANI_OVERRIDES = {
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
+  // Shorthand names used elsewhere on the site (e.g. the CT calculator's Pokemon list) for the
+  // same Incarnate/Therian formes already covered above by their full names - same Pokemon, same GIF.
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+// A few Origin formes aren't in the animated "ani" set at all - they live as static
+// PNGs in a differently-named directory with no per-Pokemon slug pattern to guess from.
+const ANI_URL_OVERRIDES = {
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+function spriteUrl(name){
+  const key = name.trim().toLowerCase();
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
+  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
+  }
+  // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
+// ============ LIVE CSV LOADING ============
+// Update the database by replacing ct-database.csv in the repo - no HTML editing needed.
+// This is the same pattern the tier4/5/5ae/6 raid archives already use for their own data.
+let SUBMISSIONS = [];
+const CSV_URL = "ct-database.csv";
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ","){ row.push(field); field = ""; }
+      else if(c === "\r"){ /* skip, handled by \n */ }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+// maps our internal field names to the exact column headers Google Forms exports -
+// looked up by header name (not position), so column reordering in the sheet is safe,
+// and .trim() handles the stray trailing space Google put on "Boss Moveset "
+function rowsToSubmissions(rows){
+  if(rows.length < 2) return [];
+  const header = rows[0].map(h => h.trim());
+  const idx = name => header.indexOf(name);
+  const col = {
+    pokemon: idx("Pokemon"), level: idx("Level"), ivs: idx("IVs"),
+    playerMoveset: idx("Player Moveset"), zacianBlade: idx("Zacian Blade boost"),
+    boss: idx("Boss"), weather: idx("Weather"), bossMoveset: idx("Boss Moveset"),
+    shieldAE: idx("Zamazenta Shield Boost"), dodges: idx("Dodges"), timingMods: idx("Timing Modifiers"),
+    chargeCasts: idx("# of Charge moves cast"), fmsTanked: idx("Boss FM Tanked"),
+    mainDPS: idx("Main DPS"), trailingDPS: idx("Trailing DPS"), ctDPS: idx("CT DPS"), risky: idx("Risk"),
+  };
+  return rows.slice(1)
+    .filter(r => r.length > 1 && r[col.pokemon] && r[col.pokemon].trim())
+    .map(r => ({
+      pokemon: (r[col.pokemon] || "").trim(), level: (r[col.level] || "").trim(), ivs: (r[col.ivs] || "").trim(),
+      playerMoveset: (r[col.playerMoveset] || "").trim(), zacianBlade: (r[col.zacianBlade] || "").trim(),
+      boss: (r[col.boss] || "").trim(), weather: (r[col.weather] || "").trim(), bossMoveset: (r[col.bossMoveset] || "").trim(),
+      shieldAE: (r[col.shieldAE] || "").trim(), dodges: (r[col.dodges] || "").trim(), timingMods: (r[col.timingMods] || "").trim(),
+      chargeCasts: (r[col.chargeCasts] || "").trim(), fmsTanked: (r[col.fmsTanked] || "").trim(),
+      mainDPS: (r[col.mainDPS] || "").trim(), trailingDPS: (r[col.trailingDPS] || "").trim(),
+      ctDPS: (r[col.ctDPS] || "").trim(), risky: (r[col.risky] || "").trim(),
+    }));
+}
+
+async function loadSubmissionsFromCSV(){
+  try{
+    const res = await fetch(CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    SUBMISSIONS = rowsToSubmissions(parseCSV(text));
+    render();
+  }catch(e){
+    console.error("Failed to load CT database:", e);
+    grid.innerHTML = `<tr><td colspan="8"><div class="empty">Couldn't load submission data from ${CSV_URL}. This page needs to be served over http(s) — opening the file directly (file://) blocks this. Check the live site, and make sure ${CSV_URL} exists in the repo root.</div></td></tr>`;
+    countEl.textContent = "";
+  }
+}
+
+function subRowHtml(s){
+  const [pFast, pCharge] = s.playerMoveset.split(" / ");
+  const [bFast, bCharge] = s.bossMoveset.split(" / ");
+  return `
+  <tr class="sub-row">
+    <td>
+      <div class="sub-mon">
+        <div class="sub-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div>
+          <div class="sub-mon-name">${s.pokemon}</div>
+          <div class="sub-moveset"><span class="fm">${pFast}</span><br>${pCharge}</div>
+        </div>
+      </div>
+    </td>
+    <td><div class="sub-details">Lv ${s.level}<br>IVs ${s.ivs}</div></td>
+    <td><div class="sub-details">${s.weather}</div></td>
+    <td>
+      <div class="sub-tags">
+        ${s.zacianBlade === "Yes" ? `<span class="sub-tag">⚔️ Blade Boost</span>` : ""}
+        ${s.shieldAE === "Yes" ? `<span class="sub-tag">🛡️ Shield Boost</span>` : ""}
+        ${s.dodges !== "None" ? `<span class="sub-tag">Dodge: ${s.dodges}</span>` : ""}
+        ${s.timingMods !== "None" ? `<span class="sub-tag">${s.timingMods}</span>` : ""}
+        ${s.risky === "Yes" ? `<span class="sub-tag risky">⚠️ Risky</span>` : ""}
+      </div>
+    </td>
+    <td class="sub-dps-cell"><span class="sub-dps-val">${s.mainDPS}</span></td>
+    <td class="sub-dps-cell"><span class="sub-dps-val">${s.trailingDPS}</span></td>
+    <td class="sub-dps-cell highlight"><span class="sub-dps-val">${s.ctDPS}</span></td>
+    <td>
+      <div class="sub-mon col-boss">
+        <div class="sub-icon"><img src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div>
+          <div class="sub-mon-name">${s.boss}</div>
+          <div class="sub-moveset"><span class="fm">${bFast}</span><br>${bCharge}</div>
+        </div>
+      </div>
+    </td>
+  </tr>`;
+}
+
+const grid = document.getElementById("grid");
+const countEl = document.getElementById("count");
+const searchInput = document.getElementById("searchInput");
+const sortSelect = document.getElementById("sortSelect");
+
+function render(){
+  const q = searchInput.value.trim().toLowerCase();
+  let list = SUBMISSIONS.filter(s => !q || s.pokemon.toLowerCase().includes(q) || s.boss.toLowerCase().includes(q));
+
+  const sort = sortSelect.value;
+  if(sort === "ctdps") list.sort((a,b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS));
+  else if(sort === "maindps") list.sort((a,b) => parseFloat(b.mainDPS) - parseFloat(a.mainDPS));
+  else if(sort === "boss") list.sort((a,b) => a.boss.localeCompare(b.boss));
+
+  countEl.textContent = `${list.length} submitted interaction${list.length !== 1 ? "s" : ""}`;
+  grid.innerHTML = list.length
+    ? list.map(subRowHtml).join("")
+    : `<tr><td colspan="8"><div class="empty">No submissions match your search yet.</div></td></tr>`;
+}
+
+searchInput.addEventListener("input", render);
+sortSelect.addEventListener("change", render);
+loadSubmissionsFromCSV();
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+function toggleNavDropdown(e, panelId){
+  e.stopPropagation();
+  const panel = document.getElementById(panelId);
+  if(!panel) return;
+  const isOpen = panel.classList.contains("open");
+  document.querySelectorAll(".nav-dropdown-panel.open").forEach(p => p.classList.remove("open"));
+  if(!isOpen) panel.classList.add("open");
+}
+document.addEventListener("click", () => {
+  document.querySelectorAll(".nav-dropdown-panel.open").forEach(p => p.classList.remove("open"));
+});
+</script>
+
+</body>
+</html>
