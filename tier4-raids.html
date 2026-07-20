@@ -762,7 +762,10 @@ function rowsToRaids(rows){
     const charge = (row[4] || "").trim();
     const weather = normalizeWeather(row[5]);
     const aeCell = (row[6] || "").trim();
-    const ae = /shield|bash/i.test(aeCell) ? "shield" : (aeCell ? "sword" : "");
+    const ae = aeCell === SHIELD_ICON ? "shield" : (aeCell === AE_ICON ? "sword" : (aeCell ? "sword" : ""));
+    // matched by exact URL against the known icon constants above, not by searching the URL text for
+    // keywords like "shield"/"bash" - real CDN URLs are opaque hashes and rarely contain those words,
+    // which silently misclassified every Shield AE row (e.g. Articuno/Catch Tank/Blizzard) as sword
 
     let vodIdx = -1;
     for(let i = 0; i < row.length; i++){
