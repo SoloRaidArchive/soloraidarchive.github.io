@@ -111,15 +111,10 @@
     color: var(--text); margin-bottom:12px; display:flex; align-items:center; gap:6px;
   }
 
-  main{ width:100%; display:flex; flex-direction:column; }
+  main{ width:100%; display:flex; flex-direction:column; gap:16px; }
 
-  .archive-live-row{ display:flex; gap:18px; align-items:stretch; width:100%; }
-  .archive-list, .live-boss-panel{ flex:1 1 0; min-width:0; }
   .live-boss-panel{
-    background: var(--card); border:2px solid var(--border); border-radius:16px; padding:14px 16px;
-  }
-  @media (max-width:820px){
-    .archive-live-row{ flex-direction:column; }
+    width:100%; background: var(--card); border:2px solid var(--border); border-radius:16px; padding:14px 16px;
   }
 
   .archive-list{
@@ -272,7 +267,11 @@
 
 <div class="page-layout">
 <main>
-  <div class="archive-live-row">
+  <div class="live-boss-panel">
+    <div class="patch-title" id="liveBossHeading" style="font-size:16px; margin-bottom:-4px;">🔴 Raids</div>
+    <div id="liveBossWrap"></div>
+  </div>
+
   <div class="archive-list">
   <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">📚 Raids</div>
     <div class="archive-pill-row">
@@ -294,12 +293,6 @@
       </a>
     </div>
 
-  </div>
-
-  <div class="live-boss-panel">
-    <div class="patch-title" id="liveBossHeading" style="font-size:16px; margin-bottom:-4px;">🔴 Raids</div>
-    <div id="liveBossWrap"></div>
-  </div>
   </div>
 
   </main>
@@ -768,7 +761,9 @@ function weatherIcon(w){
 }
 
 function formatGroupHeader(startDate, endDate){
-  // dates now arrive as "Jul 26, 2026" (no time) - just show the month/day
+  // Pokebattler's API doesn't expose scheduled dates (unlike the old HTML page) - it's a
+  // live snapshot of what's currently active, so there's no real date range to show.
+  if(!startDate && !endDate) return "Currently active";
   const shortDate = (s) => {
     const m = s.match(/^([A-Za-z]+ \d+),/);
     return m ? m[1] : s;
@@ -805,7 +800,7 @@ async function loadLiveBosses(){
           </a>`).join("")}</div>
         ${overflowCount > 0 ? `<a class="live-boss-more" href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">See all ${group.bosses.length} raids on Pokebattler &rarr;</a>` : ""}
       </div>`;
-    }).join("") + `<div class="live-boss-credit">Boss availability and timing data from <a href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">Pokebattler</a></div>`;
+    }).join("") + `<div class="live-boss-credit">Boss availability data from <a href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">Pokebattler</a></div>`;
   }catch(e){
     console.error("Could not load live boss data:", e);
   }

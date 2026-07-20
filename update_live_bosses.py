@@ -1,27 +1,27 @@
 #!/usr/bin/env python3
 """
-Fetches the current/upcoming raid boss schedule from Pokebattler and cross-references
-every boss name against this repo's own archive CSVs (tier4/5/5ae/6) to determine which
-scheduled bosses are documented as soloable here.
+Fetches the current raid roster from Pokebattler's JSON API (fight.pokebattler.com/raids -
+used at the request of Pokebattler's owner, replacing an earlier HTML-scraping approach
+against pokebattler.com/raids) and cross-references every boss name against this repo's own
+archive CSVs (tier4/5/5ae/6) to determine which currently-active bosses are documented as
+soloable here.
 
-Run by .github/workflows/update-live-bosses.yml on a schedule. Writes live-bosses.json
-to the repo root; index.html fetches that file client-side (same-origin, no CORS issue).
+Run by .github/workflows/update-live-bosses.yml on a schedule. Writes live-bosses.json to
+the repo root; index.html fetches that file client-side (same-origin, no CORS issue).
 
-Design note: we deliberately don't try to classify each Pokebattler boss by raid tier
-(5-star/Mega/etc) ourselves - Pokebattler's page doesn't cleanly label that in a way
-that's reliable to scrape. Instead we extract every boss name + its active date range,
-and cross-reference ALL of them against every one of our own archive CSVs. If a name
-matches, we already know its tier from *which* CSV matched - no guessing needed. This
-also naturally excludes anything we haven't documented as soloable, including Legends
-Z-A Megas (a different, non-standard raid format), since those simply won't be in our
-own tier4-data.csv.
+DATE HANDLING: the JSON API does not expose scheduled start/end dates (each tier's "raids"
+list is a live snapshot, with separate "_FUTURE"/"_LEGACY" pools as catalogs rather than a
+calendar). To recover dates, this script ALSO fetches the human-readable page
+(pokebattler.com/raids) and matches boss names between the two sources - the API remains
+the sole authority on WHICH bosses are current and soloable; the website is used only as a
+supplementary lookup for WHEN. If a boss from the API can't be matched to a date block on
+the website (e.g. a sync gap between the two), it's grouped under "Currently active" with
+no date shown, rather than guessing.
 
-NOTE: Pokebattler's exact HTML structure wasn't directly inspectable when this was
-written (only a text-converted view was available). The parsing below works on the
-page's rendered text content directly (via regex) rather than depending on specific
-CSS classes, which should be more resilient to markup changes - but if Pokebattler
-substantially restructures their page, check the Action's run log, which prints how
-many date-range blocks and boss names it found.
+KNOWN GAP: as of this writing, the API's RAID_LEVEL_4 (Mega) tier consistently returns an
+empty raids list even when the website shows an active Mega boss (confirmed against Mega
+Sceptile). This looks like a real gap on Pokebattler's end, not a bug in this script -
+worth flagging to them directly, or revisiting once resolved.
 """
 import csv
 import json
@@ -32,13 +32,25 @@ from pathlib import Path
 
 try:
     import requests
-    from bs4 import BeautifulSoup
 except ImportError:
-    print("Missing dependencies. Install with: pip install requests beautifulsoup4")
+    print("Missing dependency. Install with: pip install requests")
     sys.exit(1)
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-POKEBATTLER_URL = "https://www.pokebattler.com/raids"
+POKEBATTLER_API_URL = "https://fight.pokebattler.com/raids"
+POKEBATTLER_WEB_URL = "https://www.pokebattler.com/raids"
+
+# Matches a date-range block header on the human-readable page, e.g.:
+#   "From Jul 22, 2026 6:00 AM - Until Jul 28, 2026 10:00 PM"
+#   "Until Jul 21, 2026 10:00 PM"  (already-started, no "From")
+# followed immediately by the literal column-header text "BossCPDifficulty".
+DATE_BLOCK_RE = re.compile(
+    r"(?:From\s+([A-Za-z]+ \d+, \d+ \d+:\d+ [AP]M)\s*-\s*)?"
+    r"Until\s+([A-Za-z]+ \d+, \d+ \d+:\d+ [AP]M)\s*BossCPDifficulty"
+)
+BOSS_NAME_WEB_RE = re.compile(
+    r"([A-Z][A-Za-z]*(?:\s*-\s*[A-Z][A-Za-z]*|\s+[A-Z][A-Za-z]*)*)\d+CP"
+)
 
 ARCHIVE_CSVS = {
     "tier4-data.csv": "tier4-raids.html",
@@ -47,28 +59,13 @@ ARCHIVE_CSVS = {
     "tier6-data.csv": "tier6-elite-raids.html",
 }
 
-# Matches a Pokebattler date-range block header, e.g.:
-#   "From Jul 22, 2026 6:00 AM - Until Jul 28, 2026 10:00 PM"
-#   "Until Jul 21, 2026 10:00 PM"                              (already-started, no "From")
-# followed immediately by the literal column-header text "BossCPDifficulty" (concatenated
-# because the source table has no text between cells once whitespace is collapsed).
-DATE_BLOCK_RE = re.compile(
-    r"(?:From\s+([A-Za-z]+ \d+, \d+ \d+:\d+ [AP]M)\s*-\s*)?"
-    r"Until\s+([A-Za-z]+ \d+, \d+ \d+:\d+ [AP]M)\s*BossCPDifficulty"
-)
-
-# Matches a boss name immediately followed by its first CP value, e.g. "Mega Sceptile1500CP".
-# Allows single-letter suffixes (Mewtwo Y) and " - " separated formes (Dialga - Origin).
-BOSS_NAME_RE = re.compile(
-    r"([A-Z][A-Za-z]*(?:\s*-\s*[A-Z][A-Za-z]*|\s+[A-Z][A-Za-z]*)*)\d+CP"
-)
+# Tiers whose name contains any of these are catalog/historical pools, not "currently active"
+NON_CURRENT_MARKERS = ("_FUTURE", "_LEGACY", "_EVENTS")
 
 
 def load_known_bosses():
-    """Read every 'Boss Name' from our own archive CSVs, so we can check if a scheduled
-    Pokebattler boss is something this site actually has a documented solo strategy for.
-    When a boss has multiple documented strategies at different difficulties, keep the
-    easiest one (lowest star rating) - that's the most useful one to surface here."""
+    """Read every 'Boss Name' + 'Star' + 'Weather' from our own archive CSVs. When a boss
+    has multiple documented strategies at different difficulties, keep the easiest one."""
     known = {}
     for csv_name, archive_page in ARCHIVE_CSVS.items():
         csv_path = REPO_ROOT / csv_name
@@ -108,92 +105,147 @@ def load_known_bosses():
     return known
 
 
+def pokemon_id_to_name(pokemon_id):
+    """'KYUREM_BLACK_FORM' -> 'Kyurem Black'. Matches this site's existing CSV naming."""
+    cleaned = pokemon_id.replace("_", " ")
+    if cleaned.endswith(" FORM"):
+        cleaned = cleaned[:-5]
+    return " ".join(w.capitalize() for w in cleaned.split())
+
+
 def normalize_name(name):
-    """Pokebattler formats some formes as 'Dialga - Origin'; our own CSVs use
-    'Dialga Origin' (no hyphen). Normalize so these actually match."""
-    return name.replace(" - ", " ").strip().lower()
+    """Collapses Genesect's four cosmetic Drive variants into one entry, since they're
+    mechanically identical for solo raiding."""
+    cleaned = name.strip().lower()
+    if re.match(r"^(burn|chill|douse|shock)\s+genesect$", cleaned):
+        return "genesect"
+    return cleaned
 
 
-def scrape_pokebattler():
-    """Best-effort scrape of Pokebattler's raid schedule. Returns a list of
-    {name, startDate, endDate} dicts for every boss found under every date-range block."""
-    resp = requests.get(POKEBATTLER_URL, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+def fetch_current_bosses():
+    """Fetches the live roster from Pokebattler's API. Returns a list of boss names
+    currently active, pulled only from non-catalog ("current") tiers."""
+    resp = requests.get(POKEBATTLER_API_URL, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
     resp.raise_for_status()
-    soup = BeautifulSoup(resp.text, "html.parser")
-    text = soup.get_text(separator="")
+    data = resp.json()
+
+    names = []
+    for tier_entry in data.get("tiers", []):
+        tier_key = tier_entry.get("tier", "")
+        if any(marker in tier_key for marker in NON_CURRENT_MARKERS):
+            continue
+        raids = tier_entry.get("raids", [])
+        for raid in raids:
+            pokemon_id = raid.get("pokemonId") or raid.get("pokemon")
+            if not pokemon_id:
+                continue
+            names.append(pokemon_id_to_name(pokemon_id))
+        print(f"[{tier_key}] {len(raids)} boss(es)")
+
+    return names
+
+
+def fetch_boss_dates_from_website():
+    """Fetches the human-readable raids page (used only to recover scheduled dates, since
+    the JSON API doesn't expose them) and returns a dict mapping normalized boss name ->
+    (startDate, endDate). The API remains the authority on WHICH bosses are current and
+    soloable; this is purely a supplementary lookup for WHEN, matched by name."""
+    try:
+        resp = requests.get(POKEBATTLER_WEB_URL, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"Could not fetch website for date info (non-fatal, dates will show as 'Currently active'): {e}")
+        return {}
+
+    try:
+        from bs4 import BeautifulSoup
+        text = BeautifulSoup(resp.text, "html.parser").get_text(separator="")
+    except ImportError:
+        text = resp.text
 
     date_matches = list(DATE_BLOCK_RE.finditer(text))
-    print(f"Found {len(date_matches)} date-range block(s)")
-
-    bosses = []
+    dates_by_name = {}
     for i, m in enumerate(date_matches):
-        start_of_bosses = m.end()
-        end_of_bosses = date_matches[i + 1].start() if i + 1 < len(date_matches) else len(text)
-        boss_text = text[start_of_bosses:end_of_bosses]
-        boss_names = BOSS_NAME_RE.findall(boss_text)
-        print(f"  block {i} ({m.group(1) or 'ongoing'} -> {m.group(2)}): {boss_names}")
-        for name in boss_names:
-            bosses.append({
-                "name": name.strip(),
-                "startDate": m.group(1),
-                "endDate": m.group(2),
-            })
+        start = m.end()
+        end = date_matches[i + 1].start() if i + 1 < len(date_matches) else len(text)
+        block_text = text[start:end]
+        for name in BOSS_NAME_WEB_RE.findall(block_text):
+            clean_name = re.sub(r"Regional$", "", name).strip()
+            key = normalize_name(clean_name)
+            if key not in dates_by_name:
+                dates_by_name[key] = (m.group(1), m.group(2))
+    print(f"Found date info for {len(dates_by_name)} boss(es) on the website")
+    return dates_by_name
 
-    return bosses
-
-
-def parse_pokebattler_date(date_str):
-    """Parses 'Jul 22, 2026 6:00 AM' into a datetime. Returns None if unparseable -
-    callers should treat that as 'keep it, don't filter on a date we can't read'."""
-    if not date_str:
-        return None
-    try:
-        return datetime.strptime(date_str, "%b %d, %Y %I:%M %p")
-    except ValueError:
-        return None
 
 
 def main():
     known_bosses = load_known_bosses()
     print(f"Loaded {len(known_bosses)} known boss names from this site's own archives")
 
-    scheduled_bosses = scrape_pokebattler()
-    print(f"Scraped {len(scheduled_bosses)} total boss entries from Pokebattler")
+    current_names = fetch_current_bosses()
+    print(f"Fetched {len(current_names)} total current boss entries from Pokebattler's API")
 
-    now = datetime.now()
+    dates_by_name = fetch_boss_dates_from_website()
+
     results = []
     seen = set()
-    for boss in scheduled_bosses:
-        key = normalize_name(boss["name"])
+    for name in current_names:
+        key = normalize_name(name)
         if key not in known_bosses or key in seen:
-            continue
-        end_dt = parse_pokebattler_date(boss["endDate"])
-        if end_dt and end_dt < now:
-            print(f"  skipping {boss['name']} - end date {boss['endDate']} already passed")
             continue
         seen.add(key)
         info = known_bosses[key]
+        start_date, end_date = dates_by_name.get(key, (None, None))
         results.append({
-            "name": boss["name"],
-            "startDate": boss["startDate"],
-            "endDate": boss["endDate"],
+            "name": name,
+            "startDate": start_date,
+            "endDate": end_date,
             "archivePage": info["archivePage"],
             "difficulty": info["difficulty"],
             "weather": info["weather"],
         })
 
+    def date_only(date_str):
+        """'Jul 26, 2026 10:00 AM' -> 'Jul 26, 2026' - drops the time so blocks that only
+        differ by hour merge into one."""
+        if not date_str:
+            return None
+        m = re.match(r"^([A-Za-z]+ \d+, \d+)", date_str)
+        return m.group(1) if m else date_str
+
+    grouped = {}
+    order = []
+    for r in results:
+        key = (date_only(r["startDate"]), date_only(r["endDate"]))
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        grouped[key].append({
+            "name": r["name"],
+            "archivePage": r["archivePage"],
+            "difficulty": r["difficulty"],
+            "weather": r["weather"],
+        })
+
+    date_groups = [
+        {"startDate": key[0], "endDate": key[1], "bosses": grouped[key]}
+        for key in order
+    ]
+
     output = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "soloableBosses": results,
+        "dateGroups": date_groups,
     }
 
     out_path = REPO_ROOT / "live-bosses.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)
 
-    print(f"Wrote {len(results)} soloable boss(es) to {out_path}")
-    for r in results:
-        print(f"  - {r['name']} ({r['startDate'] or 'ongoing'} -> {r['endDate']}) -> {r['archivePage']}")
+    print(f"Wrote {len(results)} soloable boss(es) across {len(date_groups)} date group(s) to {out_path}")
+    for g in date_groups:
+        names = ", ".join(b["name"] for b in g["bosses"])
+        print(f"  [{g['startDate'] or 'no date match'} -> {g['endDate']}]: {names}")
 
 
 if __name__ == "__main__":
