@@ -14,7 +14,7 @@
 <meta name="twitter:title" content="Meta Battle Parties Reference | Solo Raid Archive">
 <meta name="twitter:description" content="Reference guide to the most effective battle party compositions for soloing Pokémon GO raids.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg1: #eaf4ff; --bg2: #fff7e8; --bg: #eaf4ff; --card: #ffffff; --border: #e7edf5;
@@ -46,7 +46,7 @@
   *{ box-sizing:border-box; }
   body{
     margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%); color: var(--ink);
-    font-family: 'Nunito', sans-serif; min-height:100vh;
+    font-family: 'Inter', sans-serif; min-height:100vh;
   }
 
   .home-link{
@@ -58,7 +58,7 @@
 
   header{ padding: 12px 24px 10px; text-align:center; }
   h1{
-    font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 27px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size: 27px;
     margin: 0; color: var(--ink);
   }
 
@@ -101,7 +101,7 @@
   .nav-dropdown-trigger{
     display:inline-flex; align-items:center; gap:5px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    padding: 8px 14px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
     color: var(--ink-muted); cursor:pointer;
     transition: transform .12s ease, border-color .12s ease, color .12s ease;
   }
@@ -116,7 +116,7 @@
   .nav-dropdown-panel.open{ display:flex; }
   .nav-dropdown-item{
     display:block; padding:9px 12px; border-radius:9px;
-    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    font-family:'Inter', sans-serif; font-weight:700; font-size:13px;
     color: var(--ink-muted); text-decoration:none; white-space:nowrap;
   }
   .nav-dropdown-item:hover{ background: var(--bg1); color: var(--accent-dark); }
@@ -138,7 +138,7 @@
     background: var(--card); border:2px solid var(--border); border-radius:16px; padding:16px;
   }
   .index-title{
-    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:11px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:11px;
     text-transform:uppercase; letter-spacing:0.05em; color: var(--ink-dim); margin-bottom:8px;
   }
   .index a{
@@ -155,9 +155,9 @@
   .type-header{
     display:flex; align-items:baseline; gap:12px; margin-bottom:16px;
   }
-  .type-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:22px; }
+  .type-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:22px; }
   .type-count{
-    font-family:'Nunito', sans-serif; font-size:12px; color: var(--ink-dim);
+    font-family:'Inter', sans-serif; font-size:12px; color: var(--ink-dim);
   }
 
   .party-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:16px; }
@@ -170,12 +170,12 @@
   .party-card:hover{ border-color:#d6d3fb; box-shadow: 0 6px 18px rgba(91,79,224,0.08); }
   .party-index-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
   .party-index{
-    font-family:'Nunito', sans-serif; font-size:10.5px; color: var(--ink-dim);
+    font-family:'Inter', sans-serif; font-size:10.5px; color: var(--ink-dim);
   }
   .party-source-link{
     display:flex; align-items:center; gap:5px; flex-shrink:0; text-decoration:none;
     background: var(--accent-soft); border:1px solid var(--border); border-radius:999px;
-    padding: 3px 10px 3px 4px; font-family:'Nunito', sans-serif; font-size:10px; font-weight:700;
+    padding: 3px 10px 3px 4px; font-family:'Inter', sans-serif; font-size:10px; font-weight:700;
     color: var(--accent-dark); white-space:nowrap;
   }
   .party-source-link:hover{ border-color: var(--accent); }
@@ -191,24 +191,24 @@
     display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
   .slot-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
-  .slot-icon .fallback{ font-family:'Baloo 2', sans-serif; font-weight:700; color: var(--ink-dim); font-size:14px; }
+  .slot-icon .fallback{ font-family:'Manrope', sans-serif; font-weight:700; color: var(--ink-dim); font-size:14px; }
   .slot-info{ flex:1; min-width:0; }
   .slot-name{ font-weight:600; font-size:14px; color: var(--ink); }
   .slot-role{
-    font-family:'Nunito', sans-serif; font-size:10.5px; color: var(--accent-dark);
+    font-family:'Inter', sans-serif; font-size:10.5px; color: var(--accent-dark);
     margin-top:1px;
   }
   .slot-moves{ display:flex; gap:5px; margin-top:5px; flex-wrap:wrap; }
   .move-pill{
-    font-family:'Nunito', sans-serif; font-size:10px; font-weight:600;
+    font-family:'Inter', sans-serif; font-size:10px; font-weight:600;
     padding:2px 8px; border-radius:5px; color:#fff;
   }
   .slot-count{
-    font-family:'Nunito', sans-serif; font-size:11.5px; color: var(--ink-muted);
+    font-family:'Inter', sans-serif; font-size:11.5px; color: var(--ink-muted);
     background:#f0f0f2; padding:3px 9px; border-radius:6px; flex-shrink:0;
   }
 
-  .empty{ text-align:center; color: var(--ink-dim); padding:60px 20px; font-family:'Nunito', sans-serif; }
+  .empty{ text-align:center; color: var(--ink-dim); padding:60px 20px; font-family:'Inter', sans-serif; }
 
   @media (max-width:900px){
     .layout{ flex-direction:column; }

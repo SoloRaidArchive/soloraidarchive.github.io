@@ -14,7 +14,7 @@
 <meta name="twitter:title" content="Most Used Raiders — Pokémon Usage Stats | Solo Raid Archive">
 <meta name="twitter:description" content="See which Pokémon are most commonly used to solo Pokémon GO raids, pulled live from every recorded strategy across the archive.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg1: #eaf4ff; --bg2: #fff7e8;
@@ -32,12 +32,12 @@
   *{ box-sizing:border-box; }
   body{
     margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
-    color: var(--text); font-family: 'Nunito', sans-serif; min-height:100vh;
+    color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh;
   }
   .home-link{
     display:inline-flex; align-items:center; gap:5px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding: 10px 16px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:13px;
+    padding: 10px 16px; font-family:'Manrope', sans-serif; font-weight:700; font-size:13px;
     color: var(--blue-dark); text-decoration:none; box-shadow: 0 3px 0 rgba(0,0,0,0.06);
   }
   .theme-toggle{
@@ -72,7 +72,7 @@
   .nav-dropdown-trigger{
     display:inline-flex; align-items:center; gap:5px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    padding: 8px 14px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
     color: var(--text-muted); cursor:pointer;
     transition: transform .12s ease, border-color .12s ease, color .12s ease;
   }
@@ -87,7 +87,7 @@
   .nav-dropdown-panel.open{ display:flex; }
   .nav-dropdown-item{
     display:block; padding:9px 12px; border-radius:9px;
-    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    font-family:'Inter', sans-serif; font-weight:700; font-size:13px;
     color: var(--text-muted); text-decoration:none; white-space:nowrap;
   }
   .nav-dropdown-item:hover{ background: var(--bg1); color: var(--blue-dark); }
@@ -96,7 +96,7 @@
   .top-nav-link{
     display:inline-flex; align-items:center; gap:5px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    padding: 8px 14px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
     color: var(--text-muted); text-decoration:none;
     transition: transform .12s ease, border-color .12s ease, color .12s ease;
   }
@@ -105,7 +105,7 @@
 
   header{ padding: 12px 24px 10px; text-align:center; }
   h1{
-    font-family:'Baloo 2', sans-serif; font-weight:800; font-size: 27px;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size: 27px;
     margin: 0; color: var(--text);
   }
   .footer-desc{
@@ -121,7 +121,7 @@
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding: 12px 20px; text-align:center; min-width:120px;
   }
-  .stat-num{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:24px; color: var(--blue-dark); }
+  .stat-num{ font-family:'Manrope', sans-serif; font-weight:800; font-size:24px; color: var(--blue-dark); }
   .stat-label{ font-size:11px; color: var(--text-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
 
   .controls{
@@ -138,13 +138,13 @@
   .view-toggle{ display:flex; gap:6px; flex-shrink:0; }
   .view-btn{
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding:9px 16px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    padding:9px 16px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
     color: var(--text-muted); cursor:pointer; flex-shrink:0; white-space:nowrap;
   }
   .view-btn.active{ background: var(--blue); color:#fff; border-color: var(--blue); }
   #roleFilter{
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding:9px 16px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    padding:9px 16px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
     color: var(--text-muted); cursor:pointer; outline:none; flex-shrink:0;
   }
 
@@ -168,7 +168,7 @@
   .lb-chevron{ font-size:15px; color: var(--text-dim); font-weight:800; flex-shrink:0; transition: transform .18s ease; }
   .lb-row-wrap[open] .lb-chevron{ transform: rotate(90deg); }
   .lb-rank{
-    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:14px; color: var(--text-dim);
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; color: var(--text-dim);
     width:26px; flex-shrink:0; text-align:center;
   }
   .lb-rank.top1{ color:#ffb300; font-size:18px; }
@@ -182,7 +182,7 @@
   [data-theme="dark"] .lb-sprite{ background:#eaeaec; }
   .lb-sprite img{ width:100%; height:100%; object-fit:contain; padding:1px; }
   .lb-main{ flex:1; min-width:0; }
-  .lb-name{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:14.5px; }
+  .lb-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14.5px; }
   .lb-roles{ font-size:11.5px; color: var(--blue-dark); font-weight:700; margin-top:2px; }
   .lb-bar-wrap{
     height:8px; background: var(--bg1); border-radius:99px; margin-top:6px; overflow:hidden;
@@ -239,13 +239,13 @@
   .bd-boss-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
   .bd-name{ font-size:12.5px; font-weight:700; color: var(--text); flex:1; min-width:0; }
   .bd-tier{
-    font-family:'Baloo 2', sans-serif; font-weight:800; font-size:11px; color: var(--blue-dark);
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; color: var(--blue-dark);
     background: rgba(90,169,255,0.12); border-radius:999px; padding:2px 8px; flex-shrink:0;
   }
   .bd-weather{ display:flex; align-items:center; gap:5px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
   .bd-moves-row{ display:flex; align-items:center; gap:6px; margin-top:6px; padding-left:40px; flex-wrap:wrap; }
   .bd-move-chip{
-    display:flex; align-items:center; gap:5px; font-family:'Nunito', sans-serif; font-weight:800;
+    display:flex; align-items:center; gap:5px; font-family:'Inter', sans-serif; font-weight:800;
     font-size:10.5px; padding:4px 9px; border-radius:999px; color:#fff;
   }
   .bd-move-tag{ font-size:8px; opacity:0.85; }

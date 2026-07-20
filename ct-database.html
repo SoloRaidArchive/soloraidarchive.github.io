@@ -7,7 +7,7 @@
 <meta name="description" content="Community-submitted Catch Tank interactions for solo Pokémon GO raids, verified against the Catch Tank Calculator.">
 <link rel="canonical" href="https://soloraidarchive.github.io/ct-database.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg1: #eaf4ff; --bg2: #fff7e8; --bg: #eaf4ff; --card: #ffffff; --border: #e7edf5;
@@ -22,7 +22,7 @@
   *{ box-sizing:border-box; }
   body{
     margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%); color: var(--ink);
-    font-family: 'Nunito', sans-serif; min-height:100vh;
+    font-family: 'Inter', sans-serif; min-height:100vh;
   }
   .theme-toggle{
     position:fixed; top:16px; right:16px; z-index:20;
@@ -68,7 +68,7 @@
   .nav-dropdown-trigger{
     display:inline-flex; align-items:center; gap:5px;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding: 8px 14px; font-family:'Baloo 2', sans-serif; font-weight:700; font-size:12.5px;
+    padding: 8px 14px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
     color: var(--ink-muted); cursor:pointer;
     transition: transform .12s ease, border-color .12s ease, color .12s ease;
   }
@@ -81,13 +81,13 @@
   .nav-dropdown-panel.open{ display:flex; }
   .nav-dropdown-item{
     display:block; padding:9px 12px; border-radius:9px;
-    font-family:'Nunito', sans-serif; font-weight:700; font-size:13px;
+    font-family:'Inter', sans-serif; font-weight:700; font-size:13px;
     color: var(--ink-muted); text-decoration:none; white-space:nowrap;
   }
   .nav-dropdown-item:hover{ background: var(--bg1); color: var(--accent-dark); }
 
   header{ padding: 12px 24px 10px; text-align:center; }
-  h1{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size: 27px; margin: 0; color: var(--ink); }
+  h1{ font-family:'Manrope', sans-serif; font-weight:700; font-size: 27px; margin: 0; color: var(--ink); }
 
   .controls{
     max-width: 1100px; margin: 20px auto 0; padding: 0 20px;
@@ -96,7 +96,7 @@
   .controls input, .controls select{
     background: var(--card); border: 1px solid var(--border); color: var(--ink);
     font-size:13px; padding: 10px 14px; border-radius: 10px; outline:none;
-    font-family:'Nunito', sans-serif; font-weight:600;
+    font-family:'Inter', sans-serif; font-weight:600;
   }
   .controls input{ flex:1; min-width:200px; max-width:340px; }
   .controls input:focus, .controls select:focus{ border-color: var(--accent); }
@@ -148,7 +148,7 @@
   [data-theme="dark"] .sub-tag.risky{ color:#facc15; background: rgba(234,179,8,0.12); border-color: rgba(234,179,8,0.3); }
 
   .sub-dps-cell{ text-align:center; }
-  .sub-dps-val{ font-family:'Baloo 2', sans-serif; font-weight:800; font-size:15px; color: var(--ink); }
+  .sub-dps-val{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; color: var(--ink); }
   .sub-dps-cell.highlight .sub-dps-val{ color: var(--accent-dark); }
 
   .empty{ text-align:center; padding:60px 20px; color: var(--ink-dim); font-weight:600; }
@@ -207,6 +207,7 @@
         <th>Level / IVs</th>
         <th>Weather</th>
         <th>Modifiers</th>
+        <th>Duration</th>
         <th class="col-dps">Main</th>
         <th class="col-dps"><span class="th-tooltip" title="A 6th Pokémon used to catch trailing charge moves when nearing a rejoin. This trailing Pokémon typically uses low energy-cost moves (Breaking Swipe, Aura Sphere, etc.) to increase consistency.">Trailing</span></th>
         <th class="col-dps">CT DPS</th>
@@ -385,12 +386,15 @@ function rowsToSubmissions(rows){
   const header = rows[0].map(h => h.trim());
   const headerLower = header.map(h => h.toLowerCase());
   const idx = name => headerLower.indexOf(name.toLowerCase());
+  const idxAny = names => { for(const n of names){ const i = idx(n); if(i !== -1) return i; } return -1; };
   const col = {
     pokemon: idx("Pokemon"), level: idx("Level"), ivs: idx("IVs"),
     playerMoveset: idx("Player Moveset"), zacianBlade: idx("Zacian Blade boost"),
     boss: idx("Boss"), weather: idx("Weather"), bossMoveset: idx("Boss Moveset"),
-    shieldAE: idx("Zamazenta Shield Boost"), dodges: idx("Dodges"), timingMods: idx("Timing Modifiers"),
+    shieldAE: idx("Zamazenta Shield Boost"), dodges: idx("Dodges"),
+    timingMods: idxAny(["Timing Modifiers", "Time Modifiers"]),
     chargeCasts: idx("# of Charge moves cast"), fmsTanked: idx("Boss FM Tanked"),
+    ticks: idx("Ticks"), seconds: idx("Seconds"),
     mainDPS: idx("Main DPS"), trailingDPS: idx("Trailing DPS"), ctDPS: idx("CT DPS"), risky: idx("Risk"),
   };
   return rows.slice(1)
@@ -401,6 +405,7 @@ function rowsToSubmissions(rows){
       boss: (r[col.boss] || "").trim(), weather: (r[col.weather] || "").trim(), bossMoveset: (r[col.bossMoveset] || "").trim(),
       shieldAE: (r[col.shieldAE] || "").trim(), dodges: (r[col.dodges] || "").trim(), timingMods: (r[col.timingMods] || "").trim(),
       chargeCasts: (r[col.chargeCasts] || "").trim(), fmsTanked: (r[col.fmsTanked] || "").trim(),
+      ticks: (r[col.ticks] || "").trim(), seconds: (r[col.seconds] || "").trim(),
       mainDPS: (r[col.mainDPS] || "").trim(), trailingDPS: (r[col.trailingDPS] || "").trim(),
       ctDPS: (r[col.ctDPS] || "").trim(), risky: (r[col.risky] || "").trim(),
     }));
@@ -415,7 +420,7 @@ async function loadSubmissionsFromCSV(){
     render();
   }catch(e){
     console.error("Failed to load CT database:", e);
-    grid.innerHTML = `<tr><td colspan="8"><div class="empty">Couldn't load submission data from ${CSV_URL}. This page needs to be served over http(s) — opening the file directly (file://) blocks this. Check the live site, and make sure ${CSV_URL} exists in the repo root.</div></td></tr>`;
+    grid.innerHTML = `<tr><td colspan="9"><div class="empty">Couldn't load submission data from ${CSV_URL}. This page needs to be served over http(s) — opening the file directly (file://) blocks this. Check the live site, and make sure ${CSV_URL} exists in the repo root.</div></td></tr>`;
     countEl.textContent = "";
   }
 }
@@ -445,6 +450,7 @@ function subRowHtml(s){
         ${s.risky === "Yes" ? `<span class="sub-tag risky">⚠️ Risky</span>` : ""}
       </div>
     </td>
+    <td><div class="sub-details">${s.seconds ? `${s.seconds}s${s.ticks ? ` (${s.ticks}t)` : ""}` : "—"}</div></td>
     <td class="sub-dps-cell"><span class="sub-dps-val">${s.mainDPS}</span></td>
     <td class="sub-dps-cell"><span class="sub-dps-val">${s.trailingDPS}</span></td>
     <td class="sub-dps-cell highlight"><span class="sub-dps-val">${s.ctDPS}</span></td>
@@ -477,7 +483,7 @@ function render(){
   countEl.textContent = `${list.length} submitted interaction${list.length !== 1 ? "s" : ""}`;
   grid.innerHTML = list.length
     ? list.map(subRowHtml).join("")
-    : `<tr><td colspan="8"><div class="empty">No submissions match your search yet.</div></td></tr>`;
+    : `<tr><td colspan="9"><div class="empty">No submissions match your search yet.</div></td></tr>`;
 }
 
 searchInput.addEventListener("input", render);
