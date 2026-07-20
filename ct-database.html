@@ -173,20 +173,6 @@
   .sub-dps-cell{ text-align:center; }
   .sub-dps-val{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; color: var(--ink); }
   .sub-dps-cell.highlight .sub-dps-val{ color: var(--accent-dark); }
-  .sub-dps-val.faint{ color:#e2504f; font-size:13px; }
-
-  .def-iv-input{
-    width:38px; height:24px; font-size:13px; font-weight:700; text-align:center;
-    background: var(--card); border:1px solid var(--accent); border-radius:5px; color: var(--ink);
-    padding:0 2px; vertical-align:middle;
-  }
-  .bp-note{ font-size:10px; color:#a16207; font-weight:600; line-height:1.4; margin-top:4px; max-width:180px; white-space:normal; }
-  [data-theme="dark"] .bp-note{ color:#facc15; }
-  .bp-btn{
-    font-size:9.5px; font-weight:800; padding:3px 7px; border-radius:6px; margin-top:2px;
-    background: var(--accent); color:#fff; border:none; cursor:pointer; display:inline-block;
-  }
-  .bp-btn:hover{ background: var(--accent-dark); }
 
   .empty{ text-align:center; padding:60px 20px; color: var(--ink-dim); font-weight:600; }
 </style>
@@ -1232,78 +1218,13 @@ function parseSubmissionParams(s){
   };
 }
 
-const ROW_DATA = {};
-window.updateInteractiveRow = function(idx){
-  const row = ROW_DATA[idx];
-  if(!row) return;
-  const input = document.getElementById(`defiv-${idx}`);
-  const defIv = Math.max(0, Math.min(15, parseInt(input.value) || 0));
-  row.params.ivDef = defIv;
-
-  const impact = computeBossImpact(row.params);
-  const duration = computeDuration(row.params);
-  const durEl = document.getElementById(`duration-${idx}`);
-  const dpsMainEl = document.getElementById(`dpsmain-${idx}`);
-  const dpsTrailEl = document.getElementById(`dpstrail-${idx}`);
-  const dpsCtEl = document.getElementById(`dpsct-${idx}`);
-  const bpEl = document.getElementById(`bpnote-${idx}`);
-
-  if(!impact || !duration){
-    durEl.innerHTML = `<span class="no-data">Can't compute</span>`;
-    return;
-  }
-  if(impact.fainted){
-    durEl.textContent = `${duration.seconds}s (${duration.ticks}t)`;
-    dpsMainEl.innerHTML = `<span class="sub-dps-val faint">Fainted</span>`;
-    dpsTrailEl.innerHTML = `<span class="sub-dps-val faint">—</span>`;
-    dpsCtEl.innerHTML = `<span class="sub-dps-val faint">—</span>`;
-    let breakpoint = null;
-    for(let d = defIv + 1; d <= 15; d++){
-      const testParams = Object.assign({}, row.params, { ivDef: d });
-      if(!computeBossImpact(testParams).fainted){ breakpoint = d; break; }
-    }
-    if(breakpoint !== null){
-      bpEl.innerHTML = `Breakpoint at Def IV ${breakpoint}. <button type="button" class="bp-btn" onclick="document.getElementById('defiv-${idx}').value=${breakpoint};updateInteractiveRow(${idx});">Switch to breakpoint IV</button>`;
-    } else {
-      bpEl.textContent = "No Def IV up to 15 survives this matchup.";
-    }
-  } else {
-    durEl.textContent = `${duration.seconds}s (${duration.ticks}t)`;
-    dpsMainEl.innerHTML = `<span class="sub-dps-val">${row.mainDPS}</span>`;
-    dpsTrailEl.innerHTML = `<span class="sub-dps-val">${row.trailingDPS}</span>`;
-    dpsCtEl.innerHTML = `<span class="sub-dps-val">${row.ctDPS}</span>`;
-    bpEl.textContent = "";
-  }
-};
-
 function subRowHtml(s, idx){
   const [pFast, pCharge] = s.playerMoveset.split(" / ");
   const [bFast, bCharge] = s.bossMoveset.split(" / ");
   const params = parseSubmissionParams(s);
-  ROW_DATA[idx] = { params, mainDPS: s.mainDPS, trailingDPS: s.trailingDPS, ctDPS: s.ctDPS };
 
-  const impact = computeBossImpact(params);
   const duration = computeDuration(params);
   const durationText = duration ? `${duration.seconds}s (${duration.ticks}t)` : `<span class="no-data">Can't compute</span>`;
-  const fainted = impact ? impact.fainted : false;
-
-  const ivsCell = `IVs ${params.ivAtk}/<input type="number" id="defiv-${idx}" class="def-iv-input" min="0" max="15" value="${params.ivDef}" oninput="updateInteractiveRow(${idx})">/${params.ivHp}`;
-
-  const dpsMain = fainted ? `<span class="sub-dps-val faint">Fainted</span>` : `<span class="sub-dps-val">${s.mainDPS}</span>`;
-  const dpsTrail = fainted ? `<span class="sub-dps-val faint">—</span>` : `<span class="sub-dps-val">${s.trailingDPS}</span>`;
-  const dpsCt = fainted ? `<span class="sub-dps-val faint">—</span>` : `<span class="sub-dps-val">${s.ctDPS}</span>`;
-
-  let bpNote = "";
-  if(fainted){
-    let breakpoint = null;
-    for(let d = params.ivDef + 1; d <= 15; d++){
-      const testParams = Object.assign({}, params, { ivDef: d });
-      if(!computeBossImpact(testParams).fainted){ breakpoint = d; break; }
-    }
-    bpNote = breakpoint !== null
-      ? `Breakpoint at Def IV ${breakpoint}. <button type="button" class="bp-btn" onclick="document.getElementById('defiv-${idx}').value=${breakpoint};updateInteractiveRow(${idx});">Switch to breakpoint IV</button>`
-      : `No Def IV up to 15 survives this matchup.`;
-  }
 
   return `
   <tr class="sub-row">
@@ -1317,17 +1238,16 @@ function subRowHtml(s, idx){
       </div>
     </td>
     <td>
-      <div class="sub-details">Lv ${s.level}<br>${ivsCell}</div>
-      <div class="bp-note" id="bpnote-${idx}">${bpNote}</div>
+      <div class="sub-details">Lv ${s.level}<br>IVs ${s.ivs}</div>
     </td>
     <td><div class="sub-details">${weatherIcon(s.weather)}</div></td>
     <td>
       <div class="sub-tags">${modifierTagsHtml(s)}</div>
     </td>
     <td><div class="sub-details" id="duration-${idx}">${durationText}</div></td>
-    <td class="sub-dps-cell" id="dpsmain-${idx}">${dpsMain}</td>
-    <td class="sub-dps-cell" id="dpstrail-${idx}">${dpsTrail}</td>
-    <td class="sub-dps-cell highlight" id="dpsct-${idx}">${dpsCt}</td>
+    <td class="sub-dps-cell" id="dpsmain-${idx}"><span class="sub-dps-val">${s.mainDPS}</span></td>
+    <td class="sub-dps-cell" id="dpstrail-${idx}"><span class="sub-dps-val">${s.trailingDPS}</span></td>
+    <td class="sub-dps-cell highlight" id="dpsct-${idx}"><span class="sub-dps-val">${s.ctDPS}</span></td>
     <td>
       <div class="sub-mon col-boss">
         <div class="sub-icon"><img src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="this.style.display='none'"></div>
