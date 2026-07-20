@@ -101,6 +101,23 @@
   .controls input{ flex:1; min-width:200px; max-width:340px; }
   .controls input:focus, .controls select:focus{ border-color: var(--accent); }
 
+  .dps-legend-wrap{ max-width: 1100px; margin: 16px auto 0; padding: 0 20px; }
+  .dps-legend{
+    background: var(--card); border:2px solid var(--border); border-radius:16px; padding:14px 18px;
+    display:flex; flex-wrap:wrap; gap:16px 28px;
+  }
+  .dps-legend-item{ display:flex; flex-direction:column; gap:5px; flex:1 1 200px; min-width:180px; }
+  .role-legend-desc{ font-size:12px; color: var(--ink-muted); font-weight:600; line-height:1.4; }
+  .role-chip{
+    align-self:flex-start; font-size:11px; font-weight:800; padding:3px 10px; border-radius:999px;
+  }
+  .role-chip.main{ background:#fff3d2; color:#b8860b; }
+  .role-chip.support{ background:#e5f9ee; color:#1f9d5c; }
+  .role-chip.catchtank{ background:#e6f2ff; color:#1c72c9; }
+  [data-theme="dark"] .role-chip.main{ background:rgba(255,201,74,0.18); color:#ffcf6b; }
+  [data-theme="dark"] .role-chip.support{ background:rgba(76,208,138,0.18); color:#5fe0a0; }
+  [data-theme="dark"] .role-chip.catchtank{ background:rgba(61,157,255,0.18); color:#6fb8ff; }
+
   .container{ max-width: 1300px; margin: 0 auto; padding: 20px 20px 70px; overflow-x:auto; }
   .count{ text-align:center; font-size:12.5px; font-weight:700; color: var(--ink-dim); margin-bottom:16px; }
 
@@ -111,11 +128,9 @@
   }
   .sub-table th.col-boss{ text-align:right; }
   .sub-table th.col-dps{ text-align:center; }
-  .th-tooltip{ cursor:help; border-bottom:1px dotted var(--ink-dim); position:relative; }
-  .weather-icon-wrap[data-tooltip], .sub-tag.icon-only[data-tooltip], .th-tooltip[data-tooltip]{ position:relative; cursor:help; }
+  .weather-icon-wrap[data-tooltip], .sub-tag.icon-only[data-tooltip]{ position:relative; cursor:help; }
   .weather-icon-wrap[data-tooltip]::after,
-  .sub-tag.icon-only[data-tooltip]::after,
-  .th-tooltip[data-tooltip]::after{
+  .sub-tag.icon-only[data-tooltip]::after{
     content: attr(data-tooltip);
     position:absolute; bottom: calc(100% + 8px); left:0; z-index:40;
     width:220px; max-width:60vw; background: var(--ink); color: var(--card);
@@ -127,8 +142,7 @@
     transition: opacity .15s ease, transform .15s ease;
   }
   .weather-icon-wrap[data-tooltip]:hover::after,
-  .sub-tag.icon-only[data-tooltip]:hover::after,
-  .th-tooltip[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
+  .sub-tag.icon-only[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
   .sub-table tr.sub-row{ background: var(--card); }
   .sub-table td{ padding:12px; border-top:2px solid var(--border); border-bottom:2px solid var(--border); }
   .sub-table td:first-child{ border-left:2px solid var(--border); border-radius:14px 0 0 14px; }
@@ -221,6 +235,23 @@
   </select>
 </div>
 
+<div class="dps-legend-wrap">
+  <div class="dps-legend">
+    <div class="dps-legend-item">
+      <span class="role-chip main">Main DPS</span>
+      <span class="role-legend-desc">Damage output during the core attack rotation, before any Catch Tank timing buffer.</span>
+    </div>
+    <div class="dps-legend-item">
+      <span class="role-chip support">Trailing DPS</span>
+      <span class="role-legend-desc">Output including the trailing buffer used to safely catch one more charge move before rejoining.</span>
+    </div>
+    <div class="dps-legend-item">
+      <span class="role-chip catchtank">Catch Tank DPS</span>
+      <span class="role-legend-desc">The full Catch Tank output — the number that determines how strong a submission is.</span>
+    </div>
+  </div>
+</div>
+
 <div class="container">
   <div class="count" id="count"></div>
   <table class="sub-table">
@@ -232,7 +263,7 @@
         <th>Modifiers</th>
         <th>Duration</th>
         <th class="col-dps">Main</th>
-        <th class="col-dps"><span class="th-tooltip" data-tooltip="A 6th Pokémon used to catch trailing charge moves when nearing a rejoin. This trailing Pokémon typically uses low energy-cost moves (Breaking Swipe, Aura Sphere, etc.) to increase consistency.">Trailing</span></th>
+        <th class="col-dps">Trailing</th>
         <th class="col-dps">CT DPS</th>
         <th class="col-boss">Raid Boss</th>
       </tr>
