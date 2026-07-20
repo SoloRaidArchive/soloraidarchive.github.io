@@ -393,13 +393,17 @@ function weatherTooltip(key){
   return `+20% ${list} damage dealt in raids`;
 }
 function weatherIcon(w){
-  const key = (w || "").trim().toLowerCase();
+  let key = (w || "").trim().toLowerCase();
+  // "None" (or blank) means no weather boost applied - that's exactly what "Extreme" represents
+  // in-game, and we already have the icon/tooltip for it, so normalize to that instead of showing
+  // a plain "None" with no icon.
+  if(key === "none" || key === "") key = "extreme";
   const url = WEATHER_ICON_URLS[key];
   const tooltip = weatherTooltip(key);
   const tooltipAttr = tooltip ? ` data-tooltip="${tooltip}"` : "";
   if(url){
     const wrapCls = key === "extreme" ? "weather-icon-wrap extreme" : "weather-icon-wrap";
-    return `<span class="${wrapCls}"${tooltipAttr}><img class="weather-icon-img" src="${url}" alt="${w}" loading="lazy" onerror="this.parentElement.remove()"></span>`;
+    return `<span class="${wrapCls}"${tooltipAttr}><img class="weather-icon-img" src="${url}" alt="${key}" loading="lazy" onerror="this.parentElement.remove()"></span>`;
   }
   return `<span class="weather-label"${tooltipAttr}>${w}</span>`;
 }
@@ -1283,16 +1287,14 @@ function subRowHtml(s, idx){
   const durationText = duration ? `${duration.seconds}s (${duration.ticks}t)` : `<span class="no-data">Can't compute</span>`;
   const fainted = impact ? impact.fainted : false;
 
-  const ivsCell = params.ivDefKnown
-    ? `IVs ${s.ivs}`
-    : `IVs ${params.ivAtk}/<input type="number" id="defiv-${idx}" class="def-iv-input" min="0" max="15" value="${params.ivDef}" oninput="updateInteractiveRow(${idx})">/${params.ivHp}`;
+  const ivsCell = `IVs ${params.ivAtk}/<input type="number" id="defiv-${idx}" class="def-iv-input" min="0" max="15" value="${params.ivDef}" oninput="updateInteractiveRow(${idx})">/${params.ivHp}`;
 
   const dpsMain = fainted ? `<span class="sub-dps-val faint">Fainted</span>` : `<span class="sub-dps-val">${s.mainDPS}</span>`;
   const dpsTrail = fainted ? `<span class="sub-dps-val faint">—</span>` : `<span class="sub-dps-val">${s.trailingDPS}</span>`;
   const dpsCt = fainted ? `<span class="sub-dps-val faint">—</span>` : `<span class="sub-dps-val">${s.ctDPS}</span>`;
 
   let bpNote = "";
-  if(fainted && !params.ivDefKnown){
+  if(fainted){
     let breakpoint = null;
     for(let d = params.ivDef + 1; d <= 15; d++){
       const testParams = Object.assign({}, params, { ivDef: d });
