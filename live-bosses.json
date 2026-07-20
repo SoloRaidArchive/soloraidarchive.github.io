@@ -1,37 +1,305 @@
 {
-  "generatedAt": "2026-07-20T18:42:26.241579+00:00",
-  "soloableBosses": [
+  "generatedAt": "2026-07-20T19:26:02.734235+00:00",
+  "dateGroups": [
     {
-      "name": "Mega Sceptile",
       "startDate": null,
-      "endDate": "Jul 21, 2026 10:00 PM",
-      "archivePage": "tier4-raids.html",
-      "difficulty": "2 \u2b50",
-      "weather": "Extreme"
+      "endDate": "Jul 21, 2026",
+      "bosses": [
+        {
+          "name": "Mega Sceptile",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Extreme"
+        }
+      ]
     },
     {
-      "name": "Mega Salamence",
-      "startDate": "Jul 22, 2026 6:00 AM",
-      "endDate": "Jul 28, 2026 10:00 PM",
-      "archivePage": "tier4-raids.html",
-      "difficulty": "3 \u2b50",
-      "weather": "Extreme"
+      "startDate": "Jul 22, 2026",
+      "endDate": "Jul 28, 2026",
+      "bosses": [
+        {
+          "name": "Mega Salamence",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Solgaleo",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "fog"
+        }
+      ]
     },
     {
-      "name": "Solgaleo",
-      "startDate": "Jul 22, 2026 6:00 AM",
-      "endDate": "Jul 28, 2026 10:00 PM",
-      "archivePage": "tier5-ae-raids.html",
-      "difficulty": "5 \u2b50",
-      "weather": "fog"
+      "startDate": "Jul 26, 2026",
+      "endDate": "Jul 26, 2026",
+      "bosses": [
+        {
+          "name": "Mega Audino",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Garchomp",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Metagross",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        },
+        {
+          "name": "Enamorus Incarnate",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Enamorus Therian",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Heatran",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "clear"
+        },
+        {
+          "name": "Landorus Incarnate",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Landorus Therian",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Regidrago",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Regieleki",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "clear"
+        },
+        {
+          "name": "Regigigas",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Thundurus Incarnate",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Thundurus Therian",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Tornadus Incarnate",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Tornadus Therian",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Snow"
+        },
+        {
+          "name": "Mega Beedrill",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Pinsir",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Blacephalon",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Buzzwole",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Celesteela",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Clear"
+        },
+        {
+          "name": "Guzzlord",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Kartana",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Nihilego",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "clear"
+        },
+        {
+          "name": "Pheromosa",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Stakataka",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "cloudy"
+        },
+        {
+          "name": "Xurkitree",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "clear"
+        },
+        {
+          "name": "Deoxys Attack",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Deoxys",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Genesect",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Necrozma",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "fog"
+        },
+        {
+          "name": "Tapu Bulu",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "cloudy"
+        },
+        {
+          "name": "Tapu Koko",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Clear"
+        },
+        {
+          "name": "Tapu Lele",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Mega Gardevoir",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Lucario",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Tyranitar",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Darkrai",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Latios",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "WIndy"
+        },
+        {
+          "name": "Terrakion",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Virizion",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Zamazenta - Hero",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "WIndy"
+        }
+      ]
     },
     {
-      "name": "Enamorus Incarnate",
-      "startDate": "Jul 26, 2026 10:00 AM",
-      "endDate": "Jul 26, 2026 1:00 PM",
-      "archivePage": "tier5-raids.html",
-      "difficulty": "3 \u2b50",
-      "weather": "snow"
+      "startDate": "Jul 29, 2026",
+      "endDate": "Aug 4, 2026",
+      "bosses": [
+        {
+          "name": "Mega Aggron",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Kyurem",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        }
+      ]
     }
   ]
 }

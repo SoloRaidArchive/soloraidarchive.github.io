@@ -110,8 +110,14 @@ def load_known_bosses():
 
 def normalize_name(name):
     """Pokebattler formats some formes as 'Dialga - Origin'; our own CSVs use
-    'Dialga Origin' (no hyphen). Normalize so these actually match."""
-    return name.replace(" - ", " ").strip().lower()
+    'Dialga Origin' (no hyphen). Normalize so these actually match. Also collapses
+    Genesect's four Drive variants (Burn/Chill/Douse/Shock) into one, since they're
+    cosmetically different but mechanically identical for solo raiding - no need to
+    track them as separate entries."""
+    cleaned = name.replace(" - ", " ").strip().lower()
+    if re.match(r"^(burn|chill|douse|shock)\s+genesect$", cleaned):
+        return "genesect"
+    return cleaned
 
 
 def scrape_pokebattler():
@@ -133,8 +139,9 @@ def scrape_pokebattler():
         boss_names = BOSS_NAME_RE.findall(boss_text)
         print(f"  block {i} ({m.group(1) or 'ongoing'} -> {m.group(2)}): {boss_names}")
         for name in boss_names:
+            clean_name = re.sub(r"Regional$", "", name).strip()
             bosses.append({
-                "name": name.strip(),
+                "name": clean_name,
                 "startDate": m.group(1),
                 "endDate": m.group(2),
             })
@@ -182,18 +189,46 @@ def main():
             "weather": info["weather"],
         })
 
+    def date_only(date_str):
+        """'Jul 26, 2026 10:00 AM' -> 'Jul 26, 2026' - drops the time so blocks that only
+        differ by hour (like the several July 26 makeup-event windows) merge into one."""
+        if not date_str:
+            return None
+        m = re.match(r"^([A-Za-z]+ \d+, \d+)", date_str)
+        return m.group(1) if m else date_str
+
+    grouped = {}
+    order = []
+    for r in results:
+        key = (date_only(r["startDate"]), date_only(r["endDate"]))
+        if key not in grouped:
+            grouped[key] = []
+            order.append(key)
+        grouped[key].append({
+            "name": r["name"],
+            "archivePage": r["archivePage"],
+            "difficulty": r["difficulty"],
+            "weather": r["weather"],
+        })
+
+    date_groups = [
+        {"startDate": key[0], "endDate": key[1], "bosses": grouped[key]}
+        for key in order
+    ]
+
     output = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "soloableBosses": results,
+        "dateGroups": date_groups,
     }
 
     out_path = REPO_ROOT / "live-bosses.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)
 
-    print(f"Wrote {len(results)} soloable boss(es) to {out_path}")
-    for r in results:
-        print(f"  - {r['name']} ({r['startDate'] or 'ongoing'} -> {r['endDate']}) -> {r['archivePage']}")
+    print(f"Wrote {len(results)} soloable boss(es) across {len(date_groups)} date group(s) to {out_path}")
+    for g in date_groups:
+        names = ", ".join(b["name"] for b in g["bosses"])
+        print(f"  [{g['startDate'] or 'ongoing'} -> {g['endDate']}]: {names}")
 
 
 if __name__ == "__main__":
