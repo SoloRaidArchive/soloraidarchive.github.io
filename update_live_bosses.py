@@ -59,9 +59,6 @@ ARCHIVE_CSVS = {
     "tier6-data.csv": "tier6-elite-raids.html",
 }
 
-# Tiers whose name contains any of these are catalog/historical pools, not "currently active"
-NON_CURRENT_MARKERS = ("_FUTURE", "_LEGACY", "_EVENTS")
-
 
 def load_known_bosses():
     """Read every 'Boss Name' + 'Star' + 'Weather' from our own archive CSVs. When a boss
@@ -124,7 +121,17 @@ def normalize_name(name):
 
 def fetch_current_bosses():
     """Fetches the live roster from Pokebattler's API. Returns a list of boss names
-    currently active, pulled only from non-catalog ("current") tiers."""
+    currently active.
+
+    Per guidance from Pokebattler's owner: currently-active bosses aren't limited to the
+    plain-named tiers (RAID_LEVEL_5, etc) - they can also show up inside the "_FUTURE" or
+    "_LEGACY" tier pools, which otherwise contain a much broader catalog of bosses that
+    have appeared or could appear. The actual signal for "this specific entry is live right
+    now" is cp == 0 on the individual raid entry (verified against the real site: every
+    cp:0 entry in RAID_LEVEL_5_FUTURE matched a boss the website listed as live during the
+    July 26 GO Fest event, while every nonzero-cp entry in the same tier did not). So this
+    now searches every tier's raids list and filters on cp==0 per-entry, rather than
+    excluding entire tiers by name."""
     resp = requests.get(POKEBATTLER_API_URL, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
     resp.raise_for_status()
     data = resp.json()
@@ -132,15 +139,17 @@ def fetch_current_bosses():
     names = []
     for tier_entry in data.get("tiers", []):
         tier_key = tier_entry.get("tier", "")
-        if any(marker in tier_key for marker in NON_CURRENT_MARKERS):
-            continue
         raids = tier_entry.get("raids", [])
+        current_in_tier = 0
         for raid in raids:
+            if raid.get("cp", 0) != 0:
+                continue
             pokemon_id = raid.get("pokemonId") or raid.get("pokemon")
             if not pokemon_id:
                 continue
             names.append(pokemon_id_to_name(pokemon_id))
-        print(f"[{tier_key}] {len(raids)} boss(es)")
+            current_in_tier += 1
+        print(f"[{tier_key}] {current_in_tier} currently-active boss(es) (of {len(raids)} total entries)")
 
     return names
 
