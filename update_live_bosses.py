@@ -59,6 +59,36 @@ ARCHIVE_CSVS = {
     "tier6-data.csv": "tier6-elite-raids.html",
 }
 
+# Confirmed monthly rotation dates, keyed by normalized boss name -> (startDate, endDate)
+# in the same "Mon D, YYYY" string format used elsewhere. Cross-verified against two
+# independent sources (leekduck.com's official schedule post + pokemongohub.net's July
+# 2026 events roundup, which agree exactly), rather than inferred or scraped live.
+#
+# WHY THIS EXISTS: Pokebattler's website only gives an end date for a raid that's already
+# underway (no start date), which this script previously handled by guessing the start was
+# always exactly 7 days earlier. That guess is wrong in general - July had a genuine 2-day
+# "bonus" rotation slot (Jul 13-14) breaking the clean 7-day cadence - so for the *current*
+# confirmed rotation, prefer this static table over any inference.
+#
+# HOW TO UPDATE: when a new month's schedule is confirmed (check leekduck.com/events and/or
+# pokemongohub.net's monthly events post - they should be cross-checked against each other,
+# not trusted individually), add entries here for that month's Tier 5 and Mega rotation
+# bosses. Once added, treat these as locked/static for that historical period - they should
+# NOT change even if something else about the live site changes later, since the rotation
+# itself is a fixed historical fact once it's happened. This table only needs to cover
+# monthly ROTATION bosses (Tier 4/5 rotation, ~1-2 week windows) - one-off Event raids
+# (GO Fest days, Community Day raids, etc.) are intentionally left out of this table and
+# continue to be picked up dynamically from the live scrape, since those genuinely do
+# change and aren't worth hand-maintaining here.
+CONFIRMED_ROTATION_DATES = {
+    "kyogre": ("Jul 15, 2026", "Jul 21, 2026"),
+    "mega sceptile": ("Jul 15, 2026", "Jul 21, 2026"),
+    "solgaleo": ("Jul 22, 2026", "Jul 28, 2026"),
+    "mega salamence": ("Jul 22, 2026", "Jul 28, 2026"),
+    "kyurem": ("Jul 29, 2026", "Aug 4, 2026"),
+    "mega aggron": ("Jul 29, 2026", "Aug 4, 2026"),
+}
+
 
 def load_known_bosses():
     """Read every 'Boss Name' + 'Star' + 'Weather' from our own archive CSVs. When a boss
@@ -141,12 +171,20 @@ def normalize_name(name):
 
 
 def parse_pokebattler_datetime(date_str):
-    """'Jul 26, 2026 4:00 PM' -> datetime. Returns None if unparseable - callers should
-    treat that as 'can't verify timing, don't filter on it' rather than assuming anything."""
+    """'Jul 26, 2026 4:00 PM' -> datetime. Also handles a date-only string like
+    'Jul 26, 2026' (as used in CONFIRMED_ROTATION_DATES, which has no time component) by
+    treating it as the end of that day, so the "already ended" check below still works
+    correctly for statically-sourced dates instead of silently never firing. Returns None
+    if unparseable - callers should treat that as 'can't verify timing, don't filter on
+    it' rather than assuming anything."""
     if not date_str:
         return None
     try:
         return datetime.strptime(date_str, "%b %d, %Y %I:%M %p")
+    except ValueError:
+        pass
+    try:
+        return datetime.strptime(date_str, "%b %d, %Y").replace(hour=23, minute=59)
     except ValueError:
         return None
 
@@ -245,7 +283,12 @@ def main():
         if key not in known_bosses or key in seen:
             continue
         info = known_bosses[key]
-        start_date, end_date = dates_by_name.get(key, (None, None))
+        # Prefer the static, hand-verified CONFIRMED_ROTATION_DATES table over whatever
+        # the live website scrape found - it's cross-checked against two independent
+        # sources and, once entered, doesn't drift if Pokebattler's page changes wording.
+        # Only fall back to the live scrape for bosses not yet in that table (e.g. a new
+        # month's rotation before it's been manually confirmed and added).
+        start_date, end_date = CONFIRMED_ROTATION_DATES.get(key) or dates_by_name.get(key, (None, None))
         end_dt = parse_pokebattler_datetime(end_date)
 
         # Classify BEFORE filtering: a single calendar day (start == end) is an Event -
