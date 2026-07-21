@@ -1,0 +1,43 @@
+name: Update live raid bosses
+
+on:
+  schedule:
+    # Runs every 3 hours. GitHub's cron doesn't guarantee exact timing, so treat this
+    # as "roughly every few hours" rather than a precise clock.
+    - cron: "0 */3 * * *"
+  workflow_dispatch: {}
+    # ^ lets you trigger this manually from the Actions tab if you don't want to wait
+    # for the next scheduled run (e.g. right after a raid rotation changes).
+
+permissions:
+  contents: write
+
+jobs:
+  update-live-bosses:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run scraper
+        run: python update_live_bosses.py
+
+      - name: Commit changes if the boss list actually changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet live-bosses.json; then
+            echo "No change in live-bosses.json, nothing to commit."
+          else
+            git add live-bosses.json
+            git commit -m "Auto-update live raid bosses"
+            git push
+          fi
