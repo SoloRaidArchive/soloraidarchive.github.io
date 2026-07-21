@@ -884,7 +884,7 @@ function setLiveBossHeading(){
   const heading = document.getElementById("liveBossHeading");
   if(!heading) return;
   const monthName = new Date().toLocaleString("en-US", { month: "long" });
-  heading.textContent = `${monthName} Raids`;
+  heading.textContent = `Soloable ${monthName} Raids`;
 }
 setLiveBossHeading();
 loadLiveBosses();
