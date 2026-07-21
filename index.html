@@ -287,7 +287,7 @@
   </div>
 
   <div class="archive-list">
-  <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">Raids</div>
+  <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">All Soloable Raids</div>
     <div class="archive-pill-row">
       <a class="archive-pill" href="tier4-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🛠️'"></div>
@@ -867,7 +867,7 @@ async function loadLiveBosses(){
 
     let html = "";
     if(eventGroups.length){
-      html += `<div class="live-boss-section-label">Event raids</div>`;
+      html += `<div class="live-boss-section-label">Event Pool</div>`;
       html += eventGroups.map(renderGroup).join("");
     }
     if(rotationGroups.length){
