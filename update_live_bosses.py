@@ -49,7 +49,7 @@ DATE_BLOCK_RE = re.compile(
     r"Until\s+([A-Za-z]+ \d+, \d+ \d+:\d+ [AP]M)\s*BossCPDifficulty"
 )
 BOSS_NAME_WEB_RE = re.compile(
-    r"([A-Z][A-Za-z]*(?:\s*-\s*[A-Z][A-Za-z]*|\s+[A-Z][A-Za-z]*)*)\d+CP"
+    r"([A-Z][A-Za-z]*(?:\s*-\s*[A-Z][A-Za-z]*|\s+(?:of|the|and|a|an)\s+[A-Z][A-Za-z]*|\s+[A-Z][A-Za-z]*)*)\d+CP"
 )
 
 ARCHIVE_CSVS = {
@@ -103,20 +103,52 @@ def load_known_bosses():
 
 
 def pokemon_id_to_name(pokemon_id):
-    """'KYUREM_BLACK_FORM' -> 'Kyurem Black'. Matches this site's existing CSV naming."""
+    """'KYUREM_BLACK_FORM' -> 'Kyurem Black'. Matches this site's existing CSV naming.
+
+    Special case: Pokebattler's enum puts Mega as a suffix (e.g. 'SCEPTILE_MEGA' ->
+    'Sceptile Mega', or 'MEWTWO_MEGA_X' -> 'Mewtwo Mega X'), but this site's own CSVs use
+    the Mega-first convention ('Mega Sceptile', 'Mega Mewtwo X'), matching how the
+    community actually refers to them. Confirmed via a real Action run: 'SCEPTILE_MEGA'
+    silently failed to match 'Mega Sceptile' in the archives without this reorder, which is
+    why Mega bosses weren't showing up despite being correctly fetched from the API."""
     cleaned = pokemon_id.replace("_", " ")
     if cleaned.endswith(" FORM"):
         cleaned = cleaned[:-5]
-    return " ".join(w.capitalize() for w in cleaned.split())
+    words = [w.capitalize() for w in cleaned.split()]
+    if "Mega" in words[1:]:
+        words.remove("Mega")
+        words.insert(0, "Mega")
+    return " ".join(words)
 
 
 def normalize_name(name):
     """Collapses Genesect's four cosmetic Drive variants into one entry, since they're
-    mechanically identical for solo raiding."""
-    cleaned = name.strip().lower()
+    mechanically identical for solo raiding. Also strips ' - ' (e.g. 'Dialga - Origin' /
+    'Zamazenta - Hero of Many Battles') since the website keeps that hyphen in its raw
+    text but the API-derived names never have one, so without this the two sources'
+    keys silently never matched for any hyphenated forme.
+
+    Also strips a trailing 'of many battles' - this is Zamazenta's real official title
+    suffix, and the website apparently uses the full official name while the API's own
+    enum resolves to just 'Zamazenta Hero'. Without this, the two sources' keys for this
+    one boss never matched, which is exactly what caused it to fall through with no date
+    info and incorrectly show as active before its July 26 window actually started."""
+    cleaned = name.replace(" - ", " ").strip().lower()
     if re.match(r"^(burn|chill|douse|shock)\s+genesect$", cleaned):
         return "genesect"
+    cleaned = re.sub(r"\s+of many battles$", "", cleaned)
     return cleaned
+
+
+def parse_pokebattler_datetime(date_str):
+    """'Jul 26, 2026 4:00 PM' -> datetime. Returns None if unparseable - callers should
+    treat that as 'can't verify timing, don't filter on it' rather than assuming anything."""
+    if not date_str:
+        return None
+    try:
+        return datetime.strptime(date_str, "%b %d, %Y %I:%M %p")
+    except ValueError:
+        return None
 
 
 def fetch_current_bosses():
@@ -196,6 +228,7 @@ def main():
     print(f"Fetched {len(current_names)} total current boss entries from Pokebattler's API")
 
     dates_by_name = fetch_boss_dates_from_website()
+    now = datetime.now()
 
     results = []
     seen = set()
@@ -203,9 +236,25 @@ def main():
         key = normalize_name(name)
         if key not in known_bosses or key in seen:
             continue
-        seen.add(key)
         info = known_bosses[key]
         start_date, end_date = dates_by_name.get(key, (None, None))
+
+        # If we found a date window for this boss, actually check whether "now" falls
+        # inside it - the API's cp==0 signal tells us a raid slot is real/verified, but
+        # NOT whether that slot's window has started yet. Without this check, a boss
+        # scheduled for a future date (e.g. a one-day GO Fest slot on the 26th, when
+        # today is the 20th) would incorrectly show up as "currently active" - this is
+        # exactly what happened with Zamazenta Hero.
+        start_dt = parse_pokebattler_datetime(start_date)
+        end_dt = parse_pokebattler_datetime(end_date)
+        if start_dt and now < start_dt:
+            print(f"  skipping {name}: scheduled to start {start_date}, hasn't begun yet")
+            continue
+        if end_dt and now > end_dt:
+            print(f"  skipping {name}: window ended {end_date}, already over")
+            continue
+
+        seen.add(key)
         results.append({
             "name": name,
             "startDate": start_date,
