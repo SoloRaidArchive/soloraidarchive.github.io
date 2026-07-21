@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Catch Tank Database — Solo Raid Archive</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
 <meta name="description" content="Community-submitted Catch Tank interactions for solo Pokémon GO raids, verified against the Catch Tank Calculator.">
 <link rel="canonical" href="https://soloraidarchive.github.io/ct-database.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -232,6 +236,7 @@
     <option value="ctdps">Sort: CT DPS (High–Low)</option>
     <option value="maindps">Sort: Main DPS (High–Low)</option>
     <option value="boss">Sort: Boss (A–Z)</option>
+    <option value="pokemon">Sort: Your Pokémon (A–Z)</option>
   </select>
 </div>
 
@@ -1304,6 +1309,7 @@ function render(){
   if(sort === "ctdps") list.sort((a,b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS));
   else if(sort === "maindps") list.sort((a,b) => parseFloat(b.mainDPS) - parseFloat(a.mainDPS));
   else if(sort === "boss") list.sort((a,b) => a.boss.localeCompare(b.boss));
+  else if(sort === "pokemon") list.sort((a,b) => a.pokemon.localeCompare(b.pokemon));
 
   countEl.textContent = `${list.length} submitted interaction${list.length !== 1 ? "s" : ""}`;
   grid.innerHTML = list.length

@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solo Raid Archive</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
 <meta name="description" content="A running log of Mega, Legendary, and Mega Legendary Pokémon GO raids soloed without a second trainer — exact boss, weather, battle party, and video proof for every recorded solo.">
 <link rel="canonical" href="https://soloraidarchive.github.io/index.html">
 <meta property="og:type" content="website">
@@ -775,14 +779,24 @@ function weatherIcon(w){
 }
 
 function formatGroupHeader(startDate, endDate){
-  // Pokebattler's API doesn't expose scheduled dates (unlike the old HTML page) - it's a
-  // live snapshot of what's currently active, so there's no real date range to show.
   if(!startDate && !endDate) return "Currently active";
   const shortDate = (s) => {
     const m = s.match(/^([A-Za-z]+ \d+),/);
     return m ? m[1] : s;
   };
-  if(!startDate) return `Live now \u00b7 through ${shortDate(endDate)}`;
+  if(!startDate){
+    // No real start date was matched (this raid was already active before our tracking
+    // began), but rotations consistently run exactly 7 days (confirmed against the real
+    // schedule: Jul 15-21, Jul 22-28, Jul 29-Aug 4 are all 7-day spans). Infer the start
+    // as 6 days before the known end, and format it exactly like a real range - "Live
+    // now through Jul 21" reads as a vague, different kind of label than "Jul 22 - Jul
+    // 28"; showing "Jul 15 - Jul 21" the same way keeps every entry consistent.
+    const end = new Date(endDate);
+    const inferredStart = new Date(end);
+    inferredStart.setDate(end.getDate() - 6);
+    const inferredStartStr = inferredStart.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return `${inferredStartStr} \u2013 ${shortDate(endDate)}`;
+  }
   const s = shortDate(startDate), e = shortDate(endDate);
   if(s === e) return s;
   return `${s} \u2013 ${e}`;
@@ -797,7 +811,11 @@ async function loadLiveBosses(){
     if(!groups.length) return;
     const wrap = document.getElementById("liveBossWrap");
     if(!wrap) return;
-    const MAX_SHOWN = 5;
+    // 19 icons/row fits the actual desktop layout (measured against the real CSS: 40px
+    // icons, 10px gaps, page padding, panel padding), so 2 rows = 38. Mobile has far less
+    // horizontal space, so it's capped to 6 (fits exactly 1 row at that width instead).
+    const isMobile = window.innerWidth <= 820;
+    const MAX_SHOWN = isMobile ? 6 : 38;
 
     function renderGroup(group){
       const shown = group.bosses.slice(0, MAX_SHOWN);
