@@ -1,6 +1,25 @@
 {
-  "generatedAt": "2026-07-21T16:12:55.366372+00:00",
+  "generatedAt": "2026-07-21T19:00:30.949246+00:00",
   "dateGroups": [
+    {
+      "startDate": "Jul 22, 2026",
+      "endDate": "Jul 28, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Solgaleo",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "fog"
+        },
+        {
+          "name": "Mega Salamence",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        }
+      ]
+    },
     {
       "startDate": "Jul 26, 2026",
       "endDate": "Jul 26, 2026",
@@ -264,25 +283,6 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "5 \u2b50",
           "weather": "Cloudy"
-        }
-      ]
-    },
-    {
-      "startDate": "Jul 22, 2026",
-      "endDate": "Jul 28, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Solgaleo",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "fog"
-        },
-        {
-          "name": "Mega Salamence",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
         }
       ]
     },
