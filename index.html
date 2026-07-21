@@ -205,6 +205,7 @@
   .live-boss-item:hover .live-boss-icon{ transform: translateY(-2px); border-color: var(--blue); }
   .live-boss-icon img{ width:100%; height:100%; object-fit:contain; }
   .live-boss-meta{ display:flex; align-items:center; gap:3px; }
+  .live-boss-date{ font-size:8.5px; font-weight:700; color: var(--text-dim); margin-top:1px; white-space:nowrap; }
   .live-boss-star{
     font-size:9px; font-weight:800; color: var(--blue-dark); background: var(--bg1);
     padding:2px 5px; border-radius:5px; white-space:nowrap;
@@ -269,7 +270,7 @@
 <div class="boss-search-wrap">
   <div class="boss-search-box">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input id="bossSearch" type="text" placeholder="Search a boss" autocomplete="off">
+    <input id="bossSearch" type="text" placeholder="Find a specific boss across every archive…" autocomplete="off">
   </div>
   <div id="bossSearchResults" class="boss-search-results"></div>
 </div>
@@ -816,6 +817,33 @@ async function loadLiveBosses(){
       </div>`;
     }
 
+    function renderRotationRow(rotationGroups){
+      // Flatten every date group into one flat list (keeping each boss's own dates),
+      // then sort live/ongoing first, soonest-upcoming next, furthest-out last - all on
+      // one horizontal row instead of stacked per-date blocks, to save vertical space.
+      const flat = [];
+      rotationGroups.forEach(group => {
+        group.bosses.forEach(boss => {
+          flat.push(Object.assign({}, boss, { startDate: group.startDate, endDate: group.endDate }));
+        });
+      });
+      flat.sort((a, b) => {
+        if(!a.startDate && !b.startDate) return 0;
+        if(!a.startDate) return -1;
+        if(!b.startDate) return 1;
+        return new Date(a.startDate) - new Date(b.startDate);
+      });
+      return `<div class="live-boss-row">${flat.map(boss => `
+        <a class="live-boss-item" href="${boss.archivePage}" title="${boss.name}">
+          <div class="live-boss-icon"><img src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="this.style.display='none'"></div>
+          <div class="live-boss-meta">
+            <span class="live-boss-star">${boss.difficulty}</span>
+            ${weatherIcon(boss.weather)}
+          </div>
+          <div class="live-boss-date">${formatGroupHeader(boss.startDate, boss.endDate)}</div>
+        </a>`).join("")}</div>`;
+    }
+
     const eventGroups = groups.filter(g => g.category === "event");
     const rotationGroups = groups.filter(g => g.category !== "event");
 
@@ -826,7 +854,7 @@ async function loadLiveBosses(){
     }
     if(rotationGroups.length){
       html += `<div class="live-boss-section-label">Monthly rotation</div>`;
-      html += rotationGroups.map(renderGroup).join("");
+      html += renderRotationRow(rotationGroups);
     }
     html += `<div class="live-boss-credit">Boss availability data from <a href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">Pokebattler</a></div>`;
     wrap.innerHTML = html;
