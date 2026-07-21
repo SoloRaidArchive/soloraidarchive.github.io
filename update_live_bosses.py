@@ -36,7 +36,7 @@ except ImportError:
     print("Missing dependency. Install with: pip install requests")
     sys.exit(1)
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent
 POKEBATTLER_API_URL = "https://fight.pokebattler.com/raids"
 POKEBATTLER_WEB_URL = "https://www.pokebattler.com/raids"
 
