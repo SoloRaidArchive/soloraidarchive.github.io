@@ -230,6 +230,14 @@ def main():
     dates_by_name = fetch_boss_dates_from_website()
     now = datetime.now()
 
+    def date_only(date_str):
+        """'Jul 26, 2026 10:00 AM' -> 'Jul 26, 2026' - drops the time so blocks that only
+        differ by hour merge into one."""
+        if not date_str:
+            return None
+        m = re.match(r"^([A-Za-z]+ \d+, \d+)", date_str)
+        return m.group(1) if m else date_str
+
     results = []
     seen = set()
     for name in current_names:
@@ -238,18 +246,28 @@ def main():
             continue
         info = known_bosses[key]
         start_date, end_date = dates_by_name.get(key, (None, None))
-
-        # If we found a date window for this boss, actually check whether "now" falls
-        # inside it - the API's cp==0 signal tells us a raid slot is real/verified, but
-        # NOT whether that slot's window has started yet. Without this check, a boss
-        # scheduled for a future date (e.g. a one-day GO Fest slot on the 26th, when
-        # today is the 20th) would incorrectly show up as "currently active" - this is
-        # exactly what happened with Zamazenta Hero.
         start_dt = parse_pokebattler_datetime(start_date)
         end_dt = parse_pokebattler_datetime(end_date)
-        if start_dt and now < start_dt:
-            print(f"  skipping {name}: scheduled to start {start_date}, hasn't begun yet")
+
+        # Classify BEFORE filtering, since the two categories need different treatment
+        # for "hasn't started yet": a single calendar day (start == end) is an Event -
+        # GO Fest makeup days, Community Day raids, etc, always short one-day windows.
+        # Anything spanning multiple days, or with no matched date, is the standard
+        # Monthly Rotation (usually 1-2 weeks).
+        category = "event" if (start_date and date_only(start_date) == date_only(end_date)) else "rotation"
+
+        # A future-dated Event (like Zamazenta Hero's one-off July 26 slot, found while
+        # today is the 20th) should NOT show yet - that's the original Zamazenta bug.
+        # But a future-dated ROTATION window (like Solgaleo's Jul 22-28 slot, found while
+        # today is the 20th) SHOULD still show - the entire point of the rotation row is
+        # to surface the current and next-up rotation ahead of time. Applying the "hasn't
+        # started" check to rotation bosses too would silently empty out that whole row,
+        # since a rotation window is *expected* to often start a few days in the future.
+        if category == "event" and start_dt and now < start_dt:
+            print(f"  skipping {name}: one-off event scheduled to start {start_date}, hasn't begun yet")
             continue
+        # An already-ended window is stale regardless of category, so this check applies
+        # to both.
         if end_dt and now > end_dt:
             print(f"  skipping {name}: window ended {end_date}, already over")
             continue
@@ -259,23 +277,16 @@ def main():
             "name": name,
             "startDate": start_date,
             "endDate": end_date,
+            "category": category,
             "archivePage": info["archivePage"],
             "difficulty": info["difficulty"],
             "weather": info["weather"],
         })
 
-    def date_only(date_str):
-        """'Jul 26, 2026 10:00 AM' -> 'Jul 26, 2026' - drops the time so blocks that only
-        differ by hour merge into one."""
-        if not date_str:
-            return None
-        m = re.match(r"^([A-Za-z]+ \d+, \d+)", date_str)
-        return m.group(1) if m else date_str
-
     grouped = {}
     order = []
     for r in results:
-        key = (date_only(r["startDate"]), date_only(r["endDate"]))
+        key = (date_only(r["startDate"]), date_only(r["endDate"]), r["category"])
         if key not in grouped:
             grouped[key] = []
             order.append(key)
@@ -286,10 +297,15 @@ def main():
             "weather": r["weather"],
         })
 
-    date_groups = [
-        {"startDate": key[0], "endDate": key[1], "bosses": grouped[key]}
-        for key in order
-    ]
+    date_groups = []
+    for key in order:
+        start, end, category = key
+        date_groups.append({
+            "startDate": start,
+            "endDate": end,
+            "category": category,
+            "bosses": grouped[key],
+        })
 
     output = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
@@ -303,7 +319,7 @@ def main():
     print(f"Wrote {len(results)} soloable boss(es) across {len(date_groups)} date group(s) to {out_path}")
     for g in date_groups:
         names = ", ".join(b["name"] for b in g["bosses"])
-        print(f"  [{g['startDate'] or 'no date match'} -> {g['endDate']}]: {names}")
+        print(f"  [{g['category']}] [{g['startDate'] or 'no date match'} -> {g['endDate']}]: {names}")
 
 
 if __name__ == "__main__":

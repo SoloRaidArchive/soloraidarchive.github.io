@@ -124,19 +124,26 @@
 
   .archive-pill-row{ display:flex; flex-direction:column; gap:10px; }
   .archive-pill{
-    width:100%; display:flex; align-items:center; gap:12px;
+    width:100%; display:flex; align-items:center; gap:14px;
     background: var(--bg1); border: 1.5px solid var(--border); border-radius: 999px;
-    padding: 12px 18px 12px 10px; text-decoration:none; color: var(--text);
-    font-family:'Manrope', sans-serif; font-weight:700; font-size:15px;
+    padding: 16px 20px 16px 12px; text-decoration:none; color: var(--text);
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:17px;
     transition: transform .12s ease, border-color .12s ease;
   }
   .archive-pill:hover{ transform: translateY(-2px); border-color: var(--blue); }
   .archive-pill-icon{
-    flex-shrink:0; width:36px; height:36px; border-radius:50%;
-    background: var(--card); display:flex; align-items:center; justify-content:center;
-    font-size:17px; overflow:hidden;
+    flex-shrink:0; width:48px; height:48px; border-radius:50%;
+    background: var(--bg1); display:flex; align-items:center; justify-content:center;
+    font-size:20px; overflow:hidden;
   }
-  .archive-pill-icon img{ width:100%; height:100%; object-fit:contain; padding:4px; }
+  .archive-pill-icon img{ width:100%; height:100%; object-fit:contain; padding:5px; }
+  .archive-pill-label{ flex:1; }
+  .archive-pill-pct{
+    flex-shrink:0; font-family:'Inter', sans-serif; font-size:12px; font-weight:800;
+    color: var(--blue-dark); background: var(--card); padding:5px 12px; border-radius:999px;
+  }
+  .archive-pill-pct.done{ color:#1f9d5c; }
+  [data-theme="dark"] .archive-pill-pct.done{ color:#5fe0a0; }
 
   footer{
     text-align:center; padding: 28px 24px 24px; font-size:12px; color: var(--text-dim); font-weight:600;
@@ -169,6 +176,10 @@
     .archive-card, .resource-link{ min-height:0; }
   }
 
+  .live-boss-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; color: var(--text);
+    margin:4px 0 8px; padding-bottom:4px; border-bottom:2px solid var(--border);
+  }
   .live-boss-group{ margin:0 0 10px; }
   .live-boss-group-header{
     font-size:11px; font-weight:800; color: var(--text-muted); text-align:left;
@@ -274,20 +285,24 @@
   <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">Raids</div>
     <div class="archive-pill-row">
       <a class="archive-pill" href="tier4-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.jpg" alt="Mega egg" onerror="this.parentElement.textContent='🛠️'"></div>
-        <span>Mega</span>
+        <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🛠️'"></div>
+        <span class="archive-pill-label">Mega</span>
+        <span class="archive-pill-pct done">100% done</span>
       </a>
       <a class="archive-pill" href="tier5-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.jpg" alt="Legendary egg" onerror="this.parentElement.textContent='🎯'"></div>
-        <span>Legendary</span>
+        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🎯'"></div>
+        <span class="archive-pill-label">Legendary</span>
+        <span class="archive-pill-pct">73% done</span>
       </a>
       <a class="archive-pill" href="tier5-ae-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.jpg" alt="Legendary egg" onerror="this.parentElement.textContent='⚡'"></div>
-        <span>Legendary AE</span>
+        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='⚡'"></div>
+        <span class="archive-pill-label">Legendary AE</span>
+        <span class="archive-pill-pct">73% done</span>
       </a>
       <a class="archive-pill" href="tier6-elite-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.jpg" alt="Mega Legendary egg" onerror="this.parentElement.textContent='👑'"></div>
-        <span>Mega Legendary &amp; Elite</span>
+        <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='👑'"></div>
+        <span class="archive-pill-label">Mega Legendary &amp; Elite</span>
+        <span class="archive-pill-pct">10% done</span>
       </a>
     </div>
 
@@ -782,7 +797,8 @@ async function loadLiveBosses(){
     const wrap = document.getElementById("liveBossWrap");
     if(!wrap) return;
     const MAX_SHOWN = 5;
-    wrap.innerHTML = groups.map(group => {
+
+    function renderGroup(group){
       const shown = group.bosses.slice(0, MAX_SHOWN);
       const overflowCount = group.bosses.length - shown.length;
       return `
@@ -798,7 +814,22 @@ async function loadLiveBosses(){
           </a>`).join("")}</div>
         ${overflowCount > 0 ? `<a class="live-boss-more" href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">See all ${group.bosses.length} raids on Pokebattler &rarr;</a>` : ""}
       </div>`;
-    }).join("") + `<div class="live-boss-credit">Boss availability data from <a href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">Pokebattler</a></div>`;
+    }
+
+    const eventGroups = groups.filter(g => g.category === "event");
+    const rotationGroups = groups.filter(g => g.category !== "event");
+
+    let html = "";
+    if(eventGroups.length){
+      html += `<div class="live-boss-section-label">Event raids</div>`;
+      html += eventGroups.map(renderGroup).join("");
+    }
+    if(rotationGroups.length){
+      html += `<div class="live-boss-section-label">Monthly rotation</div>`;
+      html += rotationGroups.map(renderGroup).join("");
+    }
+    html += `<div class="live-boss-credit">Boss availability data from <a href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">Pokebattler</a></div>`;
+    wrap.innerHTML = html;
   }catch(e){
     console.error("Could not load live boss data:", e);
   }
