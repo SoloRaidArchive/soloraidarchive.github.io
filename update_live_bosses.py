@@ -246,28 +246,24 @@ def main():
             continue
         info = known_bosses[key]
         start_date, end_date = dates_by_name.get(key, (None, None))
-        start_dt = parse_pokebattler_datetime(start_date)
         end_dt = parse_pokebattler_datetime(end_date)
 
-        # Classify BEFORE filtering, since the two categories need different treatment
-        # for "hasn't started yet": a single calendar day (start == end) is an Event -
+        # Classify BEFORE filtering: a single calendar day (start == end) is an Event -
         # GO Fest makeup days, Community Day raids, etc, always short one-day windows.
         # Anything spanning multiple days, or with no matched date, is the standard
         # Monthly Rotation (usually 1-2 weeks).
         category = "event" if (start_date and date_only(start_date) == date_only(end_date)) else "rotation"
 
-        # A future-dated Event (like Zamazenta Hero's one-off July 26 slot, found while
-        # today is the 20th) should NOT show yet - that's the original Zamazenta bug.
-        # But a future-dated ROTATION window (like Solgaleo's Jul 22-28 slot, found while
-        # today is the 20th) SHOULD still show - the entire point of the rotation row is
-        # to surface the current and next-up rotation ahead of time. Applying the "hasn't
-        # started" check to rotation bosses too would silently empty out that whole row,
-        # since a rotation window is *expected* to often start a few days in the future.
-        if category == "event" and start_dt and now < start_dt:
-            print(f"  skipping {name}: one-off event scheduled to start {start_date}, hasn't begun yet")
-            continue
-        # An already-ended window is stale regardless of category, so this check applies
-        # to both.
+        # NOTE: there is deliberately no "hasn't started yet" exclusion here anymore. An
+        # earlier version of this script excluded future-dated Events specifically,
+        # reasoning that a boss like Zamazenta Hero shouldn't show before its July 26 slot
+        # began. That was solving the wrong problem: the actual Zamazenta bug was that
+        # date-matching FAILED for it (a hyphen mismatch, since fixed), so it fell into the
+        # undated "currently active" bucket with no context at all. Now that date-matching
+        # works correctly, a boss with a real future date is accurately labeled as such
+        # (e.g. a group header reading "Jul 26") - excluding it just hides real, correctly
+        # -dated upcoming info, which is exactly what happened here: it silently emptied
+        # the entire "Event raids" row the one time an event was more than a few days out.
         if end_dt and now > end_dt:
             print(f"  skipping {name}: window ended {end_date}, already over")
             continue
