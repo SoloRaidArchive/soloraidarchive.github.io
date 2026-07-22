@@ -258,9 +258,6 @@
   .boss-search-empty{
     font-size:12px; font-weight:600; color: var(--text-dim); text-align:center; padding:10px 0;
   }
-  .Author-list {
-  font-size: 24px; 
-}
 </style>
 </head>
 <body>
@@ -270,13 +267,14 @@
 <header>
   <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
   <h1>Solo Raid Archive</h1>
-  <p class="intro">Grounded in observed data, mathematics, and research.</p>
+  <p class="intro">Solo raid research and reference grounded in observed data, mathematics, and records.</p>
+  <div class="credit-line">Created by Spiritedbloom</div>
 </header>
 
 <div class="boss-search-wrap">
   <div class="boss-search-box">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input id="bossSearch" type="text" placeholder="Search a boss" autocomplete="off">
+    <input id="bossSearch" type="text" placeholder="Find a specific boss across every archive…" autocomplete="off">
   </div>
   <div id="bossSearchResults" class="boss-search-results"></div>
 </div>
@@ -289,7 +287,7 @@
   </div>
 
   <div class="archive-list">
-  <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">All Soloable Raids</div>
+  <div class="patch-title" style="font-size:16px; margin-bottom:-4px;">Raids</div>
     <div class="archive-pill-row">
       <a class="archive-pill" href="tier4-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🛠️'"></div>
@@ -442,14 +440,12 @@
 </div>
 
 <footer>
-  Special appreciation to X.Rage7243, InfluenceYT, CreatorBeastGD (PokeChespin), Celandro (Pokebattler), itsTanah
+  Special thanks to X.Rage7243, Jay258, and members of the PoGoRaids Discord for helping upkeep the sheet.
+  Pokémon icons from JorMxDOS (DeviantArt). Main author: SpiritedBloom, u/Cookieblobrs.
   <div class="credits-list">
     Contributors: Boltblades12, Lazyboy0337, Jay258, itsTanah, DarKnight, Nikaidou_Shinku, x.Rage7243, Spiritedbloom,
     theAaronGaming, Mission-Cancel, Makoto, Storm (JP), FreedomxHei8 (JP), LatiosUltima, HowBoutDemAp1es, DJShivaShivaUA,
-    Pogo_Raids_Gameplay (PoGoRaids Disc), PokeRaidRetos, InfluenceYT, 3v4battler, Corneal Hook, Ch1hu, CometYTT, HwangOkHone, hehexdlol, Alien13, HydreigonTheBest
-  </div>
-  <div class="Author-list">
-    Main Author: SpiritedBloom, u/Cookieblobrs
+    Pogo_Raids_Gameplay (PoGoRaids Disc), PokeRaidRetos, 3v4battler, Corneal Hook, Ch1hu, CometYTT, HwangOkHone, hehexdlol, Alien13
   </div>
 </footer>
 
@@ -870,7 +866,7 @@ async function loadLiveBosses(){
 
     let html = "";
     if(eventGroups.length){
-      html += `<div class="live-boss-section-label">Event Pool</div>`;
+      html += `<div class="live-boss-section-label">Event raids</div>`;
       html += eventGroups.map(renderGroup).join("");
     }
     if(rotationGroups.length){
@@ -887,7 +883,7 @@ function setLiveBossHeading(){
   const heading = document.getElementById("liveBossHeading");
   if(!heading) return;
   const monthName = new Date().toLocaleString("en-US", { month: "long" });
-  heading.textContent = `Soloable ${monthName} Raids`;
+  heading.textContent = `${monthName} Raids`;
 }
 setLiveBossHeading();
 loadLiveBosses();
