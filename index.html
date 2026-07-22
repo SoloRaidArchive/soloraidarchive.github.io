@@ -816,6 +816,18 @@ async function loadLiveBosses(){
     const isMobile = window.innerWidth <= 820;
     const MAX_SHOWN = isMobile ? 6 : 38;
 
+    function bossSlug(name){
+      return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    }
+    function bossHref(boss){
+      const tierMatch = (boss.difficulty || "").match(/[\d.]+/);
+      const params = new URLSearchParams();
+      if(boss.weather) params.set("weather", boss.weather.toLowerCase());
+      if(tierMatch) params.set("tier", tierMatch[0]);
+      const query = params.toString();
+      return `${boss.archivePage}${query ? "?" + query : ""}#boss-${bossSlug(boss.name)}`;
+    }
+
     function renderGroup(group){
       const shown = group.bosses.slice(0, MAX_SHOWN);
       const overflowCount = group.bosses.length - shown.length;
@@ -823,7 +835,7 @@ async function loadLiveBosses(){
       <div class="live-boss-group">
         <div class="live-boss-group-header">${formatGroupHeader(group.startDate, group.endDate)}</div>
         <div class="live-boss-row">${shown.map(boss => `
-          <a class="live-boss-item" href="${boss.archivePage}" title="${boss.name}">
+          <a class="live-boss-item" href="${bossHref(boss)}" title="${boss.name}">
             <div class="live-boss-icon"><img src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="this.style.display='none'"></div>
             <div class="live-boss-meta">
               <span class="live-boss-star">${boss.difficulty}</span>
@@ -851,7 +863,7 @@ async function loadLiveBosses(){
         return new Date(a.startDate) - new Date(b.startDate);
       });
       return `<div class="live-boss-row">${flat.map(boss => `
-        <a class="live-boss-item" href="${boss.archivePage}" title="${boss.name}">
+        <a class="live-boss-item" href="${bossHref(boss)}" title="${boss.name}">
           <div class="live-boss-icon"><img src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="this.style.display='none'"></div>
           <div class="live-boss-meta">
             <span class="live-boss-star">${boss.difficulty}</span>
