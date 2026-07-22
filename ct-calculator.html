@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Catch Tank Calculator</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
 <meta name="description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, and Catch Tank roles in Pokémon GO solo raids.">
 <link rel="canonical" href="https://soloraidarchive.github.io/ct-calculator.html">
 <meta property="og:type" content="website">
@@ -371,7 +375,7 @@
     <div class="vs-columns">
       <!-- PLAYER COLUMN -->
       <div class="vs-col">
-        <div class="vs-col-title">Your Pokémon</div>
+        <div class="vs-col-title">🧢 Your Pokémon</div>
         <div class="field-grid compact">
           <div class="field wide">
             <label>Pokémon</label>
@@ -448,7 +452,7 @@
 
       <!-- BOSS COLUMN -->
       <div class="vs-col">
-        <div class="vs-col-title">Raid Boss</div>
+        <div class="vs-col-title">👑 Raid Boss</div>
         <div class="field-grid compact">
           <div class="field wide">
             <label>Raid Boss</label>
@@ -558,7 +562,7 @@
       <div class="mod-cell">
         <label>Weather</label>
         <select id="weatherSelect">
-          <option value="">None</option>
+          <option value="extreme">Extreme</option>
           <option value="sunny">Sunny / Clear</option>
           <option value="partlycloudy">Partly Cloudy</option>
           <option value="cloudy">Cloudy</option>
@@ -2219,7 +2223,7 @@ function runCalculation(){
       pokemonName: pkmnName, level, ivAtk, ivDef, ivHp,
       playerFM: fm.n, playerCM: cm.n,
       zacianBlade: document.getElementById("zacianBlade").checked,
-      weather: document.getElementById("weatherSelect").value || "None",
+      weather: document.getElementById("weatherSelect").value,
       bossFM: bossFMMove.n, bossCM: bossCMMove.n,
       shieldAE: document.getElementById("shieldAE").checked,
       dodgeCM, dodgeFM,
