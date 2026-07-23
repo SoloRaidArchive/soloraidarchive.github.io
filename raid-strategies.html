@@ -112,6 +112,28 @@
   }
   .top-nav-link:hover{ transform: translateY(-2px); border-color: var(--accent); color: var(--accent-dark); }
   .top-nav-link.current{ background: var(--accent); color:#fff; border-color: var(--accent); }
+  .popular-badge{
+    display:inline-block; font-size:9px; font-weight:800; text-transform:uppercase;
+    letter-spacing:0.03em; color:#fff; background: var(--blue-dark, var(--accent));
+    padding:2px 6px; border-radius:999px; margin-left:2px; vertical-align:1px;
+  }
+  .top-nav-link.featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a) !important;
+    background-origin: padding-box, border-box !important;
+    background-clip: padding-box, border-box !important;
+    background-size: 100% 100%, 300% 100% !important;
+    animation: shineBorder 4s linear infinite;
+  }
+  .top-nav-link.featured.current{
+    background-image: linear-gradient(var(--accent), var(--accent)), linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a) !important;
+  }
+  @keyframes shineBorder{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
   .container{ max-width: 800px; margin: 0 auto; padding: 20px 24px 45px; }
 
   .section-block{ margin-bottom: 40px; }
@@ -185,13 +207,13 @@
 <div class="top-nav-wrap">
   <a class="home-link" href="index.html">← Back to Home</a>
   <div class="top-nav-row">
-    <a href="meta-battle-parties.html" class="top-nav-link">Battle Parties</a>
+    <a href="meta-battle-parties.html" class="top-nav-link">Meta Battle Parties</a>
     <a href="raid-strategies.html" class="top-nav-link current">Strategies</a>
     <a href="move-data.html" class="top-nav-link">Move Data</a>
     <a href="pokemon-stats.html" class="top-nav-link">Pokémon Stats</a>
-    <a href="ct-calculator.html" class="top-nav-link">CT Simulator</a>
-    <a href="ct-database.html" class="top-nav-link">CT Database</a>
-    <a href="research.html" class="top-nav-link">Most Used Raiders</a>
+    <a href="ct-calculator.html" class="top-nav-link">Catch Tank Calculator</a>
+    <a href="ct-database.html" class="top-nav-link featured">Viable Catch Tanks</a>
+    <a href="research.html" class="top-nav-link featured">Most Used Raiders</a>
   </div>
   <div class="nav-spacer"></div>
 </div>

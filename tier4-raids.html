@@ -138,6 +138,28 @@
   }
   .nav-dropdown-item:hover{ background: var(--bg1); color: var(--blue-dark); }
   .nav-dropdown-item.current{ background: var(--blue); color:#fff; }
+  .popular-badge{
+    display:inline-block; font-size:9px; font-weight:800; text-transform:uppercase;
+    letter-spacing:0.03em; color:#fff; background: var(--blue-dark);
+    padding:2px 6px; border-radius:999px; margin-left:4px; vertical-align:1px;
+  }
+  .nav-dropdown-item.featured{
+    border: 2px solid transparent !important; border-radius:9px !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a) !important;
+    background-origin: padding-box, border-box !important;
+    background-clip: padding-box, border-box !important;
+    background-size: 100% 100%, 300% 100% !important;
+    animation: shineBorder 4s linear infinite;
+  }
+  .nav-dropdown-item.featured.current{
+    background-image: linear-gradient(var(--blue), var(--blue)), linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a) !important;
+  }
+  @keyframes shineBorder{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
   .top-nav-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
   .top-nav-link{
     display:inline-flex; align-items:center; gap:5px;
@@ -148,6 +170,28 @@
   }
   .top-nav-link:hover{ transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark); }
   .top-nav-link.current{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .popular-badge{
+    display:inline-block; font-size:9px; font-weight:800; text-transform:uppercase;
+    letter-spacing:0.03em; color:#fff; background: var(--blue-dark);
+    padding:2px 6px; border-radius:999px; margin-left:2px; vertical-align:1px;
+  }
+  .top-nav-link.featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a) !important;
+    background-origin: padding-box, border-box !important;
+    background-clip: padding-box, border-box !important;
+    background-size: 100% 100%, 300% 100% !important;
+    animation: shineBorder 4s linear infinite;
+  }
+  .top-nav-link.featured.current{
+    background-image: linear-gradient(var(--blue), var(--blue)), linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a) !important;
+  }
+  @keyframes shineBorder{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
 
   .role-legend{ display:flex; flex-direction:column; gap:12px; }
   .role-legend-item{ display:flex; flex-direction:column; gap:5px; }
@@ -557,13 +601,13 @@
   <div class="nav-dropdown">
     <button type="button" class="nav-dropdown-trigger" onclick="toggleNavDropdown(event, 'navDropdownPanel')">Research &amp; Tools ▾</button>
     <div class="nav-dropdown-panel" id="navDropdownPanel">
-      <a href="meta-battle-parties.html" class="nav-dropdown-item">Battle Parties</a>
+      <a href="meta-battle-parties.html" class="nav-dropdown-item">Meta Battle Parties</a>
       <a href="raid-strategies.html" class="nav-dropdown-item">Strategies</a>
       <a href="move-data.html" class="nav-dropdown-item">Move Data</a>
       <a href="pokemon-stats.html" class="nav-dropdown-item">Pokémon Stats</a>
-      <a href="ct-calculator.html" class="nav-dropdown-item">CT Simulator</a>
-      <a href="ct-database.html" class="nav-dropdown-item">CT Database</a>
-      <a href="research.html" class="nav-dropdown-item">Most Used Raiders</a>
+      <a href="ct-calculator.html" class="nav-dropdown-item">Catch Tank Calculator</a>
+      <a href="ct-database.html" class="nav-dropdown-item featured">Viable Catch Tanks</a>
+      <a href="research.html" class="nav-dropdown-item featured">Most Used Raiders</a>
     </div>
   </div>
 </div>

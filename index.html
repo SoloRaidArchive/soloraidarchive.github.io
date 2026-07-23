@@ -36,21 +36,18 @@
     display:flex; flex-direction:column;
   }
 
-  header{ padding: 70px 24px 8px; text-align:center; }
-  .badge-row{ display:flex; justify-content:center; gap:8px; margin-bottom:16px; }
-  .pokeball{
-    width:22px; height:22px; border-radius:50%;
-    background: linear-gradient(180deg, var(--red) 50%, #fff 50%);
-    border: 2px solid #2d3142; position:relative;
+  header{ padding: 8px 24px 8px; text-align:center; }
+  .header-nav-row{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    gap:14px; max-width:1180px; margin:24px auto 0; padding:0 24px 14px;
+    border-bottom:1.5px solid var(--border);
   }
-  .pokeball::after{
-    content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:8px; height:8px; border-radius:50%; background:#fff; border:2px solid #2d3142;
+  .site-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px;
+    color: var(--blue-dark); margin:0; display:flex; align-items:center; gap:8px;
+    white-space:nowrap;
   }
-  h1{
-    font-family:'Manrope', sans-serif; font-weight:800; font-size: clamp(34px, 6vw, 54px);
-    margin: 0 0 6px; color: var(--blue-dark); text-shadow: 3px 3px 0 rgba(61,157,255,0.15);
-  }
+  .site-title-icon{ width:20px; height:20px; object-fit:contain; }
   .footer-credit{
     font-family:'Inter', sans-serif; font-weight:800; font-size:19px;
     color: var(--text); margin-bottom: 10px;
@@ -164,13 +161,10 @@
     --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
     --blue: #5aa9ff; --blue-dark: #8cc7ff;
   }
-  [data-theme="dark"] .pokeball{ border-color:#eef1f7; }
-  [data-theme="dark"] .pokeball::after{ background:#1c2030; border-color:#eef1f7; }
   [data-theme="dark"] h1{ text-shadow: 3px 3px 0 rgba(90,169,255,0.2); }
 
   .top-nav{
-    display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
-    max-width:900px; margin:24px auto 18px; padding:0 24px 14px; border-bottom:1.5px solid var(--border);
+    display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; flex:1;
   }
   .top-nav a{
     font-family:'Manrope', sans-serif; font-weight:700; font-size:13px; color: var(--text);
@@ -178,6 +172,11 @@
     padding:8px 16px; text-decoration:none; transition: transform .12s ease, border-color .12s ease;
   }
   .top-nav a:hover{ transform: translateY(-2px); border-color: var(--blue); color: var(--blue-dark); }
+  .popular-badge{
+    display:inline-block; font-size:9px; font-weight:800; text-transform:uppercase;
+    letter-spacing:0.03em; color:#fff; background: var(--blue-dark);
+    padding:2px 6px; border-radius:999px; margin-left:4px; vertical-align:1px;
+  }
   .top-nav-featured{
     border: 2px solid transparent !important;
     background-image:
@@ -191,10 +190,6 @@
   @keyframes shineBorder{
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
-  }
-  .top-nav-legend{
-    text-align:center; font-size:11px; font-weight:600; color: var(--text-dim);
-    margin:-10px auto 18px; max-width:900px;
   }
 
   .theme-toggle{
@@ -296,17 +291,21 @@
 
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
-<nav class="top-nav">
-  <a href="research.html" class="top-nav-featured">Most Used Raiders*</a>
-  <a href="ct-database.html" class="top-nav-featured">Viable Catch Tanks*</a>
-  <a href="meta-battle-parties.html">Meta Battle Parties</a>
-  <a href="ct-calculator.html">Catch Tank Calculator</a>
-</nav>
-<div class="top-nav-legend">*Most popular pages</div>
+<div class="header-nav-row">
+  <h1 class="site-title">
+    <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon" onerror="this.style.display='none'">
+    Solo Raid Archive
+    <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon" onerror="this.style.display='none'">
+  </h1>
+  <nav class="top-nav">
+    <a href="research.html" class="top-nav-featured">Most Used Raiders</a>
+    <a href="ct-database.html" class="top-nav-featured">Viable Catch Tanks</a>
+    <a href="meta-battle-parties.html">Meta Battle Parties</a>
+    <a href="ct-calculator.html">Catch Tank Calculator</a>
+  </nav>
+</div>
 
 <header>
-  <div class="badge-row"><div class="pokeball"></div><div class="pokeball"></div><div class="pokeball"></div></div>
-  <h1>Solo Raid Archive</h1>
   <p class="intro">Grounded in observed data, mathematics, and research.</p>
 </header>
 
