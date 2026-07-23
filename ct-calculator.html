@@ -23,7 +23,7 @@
   :root{
     --bg1: #eaf4ff; --bg2: #fff7e8;
     --card: #ffffff; --border: #e7edf5;
-    --text: #2d3142; --text-muted: #6b7280; --text-dim: #9aa3b2;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
     --blue: #3d9dff; --blue-dark: #2b7fd6;
     --red: #ff5b5b; --yellow: #ffc94a; --green: #4cd08a; --purple: #9b7bf0;
   }
@@ -94,8 +94,6 @@
 
   .check-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-top:14px; }
   .check-grid.compact{ grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap:8px; }
-  .check-grid.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:8px; }
-  @media (max-width:560px){ .check-grid.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
   .check-item{
     display:flex; align-items:center; gap:6px; background: var(--bg1); border:2px solid var(--border);
     border-radius:9px; padding:7px 9px; font-size:11.5px; font-weight:700; cursor:pointer;
@@ -228,10 +226,32 @@
   }
 
   .mod-row{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; }
+  .mod-consolidated-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; align-items:stretch; }
+  .mod-consolidated-grid .check-item{ height:100%; box-sizing:border-box; }
+  .mod-consolidated-grid .mod-cell{
+    background: var(--bg1); border:2px solid var(--border); border-radius:9px;
+    padding:7px 9px; gap:2px; height:100%; box-sizing:border-box; justify-content:center;
+  }
+  [data-theme="dark"] .mod-consolidated-grid .mod-cell{ background:#161a28; }
+  .mod-consolidated-grid .mod-cell label{ font-size:10px; }
+  .mod-consolidated-grid .mod-cell select{
+    background:none; border:none; padding:0; font-size:12.5px;
+  }
+  @media (max-width:700px){ .mod-consolidated-grid{ grid-template-columns: repeat(2, 1fr); } }
+  .mod-details{ margin-top:14px; }
+  .mod-summary{
+    cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px;
+    font-size:11.5px; font-weight:800; color: var(--text-dim); text-transform:uppercase;
+    letter-spacing:0.05em; padding:8px 10px; background: var(--bg1); border-radius:8px;
+    border:1.5px solid var(--border);
+  }
+  .mod-summary::-webkit-details-marker{ display:none; }
+  .mod-summary::before{ content:"▸"; font-size:12px; transition: transform .12s ease; }
+  .mod-details[open] .mod-summary::before{ transform: rotate(90deg); }
+  .mod-summary-text{ font-weight:700; text-transform:none; letter-spacing:normal; color: var(--text-muted); flex:1; }
+  .mod-details-body{ padding:12px 2px 0; }
   .mod-row.compact{ grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:10px; }
   .mod-row.narrow{ grid-template-columns: repeat(auto-fit, minmax(140px, 200px)); gap:12px; }
-  .mod-row.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:10px; }
-  @media (max-width:560px){ .mod-row.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
   .mod-cell{ display:flex; flex-direction:column; gap:5px; }
   .mod-cell label{ font-size:10px; font-weight:800; color: var(--text-dim); }
   .mod-cell select{
@@ -400,26 +420,26 @@
         <div class="vs-col-title">🧢 Your Pokémon</div>
         <div class="field-grid compact">
           <div class="field wide">
-            <label>Pokémon</label>
+            <label for="pokemonName">Pokémon</label>
             <input id="pokemonName" placeholder="e.g. Shadow Honchkrow" autocomplete="off">
           </div>
           <div class="field">
-            <label>Level (40–51)</label>
+            <label for="pokemonLevel">Level (40–51)</label>
             <input id="pokemonLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50">
             <div class="field-error" id="pokemonLevelError"></div>
           </div>
           <div class="field">
-            <label>Atk IV</label>
+            <label for="ivAtk">Atk IV</label>
             <input id="ivAtk" type="text" inputmode="numeric" value="15" placeholder="0–15">
             <div class="field-error" id="ivAtkError"></div>
           </div>
           <div class="field">
-            <label>Def IV</label>
+            <label for="ivDef">Def IV</label>
             <input id="ivDef" type="text" inputmode="numeric" value="15" placeholder="0–15">
             <div class="field-error" id="ivDefError"></div>
           </div>
           <div class="field">
-            <label>HP IV</label>
+            <label for="ivHp">HP IV</label>
             <input id="ivHp" type="text" inputmode="numeric" value="15" placeholder="0–15">
             <div class="field-error" id="ivHpError"></div>
           </div>
@@ -429,13 +449,13 @@
         <div class="subhead">Moves</div>
         <div class="field-grid compact">
           <div class="field">
-            <label>Fast Move</label>
+            <label for="playerFM_select">Fast Move</label>
             <select id="playerFM_select" onchange="onMoveSelectChange('playerFM')"></select>
             <input type="text" id="playerFM_custom" class="custom-move-select" list="playerFM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('playerFM')"><datalist id="playerFM_customList"></datalist>
             <input type="hidden" id="playerFM" value="">
           </div>
           <div class="field">
-            <label>Charge Move</label>
+            <label for="playerCM_select">Charge Move</label>
             <select id="playerCM_select" onchange="onMoveSelectChange('playerCM')"></select>
             <input type="text" id="playerCM_custom" class="custom-move-select" list="playerCM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('playerCM')"><datalist id="playerCM_customList"></datalist>
             <input type="hidden" id="playerCM" value="">
@@ -443,33 +463,37 @@
         </div>
         <div id="playerMovePreview"></div>
 
-        <div class="subhead">Auto-Detected <span class="auto-badge">editable</span></div>
-        <div class="mod-row narrow">
-          <div class="mod-cell">
-            <label>Charge Move Eff.</label>
-            <select id="effCM">
-              <option value="0.39">0.39x — Immune</option>
-              <option value="0.625">0.625x — Not Eff.</option>
-              <option value="1" selected>1x — Effective</option>
-              <option value="1.6">1.6x — Super Eff.</option>
-              <option value="2.56">2.56x — V. Super Eff.</option>
-            </select>
+        <details class="mod-details" id="playerModDetails">
+          <summary class="mod-summary">Type matchup <span class="mod-summary-text" id="playerModSummary">Effective · Effective · No STAB</span></summary>
+          <div class="mod-details-body">
+            <div class="mod-row narrow">
+              <div class="mod-cell">
+                <label for="effCM">Charge Move Eff.</label>
+                <select id="effCM">
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+              <div class="mod-cell">
+                <label for="effFM">Fast Move Eff.</label>
+                <select id="effFM">
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
+              <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
+              <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
+            </div>
           </div>
-          <div class="mod-cell">
-            <label>Fast Move Eff.</label>
-            <select id="effFM">
-              <option value="0.39">0.39x — Immune</option>
-              <option value="0.625">0.625x — Not Eff.</option>
-              <option value="1" selected>1x — Effective</option>
-              <option value="1.6">1.6x — Super Eff.</option>
-              <option value="2.56">2.56x — V. Super Eff.</option>
-            </select>
-          </div>
-        </div>
-        <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
-          <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
-          <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
-        </div>
+        </details>
       </div>
 
       <!-- BOSS COLUMN -->
@@ -477,11 +501,11 @@
         <div class="vs-col-title">👑 Raid Boss</div>
         <div class="field-grid compact">
           <div class="field wide">
-            <label>Raid Boss</label>
+            <label for="bossName">Raid Boss</label>
             <input id="bossName" placeholder="e.g. Great Tusk" autocomplete="off">
           </div>
           <div class="field">
-            <label>Tier</label>
+            <label for="bossTier">Tier</label>
             <select id="bossTier">
               <option value="0.79">T4/T5/T6/T7</option>
               <option value="1">Elite</option>
@@ -493,13 +517,13 @@
         <div class="subhead">Moves</div>
         <div class="field-grid compact">
           <div class="field">
-            <label>Boss Fast Move</label>
+            <label for="bossFM_select">Boss Fast Move</label>
             <select id="bossFM_select" onchange="onMoveSelectChange('bossFM')"></select>
             <input type="text" id="bossFM_custom" class="custom-move-select" list="bossFM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('bossFM')"><datalist id="bossFM_customList"></datalist>
             <input type="hidden" id="bossFM" value="">
           </div>
           <div class="field">
-            <label>Boss Charge Move</label>
+            <label for="bossCM_select">Boss Charge Move</label>
             <select id="bossCM_select" onchange="onMoveSelectChange('bossCM')"></select>
             <input type="text" id="bossCM_custom" class="custom-move-select" list="bossCM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('bossCM')"><datalist id="bossCM_customList"></datalist>
             <input type="hidden" id="bossCM" value="">
@@ -507,38 +531,42 @@
         </div>
         <div id="bossMovePreview"></div>
 
-        <div class="subhead">Auto-Detected <span class="auto-badge">editable</span></div>
-        <div class="mod-row narrow">
-          <div class="mod-cell">
-            <label>Charge Move → You</label>
-            <select id="effBossCM">
-              <option value="0.24375">0.24375x — Imm/NE</option>
-              <option value="0.39">0.39x — Immune</option>
-              <option value="0.39625">0.39625x — NE x2</option>
-              <option value="0.625">0.625x — Not Eff.</option>
-              <option value="1" selected>1x — Effective</option>
-              <option value="1.6">1.6x — Super Eff.</option>
-              <option value="2.56">2.56x — V. Super Eff.</option>
-            </select>
+        <details class="mod-details" id="bossModDetails">
+          <summary class="mod-summary">Type matchup <span class="mod-summary-text" id="bossModSummary">Effective · Effective</span></summary>
+          <div class="mod-details-body">
+            <div class="mod-row narrow">
+              <div class="mod-cell">
+                <label for="effBossCM">Charge Move → You</label>
+                <select id="effBossCM">
+                  <option value="0.24375">Immune/Not Eff. x2 — 0.24375x</option>
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.39625">Not Effective x2 — 0.39625x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+              <div class="mod-cell">
+                <label for="effBossFM">Fast Move → You</label>
+                <select id="effBossFM">
+                  <option value="0.24375">Immune/Not Eff. x2 — 0.24375x</option>
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.39625">Not Effective x2 — 0.39625x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-grid" style="grid-template-columns:repeat(3,1fr);">
+              <label class="check-item"><input type="checkbox" id="bossStabCM"> Stab CM</label>
+              <label class="check-item"><input type="checkbox" id="bossStabFM"> Stab FM</label>
+              <label class="check-item"><input type="checkbox" id="shadowDebuff"> Shadow Debuff</label>
+            </div>
           </div>
-          <div class="mod-cell">
-            <label>Fast Move → You</label>
-            <select id="effBossFM">
-              <option value="0.24375">0.24375x — Imm/NE</option>
-              <option value="0.39">0.39x — Immune</option>
-              <option value="0.39625">0.39625x — NE x2</option>
-              <option value="0.625">0.625x — Not Eff.</option>
-              <option value="1" selected>1x — Effective</option>
-              <option value="1.6">1.6x — Super Eff.</option>
-              <option value="2.56">2.56x — V. Super Eff.</option>
-            </select>
-          </div>
-        </div>
-        <div class="check-grid" style="grid-template-columns:repeat(3,1fr);">
-          <label class="check-item"><input type="checkbox" id="bossStabCM"> Stab CM</label>
-          <label class="check-item"><input type="checkbox" id="bossStabFM"> Stab FM</label>
-          <label class="check-item"><input type="checkbox" id="shadowDebuff"> Shadow Debuff</label>
-        </div>
+        </details>
       </div>
     </div>
   </div>
@@ -553,28 +581,9 @@
       </div>
     </div>
 
-    <div class="mod-row fixed-4">
+    <div class="mod-consolidated-grid">
       <div class="mod-cell">
-        <label>Friendship</label>
-        <select id="friendship">
-          <option value="1">None</option>
-          <option value="1.03">Good (1.03x)</option>
-          <option value="1.05">Great (1.05x)</option>
-          <option value="1.07">Ultra (1.07x)</option>
-          <option value="1.10">Best (1.10x)</option>
-          <option value="1.12">Best+Lucky (1.12x)</option>
-        </select>
-      </div>
-      <div class="mod-cell">
-        <label>Primal/Mega Support</label>
-        <select id="primalMega">
-          <option value="1">Inactive</option>
-          <option value="1.1">Support (1.1x)</option>
-          <option value="1.3">Stab (1.3x)</option>
-        </select>
-      </div>
-      <div class="mod-cell">
-        <label># of Charge Moves</label>
+        <label for="numCM"># of Charge Moves</label>
         <select id="numCM">
           <option value="1">1</option>
           <option value="2">2</option>
@@ -582,7 +591,7 @@
         </select>
       </div>
       <div class="mod-cell">
-        <label>Weather</label>
+        <label for="weatherSelect">Weather</label>
         <select id="weatherSelect">
           <option value="extreme">Extreme</option>
           <option value="sunny">Sunny / Clear</option>
@@ -594,17 +603,47 @@
           <option value="fog">Fog</option>
         </select>
       </div>
+      <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
+      <label class="check-item"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
+      <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
+      <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
+      <label class="check-item" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
+      <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
+    </div>
+  </div>
+
+  <!-- STEP 3: MULTI-PLAYER BUFFS -->
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">3</div>
+      <div>
+        <div class="step-title">Multi-player Buffs</div>
+        <div class="step-sub">Only relevant if you're not soloing this encounter</div>
+      </div>
     </div>
 
-    <div class="check-grid fixed-4">
-      <label class="check-item"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
-      <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
-      <label class="check-item"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
-      <label class="check-item"><input type="checkbox" id="shieldAE"> Behemoth Bash</label>
-      <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
-      <label class="check-item"><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
+    <div class="mod-consolidated-grid">
+      <div class="mod-cell">
+        <label for="primalMega">Mega/Primal Boost</label>
+        <select id="primalMega">
+          <option value="1">Inactive</option>
+          <option value="1.1">Support (1.1x)</option>
+          <option value="1.3">Stab (1.3x)</option>
+        </select>
+      </div>
+      <div class="mod-cell">
+        <label for="friendship">Friendship Boost</label>
+        <select id="friendship">
+          <option value="1">None</option>
+          <option value="1.03">Good (1.03x)</option>
+          <option value="1.05">Great (1.05x)</option>
+          <option value="1.07">Ultra (1.07x)</option>
+          <option value="1.10">Best (1.10x)</option>
+          <option value="1.12">Best+Lucky (1.12x)</option>
+        </select>
+      </div>
       <label class="check-item"><input type="checkbox" id="partyPower"> Party Power</label>
-      <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
+      <label class="check-item"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
     </div>
   </div>
 
@@ -2174,10 +2213,16 @@ function runCalculation(){
     const floorTerm = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
     const innerMax = Math.max(buildupTicks, floorTerm);
 
-    const mandatoryFMBonus = (tankBonus >= totalCostAllCasts) ? fm.ad : 0;
-    const bufferAddBack = cmBuffer ? 1 : 0;
+    const mandatoryFMBonus = (tankBonus >= totalCostAllCasts && !cmBuffer) ? fm.ad : 0;
+    // bufferAddBack removed: it was adding a flat +1 tick specifically when CM Buffer was
+    // active, on top of mandatoryFMBonus/bufferSubtraction which already correctly cancel
+    // out to represent "no fast move needed" - the extra tick had no real basis and was
+    // inflating buffered durations by 1 tick (0.5s) above the charge move's own cast time.
+    // Confirmed against a real Ursaluna vs Solgaleo (Solar Beam, sunny) case: with this
+    // term removed, duration correctly drops to just High Horsepower's own 3-tick cast
+    // time instead of 4.
 
-    let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus + bufferAddBack;
+    let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
 
     const outerFloor = bossFMAD_ticks + 1;
     ticks = Math.max(outerFloor, ticks);
@@ -2797,6 +2842,35 @@ function isStabMatch(elem, types){
   return t === types.t1 || (types.t2 && t === types.t2);
 }
 
+const EFF_LABELS = {
+  "0.24375": "Imm/NE x2", "0.39": "Immune", "0.39625": "Not Eff. x2",
+  "0.625": "Not Effective", "1": "Effective", "1.6": "Super Effective", "2.56": "V. Super Effective",
+};
+
+function updateModSummaries(){
+  const effCM = document.getElementById("effCM").value;
+  const effFM = document.getElementById("effFM").value;
+  const stabCM = document.getElementById("stabCM").checked;
+  const stabFM = document.getElementById("stabFM").checked;
+  const playerStabText = (stabCM || stabFM) ? `STAB: ${[stabCM && "CM", stabFM && "FM"].filter(Boolean).join(" + ")}` : "No STAB";
+  document.getElementById("playerModSummary").textContent =
+    `${EFF_LABELS[effCM] || effCM}x CM · ${EFF_LABELS[effFM] || effFM}x FM · ${playerStabText}`;
+  const playerNonDefault = effCM !== "1" || effFM !== "1" || stabCM || stabFM;
+  if(playerNonDefault) document.getElementById("playerModDetails").open = true;
+
+  const effBossCM = document.getElementById("effBossCM").value;
+  const effBossFM = document.getElementById("effBossFM").value;
+  document.getElementById("bossModSummary").textContent =
+    `${EFF_LABELS[effBossCM] || effBossCM}x CM · ${EFF_LABELS[effBossFM] || effBossFM}x FM`;
+  const bossNonDefault = effBossCM !== "1" || effBossFM !== "1" ||
+    document.getElementById("bossStabCM").checked || document.getElementById("bossStabFM").checked;
+  if(bossNonDefault) document.getElementById("bossModDetails").open = true;
+}
+["effCM","effFM","stabCM","stabFM","effBossCM","effBossFM","bossStabCM","bossStabFM"].forEach(id => {
+  document.getElementById(id).addEventListener("change", updateModSummaries);
+});
+
+
 function autoSetEffectiveness(){
   const pkmnName = document.getElementById("pokemonName").value.trim();
   const bossName = document.getElementById("bossName").value.trim();
@@ -2847,6 +2921,7 @@ function autoSetEffectiveness(){
 
   updatePlayerMovePreview();
   updateBossPreview();
+  updateModSummaries();
 }
 ["pokemonName","bossName","playerCM","playerFM","bossCM","bossFM"].forEach(id => {
   document.getElementById(id).addEventListener("input", autoSetEffectiveness);
