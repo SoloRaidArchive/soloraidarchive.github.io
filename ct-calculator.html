@@ -62,9 +62,9 @@
 
   .step-card{
     background: var(--card); border:2px solid var(--border); border-radius:20px;
-    padding: 22px 24px; margin-bottom: 20px;
+    padding: 16px 20px; margin-bottom: 16px;
   }
-  .step-head{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .step-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
   .step-num{
     flex-shrink:0; width:34px; height:34px; border-radius:50%;
     background: var(--blue); color:#fff; font-family:'Manrope', sans-serif; font-weight:800;
@@ -79,13 +79,17 @@
   .field label{ font-size:10.5px; font-weight:800; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; }
   .field input, .field select{
     background: var(--bg1); border:2px solid var(--border); border-radius:10px;
-    padding: 8px 10px; font-family:'Inter', sans-serif; font-weight:700; font-size:13px;
+    padding: 7px 9px; font-family:'Inter', sans-serif; font-weight:700; font-size:13px;
     color: var(--text); outline:none; width:100%;
   }
+  .name-iv-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .name-field{ flex:1 1 160px; min-width:140px; }
+  .iv-field{ flex:0 0 62px; }
+  .iv-field input{ text-align:center; padding-left:4px; padding-right:4px; }
+  .tier-field{ flex:0 0 120px; }
   .custom-move-select{ margin-top:6px; }
   [data-theme="dark"] .field input, [data-theme="dark"] .field select{ background:#161a28; }
   .field input:focus, .field select:focus{ border-color: var(--blue); }
-  .field.wide{ grid-column: 1 / -1; }
   .field-error{
     font-size:10.5px; font-weight:700; color: var(--red); min-height:0; display:none;
   }
@@ -96,7 +100,7 @@
   .check-grid.compact{ grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap:8px; }
   .check-item{
     display:flex; align-items:center; gap:6px; background: var(--bg1); border:2px solid var(--border);
-    border-radius:9px; padding:7px 9px; font-size:11.5px; font-weight:700; cursor:pointer;
+    border-radius:9px; padding:6px 9px; font-size:11.5px; font-weight:700; cursor:pointer;
   }
   [data-theme="dark"] .check-item{ background:#161a28; }
   .check-item input{ width:14px; height:14px; flex-shrink:0; accent-color: var(--blue); cursor:pointer; }
@@ -226,18 +230,21 @@
   }
 
   .mod-row{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; }
-  .mod-consolidated-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; align-items:stretch; }
+  .mod-row.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:10px; }
+  @media (max-width:560px){ .mod-row.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
+  .mod-consolidated-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; align-items:stretch; }
+  @media (max-width:560px){ .mod-consolidated-grid{ grid-template-columns: repeat(2, 1fr); } }
   .mod-consolidated-grid .check-item{ height:100%; box-sizing:border-box; }
   .mod-consolidated-grid .mod-cell{
     background: var(--bg1); border:2px solid var(--border); border-radius:9px;
-    padding:7px 9px; gap:2px; height:100%; box-sizing:border-box; justify-content:center;
+    padding:6px 9px; gap:2px; height:100%; box-sizing:border-box; justify-content:center;
   }
   [data-theme="dark"] .mod-consolidated-grid .mod-cell{ background:#161a28; }
-  .mod-consolidated-grid .mod-cell label{ font-size:10px; }
   .mod-consolidated-grid .mod-cell select{
-    background:none; border:none; padding:0; font-size:12.5px;
+    margin:0; background:none; border:none; padding:0; width:100%;
   }
-  @media (max-width:700px){ .mod-consolidated-grid{ grid-template-columns: repeat(2, 1fr); } }
+  .check-grid.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:8px; }
+  @media (max-width:560px){ .check-grid.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
   .mod-details{ margin-top:14px; }
   .mod-summary{
     cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px;
@@ -248,6 +255,12 @@
   .mod-summary::-webkit-details-marker{ display:none; }
   .mod-summary::before{ content:"▸"; font-size:12px; transition: transform .12s ease; }
   .mod-details[open] .mod-summary::before{ transform: rotate(90deg); }
+  summary.step-head::-webkit-details-marker{ display:none; }
+  summary.step-head::before{
+    content:"▸"; font-size:16px; color: var(--text-dim); margin-right:2px;
+    transition: transform .12s ease; align-self:center;
+  }
+  details[open] > summary.step-head::before{ transform: rotate(90deg); }
   .mod-summary-text{ font-weight:700; text-transform:none; letter-spacing:normal; color: var(--text-muted); flex:1; }
   .mod-details-body{ padding:12px 2px 0; }
   .mod-row.compact{ grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:10px; }
@@ -418,27 +431,27 @@
       <!-- PLAYER COLUMN -->
       <div class="vs-col">
         <div class="vs-col-title">🧢 Your Pokémon</div>
-        <div class="field-grid compact">
-          <div class="field wide">
+        <div class="name-iv-row">
+          <div class="field name-field">
             <label for="pokemonName">Pokémon</label>
             <input id="pokemonName" placeholder="e.g. Shadow Honchkrow" autocomplete="off">
           </div>
-          <div class="field">
-            <label for="pokemonLevel">Level (40–51)</label>
+          <div class="field iv-field">
+            <label for="pokemonLevel" title="Valid range: 40–51">Level</label>
             <input id="pokemonLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50">
             <div class="field-error" id="pokemonLevelError"></div>
           </div>
-          <div class="field">
+          <div class="field iv-field">
             <label for="ivAtk">Atk IV</label>
             <input id="ivAtk" type="text" inputmode="numeric" value="15" placeholder="0–15">
             <div class="field-error" id="ivAtkError"></div>
           </div>
-          <div class="field">
+          <div class="field iv-field">
             <label for="ivDef">Def IV</label>
             <input id="ivDef" type="text" inputmode="numeric" value="15" placeholder="0–15">
             <div class="field-error" id="ivDefError"></div>
           </div>
-          <div class="field">
+          <div class="field iv-field">
             <label for="ivHp">HP IV</label>
             <input id="ivHp" type="text" inputmode="numeric" value="15" placeholder="0–15">
             <div class="field-error" id="ivHpError"></div>
@@ -499,12 +512,12 @@
       <!-- BOSS COLUMN -->
       <div class="vs-col">
         <div class="vs-col-title">👑 Raid Boss</div>
-        <div class="field-grid compact">
-          <div class="field wide">
+        <div class="name-iv-row">
+          <div class="field name-field">
             <label for="bossName">Raid Boss</label>
             <input id="bossName" placeholder="e.g. Great Tusk" autocomplete="off">
           </div>
-          <div class="field">
+          <div class="field tier-field">
             <label for="bossTier">Tier</label>
             <select id="bossTier">
               <option value="0.79">T4/T5/T6/T7</option>
@@ -603,10 +616,10 @@
           <option value="fog">Fog</option>
         </select>
       </div>
-      <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
       <label class="check-item"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
-      <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
+      <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
       <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
+      <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
       <label class="check-item" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
       <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
     </div>
@@ -614,37 +627,41 @@
 
   <!-- STEP 3: MULTI-PLAYER BUFFS -->
   <div class="step-card">
-    <div class="step-head">
-      <div class="step-num">3</div>
-      <div>
-        <div class="step-title">Multi-player Buffs</div>
-        <div class="step-sub">Only relevant if you're not soloing this encounter</div>
-      </div>
-    </div>
+    <details id="multiplayerDetails">
+      <summary class="step-head" style="cursor:pointer; list-style:none;">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Multi-player Buffs</div>
+          <div class="step-sub">Only relevant if you're not soloing this encounter</div>
+        </div>
+      </summary>
 
-    <div class="mod-consolidated-grid">
-      <div class="mod-cell">
-        <label for="primalMega">Mega/Primal Boost</label>
-        <select id="primalMega">
-          <option value="1">Inactive</option>
-          <option value="1.1">Support (1.1x)</option>
-          <option value="1.3">Stab (1.3x)</option>
-        </select>
+      <div class="mod-row fixed-4" style="margin-top:16px;">
+        <div class="mod-cell">
+          <label for="friendship">Friendship</label>
+          <select id="friendship">
+            <option value="1">None</option>
+            <option value="1.03">Good (1.03x)</option>
+            <option value="1.05">Great (1.05x)</option>
+            <option value="1.07">Ultra (1.07x)</option>
+            <option value="1.10">Best (1.10x)</option>
+            <option value="1.12">Best+Lucky (1.12x)</option>
+          </select>
+        </div>
+        <div class="mod-cell">
+          <label for="primalMega">Primal/Mega Support</label>
+          <select id="primalMega">
+            <option value="1">Inactive</option>
+            <option value="1.1">Support (1.1x)</option>
+            <option value="1.3">Stab (1.3x)</option>
+          </select>
+        </div>
       </div>
-      <div class="mod-cell">
-        <label for="friendship">Friendship Boost</label>
-        <select id="friendship">
-          <option value="1">None</option>
-          <option value="1.03">Good (1.03x)</option>
-          <option value="1.05">Great (1.05x)</option>
-          <option value="1.07">Ultra (1.07x)</option>
-          <option value="1.10">Best (1.10x)</option>
-          <option value="1.12">Best+Lucky (1.12x)</option>
-        </select>
+      <div class="check-grid" style="grid-template-columns:repeat(2,1fr); margin-top:12px;">
+        <label class="check-item"><input type="checkbox" id="partyPower"> Party Power</label>
+        <label class="check-item"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
       </div>
-      <label class="check-item"><input type="checkbox" id="partyPower"> Party Power</label>
-      <label class="check-item"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
-    </div>
+    </details>
   </div>
 
   <button class="calc-btn" id="calcBtn">Calculate</button>
@@ -2732,10 +2749,13 @@ function bossMoveDamagePreviewHtml(bAtk){
     shieldAE: shieldAEOn,
   });
 
+  const cmDurationSeconds = bossCMMove.ad / 2;
+
   return `
     <div class="boss-dmg-preview">
       <div class="boss-dmg-row"><span>Fast Move — ${bossFMMove.n}</span><b>${fmDmg} dmg</b></div>
       <div class="boss-dmg-row"><span>Charge Move — ${bossCMMove.n}</span><b>${cmDmg} dmg</b></div>
+      <div class="boss-dmg-row energy-row"><span>Charge Move Animation</span><b>${cmDurationSeconds.toFixed(1)}s</b></div>
     </div>`;
 }
 
