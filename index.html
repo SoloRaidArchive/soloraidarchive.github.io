@@ -38,16 +38,16 @@
 
   header{ padding: 8px 24px 8px; text-align:center; }
   .header-nav-row{
-    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap;
-    gap:14px; max-width:1180px; margin:24px auto 0; padding:0 24px 14px;
+    display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+    gap:14px; max-width:1180px; margin:0 auto; padding:0 24px 14px;
     border-bottom:1.5px solid var(--border);
   }
   .site-title{
-    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px;
-    color: var(--blue-dark); margin:0; display:flex; align-items:center; gap:8px;
-    white-space:nowrap;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:22px;
+    color: var(--blue-dark); margin:24px 0 14px; display:flex; align-items:center;
+    justify-content:center; gap:10px; text-align:center;
   }
-  .site-title-icon{ width:20px; height:20px; object-fit:contain; }
+  .site-title-icon{ width:28px; height:28px; object-fit:contain; }
   .footer-credit{
     font-family:'Inter', sans-serif; font-weight:800; font-size:19px;
     color: var(--text); margin-bottom: 10px;
@@ -291,12 +291,13 @@
 
 <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
+<h1 class="site-title">
+  <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon" onerror="this.style.display='none'">
+  Solo Raid Archive
+  <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon" onerror="this.style.display='none'">
+</h1>
+
 <div class="header-nav-row">
-  <h1 class="site-title">
-    <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon" onerror="this.style.display='none'">
-    Solo Raid Archive
-    <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon" onerror="this.style.display='none'">
-  </h1>
   <nav class="top-nav">
     <a href="research.html" class="top-nav-featured">Most Used Raiders</a>
     <a href="ct-database.html" class="top-nav-featured">Viable Catch Tanks</a>
