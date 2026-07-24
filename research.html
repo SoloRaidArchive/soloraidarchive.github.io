@@ -38,21 +38,8 @@
     margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
     color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh;
   }
-  .home-link{
-    display:inline-flex; align-items:center; gap:5px;
-    background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding: 10px 16px; font-family:'Manrope', sans-serif; font-weight:700; font-size:13px;
-    color: var(--blue-dark); text-decoration:none; box-shadow: 0 3px 0 rgba(0,0,0,0.06);
-  }
-  .theme-toggle{
-    position:fixed; top:16px; right:16px; z-index:20;
-    width:42px; height:42px; border-radius:50%;
-    background: var(--card); border:2px solid var(--border);
-    font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.06);
-  }
   .hamburger-btn{
-    position:fixed; top:16px; right:68px; z-index:20;
+    position:fixed; top:16px; right:16px; z-index:20;
     width:42px; height:42px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -70,6 +57,13 @@
     display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text); background: var(--bg1); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--blue); color: var(--blue-dark); }
   .hamburger-section-label{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
     letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
@@ -100,8 +94,6 @@
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
   }
-  .home-link{ display:inline-block; margin:70px 0 0 20px; font-size:13px; font-weight:700; color: var(--text-dim); text-decoration:none; }
-  .home-link:hover{ color: var(--blue-dark); }
 
   header{ padding: 70px 24px 10px; text-align:center; }
   h1{
@@ -115,7 +107,7 @@
 
 
   .controls{
-    max-width: 900px; margin: 24px auto 0; padding: 0 20px;
+    max-width: 900px; margin: 70px auto 0; padding: 0 20px;
     display:flex; flex-direction:column; gap:12px; align-items:center;
   }
   .filter-row{ display:flex; gap:10px; flex-wrap:nowrap; justify-content:center; align-items:center; }
@@ -291,11 +283,14 @@
 </head>
 <body>
 
-<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
   <span></span><span></span><span></span>
 </button>
 <div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="index.html">🏠 Home</a>
+  </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
     <a href="research.html" class="current hamburger-featured">Most Used Raiders</a>
@@ -321,12 +316,6 @@
     <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
   </div>
 </div>
-
-<a class="home-link" href="index.html">← Back to Home</a>
-
-<header>
-  <h1>Most Used Raiders</h1>
-</header>
 
 <div class="controls">
   <div class="filter-row">
@@ -1076,7 +1065,7 @@ renderLeaderboard();
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
   document.documentElement.setAttribute("data-theme", theme);
-  themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
   try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
 }
 themeToggle.addEventListener("click", () => {

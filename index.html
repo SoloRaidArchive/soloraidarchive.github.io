@@ -145,20 +145,11 @@
     .live-boss-icon{ width:44px; height:44px; }
     .live-boss-row{ gap:12px; }
     .live-boss-item{ gap:6px; }
-    .hamburger-btn, .theme-toggle{ width:40px; height:40px; }
-    .hamburger-btn{ right:64px; }
+    .hamburger-btn{ width:40px; height:40px; right:18px; }
   }
-  .theme-toggle{
-    position:fixed; top:18px; right:18px; z-index:20;
-    width:44px; height:44px; border-radius:50%;
-    background: var(--card); border:2px solid var(--border);
-    font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
-  }
-  .theme-toggle:hover{ transform: translateY(-2px); }
 
   .hamburger-btn{
-    position:fixed; top:18px; right:72px; z-index:20;
+    position:fixed; top:18px; right:18px; z-index:20;
     width:44px; height:44px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -177,6 +168,13 @@
     display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 100px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text); background: var(--bg1); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--blue); color: var(--blue-dark); }
   .hamburger-section-label{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
     letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
@@ -285,11 +283,14 @@
 </head>
 <body>
 
-<button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
   <span></span><span></span><span></span>
 </button>
 <div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="index.html">🏠 Home</a>
+  </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
     <a href="research.html" class="hamburger-featured">Most Used Raiders</a>
@@ -392,7 +393,7 @@
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
   document.documentElement.setAttribute("data-theme", theme);
-  themeToggle.textContent = theme === "dark" ? "☀️" : "🌙";
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
   try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
 }
 themeToggle.addEventListener("click", () => {
