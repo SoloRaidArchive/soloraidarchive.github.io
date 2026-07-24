@@ -40,35 +40,26 @@
 
     
   header{ padding: 12px 24px 10px; text-align:center; }
-  h1{
-    font-family:'Manrope', sans-serif; font-weight:700; font-size: 27px;
-    margin: 0; color: var(--ink);
-  }
+  h1{ font-family:'Manrope', sans-serif; font-weight:700; font-size:16px; margin:0 0 4px; color: var(--ink); text-align:center; }
 
   .controls{
     max-width: 1100px; margin: 70px auto 0; padding: 0 20px;
     display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
   }
   #searchInput{
-    flex:1 1 260px; max-width:340px;
+    display:block; width:100%; max-width:340px; margin:20px auto 0;
     background: var(--card); border: 1px solid var(--border); color: var(--ink);
     font-size:13.5px; padding: 10px 14px; border-radius: 10px; outline:none;
   }
   #searchInput:focus{ border-color: var(--accent); }
-  .type-filter{
-    background: var(--card); border: 1px solid var(--border); color: var(--ink);
-    font-size:13px; font-weight:600; padding: 9px 12px; border-radius: 10px; outline:none;
+  .vertical-toggle{ display:flex; flex-direction:column; gap:2px; }
+  .hamburger-item{
+    display:flex; align-items:center; width:100%; padding:10px; font-family:'Manrope', sans-serif;
+    font-weight:700; font-size:13.5px; color: var(--ink); background:none; border:none;
+    border-radius:10px; cursor:pointer; text-align:left; min-height:40px; box-sizing:border-box;
   }
-  #sortSelect{
-    background: var(--card); border: 1px solid var(--border); color: var(--ink);
-    font-size:13px; font-weight:600; padding: 9px 12px; border-radius: 10px; outline:none;
-  }
-  .move-kind-toggle{ display:flex; gap:6px; }
-  .kind-btn{
-    background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding:8px 16px; font-size:12.5px; font-weight:700; color: var(--ink-muted); cursor:pointer;
-  }
-  .kind-btn.active{ background: var(--accent); color:#fff; border-color: var(--accent); }
+  .hamburger-item:hover{ background: var(--ink-soft, var(--card)); }
+  .hamburger-item.active{ background: var(--accent); color:#fff; }
 .container{ max-width: 1100px; margin: 0 auto; padding: 90px 20px 45px; }
   .move-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap:12px; }
   .move-card{
@@ -121,6 +112,7 @@
     display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
+  .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
   .gear-btn{
     position:fixed; top:66px; right:16px; z-index:20;
     width:42px; height:42px; border-radius:50%;
@@ -131,7 +123,7 @@
   .gear-btn:hover{ transform: translateY(-2px) rotate(20deg); }
   .gear-panel{
     display:none; position:fixed; top:116px; right:16px; z-index:19;
-    width:min(300px, calc(100vw - 32px));
+    width:min(230px, calc(100vw - 48px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto;
@@ -214,18 +206,27 @@
   </div>
 </div>
 
+<h1 class="page-title-sm">Move Data</h1>
+
+<input id="searchInput" type="text" placeholder="Search move name…" autocomplete="off">
+
 <div class="gear-panel" id="gearPanel">
 <div class="controls">
-  <input id="searchInput" type="text" placeholder="Search move name…" autocomplete="off">
-  <select id="typeFilter" class="type-filter"><option value="">All Types</option></select>
-  <select id="sortSelect">
-    <option value="name">Sort: Name (A–Z)</option>
-    <option value="score">Sort: Score (High–Low)</option>
-  </select>
-  <div class="move-kind-toggle">
-    <button class="kind-btn active" data-kind="All">All</button>
-    <button class="kind-btn" data-kind="Fast">Fast</button>
-    <button class="kind-btn" data-kind="Charge">Charge</button>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Sort</div>
+    <div class="vertical-toggle" id="sortList">
+      <button class="hamburger-item active" data-sort="name">By Name</button>
+      <button class="hamburger-item" data-sort="score">By Score</button>
+      <button class="hamburger-item" data-sort="type">By Type</button>
+    </div>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Move Kind</div>
+    <div class="vertical-toggle" id="kindToggleList">
+      <button class="hamburger-item active" data-kind="All">All</button>
+      <button class="hamburger-item" data-kind="Fast">Fast</button>
+      <button class="hamburger-item" data-kind="Charge">Charge</button>
+    </div>
   </div>
 </div>
 </div>
@@ -358,23 +359,19 @@ function moveCardHtml(m){
 
 const grid = document.getElementById("moveGrid");
 const searchInput = document.getElementById("searchInput");
-const typeFilter = document.getElementById("typeFilter");
-const sortSelect = document.getElementById("sortSelect");
+let currentSort = "name";
 let activeKind = "All";
-
-const types = [...new Set(MOVES.map(m => m.elem))].sort();
-typeFilter.innerHTML += types.map(t => `<option value="${t}">${t}</option>`).join("");
 
 function render(){
   const q = searchInput.value.trim().toLowerCase();
-  const t = typeFilter.value;
   let filtered = MOVES.filter(m =>
     (!q || m.n.toLowerCase().includes(q)) &&
-    (!t || m.elem === t) &&
     (activeKind === "All" || m.kind === activeKind)
   );
-  if(sortSelect.value === "score"){
+  if(currentSort === "score"){
     filtered = [...filtered].sort((a,b) => moveScore(b) - moveScore(a));
+  } else if(currentSort === "type"){
+    filtered = [...filtered].sort((a,b) => a.elem.localeCompare(b.elem) || a.n.localeCompare(b.n));
   }
   grid.innerHTML = filtered.length
     ? filtered.map(moveCardHtml).join("")
@@ -382,11 +379,17 @@ function render(){
 }
 
 searchInput.addEventListener("input", render);
-typeFilter.addEventListener("change", render);
-sortSelect.addEventListener("change", render);
-document.querySelectorAll(".kind-btn").forEach(btn => {
+document.querySelectorAll("#sortList .hamburger-item").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".kind-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("#sortList .hamburger-item").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentSort = btn.dataset.sort;
+    render();
+  });
+});
+document.querySelectorAll("#kindToggleList .hamburger-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#kindToggleList .hamburger-item").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     activeKind = btn.dataset.kind;
     render();

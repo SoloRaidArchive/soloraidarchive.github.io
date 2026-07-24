@@ -38,8 +38,7 @@
   [data-theme="dark"] #search,
   [data-theme="dark"] .count,
   [data-theme="dark"]   [data-theme="dark"] #search::placeholder{ color:#767f96; }
-  [data-theme="dark"] #sortMode option{ background:#1c2030; color:#eef1f7; }
-  [data-theme="dark"] .boss-icon{
+    [data-theme="dark"] .boss-icon{
     background: linear-gradient(160deg, #f2f2f4, #e4e4e8); border-color:#3a4160;
   }
   [data-theme="dark"] .member-row{ background:#20263a; border-color:#323850; }
@@ -83,7 +82,7 @@
     max-width: 1760px; margin: 22px auto 0; padding: 0 20px;
     display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
   }
-  .search-wrap{ position:relative; flex: 1 1 340px; max-width: 480px; }
+  .search-wrap{ position:relative; width:calc(100% - 40px); max-width: 480px; margin: 20px auto 0; }
   .search-wrap svg{ position:absolute; left:16px; top:50%; transform:translateY(-50%); opacity:0.4; }
   #search{
     width:100%; background: #fff; border: 2px solid var(--border); color: var(--text);
@@ -99,23 +98,7 @@
   }
 
 
-  .top-filter{ width:auto; flex-shrink:0; }
-  .top-filter .filter-dropdown-btn{ white-space:nowrap; }
-  .control-label-tag{
-    font-size:9px; text-transform:uppercase; letter-spacing:0.04em; font-weight:800;
-    color: var(--blue-dark); background:rgba(90,169,255,0.15); padding:2px 6px; border-radius:5px;
-    flex-shrink:0;
-  }
-  .sort-pill-wrap{
-    display:flex; align-items:center; gap:7px;
-    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
-    padding:9px 12px;
-  }
-  #sortMode{
-    border:none; background:none; outline:none; cursor:pointer;
-    font-family:'Inter', sans-serif; font-weight:700; font-size:13px; color: var(--text);
-  }
-
+          
   .tier-section{ margin: 14px 0 0; padding: 0; }
   .tier-header{
     display:flex; align-items:center; gap:10px; margin-bottom:14px;
@@ -375,44 +358,23 @@
     background:#fff; border:2px solid var(--border); border-radius:16px; padding:14px 16px;
   }
   
-                                .filter-clear{
+                                        .filter-panel .filter-options{ margin-top:0; padding:0 2px; }
+                    .filter-clear{
     font-size:10.5px; font-weight:700; color: var(--blue-dark); cursor:pointer;
-    background:none; border:none; padding:0;
+    background:none; border:none; padding:0; margin-top:8px; display:block;
   }
-  .filter-options{ display:flex; flex-direction:column; gap:8px; }
-  .filter-dropdown{ width:100%; position:relative; }
-  .filter-panel{
-    position:absolute; top:calc(100% + 6px); left:0; z-index:40;
-    min-width:240px; max-width:320px;
-    background: var(--card); border:2px solid var(--border); border-radius:12px;
-    padding:12px 10px; box-shadow: 0 10px 28px rgba(0,0,0,0.18);
-  }
-  .filter-panel .filter-options{ margin-top:0; padding:0 2px; }
-  .controls .filter-dropdown.top-filter{ width:auto; }
-  .filter-dropdown-btn{
-    display:flex; align-items:center; justify-content:space-between; gap:8px;
-    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
-    padding:9px 12px; cursor:pointer; user-select:none; list-style:none;
-    font-family:'Inter', sans-serif; font-weight:700; font-size:13px; color: var(--text);
-    transition: border-color .15s ease, background .15s ease;
-  }
-  .filter-dropdown-btn::-webkit-details-marker{ display:none; }
-  .filter-dropdown-btn::marker{ display:none; content:""; }
-  .filter-dropdown-btn:hover{ border-color: var(--blue); background: rgba(90,169,255,0.08); }
-  .filter-dropdown-btn .filter-chevron{
-    font-size:14px; color: var(--text-dim); font-weight:800; transition: transform .18s ease; flex-shrink:0;
-  }
-  .filter-dropdown[open] .filter-chevron{ transform: rotate(90deg); }
+  .filter-options{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
   .filter-note{ font-size:10.5px; font-weight:600; color: var(--text-dim); margin-top:6px; line-height:1.4; }
   .filter-chk{
-    display:flex; align-items:flex-start; gap:9px; font-size:13px; font-weight:600;
-    color: var(--text-muted); cursor:pointer; user-select:none; line-height:1.35;
+    display:flex; align-items:center; gap:9px; padding:10px; font-family:'Manrope', sans-serif;
+    font-weight:700; font-size:13.5px; color: var(--text, var(--ink)); cursor:pointer;
+    user-select:none; line-height:1.3; border-radius:10px; min-height:40px; box-sizing:border-box;
   }
   .filter-chk input{
     accent-color: var(--blue); width:15px; height:15px; min-width:15px; min-height:15px;
-    flex-shrink:0; cursor:pointer; margin-top:2px; box-sizing:border-box;
+    flex-shrink:0; cursor:pointer; box-sizing:border-box;
   }
-  .filter-chk:hover{ color: var(--text); }
+  .filter-chk:hover{ background: var(--bg1, var(--ink-soft)); color: var(--blue-dark); }
 @media (max-width:520px){
     .tier-grid{ grid-template-columns: 1fr; }
     header{ padding: 120px 18px 10px; }
@@ -447,13 +409,13 @@
   .gear-btn:hover{ transform: translateY(-2px) rotate(20deg); }
   .gear-panel{
     display:none; position:fixed; top:116px; right:16px; z-index:19;
-    width:min(300px, calc(100vw - 32px));
+    width:min(230px, calc(100vw - 48px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto;
   }
   .gear-panel.open{ display:flex; }
-  .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; }
+  .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
   .hamburger-theme-toggle{
     display:flex; align-items:center; justify-content:center; gap:6px;
     width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
@@ -535,41 +497,22 @@
   <h1>Legendary Raids — Adventure Effect</h1>
 </header>
 
+<div class="search-wrap">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+  <input id="search" type="text" placeholder="Search raid boss name…" autocomplete="off">
+</div>
+
 <div class="gear-panel" id="gearPanel">
 <div class="controls">
-  <div class="search-wrap">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input id="search" type="text" placeholder="Search raid boss name…" autocomplete="off">
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Difficulty</div>
+    <div class="filter-options" id="difficultyFilters"></div>
+    <button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button>
   </div>
-  <details class="filter-dropdown top-filter">
-    <summary class="filter-dropdown-btn">
-      <span class="control-label-tag">Filter</span>
-      <span id="difficultySummaryText">Difficulty: All</span>
-      <span class="filter-chevron">›</span>
-    </summary>
-    <div class="filter-panel">
-      <div class="filter-options" id="difficultyFilters"></div>
-      <div style="padding:8px 10px 2px;"><button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button></div>
-    </div>
-  </details>
-  <details class="filter-dropdown top-filter">
-    <summary class="filter-dropdown-btn">
-      <span class="control-label-tag">Filter</span>
-      <span id="weatherSummaryText">Weather: All</span>
-      <span class="filter-chevron">›</span>
-    </summary>
-    <div class="filter-panel">
-      <div class="filter-options" id="weatherFilters"></div>
-      <div class="filter-note" style="padding:0 10px;">"Extreme" means no weather boost is active.</div>
-      <div style="padding:8px 10px 2px;"><button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button></div>
-    </div>
-  </details>
-  <div class="top-filter sort-pill-wrap">
-    <span class="control-label-tag">Sort</span>
-    <select id="sortMode">
-      <option value="difficulty">By Difficulty</option>
-      <option value="alphabetical">A–Z (all difficulties)</option>
-    </select>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Weather</div>
+    <div class="filter-options" id="weatherFilters"></div>
+    <button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button>
   </div>
 </div>
 </div>
@@ -1515,7 +1458,7 @@ function toggleTierCollapse(tier){
 function buildSections(){
   const bossQuery = search.value.trim().toLowerCase();
   const sectionsEl = document.getElementById("sections");
-  const alphabetical = document.getElementById("sortMode").value === "alphabetical";
+  const alphabetical = false;
   let totalVisible = 0;
   let html = "";
 
@@ -1603,7 +1546,6 @@ applyTheme(initialTheme);
 
 const search = document.getElementById("search");
 search.addEventListener("input", buildSections);
-document.getElementById("sortMode").addEventListener("change", buildSections);
 loadRaidsFromCSV();
 
 const gearBtn = document.getElementById("gearBtn");
