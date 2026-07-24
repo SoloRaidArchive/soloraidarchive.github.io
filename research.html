@@ -51,12 +51,28 @@
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:66px; right:16px; z-index:19; width:min(320px, calc(100vw - 32px));
+    position:fixed; top:66px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
+  .gear-btn{
+    position:fixed; top:66px; right:16px; z-index:20;
+    width:42px; height:42px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .gear-btn:hover{ transform: translateY(-2px) rotate(20deg); }
+  .gear-panel{
+    display:none; position:fixed; top:116px; right:16px; z-index:19;
+    width:min(300px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto;
+  }
+  .gear-panel.open{ display:flex; }
   .hamburger-theme-toggle{
     display:flex; align-items:center; justify-content:center; gap:6px;
     width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
@@ -69,9 +85,9 @@
     letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
   }
   .hamburger-section a{
-    display:flex; align-items:center; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
-    font-size:15px; color: var(--text); text-decoration:none; border-radius:10px;
-    min-height:44px; box-sizing:border-box;
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
   }
   .hamburger-section a:hover{ background: var(--bg1); color: var(--blue-dark); }
   .hamburger-section a.current{ background: var(--blue); color:#fff; }
@@ -130,7 +146,7 @@
     color: var(--text-muted); cursor:pointer; outline:none; flex-shrink:0;
   }
 
-  .container{ max-width: 900px; margin: 0 auto; padding: 24px 20px 45px; }
+  .container{ max-width: 900px; margin: 0 auto; padding: 90px 20px 45px; }
 
   .loading-msg, .error-msg{
     text-align:center; padding:60px 20px; color: var(--text-dim); font-weight:700;
@@ -286,6 +302,7 @@
 <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
   <span></span><span></span><span></span>
 </button>
+<button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">⚙️</button>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
@@ -300,6 +317,7 @@
     <a href="move-data.html">Move Data</a>
     <a href="pokemon-stats.html">Pokémon Stats</a>
     <a href="raid-strategies.html">Raid Strategies</a>
+    <a href="reference.html">Difficulty &amp; Role Reference</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Raid Archives</div>
@@ -317,6 +335,7 @@
   </div>
 </div>
 
+<div class="gear-panel" id="gearPanel">
 <div class="controls">
   <div class="filter-row">
     <div class="view-toggle">
@@ -333,6 +352,7 @@
     </select>
   </div>
   <input id="pokemonSearch" type="text" placeholder="Search Pokémon…" autocomplete="off">
+</div>
 </div>
 
 <div class="container" id="container">
@@ -1079,6 +1099,15 @@ try{
   else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
 }catch(e){}
 applyTheme(initialTheme);
+
+const gearBtn = document.getElementById("gearBtn");
+const gearPanel = document.getElementById("gearPanel");
+gearBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = gearPanel.classList.contains("open");
+  gearPanel.classList.toggle("open", !isOpen);
+  gearBtn.setAttribute("aria-expanded", String(!isOpen));
+});
 
 const hamburgerBtn = document.getElementById("hamburgerBtn");
 const hamburgerPanel = document.getElementById("hamburgerPanel");
