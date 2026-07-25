@@ -137,7 +137,7 @@ body{ background:#20263a; color: var(--text-muted); }
 
   .card{
     background: var(--card); border: 2px solid var(--border); border-radius: 16px;
-    padding: 16px; display:flex; flex-direction:column; gap: 14px; min-width:0;
+    padding: 16px; display:flex; flex-direction:column; gap: 14px; min-width:0; overflow-x:hidden;
     transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 2px 0 rgba(45,49,66,0.05);
   }
   .highlight-flash{ animation: flashHighlight 2.2s ease; }
@@ -416,7 +416,7 @@ body{ background:#20263a; color: var(--text-muted); }
     width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto;
+    flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto; overflow-x:hidden;
   }
   .gear-panel.open{ display:flex; }
   .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
