@@ -79,11 +79,17 @@ body{ background:#20263a; color: var(--text-muted); }
     position:sticky; top:0; z-index:15; background: var(--bg1);
     padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
+  .sticky-header-title-row{ text-align:center; margin-bottom:8px; }
   .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
-  .sticky-header-center{ flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .header-buttons{ display:flex; gap:8px; flex-shrink:0; }
+  @media (min-width:700px){
+    .sticky-header-row{ display:grid; grid-template-columns: 1fr auto 1fr; gap:8px; }
+    .search-wrap{ grid-column:2; margin:0 auto; }
+    .header-buttons{ grid-column:3; justify-self:end; }
+  }
   .sticky-header h1{
     font-family:'Manrope', sans-serif; font-weight:800; font-size: 14px;
-    margin: 0; color: var(--text); flex-shrink:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    margin: 0; color: var(--text);
   }
   .sticky-header .search-wrap{ margin: 0; flex:1; min-width:0; width:auto; max-width:400px; }
         
@@ -502,22 +508,24 @@ body{ background:#20263a; color: var(--text-muted); }
 </div>
 
 <div class="sticky-header">
+  <div class="sticky-header-title-row">
+    <h1>Legendary Raids (No Adventure Effect)</h1>
+  </div>
   <div class="sticky-header-row">
-    <div class="sticky-header-center">
-      <h1>Legendary Raids (No Adventure Effect)</h1>
-      <div class="search-wrap">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input id="search" type="text" placeholder="Search raid boss name…" autocomplete="off">
-      </div>
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="search" type="text" placeholder="Search raid boss name…" autocomplete="off">
     </div>
-    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-    <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
-      <span class="filter-line filter-line-1"></span>
-      <span class="filter-line filter-line-2"></span>
-      <span class="filter-line filter-line-3"></span>
-    </button>
+    <div class="header-buttons">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
+        <span class="filter-line filter-line-1"></span>
+        <span class="filter-line filter-line-2"></span>
+        <span class="filter-line filter-line-3"></span>
+      </button>
+    </div>
   </div>
 </div>
 

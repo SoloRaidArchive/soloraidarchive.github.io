@@ -42,9 +42,15 @@
   }
     
   header{ padding: 12px 24px 10px; text-align:center; }
-  h1{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin:70px 0 4px; color: var(--text); text-align:center; }
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  h1{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin:0; color: var(--text); text-align:center; }
+  .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
 
-  .container{ max-width: 1100px; margin: 0 auto; padding: 70px 20px 45px; }
+  .container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 45px; }
 
   .step-card{
     background: var(--card); border:2px solid var(--border); border-radius:20px;
@@ -298,22 +304,23 @@
   [data-theme="dark"] .energy-row b{ color:#ffc94a; }
   datalist{ display:none; }
 .hamburger-btn{
-    position:fixed; top:16px; right:16px; z-index:20;
-    width:42px; height:42px; border-radius:50%;
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
   }
-  .hamburger-btn:hover{ transform: translateY(-2px); }
-  .hamburger-btn span{ display:block; width:19px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .hamburger-btn:hover{ transform: translateY(-2px); } }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:66px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:fixed; top:60px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 76px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
   .hamburger-theme-toggle{
@@ -357,9 +364,6 @@
 </head>
 <body>
 
-<button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
-  <span></span><span></span><span></span>
-</button>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
@@ -392,7 +396,14 @@
   </div>
 </div>
 
-<h1 class="page-title-sm">Catch Tank Calculator</h1>
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <h1 class="page-title-sm">Catch Tank Calculator</h1>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
 
 <div class="container">
 
@@ -2850,15 +2861,21 @@ function updateModSummaries(){
   const stabCM = document.getElementById("stabCM").checked;
   const stabFM = document.getElementById("stabFM").checked;
   const playerStabText = (stabCM || stabFM) ? `STAB: ${[stabCM && "CM", stabFM && "FM"].filter(Boolean).join(" + ")}` : "No STAB";
-  document.getElementById("playerModSummary").textContent =
-    `${EFF_LABELS[effCM] || effCM}x CM · ${EFF_LABELS[effFM] || effFM}x FM · ${playerStabText}`;
+  const playerModSummaryEl = document.getElementById("playerModSummary");
+  if(playerModSummaryEl){
+    playerModSummaryEl.textContent =
+      `${EFF_LABELS[effCM] || effCM}x CM · ${EFF_LABELS[effFM] || effFM}x FM · ${playerStabText}`;
+  }
   const playerNonDefault = effCM !== "1" || effFM !== "1" || stabCM || stabFM;
   if(playerNonDefault) document.getElementById("playerModDetails").open = true;
 
   const effBossCM = document.getElementById("effBossCM").value;
   const effBossFM = document.getElementById("effBossFM").value;
-  document.getElementById("bossModSummary").textContent =
-    `${EFF_LABELS[effBossCM] || effBossCM}x CM · ${EFF_LABELS[effBossFM] || effBossFM}x FM`;
+  const bossModSummaryEl = document.getElementById("bossModSummary");
+  if(bossModSummaryEl){
+    bossModSummaryEl.textContent =
+      `${EFF_LABELS[effBossCM] || effBossCM}x CM · ${EFF_LABELS[effBossFM] || effBossFM}x FM`;
+  }
   const bossNonDefault = effBossCM !== "1" || effBossFM !== "1" ||
     document.getElementById("bossStabCM").checked || document.getElementById("bossStabFM").checked;
   if(bossNonDefault) document.getElementById("bossModDetails").open = true;

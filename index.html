@@ -153,13 +153,14 @@
   }
 
   .hamburger-btn{
-    position:fixed; top:18px; right:18px; z-index:20;
+    position:fixed; top:18px; right:18px; z-index:20; -webkit-tap-highlight-color:transparent;
     width:44px; height:44px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
   }
-  .hamburger-btn:hover{ transform: translateY(-2px); }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .hamburger-btn:hover{ transform: translateY(-2px); } }
   .hamburger-btn span{ display:block; width:20px; height:2.5px; border-radius:2px; background: var(--text); transition: transform .2s ease, opacity .2s ease; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
