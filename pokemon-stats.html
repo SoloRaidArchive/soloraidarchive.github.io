@@ -51,7 +51,7 @@
   #searchInput:focus{ border-color: var(--accent); }
   .vertical-toggle{ display:flex; flex-direction:column; gap:2px; }
   .hamburger-item{
-    display:flex; align-items:center; width:100%; padding:10px; font-family:'Manrope', sans-serif;
+    display:flex; align-items:center; width:100%; padding:10px 8px; font-family:'Manrope', sans-serif;
     font-weight:700; font-size:13.5px; color: var(--ink); background:none; border:none;
     border-radius:10px; cursor:pointer; text-align:left; min-height:40px; box-sizing:border-box;
   }
@@ -143,9 +143,9 @@
   .gear-btn:hover{ transform: translateY(-2px) rotate(20deg); }
   .gear-panel{
     display:none; position:fixed; top:116px; right:16px; z-index:19;
-    width:fit-content; min-width:180px; max-width:calc(100vw - 48px);
+    width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
     background: var(--card); border:2px solid var(--border); border-radius:16px;
-    padding:14px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto;
   }
   .gear-panel.open{ display:flex; }
@@ -239,6 +239,14 @@
       <button class="hamburger-item" data-sort="atk">Attack (High–Low)</button>
       <button class="hamburger-item" data-sort="def">Defense (High–Low)</button>
       <button class="hamburger-item" data-sort="hp">HP (High–Low)</button>
+    </div>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Show</div>
+    <div class="vertical-toggle" id="showLimitList">
+      <button class="hamburger-item active" data-n="30">Top 30</button>
+      <button class="hamburger-item" data-n="100">Top 100</button>
+      <button class="hamburger-item" data-n="0">Show All</button>
     </div>
   </div>
   <div class="hamburger-section">
@@ -640,6 +648,7 @@ const grid = document.getElementById("pkmnGrid");
 const countEl = document.getElementById("count");
 const searchInput = document.getElementById("searchInput");
 let currentSort = "name";
+let currentLimit = 30;
 
 function render(){
   const q = searchInput.value.trim().toLowerCase();
@@ -655,7 +664,12 @@ function render(){
     ? "Stats shown are base stats with perfect IVs (15/15/15) applied — no Combat Power Multiplier (CPM), so these values don't change with level. Each bar is scaled against the highest value for that stat across every Pokémon tracked."
     : "Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.";
 
-  countEl.textContent = `${list.length} Pokémon`;
+  const totalMatches = list.length;
+  if(currentLimit > 0) list = list.slice(0, currentLimit);
+
+  countEl.textContent = currentLimit > 0 && totalMatches > currentLimit
+    ? `Showing ${list.length} of ${totalMatches} Pokémon`
+    : `${totalMatches} Pokémon`;
   grid.innerHTML = list.length
     ? list.map(cardHtml).join("")
     : `<div class="empty">No Pokémon match your search.</div>`;
@@ -667,6 +681,14 @@ document.querySelectorAll("#sortList .hamburger-item").forEach(btn => {
     document.querySelectorAll("#sortList .hamburger-item").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     currentSort = btn.dataset.sort;
+    render();
+  });
+});
+document.querySelectorAll("#showLimitList .hamburger-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#showLimitList .hamburger-item").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentLimit = parseInt(btn.dataset.n);
     render();
   });
 });
