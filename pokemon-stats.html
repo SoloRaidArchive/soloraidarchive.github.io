@@ -91,7 +91,7 @@
     max-width:700px; margin:14px auto 0; padding:10px 16px; text-align:center;
     font-size:12px; color: var(--ink-dim); line-height:1.5;
   }
-.container{ max-width: 1100px; margin: 0 auto; padding: 90px 20px 45px; }
+.container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 45px; }
   .count{
     text-align:center; font-family:'Inter', sans-serif; font-size:12px;
     color: var(--ink-dim); margin-bottom:14px;
@@ -144,10 +144,10 @@
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:60px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:fixed; top:96px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 76px); overflow-y:auto;
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 112px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
   .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
@@ -167,11 +167,11 @@
   .filter-line-2{ width:11px; }
   .filter-line-3{ width:6px; }
   .gear-panel{
-    display:none; position:fixed; top:60px; right:16px; z-index:19;
+    display:none; position:fixed; top:96px; right:16px; z-index:19;
     width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    flex-direction:column; gap:12px; max-height:calc(100vh - 76px); overflow-y:auto; overflow-x:hidden;
+    flex-direction:column; gap:12px; max-height:calc(100vh - 112px); overflow-y:auto; overflow-x:hidden;
   }
   .gear-panel.open{ display:flex; }
   .hamburger-theme-toggle{

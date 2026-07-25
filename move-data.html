@@ -77,7 +77,7 @@
   }
   .hamburger-item:hover{ background: var(--ink-soft, var(--card)); }
   .hamburger-item.active{ background: var(--accent); color:#fff; }
-.container{ max-width: 1100px; margin: 0 auto; padding: 90px 20px 45px; }
+.container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 45px; }
   .move-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); gap:12px; }
   .move-card{
     background: var(--card); border:2px solid var(--border); border-radius:14px;
@@ -124,10 +124,10 @@
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:60px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:fixed; top:96px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 76px); overflow-y:auto;
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 112px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
   .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
