@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Difficulty &amp; Role Reference</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+<meta name="description" content="What each raid difficulty star rating and battle party role means, in one place.">
+<link rel="canonical" href="https://soloraidarchive.github.io/reference.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #eef6ff; --bg2: #fef9ec;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
+    --blue: #3d9dff; --blue-dark: #2b7fd6;
+    --t4: #e2661c; --t5: #ff5b5b; --t55: #b0203a; --t6: #9b7bf0; --t7: #5aa9ff;
+    --t3: #e0b316; --t2: #4cbf6f; --t1: #e091c9;
+  }
+  [data-theme="dark"]{
+    --bg1: #10131d; --bg2: #1a1424;
+    --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    color: var(--text); font-family:'Inter', sans-serif; min-height:100vh;
+  }
+  .hamburger-btn{
+    position:fixed; top:18px; right:18px; z-index:20;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:hover{ transform: translateY(-2px); }
+  .hamburger-btn span{ display:block; width:20px; height:2.5px; border-radius:2px; background: var(--text); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:fixed; top:70px; right:18px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 100px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text); background: var(--bg1); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--blue); color: var(--blue-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1); color: var(--blue-dark); }
+  .hamburger-section a.current{ background: var(--blue); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  .hamburger-section a.hamburger-featured.current{
+    background-image:
+      linear-gradient(var(--blue), var(--blue)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+
+  .page-wrap{ max-width:900px; margin:0 auto; padding:70px 24px 60px; }
+  h1{ font-family:'Manrope', sans-serif; font-weight:800; font-size:26px; text-align:center; margin:0 0 6px; }
+  .page-sub{ text-align:center; color: var(--text-muted); font-size:13px; font-weight:600; margin:0 0 32px; }
+
+  .ref-block{
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    padding:20px 22px; margin-bottom:24px;
+  }
+  .ref-title{ font-family:'Manrope', sans-serif; font-weight:700; font-size:17px; margin-bottom:16px; }
+
+  .tier-grid{ display:flex; flex-direction:column; gap:14px; }
+  .tier-row{ display:flex; align-items:flex-start; gap:12px; }
+  .tier-info{ flex:1; min-width:0; }
+  .tier-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14.5px; margin-bottom:3px; }
+  .tier-desc{ font-family:'Inter', sans-serif; font-size:13px; color: var(--text-muted); font-weight:600; line-height:1.45; }
+  .tier-badge{
+    flex-shrink:0; font-family:'Manrope', sans-serif; font-weight:800; font-size:13px;
+    color:#fff; padding:6px 12px; border-radius:999px; min-width:54px; text-align:center;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.12); cursor:help;
+  }
+  .tier-badge.t7{ background: var(--t7); } .tier-badge.t6{ background: var(--t6); }
+  .tier-badge.t55{ background: var(--t55); } .tier-badge.t5{ background: var(--t5); }
+  .tier-badge.t4{ background: var(--t4); } .tier-badge.t3{ background: var(--t3); }
+  .tier-badge.t2{ background: var(--t2); } .tier-badge.t1{ background: var(--t1); }
+  .tier-divider{
+    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:800; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.06em; padding-top:4px;
+  }
+  .rules-note{ font-size:12.5px; color: var(--text-dim); font-weight:600; margin-top:12px; }
+
+  .role-grid{ display:flex; flex-direction:column; gap:14px; }
+  .role-row{ display:flex; align-items:flex-start; gap:12px; }
+  .role-chip{
+    flex-shrink:0; font-family:'Manrope', sans-serif; font-weight:800; font-size:13px;
+    padding:6px 14px; border-radius:999px; cursor:help;
+  }
+  .role-chip.main{ background:#fff3d2; color:#b8860b; }
+  .role-chip.support{ background:#e5f9ee; color:#1f9d5c; }
+  .role-chip.catchtank{ background:#e6f2ff; color:#1c72c9; }
+  .role-chip.executor{ background:#f2ebff; color:#7d4fd6; }
+  [data-theme="dark"] .role-chip.main{ background:rgba(255,201,74,0.18); color:#ffcf6b; }
+  [data-theme="dark"] .role-chip.support{ background:rgba(76,208,138,0.18); color:#5fe0a0; }
+  [data-theme="dark"] .role-chip.catchtank{ background:rgba(61,157,255,0.18); color:#6fb8ff; }
+  [data-theme="dark"] .role-chip.executor{ background:rgba(155,123,240,0.2); color:#c1a8ff; }
+  .role-desc{ font-size:13px; color: var(--text-muted); font-weight:600; line-height:1.45; flex:1; align-self:center; }
+</style>
+</head>
+<body>
+
+<button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+  <span></span><span></span><span></span>
+</button>
+<div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="index.html">🏠 Home</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Research</div>
+    <a href="research.html" class="hamburger-featured">Most Used Raiders</a>
+    <a href="ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+    <a href="meta-battle-parties.html">Meta Battle Parties</a>
+    <a href="ct-calculator.html">Catch Tank Calculator</a>
+    <a href="move-data.html">Move Data</a>
+    <a href="pokemon-stats.html">Pokémon Stats</a>
+    <a href="raid-strategies.html">Raid Strategies</a>
+    <a href="reference.html" class="current">Difficulty &amp; Role Reference</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Raid Archives</div>
+    <a href="tier4-raids.html">Mega</a>
+    <a href="tier5-raids.html">Legendary</a>
+    <a href="tier5-ae-raids.html">Legendary AE</a>
+    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Resources</div>
+    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+  </div>
+</div>
+
+<div class="page-wrap">
+  <h1>Difficulty &amp; Role Reference</h1>
+  <p class="page-sub">What each star rating and battle party role means across the archive.</p>
+
+  <div class="ref-block">
+    <div class="ref-title">⭐ Difficulty Reference</div>
+    <div class="tier-grid">
+      <div class="tier-row">
+        <span class="tier-badge t7" title="Perfect execution required — under 0.5% win chance.">7★</span>
+        <div class="tier-info">
+          <div class="tier-name">Special</div>
+          <div class="tier-desc">Perfect execution required — under 0.5% win chance.</div>
+        </div>
+      </div>
+      <div class="tier-row">
+        <span class="tier-badge t6" title="Perfect execution — roughly 1–2.5% win chance.">6★</span>
+        <div class="tier-info">
+          <div class="tier-name">Nightmare</div>
+          <div class="tier-desc">Perfect execution — roughly 1–2.5% win chance.</div>
+        </div>
+      </div>
+      <div class="tier-row">
+        <span class="tier-badge t55" title="Excellent execution — roughly 10–20% win chance.">5.5★</span>
+        <div class="tier-info">
+          <div class="tier-name">Very Hard</div>
+          <div class="tier-desc">Excellent execution — roughly 10–20% win chance.</div>
+        </div>
+      </div>
+      <div class="tier-row">
+        <span class="tier-badge t5" title="Good execution, favorable weather &amp; movesets recommended.">5★</span>
+        <div class="tier-info">
+          <div class="tier-name">Hard</div>
+          <div class="tier-desc">Good execution, favorable weather &amp; movesets recommended.</div>
+        </div>
+      </div>
+      <div class="tier-row">
+        <span class="tier-badge t4" title="Some strategic execution — Level 40+ with select movesets.">4★</span>
+        <div class="tier-info">
+          <div class="tier-name">Challenging</div>
+          <div class="tier-desc">Some strategic execution — Level 40+ with select movesets.</div>
+        </div>
+      </div>
+      <div class="tier-divider">Casual Raids · Max 3★</div>
+      <div class="tier-row">
+        <span class="tier-badge t3" title="Various counters work — Level 40+.">3★</span>
+        <div class="tier-info">
+          <div class="tier-name">Moderate</div>
+          <div class="tier-desc">Various counters work — Level 40+.</div>
+        </div>
+      </div>
+      <div class="tier-row">
+        <span class="tier-badge t2" title="Various counters work — Level 30+.">2★</span>
+        <div class="tier-info">
+          <div class="tier-name">Easy</div>
+          <div class="tier-desc">Various counters work — Level 30+.</div>
+        </div>
+      </div>
+      <div class="tier-row">
+        <span class="tier-badge t1" title="Lots of counters work — Level 30.">1★</span>
+        <div class="tier-info">
+          <div class="tier-name">Very Easy</div>
+          <div class="tier-desc">Lots of counters work — Level 30.</div>
+        </div>
+      </div>
+    </div>
+    <div class="rules-note">Only 1 phone &amp; 1 account may be used.</div>
+  </div>
+
+  <div class="ref-block">
+    <div class="ref-title">⚔️ Role Reference</div>
+    <div class="role-grid">
+      <div class="role-row">
+        <span class="role-chip main" title="The primary damage dealer.">Main DPS</span>
+        <span class="role-desc">The primary damage dealer.</span>
+      </div>
+      <div class="role-row">
+        <span class="role-chip support" title="Steps in when Main DPS goes down.">Support DPS</span>
+        <span class="role-desc">Steps in when Main DPS goes down.</span>
+      </div>
+      <div class="role-row">
+        <span class="role-chip catchtank" title="Intercepts large moves &amp; returns heavy damage.">Catch Tank</span>
+        <span class="role-desc">Intercepts large moves &amp; returns heavy damage.</span>
+      </div>
+      <div class="role-row">
+        <span class="role-chip executor" title="Fights bosses in small windows.">Executor</span>
+        <span class="role-desc">Fights bosses in small windows.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+hamburgerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = hamburgerPanel.classList.contains("open");
+  hamburgerPanel.classList.toggle("open", !isOpen);
+  hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+document.addEventListener("click", (e) => {
+  if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
+    hamburgerPanel.classList.remove("open");
+    hamburgerBtn.setAttribute("aria-expanded", "false");
+  }
+});
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+</script>
+
+</body>
+</html>
