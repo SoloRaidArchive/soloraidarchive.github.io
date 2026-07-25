@@ -115,6 +115,7 @@ body{ background:#20263a; color: var(--text-muted); }
 
           
   .tier-section{ margin: 14px 0 0; padding: 0; }
+  #sections{ max-width: 1760px; margin: 0 auto; padding: 0 20px; }
   .tier-header{
     display:flex; align-items:center; gap:10px; margin-bottom:14px;
   }
@@ -408,7 +409,7 @@ body{ background:#20263a; color: var(--text-muted); }
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:90px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:absolute; top:calc(100% + 1px); right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 106px); overflow-y:auto;
@@ -426,7 +427,7 @@ body{ background:#20263a; color: var(--text-muted); }
   .filter-line{ display:block; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); }
   .filter-line-1{ width:16px; } .filter-line-2{ width:11px; } .filter-line-3{ width:6px; }
   .gear-panel{
-    display:none; position:fixed; top:90px; right:16px; z-index:19;
+    display:none; position:absolute; top:calc(100% + 1px); right:16px; z-index:19;
     width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
@@ -475,37 +476,7 @@ body{ background:#20263a; color: var(--text-muted); }
 </head>
 <body>
 
-<div class="hamburger-panel" id="hamburgerPanel">
-  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
-  <div class="hamburger-section">
-    <a href="index.html">🏠 Home</a>
-  </div>
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Research</div>
-    <a href="research.html" class="hamburger-featured">Most Used Raiders</a>
-    <a href="ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
-    <a href="meta-battle-parties.html">Meta Battle Parties</a>
-    <a href="ct-calculator.html">Catch Tank Calculator</a>
-    <a href="move-data.html">Move Data</a>
-    <a href="pokemon-stats.html">Pokémon Stats</a>
-    <a href="raid-strategies.html">Raid Strategies</a>
-    <a href="reference.html">Difficulty &amp; Role Reference</a>
-  </div>
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Raid Archives</div>
-    <a href="tier4-raids.html" class="current">Mega</a>
-    <a href="tier5-raids.html">Legendary</a>
-    <a href="tier5-ae-raids.html">Legendary AE</a>
-    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
-  </div>
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Resources</div>
-    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
-    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
-    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
-    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
-  </div>
-</div>
+
 
 <div class="sticky-header">
   <div class="sticky-header-title-row">
@@ -527,17 +498,52 @@ body{ background:#20263a; color: var(--text-muted); }
       </button>
     </div>
   </div>
-</div>
 
-<div class="gear-panel" id="gearPanel">
-<div class="controls">
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Weather</div>
-    <div class="filter-options" id="weatherFilters"></div>
-    <button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button>
+
+  <div class="hamburger-panel" id="hamburgerPanel">
+    <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+    <div class="hamburger-section">
+      <a href="index.html">🏠 Home</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Research</div>
+      <a href="research.html" class="hamburger-featured">Most Used Raiders</a>
+      <a href="ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+      <a href="meta-battle-parties.html">Meta Battle Parties</a>
+      <a href="ct-calculator.html">Catch Tank Calculator</a>
+      <a href="move-data.html">Move Data</a>
+      <a href="pokemon-stats.html">Pokémon Stats</a>
+      <a href="raid-strategies.html">Raid Strategies</a>
+      <a href="reference.html">Difficulty &amp; Role Reference</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Raid Archives</div>
+      <a href="tier4-raids.html" class="current">Mega</a>
+      <a href="tier5-raids.html">Legendary</a>
+      <a href="tier5-ae-raids.html">Legendary AE</a>
+      <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Resources</div>
+      <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+      <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+      <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+      <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+    </div>
+  </div>
+
+  <div class="gear-panel" id="gearPanel">
+  <div class="controls">
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Weather</div>
+      <div class="filter-options" id="weatherFilters"></div>
+      <button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button>
+    </div>
+  </div>
   </div>
 </div>
-</div>
+
+
 
 <div id="sections"></div>
 
