@@ -28,12 +28,14 @@
     --red: #ff5b5b; --yellow: #ffc94a; --green: #4cd08a; --purple: #9b7bf0;
     --t4: #e2661c; --t5: #ff5b5b; --t55: #b0203a; --t6: #9b7bf0; --t7: #5aa9ff;
     --t3: #e0b316; --t2: #4cbf6f; --t1: #e091c9;
+    --divider-contrast: rgba(0,0,0,0.35);
   }
   [data-theme="dark"]{
     --bg1: #0f1220; --bg2: #1c1330;
     --card: #1c2030; --border: #323850;
     --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
     --blue: #5aa9ff; --blue-dark: #8cc7ff;
+    --divider-contrast: rgba(255,255,255,0.35);
   }
   [data-theme="dark"] #search,
   [data-theme="dark"] .count,
@@ -52,7 +54,9 @@
   [data-theme="dark"] .role-chip.other{ background:#2a2f42; color:#a7afc0; }
   [data-theme="dark"] .count-badge{ background:#2a2f42; color:#a7afc0; }
   [data-theme="dark"] .moves > span{ background:#20263a; border-color:#323850; }
-  [data-theme="dark"] details.notes-wrap .notes-body{ background:#20263a; color: var(--text-muted); }
+  [data-theme="dark"] details.notes-wrap .notes-
+  html{ overflow-x:hidden; max-width:100vw; }
+body{ background:#20263a; color: var(--text-muted); }
 
 
     
@@ -68,7 +72,7 @@
   .home-link-bottom:hover{ transform: translateY(-2px); }
   *{box-sizing:border-box;}
   body{
-    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
     color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh; padding-bottom: 60px;
   }
   header{ padding: 120px 24px 10px; text-align:center; }
@@ -142,7 +146,7 @@
   }
   .card:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(61,157,255,0.14); }
 
-  .title-section{ padding-bottom:14px; border-bottom:1px solid var(--border); margin-bottom:14px; text-align:left; }
+  .title-section{ padding-bottom:14px; border-bottom:2px solid var(--divider-contrast); margin-bottom:14px; text-align:left; }
   .header{ position:relative; padding-right:48px; }
   .name-group{
     display:flex; align-items:center; justify-content:flex-start; flex-wrap:nowrap; gap:6px;
@@ -407,7 +411,7 @@
   .gear-btn:hover{ transform: translateY(-2px) rotate(20deg); }
   .gear-panel{
     display:none; position:fixed; top:116px; right:16px; z-index:19;
-    width:min(230px, calc(100vw - 48px));
+    width:fit-content; min-width:180px; max-width:calc(100vw - 48px);
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto;
@@ -502,11 +506,6 @@
 
 <div class="gear-panel" id="gearPanel">
 <div class="controls">
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Difficulty</div>
-    <div class="filter-options" id="difficultyFilters"></div>
-    <button class="filter-clear" onclick="clearFilterGroup('difficulty')">Clear</button>
-  </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Weather</div>
     <div class="filter-options" id="weatherFilters"></div>
@@ -1382,7 +1381,6 @@ function initializeFromRaids(){
   WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
   DIFFICULTY_LIST = TIER_ORDER.filter(t => bossOrder.some(b => bossGroups[b][bossGroups[b].length - 1].tier === t));
 
-  renderDifficultyFilters();
   renderWeatherFilters();
   buildSections();
 }
@@ -1397,24 +1395,6 @@ const TIER_DESCRIPTIONS = {
   "2":"Various counters work — Level 30+.",
   "1":"Lots of counters work — Level 30.",
 };
-function renderDifficultyFilters(){
-  const el = document.getElementById("difficultyFilters");
-  el.innerHTML = DIFFICULTY_LIST.map(t => `
-    <label class="filter-chk" title="${TIER_DESCRIPTIONS[t] || ""}">
-      <input type="checkbox" ${activeTiers.has(t) ? "checked" : ""} onchange="toggleDifficulty('${t}')">
-      ${tierLabel(t)} ${TIER_NAMES[t]}
-    </label>
-  `).join("");
-  const summary = document.getElementById("difficultySummaryText");
-  if(summary){
-    summary.textContent = activeTiers.size === 0 ? "Difficulty: All" :
-      "Difficulty: " + (activeTiers.size <= 2 ? [...activeTiers].map(t => tierLabel(t)).join(", ") : `${activeTiers.size} selected`);
-  }
-}
-function toggleDifficulty(t){
-  if(activeTiers.has(t)) activeTiers.delete(t); else activeTiers.add(t);
-  refresh();
-}
 
 function renderFilterGroup(containerId, list, activeSet, toggleFnName, showIcon){
   const el = document.getElementById(containerId);
@@ -1445,7 +1425,6 @@ function clearFilterGroup(group){
 }
 
 function refresh(){
-  renderDifficultyFilters();
   renderWeatherFilters();
   buildSections();
 }

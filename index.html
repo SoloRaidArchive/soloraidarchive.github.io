@@ -30,8 +30,10 @@
     --t3: #e0b316; --t2: #4cbf6f; --t1: #e091c9;
   }
   *{ box-sizing:border-box; }
+  html{ overflow-x:hidden; max-width:100vw; }
+
   body{
-    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
     color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh;
     display:flex; flex-direction:column;
   }
@@ -162,7 +164,7 @@
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
 
   .hamburger-panel{
-    position:fixed; top:70px; right:18px; z-index:19; width:min(320px, calc(100vw - 36px));
+    position:fixed; top:70px; right:18px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 100px); overflow-y:auto;
@@ -180,9 +182,10 @@
     letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
   }
   .hamburger-section a{
-    display:block; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
-    font-size:15px; color: var(--text); text-decoration:none; border-radius:10px;
-    min-height:44px; box-sizing:border-box; display:flex; align-items:center;
+    padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; display:flex; align-items:center;
+    word-break:break-word; line-height:1.3;
   }
   .hamburger-section a:hover{ background: var(--bg1); color: var(--blue-dark); }
   .hamburger-section a.hamburger-featured{
@@ -300,6 +303,7 @@
     <a href="move-data.html">Move Data</a>
     <a href="pokemon-stats.html">Pokémon Stats</a>
     <a href="raid-strategies.html">Raid Strategies</a>
+    <a href="reference.html">Difficulty &amp; Role Reference</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Raid Archives</div>
