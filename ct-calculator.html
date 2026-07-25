@@ -233,6 +233,7 @@
   .mod-row{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; }
   .mod-row.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:10px; }
   @media (max-width:560px){ .mod-row.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
+  .mp-buffs-check{ height:100%; box-sizing:border-box; justify-content:center; }
   .mod-consolidated-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; align-items:stretch; }
   @media (max-width:560px){ .mod-consolidated-grid{ grid-template-columns: repeat(2, 1fr); } }
   .mod-consolidated-grid .check-item{ height:100%; box-sizing:border-box; }
@@ -624,7 +625,7 @@
         </div>
       </summary>
 
-      <div class="mod-row fixed-4" style="margin-top:16px;">
+      <div class="mod-row fixed-4 mp-buffs-row" style="margin-top:16px;">
         <div class="mod-cell">
           <label for="friendship">Friendship</label>
           <select id="friendship">
@@ -644,10 +645,8 @@
             <option value="1.3">Stab (1.3x)</option>
           </select>
         </div>
-      </div>
-      <div class="check-grid" style="grid-template-columns:repeat(2,1fr); margin-top:12px;">
-        <label class="check-item"><input type="checkbox" id="partyPower"> Party Power</label>
-        <label class="check-item"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
+        <label class="check-item mp-buffs-check"><input type="checkbox" id="partyPower"> Party Power</label>
+        <label class="check-item mp-buffs-check"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
       </div>
     </details>
   </div>
