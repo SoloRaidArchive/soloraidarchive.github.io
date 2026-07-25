@@ -69,7 +69,7 @@
   main{ width:100%; display:flex; flex-direction:column; gap:16px; }
 
   .live-boss-panel{
-    width:100%; background: var(--card); border:2px solid var(--border); border-radius:16px; padding:4px 14px 16px;
+    width:100%; background: var(--card); border:2px solid var(--border); border-radius:16px; padding:0px 14px 16px;
   }
   .live-boss-summary{
     cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px;
@@ -79,7 +79,7 @@
     content:"▸"; font-size:14px; color: var(--text-dim); transition: transform .12s ease;
   }
   .live-boss-panel[open] .live-boss-summary::before{ transform: rotate(90deg); }
-  .live-boss-panel #liveBossWrap{ margin-top:6px; }
+  .live-boss-panel #liveBossWrap{ margin-top:2px; }
 
   .favicon-jumping{
     animation: jump 1s infinite
