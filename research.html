@@ -34,46 +34,50 @@
     --blue: #5aa9ff; --blue-dark: #8cc7ff;
   }
   *{ box-sizing:border-box; }
-  html{ overflow-x:hidden; max-width:100vw; }
+  html{ max-width:100vw; }
 
   body{
-    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
     color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh;
   }
   .hamburger-btn{
-    position:fixed; top:16px; right:16px; z-index:20;
-    width:42px; height:42px; border-radius:50%;
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
   }
-  .hamburger-btn:hover{ transform: translateY(-2px); }
-  .hamburger-btn span{ display:block; width:19px; height:2.5px; border-radius:2px; background: var(--text); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .hamburger-btn:hover{ transform: translateY(-2px); } }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text); transition: transform .2s ease, opacity .2s ease; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:66px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:fixed; top:60px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 76px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
   .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
   .gear-btn{
-    position:fixed; top:66px; right:16px; z-index:20;
-    width:42px; height:42px; border-radius:50%;
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
-    font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
   }
-  .gear-btn:hover{ transform: translateY(-2px) rotate(20deg); }
+  .gear-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .gear-btn:hover{ transform: translateY(-2px); } }
+  .filter-line{ display:block; height:2.5px; border-radius:2px; background: var(--text); }
+  .filter-line-1{ width:16px; } .filter-line-2{ width:11px; } .filter-line-3{ width:6px; }
   .gear-panel{
-    display:none; position:fixed; top:116px; right:16px; z-index:19;
+    display:none; position:fixed; top:60px; right:16px; z-index:19;
     width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto; overflow-x:hidden;
+    flex-direction:column; gap:12px; max-height:calc(100vh - 76px); overflow-y:auto; overflow-x:hidden;
   }
   .gear-panel.open{ display:flex; }
   .hamburger-theme-toggle{
@@ -115,7 +119,16 @@
   }
 
   header{ padding: 70px 24px 10px; text-align:center; }
-  h1{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin:70px 0 4px; color: var(--text); text-align:center; }
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
+  .sticky-header-center{ flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:8px; }
+  h1{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; color: var(--text);
+    margin:0; flex-shrink:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
   .footer-desc{
     color: var(--text-dim); font-size: 13px; max-width: 640px; margin: 30px auto 10px;
     font-weight:600; line-height:1.6; text-align:center; padding-top:20px; border-top:2px solid var(--border);
@@ -127,7 +140,7 @@
     display:flex; flex-direction:column; gap:12px; align-items:center;
   }
   #pokemonSearch{
-    display:block; width:100%; max-width:320px; margin: 20px auto 0;
+    flex:1; min-width:0; max-width:400px;
     background: var(--card); border: 2px solid var(--border); color: var(--text);
     font-size:14px; font-weight:700; padding: 10px 14px; border-radius: 10px; outline:none;
   }
@@ -294,10 +307,6 @@
 </head>
 <body>
 
-<button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
-  <span></span><span></span><span></span>
-</button>
-<button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">⚙️</button>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
@@ -330,9 +339,22 @@
   </div>
 </div>
 
-<h1 class="page-title-sm">Most Used Raiders</h1>
-
-<input id="pokemonSearch" type="text" placeholder="Search Pokémon…" autocomplete="off">
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <div class="sticky-header-center">
+      <h1 class="page-title-sm">Most Used Raiders</h1>
+      <input id="pokemonSearch" type="text" placeholder="Search Pokémon…" autocomplete="off">
+    </div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
+      <span class="filter-line filter-line-1"></span>
+      <span class="filter-line filter-line-2"></span>
+      <span class="filter-line filter-line-3"></span>
+    </button>
+  </div>
+</div>
 
 <div class="gear-panel" id="gearPanel">
 <div class="controls">
@@ -1108,25 +1130,38 @@ applyTheme(initialTheme);
 
 const gearBtn = document.getElementById("gearBtn");
 const gearPanel = document.getElementById("gearPanel");
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+
+function closeHamburger(){
+  hamburgerPanel.classList.remove("open");
+  hamburgerBtn.setAttribute("aria-expanded", "false");
+}
+function closeGear(){
+  gearPanel.classList.remove("open");
+  gearBtn.setAttribute("aria-expanded", "false");
+}
+
 gearBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = gearPanel.classList.contains("open");
+  closeHamburger();
   gearPanel.classList.toggle("open", !isOpen);
   gearBtn.setAttribute("aria-expanded", String(!isOpen));
 });
-
-const hamburgerBtn = document.getElementById("hamburgerBtn");
-const hamburgerPanel = document.getElementById("hamburgerPanel");
 hamburgerBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = hamburgerPanel.classList.contains("open");
+  closeGear();
   hamburgerPanel.classList.toggle("open", !isOpen);
   hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
 });
 document.addEventListener("click", (e) => {
   if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
-    hamburgerPanel.classList.remove("open");
-    hamburgerBtn.setAttribute("aria-expanded", "false");
+    closeHamburger();
+  }
+  if(!gearPanel.contains(e.target) && e.target !== gearBtn){
+    closeGear();
   }
 });
 

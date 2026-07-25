@@ -55,7 +55,7 @@
   [data-theme="dark"] .count-badge{ background:#2a2f42; color:#a7afc0; }
   [data-theme="dark"] .moves > span{ background:#20263a; border-color:#323850; }
   [data-theme="dark"] details.notes-wrap .notes-
-  html{ overflow-x:hidden; max-width:100vw; }
+  html{ max-width:100vw; }
 body{ background:#20263a; color: var(--text-muted); }
 
 
@@ -72,14 +72,20 @@ body{ background:#20263a; color: var(--text-muted); }
   .home-link-bottom:hover{ transform: translateY(-2px); }
   *{box-sizing:border-box;}
   body{
-    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
     color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh; padding-bottom: 60px;
   }
-  header{ padding: 120px 24px 10px; text-align:center; }
-  h1{
-    font-family:'Manrope', sans-serif; font-weight:800; font-size: 27px;
-    margin: 0; color: var(--text);
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
+  .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
+  .sticky-header-center{ flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .sticky-header h1{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size: 14px;
+    margin: 0; color: var(--text); flex-shrink:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .sticky-header .search-wrap{ margin: 0; flex:1; min-width:0; width:auto; max-width:400px; }
         
           
   .controls{
@@ -381,42 +387,46 @@ body{ background:#20263a; color: var(--text-muted); }
   .filter-chk:hover{ background: var(--bg1, var(--ink-soft)); color: var(--blue-dark); }
 @media (max-width:520px){
     .tier-grid{ grid-template-columns: minmax(0, 1fr); }
-    header{ padding: 120px 18px 10px; }
+    .sticky-header{ padding: 8px 12px; }
   }
 
   .hamburger-btn{
-    position:fixed; top:16px; right:16px; z-index:20;
-    width:42px; height:42px; border-radius:50%;
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
   }
-  .hamburger-btn:hover{ transform: translateY(-2px); }
-  .hamburger-btn span{ display:block; width:19px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .hamburger-btn:hover{ transform: translateY(-2px); } }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:66px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:fixed; top:60px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 76px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
   .gear-btn{
-    position:fixed; top:66px; right:16px; z-index:20;
-    width:42px; height:42px; border-radius:50%;
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
-    font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center;
-    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
   }
-  .gear-btn:hover{ transform: translateY(-2px) rotate(20deg); }
+  .gear-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .gear-btn:hover{ transform: translateY(-2px); } }
+  .filter-line{ display:block; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); }
+  .filter-line-1{ width:16px; } .filter-line-2{ width:11px; } .filter-line-3{ width:6px; }
   .gear-panel{
-    display:none; position:fixed; top:116px; right:16px; z-index:19;
+    display:none; position:fixed; top:60px; right:16px; z-index:19;
     width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    flex-direction:column; gap:12px; max-height:calc(100vh - 146px); overflow-y:auto; overflow-x:hidden;
+    flex-direction:column; gap:12px; max-height:calc(100vh - 76px); overflow-y:auto; overflow-x:hidden;
   }
   .gear-panel.open{ display:flex; }
   .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
@@ -461,10 +471,6 @@ body{ background:#20263a; color: var(--text-muted); }
 </head>
 <body>
 
-<button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
-  <span></span><span></span><span></span>
-</button>
-<button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">⚙️</button>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
@@ -497,13 +503,24 @@ body{ background:#20263a; color: var(--text-muted); }
   </div>
 </div>
 
-<header>
-  <h1>Legendary Raids — Adventure Effect</h1>
-</header>
-
-<div class="search-wrap">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-  <input id="search" type="text" placeholder="Search raid boss name…" autocomplete="off">
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <div class="sticky-header-center">
+      <h1>Legendary Raids — Adventure Effect</h1>
+      <div class="search-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="search" type="text" placeholder="Search raid boss name…" autocomplete="off">
+      </div>
+    </div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
+      <span class="filter-line filter-line-1"></span>
+      <span class="filter-line filter-line-2"></span>
+      <span class="filter-line filter-line-3"></span>
+    </button>
+  </div>
 </div>
 
 <div class="gear-panel" id="gearPanel">
@@ -1529,25 +1546,38 @@ loadRaidsFromCSV();
 
 const gearBtn = document.getElementById("gearBtn");
 const gearPanel = document.getElementById("gearPanel");
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+
+function closeHamburger(){
+  hamburgerPanel.classList.remove("open");
+  hamburgerBtn.setAttribute("aria-expanded", "false");
+}
+function closeGear(){
+  gearPanel.classList.remove("open");
+  gearBtn.setAttribute("aria-expanded", "false");
+}
+
 gearBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = gearPanel.classList.contains("open");
+  closeHamburger();
   gearPanel.classList.toggle("open", !isOpen);
   gearBtn.setAttribute("aria-expanded", String(!isOpen));
 });
-
-const hamburgerBtn = document.getElementById("hamburgerBtn");
-const hamburgerPanel = document.getElementById("hamburgerPanel");
 hamburgerBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = hamburgerPanel.classList.contains("open");
+  closeGear();
   hamburgerPanel.classList.toggle("open", !isOpen);
   hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
 });
 document.addEventListener("click", (e) => {
   if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
-    hamburgerPanel.classList.remove("open");
-    hamburgerBtn.setAttribute("aria-expanded", "false");
+    closeHamburger();
+  }
+  if(!gearPanel.contains(e.target) && e.target !== gearBtn){
+    closeGear();
   }
 });
 </script>

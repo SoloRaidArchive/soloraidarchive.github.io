@@ -40,20 +40,28 @@
   [data-theme="dark"] .index a:hover{ background: var(--accent-soft); }
 
       *{ box-sizing:border-box; }
-  html{ overflow-x:hidden; max-width:100vw; }
+  html{ max-width:100vw; }
 
   body{
-    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%); color: var(--ink);
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%); color: var(--ink);
     font-family: 'Inter', sans-serif; min-height:100vh;
   }
 
   
   header{ padding: 12px 24px 10px; text-align:center; }
-  h1{ font-family:'Manrope', sans-serif; font-weight:700; font-size:16px; margin:70px 0 4px; color: var(--ink); text-align:center; }
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
+  .sticky-header-center{ flex:1; min-width:0; display:flex; align-items:center; justify-content:center; gap:8px; }
+  h1{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:14px; color: var(--ink);
+    margin:0; flex-shrink:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
 
-  .search-row{ display:flex; justify-content:center; padding: 0 24px; margin: 70px 0 18px; }
   #pokemonSearch{
-    width:100%; max-width:360px;
+    flex:1; min-width:0; max-width:400px;
     background: var(--card); border: 1px solid var(--border); color: var(--ink);
     font-size:14px; padding: 11px 16px; border-radius: 10px; outline:none;
     box-shadow: 0 1px 2px rgba(26,29,41,0.04);
@@ -83,15 +91,15 @@
   }
   .active-filter-row button:hover{ border-color: var(--accent); color: var(--accent-dark); }
 
-  .party-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:16px; }
+  .party-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap:16px; }
 
   .party-card{
     background: var(--card); border:2px solid var(--border); border-radius:14px;
-    padding: 16px 18px; box-shadow: 0 1px 2px rgba(26,29,41,0.04);
+    padding: 16px 18px; box-shadow: 0 1px 2px rgba(26,29,41,0.04); min-width:0;
     transition: box-shadow .15s, border-color .15s;
   }
   .party-card:hover{ border-color:#d6d3fb; box-shadow: 0 6px 18px rgba(91,79,224,0.08); }
-  .party-index-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  .party-index-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; flex-wrap:wrap; min-width:0; }
   .chespin-link{ flex-shrink:0; display:flex; align-items:center; transition: transform .12s ease; }
   button.chespin-toggle{ background:none; border:none; padding:0; cursor:pointer; }
   .chespin-dropdown-panel{ min-width:180px; }
@@ -154,22 +162,23 @@
 
 
   .hamburger-btn{
-    position:fixed; top:16px; right:16px; z-index:20;
-    width:42px; height:42px; border-radius:50%;
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
   }
-  .hamburger-btn:hover{ transform: translateY(-2px); }
-  .hamburger-btn span{ display:block; width:19px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .hamburger-btn:hover{ transform: translateY(-2px); } }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:66px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:fixed; top:60px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 76px); overflow-y:auto;
   }
   .hamburger-panel.open{ display:flex; }
   .hamburger-theme-toggle{
@@ -213,9 +222,6 @@
 </head>
 <body>
 
-<button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
-  <span></span><span></span><span></span>
-</button>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
@@ -248,10 +254,16 @@
   </div>
 </div>
 
-<h1 class="page-title-sm">Meta Battle Parties</h1>
-
-<div class="search-row">
-  <input id="pokemonSearch" type="text" placeholder="Search by Pokémon name…" autocomplete="off">
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <div class="sticky-header-center">
+      <h1 class="page-title-sm">Meta Battle Parties</h1>
+      <input id="pokemonSearch" type="text" placeholder="Search by Pokémon name…" autocomplete="off">
+    </div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </div>
 
 <div id="activeFilterRow" class="active-filter-row" style="display:none;"></div>
