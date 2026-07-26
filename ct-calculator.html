@@ -544,8 +544,8 @@
                 <label for="effBossCM">Charge Move → You</label>
                 <select id="effBossCM">
                   <option value="0.24375">Not Effective x3 — 0.24375x</option>
-                  <option value="0.39">Not Effective x2 — 0.39x</option>
-                  <option value="0.39625">Not Effective x2 — 0.39625x</option>
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.390625">Double Resist — 0.390625x</option>
                   <option value="0.625">Not Effective — 0.625x</option>
                   <option value="1" selected>Effective — 1x</option>
                   <option value="1.6">Super Effective — 1.6x</option>
@@ -556,8 +556,8 @@
                 <label for="effBossFM">Fast Move → You</label>
                 <select id="effBossFM">
                   <option value="0.24375">Not Effective x3 — 0.24375x</option>
-                  <option value="0.39">Not Effective x2 — 0.39x</option>
-                  <option value="0.39625">Not Effective x2 — 0.39625x</option>
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.390625">Double Resist — 0.390625x</option>
                   <option value="0.625">Not Effective — 0.625x</option>
                   <option value="1" selected>Effective — 1x</option>
                   <option value="1.6">Super Effective — 1.6x</option>
@@ -955,7 +955,7 @@ const POKEMON_TYPES = [
 {n:"Munkidori",t1:"Poison",t2:"Psychic"},{n:"Fezandipiti",t1:"Poison",t2:"Fairy"},{n:"Ogerpon",t1:"Grass",t2:""},{n:"Archaludon",t1:"Steel",t2:"Dragon"},{n:"Hydrapple",t1:"Grass",t2:"Dragon"},{n:"Gouging Fire",t1:"Fire",t2:"Dragon"},
 {n:"Raging Bolt",t1:"Electric",t2:"Dragon"},{n:"Iron Boulder",t1:"Rock",t2:"Psychic"},{n:"Iron Crown",t1:"Steel",t2:"Psychic"},{n:"Terapagos",t1:"Normal",t2:""},{n:"Pecharunt",t1:"Poison",t2:"Ghost"},
 ];
-// ============ TYPE EFFECTIVENESS (PoGo-specific tiers: 1.6 / 1 / 0.625 / 0.39) ============
+// ============ TYPE EFFECTIVENESS (PoGo-specific tiers: 1.6 / 1 / 0.625 / 0.390625) ============
 const TYPE_CHART = {
   normal:   { rock:0.625, steel:0.625, ghost:0.39 },
   fire:     { grass:1.6, ice:1.6, bug:1.6, steel:1.6, fire:0.625, water:0.625, rock:0.625, dragon:0.625 },
@@ -987,8 +987,12 @@ const TYPE_OVERRIDES = {
   "primal groudon": {t1:"ground", t2:"fire"},
   "necrozma dusk mane": {t1:"psychic", t2:"steel"},
   "necrozma dawn wings": {t1:"psychic", t2:"ghost"},
+  "ndm": {t1:"psychic", t2:"steel"},
+  "ndw": {t1:"psychic", t2:"ghost"},
   "zacian crown": {t1:"fairy", t2:"steel"},
   "zamazenta crown": {t1:"fighting", t2:"steel"},
+  "kyurem black": {t1:"dragon", t2:"ice"},
+  "kyurem white": {t1:"dragon", t2:"ice"},
   "alolan raichu": {t1:"electric", t2:"psychic"},
   "alolan marowak": {t1:"fire", t2:"ghost"},
   "alolan ninetales": {t1:"ice", t2:"fairy"},
@@ -1002,6 +1006,8 @@ const TYPE_OVERRIDES = {
   "galarian zigzagoon": {t1:"dark", t2:"normal"},
   "hisuian typhlosion": {t1:"fire", t2:"ghost"},
   "hisuian decidueye": {t1:"grass", t2:"fighting"},
+  "thundurus therian": {t1:"electric", t2:"flying"},
+  "enamorus therian": {t1:"fairy", t2:"flying"},
 };
 
 function findPokemonTypes(name){
@@ -1063,7 +1069,7 @@ function snapToOption(raw, options){
   return best;
 }
 const PLAYER_EFF_OPTIONS = [0.39, 0.625, 1, 1.6, 2.56];
-const BOSS_EFF_OPTIONS = [0.24375, 0.39, 0.39625, 0.625, 1, 1.6, 2.56];
+const BOSS_EFF_OPTIONS = [0.24375, 0.39, 0.390625, 0.625, 1, 1.6, 2.56];
 
 // Master list for CT Database submission eligibility - pilot is Tier 5 solo Catch Tank only.
 // Loaded live from tier5-bosses.csv in the repo - update that file to change the list, no HTML/JS editing needed.
@@ -2845,7 +2851,7 @@ function isStabMatch(elem, types){
 }
 
 const EFF_LABELS = {
-  "0.24375": "Imm/NE x2", "0.39": "Immune", "0.39625": "Not Eff. x2",
+  "0.24375": "Imm/NE x2", "0.39": "Immune", "0.390625": "Not Eff. x2",
   "0.625": "Not Effective", "1": "Effective", "1.6": "Super Effective", "2.56": "V. Super Effective",
 };
 
