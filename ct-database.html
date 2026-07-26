@@ -102,6 +102,8 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-card-name{ font-weight:800; font-size:12px; color: var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .sub-card-moves{ font-size:9.5px; color: var(--ink-muted); font-weight:600; line-height:1.35; }
   .sub-card-vs-label{ font-size:9.5px; font-weight:800; color: var(--ink-dim); flex-shrink:0; }
+  .sub-card-ae-icons{ display:inline-flex; align-items:center; gap:4px; }
+  .sub-card-ae-icon{ width:18px; height:18px; object-fit:contain; border-radius:50%; background:#fff; display:block; }
   .sub-card-meta{
     display:flex; align-items:center; justify-content:space-between; gap:6px;
     padding:9px 0 10px; font-size:10px; color: var(--ink-muted); font-weight:600;
@@ -1397,10 +1399,10 @@ function subCardHtml(s, idx){
   const duration = computeDuration(params);
   const durationText = duration ? `${duration.seconds}s (${duration.ticks}t)` : `Can't compute`;
 
-  const aeBadges = [];
-  if(s.zacianBlade === "Yes") aeBadges.push("Blade Boost");
-  if(s.shieldAE === "Yes") aeBadges.push("Shield Boost");
-  const aeText = aeBadges.length ? aeBadges.join(" + ") : null;
+  const aeIcons = [];
+  if(s.zacianBlade === "Yes") aeIcons.push(`<img class="sub-card-ae-icon" src="${AE_ICON}" alt="Blade Boost" loading="lazy" onerror="this.style.display='none'">`);
+  if(s.shieldAE === "Yes") aeIcons.push(`<img class="sub-card-ae-icon" src="${SHIELD_ICON}" alt="Shield Boost" loading="lazy" onerror="this.style.display='none'">`);
+  const aeText = aeIcons.length ? aeIcons.join("") : null;
 
   const optionalBadges = [];
   optionalBadges.push(`<span class="sub-card-badge">${s.ivs}</span>`);
@@ -1430,7 +1432,7 @@ function subCardHtml(s, idx){
     <div class="sub-card-meta">
       <span>Lv ${s.level}</span>
       <span class="sub-card-meta-weather">${weatherIcon(s.weather)}</span>
-      ${aeText ? `<span>${aeText}</span>` : `<span></span>`}
+      ${aeText ? `<span class="sub-card-ae-icons">${aeText}</span>` : `<span></span>`}
     </div>
     <div class="sub-card-foot">
       <span class="sub-card-foot-text">CT DPS:&nbsp;&nbsp;<span class="sub-card-dps-val">${s.ctDPS}</span></span>
