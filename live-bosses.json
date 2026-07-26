@@ -1,11 +1,17 @@
 {
-  "generatedAt": "2026-07-25T21:41:37.737859+00:00",
+  "generatedAt": "2026-07-26T01:26:28.225493+00:00",
   "dateGroups": [
     {
       "startDate": "Jul 26, 2026",
       "endDate": "Jul 26, 2026",
       "category": "event",
       "bosses": [
+        {
+          "name": "Deoxys Attack",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "extreme"
+        },
         {
           "name": "Enamorus Incarnate",
           "archivePage": "tier5-raids.html",
@@ -17,6 +23,12 @@
           "archivePage": "tier5-ae-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "snow"
+        },
+        {
+          "name": "Genesect",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "extreme"
         },
         {
           "name": "Heatran",
@@ -37,6 +49,12 @@
           "weather": "extreme"
         },
         {
+          "name": "Necrozma",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "fog"
+        },
+        {
           "name": "Regidrago",
           "archivePage": "tier5-raids.html",
           "difficulty": "3 \u2b50",
@@ -53,6 +71,24 @@
           "archivePage": "tier5-ae-raids.html",
           "difficulty": "6 \u2b50",
           "weather": "Cloudy"
+        },
+        {
+          "name": "Tapu Bulu",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "cloudy"
+        },
+        {
+          "name": "Tapu Koko",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Clear"
+        },
+        {
+          "name": "Tapu Lele",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "snow"
         },
         {
           "name": "Thundurus Incarnate",
@@ -85,46 +121,10 @@
           "weather": "Cloudy"
         },
         {
-          "name": "Deoxys Attack",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "1 \u2b50",
-          "weather": "extreme"
-        },
-        {
-          "name": "Genesect",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "extreme"
-        },
-        {
           "name": "Latios",
           "archivePage": "tier5-ae-raids.html",
           "difficulty": "5 \u2b50",
           "weather": "WIndy"
-        },
-        {
-          "name": "Necrozma",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "fog"
-        },
-        {
-          "name": "Tapu Bulu",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "cloudy"
-        },
-        {
-          "name": "Tapu Koko",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Clear"
-        },
-        {
-          "name": "Tapu Lele",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "snow"
         },
         {
           "name": "Terrakion",
@@ -151,6 +151,12 @@
           "weather": "Extreme"
         },
         {
+          "name": "Mega Beedrill",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
+        },
+        {
           "name": "Mega Garchomp",
           "archivePage": "tier4-raids.html",
           "difficulty": "3 \u2b50",
@@ -163,9 +169,9 @@
           "weather": "Clear"
         },
         {
-          "name": "Mega Beedrill",
+          "name": "Mega Pinsir",
           "archivePage": "tier4-raids.html",
-          "difficulty": "1 \u2b50",
+          "difficulty": "3 \u2b50",
           "weather": "Extreme"
         },
         {
@@ -176,12 +182,6 @@
         },
         {
           "name": "Mega Lucario",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Pinsir",
           "archivePage": "tier4-raids.html",
           "difficulty": "3 \u2b50",
           "weather": "Extreme"
