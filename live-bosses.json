@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-26T08:03:21.426646+00:00",
+  "generatedAt": "2026-07-26T10:26:34.986731+00:00",
   "dateGroups": [
     {
       "startDate": "Jul 26, 2026",
@@ -19,39 +19,9 @@
           "weather": "extreme"
         },
         {
-          "name": "Enamorus Incarnate",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "snow"
-        },
-        {
-          "name": "Enamorus Therian",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "snow"
-        },
-        {
           "name": "Genesect",
           "archivePage": "tier5-raids.html",
           "difficulty": "3 \u2b50",
-          "weather": "extreme"
-        },
-        {
-          "name": "Heatran",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "clear"
-        },
-        {
-          "name": "Landorus Incarnate",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "extreme"
-        },
-        {
-          "name": "Landorus Therian",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
           "weather": "extreme"
         },
         {
@@ -65,24 +35,6 @@
           "archivePage": "tier5-ae-raids.html",
           "difficulty": "5 \u2b50",
           "weather": "fog"
-        },
-        {
-          "name": "Regidrago",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "extreme"
-        },
-        {
-          "name": "Regieleki",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "clear"
-        },
-        {
-          "name": "Regigigas",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Cloudy"
         },
         {
           "name": "Tapu Bulu",
@@ -109,30 +61,6 @@
           "weather": "snow"
         },
         {
-          "name": "Thundurus Incarnate",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "snow"
-        },
-        {
-          "name": "Thundurus Therian",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "snow"
-        },
-        {
-          "name": "Tornadus Incarnate",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "snow"
-        },
-        {
-          "name": "Tornadus Therian",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Snow"
-        },
-        {
           "name": "Virizion",
           "archivePage": "tier5-raids.html",
           "difficulty": "3 \u2b50",
@@ -145,21 +73,9 @@
           "weather": "WIndy"
         },
         {
-          "name": "Mega Audino",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Extreme"
-        },
-        {
           "name": "Mega Beedrill",
           "archivePage": "tier4-raids.html",
           "difficulty": "1 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Garchomp",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
           "weather": "Extreme"
         },
         {
@@ -173,12 +89,6 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "3 \u2b50",
           "weather": "Extreme"
-        },
-        {
-          "name": "Mega Metagross",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Clear"
         },
         {
           "name": "Mega Pinsir",
@@ -245,6 +155,103 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "5 \u2b50",
           "weather": "clear"
+        }
+      ]
+    },
+    {
+      "startDate": null,
+      "endDate": "Jul 26, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Enamorus Incarnate",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Enamorus Therian",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Heatran",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "clear"
+        },
+        {
+          "name": "Landorus Incarnate",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Landorus Therian",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Regidrago",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "extreme"
+        },
+        {
+          "name": "Regieleki",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "clear"
+        },
+        {
+          "name": "Regigigas",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Thundurus Incarnate",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Thundurus Therian",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Tornadus Incarnate",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
+          "name": "Tornadus Therian",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Snow"
+        },
+        {
+          "name": "Mega Audino",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Garchomp",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Metagross",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
         }
       ]
     },
