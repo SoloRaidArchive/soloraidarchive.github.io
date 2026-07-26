@@ -1,11 +1,17 @@
 {
-  "generatedAt": "2026-07-26T01:26:28.225493+00:00",
+  "generatedAt": "2026-07-26T05:49:42.050262+00:00",
   "dateGroups": [
     {
       "startDate": "Jul 26, 2026",
       "endDate": "Jul 26, 2026",
       "category": "event",
       "bosses": [
+        {
+          "name": "Darkrai",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Cloudy"
+        },
         {
           "name": "Deoxys Attack",
           "archivePage": "tier5-raids.html",
@@ -47,6 +53,12 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "extreme"
+        },
+        {
+          "name": "Latios",
+          "archivePage": "tier5-ae-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "WIndy"
         },
         {
           "name": "Necrozma",
@@ -91,6 +103,12 @@
           "weather": "snow"
         },
         {
+          "name": "Terrakion",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "snow"
+        },
+        {
           "name": "Thundurus Incarnate",
           "archivePage": "tier5-ae-raids.html",
           "difficulty": "4 \u2b50",
@@ -113,24 +131,6 @@
           "archivePage": "tier5-ae-raids.html",
           "difficulty": "6 \u2b50",
           "weather": "Snow"
-        },
-        {
-          "name": "Darkrai",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Cloudy"
-        },
-        {
-          "name": "Latios",
-          "archivePage": "tier5-ae-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "WIndy"
-        },
-        {
-          "name": "Terrakion",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "snow"
         },
         {
           "name": "Virizion",
@@ -163,18 +163,6 @@
           "weather": "Extreme"
         },
         {
-          "name": "Mega Metagross",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Clear"
-        },
-        {
-          "name": "Mega Pinsir",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        },
-        {
           "name": "Mega Gardevoir",
           "archivePage": "tier4-raids.html",
           "difficulty": "4 \u2b50",
@@ -182,6 +170,18 @@
         },
         {
           "name": "Mega Lucario",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Metagross",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        },
+        {
+          "name": "Mega Pinsir",
           "archivePage": "tier4-raids.html",
           "difficulty": "3 \u2b50",
           "weather": "Extreme"
