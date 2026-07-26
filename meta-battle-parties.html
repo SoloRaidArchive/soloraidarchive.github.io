@@ -69,7 +69,7 @@
   #pokemonSearch{
     flex:1; min-width:0; max-width:400px;
     background: var(--card); border: 1px solid var(--border); color: var(--ink);
-    font-size:14px; padding: 11px 16px; border-radius: 10px; outline:none;
+    font-size:16px; padding: 11px 16px; border-radius: 10px; outline:none;
     box-shadow: 0 1px 2px rgba(26,29,41,0.04);
   }
   #pokemonSearch:focus{ border-color: var(--accent); }
@@ -142,7 +142,7 @@
   }
   .slot-row:last-child{ border-bottom:none; }
   .slot-icon{
-    width:38px; height:38px; border-radius:9px; flex-shrink:0;
+    width:44px; height:44px; border-radius:9px; flex-shrink:0;
     background:#f0f0f2; border:2px solid var(--border);
     display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
@@ -169,7 +169,7 @@
 
   .hamburger-btn{
     flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
-    width:38px; height:38px; border-radius:50%;
+    width:44px; height:44px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
@@ -181,7 +181,7 @@
   .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
   .hamburger-panel{
-    position:fixed; top:85px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:absolute; top:calc(100% + 1px); right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 101px); overflow-y:auto;
@@ -228,37 +228,7 @@
 </head>
 <body>
 
-<div class="hamburger-panel" id="hamburgerPanel">
-  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
-  <div class="hamburger-section">
-    <a href="index.html">🏠 Home</a>
-  </div>
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Research</div>
-    <a href="research.html" class="hamburger-featured">Most Used Raiders</a>
-    <a href="ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
-    <a href="meta-battle-parties.html" class="current">Meta Battle Parties</a>
-    <a href="ct-calculator.html">Catch Tank Calculator</a>
-    <a href="move-data.html">Move Data</a>
-    <a href="pokemon-stats.html">Pokémon Stats</a>
-    <a href="raid-strategies.html">Raid Strategies</a>
-    <a href="reference.html">Difficulty &amp; Role Reference</a>
-  </div>
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Raid Archives</div>
-    <a href="tier4-raids.html">Mega</a>
-    <a href="tier5-raids.html">Legendary</a>
-    <a href="tier5-ae-raids.html">Legendary AE</a>
-    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
-  </div>
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Resources</div>
-    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
-    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
-    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
-    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
-  </div>
-</div>
+
 
 <div class="sticky-header">
   <div class="sticky-header-title-row">
@@ -270,6 +240,39 @@
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
+    </div>
+  </div>
+
+
+  <div class="hamburger-panel" id="hamburgerPanel">
+    <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+    <div class="hamburger-section">
+      <a href="index.html">🏠 Home</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Research</div>
+      <a href="research.html" class="hamburger-featured">Most Used Raiders</a>
+      <a href="ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+      <a href="meta-battle-parties.html" class="current">Meta Battle Parties</a>
+      <a href="ct-calculator.html">Catch Tank Calculator</a>
+      <a href="move-data.html">Move Data</a>
+      <a href="pokemon-stats.html">Pokémon Stats</a>
+      <a href="raid-strategies.html">Raid Strategies</a>
+      <a href="reference.html">Difficulty &amp; Role Reference</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Raid Archives</div>
+      <a href="tier4-raids.html">Mega</a>
+      <a href="tier5-raids.html">Legendary</a>
+      <a href="tier5-ae-raids.html">Legendary AE</a>
+      <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Resources</div>
+      <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+      <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+      <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+      <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
     </div>
   </div>
 </div>
