@@ -222,10 +222,13 @@
     display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap;
   }
   .live-boss-row-grid{
-    display:grid; grid-template-columns: repeat(3, 1fr); justify-items:center;
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(52px, max-content)); justify-content:flex-start; justify-items:center;
   }
   .live-boss-row-grid .live-boss-item{ width:40px; }
   .live-boss-row-grid .live-boss-date{ white-space:normal; text-align:center; line-height:1.3; }
+  @media (max-width:600px){
+    .live-boss-row-grid{ grid-template-columns: repeat(3, 1fr); }
+  }
   .live-boss-more{
     display:block; margin-top:6px; font-size:10.5px; font-weight:700;
     color: var(--blue-dark); text-decoration:none;
