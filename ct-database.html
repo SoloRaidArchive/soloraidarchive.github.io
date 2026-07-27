@@ -95,51 +95,79 @@ header{ padding: 12px 24px 10px; text-align:center; }
   }
   .sub-card.open{ border-color: var(--accent); }
   .sub-card-vs{ display:flex; align-items:center; justify-content:space-between; gap:6px; }
-  .sub-card-mon{ display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
-  .sub-card-mon.right{ justify-content:flex-end; text-align:right; }
-  .sub-card-icon{ width:32px; height:32px; border-radius:8px; background: var(--bg1); flex-shrink:0; overflow:hidden; }
+  .sub-card-icon{ width:28px; height:28px; border-radius:6px; background: var(--bg1); flex-shrink:0; overflow:hidden; }
   .sub-card-icon img{ width:100%; height:100%; object-fit:contain; }
-  .sub-card-name{ font-weight:800; font-size:12px; color: var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .sub-card-moves{ font-size:9.5px; color: var(--ink-muted); font-weight:600; line-height:1.35; }
-  .sub-card-vs-label{ font-size:9.5px; font-weight:800; color: var(--ink-dim); flex-shrink:0; }
-  .sub-card-ae-icons{ display:inline-flex; align-items:center; gap:4px; }
-  .sub-card-ae-icon{ width:18px; height:18px; object-fit:contain; border-radius:50%; background:#fff; display:block; }
-  .sub-card-meta{
-    display:flex; align-items:center; justify-content:space-between; gap:6px;
-    padding:9px 0 10px; font-size:10px; color: var(--ink-muted); font-weight:600;
-  }
-  .sub-card-meta-weather{ display:inline-flex; align-items:center; gap:3px; }
+  .sub-card-vs-label{ font-size:8.5px; font-weight:800; color: var(--ink-dim); flex-shrink:0; }
+  .sub-card-names{ display:flex; align-items:flex-start; justify-content:space-between; gap:6px; margin-top:4px; }
+  .sub-card-name-block{ display:flex; align-items:center; gap:3px; min-width:0; }
+  .sub-card-name-block.right{ justify-content:flex-end; text-align:right; }
+  .type-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; flex-shrink:0; }
+  .sub-card-name{ font-weight:700; font-size:11px; color: var(--ink); line-height:1.25; }
   .sub-card-foot{
-    display:flex; align-items:center; justify-content:space-between; gap:6px;
-    padding-top:9px; border-top:1px solid var(--border);
+    display:flex; align-items:baseline; justify-content:space-between; gap:6px;
+    margin-top:10px; padding-top:9px; border-top:1px solid var(--border);
   }
-  .sub-card-foot-text{ font-size:10px; color: var(--ink-muted); font-weight:700; }
-  .sub-card-dps-val{ color: var(--accent-dark); }
+  .sub-card-foot-stat.right{ text-align:right; }
+  .sub-card-foot-label{ font-size:9px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.02em; display:inline-flex; align-items:center; gap:3px; }
+  .sub-card-dps-val{ font-size:19px; font-weight:800; color: var(--accent-dark); font-family:'IBM Plex Mono', monospace; line-height:1.1; }
   [data-theme="dark"] .sub-card-dps-val{ color: var(--accent); }
+  .sub-card-time-val{ font-size:13px; font-weight:800; color: var(--ink); line-height:1.4; }
   .sub-card-toggle{
-    width:20px; height:20px; border-radius:50%; background: var(--accent-soft); color: var(--accent-dark);
-    display:inline-flex; align-items:center; justify-content:center; font-size:10px; flex-shrink:0;
-    border:none; cursor:pointer; padding:0; transition: transform .15s ease;
+    width:18px; height:18px; border-radius:50%; background: var(--accent-soft); color: var(--accent-dark);
+    display:inline-flex; align-items:center; justify-content:center; font-size:9.5px; flex-shrink:0;
+    border:none; cursor:pointer; padding:0; transition: transform .15s ease; align-self:center;
   }
   .sub-card.open .sub-card-toggle{ background: var(--accent); color:#fff; transform:rotate(180deg); }
+  .sub-card-ae-icons{ display:inline-flex; align-items:center; gap:4px; }
+  .sub-card-ae-icon{ width:16px; height:16px; object-fit:contain; border-radius:50%; background:#fff; display:block; }
   .sub-card-details{ display:none; }
   .sub-card.open .sub-card-details{
-    display:flex; gap:12px; margin-top:9px; padding-top:9px; border-top:1px dashed var(--border);
+    display:block; margin-top:9px; padding-top:9px; border-top:1px dashed var(--border);
   }
-  .sub-card-dps-stack{ display:flex; flex-direction:column; justify-content:space-between; flex-shrink:0; }
+  .sub-card-details-top{ display:flex; align-items:center; justify-content:space-between; font-size:10px; color: var(--ink-muted); font-weight:600; }
+  .sub-card-moves-row{ display:flex; justify-content:space-between; gap:6px; margin-top:8px; font-size:9.5px; color: var(--ink-muted); font-weight:600; line-height:1.35; }
+  .sub-card-moves.right{ text-align:right; }
+  .sub-card-dps-stack{ display:flex; gap:12px; margin-top:8px; }
   .sub-card-dps-stack div{ font-size:10px; color: var(--ink-muted); font-weight:700; }
   .sub-card-dps-stack span{ color: var(--ink); }
-  .sub-card-divider{ width:1px; background: var(--border); flex-shrink:0; }
-  .sub-card-badges{ display:flex; align-items:center; gap:5px; flex-wrap:wrap; align-content:flex-start; min-width:0; }
+  .sub-card-divider{ height:1px; background: var(--border); margin:8px 0; }
+  .sub-card-badges{ display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
   .sub-card-badge{
     font-size:9.5px; font-weight:800; padding:2px 8px; border-radius:999px;
     background: var(--accent-soft); color: var(--accent-dark); border:1px solid var(--border);
   }
 
-  @media (max-width:900px){
-    .sub-table{ display:none; }
-    .sub-card-grid{ display:flex; }
+  .sub-table{ display:none; }
+  .sub-card-grid{ display:none; }
+  .sub-card-grid-mobile{ display:flex; flex-direction:column; gap:10px; }
+  @media (min-width:560px){
+    .sub-card-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); align-items:start; }
+    .sub-card-grid-mobile{ display:none; }
   }
+
+  .sub-card-mobile .sub-card-vs{ justify-content:space-between; }
+  .sub-card-mobile .sub-card-mon{ display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
+  .sub-card-mobile .sub-card-mon.right{ justify-content:flex-end; text-align:right; }
+  .sub-card-mobile .sub-card-icon{ width:32px; height:32px; border-radius:8px; }
+  .sub-card-mobile .sub-card-name{ font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .sub-card-mobile .sub-card-meta{
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+    padding:9px 0 10px; font-size:10px; color: var(--ink-muted); font-weight:600;
+  }
+  .sub-card-mobile .sub-card-meta-weather{ display:inline-flex; align-items:center; gap:3px; }
+  .sub-card-mobile .sub-card-foot{
+    display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:0;
+    padding-top:9px; border-top:1px solid var(--border);
+  }
+  .sub-card-mobile .sub-card-foot-text{ font-size:10px; color: var(--ink-muted); font-weight:700; }
+  .sub-card-mobile .sub-card-dps-val{ font-size:inherit; font-family:inherit; font-weight:700; }
+  .sub-card-mobile .sub-card-toggle{ width:20px; height:20px; font-size:10px; }
+  .sub-card-mobile.open .sub-card-details{
+    display:flex; gap:12px; margin-top:9px; padding-top:9px; border-top:1px dashed var(--border);
+  }
+  .sub-card-mobile .sub-card-dps-stack{ flex-direction:column; justify-content:space-between; flex-shrink:0; gap:0; }
+  .sub-card-mobile .sub-card-divider{ width:1px; height:auto; margin:0; }
+  .sub-card-mobile .sub-card-badges{ align-content:flex-start; min-width:0; }
   .sub-table th{
     font-size:10.5px; font-weight:800; text-transform:uppercase; letter-spacing:0.04em;
     color: var(--ink); text-align:left; padding:0 12px 4px;
@@ -363,6 +391,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     <tbody id="grid"></tbody>
   </table>
   <div class="sub-card-grid" id="cardGrid"></div>
+  <div class="sub-card-grid-mobile" id="cardGridMobile"></div>
 </div>
 
 <script>
@@ -1387,11 +1416,22 @@ function subRowHtml(s, idx){
 
 const grid = document.getElementById("grid");
 const cardGrid = document.getElementById("cardGrid");
+const cardGridMobile = document.getElementById("cardGridMobile");
 const countEl = document.getElementById("count");
 const searchInput = document.getElementById("searchInput");
 const sortSelect = document.getElementById("sortSelect");
 
-function subCardHtml(s, idx){
+const TYPE_COLORS = {
+  normal:"#A8A77A", fire:"#EE8130", water:"#6390F0", electric:"#F7D02C", grass:"#7AC74C",
+  ice:"#96D9D6", fighting:"#C22E28", poison:"#A33EA1", ground:"#E2BF65", flying:"#A98FF3",
+  psychic:"#F95587", bug:"#A6B91A", rock:"#B6A136", ghost:"#735797", dragon:"#6F35FC",
+  dark:"#705746", steel:"#B7B7CE", fairy:"#D685AD", "":"#c7c7c7",
+};
+function typeDot(typeName){
+  const color = TYPE_COLORS[(typeName || "").toLowerCase()] || "#c7c7c7";
+  return `<span class="type-dot" style="background:${color};" title="${typeName}"></span>`;
+}
+function subCardHtmlMobile(s, idx){
   const [pFast, pCharge] = s.playerMoveset.split(" / ");
   const [bFast, bCharge] = s.bossMoveset.split(" / ");
   const params = parseSubmissionParams(s);
@@ -1411,7 +1451,7 @@ function subCardHtml(s, idx){
   if(s.risky === "Yes") optionalBadges.push(`<span class="sub-card-badge">Risky</span>`);
 
   return `
-  <div class="sub-card" id="card-${idx}">
+  <div class="sub-card sub-card-mobile" id="card-m-${idx}">
     <div class="sub-card-vs">
       <div class="sub-card-mon">
         <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
@@ -1437,7 +1477,7 @@ function subCardHtml(s, idx){
     <div class="sub-card-foot">
       <span class="sub-card-foot-text">CT DPS:&nbsp;&nbsp;<span class="sub-card-dps-val">${s.ctDPS}</span></span>
       <span class="sub-card-foot-text">Time: ${durationText}</span>
-      <button type="button" class="sub-card-toggle" onclick="toggleSubCard(${idx})" aria-label="Show more details">&#9662;</button>
+      <button type="button" class="sub-card-toggle" onclick="toggleSubCard('card-m-${idx}')" aria-label="Show more details">&#9662;</button>
     </div>
     <div class="sub-card-details">
       <div class="sub-card-dps-stack">
@@ -1449,8 +1489,76 @@ function subCardHtml(s, idx){
     </div>
   </div>`;
 }
-function toggleSubCard(idx){
-  document.getElementById(`card-${idx}`).classList.toggle("open");
+function subCardHtml(s, idx){
+  const [pFast, pCharge] = s.playerMoveset.split(" / ");
+  const [bFast, bCharge] = s.bossMoveset.split(" / ");
+  const params = parseSubmissionParams(s);
+
+  const duration = computeDuration(params);
+  const durationText = duration ? `${duration.seconds}s (${duration.ticks}t)` : `Can't compute`;
+
+  const pTypes = findPokemonTypes(s.pokemon) || { t1: "", t2: "" };
+  const bTypes = findPokemonTypes(s.boss) || { t1: "", t2: "" };
+
+  const aeIcons = [];
+  if(s.zacianBlade === "Yes") aeIcons.push(`<img class="sub-card-ae-icon" src="${AE_ICON}" alt="Blade Boost" loading="lazy" onerror="this.style.display='none'">`);
+  if(s.shieldAE === "Yes") aeIcons.push(`<img class="sub-card-ae-icon" src="${SHIELD_ICON}" alt="Shield Boost" loading="lazy" onerror="this.style.display='none'">`);
+  const aeText = aeIcons.length ? aeIcons.join("") : null;
+
+  const optionalBadges = [];
+  optionalBadges.push(`<span class="sub-card-badge">${s.ivs}</span>`);
+  if(s.dodges && s.dodges !== "None") optionalBadges.push(`<span class="sub-card-badge">Dodge: ${s.dodges}</span>`);
+  if(s.timingMods && s.timingMods !== "None") optionalBadges.push(`<span class="sub-card-badge">${s.timingMods}</span>`);
+  if(s.risky === "Yes") optionalBadges.push(`<span class="sub-card-badge">Risky</span>`);
+
+  return `
+  <div class="sub-card" id="card-${idx}">
+    <div class="sub-card-vs">
+      <div class="sub-card-mon">
+        <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="sub-card-vs-label">vs</div>
+        <div class="sub-card-icon"><img src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="this.style.display='none'"></div>
+      </div>
+    </div>
+    <div class="sub-card-names">
+      <div class="sub-card-name-block">
+        ${typeDot(pTypes.t1)}${pTypes.t2 ? typeDot(pTypes.t2) : ""}<span class="sub-card-name">${s.pokemon}</span>
+      </div>
+      <div class="sub-card-name-block right">
+        <span class="sub-card-name">${s.boss}</span>${bTypes.t2 ? typeDot(bTypes.t2) : ""}${typeDot(bTypes.t1)}
+      </div>
+    </div>
+    <div class="sub-card-foot">
+      <div class="sub-card-foot-stat">
+        <span class="sub-card-foot-label">CT DPS</span>
+        <div class="sub-card-dps-val">${s.ctDPS}</div>
+      </div>
+      <div class="sub-card-foot-stat right">
+        <span class="sub-card-foot-label">Time ${weatherIcon(s.weather)}</span>
+        <div class="sub-card-time-val">${durationText}</div>
+      </div>
+      <button type="button" class="sub-card-toggle" onclick="toggleSubCard(${idx})" aria-label="Show more details">&#9662;</button>
+    </div>
+    <div class="sub-card-details">
+      <div class="sub-card-details-top">
+        <span>Lv ${s.level}</span>
+        ${aeText ? `<span class="sub-card-ae-icons">${aeText}</span>` : ""}
+      </div>
+      <div class="sub-card-moves-row">
+        <div class="sub-card-moves">${pFast}<br>${pCharge}</div>
+        <div class="sub-card-moves right">${bFast}<br>${bCharge}</div>
+      </div>
+      <div class="sub-card-dps-stack">
+        <div>Main <span>${s.mainDPS}</span></div>
+        <div>Trailing <span>${s.trailingDPS}</span></div>
+      </div>
+      <div class="sub-card-divider"></div>
+      <div class="sub-card-badges">${optionalBadges.join("")}</div>
+    </div>
+  </div>`;
+}
+function toggleSubCard(id){
+  document.getElementById(typeof id === "number" ? `card-${id}` : id).classList.toggle("open");
 }
 
 function render(){
@@ -1469,6 +1577,9 @@ function render(){
     : `<tr><td colspan="9"><div class="empty">No submissions match your search yet.</div></td></tr>`;
   cardGrid.innerHTML = list.length
     ? list.map((r, i) => subCardHtml(r, i)).join("")
+    : `<div class="empty">No submissions match your search yet.</div>`;
+  cardGridMobile.innerHTML = list.length
+    ? list.map((r, i) => subCardHtmlMobile(r, i)).join("")
     : `<div class="empty">No submissions match your search yet.</div>`;
 }
 
