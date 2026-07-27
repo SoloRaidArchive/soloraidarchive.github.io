@@ -183,10 +183,14 @@
     padding:10px 0 10px; font-size:10.5px; color: var(--text-muted); font-weight:600;
   }
   .results-card-rows{ display:flex; flex-direction:column; gap:10px; padding-top:10px; border-top:1px solid var(--border); }
-  .results-card-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .results-card-row{
+    display:grid; grid-template-columns: 18px 1fr 78px auto; align-items:center; gap:8px;
+  }
+  .results-card-row-radio{ display:flex; align-items:center; justify-content:center; }
+  .results-card-row-radio .submit-checkbox{ margin:0; }
   .results-card-row-label{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
   .results-card-row-time{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
-  .results-card-row-fainted{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-fainted{ font-size:10.5px; color: var(--text-muted); font-weight:700; grid-column: span 2; }
   .results-card-row-dps{ text-align:right; }
   .results-card-row-dps > div:first-child{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
   .results-card-row-sub{
@@ -2453,7 +2457,8 @@ function runCalculation(){
             const qualifies = bossQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
             return `
           <div class="results-card-row">
-            <span class="results-card-row-label">${r.n} FM${r.n === 1 ? "" : "s"} tanked${anyQualifies && qualifies ? ` <input type="radio" name="submitRowCard" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</span>
+            <span class="results-card-row-radio">${anyQualifies && qualifies ? `<input type="radio" name="submitRowCard" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</span>
+            <span class="results-card-row-label">${r.n} FM${r.n === 1 ? "" : "s"} tanked</span>
             ${r.fainted
               ? `<span class="results-card-row-fainted">💀 Fainted — ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</span>`
               : `
