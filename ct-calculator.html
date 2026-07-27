@@ -163,6 +163,51 @@
 
   .results-wrap{ margin-top: 24px; }
   .results-table{ width:100%; border-collapse:separate; border-spacing:0 8px; }
+
+  .results-card-grid{ display:none; flex-direction:column; gap:10px; margin-top:8px; }
+  .results-card{
+    background: var(--card); border:2px solid var(--border); border-radius:14px; padding:14px 16px;
+    transition: border-color .15s ease;
+  }
+  .results-card.open{ border-color: var(--blue); }
+  .results-card-vs{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .results-card-mon{ display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
+  .results-card-mon.right{ justify-content:flex-end; text-align:right; }
+  .results-card-icon{ width:34px; height:34px; border-radius:8px; background: var(--bg1); flex-shrink:0; overflow:hidden; }
+  .results-card-icon img{ width:100%; height:100%; object-fit:contain; }
+  .results-card-name{ font-weight:800; font-size:12.5px; color: var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .results-card-moves{ font-size:10px; color: var(--text-muted); font-weight:600; line-height:1.4; }
+  .results-card-vs-label{ font-size:10px; font-weight:800; color: var(--text-dim); flex-shrink:0; }
+  .results-card-meta{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:10px 0 10px; font-size:10.5px; color: var(--text-muted); font-weight:600;
+  }
+  .results-card-rows{ display:flex; flex-direction:column; gap:10px; padding-top:10px; border-top:1px solid var(--border); }
+  .results-card-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .results-card-row-label{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-time{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-fainted{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-dps{ text-align:right; }
+  .results-card-row-dps > div:first-child{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-sub{
+    display:none; font-size:9px; color: var(--text-dim); font-weight:600; margin-top:1px;
+  }
+  .results-card.open .results-card-row-sub{ display:block; }
+  .results-card-ct{ color: var(--blue-dark); }
+  [data-theme="dark"] .results-card-ct{ color: var(--blue); }
+  .results-card-risky{ cursor:help; }
+  .results-card-toggle-row{ display:flex; justify-content:flex-end; padding-top:10px; margin-top:8px; border-top:1px dashed var(--border); }
+  .results-card-toggle{
+    width:22px; height:22px; border-radius:50%; background: var(--bg1); color: var(--blue-dark);
+    display:inline-flex; align-items:center; justify-content:center; font-size:11px;
+    border:none; cursor:pointer; padding:0; transition: transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .results-card.open .results-card-toggle{ background: var(--blue); color:#fff; transform:rotate(180deg); }
+
+  @media (max-width:700px){
+    .results-table{ display:none; }
+    .results-card-grid{ display:flex; }
+  }
   .results-table th{
     font-size:11px; font-weight:800; color: var(--text-dim); text-transform:uppercase;
     letter-spacing:0.03em; text-align:left; padding: 0 12px 4px;
@@ -2379,6 +2424,52 @@ function runCalculation(){
         }).join("")}
       </tbody>
     </table>
+    <div class="results-card-grid">
+      <div class="results-card" id="resultsCard">
+        <div class="results-card-vs">
+          <div class="results-card-mon">
+            <div class="results-card-icon"><img src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="this.style.display='none'"></div>
+            <div style="min-width:0;">
+              <div class="results-card-name">${pkmnName}</div>
+              <div class="results-card-moves">${fm.n}<br>${cm.n}</div>
+            </div>
+          </div>
+          <div class="results-card-vs-label">vs</div>
+          <div class="results-card-mon right">
+            <div style="min-width:0;">
+              <div class="results-card-name">${bossName}</div>
+              <div class="results-card-moves">${bossFMMove.n}<br>${bossCMMove.n}</div>
+            </div>
+            <div class="results-card-icon"><img src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="this.style.display='none'"></div>
+          </div>
+        </div>
+        <div class="results-card-meta">
+          <span>Lv ${level}</span>
+          <span>${document.getElementById("weatherSelect").value}</span>
+          <span></span>
+        </div>
+        <div class="results-card-rows">
+          ${rows.map(r => {
+            const qualifies = bossQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
+            return `
+          <div class="results-card-row">
+            <span class="results-card-row-label">${r.n} FM${r.n === 1 ? "" : "s"} tanked${anyQualifies && qualifies ? ` <input type="radio" name="submitRowCard" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</span>
+            ${r.fainted
+              ? `<span class="results-card-row-fainted">💀 Fainted — ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</span>`
+              : `
+            <span class="results-card-row-time">${r.seconds.toFixed(2)}s (${r.ticks.toFixed(1)}t)</span>
+            <div class="results-card-row-dps">
+              <div>CT DPS: <b class="results-card-ct">${r.ctDPS.toFixed(1)}</b>${r.risky ? ` <span class="results-card-risky" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️</span>` : ""}</div>
+              <div class="results-card-row-sub">Main ${r.mainDPS.toFixed(1)} &middot; Trailing ${r.trailingDPS.toFixed(1)}</div>
+            </div>`}
+          </div>`;
+          }).join("")}
+        </div>
+        <div class="results-card-toggle-row">
+          <button type="button" class="results-card-toggle" onclick="document.getElementById('resultsCard').classList.toggle('open')" aria-label="Show Main and Trailing DPS">&#9662;</button>
+        </div>
+      </div>
+    </div>
     ${anyQualifies ? `
     <div class="submit-panel">
       <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> raids only. Rows scoring ${CT_SUBMIT_THRESHOLD}+ Catch Tank DPS are eligible — check <b>one row</b> to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
