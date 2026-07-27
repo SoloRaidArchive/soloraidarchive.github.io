@@ -94,24 +94,30 @@ header{ padding: 12px 24px 10px; text-align:center; }
     padding:12px 14px; transition: border-color .15s ease;
   }
   .sub-card.open{ border-color: var(--accent); }
-  .sub-card-vs{ display:flex; align-items:center; justify-content:space-between; gap:6px; }
+  .sub-card-vs{ display:flex; align-items:flex-start; justify-content:space-between; gap:6px; }
+  .sub-card-mon{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; flex:1; min-width:0; }
+  .sub-card-mon.right{ align-items:flex-end; }
   .sub-card-icon{ width:28px; height:28px; border-radius:6px; background: var(--bg1); flex-shrink:0; overflow:hidden; }
   .sub-card-icon img{ width:100%; height:100%; object-fit:contain; }
-  .sub-card-vs-label{ font-size:8.5px; font-weight:800; color: var(--ink-dim); flex-shrink:0; }
   .sub-card-names{ display:flex; align-items:flex-start; justify-content:space-between; gap:6px; margin-top:4px; }
-  .sub-card-name-block{ display:flex; align-items:center; gap:3px; min-width:0; }
-  .sub-card-name-block.right{ justify-content:flex-end; text-align:right; }
+  .sub-card-name-block{ display:flex; align-items:center; justify-content:flex-start; gap:3px; min-width:0; width:100%; height:28px; }
+  .sub-card-name-block.right{ justify-content:flex-end; }
   .type-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; flex-shrink:0; }
-  .sub-card-name{ font-weight:700; font-size:11px; color: var(--ink); line-height:1.25; }
+  .sub-card-name{
+    font-weight:700; font-size:11px; color: var(--ink); line-height:1.25; text-align:left;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .sub-card-name-block.right .sub-card-name{ text-align:right; }
   .sub-card-foot{
-    display:flex; align-items:baseline; justify-content:space-between; gap:6px;
+    display:flex; align-items:baseline; justify-content:center; gap:14px;
     margin-top:10px; padding-top:9px; border-top:1px solid var(--border);
   }
   .sub-card-foot-stat.right{ text-align:right; }
   .sub-card-foot-label{ font-size:9px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.02em; display:inline-flex; align-items:center; gap:3px; }
-  .sub-card-dps-val{ font-size:19px; font-weight:800; color: var(--accent-dark); font-family:'IBM Plex Mono', monospace; line-height:1.1; }
+  .sub-card-dps-val{ font-size:16px; font-weight:800; color: var(--accent-dark); font-family:'IBM Plex Mono', monospace; line-height:1.1; }
   [data-theme="dark"] .sub-card-dps-val{ color: var(--accent); }
-  .sub-card-time-val{ font-size:13px; font-weight:800; color: var(--ink); line-height:1.4; }
+  .sub-card-time-val{ font-size:16px; font-weight:800; color: var(--ink); line-height:1.1; }
+  .sub-card-weather-val{ line-height:1.4; }
   .sub-card-toggle{
     width:18px; height:18px; border-radius:50%; background: var(--accent-soft); color: var(--accent-dark);
     display:inline-flex; align-items:center; justify-content:center; font-size:9.5px; flex-shrink:0;
@@ -203,7 +209,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
   .weather-icon-wrap{
     display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;
-    background:#ffffff; border:1px solid rgba(0,0,0,0.12); border-radius:7px; padding:2px; isolation:isolate;
   }
   .weather-icon-wrap.extreme{ background:none; padding:0; }
   .weather-icon-img{ width:26px; height:26px; object-fit:contain; }
@@ -1495,10 +1500,9 @@ function subCardHtml(s, idx){
   const params = parseSubmissionParams(s);
 
   const duration = computeDuration(params);
-  const durationText = duration ? `${duration.seconds}s (${duration.ticks}t)` : `Can't compute`;
+  const durationText = duration ? `${duration.seconds}s` : `Can't compute`;
 
-  const pTypes = findPokemonTypes(s.pokemon) || { t1: "", t2: "" };
-  const bTypes = findPokemonTypes(s.boss) || { t1: "", t2: "" };
+
 
   const aeIcons = [];
   if(s.zacianBlade === "Yes") aeIcons.push(`<img class="sub-card-ae-icon" src="${AE_ICON}" alt="Blade Boost" loading="lazy" onerror="this.style.display='none'">`);
@@ -1516,16 +1520,15 @@ function subCardHtml(s, idx){
     <div class="sub-card-vs">
       <div class="sub-card-mon">
         <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
-        <div class="sub-card-vs-label">vs</div>
+        <div class="sub-card-name-block">
+          <span class="sub-card-name">${s.pokemon}</span>
+        </div>
+      </div>
+      <div class="sub-card-mon right">
         <div class="sub-card-icon"><img src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="this.style.display='none'"></div>
-      </div>
-    </div>
-    <div class="sub-card-names">
-      <div class="sub-card-name-block">
-        ${typeDot(pTypes.t1)}${pTypes.t2 ? typeDot(pTypes.t2) : ""}<span class="sub-card-name">${s.pokemon}</span>
-      </div>
-      <div class="sub-card-name-block right">
-        <span class="sub-card-name">${s.boss}</span>${bTypes.t2 ? typeDot(bTypes.t2) : ""}${typeDot(bTypes.t1)}
+        <div class="sub-card-name-block right">
+          <span class="sub-card-name">${s.boss}</span>
+        </div>
       </div>
     </div>
     <div class="sub-card-foot">
@@ -1533,9 +1536,13 @@ function subCardHtml(s, idx){
         <span class="sub-card-foot-label">CT DPS</span>
         <div class="sub-card-dps-val">${s.ctDPS}</div>
       </div>
-      <div class="sub-card-foot-stat right">
-        <span class="sub-card-foot-label">Time ${weatherIcon(s.weather)}</span>
+      <div class="sub-card-foot-stat">
+        <span class="sub-card-foot-label">Time</span>
         <div class="sub-card-time-val">${durationText}</div>
+      </div>
+      <div class="sub-card-foot-stat">
+        <span class="sub-card-foot-label">Weather</span>
+        <div class="sub-card-weather-val">${weatherIcon(s.weather)}</div>
       </div>
       <button type="button" class="sub-card-toggle" onclick="toggleSubCard(${idx})" aria-label="Show more details">&#9662;</button>
     </div>
