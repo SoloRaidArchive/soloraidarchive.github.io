@@ -119,14 +119,10 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-card-foot-stat.right{ text-align:right; }
   .sub-card-foot-label{ font-size:9px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.02em; display:inline-flex; align-items:center; gap:3px; }
   .sub-card-dps-val{ font-size:16px; font-weight:800; color: var(--accent-dark); font-family:'IBM Plex Mono', monospace; line-height:1.1; }
-  [data-theme="dark"] 
-  .sub-card-dps-val{ color: var(--accent); }
-  .sub-card-time-val{ font-size:16px; font-weight:800; font-family:'IBM Plex Mono', monospace; color: var(--ink); line-height:1.1; }
-  .sub-card-weather-val {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+  [data-theme="dark"] .sub-card-dps-val{ color: var(--accent); }
+  .sub-card-time-val{ font-size:16px; font-weight:800; color: var(--ink); line-height:1.1; }
+  .sub-card-weather-val{ line-height:1.4; display:flex; justify-content:center; }
+  .sub-card-foot-stat-weather{ display:flex; flex-direction:column; align-items:center; }
   .sub-card-toggle{
     width:18px; height:18px; border-radius:50%; background: var(--accent-soft); color: var(--accent-dark);
     display:inline-flex; align-items:center; justify-content:center; font-size:9.5px; flex-shrink:0;
@@ -1554,7 +1550,7 @@ function subCardHtml(s, idx){
         <span class="sub-card-foot-label">Time</span>
         <div class="sub-card-time-val">${durationText}</div>
       </div>
-      <div class="sub-card-foot-stat">
+      <div class="sub-card-foot-stat sub-card-foot-stat-weather">
         <span class="sub-card-foot-label">Weather</span>
         <div class="sub-card-weather-val">${weatherIcon(s.weather)}</div>
       </div>
