@@ -91,7 +91,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-card-grid{ display:none; flex-direction:column; gap:10px; }
   .sub-card{
     background: var(--card); border:2px solid var(--border); border-radius:14px;
-    padding:12px 14px; transition: border-color .15s ease;
+    padding:12px 14px; transition: border-color .15s ease; overflow-x:hidden;
   }
   .sub-card.open{ border-color: var(--accent); }
   .sub-card-vs{ display:flex; align-items:flex-start; justify-content:space-between; gap:6px; }
@@ -110,7 +110,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-card-name-block.right .sub-card-name{ text-align:right; }
   .sub-card-charge-move{
     font-size:9px; color: var(--ink-dim); font-weight:600; margin-top:2px;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; min-width:0;
   }
   .sub-card-foot{
     display:flex; align-items:baseline; justify-content:center; gap:14px;
