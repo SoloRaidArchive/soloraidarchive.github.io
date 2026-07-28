@@ -11,7 +11,7 @@
 <meta name="description" content="Community-submitted Catch Tank interactions for solo Pokémon GO raids, verified against the Catch Tank Calculator.">
 <link rel="canonical" href="https://soloraidarchive.github.io/ct-database.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg1: #eaf4ff; --bg2: #fff7e8; --bg: #eaf4ff; --card: #ffffff; --border: #e7edf5;
@@ -91,37 +91,38 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-card-grid{ display:none; flex-direction:column; gap:10px; }
   .sub-card{
     background: var(--card); border:2px solid var(--border); border-radius:14px;
-    padding:12px 14px; transition: border-color .15s ease; overflow-x:hidden;
+    padding:16px 18px; transition: border-color .15s ease; overflow-x:hidden;
   }
   .sub-card.open{ border-color: var(--accent); }
   .sub-card-vs{ display:flex; align-items:flex-start; justify-content:space-between; gap:6px; }
   .sub-card-mon{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; flex:1; min-width:0; }
   .sub-card-mon.right{ align-items:flex-end; }
-  .sub-card-icon{ width:28px; height:28px; border-radius:6px; background:#ffffff; flex-shrink:0; overflow:hidden; }
+  .sub-card-icon{ width:34px; height:34px; border-radius:8px; background:#ffffff; flex-shrink:0; overflow:hidden; }
   .sub-card-icon img{ width:100%; height:100%; object-fit:contain; }
   .sub-card-names{ display:flex; align-items:flex-start; justify-content:space-between; gap:6px; margin-top:4px; }
-  .sub-card-name-block{ display:flex; align-items:center; justify-content:flex-start; gap:3px; min-width:0; width:100%; height:28px; }
+  .sub-card-name-block{ display:flex; align-items:center; justify-content:flex-start; gap:3px; min-width:0; width:100%; height:32px; }
   .sub-card-name-block.right{ justify-content:flex-end; }
   .type-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; flex-shrink:0; }
   .sub-card-name{
-    font-weight:700; font-size:11px; color: var(--ink); line-height:1.25; text-align:left;
+    font-weight:700; font-size:13px; color: var(--ink); line-height:1.25; text-align:left;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
   }
   .sub-card-name-block.right .sub-card-name{ text-align:right; }
   .sub-card-charge-move{
-    font-size:9px; color: var(--ink-dim); font-weight:600; margin-top:2px; text-align:left;
+    font-size:10.5px; color: var(--ink-dim); font-weight:600; margin-top:2px; text-align:left;
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; min-width:0;
   }
   .sub-card-mon.right .sub-card-charge-move{ text-align:right; }
   .sub-card-foot{
-    display:flex; align-items:baseline; justify-content:center; gap:14px;
+    display:flex; align-items:baseline; justify-content:flex-start; gap:14px;
     margin-top:10px; padding-top:9px; border-top:1px solid var(--border);
   }
+  .sub-card-foot .sub-card-toggle{ margin-left:auto; }
   .sub-card-foot-stat.right{ text-align:right; }
-  .sub-card-foot-label{ font-size:9px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.02em; display:inline-flex; align-items:center; gap:3px; }
-  .sub-card-dps-val{ font-size:16px; font-weight:800; color: var(--accent-dark); font-family:'IBM Plex Mono', monospace; line-height:1.1; }
+  .sub-card-foot-label{ font-size:10.5px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.02em; display:inline-flex; align-items:center; gap:3px; }
+  .sub-card-dps-val{ font-size:19px; font-weight:800; color: var(--accent-dark); font-family:'IBM Plex Mono', monospace; line-height:1.1; }
   [data-theme="dark"] .sub-card-dps-val{ color: var(--accent); }
-  .sub-card-time-val{ font-size:16px; font-weight:800; color: var(--ink); font-family:'IBM Plex Mono', monospace; line-height:1.1; }
+  .sub-card-time-val{ font-size:19px; font-weight:800; color: var(--ink); line-height:1.1; font-family:'IBM Plex Mono', monospace; }
   .sub-card-weather-val{ line-height:1.4; display:flex; justify-content:center; }
   .sub-card-foot-stat-weather{ display:flex; flex-direction:column; align-items:center; }
   .sub-card-toggle{
@@ -138,6 +139,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   }
   .sub-card-details-top{ display:flex; align-items:center; justify-content:space-between; font-size:10px; color: var(--ink-muted); font-weight:600; }
   .sub-card-moves-row{ display:flex; justify-content:space-between; gap:6px; margin-top:8px; font-size:9.5px; color: var(--ink-muted); font-weight:600; line-height:1.35; }
+  .sub-card-moves{ font-size:11px; color: var(--ink-muted); font-weight:600; line-height:1.35; font-family:'Inter', sans-serif; }
   .sub-card-moves.right{ text-align:right; }
   .sub-card-dps-stack{ display:flex; gap:12px; margin-top:8px; }
   .sub-card-dps-stack div{ font-size:10px; color: var(--ink-muted); font-weight:700; }
@@ -153,7 +155,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-card-grid{ display:none; }
   .sub-card-grid-mobile{ display:flex; flex-direction:column; gap:10px; }
   @media (min-width:560px){
-    .sub-card-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); align-items:start; }
+    .sub-card-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); align-items:start; }
     .sub-card-grid-mobile{ display:none; }
   }
 
