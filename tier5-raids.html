@@ -248,7 +248,8 @@ body{ background:#20263a; color: var(--text-muted); }
   }
   a.strategy-chip{ cursor:pointer; }
   a.strategy-chip:hover{ border-color: var(--blue); background: rgba(90,169,255,0.1); }
-  .strategy-chip-row{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .strategy-chip-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .strategy-label{ font-family:'Inter', sans-serif; font-weight:800; font-size:11px; color: var(--ink-muted); }
   .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .boss-moveset-row > span[data-tooltip], .boss-stats-line[data-tooltip], .move-stat-line[data-tooltip], .twin-badge-inline[data-tooltip]{ position:relative; cursor:help; }
   .strategy-chip[data-tooltip]::after,
   .weather-icon-wrap[data-tooltip]::after,
@@ -515,6 +516,7 @@ body{ background:#20263a; color: var(--text-muted); }
       <a href="pokemon-stats.html">Pokémon Stats</a>
       <a href="raid-strategies.html">Raid Strategies</a>
       <a href="reference.html">Difficulty &amp; Role Reference</a>
+    <a href="monthly-infographic.html">Monthly Raid Bosses</a>
     </div>
     <div class="hamburger-section">
       <div class="hamburger-section-label">Raid Archives</div>
@@ -1211,16 +1213,16 @@ function moveChipHtml(label, move){
 }
 
 const WEATHER_ICON_URLS = {
-  "clear":"assets/icons/weather-clear.jpg",
-  "sunny":"assets/icons/weather-clear.jpg",
-  "cloudy":"assets/icons/weather-cloudy.jpg",
-  "partly cloudy":"assets/icons/weather-partly-cloudy.jpg",
-  "windy":"assets/icons/weather-windy.jpg",
-  "wind":"assets/icons/weather-windy.jpg",
-  "rain":"assets/icons/weather-rain.jpg",
-  "rainy":"assets/icons/weather-rain.jpg",
-  "snow":"assets/icons/weather-snow.jpg",
-  "fog":"assets/icons/weather-fog.jpg",
+  "clear":"assets/icons/weather-clear.png",
+  "sunny":"assets/icons/weather-clear.png",
+  "cloudy":"assets/icons/weather-cloudy.png",
+  "partly cloudy":"assets/icons/weather-partly-cloudy.png",
+  "windy":"assets/icons/weather-windy.png",
+  "wind":"assets/icons/weather-windy.png",
+  "rain":"assets/icons/weather-rain.png",
+  "rainy":"assets/icons/weather-rain.png",
+  "snow":"assets/icons/weather-snow.png",
+  "fog":"assets/icons/weather-fog.png",
   "extreme":"assets/icons/weather-extreme.png",
 };
 const WEATHER_BOOST_INFO = {
@@ -1327,7 +1329,7 @@ function variantBodyHtml(r, cardId){
         <span class="expand-action"><span class="expand-see">See details</span><span class="expand-hide">Hide details</span><span class="party-chevron">›</span></span>
       </summary>
       <div class="details-panel">
-        ${r.strategy ? `<div class="strategy-chip-row">${strategyChipsHtml(r.strategy)}</div>` : ""}
+        ${r.strategy ? `<div class="strategy-chip-row"><span class="strategy-label">Strategy:</span>${strategyChipsHtml(r.strategy)}</div>` : ""}
         <div class="party-label">Battle Party <span class="party-count-badge">${r.party.length}</span></div>
         <div class="party-list">${mainHtml}${restHtml}</div>
         ${r.notes ? `<details class="notes-wrap"><summary>Notes</summary><div class="notes-body">${r.notes}</div></details>` : ""}
