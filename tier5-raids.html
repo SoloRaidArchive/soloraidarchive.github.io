@@ -149,9 +149,11 @@ body{ background:#20263a; color: var(--text-muted); }
 
   .card{
     background: var(--card); border: 2px solid var(--border); border-radius: 16px;
-    padding: 16px; display:flex; flex-direction:column; gap: 14px; min-width:0; overflow-x:hidden;
+    padding: 16px; display:flex; flex-direction:column; gap: 14px; min-width:0; overflow-x:hidden; overflow-y:visible;
     transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 2px 0 rgba(45,49,66,0.05);
+    position:relative; z-index:1;
   }
+  .card:hover{ z-index:50; }
   .highlight-flash{ animation: flashHighlight 2.2s ease; }
   @keyframes flashHighlight{
     0%, 100%{ box-shadow: none; }
@@ -251,7 +253,6 @@ body{ background:#20263a; color: var(--text-muted); }
   .strategy-chip-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
   .strategy-label{ font-family:'Inter', sans-serif; font-weight:800; font-size:11px; color: var(--ink-muted); }
   .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .boss-moveset-row > span[data-tooltip], .boss-stats-line[data-tooltip], .move-stat-line[data-tooltip], .twin-badge-inline[data-tooltip]{ position:relative; cursor:help; }
-  .strategy-chip[data-tooltip]::after,
   .weather-icon-wrap[data-tooltip]::after,
   .ae-tag[data-tooltip]::after,
   .boss-moveset-row > span[data-tooltip]::after,
@@ -264,6 +265,15 @@ body{ background:#20263a; color: var(--text-muted); }
     font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     opacity:0; pointer-events:none; transform: translateY(4px);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .strategy-chip[data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; top: calc(100% + 8px); left:0; z-index:40;
+    width:220px; max-width:60vw; background: var(--text); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transform: translateY(-4px);
     transition: opacity .15s ease, transform .15s ease;
   }
   .strategy-chip[data-tooltip]:hover::after,
