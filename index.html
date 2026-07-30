@@ -251,6 +251,26 @@
     font-size:9px; font-weight:800; color: var(--blue-dark); background: var(--bg1);
     padding:2px 5px; border-radius:5px; white-space:nowrap;
   }
+  @media (min-width:601px){
+    .new-entries-archives-grid{
+      display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:stretch;
+    }
+  }
+  .new-entry-row{
+    display:flex; align-items:center; gap:10px; padding:6px 0; text-decoration:none; color:inherit;
+    border-top:1px solid var(--border);
+  }
+  .new-entry-row:first-child{ border-top:none; }
+  .new-entry-sprite{
+    width:32px; height:32px; border-radius:8px; background:#f0f0f2; flex-shrink:0; overflow:hidden;
+    border:1.5px solid var(--border);
+  }
+  .new-entry-sprite img{ width:100%; height:100%; object-fit:contain; }
+  .new-entry-info{ min-width:0; flex:1; }
+  .new-entry-date{ font-size:9.5px; font-weight:700; color: var(--text-dim); white-space:nowrap; flex-shrink:0; }
+  .new-entry-boss{ display:block; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .new-entry-meta{ display:flex; align-items:center; gap:4px; font-size:11px; color: var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .new-entry-ae-icon{ width:13px; height:13px; object-fit:contain; flex-shrink:0; }
   .weather-icon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
     background:#ffffff; border:1px solid rgba(0,0,0,0.12); border-radius:5px; padding:1px; width:16px; height:16px;
@@ -361,6 +381,14 @@
     <div id="liveBossWrap"></div>
   </details>
 
+  <div class="new-entries-archives-grid">
+  <details class="live-boss-panel new-entries-panel" id="newEntriesPanel" style="display:none;" open>
+    <summary class="live-boss-summary">
+      <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px;">New Raid Entries!</h2>
+    </summary>
+    <div id="newEntriesWrap"></div>
+  </details>
+
   <div class="archive-list">
   <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px;">Raids</h2>
     <div class="archive-pill-row">
@@ -386,6 +414,7 @@
       </a>
     </div>
 
+  </div>
   </div>
 
   </main>
@@ -797,6 +826,74 @@ async function loadLiveBosses(){
     console.error("Could not load live boss data:", e);
   }
 }
+// ============ NEW RAID ENTRIES (auto-updated by a push-triggered GitHub Action) ============
+// Reads new-raid-entries.json, written by track_new_raid_entries.py. Each logged entry is a
+// genuinely new (boss, strategy) combo - editing an existing row (e.g. adding a VOD link
+// later) doesn't produce new entries, so this only grows when real new content is added.
+// If the file is missing/empty, the panel just stays hidden - no broken UI either way.
+// The two AE icon URLs the archive pages already distinguish between - "sword" (Blade
+// Boost, +10% damage dealt) vs "shield" (Adventure Effect, +10% damage reduction).
+const NEW_ENTRY_AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
+const NEW_ENTRY_SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
+
+async function loadNewEntries(){
+  try{
+    const res = await fetch("new-raid-entries.json");
+    if(!res.ok) return;
+    const events = await res.json();
+    if(!Array.isArray(events) || !events.length) return;
+
+    const panel = document.getElementById("newEntriesPanel");
+    const wrap = document.getElementById("newEntriesWrap");
+    if(!panel || !wrap) return;
+
+    function entryHref(entry){
+      const tierMatch = (entry.star || "").match(/[\d.]+/);
+      const params = new URLSearchParams();
+      if(tierMatch) params.set("tier", tierMatch[0]);
+      const query = params.toString();
+      const slug = entry.boss.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+      return `${entry.archivePage}${query ? "?" + query : ""}#boss-${slug}`;
+    }
+
+    function aeTag(entry){
+      if(entry.ae === "sword") return `<img class="new-entry-ae-icon" src="${NEW_ENTRY_AE_ICON}" alt="Blade Boost AE" title="Blade Boost (+10% damage dealt)" loading="lazy" onerror="this.style.display='none'">`;
+      if(entry.ae === "shield") return `<img class="new-entry-ae-icon" src="${NEW_ENTRY_SHIELD_ICON}" alt="Adventure Effect" title="Adventure Effect (+10% damage reduction)" loading="lazy" onerror="this.style.display='none'">`;
+      return "";
+    }
+
+    // flatten every event's entries into one list - events are already newest-first in the
+    // JSON, and each event's own entries stay in the order they were logged. Each entry
+    // inherits its event's push date, since that's what "date added" means here.
+    const flat = [];
+    events.forEach(ev => ev.entries.forEach(e => flat.push(Object.assign({}, e, { pushDate: ev.date }))));
+
+    function formatPushDate(iso){
+      if(!iso) return "";
+      const d = new Date(iso);
+      if(isNaN(d)) return "";
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    }
+
+    wrap.innerHTML = flat.map(entry => `
+      <a class="new-entry-row" href="${entryHref(entry)}">
+        <div class="new-entry-sprite"><img src="${spriteUrl(entry.boss)}" alt="${entry.boss}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="new-entry-info">
+          <span class="new-entry-boss">${entry.boss}</span>
+          <span class="new-entry-meta">
+            ${entry.star} &middot; ${entry.strategy} &middot; ${entry.archiveLabel}
+            ${entry.weather ? weatherIcon(entry.weather) : ""}
+            ${aeTag(entry)}
+          </span>
+        </div>
+        <span class="new-entry-date">${formatPushDate(entry.pushDate)}</span>
+      </a>`).join("");
+
+    panel.style.display = "";
+  }catch(e){
+    console.error("Could not load new raid entries:", e);
+  }
+}
 function setLiveBossHeading(){
   const heading = document.getElementById("liveBossHeading");
   if(!heading) return;
@@ -805,6 +902,7 @@ function setLiveBossHeading(){
 }
 setLiveBossHeading();
 loadLiveBosses();
+loadNewEntries();
 
 </script>
 
