@@ -1,0 +1,44 @@
+name: Backfill new raid entries (one-off)
+
+on:
+  workflow_dispatch: {}
+    # ^ manual only - this is a one-time backfill, not something that should run on a
+    # schedule or on every push (the regular track-new-raid-entries.yml handles that
+    # going forward). Trigger it once from the Actions tab, then you shouldn't need it again.
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          # full history required - this walks the entire commit log
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run backfill
+        run: python backfill_new_raid_entries.py
+
+      - name: Commit changes if the entry log actually changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ ! -f new-raid-entries.json ]; then
+            echo "new-raid-entries.json wasn't created, nothing to commit."
+          else
+            git add new-raid-entries.json
+            if git diff --cached --quiet -- new-raid-entries.json; then
+              echo "No change in new-raid-entries.json, nothing to commit."
+            else
+              git commit -m "Backfill new raid entries from history"
+              git push
+            fi
+          fi
