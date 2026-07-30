@@ -256,6 +256,7 @@
       display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:stretch;
     }
   }
+  .new-entries-panel{ padding-top:14px; }
   .new-entry-row{
     display:flex; align-items:center; gap:10px; padding:6px 0; text-decoration:none; color:inherit;
     border-top:1px solid var(--border);
@@ -384,13 +385,13 @@
   <div class="new-entries-archives-grid">
   <details class="live-boss-panel new-entries-panel" id="newEntriesPanel" style="display:none;" open>
     <summary class="live-boss-summary">
-      <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px;">Recently Published Raids</h2>
+      <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Recently Published Raids</h2>
     </summary>
     <div id="newEntriesWrap"></div>
   </details>
 
   <div class="archive-list">
-  <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px;">Raids</h2>
+  <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Raids</h2>
     <div class="archive-pill-row">
       <a class="archive-pill" href="tier4-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🛠️'"></div>
