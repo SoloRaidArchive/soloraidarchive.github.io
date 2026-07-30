@@ -29,7 +29,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
 OUTPUT_FILE = REPO_ROOT / "new-raid-entries.json"
-MAX_EVENTS = 3
+MAX_EVENTS = 2
 
 # The two known adventure-effect icon URLs the site itself already distinguishes between
 # (see tier4-raids.html etc.) - "sword" (Blade Boost, +10% damage dealt) vs "shield"
@@ -69,9 +69,25 @@ def parse_rows(text):
     return list(csv.reader(io.StringIO(text)))
 
 
+def find_vod_url(row):
+    """Mirrors the site's own VOD-column detection (research.html etc.): the VOD column
+    isn't at a fixed offset, since party size varies 1-6 members x 4 columns each, so scan
+    for the literal "VOD"/"VOD*" header cell and take the next cell as the URL."""
+    for i, cell in enumerate(row):
+        if cell.strip() in ("VOD", "VOD*"):
+            return row[i + 1].strip() if i + 1 < len(row) else ""
+    return ""
+
+
 def extract_entries(rows, cfg):
-    """Returns {(boss_lower, strategy_lower): {boss, star, strategy, weather, ae}} for every
-    row that looks like a real data row (has a non-empty boss name and a star-rating cell)."""
+    """Returns {key: {boss, star, strategy, weather, ae}} for every row that looks like a
+    real data row (has a non-empty boss name and a star-rating cell).
+
+    The identity key includes the VOD link alongside (boss, strategy): the strategy label
+    alone is just a category (Catch Tank, Hot Swap, Recycle, etc.), not a unique name - the
+    same boss can have several genuinely different real submissions that all happen to share
+    the same strategy label. The VOD link is the one field that's actually guaranteed unique
+    per real submission, so it's what actually distinguishes them."""
     entries = {}
     for row in rows:
         if len(row) <= max(cfg["boss_col"], cfg["star_col"], cfg["strat_col"]):
@@ -83,7 +99,12 @@ def extract_entries(rows, cfg):
             continue
         weather = row[cfg["weather_col"]].strip() if cfg["weather_col"] is not None and len(row) > cfg["weather_col"] else ""
         ae_cell = row[cfg["ae_col"]].strip() if cfg["ae_col"] is not None and len(row) > cfg["ae_col"] else ""
-        key = (boss.lower(), strat.lower())
+        vod = find_vod_url(row)
+        if not vod:
+            # matches the site's own existing convention (see research.html's usage-count
+            # logic): a strategy without a VOD link isn't a "real" documented entry yet
+            continue
+        key = (boss.lower(), strat.lower(), vod.lower())
         entries[key] = {"boss": boss, "star": star, "strategy": strat, "weather": weather, "ae": classify_ae(ae_cell)}
     return entries
 
