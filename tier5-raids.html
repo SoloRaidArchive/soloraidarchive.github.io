@@ -153,7 +153,7 @@ body{ background:#20263a; color: var(--text-muted); }
     transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 2px 0 rgba(45,49,66,0.05);
     position:relative; z-index:1;
   }
-  .card:hover{ z-index:50; }
+  @media (hover:hover){ .card:hover{ z-index:10; } }
   .highlight-flash{ animation: flashHighlight 2.2s ease; }
   @keyframes flashHighlight{
     0%, 100%{ box-shadow: none; }
