@@ -1,0 +1,51 @@
+name: Track new raid entries
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tier4-data.csv"
+      - "tier5-data.csv"
+      - "tier5-ae-data.csv"
+      - "tier6-data.csv"
+  workflow_dispatch: {}
+    # ^ manual runs have no "before" push SHA to diff against, so the script just skips -
+    # this is here mainly so you can confirm the workflow itself is wired up correctly.
+
+permissions:
+  contents: write
+
+jobs:
+  track-new-entries:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+        with:
+          # full history, so `git show <before_sha>:<path>` can reach back far enough even
+          # after a squash merge or a push that bundles several commits together
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Detect new raid entries
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_DATE: ${{ github.event.head_commit.timestamp }}
+        run: python track_new_raid_entries.py
+
+      - name: Commit changes if the entry log actually changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet new-raid-entries.json; then
+            echo "No change in new-raid-entries.json, nothing to commit."
+          else
+            git add new-raid-entries.json
+            git commit -m "Log new raid entries from this push"
+            git push
+          fi
