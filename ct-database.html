@@ -179,19 +179,25 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-card-mobile .sub-card-mon.right{ align-items:center; justify-content:flex-end; text-align:right; }
   .sub-card-mobile .sub-card-icon{ width:32px; height:32px; border-radius:8px; }
   .sub-card-mobile .sub-card-name{
-    font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    font-size:13px; font-family:'Manrope', sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     display:block; -webkit-line-clamp:unset; -webkit-box-orient:unset;
   }
+  .sub-card-mobile .sub-card-mon.right .sub-card-name{ text-align:right; }
+  .sub-card-mobile .sub-card-moves{
+    font-size:10.5px; font-family:'Manrope', sans-serif; color: var(--ink-muted); font-weight:700;
+    line-height:1.35; margin-top:2px;
+  }
+  .sub-card-mobile .sub-card-mon.right .sub-card-moves{ text-align:right; }
   .sub-card-mobile .sub-card-meta{
     display:flex; align-items:center; justify-content:space-between; gap:6px;
-    padding:9px 0 10px; font-size:10px; color: var(--ink-muted); font-weight:600;
+    padding:9px 0 10px; font-size:10.5px; color: var(--ink-muted); font-weight:600;
   }
   .sub-card-mobile .sub-card-meta-weather{ display:inline-flex; align-items:center; gap:3px; }
   .sub-card-mobile .sub-card-foot{
     display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:0;
     padding-top:9px; border-top:1px solid var(--border);
   }
-  .sub-card-mobile .sub-card-foot-text{ font-size:10px; color: var(--ink-muted); font-weight:700; }
+  .sub-card-mobile .sub-card-foot-text{ font-size:10.5px; color: var(--ink-muted); font-weight:700; }
   .sub-card-mobile .sub-card-dps-val{ font-size:inherit; font-family:inherit; font-weight:700; }
   .sub-card-mobile .sub-card-toggle{ width:20px; height:20px; font-size:10px; }
   .sub-card-mobile.open .sub-card-details{
