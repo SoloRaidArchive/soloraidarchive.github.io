@@ -38,7 +38,7 @@
 
   body{
     margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%);
-    color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh;
+    color: var(--text); font-family: 'Manrope', sans-serif; min-height:100vh;
   }
     
   header{ padding: 12px 24px 10px; text-align:center; }
@@ -68,10 +68,10 @@
   .field-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:14px; }
   .field-grid.compact{ grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap:10px; }
   .field{ display:flex; flex-direction:column; gap:5px; }
-  .field label{ font-size:10.5px; font-weight:800; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; }
+  .field label{ font-size:11.5px; font-weight:800; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; }
   .field input, .field select{
     background: var(--bg1); border:2px solid var(--border); border-radius:10px;
-    padding: 7px 9px; font-family:'Inter', sans-serif; font-weight:700; font-size:11.5px;
+    padding: 7px 9px; font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
     color: var(--text); outline:none; width:100%;
   }
   .name-iv-row{ display:flex; gap:10px; flex-wrap:wrap; }
@@ -138,7 +138,7 @@
   .history-item{
     display:flex; flex-direction:column; align-items:flex-start; gap:1px; width:100%; position:relative;
     background: var(--card); border:2px solid var(--border); border-radius:9px;
-    padding:7px 20px 7px 9px; cursor:pointer; text-align:left; font-family:'Inter', sans-serif;
+    padding:7px 20px 7px 9px; cursor:pointer; text-align:left; font-family:'Manrope', sans-serif;
     transition: border-color .12s, transform .12s;
   }
   .history-item:hover{ border-color: var(--blue); transform: translateY(-2px); }
@@ -175,12 +175,12 @@
   .results-card-mon.right{ justify-content:flex-end; text-align:right; }
   .results-card-icon{ width:34px; height:34px; border-radius:8px; background: var(--bg1); flex-shrink:0; overflow:hidden; }
   .results-card-icon img{ width:100%; height:100%; object-fit:contain; }
-  .results-card-name{ font-weight:800; font-size:12.5px; color: var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .results-card-moves{ font-size:10px; color: var(--text-muted); font-weight:600; line-height:1.4; }
-  .results-card-vs-label{ font-size:10px; font-weight:800; color: var(--text-dim); flex-shrink:0; }
+  .results-card-name{ font-weight:800; font-size:11.5px; color: var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .results-card-moves{ font-size:11.5px; color: var(--text-muted); font-weight:600; line-height:1.4; }
+  .results-card-vs-label{ font-size:11.5px; font-weight:800; color: var(--text-dim); flex-shrink:0; }
   .results-card-meta{
     display:flex; align-items:center; justify-content:space-between; gap:8px;
-    padding:10px 0 10px; font-size:10.5px; color: var(--text-muted); font-weight:600;
+    padding:10px 0 10px; font-size:11.5px; color: var(--text-muted); font-weight:600;
   }
   .results-card-rows{ display:flex; flex-direction:column; gap:10px; padding-top:10px; border-top:1px solid var(--border); }
   .results-card-row{
@@ -188,13 +188,13 @@
   }
   .results-card-row-radio{ display:flex; align-items:center; justify-content:center; }
   .results-card-row-radio .submit-checkbox{ margin:0; }
-  .results-card-row-label{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
-  .results-card-row-time{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
-  .results-card-row-fainted{ font-size:10.5px; color: var(--text-muted); font-weight:700; grid-column: span 2; }
+  .results-card-row-label{ font-size:11.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-time{ font-size:11.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-fainted{ font-size:11.5px; color: var(--text-muted); font-weight:700; grid-column: span 2; }
   .results-card-row-dps{ text-align:right; }
-  .results-card-row-dps > div:first-child{ font-size:10.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-dps > div:first-child{ font-size:11.5px; color: var(--text-muted); font-weight:700; }
   .results-card-row-sub{
-    display:none; font-size:9px; color: var(--text-dim); font-weight:600; margin-top:1px;
+    display:none; font-size:11.5px; color: var(--text-dim); font-weight:600; margin-top:1px;
   }
   .results-card.open .results-card-row-sub{ display:block; }
   .results-card-ct{ color: var(--blue-dark); }
@@ -293,7 +293,7 @@
   }
   [data-theme="dark"] .mod-consolidated-grid .mod-cell{ background:#161a28; }
   .mod-consolidated-grid .mod-cell select{
-    margin:0; background:none; border:none; padding:0; width:100%; font-size:11.5px;
+    margin:0; background:none; border:none; padding:0; width:100%;
   }
   .check-grid.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:8px; }
   @media (max-width:560px){ .check-grid.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
@@ -318,10 +318,10 @@
   .mod-row.compact{ grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:10px; }
   .mod-row.narrow{ grid-template-columns: repeat(auto-fit, minmax(140px, 200px)); gap:12px; }
   .mod-cell{ display:flex; flex-direction:column; gap:5px; }
-  .mod-cell label{ font-size:10px; font-weight:800; color: var(--text-dim); }
+  .mod-cell label{ font-size:11.5px; font-weight:800; color: var(--text-dim); }
   .mod-cell select{
     background: var(--bg1); border:2px solid var(--border); border-radius:10px;
-    padding: 8px 10px; font-family:'Inter', sans-serif; font-weight:700; font-size:11.5px;
+    padding: 8px 10px; font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
     color: var(--text); outline:none; width:100%;
   }
   [data-theme="dark"] .mod-cell select{ background:#161a28; }
@@ -338,7 +338,7 @@
   }
   [data-theme="dark"] .mini-preview-sprite{ background: linear-gradient(160deg, #eaeaec, #dedee2); }
   .mini-preview-sprite img{ width:100%; height:100%; object-fit:contain; padding:1px; }
-  .mini-preview-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px; }
+  .mini-preview-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:16px; }
   .mini-preview-stats{ display:flex; gap:12px; font-family:'IBM Plex Mono', monospace; font-size:13px; color: var(--text-muted); margin-top:3px; }
   .mini-preview-stats b{ color: var(--text); font-size:13.5px; }
   .boss-dmg-preview{
@@ -478,8 +478,9 @@
             <input id="pokemonName" placeholder="e.g. Shadow Honchkrow" autocomplete="off">
           </div>
           <div class="field iv-field">
-            <label for="pokemonLevel" title="Valid range: 40–51">Level</label>
-            <input id="pokemonLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50">
+            <label for="pokemonLevel" title="Valid range: 20–51">Level</label>
+            <input id="pokemonLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50" list="pokemonLevelOptions">
+            <datalist id="pokemonLevelOptions"></datalist>
             <div class="field-error" id="pokemonLevelError"></div>
           </div>
           <div class="field iv-field">
@@ -2031,7 +2032,13 @@ const MOVE_DB = [
 ];
 // ============ CPM TABLE (levels 40-51, half-level increments) ============
 const CPM = {
-  "40":0.7903, "40.5":0.792803968, "41":0.79530001, "41.5":0.797800015, "42":0.8003,
+  "20":0.59740001, "21":0.61215729, "22":0.62656713, "23":0.64065295, "24":0.65443563,
+  "25":0.66793400, "26":0.68116492, "27":0.69414365, "28":0.70688421, "29":0.71939909,
+  "30":0.73170000, "30.5":0.73474101, "31":0.73776948, "31.5":0.74078557, "32":0.74378943,
+  "32.5":0.74678120, "33":0.74976104, "33.5":0.75272910, "34":0.75568551, "34.5":0.75863037,
+  "35":0.76156384, "35.5":0.76448607, "36":0.76739717, "36.5":0.77029727, "37":0.77318650,
+  "37.5":0.77606494, "38":0.77893275, "38.5":0.78179006, "39":0.78463697, "39.5":0.78747358,
+  "40":0.79030001, "40.5":0.792803968, "41":0.79530001, "41.5":0.797800015, "42":0.8003,
   "42.5":0.802799995, "43":0.8053, "43.5":0.8078, "44":0.81029999, "44.5":0.812799985,
   "45":0.8153, "45.5":0.81779999, "46":0.820299990, "46.5":0.822799990, "47":0.825299990,
   "47.5":0.827799990, "48":0.830299990, "48.5":0.832799990, "49":0.835299990,
@@ -2039,6 +2046,9 @@ const CPM = {
   "51.5":0.847803686002838, "52":0.85030, "52.5":0.852803664391751, "53":0.85530,
 };
 const ELITE_CPM = 1.0;
+document.getElementById("pokemonLevelOptions").innerHTML = Object.keys(CPM)
+  .map(Number).sort((a,b) => a-b)
+  .map(lvl => `<option value="${lvl}">`).join("");
 const BOSS_CPM_T4T7 = 0.7903;
 
 // ============ LOOKUPS ============
@@ -2680,7 +2690,7 @@ function wireValidation(inputId, errorId, validateFn, errorMsg){
   input.addEventListener("blur", check);
   return check;
 }
-wireValidation("pokemonLevel", "pokemonLevelError", validateLevel, "Level must be 40–51 in 0.5 steps (e.g. 47.5)");
+wireValidation("pokemonLevel", "pokemonLevelError", validateLevel, "Level must be 20–51 (whole numbers 20–29, 0.5 steps 30–51, e.g. 47.5)");
 wireValidation("ivAtk", "ivAtkError", validateIV, "Must be a whole number 0–15");
 wireValidation("ivDef", "ivDefError", validateIV, "Must be a whole number 0–15");
 wireValidation("ivHp", "ivHpError", validateIV, "Must be a whole number 0–15");
