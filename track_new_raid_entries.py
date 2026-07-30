@@ -29,7 +29,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
 OUTPUT_FILE = REPO_ROOT / "new-raid-entries.json"
-MAX_EVENTS = 5
+MAX_EVENTS = 8
 
 # The two known adventure-effect icon URLs the site itself already distinguishes between
 # (see tier4-raids.html etc.) - "sword" (Blade Boost, +10% damage dealt) vs "shield"
