@@ -82,7 +82,7 @@
     transition: background .15s ease, color .15s ease, border-color .15s ease;
   }
   .duration-unit-toggle input:checked + label{ background: var(--blue); color:#fff; border-color: var(--blue); }
-  .cell-duration{ display:block; font-size:9.5px; font-weight:700; color: var(--text-dim); margin-top:1px; }
+  .cell-duration{ display:block; font-size:11.5px; font-weight:bold; color: var(--text-dim); margin-top:1px; }
   .results-card-row-time-inline{ display:block; font-size:9.5px; font-weight:700; color: var(--text-dim); }
 
   .step-card{
@@ -493,12 +493,11 @@
 
   <div class="ct-mode-toggle">
     <input type="radio" name="ctMode" id="ctModeSingle" value="single" checked>
-    <label for="ctModeSingle">Single Swap</label>
+    <label for="ctModeSingle">Single Catch Tank</label>
     <input type="radio" name="ctMode" id="ctModeDouble" value="double">
-    <label for="ctModeDouble">Double Swap</label>
+    <label for="ctModeDouble">Double Catch Tank</label>
   </div>
-  <div class="ct-mode-desc" id="ctModeDesc">Standard catch tank: swap in, absorb the boss's charge move once, then fire your own.</div>
-
+  
   <!-- STEP 1: SIDE BY SIDE -->
   <div class="step-card">
     <div class="step-head">
@@ -3205,10 +3204,6 @@ function autoSetEffectiveness(){
 
 document.getElementById("calcBtn").addEventListener("click", runCalculation);
 
-const CT_MODE_DESC = {
-  single: "Standard catch tank: swap in, absorb the boss's charge move once, then fire your own.",
-  double: "Double-swap catch tank: absorb the boss's charge move across two separate swaps, accumulating energy between them (roughly 40+ per swap), casting one fast move on the first swap and any needed top-off fast moves on the second, before firing your own charge move.",
-};
 function updateCTMode(){
   const doubleCT = document.getElementById("ctModeDouble").checked;
   document.body.classList.toggle("ct-mode-double", doubleCT);
