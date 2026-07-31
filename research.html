@@ -267,7 +267,7 @@
   }
   .bd-weather{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
   .bd-weather-top{ display:flex; align-items:center; gap:5px; }
-  .bd-moves-row{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; margin-top:6px; padding-left:40px; }
+  .bd-moves-row{ display:flex; align-items:center; gap:6px; margin-top:6px; padding-left:40px; flex-wrap:wrap; }
   .bd-move-chip{
     display:flex; align-items:center; gap:5px; font-family:'Inter', sans-serif; font-weight:800;
     font-size:10.5px; padding:4px 9px; border-radius:999px; color:#fff;
@@ -320,6 +320,7 @@
     .bd-weather{ min-width:20px; gap:4px; }
     .bd-weather-top{ gap:0; }
     .bd-weather-label{ display:none; }
+    .bd-moves-row{ flex-direction:column; align-items:flex-start; flex-wrap:nowrap; gap:5px; }
   }
 </style>
 </head>
