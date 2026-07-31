@@ -8,15 +8,15 @@
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
-<meta name="description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, and Catch Tank roles in Pokémon GO solo raids.">
+<meta name="description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, Catch Tank, and Double Catch Tank roles in Pokémon GO solo raids.">
 <link rel="canonical" href="https://soloraidarchive.github.io/ct-calculator.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Catch Tank Calculator | Solo Raid Archive">
-<meta property="og:description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, and Catch Tank roles in Pokémon GO solo raids.">
+<meta property="og:description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, Catch Tank, and Double Catch Tank roles in Pokémon GO solo raids.">
 <meta property="og:url" content="https://soloraidarchive.github.io/ct-calculator.html">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Catch Tank Calculator | Solo Raid Archive">
-<meta name="twitter:description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, and Catch Tank roles in Pokémon GO solo raids.">
+<meta name="twitter:description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, Catch Tank, and Double Catch Tank roles in Pokémon GO solo raids.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -51,6 +51,25 @@
   .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
 
   .container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 45px; }
+
+  .ct-mode-toggle{
+    display:flex; gap:0; background: var(--bg1); border:2px solid var(--border); border-radius:12px;
+    padding:4px; margin-bottom:16px; max-width:460px;
+  }
+  [data-theme="dark"] .ct-mode-toggle{ background:#161a28; }
+  .ct-mode-toggle input{ display:none; }
+  .ct-mode-toggle label{
+    flex:1; text-align:center; padding:10px 12px; border-radius:9px; cursor:pointer;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; color: var(--text-dim);
+    transition: background .15s ease, color .15s ease;
+  }
+  .ct-mode-toggle input:checked + label{ background: var(--blue); color:#fff; }
+  .ct-mode-desc{
+    font-size:11.5px; color: var(--text-dim); font-weight:600; line-height:1.5; margin: -10px 0 16px;
+    max-width:600px;
+  }
+  .single-ct-only{ }
+  body.ct-mode-double .single-ct-only{ display:none; }
 
   .step-card{
     background: var(--card); border:2px solid var(--border); border-radius:20px;
@@ -458,6 +477,14 @@
 
 <div class="container">
 
+  <div class="ct-mode-toggle">
+    <input type="radio" name="ctMode" id="ctModeSingle" value="single" checked>
+    <label for="ctModeSingle">Single Swap</label>
+    <input type="radio" name="ctMode" id="ctModeDouble" value="double">
+    <label for="ctModeDouble">Double Swap</label>
+  </div>
+  <div class="ct-mode-desc" id="ctModeDesc">Standard catch tank: swap in, absorb the boss's charge move once, then fire your own.</div>
+
   <!-- STEP 1: SIDE BY SIDE -->
   <div class="step-card">
     <div class="step-head">
@@ -657,11 +684,11 @@
           <option value="fog">Fog</option>
         </select>
       </div>
-      <label class="check-item"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
+      <label class="check-item single-ct-only"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
       <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
       <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
       <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
-      <label class="check-item" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
+      <label class="check-item single-ct-only" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
       <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
     </div>
   </div>
@@ -2163,7 +2190,8 @@ function runCalculation(){
     return;
   }
 
-  const cmBuffer = document.getElementById("cmBuffer").checked;
+  const doubleCT = document.getElementById("ctModeDouble").checked;
+  const cmBuffer = !doubleCT && document.getElementById("cmBuffer").checked;
   const resolveNerf = document.getElementById("resolveNerf").checked;
   const numCM = parseInt(document.getElementById("numCM").value);
 
@@ -2214,7 +2242,7 @@ function runCalculation(){
     shieldAE: document.getElementById("shieldAE").checked,
   };
 
-  const dodgeCM = document.getElementById("dodgeCM").checked;
+  const dodgeCM = !doubleCT && document.getElementById("dodgeCM").checked;
   const dodgeFM = document.getElementById("dodgeFM").checked;
 
   // --- player move damage (attacking the boss) ---
@@ -2253,7 +2281,74 @@ function runCalculation(){
   // the normal way, so it fully cancels CM Buffer's "immediate, no-tap" premise for this rotation.
   const effectiveBuffer = cmBuffer && !dodgeCM && !dodgeFM;
 
-  const rows = [0, 1, 2].map(n => {
+  const rows = doubleCT ? [0, 1, 2].map(n => {
+    // ============ DOUBLE CATCH TANK MODEL ============
+    // The boss's charge move is absorbed TWICE, across two separate swaps. Swap 1 (tank CM #1,
+    // cast exactly one mandatory fast move, swap back out) happens entirely before this rotation's
+    // own timer starts - mirroring how a single absorption isn't counted as elapsed time in the
+    // single-swap model either. But swap 1's energy AND its one mandatory fast move's tick cost
+    // both carry forward into swap 2's buildup below. There's no CM Buffer branch here: swap 1
+    // always includes a real tap by design, so buffer's "zero taps before the first charge-eligible
+    // moment" premise is already broken from the very start. Dodge CM is forced off above too -
+    // the technique requires tanking both charge moves.
+    const totalCostAllCasts = numCM * cmEnergyCost;
+    const tankBonusForBuildup = (2 * energyFromCM) + fm.energy + (n * energyFromBossFM);
+
+    const energyNeeded = Math.max(totalCostAllCasts - tankBonusForBuildup, 0);
+    const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad; // swap-2 top-off taps
+
+    const is1TickFM = fm.ad === 1;
+    const is1BarCM = cmEnergyCost === 100;
+    let resolveNerfExtraCasts = 0;
+    if(resolveNerf && is1TickFM && numCM > 0){
+      resolveNerfExtraCasts = is1BarCM ? numCM : 1;
+    }
+    const mandatoryCovers = (totalCostAllCasts > 0 && tankBonusForBuildup >= totalCostAllCasts) ? 1 : 0;
+    const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
+
+    const floorTerm = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
+    const innerMax = Math.max(buildupTicks, floorTerm);
+    const mandatoryFMBonus = mandatoryCovers ? fm.ad : 0;
+    const swap1FMTicks = fm.ad; // always cast, unconditionally, every rotation
+
+    let ticks = swap1FMTicks + innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+    const outerFloor = bossFMAD_ticks + 1;
+    ticks = Math.max(outerFloor, ticks);
+
+    const dodgeFMTicks = dodgeFM ? (n === 2 ? 4 : 2) : 0;
+    ticks += dodgeFMTicks;
+    ticks += netResolveNerfCasts;
+
+    const seconds = ticks / 2;
+    const fastPhaseTicks = Math.max(0, innerMax + mandatoryFMBonus);
+    const fastMoveCountForDPS = (fastPhaseTicks / fm.ad) + 1; // +1 for swap 1's own fast move
+
+    const numerator = (chargeDamage * numCM) + (fastMoveCountForDPS * fastDamage) + (netResolveNerfCasts * fastDamage);
+
+    // TWO charge-move absorptions now count toward cumulative damage taken
+    const cumulativeDamage = (2 * bossCMDamage) + n * bossFMDamage;
+    const fainted = cumulativeDamage >= playerHp;
+
+    // double catch tank only ever reports Catch Tank DPS - a 2.0s two-swap overhead applies
+    // instead of the regular 1.0s single-swap overhead
+    const ctDPS = fainted ? 0 : numerator / Math.max(seconds + 2.0, 0.1);
+
+    let risky = false;
+    let riskyNote = "";
+    if(!fainted && n > 0){
+      const landings = bossFMLandingTicks(bossFMAD_ticks, n);
+      const nthLandingTick = landings[n - 1];
+      if(nthLandingTick > ticks){
+        risky = true;
+        riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+      }
+    }
+
+    return {
+      n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
+      mainDPS: null, trailingDPS: null, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
+    };
+  }) : [0, 1, 2].map(n => {
     const totalCostAllCasts = numCM * cmEnergyCost;
 
     // Casts chainable purely off the INITIAL CM burst (energyFromCM alone), with zero taps.
@@ -2414,7 +2509,7 @@ function runCalculation(){
     </div>
   `;
 
-  const anyQualifies = bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD);
+  const anyQualifies = !doubleCT && bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD);
 
   resultsWrap.innerHTML = loadoutHtml + `
     <table class="results-table">
@@ -2424,14 +2519,15 @@ function runCalculation(){
           <th>Boss FMs Tanked</th>
           <th>Seconds</th>
           <th>Ticks</th>
+          ${doubleCT ? `<th>Catch Tank DPS</th>` : `
           <th>Main DPS</th>
           <th>Trailing CT DPS</th>
-          <th>Catch Tank DPS</th>
+          <th>Catch Tank DPS</th>`}
         </tr>
       </thead>
       <tbody>
         ${rows.map(r => {
-          const qualifies = bossQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
+          const qualifies = anyQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
           return `
           <tr class="${r.fainted ? "fainted-row" : ""}">
             ${anyQualifies ? `<td class="submit-col">${qualifies ? `<input type="radio" name="submitRow" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</td>` : ""}
@@ -2439,7 +2535,9 @@ function runCalculation(){
             <td>${r.seconds.toFixed(2)}s</td>
             <td>${r.ticks.toFixed(1)}t</td>
             ${r.fainted
-              ? `<td colspan="3" class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
+              ? `<td colspan="${doubleCT ? 1 : 3}" class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
+              : doubleCT
+              ? `<td class="dps-val">${r.ctDPS.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}</td>`
               : `
             <td class="dps-val">${r.mainDPS.toFixed(1)} dps</td>
             <td class="dps-val">${r.trailingDPS.toFixed(1)} dps</td>
@@ -2475,7 +2573,7 @@ function runCalculation(){
         </div>
         <div class="results-card-rows">
           ${rows.map(r => {
-            const qualifies = bossQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
+            const qualifies = anyQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
             return `
           <div class="results-card-row">
             <span class="results-card-row-radio">${anyQualifies && qualifies ? `<input type="radio" name="submitRowCard" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</span>
@@ -2486,21 +2584,22 @@ function runCalculation(){
             <span class="results-card-row-time">${r.seconds.toFixed(2)}s (${r.ticks.toFixed(1)}t)</span>
             <div class="results-card-row-dps">
               <div>CT DPS: <b class="results-card-ct">${r.ctDPS.toFixed(1)}</b>${r.risky ? ` <span class="results-card-risky" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️</span>` : ""}</div>
-              <div class="results-card-row-sub">Main ${r.mainDPS.toFixed(1)} &middot; Trailing ${r.trailingDPS.toFixed(1)}</div>
+              ${doubleCT ? "" : `<div class="results-card-row-sub">Main ${r.mainDPS.toFixed(1)} &middot; Trailing ${r.trailingDPS.toFixed(1)}</div>`}
             </div>`}
           </div>`;
           }).join("")}
         </div>
+        ${doubleCT ? "" : `
         <div class="results-card-toggle-row">
           <button type="button" class="results-card-toggle" onclick="document.getElementById('resultsCard').classList.toggle('open')" aria-label="Show Main and Trailing DPS">&#9662;</button>
-        </div>
+        </div>`}
       </div>
     </div>
     ${anyQualifies ? `
     <div class="submit-panel">
       <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> raids only. Rows scoring ${CT_SUBMIT_THRESHOLD}+ Catch Tank DPS are eligible — check <b>one row</b> to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
       <button type="button" class="submit-btn" onclick="submitSelectedRows()">Submit Selected to CT Database</button>
-    </div>` : bossName && !bossQualifies ? `
+    </div>` : (!doubleCT && bossName && !bossQualifies) ? `
     <div class="submit-panel submit-panel-disabled">
       <div class="submit-note">CT Database submissions are currently only accepted for Tier 5 raid bosses. "${bossName}" isn't on the current Tier 5 list.</div>
     </div>` : ""}
@@ -2576,6 +2675,7 @@ function captureSetup(){
     const el = document.getElementById(id);
     setup[id] = el.type === "checkbox" ? el.checked : el.value;
   });
+  setup.ctMode = document.getElementById("ctModeDouble").checked ? "double" : "single";
   return setup;
 }
 function restoreMoveSelection(baseId, savedMove){
@@ -2608,6 +2708,8 @@ function applySetup(setup){
     if(el.type === "checkbox") el.checked = !!setup[id];
     else el.value = setup[id];
   });
+  document.getElementById(setup.ctMode === "double" ? "ctModeDouble" : "ctModeSingle").checked = true;
+  updateCTMode();
   ["pokemonLevel","ivAtk","ivDef","ivHp"].forEach(id => {
     const el = document.getElementById(id);
     el.dispatchEvent(new Event("input"));
@@ -3060,6 +3162,18 @@ function autoSetEffectiveness(){
 });
 
 document.getElementById("calcBtn").addEventListener("click", runCalculation);
+
+const CT_MODE_DESC = {
+  single: "Standard catch tank: swap in, absorb the boss's charge move once, then fire your own.",
+  double: "Double-swap catch tank: absorb the boss's charge move across two separate swaps, accumulating energy between them (roughly 40+ per swap), casting one fast move on the first swap and any needed top-off fast moves on the second, before firing your own charge move.",
+};
+function updateCTMode(){
+  const doubleCT = document.getElementById("ctModeDouble").checked;
+  document.body.classList.toggle("ct-mode-double", doubleCT);
+  document.getElementById("ctModeDesc").textContent = CT_MODE_DESC[doubleCT ? "double" : "single"];
+}
+document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
+document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);
 
 // theme toggle
 const themeToggle = document.getElementById("themeToggle");
