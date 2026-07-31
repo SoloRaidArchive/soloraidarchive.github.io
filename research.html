@@ -253,7 +253,7 @@
   }
   .bd-item:first-child{ border-top:none; }
   .bd-item:hover{ background: var(--bg1); border-radius:8px; }
-  .bd-top-row{ display:flex; align-items:center; gap:10px; }
+  .bd-top-row{ display:flex; align-items:center; flex-wrap:nowrap; gap:10px; }
   .bd-boss-icon{
     width:30px; height:30px; border-radius:8px; flex-shrink:0; overflow:hidden;
     background:#f0f0f2; display:flex; align-items:center; justify-content:center;
@@ -265,8 +265,7 @@
     font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; color: var(--blue-dark);
     background: rgba(90,169,255,0.12); border-radius:999px; padding:2px 8px; flex-shrink:0;
   }
-  .bd-weather{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
-  .bd-weather-top{ display:flex; align-items:center; gap:5px; }
+  .bd-weather{ display:flex; align-items:center; gap:5px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
   .bd-moves-row{ display:flex; align-items:center; gap:6px; margin-top:6px; padding-left:40px; flex-wrap:wrap; }
   .bd-move-chip{
     display:flex; align-items:center; gap:5px; font-family:'Inter', sans-serif; font-weight:800;
@@ -274,7 +273,7 @@
   }
   .bd-move-tag{ font-size:8px; opacity:0.85; }
   .bd-ae-icon{
-    display:inline-flex; align-items:center; justify-content:center;
+    display:inline-flex; align-items:center; justify-content:center; align-self:center; flex-shrink:0;
     position:relative; cursor:help;
   }
   .bd-ae-icon img{ width:20px; height:20px; object-fit:contain; }
@@ -317,8 +316,7 @@
   @media (max-width:600px){
     .lb-bosses{ display:none; }
     .bd-name{ font-size:12px; }
-    .bd-weather{ min-width:20px; gap:4px; }
-    .bd-weather-top{ gap:0; }
+    .bd-weather{ min-width:20px; gap:0; }
     .bd-weather-label{ display:none; }
     .bd-moves-row{ flex-direction:column; align-items:flex-start; flex-wrap:nowrap; gap:5px; }
   }
@@ -1119,11 +1117,9 @@ function renderLeaderboard(){
             <div class="bd-top-row">
               <div class="bd-boss-icon"><img src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="this.style.display='none'"></div>
               <div class="bd-name">${inst.boss}${count > 1 ? ` <span class="bd-dupe-badge" data-tooltip="Logged ${count} times with the same boss, weather, difficulty and moveset shown here — the battle parties used in each recorded attempt were different.">×${count}</span>` : ""}</div>
-              <div class="bd-weather">
-                <div class="bd-weather-top">${smallWeatherIconHtml(inst.weather)}<span class="bd-weather-label">${inst.weather || "—"}</span></div>
-                ${inst.ae === "sword" ? `<span class="bd-ae-icon" data-tooltip="+10% damage dealt from your pokemon in raids"><img src="${AE_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
-                ${inst.ae === "shield" ? `<span class="bd-ae-icon" data-tooltip="+10% damage reduction for your pokemon in raids"><img src="${SHIELD_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
-              </div>
+              <div class="bd-weather">${smallWeatherIconHtml(inst.weather)}<span class="bd-weather-label">${inst.weather || "—"}</span></div>
+              ${inst.ae === "sword" ? `<span class="bd-ae-icon" data-tooltip="+10% damage dealt from your pokemon in raids"><img src="${AE_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
+              ${inst.ae === "shield" ? `<span class="bd-ae-icon" data-tooltip="+10% damage reduction for your pokemon in raids"><img src="${SHIELD_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
               <div class="bd-tier">${tierLabel(inst.tier)}</div>
             </div>
             <div class="bd-moves-row">
