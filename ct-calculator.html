@@ -2501,7 +2501,7 @@ function runCalculation(){
       shieldAE: document.getElementById("shieldAE").checked,
       dodgeCM, dodgeFM,
       cmBuffer, resolveNerf,
-      numCM,
+      numCM, doubleCT,
     },
     rowsByN: {},
   };
@@ -2544,7 +2544,7 @@ function runCalculation(){
     </div>
   `;
 
-  const anyQualifies = !doubleCT && bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD);
+  const anyQualifies = bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD);
 
   resultsWrap.innerHTML = loadoutHtml + `
     <table class="results-table">
@@ -2675,6 +2675,13 @@ function submitSelectedRows(){
   const r = lastCalcContext.rowsByN[n];
   const dodges = (f.dodgeCM && f.dodgeFM) ? "Both" : f.dodgeCM ? "CM" : f.dodgeFM ? "FM" : "None";
   const timingMods = (f.cmBuffer && f.resolveNerf) ? "Both" : f.cmBuffer ? "CM Buffer" : f.resolveNerf ? "Resolve Nerf" : "None";
+  // Main DPS and Trailing DPS genuinely don't apply to double catch tank - it's a single-role
+  // technique (there's only ever a Catch Tank swap-in, never a "already in" or "trailing swap"
+  // scenario for it). Submitting "N/A" here (rather than a new dedicated form field) is how the
+  // CT Database can tell single-CT and double-CT entries apart later, with zero changes needed
+  // to the Google Form itself.
+  const mainDPSText = f.doubleCT ? "N/A (Double CT)" : r.mainDPS.toFixed(1);
+  const trailingDPSText = f.doubleCT ? "N/A (Double CT)" : r.trailingDPS.toFixed(1);
 
   const params = new URLSearchParams();
   params.set(`entry.${CT_FORM_ENTRIES.pokemon}`, f.pokemonName);
@@ -2692,8 +2699,8 @@ function submitSelectedRows(){
   params.set(`entry.${CT_FORM_ENTRIES.fmsTanked}`, String(n));
   params.set(`entry.${CT_FORM_ENTRIES.ticks}`, r.ticks.toFixed(1));
   params.set(`entry.${CT_FORM_ENTRIES.seconds}`, r.seconds.toFixed(2));
-  params.set(`entry.${CT_FORM_ENTRIES.mainDPS}`, r.mainDPS.toFixed(1));
-  params.set(`entry.${CT_FORM_ENTRIES.trailingDPS}`, r.trailingDPS.toFixed(1));
+  params.set(`entry.${CT_FORM_ENTRIES.mainDPS}`, mainDPSText);
+  params.set(`entry.${CT_FORM_ENTRIES.trailingDPS}`, trailingDPSText);
   params.set(`entry.${CT_FORM_ENTRIES.ctDPS}`, r.ctDPS.toFixed(1));
   params.set(`entry.${CT_FORM_ENTRIES.risky}`, r.risky ? "Yes" : "No");
 
@@ -3206,7 +3213,6 @@ document.getElementById("calcBtn").addEventListener("click", runCalculation);
 function updateCTMode(){
   const doubleCT = document.getElementById("ctModeDouble").checked;
   document.body.classList.toggle("ct-mode-double", doubleCT);
-  document.getElementById("ctModeDesc").textContent = CT_MODE_DESC[doubleCT ? "double" : "single"];
 }
 document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
 document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);

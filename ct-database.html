@@ -269,6 +269,14 @@ header{ padding: 12px 24px 10px; text-align:center; }
 
   .sub-dps-cell{ text-align:center; }
   .sub-dps-val{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; color: var(--ink); }
+  .sub-mode-badge{
+    display:inline-block; font-family:'Manrope', sans-serif; font-weight:800; font-size:10px;
+    padding:3px 8px; border-radius:999px; white-space:nowrap;
+  }
+  .sub-mode-badge.single{ background: rgba(90,169,255,0.14); color: var(--blue-dark); }
+  .sub-mode-badge.double{ background: rgba(168,85,247,0.14); color:#7c3aed; }
+  [data-theme="dark"] .sub-mode-badge.double{ color:#c4b5fd; }
+  .sub-dps-na{ font-family:'Manrope', sans-serif; font-weight:700; font-size:12px; color: var(--text-dim); }
   .sub-dps-cell.highlight .sub-dps-val{ color: var(--accent-dark); }
 
   .empty{ text-align:center; padding:60px 20px; color: var(--ink-dim); font-weight:600; }
@@ -384,6 +392,11 @@ header{ padding: 12px 24px 10px; text-align:center; }
 </div>
 
 <div class="controls">
+  <select id="modeFilter">
+    <option value="all">Mode: All</option>
+    <option value="single">Mode: Single CT</option>
+    <option value="double">Mode: Double CT</option>
+  </select>
   <select id="sortSelect">
     <option value="ctdps">Sort: CT DPS (High–Low)</option>
     <option value="maindps">Sort: Main DPS (High–Low)</option>
@@ -1262,40 +1275,115 @@ function computeDuration(params){
   const cmEnergyCost = Math.abs(cm.energy);
   const bossFMAD_ticks = bossFMMove.ad;
   const numCM = params.numCM;
+  const n = params.n;
 
-  const tankBonus = energyFromCM + params.n * energyFromBossFM;
+  if(params.doubleCT){
+    // ============ DOUBLE CATCH TANK MODEL ============
+    // Mirrors ct-calculator.html's double-swap formula exactly: the boss's charge move is
+    // absorbed TWICE across two separate swaps, with a mandatory fast move on swap 1 (whose
+    // energy AND tick cost both carry forward) and top-off fast moves on swap 2. No CM Buffer
+    // or Dodge CM here - those don't apply to this technique (see ct-calculator.html for the
+    // full reasoning). The two-swap overhead (2.0s / 4 ticks) is included directly below.
+    const totalCostAllCasts = numCM * cmEnergyCost;
+    const tankBonusForBuildup = (2 * energyFromCM) + fm.energy + (n * energyFromBossFM);
+    const energyNeeded = Math.max(totalCostAllCasts - tankBonusForBuildup, 0);
+    const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad;
+
+    const is1TickFM = fm.ad === 1;
+    const is1BarCM = cmEnergyCost === 100;
+    let resolveNerfExtraCasts = 0;
+    if(params.resolveNerf && is1TickFM && numCM > 0){
+      resolveNerfExtraCasts = is1BarCM ? numCM : 1;
+    }
+    const mandatoryCovers = (totalCostAllCasts > 0 && tankBonusForBuildup >= totalCostAllCasts) ? 1 : 0;
+    const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
+
+    const floorTerm = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
+    const innerMax = Math.max(buildupTicks, floorTerm);
+    const mandatoryFMBonus = mandatoryCovers ? fm.ad : 0;
+    const swap1FMTicks = fm.ad;
+
+    let ticks = swap1FMTicks + innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+    const outerFloor = bossFMAD_ticks + 1;
+    ticks = Math.max(outerFloor, ticks);
+
+    const dodgeFMTicks = params.dodgeFM ? (n === 2 ? 4 : 2) : 0;
+    ticks += dodgeFMTicks;
+    ticks += netResolveNerfCasts;
+
+    const swapTimeTicks = 4; // 2 swaps x 1.0s (2 ticks) each
+    ticks += swapTimeTicks;
+
+    const cumulativeDamage = (2 * bossCMDamage) + n * bossFMDamage;
+    const fainted = cumulativeDamage >= impact.playerHp;
+
+    return { ticks, seconds: ticks / 2, fainted, energyFromCM };
+  }
+
+  // Dodging is a player action just like tapping a fast move - it resolves the charge button
+  // the normal way, so it fully cancels CM Buffer's "immediate, no-tap" premise for this rotation.
+  const effectiveBuffer = params.cmBuffer && !params.dodgeCM && !params.dodgeFM;
+
   const totalCostAllCasts = numCM * cmEnergyCost;
-  const energyNeeded = Math.max(totalCostAllCasts - tankBonus, 0);
+
+  // Casts chainable purely off the INITIAL CM burst (energyFromCM alone), with zero taps.
+  // Floor division: overshoot beyond one cast's cost carries into the next free cast, but
+  // leftover under a full cast's cost doesn't grant an extra one. Later boss-FM tank energy
+  // (the n multiplier) is deliberately excluded here - by the time those hits land, the player
+  // would already have had to start tapping fast moves for any cast the initial burst didn't
+  // cover, so it can only reduce buildup for the remaining casts below, never grant a fresh
+  // free cast of its own.
+  const freeCasts = effectiveBuffer ? Math.min(numCM, Math.floor(energyFromCM / cmEnergyCost)) : 0;
+  const consumedByFreeCasts = freeCasts * cmEnergyCost;
+  const leftoverBurstEnergy = energyFromCM - consumedByFreeCasts;
+  const remainingCasts = numCM - freeCasts;
+  const remainingCost = remainingCasts * cmEnergyCost;
+
+  // energy available toward the remaining (non-buffered) casts: leftover credit from the
+  // initial burst, plus energy from any boss fast moves tanked afterward.
+  const tankBonusForBuildup = leftoverBurstEnergy + n * energyFromBossFM;
+
+  const energyNeeded = Math.max(remainingCost - tankBonusForBuildup, 0);
   const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad;
 
+  // energy resolve nerf: only exists for 0.5s/1-tick fast moves - only applies to the remaining
+  // (non-buffered) casts, since free casts never involve a tap to resolve.
   const is1TickFM = fm.ad === 1;
   const is1BarCM = cmEnergyCost === 100;
   let resolveNerfExtraCasts = 0;
-  if(params.resolveNerf && !params.cmBuffer && is1TickFM && numCM > 0){
-    resolveNerfExtraCasts = is1BarCM ? numCM : 1;
+  if(params.resolveNerf && is1TickFM && remainingCasts > 0){
+    resolveNerfExtraCasts = is1BarCM ? remainingCasts : 1;
   }
-  const mandatoryCovers = (tankBonus >= totalCostAllCasts) ? 1 : 0;
+  // de-dupe against mandatoryFMBonus below: when tank damage alone covers the remaining energy
+  // cost, that's the same forced post-swap fast move resolve nerf would otherwise also charge
+  // for once - a single real event, not two, so don't double-charge it
+  const mandatoryCovers = (remainingCost > 0 && tankBonusForBuildup >= remainingCost) ? 1 : 0;
   const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
 
-  const floorTerm = params.n === 0 ? 0 : params.n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
+  const floorTerm = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
   const innerMax = Math.max(buildupTicks, floorTerm);
-  const mandatoryFMBonus = (tankBonus >= totalCostAllCasts) ? fm.ad : 0;
-  const bufferAddBack = params.cmBuffer ? 1 : 0;
 
-  let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus + bufferAddBack;
+  // one mandatory tap is still needed to resolve the button on the first non-buffered cast if
+  // tank energy alone (banked, no buildup) already covers its cost - even with no buffer, the
+  // button doesn't auto-appear without at least one tap. Free casts never need this either.
+  const mandatoryFMBonus = mandatoryCovers ? fm.ad : 0;
+
+  let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
   const outerFloor = bossFMAD_ticks + 1;
   ticks = Math.max(outerFloor, ticks);
 
-  const bufferSubtraction = (params.cmBuffer && cmEnergyCost <= energyFromCM) ? fm.ad : 0;
-  ticks -= bufferSubtraction;
-
   const dodgeCMTicks = params.dodgeCM ? 2 : 0;
-  const dodgeFMTicks = params.dodgeFM ? (params.n === 2 ? 4 : 2) : 0;
+  const dodgeFMTicks = params.dodgeFM ? (n === 2 ? 4 : 2) : 0;
   ticks += dodgeCMTicks + dodgeFMTicks;
   ticks += netResolveNerfCasts;
 
   const seconds = ticks / 2;
-  return { ticks, seconds, fainted: impact.fainted, energyFromCM };
+
+  // every entry in the CT Database is a Catch Tank role specifically (never Main/Trailing), so
+  // the 1.0s single-swap overhead is added directly into the displayed duration here - matching
+  // the same transparency principle applied to ct-calculator.html, where CT DPS's swap time is
+  // now shown directly rather than only folded into the DPS math.
+  return { ticks: ticks + 2, seconds: seconds + 1.0, fainted: impact.fainted, energyFromCM };
 }
 
 
@@ -1387,6 +1475,14 @@ function modifierTagsHtml(s){
   return tags.length ? tags.join("") : `<span class="sub-tag none">None</span>`;
 }
 
+function isDoubleCTSubmission(s){
+  return /N\/A/i.test(s.mainDPS) || /N\/A/i.test(s.trailingDPS);
+}
+function modeBadgeHtml(s){
+  const isDouble = isDoubleCTSubmission(s);
+  return `<span class="sub-mode-badge ${isDouble ? "double" : "single"}">${isDouble ? "Double CT" : "Single CT"}</span>`;
+}
+
 function parseSubmissionParams(s){
   const ivParts = s.ivs.split("/");
   const ivAtk = ivParts[0] === "x" ? 15 : parseFloat(ivParts[0]);
@@ -1399,6 +1495,11 @@ function parseSubmissionParams(s){
   const dodgeFM = s.dodges === "FM" || s.dodges === "Both";
   const cmBuffer = s.timingMods === "CM Buffer" || s.timingMods === "Both";
   const resolveNerf = s.timingMods === "Resolve Nerf" || s.timingMods === "Both";
+  // Double catch tank entries have no Main/Trailing DPS at all (that's not a hack - those
+  // roles genuinely don't apply to a double-swap technique), so the submission form carries
+  // "N/A (Double CT)" text in those two fields instead of a number. That's the signal used to
+  // tell single-CT and double-CT submissions apart, without needing a dedicated form field.
+  const doubleCT = /N\/A/i.test(s.mainDPS) || /N\/A/i.test(s.trailingDPS);
   return {
     pkmnName: s.pokemon, level: parseFloat(s.level), ivAtk, ivDef, ivDefKnown, ivHp,
     playerFM: pFast, playerCM: pCharge,
@@ -1406,6 +1507,7 @@ function parseSubmissionParams(s){
     shieldAE: s.shieldAE === "Yes",
     dodgeCM, dodgeFM, cmBuffer, resolveNerf,
     numCM: parseInt(s.chargeCasts) || 1, n: parseInt(s.fmsTanked) || 0,
+    doubleCT,
   };
 }
 
@@ -1416,6 +1518,8 @@ function subRowHtml(s, idx){
 
   const duration = computeDuration(params);
   const durationText = duration ? `${duration.seconds}s (${duration.ticks}t)` : `<span class="no-data">Can't compute</span>`;
+  const mainDPSCell = params.doubleCT ? `<span class="sub-dps-na">—</span>` : `<span class="sub-dps-val">${s.mainDPS}</span>`;
+  const trailingDPSCell = params.doubleCT ? `<span class="sub-dps-na">—</span>` : `<span class="sub-dps-val">${s.trailingDPS}</span>`;
 
   return `
   <tr class="sub-row">
@@ -1423,7 +1527,7 @@ function subRowHtml(s, idx){
       <div class="sub-mon">
         <div class="sub-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
         <div>
-          <div class="sub-mon-name">${s.pokemon}</div>
+          <div class="sub-mon-name">${s.pokemon} ${modeBadgeHtml(s)}</div>
           <div class="sub-moveset"><span class="fm">${pFast}</span><br>${pCharge}</div>
         </div>
       </div>
@@ -1436,8 +1540,8 @@ function subRowHtml(s, idx){
       <div class="sub-tags">${modifierTagsHtml(s)}</div>
     </td>
     <td><div class="sub-details" id="duration-${idx}">${durationText}</div></td>
-    <td class="sub-dps-cell" id="dpsmain-${idx}"><span class="sub-dps-val">${s.mainDPS}</span></td>
-    <td class="sub-dps-cell" id="dpstrail-${idx}"><span class="sub-dps-val">${s.trailingDPS}</span></td>
+    <td class="sub-dps-cell" id="dpsmain-${idx}">${mainDPSCell}</td>
+    <td class="sub-dps-cell" id="dpstrail-${idx}">${trailingDPSCell}</td>
     <td class="sub-dps-cell highlight" id="dpsct-${idx}"><span class="sub-dps-val">${s.ctDPS}</span></td>
     <td>
       <div class="sub-mon col-boss">
@@ -1457,6 +1561,7 @@ const cardGridMobile = document.getElementById("cardGridMobile");
 const countEl = document.getElementById("count");
 const searchInput = document.getElementById("searchInput");
 const sortSelect = document.getElementById("sortSelect");
+const modeFilter = document.getElementById("modeFilter");
 
 const TYPE_COLORS = {
   normal:"#A8A77A", fire:"#EE8130", water:"#6390F0", electric:"#F7D02C", grass:"#7AC74C",
@@ -1486,6 +1591,7 @@ function subCardHtmlMobile(s, idx){
   const aeText = aeIcons.length ? aeIcons.join("") : null;
 
   const optionalBadges = [];
+  optionalBadges.push(modeBadgeHtml(s));
   optionalBadges.push(`<span class="sub-card-badge">${s.ivs}</span>`);
   if(s.dodges && s.dodges !== "None") optionalBadges.push(`<span class="sub-card-badge">Dodge: ${s.dodges}</span>`);
   if(s.timingMods && s.timingMods !== "None") optionalBadges.push(`<span class="sub-card-badge">${s.timingMods}</span>`);
@@ -1522,8 +1628,8 @@ function subCardHtmlMobile(s, idx){
     </div>
     <div class="sub-card-details">
       <div class="sub-card-dps-stack">
-        <div>Main <span>${s.mainDPS}</span></div>
-        <div>Trailing <span>${s.trailingDPS}</span></div>
+        <div>Main <span>${params.doubleCT ? "—" : s.mainDPS}</span></div>
+        <div>Trailing <span>${params.doubleCT ? "—" : s.trailingDPS}</span></div>
       </div>
       <div class="sub-card-divider"></div>
       <div class="sub-card-badges">${optionalBadges.join("")}</div>
@@ -1553,6 +1659,7 @@ function subCardHtml(s, idx){
   const aeText = aeIcons.length ? aeIcons.join("") : null;
 
   const optionalBadges = [];
+  optionalBadges.push(modeBadgeHtml(s));
   optionalBadges.push(`<span class="sub-card-badge">${s.ivs}</span>`);
   if(s.dodges && s.dodges !== "None") optionalBadges.push(`<span class="sub-card-badge">Dodge: ${s.dodges}</span>`);
   if(s.timingMods && s.timingMods !== "None") optionalBadges.push(`<span class="sub-card-badge">${s.timingMods}</span>`);
@@ -1604,8 +1711,8 @@ function subCardHtml(s, idx){
       </div>
       ${energyAbsorbed !== null ? `<div class="sub-card-energy-absorbed">+${energyAbsorbed} energy from ${bCharge}</div>` : ""}
       <div class="sub-card-dps-stack">
-        <div>Main <span>${s.mainDPS}</span></div>
-        <div>Trailing <span>${s.trailingDPS}</span></div>
+        <div>Main <span>${params.doubleCT ? "—" : s.mainDPS}</span></div>
+        <div>Trailing <span>${params.doubleCT ? "—" : s.trailingDPS}</span></div>
       </div>
       <div class="sub-card-divider"></div>
       <div class="sub-card-badges">${optionalBadges.join("")}</div>
@@ -1619,6 +1726,14 @@ function toggleSubCard(id){
 function render(){
   const q = searchInput.value.trim().toLowerCase();
   let list = SUBMISSIONS.filter(s => !q || s.pokemon.toLowerCase().includes(q) || s.boss.toLowerCase().includes(q));
+
+  const mode = modeFilter.value;
+  if(mode !== "all"){
+    list = list.filter(s => {
+      const isDouble = /N\/A/i.test(s.mainDPS) || /N\/A/i.test(s.trailingDPS);
+      return mode === "double" ? isDouble : !isDouble;
+    });
+  }
 
   const sort = sortSelect.value;
   if(sort === "ctdps") list.sort((a,b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS));
@@ -1640,6 +1755,7 @@ function render(){
 
 searchInput.addEventListener("input", render);
 sortSelect.addEventListener("change", render);
+modeFilter.addEventListener("change", render);
 loadSubmissionsFromCSV();
 
 const themeToggle = document.getElementById("themeToggle");
