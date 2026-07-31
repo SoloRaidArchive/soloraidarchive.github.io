@@ -263,9 +263,9 @@
   .bd-move-tag{ font-size:8px; opacity:0.85; }
   .bd-ae-icon{
     display:inline-flex; align-items:center; justify-content:center;
-    width:20px; height:20px; border-radius:5px; background:#eef4fb; position:relative; cursor:help;
+    position:relative; cursor:help;
   }
-  .bd-ae-icon img{ width:14px; height:14px; object-fit:contain; }
+  .bd-ae-icon img{ width:20px; height:20px; object-fit:contain; }
   .bd-ae-icon[data-tooltip]::after{
     content: attr(data-tooltip);
     position:absolute; bottom: calc(100% + 8px); left:50%; transform:translateX(-50%);
@@ -295,10 +295,9 @@
     padding:10px 8px 2px; font-style:italic;
   }
   .bd-wicon-wrap{
-    display:inline-flex; align-items:center; justify-content:center;
-    background:#eef4fb; border-radius:5px; width:16px; height:16px; flex-shrink:0;
+    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
   }
-  .bd-wicon{ width:16px; height:16px; object-fit:contain; mix-blend-mode:multiply; }
+  .bd-wicon{ width:22px; height:22px; object-fit:contain; }
   .bd-wicon-wrap.extreme{ background:none; }
   .bd-wicon-wrap.extreme .bd-wicon{ filter: invert(1) grayscale(1) brightness(0.3); mix-blend-mode:normal; }
   [data-theme="dark"] .bd-wicon-wrap.extreme .bd-wicon{ filter:none; }

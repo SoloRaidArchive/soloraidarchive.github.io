@@ -271,13 +271,12 @@
   .new-entry-date{ font-size:9.5px; font-weight:700; color: var(--text-dim); white-space:nowrap; flex-shrink:0; }
   .new-entry-boss{ display:block; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .new-entry-meta{ display:flex; align-items:center; gap:4px; font-size:11px; color: var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .new-entry-ae-icon{ width:13px; height:13px; object-fit:contain; flex-shrink:0; }
+  .new-entry-ae-icon{ width:17px; height:17px; object-fit:contain; flex-shrink:0; }
   .weather-icon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
-    background:#ffffff; border:1px solid rgba(0,0,0,0.12); border-radius:5px; padding:1px; width:16px; height:16px;
   }
   .weather-icon-wrap.extreme{ background:none; padding:0; }
-  .weather-icon-img{ width:13px; height:13px; object-fit:contain; }
+  .weather-icon-img{ width:20px; height:20px; object-fit:contain; }
   .weather-icon-wrap.extreme .weather-icon-img{ mix-blend-mode:normal; filter: invert(1) grayscale(1) brightness(0.3); }
   [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
   .live-boss-date{ font-size:10px; font-weight:700; color: var(--text-muted); }
@@ -852,6 +851,7 @@ async function loadNewEntries(){
       const tierMatch = (entry.star || "").match(/[\d.]+/);
       const params = new URLSearchParams();
       if(tierMatch) params.set("tier", tierMatch[0]);
+      if(entry.weather) params.set("weather", entry.weather);
       const query = params.toString();
       const slug = entry.boss.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       return `${entry.archivePage}${query ? "?" + query : ""}#boss-${slug}`;
