@@ -40,7 +40,7 @@
 
   
   header{ padding: 12px 24px 10px; text-align:center; }
-  h1{ font-family:'Manrope', sans-serif; font-weight:700; font-size:16px; margin:70px 0 4px; color: var(--ink); text-align:center; }
+  h1{ font-family:'Manrope', sans-serif; font-weight:700; font-size:18px; margin:70px 0 4px; color: var(--ink); text-align:center; }
 .container{ max-width: 800px; margin: 0 auto; padding: 70px 24px 45px; }
 
   .section-block{ margin-bottom: 40px; }
@@ -93,6 +93,19 @@
   }
   .clip-player.open{ display:block; }
   .clip-player iframe{ width:100%; height:100%; border:none; }
+
+  .clip-gif-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:10.5px; color: var(--ink-dim);
+    text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .clip-video{
+    display:block; margin-top:8px; width:100%; max-width:220px;
+    border-radius:12px; background:#000; border:2px solid var(--border);
+  }
+  .clip-attribution{
+    font-family:'Inter', sans-serif; font-size:10.5px; font-style:italic; color: var(--ink-dim);
+    margin-top:5px; max-width:220px;
+  }
 
   .clip-external{
     display:inline-flex; align-items:center; gap:6px; margin-top:12px;
@@ -214,7 +227,7 @@ const SECTIONS = [
     sub: "The core techniques nearly every solo relies on",
     entries: [
       {name:"Catch Tank", abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move. The energy absorbed is used to return their own quick, high-damage charge move.", clip:"https://www.youtube.com/clip/Ugkxmpsr6bg1lxK1BQNV_zRULXLE2k7yOYvn"},
-      {name:"Tick Perfect Cast", abbr:"TPC", desc:"Precisely timing the final tap — not spamming — just before a charge move cast. Successful TPC avoids the energy resolve DPS nerf; very hard to execute consistently.", clip:"https://www.youtube.com/shorts/Bh2j0pw8pN4"},
+      {name:"Tick Perfect Cast", abbr:"TPC", desc:"Precisely timing the final tap — not spamming — just before a charge move cast. Successful TPC avoids the energy resolve DPS nerf; very hard to execute consistently.", clip:"assets/clips/tpc-vs-energy-resolve.mp4", attribution:"DarKnight"},
       {name:"Clean Exit", abbr:"Exit", desc:"Relobbying during a charge move's animation for maximum energy efficiency and time savings.", clip:"https://youtube.com/clip/Ugkx_Hj2O0JdNjlvtFKrjWbl5evIR5_XWmdR?si=EX33knctv_Iv0Gf-"},
       {name:"Rejoin", abbr:"Rejoin", desc:"A rejoin lasting 6.5–7 seconds, only utilizing potions to quickly re-enter the fight.", clip:"https://youtu.be/B6wbCjdpUL8?t=144"},
       {name:"Execute", abbr:"Execute", desc:"Executing a boss with a low animation-duration or low-cost charge move.", clip:"https://youtube.com/clip/UgkxE8y4C0-2XWwhoEJQyuRYVCJtszv0vnzn?si=sCK7P6n3dwRwe-wj"},
@@ -228,7 +241,7 @@ const SECTIONS = [
     entries: [
       {name:"Hotswap Chain", abbr:"HS Chain", desc:"When a boss casts charge moves in rapid succession, forcing the user to Catch Tank from one attacker straight into the next in rapid succession. Heavily RNG-based, but the highest DPS cycle achievable in a raid.", clip:"https://youtube.com/clip/UgkxNtkPTLxVA3zbMC0LHi_8hTwoLDzF2Y2b?si=gVYu8c3y0sAPKTEQ"},
       {name:"Combo Charge Move", abbr:"CCM", desc:"Using a small charge move when the enemy charge move would otherwise overflow in energy. e.g. Necrozma Dusk Mane lowering energy with an Iron Head before tanking a full Earthquake if Sunsteel Strike can't be cast in time.", clip:"https://youtube.com/clip/UgkxUIYnvNy-A1hU9_Jtfv3dBgWoVvZAdsVC?si=Ke8zYd1QTb1sKgkb"},
-      {name:"Charge Move Buffer", abbr:"Buffer", desc:"When swapping — mainly to perform a Catch Tank — you can immediately cast a charge move (if you have the energy for it) without a fast move first, by buffering a charged move from your active Pokémon.", clip:"https://www.youtube.com/shorts/BGvH4QG5APs"},
+      {name:"Charge Move Buffer", abbr:"Buffer", desc:"When swapping — mainly to perform a Catch Tank — you can immediately cast a charge move (if you have the energy for it) without a fast move first, by buffering a charged move from your active Pokémon.", clip:"assets/clips/move-buffer.mp4", attribution:"DarKnight"},
       {name:"Trailing Catch Tank", abbr:"Trailing CT", desc:"A 6th Pokémon used to catch trailing charge moves when nearing a rejoin. This trailing Pokémon typically uses low energy-cost moves (Breaking Swipe, Aura Sphere, etc.) to increase consistency.", clip:"https://youtu.be/oxeW2WnuRlQ?t=186"},
       {name:"Advanced Rejoin", abbr:"Fast Rejoin", desc:"A rejoin lasting 5.5 seconds. Upon exiting the raid, the user first swipes to their party and buffers the animation by tapping the heal bag. This interaction saves roughly 1.0 second on average.", clip:""},
       {name:"Charge Move Delay", abbr:"CM Delay", desc:"Used against bosses with 1-bar charge moves. Intentionally delaying 2-bar or 3-bar charge move casts to force out fast moves instead — usually giving the player 2 free fast moves.", clip:""},
@@ -246,6 +259,7 @@ const SECTIONS = [
 
 function parseEmbed(url){
   if(!url) return null;
+  if(/\.mp4($|\?)/i.test(url)) return {type:"video", srcMp4:url, srcWebm:url.replace(/\.mp4($|\?)/i, ".webm$1")};
   if(url.includes("/clip/")) return {type:"external", url};
   const idMatch = url.match(/(?:youtu\.be\/|shorts\/|watch\?v=)([a-zA-Z0-9_-]{6,})/);
   if(!idMatch) return {type:"external", url};
@@ -254,9 +268,20 @@ function parseEmbed(url){
   return {type:"iframe", src:`https://www.youtube.com/embed/${idMatch[1]}${start}`};
 }
 
-function clipHtml(clipUrl, uid){
+function clipHtml(clipUrl, uid, attribution){
   if(!clipUrl) return "";
   const embed = parseEmbed(clipUrl);
+  if(embed.type === "video"){
+    return `
+    <div class="clip-row">
+      <span class="clip-gif-label">Clip</span>
+    </div>
+    <video class="clip-video" autoplay loop muted playsinline preload="metadata">
+      <source src="${embed.srcMp4}" type="video/mp4">
+      <source src="${embed.srcWebm}" type="video/webm">
+    </video>
+    ${attribution ? `<div class="clip-attribution">Clip courtesy of ${attribution}</div>` : ""}`;
+  }
   if(embed.type === "iframe"){
     return `
     <div class="clip-row">
@@ -288,7 +313,7 @@ function entryHtml(e, sectionIdx, entryIdx){
       <span class="entry-abbrev">${e.abbr}</span>
     </div>
     <div class="entry-desc">${e.desc}</div>
-    ${clipHtml(e.clip, uid)}
+    ${clipHtml(e.clip, uid, e.attribution)}
   </div>`;
 }
 
