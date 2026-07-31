@@ -129,9 +129,13 @@ header{ padding: 12px 24px 10px; text-align:center; }
     line-height:1.4;
   }
   .sub-card-foot{
-    display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+    display:flex; flex-direction:column; gap:6px;
     margin-top:10px; padding-top:9px; border-top:1px solid var(--border);
   }
+  .sub-card-foot-row{
+    display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+  }
+  .sub-card-mode-row{ display:flex; justify-content:flex-start; }
   .sub-card-foot-stat.right{ text-align:right; }
   .sub-card-foot-label{ font-size:10.5px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.02em; display:inline-flex; align-items:center; gap:3px; }
   .sub-card-dps-val{ font-size:19px; font-weight:800; color: var(--accent-dark); font-family:'Manrope', sans-serif; line-height:1.1; }
@@ -1479,8 +1483,8 @@ function isDoubleCTSubmission(s){
   return /N\/A/i.test(s.mainDPS) || /N\/A/i.test(s.trailingDPS);
 }
 function modeBadgeHtml(s){
-  const isDouble = isDoubleCTSubmission(s);
-  return `<span class="sub-mode-badge ${isDouble ? "double" : "single"}">${isDouble ? "Double CT" : "Single CT"}</span>`;
+  if(!isDoubleCTSubmission(s)) return "";
+  return `<span class="sub-mode-badge double">Double CT</span>`;
 }
 
 function parseSubmissionParams(s){
@@ -1671,7 +1675,6 @@ function subCardHtml(s, idx){
         <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
         <div class="sub-card-name-block">
           <span class="sub-card-name">${s.pokemon}</span>
-          ${modeBadgeHtml(s)}
         </div>
         <div class="sub-card-moveset">
           <div class="sub-card-move-row">${moveLine(pFastMove, pFast)}</div>
@@ -1690,19 +1693,22 @@ function subCardHtml(s, idx){
       </div>
     </div>
     <div class="sub-card-foot">
-      <div class="sub-card-foot-stat">
-        <span class="sub-card-foot-label">CT DPS</span>
-        <div class="sub-card-dps-val">${s.ctDPS}</div>
+      ${modeBadgeHtml(s) ? `<div class="sub-card-mode-row">${modeBadgeHtml(s)}</div>` : ""}
+      <div class="sub-card-foot-row">
+        <div class="sub-card-foot-stat">
+          <span class="sub-card-foot-label">CT DPS</span>
+          <div class="sub-card-dps-val">${s.ctDPS}</div>
+        </div>
+        <div class="sub-card-foot-stat">
+          <span class="sub-card-foot-label">Time</span>
+          <div class="sub-card-time-val">${durationText}</div>
+        </div>
+        <div class="sub-card-foot-stat sub-card-foot-stat-weather">
+          <span class="sub-card-foot-label">Weather</span>
+          <div class="sub-card-weather-val">${weatherIcon(s.weather)}</div>
+        </div>
+        <button type="button" class="sub-card-toggle" onclick="toggleSubCard(${idx})" aria-label="Show more details">&#9662;</button>
       </div>
-      <div class="sub-card-foot-stat">
-        <span class="sub-card-foot-label">Time</span>
-        <div class="sub-card-time-val">${durationText}</div>
-      </div>
-      <div class="sub-card-foot-stat sub-card-foot-stat-weather">
-        <span class="sub-card-foot-label">Weather</span>
-        <div class="sub-card-weather-val">${weatherIcon(s.weather)}</div>
-      </div>
-      <button type="button" class="sub-card-toggle" onclick="toggleSubCard(${idx})" aria-label="Show more details">&#9662;</button>
     </div>
     <div class="sub-card-details">
       <div class="sub-card-details-top">
