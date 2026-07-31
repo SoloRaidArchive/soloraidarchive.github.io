@@ -71,6 +71,20 @@
   .single-ct-only{ }
   body.ct-mode-double .single-ct-only{ display:none; }
 
+  .duration-unit-toggle{
+    display:flex; align-items:center; gap:8px; margin:10px 0 4px;
+  }
+  .duration-unit-label{ font-size:11.5px; font-weight:700; color: var(--text-dim); }
+  .duration-unit-toggle input{ display:none; }
+  .duration-unit-toggle label{
+    padding:6px 12px; border-radius:8px; cursor:pointer; border:2px solid var(--border);
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--text-dim);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .duration-unit-toggle input:checked + label{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .cell-duration{ display:block; font-size:9.5px; font-weight:700; color: var(--text-dim); margin-top:1px; }
+  .results-card-row-time-inline{ display:block; font-size:9.5px; font-weight:700; color: var(--text-dim); }
+
   .step-card{
     background: var(--card); border:2px solid var(--border); border-radius:20px;
     padding: 16px 20px; margin-bottom: 16px;
@@ -730,6 +744,14 @@
   </div>
 
   <button class="calc-btn" id="calcBtn">Calculate</button>
+
+  <div class="duration-unit-toggle" id="durationUnitToggle">
+    <span class="duration-unit-label">Show time as</span>
+    <input type="radio" name="durationUnit" id="durationUnitSeconds" value="seconds" checked>
+    <label for="durationUnitSeconds">Seconds</label>
+    <input type="radio" name="durationUnit" id="durationUnitTicks" value="ticks">
+    <label for="durationUnitTicks">Ticks</label>
+  </div>
 
   <div class="results-wrap" id="resultsWrap"></div>
 
@@ -2319,6 +2341,18 @@ function runCalculation(){
     ticks += dodgeFMTicks;
     ticks += netResolveNerfCasts;
 
+    // the risky timing check below is about the boss's actual in-battle attack cadence, so it
+    // needs the ticks value BEFORE swap time is added - swap time is real-world menu time, not
+    // battle time, and shouldn't give the boss's fast moves false extra room to land within.
+    const battleTicks = ticks;
+
+    // swap time: 1.0s (2 ticks) per swap, and this technique requires two separate swaps
+    // (in to tank CM #1, out, back in to tank CM #2) - added directly into the displayed
+    // duration itself, not just folded into the DPS denominator, so Seconds/Ticks reflect
+    // the real total time this technique takes end to end.
+    const swapTimeTicks = 4; // 2 swaps x 1.0s (2 ticks) each
+    ticks += swapTimeTicks;
+
     const seconds = ticks / 2;
     const fastPhaseTicks = Math.max(0, innerMax + mandatoryFMBonus);
     const fastMoveCountForDPS = (fastPhaseTicks / fm.ad) + 1; // +1 for swap 1's own fast move
@@ -2329,18 +2363,18 @@ function runCalculation(){
     const cumulativeDamage = (2 * bossCMDamage) + n * bossFMDamage;
     const fainted = cumulativeDamage >= playerHp;
 
-    // double catch tank only ever reports Catch Tank DPS - a 2.0s two-swap overhead applies
-    // instead of the regular 1.0s single-swap overhead
-    const ctDPS = fainted ? 0 : numerator / Math.max(seconds + 2.0, 0.1);
+    // double catch tank only ever reports Catch Tank DPS - the two-swap overhead is already
+    // included in seconds above, so no additional time gets added here
+    const ctDPS = fainted ? 0 : numerator / Math.max(seconds, 0.1);
 
     let risky = false;
     let riskyNote = "";
     if(!fainted && n > 0){
       const landings = bossFMLandingTicks(bossFMAD_ticks, n);
       const nthLandingTick = landings[n - 1];
-      if(nthLandingTick > ticks){
+      if(nthLandingTick > battleTicks){
         risky = true;
-        riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+        riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${battleTicks.toFixed(1)}t of battle time) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
       }
     }
 
@@ -2448,6 +2482,9 @@ function runCalculation(){
     return {
       n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
       mainDPS, trailingDPS, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
+      mainSeconds: Math.max(seconds,0), mainTicks: Math.max(ticks,0),
+      trailingSeconds: Math.max(seconds+0.5,0), trailingTicks: Math.max(ticks+1,0),
+      ctSeconds: Math.max(seconds+1.0,0), ctTicks: Math.max(ticks+2,0),
     };
   });
 
@@ -2517,11 +2554,11 @@ function runCalculation(){
         <tr>
           ${anyQualifies ? `<th class="submit-col"></th>` : ""}
           <th>Boss FMs Tanked</th>
-          <th>Seconds</th>
-          <th>Ticks</th>
-          ${doubleCT ? `<th>Catch Tank DPS</th>` : `
+          ${doubleCT ? `
+          <th>Duration</th>
+          <th>Catch Tank DPS</th>` : `
           <th>Main DPS</th>
-          <th>Trailing CT DPS</th>
+          <th>Trailing DPS</th>
           <th>Catch Tank DPS</th>`}
         </tr>
       </thead>
@@ -2532,16 +2569,16 @@ function runCalculation(){
           <tr class="${r.fainted ? "fainted-row" : ""}">
             ${anyQualifies ? `<td class="submit-col">${qualifies ? `<input type="radio" name="submitRow" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</td>` : ""}
             <td class="row-label">${r.n}</td>
-            <td>${r.seconds.toFixed(2)}s</td>
-            <td>${r.ticks.toFixed(1)}t</td>
             ${r.fainted
-              ? `<td colspan="${doubleCT ? 1 : 3}" class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
+              ? `<td colspan="${doubleCT ? 2 : 3}" class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
               : doubleCT
-              ? `<td class="dps-val">${r.ctDPS.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}</td>`
+              ? `
+            <td>${formatTime(r.seconds, r.ticks)}</td>
+            <td class="dps-val">${r.ctDPS.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}</td>`
               : `
-            <td class="dps-val">${r.mainDPS.toFixed(1)} dps</td>
-            <td class="dps-val">${r.trailingDPS.toFixed(1)} dps</td>
-            <td class="dps-val">${r.ctDPS.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}</td>`}
+            <td class="dps-val">${r.mainDPS.toFixed(1)} dps<span class="cell-duration">${formatTime(r.mainSeconds, r.mainTicks)}</span></td>
+            <td class="dps-val">${r.trailingDPS.toFixed(1)} dps<span class="cell-duration">${formatTime(r.trailingSeconds, r.trailingTicks)}</span></td>
+            <td class="dps-val">${r.ctDPS.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}<span class="cell-duration">${formatTime(r.ctSeconds, r.ctTicks)}</span></td>`}
           </tr>
         `;
         }).join("")}
@@ -2580,11 +2617,16 @@ function runCalculation(){
             <span class="results-card-row-label">${r.n} FM${r.n === 1 ? "" : "s"} tanked</span>
             ${r.fainted
               ? `<span class="results-card-row-fainted">💀 Fainted — ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</span>`
-              : `
-            <span class="results-card-row-time">${r.seconds.toFixed(2)}s (${r.ticks.toFixed(1)}t)</span>
+              : doubleCT
+              ? `
+            <span class="results-card-row-time">${formatTime(r.seconds, r.ticks)}</span>
             <div class="results-card-row-dps">
               <div>CT DPS: <b class="results-card-ct">${r.ctDPS.toFixed(1)}</b>${r.risky ? ` <span class="results-card-risky" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️</span>` : ""}</div>
-              ${doubleCT ? "" : `<div class="results-card-row-sub">Main ${r.mainDPS.toFixed(1)} &middot; Trailing ${r.trailingDPS.toFixed(1)}</div>`}
+            </div>`
+              : `
+            <div class="results-card-row-dps">
+              <div>CT DPS: <b class="results-card-ct">${r.ctDPS.toFixed(1)}</b>${r.risky ? ` <span class="results-card-risky" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️</span>` : ""}<span class="results-card-row-time-inline">${formatTime(r.ctSeconds, r.ctTicks)}</span></div>
+              <div class="results-card-row-sub">Main ${r.mainDPS.toFixed(1)} (${formatTime(r.mainSeconds, r.mainTicks)}) &middot; Trailing ${r.trailingDPS.toFixed(1)} (${formatTime(r.trailingSeconds, r.trailingTicks)})</div>
             </div>`}
           </div>`;
           }).join("")}
@@ -3174,6 +3216,15 @@ function updateCTMode(){
 }
 document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
 document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);
+
+function getDurationUnit(){
+  return document.getElementById("durationUnitTicks").checked ? "ticks" : "seconds";
+}
+function formatTime(seconds, ticks){
+  return getDurationUnit() === "ticks" ? `${ticks.toFixed(1)}t` : `${seconds.toFixed(2)}s`;
+}
+document.getElementById("durationUnitSeconds").addEventListener("change", runCalculation);
+document.getElementById("durationUnitTicks").addEventListener("change", runCalculation);
 
 // theme toggle
 const themeToggle = document.getElementById("themeToggle");
