@@ -1591,7 +1591,6 @@ function subCardHtmlMobile(s, idx){
   const aeText = aeIcons.length ? aeIcons.join("") : null;
 
   const optionalBadges = [];
-  optionalBadges.push(modeBadgeHtml(s));
   optionalBadges.push(`<span class="sub-card-badge">${s.ivs}</span>`);
   if(s.dodges && s.dodges !== "None") optionalBadges.push(`<span class="sub-card-badge">Dodge: ${s.dodges}</span>`);
   if(s.timingMods && s.timingMods !== "None") optionalBadges.push(`<span class="sub-card-badge">${s.timingMods}</span>`);
@@ -1604,6 +1603,7 @@ function subCardHtmlMobile(s, idx){
         <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
         <div style="min-width:0;">
           <div class="sub-card-name">${s.pokemon}</div>
+          <div style="margin:2px 0 4px;">${modeBadgeHtml(s)}</div>
           <div class="sub-card-moves">${pFast}<br>${pCharge}</div>
         </div>
       </div>
@@ -1659,7 +1659,6 @@ function subCardHtml(s, idx){
   const aeText = aeIcons.length ? aeIcons.join("") : null;
 
   const optionalBadges = [];
-  optionalBadges.push(modeBadgeHtml(s));
   optionalBadges.push(`<span class="sub-card-badge">${s.ivs}</span>`);
   if(s.dodges && s.dodges !== "None") optionalBadges.push(`<span class="sub-card-badge">Dodge: ${s.dodges}</span>`);
   if(s.timingMods && s.timingMods !== "None") optionalBadges.push(`<span class="sub-card-badge">${s.timingMods}</span>`);
@@ -1672,6 +1671,7 @@ function subCardHtml(s, idx){
         <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
         <div class="sub-card-name-block">
           <span class="sub-card-name">${s.pokemon}</span>
+          ${modeBadgeHtml(s)}
         </div>
         <div class="sub-card-moveset">
           <div class="sub-card-move-row">${moveLine(pFastMove, pFast)}</div>
