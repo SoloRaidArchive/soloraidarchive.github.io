@@ -181,8 +181,19 @@
   .lb-row-wrap[open] .lb-chevron{ transform: rotate(90deg); }
   .lb-rank{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; color: var(--text-dim);
-    width:26px; flex-shrink:0; text-align:center;
+    width:44px; flex-shrink:0;
+    display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:2px;
   }
+  .lb-rank-change-slot{
+    width:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  }
+  .lb-rank-number{ width:20px; flex-shrink:0; text-align:center; }
+  .lb-rank-change{
+    font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:10.5px;
+    display:flex; align-items:center; gap:1px; line-height:1;
+  }
+  .lb-rank-change.up{ color:#1f9d55; }
+  .lb-rank-change.down{ color:#e0483f; }
   .lb-rank.top1{ color:#ffb300; font-size:18px; }
   .lb-rank.top2{ color:#9aa3b2; font-size:16px; }
   .lb-rank.top3{ color:#c97b3d; font-size:16px; }
@@ -254,8 +265,9 @@
     font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; color: var(--blue-dark);
     background: rgba(90,169,255,0.12); border-radius:999px; padding:2px 8px; flex-shrink:0;
   }
-  .bd-weather{ display:flex; align-items:center; gap:5px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
-  .bd-moves-row{ display:flex; align-items:center; gap:6px; margin-top:6px; padding-left:40px; flex-wrap:wrap; }
+  .bd-weather{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
+  .bd-weather-top{ display:flex; align-items:center; gap:5px; }
+  .bd-moves-row{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; margin-top:6px; padding-left:40px; }
   .bd-move-chip{
     display:flex; align-items:center; gap:5px; font-family:'Inter', sans-serif; font-weight:800;
     font-size:10.5px; padding:4px 9px; border-radius:999px; color:#fff;
@@ -305,7 +317,8 @@
   @media (max-width:600px){
     .lb-bosses{ display:none; }
     .bd-name{ font-size:12px; }
-    .bd-weather{ min-width:20px; gap:0; }
+    .bd-weather{ min-width:20px; gap:4px; }
+    .bd-weather-top{ gap:0; }
     .bd-weather-label{ display:none; }
   }
 </style>
@@ -1014,6 +1027,33 @@ function bossSlug(name){
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }
 
+// ============ RANK CHANGE TRACKING ============
+// Reads raider-rank-history.json, a snapshot of each Pokemon's Overall rank the last time
+// it was computed. This file doesn't exist yet - it needs a workflow to generate it (same
+// shape as new-raid-entries.json) before badges will actually appear. Until then this fetch
+// just fails silently and rankChangeBadge() always returns "", so the UI stays inert with
+// zero visual difference from before - safe to ship ahead of the backend piece.
+let RANK_HISTORY = {};
+async function loadRankHistory(){
+  try{
+    const res = await fetch("raider-rank-history.json");
+    if(!res.ok) return;
+    const data = await res.json();
+    if(data && typeof data === "object") RANK_HISTORY = data;
+    renderLeaderboard();
+  }catch(e){
+    // no snapshot yet - badges just won't show, nothing else is affected
+  }
+}
+function rankChangeBadge(bossName, currentRank){
+  const prevRank = RANK_HISTORY[bossName.toLowerCase()];
+  if(prevRank == null) return "";
+  const delta = prevRank - currentRank;
+  if(delta === 0) return "";
+  if(delta > 0) return `<div class="lb-rank-change up">&#9650;${delta}</div>`;
+  return `<div class="lb-rank-change down">&#9660;${Math.abs(delta)}</div>`;
+}
+
 function renderLeaderboard(){
   const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
   let filtered = ALL_RESULTS.filter(r => !query || r.name.toLowerCase().includes(query));
@@ -1053,7 +1093,7 @@ function renderLeaderboard(){
     return `
     <details class="lb-row-wrap">
       <summary class="lb-row">
-        <div class="lb-rank ${rankClass}">${i+1}</div>
+        <div class="lb-rank ${rankClass}"><div class="lb-rank-change-slot">${currentRole ? "" : rankChangeBadge(r.name, i+1)}</div><div class="lb-rank-number">${i+1}</div></div>
         <div class="lb-sprite"><img src="${spriteUrl(r.name)}" alt="${r.name}" loading="lazy" onerror="this.style.display='none'"></div>
         <div class="lb-main">
           <div class="lb-name">${displayName(r.name)}</div>
@@ -1078,14 +1118,16 @@ function renderLeaderboard(){
             <div class="bd-top-row">
               <div class="bd-boss-icon"><img src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="this.style.display='none'"></div>
               <div class="bd-name">${inst.boss}${count > 1 ? ` <span class="bd-dupe-badge" data-tooltip="Logged ${count} times with the same boss, weather, difficulty and moveset shown here — the battle parties used in each recorded attempt were different.">×${count}</span>` : ""}</div>
-              <div class="bd-weather">${smallWeatherIconHtml(inst.weather)}<span class="bd-weather-label">${inst.weather || "—"}</span></div>
+              <div class="bd-weather">
+                <div class="bd-weather-top">${smallWeatherIconHtml(inst.weather)}<span class="bd-weather-label">${inst.weather || "—"}</span></div>
+                ${inst.ae === "sword" ? `<span class="bd-ae-icon" data-tooltip="+10% damage dealt from your pokemon in raids"><img src="${AE_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
+                ${inst.ae === "shield" ? `<span class="bd-ae-icon" data-tooltip="+10% damage reduction for your pokemon in raids"><img src="${SHIELD_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
+              </div>
               <div class="bd-tier">${tierLabel(inst.tier)}</div>
             </div>
             <div class="bd-moves-row">
               ${bdMoveChipHtml("Fast", inst.fast)}
               ${bdMoveChipHtml("Charge", inst.charge)}
-              ${inst.ae === "sword" ? `<span class="bd-ae-icon" data-tooltip="+10% damage dealt from your pokemon in raids"><img src="${AE_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
-              ${inst.ae === "shield" ? `<span class="bd-ae-icon" data-tooltip="+10% damage reduction for your pokemon in raids"><img src="${SHIELD_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}
             </div>
           </a>
         `).join("")}
@@ -1120,6 +1162,7 @@ document.querySelectorAll("#roleFilterList .hamburger-item").forEach(btn => {
 });
 
 loadAllData();
+loadRankHistory();
 renderLeaderboard();
 
 const themeToggle = document.getElementById("themeToggle");
