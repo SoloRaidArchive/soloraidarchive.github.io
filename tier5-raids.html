@@ -671,16 +671,35 @@ function scrollToHashTarget(){
   setTimeout(() => {
     let el = document.querySelector(hash);
     if(!el) return;
-    // if arriving from a deep link with weather/tier params, a boss may now have multiple
-    // separate cards (one per strategy) - find the specific card that actually matches
+    // if arriving from a deep link, a boss may now have multiple separate cards (one per
+    // strategy) - find the specific card that actually matches
     const params = new URLSearchParams(window.location.search);
+    const wantVod = params.get("vod");
     const wantWeather = params.get("weather");
     const wantTier = params.get("tier");
     const wantParty = params.get("party");
     const wantPartySet = wantParty ? wantParty.split(",").filter(Boolean).sort().join(",") : null;
     const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-    if(wantWeather || wantTier || wantPartySet){
-      const bossName = el.getAttribute("data-boss");
+    const bossName = el.getAttribute("data-boss");
+    // VOD is the one field guaranteed unique per real strategy - weather/tier alone can't
+    // disambiguate two strategies for the same boss that only differ in the boss's own
+    // moveset (e.g. Darkrai/Shadow Ball vs Darkrai/Focus Blast, same weather and tier), so
+    // an exact VOD match takes priority over everything else whenever it's available.
+    let vodMatched = false;
+    if(wantVod){
+      const vodCandidates = document.querySelectorAll(`.card[data-boss="${CSS.escape(bossName)}"]`);
+      for(const c of vodCandidates){
+        const r = CARD_DATA[c.getAttribute("data-card-id")];
+        if(r && r.vod && r.vod.trim() === wantVod.trim()){
+          el = c;
+          vodMatched = true;
+          break;
+        }
+      }
+    }
+    const wantFm = params.get("fm");
+    const wantCm = params.get("cm");
+    if(!vodMatched && (wantWeather || wantTier || wantFm || wantCm || wantPartySet)){
       const candidates = document.querySelectorAll(`.card[data-boss="${CSS.escape(bossName)}"]`);
       let weatherTierMatch = null;
       let matched = false;
@@ -689,7 +708,12 @@ function scrollToHashTarget(){
         if(!r) continue;
         const weatherOk = !wantWeather || (r.weather || "").toLowerCase() === wantWeather.toLowerCase();
         const tierOk = !wantTier || r.tier === wantTier;
-        if(weatherOk && tierOk){
+        // the boss's own moveset - needed to tell apart two strategies for the same boss that
+        // only differ here (e.g. Darkrai/Shadow Ball vs Darkrai/Focus Blast), which weather+tier
+        // alone can't distinguish since both can otherwise be identical
+        const fmOk = !wantFm || (r.fast || "").toLowerCase() === wantFm.toLowerCase();
+        const cmOk = !wantCm || (r.charge || "").toLowerCase() === wantCm.toLowerCase();
+        if(weatherOk && tierOk && fmOk && cmOk){
           if(!weatherTierMatch) weatherTierMatch = c;
           // if a party fingerprint was given, only accept an exact composition match -
           // this is what correctly separates twin battle parties (same weather/tier/moveset,

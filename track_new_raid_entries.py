@@ -24,6 +24,7 @@ import csv
 import io
 import json
 import os
+import re
 import subprocess
 from pathlib import Path
 
@@ -80,14 +81,22 @@ def find_vod_url(row):
 
 
 def extract_entries(rows, cfg):
-    """Returns {key: {boss, star, strategy, weather, ae}} for every row that looks like a
-    real data row (has a non-empty boss name and a star-rating cell).
+    """Returns {key: {boss, star, strategy, weather, ae, fast, charge, vod}} for every row
+    that looks like a real data row (has a non-empty boss name and a star-rating cell).
 
-    The identity key includes the VOD link alongside (boss, strategy): the strategy label
-    alone is just a category (Catch Tank, Hot Swap, Recycle, etc.), not a unique name - the
-    same boss can have several genuinely different real submissions that all happen to share
-    the same strategy label. The VOD link is the one field that's actually guaranteed unique
-    per real submission, so it's what actually distinguishes them."""
+    The identity key is built from fields that are always present on every row - boss,
+    strategy, weather, star/tier, and the boss's own fast/charge move - rather than the VOD
+    link. VOD is the most reliable single field when it exists (a real video is inherently
+    unique), but not every real publication has one yet, so it can't be the only thing this
+    relies on. The strategy label alone isn't enough either - it's just a category (Catch
+    Tank, Hot Swap, Recycle, etc.), not a unique name, so two genuinely different real
+    submissions for the same boss can share it - that's what the rest of the row's core
+    columns disambiguate. VOD is still stored on each entry and used as a bonus exact-match
+    signal for deep-linking when it's available, just not required for detection.
+
+    This does mean an edit that changes weather or moveset on an existing row could register
+    as "new" (its key changes), rather than only pure additions - an acceptable tradeoff to
+    get reliable detection for entries that don't have a VOD at all yet."""
     entries = {}
     for row in rows:
         if len(row) <= max(cfg["boss_col"], cfg["star_col"], cfg["strat_col"]):
@@ -99,13 +108,17 @@ def extract_entries(rows, cfg):
             continue
         weather = row[cfg["weather_col"]].strip() if cfg["weather_col"] is not None and len(row) > cfg["weather_col"] else ""
         ae_cell = row[cfg["ae_col"]].strip() if cfg["ae_col"] is not None and len(row) > cfg["ae_col"] else ""
+        # FM/CM sit immediately after the strategy column on every archive file
+        fast = row[cfg["strat_col"] + 1].strip() if len(row) > cfg["strat_col"] + 1 else ""
+        charge = row[cfg["strat_col"] + 2].strip() if len(row) > cfg["strat_col"] + 2 else ""
         vod = find_vod_url(row)
-        if not vod:
-            # matches the site's own existing convention (see research.html's usage-count
-            # logic): a strategy without a VOD link isn't a "real" documented entry yet
-            continue
-        key = (boss.lower(), strat.lower(), vod.lower())
-        entries[key] = {"boss": boss, "star": star, "strategy": strat, "weather": weather, "ae": classify_ae(ae_cell)}
+        tier_match = re.search(r"[\d.]+", star)
+        tier = tier_match.group(0) if tier_match else star
+        key = (boss.lower(), strat.lower(), weather.lower(), tier, fast.lower(), charge.lower())
+        entries[key] = {
+            "boss": boss, "star": star, "strategy": strat, "weather": weather,
+            "ae": classify_ae(ae_cell), "fast": fast, "charge": charge, "vod": vod,
+        }
     return entries
 
 
@@ -152,6 +165,9 @@ def main():
                     "strategy": data["strategy"],
                     "weather": data["weather"],
                     "ae": data["ae"],
+                    "fast": data["fast"],
+                    "charge": data["charge"],
+                    "vod": data["vod"],
                     "archivePage": cfg["page"],
                     "archiveLabel": cfg["label"],
                 })

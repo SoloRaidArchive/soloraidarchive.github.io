@@ -93,6 +93,9 @@ def main():
                         "strategy": data["strategy"],
                         "weather": data["weather"],
                         "ae": data["ae"],
+                        "fast": data["fast"],
+                        "charge": data["charge"],
+                        "vod": data["vod"],
                         "archivePage": cfg["page"],
                         "archiveLabel": cfg["label"],
                     })

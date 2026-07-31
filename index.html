@@ -852,6 +852,9 @@ async function loadNewEntries(){
       const params = new URLSearchParams();
       if(tierMatch) params.set("tier", tierMatch[0]);
       if(entry.weather) params.set("weather", entry.weather);
+      if(entry.vod) params.set("vod", entry.vod);
+      if(entry.fast) params.set("fm", entry.fast);
+      if(entry.charge) params.set("cm", entry.charge);
       const query = params.toString();
       const slug = entry.boss.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       return `${entry.archivePage}${query ? "?" + query : ""}#boss-${slug}`;
