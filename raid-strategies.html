@@ -68,6 +68,15 @@
   }
   .entry-desc{ font-size:14.5px; line-height:1.65; color: var(--ink-muted); }
 
+  .entry-body{ display:block; }
+  .entry-text-col{ min-width:0; }
+  .entry-clip-col{ min-width:0; }
+  @media (min-width:601px){
+    .entry-body{ display:flex; align-items:flex-start; gap:24px; }
+    .entry-clip-col{ order:-1; flex-shrink:0; width:240px; }
+    .entry-text-col{ flex:1; padding-top:2px; }
+  }
+
   .clip-row{ display:flex; align-items:center; gap:10px; margin-top:12px; flex-wrap:wrap; }
   .clip-toggle{
     display:inline-flex; align-items:center; gap:6px;
@@ -306,14 +315,19 @@ function entryHtml(e, sectionIdx, entryIdx){
   const uid = `${sectionIdx}-${entryIdx}`;
   const slug = e.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   if(e.clip) EMBEDS[uid] = parseEmbed(e.clip);
+  const hasClip = !!e.clip;
   return `
   <div class="entry" id="strategy-${slug}">
-    <div class="entry-head">
-      <span class="entry-name">${e.name}</span>
-      <span class="entry-abbrev">${e.abbr}</span>
+    <div class="entry-body">
+      <div class="entry-text-col">
+        <div class="entry-head">
+          <span class="entry-name">${e.name}</span>
+          <span class="entry-abbrev">${e.abbr}</span>
+        </div>
+        <div class="entry-desc">${e.desc}</div>
+      </div>
+      ${hasClip ? `<div class="entry-clip-col">${clipHtml(e.clip, uid, e.attribution)}</div>` : ""}
     </div>
-    <div class="entry-desc">${e.desc}</div>
-    ${clipHtml(e.clip, uid, e.attribution)}
   </div>`;
 }
 

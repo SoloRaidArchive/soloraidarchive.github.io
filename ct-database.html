@@ -1607,7 +1607,7 @@ function subCardHtmlMobile(s, idx){
         <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
         <div style="min-width:0;">
           <div class="sub-card-name">${s.pokemon}</div>
-          <div style="margin:2px 0 4px;">${modeBadgeHtml(s)}</div>
+          ${modeBadgeHtml(s) ? `<div style="margin:2px 0 4px;">${modeBadgeHtml(s)}</div>` : ""}
           <div class="sub-card-moves">${pFast}<br>${pCharge}</div>
         </div>
       </div>
