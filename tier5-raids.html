@@ -526,12 +526,12 @@ body{ background:#20263a; color: var(--text-muted); }
       <div class="hamburger-section-label">Research</div>
       <a href="research.html" class="hamburger-featured">Most Used Raiders</a>
       <a href="ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+    <a href="solo-raid-mechanics.html" class="hamburger-featured">Solo Raid Mechanics</a>
       <a href="meta-battle-parties.html">Meta Battle Parties</a>
       <a href="ct-calculator.html">Catch Tank Calculator</a>
       <a href="move-data.html">Move Data</a>
       <a href="pokemon-stats.html">Pokémon Stats</a>
-      <a href="raid-strategies.html">Raid Strategies</a>
-      <a href="reference.html">Difficulty &amp; Role Reference</a>
+        <a href="reference.html">Difficulty &amp; Role Reference</a>
     </div>
     <div class="hamburger-section">
       <div class="hamburger-section-label">Raid Archives</div>
@@ -1050,7 +1050,7 @@ const MOVE_DB = [
 {n:"Lunge",dmg:55.0,energy:-33.0,ad:6.0,type:"Charge",elem:"Bug"},{n:"Fell Stinger",dmg:45.0,energy:-33.0,ad:4.0,type:"Charge",elem:"Bug"},
 ];
 
-// Strategy abbreviations with hover definitions, pulled from raid-strategies.html
+// Strategy abbreviations with hover definitions, pulled from solo-raid-mechanics.html
 const STRATEGY_INFO = {
   "catch tank": {abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move, then return their own quick, high-damage charge move.", slug:"catch-tank"},
   "ct": {abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move, then return their own quick, high-damage charge move.", slug:"catch-tank"},
@@ -1075,7 +1075,7 @@ function strategyChipsHtml(strategyStr){
   return parts.map(p => {
     const info = STRATEGY_INFO[p.toLowerCase()];
     if(!info) return `<span class="strategy-chip">${p}</span>`;
-    const href = info.slug ? `raid-strategies.html#strategy-${info.slug}` : "raid-strategies.html";
+    const href = info.slug ? `solo-raid-mechanics.html#strategy-${info.slug}` : "solo-raid-mechanics.html";
     return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${p}</a>`;
   }).join(" / ");
 }
