@@ -54,13 +54,13 @@
 
   .ct-mode-toggle{
     display:flex; gap:0; background: var(--bg1); border:2px solid var(--border); border-radius:12px;
-    padding:4px; margin-bottom:16px; max-width:460px;
+    padding:4px; margin-bottom:16px; max-width:560px; flex-wrap:wrap;
   }
   [data-theme="dark"] .ct-mode-toggle{ background:#161a28; }
   .ct-mode-toggle input{ display:none; }
   .ct-mode-toggle label{
-    flex:1; text-align:center; padding:10px 12px; border-radius:9px; cursor:pointer;
-    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; color: var(--text-dim);
+    flex:1; min-width:110px; text-align:center; padding:10px 10px; border-radius:9px; cursor:pointer;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--text-dim);
     transition: background .15s ease, color .15s ease;
   }
   .ct-mode-toggle input:checked + label{ background: var(--blue); color:#fff; }
@@ -70,6 +70,9 @@
   }
   .single-ct-only{ }
   body.ct-mode-double .single-ct-only{ display:none; }
+  body.ct-mode-maindps .single-ct-only{ display:none; }
+  .catch-tank-only{ }
+  body.ct-mode-maindps .catch-tank-only{ display:none; }
 
   .duration-unit-toggle{
     display:flex; align-items:center; gap:8px; margin:10px 0 4px;
@@ -286,6 +289,32 @@
 
   .empty-result{ text-align:center; color: var(--text-dim); font-weight:700; padding: 30px; font-size:13px; }
 
+  .dps-result-card{
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    padding: 24px 22px; text-align:center;
+  }
+  .dps-result-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;
+  }
+  .dps-result-value{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:44px; color: var(--blue-dark);
+    line-height:1.1;
+  }
+  [data-theme="dark"] .dps-result-value{ color: var(--blue); }
+  .dps-result-breakdown{
+    display:flex; justify-content:center; gap:24px; flex-wrap:wrap;
+    margin-top:18px; padding-top:16px; border-top:1px solid var(--border);
+  }
+  .dps-result-stat{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .dps-result-stat-label{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:10.5px; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.03em;
+  }
+  .dps-result-stat-value{
+    font-family:'Inter', sans-serif; font-weight:700; font-size:13px; color: var(--text);
+  }
+
   .loadout-card{
     display:flex; align-items:center; justify-content:center; gap:20px;
     background: var(--card); border:2px solid var(--border); border-radius:18px;
@@ -492,6 +521,8 @@
 <div class="container">
 
   <div class="ct-mode-toggle">
+    <input type="radio" name="ctMode" id="ctModeMainDPS" value="maindps">
+    <label for="ctModeMainDPS">Main DPS</label>
     <input type="radio" name="ctMode" id="ctModeSingle" value="single" checked>
     <label for="ctModeSingle">Single Catch Tank</label>
     <input type="radio" name="ctMode" id="ctModeDouble" value="double">
@@ -616,7 +647,7 @@
             <input type="text" id="bossFM_custom" class="custom-move-select" list="bossFM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('bossFM')"><datalist id="bossFM_customList"></datalist>
             <input type="hidden" id="bossFM" value="">
           </div>
-          <div class="field">
+          <div class="field catch-tank-only">
             <label for="bossCM_select">Boss Charge Move</label>
             <select id="bossCM_select" onchange="onMoveSelectChange('bossCM')"></select>
             <input type="text" id="bossCM_custom" class="custom-move-select" list="bossCM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('bossCM')"><datalist id="bossCM_customList"></datalist>
@@ -629,7 +660,7 @@
           <summary class="mod-summary">Type matchup</summary>
           <div class="mod-details-body">
             <div class="mod-row narrow">
-              <div class="mod-cell">
+              <div class="mod-cell catch-tank-only">
                 <label for="effBossCM">Charge Move → You</label>
                 <select id="effBossCM">
                   <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
@@ -655,7 +686,7 @@
               </div>
             </div>
             <div class="check-grid" style="grid-template-columns:repeat(3,1fr);">
-              <label class="check-item"><input type="checkbox" id="bossStabCM">Stab CM</label>
+              <label class="check-item catch-tank-only"><input type="checkbox" id="bossStabCM">Stab CM</label>
               <label class="check-item"><input type="checkbox" id="bossStabFM">Stab FM</label>
               <label class="check-item"><input type="checkbox" id="shadowDebuff">Shadow Debuff</label>
             </div>
@@ -675,7 +706,7 @@
     </div>
 
     <div class="mod-consolidated-grid">
-      <div class="mod-cell">
+      <div class="mod-cell catch-tank-only">
         <label for="numCM"># of Charge Moves</label>
         <select id="numCM">
           <option value="1">1</option>
@@ -701,7 +732,7 @@
       <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
       <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
       <label class="check-item single-ct-only" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
-      <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
+      <label class="check-item catch-tank-only"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
     </div>
   </div>
 
@@ -2210,10 +2241,12 @@ function runCalculation(){
     return;
   }
 
-  const doubleCT = document.getElementById("ctModeDouble").checked;
-  const cmBuffer = !doubleCT && document.getElementById("cmBuffer").checked;
-  const resolveNerf = document.getElementById("resolveNerf").checked;
-  const numCM = parseInt(document.getElementById("numCM").value);
+  const ctMode = document.querySelector('input[name="ctMode"]:checked').value;
+  const doubleCT = ctMode === "double";
+  const mainDPSMode = ctMode === "maindps";
+  const cmBuffer = !doubleCT && !mainDPSMode && document.getElementById("cmBuffer").checked;
+  const resolveNerf = !mainDPSMode && document.getElementById("resolveNerf").checked;
+  const numCM = mainDPSMode ? 1 : parseInt(document.getElementById("numCM").value);
 
   const playerMods = {
     eff: 1, // set per-move below
@@ -2240,14 +2273,16 @@ function runCalculation(){
 
   const bossCMName = document.getElementById("bossCM").value.trim();
   const bossFMName = document.getElementById("bossFM").value.trim();
-  const bossCMMove = findMove(bossCMName);
+  const bossCMMove = mainDPSMode ? null : findMove(bossCMName);
   const bossFMMove = findMove(bossFMName);
-  if(!bossCMMove || !bossFMMove){
-    resultsWrap.innerHTML = `<div class="empty-result">Enter valid Boss Charge and Fast moves to calculate.</div>`;
+  if((!mainDPSMode && !bossCMMove) || !bossFMMove){
+    resultsWrap.innerHTML = mainDPSMode
+      ? `<div class="empty-result">Enter a valid Boss Fast Move to calculate.</div>`
+      : `<div class="empty-result">Enter valid Boss Charge and Fast moves to calculate.</div>`;
     return;
   }
 
-  const bossCMMods = {
+  const bossCMMods = mainDPSMode ? null : {
     eff: parseFloat(document.getElementById("effBossCM").value),
     weather: isWeatherBoosted(bossCMMove.elem),
     shadowDebuff: document.getElementById("shadowDebuff").checked,
@@ -2281,10 +2316,87 @@ function runCalculation(){
   const fastDamage = playerMoveDamage(fm, pkmnName, playerAtk, bossDef, fmModsPlayer);
 
   // --- boss move damage (hitting the player) ---
-  let bossCMDamage = bossMoveDamage(bossCMMove, bossAtk, playerDef, bossCMMods);
+  let bossCMDamage = mainDPSMode ? 0 : bossMoveDamage(bossCMMove, bossAtk, playerDef, bossCMMods);
   let bossFMDamage = bossMoveDamage(bossFMMove, bossAtk, playerDef, bossFMMods);
   if(dodgeCM) bossCMDamage = Math.floor(bossCMDamage * 0.25);
   if(dodgeFM) bossFMDamage = Math.floor(bossFMDamage * 0.25);
+
+  if(mainDPSMode){
+    // ============ MAIN DPS MODE ============
+    // Pure player rotation math: the boss only ever uses its fast move here (no charge move, no
+    // catch-tanking, no swapping), so there's nothing external gating this Pokemon's own attack
+    // cycle - it just taps fast moves until it has enough energy, then fires its charge move, on
+    // repeat. The boss's fast-move cadence is context only (what you're incidentally tanking
+    // while you attack); it doesn't constrain the timing the way a catch-tank swap would.
+    const mdCmEnergyCost = Math.abs(cm.energy);
+    const fastMoveCount = Math.ceil(mdCmEnergyCost / fm.energy);
+    const mdTicks = (fastMoveCount * fm.ad) + cm.ad;
+    const mdSeconds = mdTicks / 2;
+    const mdNumerator = (fastMoveCount * fastDamage) + chargeDamage;
+    const mainDPS = mdNumerator / Math.max(mdSeconds, 0.1);
+
+    const loadoutHtml = `
+      <div class="loadout-card">
+        <div class="loadout-pokemon">
+          <div class="loadout-sprite">
+            <img src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <div class="loadout-info">
+            <div class="loadout-name">${pkmnName}</div>
+            <div class="loadout-role">Your Pokémon · Lv ${level}</div>
+            <div class="loadout-stats">
+              <span>ATK <b>${playerAtk.toFixed(1)}</b></span>
+              <span>DEF <b>${playerDef.toFixed(1)}</b></span>
+              <span>HP <b>${playerHp}</b></span>
+            </div>
+            <div class="loadout-dmg-line">${cm.n} <b>${chargeDamage}</b> &nbsp;·&nbsp; ${fm.n} <b>${fastDamage}</b></div>
+          </div>
+        </div>
+        <div class="loadout-vs">VS</div>
+        <div class="loadout-pokemon">
+          <div class="loadout-sprite">
+            <img src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <div class="loadout-info">
+            <div class="loadout-name">${bossName}</div>
+            <div class="loadout-role">Raid Boss${t7Enraged ? " · T7 Enraged" : ""}</div>
+            <div class="loadout-stats">
+              <span>ATK <b>${bossAtk.toFixed(1)}</b></span>
+              <span>DEF <b>${bossDef.toFixed(1)}</b></span>
+              <span>HP <b>${bossHp.toFixed(1)}</b></span>
+            </div>
+            <div class="loadout-dmg-line">${bossFMMove.n} <b>${bossFMDamage}</b> per hit taken</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    resultsWrap.innerHTML = loadoutHtml + `
+      <div class="dps-result-card">
+        <div class="dps-result-main">
+          <div class="dps-result-label">Main DPS</div>
+          <div class="dps-result-value">${mainDPS.toFixed(1)}</div>
+        </div>
+        <div class="dps-result-breakdown">
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Rotation</span>
+            <span class="dps-result-stat-value">${fastMoveCount} &times; ${fm.n} &rarr; ${cm.n}</span>
+          </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Duration</span>
+            <span class="dps-result-stat-value">${mdSeconds.toFixed(2)}s (${mdTicks.toFixed(1)}t)</span>
+          </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Total Damage</span>
+            <span class="dps-result-stat-value">${mdNumerator.toFixed(0)}</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    addToHistory(captureSetup());
+    return;
+  }
 
   const energyFromCM = energyFromDamage(bossCMDamage);
   const energyFromBossFM = energyFromDamage(bossFMDamage);
@@ -2722,7 +2834,7 @@ function captureSetup(){
     const el = document.getElementById(id);
     setup[id] = el.type === "checkbox" ? el.checked : el.value;
   });
-  setup.ctMode = document.getElementById("ctModeDouble").checked ? "double" : "single";
+  setup.ctMode = document.querySelector('input[name="ctMode"]:checked').value;
   return setup;
 }
 function restoreMoveSelection(baseId, savedMove){
@@ -2755,7 +2867,8 @@ function applySetup(setup){
     if(el.type === "checkbox") el.checked = !!setup[id];
     else el.value = setup[id];
   });
-  document.getElementById(setup.ctMode === "double" ? "ctModeDouble" : "ctModeSingle").checked = true;
+  const modeToId = { maindps: "ctModeMainDPS", single: "ctModeSingle", double: "ctModeDouble" };
+  document.getElementById(modeToId[setup.ctMode] || "ctModeSingle").checked = true;
   updateCTMode();
   ["pokemonLevel","ivAtk","ivDef","ivHp"].forEach(id => {
     const el = document.getElementById(id);
@@ -3211,9 +3324,11 @@ function autoSetEffectiveness(){
 document.getElementById("calcBtn").addEventListener("click", runCalculation);
 
 function updateCTMode(){
-  const doubleCT = document.getElementById("ctModeDouble").checked;
-  document.body.classList.toggle("ct-mode-double", doubleCT);
+  const mode = document.querySelector('input[name="ctMode"]:checked').value;
+  document.body.classList.toggle("ct-mode-double", mode === "double");
+  document.body.classList.toggle("ct-mode-maindps", mode === "maindps");
 }
+document.getElementById("ctModeMainDPS").addEventListener("change", updateCTMode);
 document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
 document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);
 
