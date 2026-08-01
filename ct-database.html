@@ -135,7 +135,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .sub-card-foot-row{
     display:flex; align-items:baseline; justify-content:space-between; gap:14px;
   }
-  .sub-card-mode-row{ display:flex; justify-content:flex-start; }
+  .sub-card-mode-row{ display:flex; justify-content:flex-start; min-height:17px; }
   .sub-card-foot-stat.right{ text-align:right; }
   .sub-card-foot-label{ font-size:10.5px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.02em; display:inline-flex; align-items:center; gap:3px; }
   .sub-card-dps-val{ font-size:19px; font-weight:800; color: var(--accent-dark); font-family:'Manrope', sans-serif; line-height:1.1; }
@@ -1693,7 +1693,7 @@ function subCardHtml(s, idx){
       </div>
     </div>
     <div class="sub-card-foot">
-      ${modeBadgeHtml(s) ? `<div class="sub-card-mode-row">${modeBadgeHtml(s)}</div>` : ""}
+      <div class="sub-card-mode-row">${modeBadgeHtml(s)}</div>
       <div class="sub-card-foot-row">
         <div class="sub-card-foot-stat">
           <span class="sub-card-foot-label">CT DPS</span>
