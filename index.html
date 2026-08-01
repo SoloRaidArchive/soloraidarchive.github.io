@@ -395,22 +395,22 @@
       <a class="archive-pill" href="tier4-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🛠️'"></div>
         <span class="archive-pill-label">Mega</span>
-        <span class="archive-pill-pct done">100% done</span>
+        <span class="archive-pill-pct" id="pct-tier4-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier5-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🎯'"></div>
         <span class="archive-pill-label">Legendary</span>
-        <span class="archive-pill-pct">73% done</span>
+        <span class="archive-pill-pct" id="pct-tier5-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier5-ae-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='⚡'"></div>
         <span class="archive-pill-label">Legendary AE</span>
-        <span class="archive-pill-pct">73% done</span>
+        <span class="archive-pill-pct" id="pct-tier5-ae-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier6-elite-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='👑'"></div>
         <span class="archive-pill-label">Mega Legendary &amp; Elite</span>
-        <span class="archive-pill-pct">10% done</span>
+        <span class="archive-pill-pct" id="pct-tier6-elite-raids.html">…</span>
       </a>
     </div>
 
@@ -529,6 +529,48 @@ async function buildBossSearchIndex(){
   }
   BOSS_SEARCH_INDEX.sort((a,b) => a.boss.localeCompare(b.boss));
 }
+
+// ============ ARCHIVE COMPLETION PERCENTAGES ============
+// "% done" = total entries with a VOD / total entries, for that archive's CSV. Uses the exact
+// same VOD-column-detection logic as the archive pages themselves (scan for a "VOD"/"VOD*"
+// header cell, read the next column), so an entry counts here if and only if it'd also show
+// the 📹 badge on the archive page.
+async function computeArchiveCompletionPercentages(){
+  for(const source of SEARCH_SOURCES){
+    const pctEl = document.getElementById(`pct-${source.archive}`);
+    if(!pctEl) continue;
+    try{
+      const res = await fetch(source.csv);
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      const text = await res.text();
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      let total = 0, withVod = 0;
+      for(let i = 1; i < lines.length; i++){
+        const cells = parseCsvLine(lines[i]);
+        const boss = (cells[source.col] || "").trim();
+        if(!boss) continue; // not a real data row
+        total++;
+        let vodIdx = -1;
+        for(let j = 0; j < cells.length; j++){
+          if(cells[j].trim() === "VOD" || cells[j].trim() === "VOD*"){ vodIdx = j; break; }
+        }
+        const vod = vodIdx !== -1 ? (cells[vodIdx+1] || "").trim() : "";
+        if(vod) withVod++;
+      }
+      if(total === 0){
+        pctEl.textContent = "0% done";
+        continue;
+      }
+      const pct = Math.round((withVod / total) * 100);
+      pctEl.textContent = `${pct}% done`;
+      pctEl.classList.toggle("done", pct === 100);
+    }catch(e){
+      pctEl.textContent = "—";
+      console.error(`Failed to compute completion % for ${source.csv}:`, e);
+    }
+  }
+}
+computeArchiveCompletionPercentages();
 
 function renderBossSearchResults(query){
   const resultsEl = document.getElementById("bossSearchResults");
