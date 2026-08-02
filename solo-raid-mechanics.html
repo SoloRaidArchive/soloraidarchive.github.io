@@ -21,12 +21,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg1: #eaf4ff; --bg2: #fff7e8; --bg: #eaf4ff; --card: #ffffff; --border: #e7edf5;
+    --bg1: #ffffff; --bg2: #ffd6a8; --bg3: #f2a6b0; --bg: #ffffff; --card: #ffffff; --border: #e7edf5;
     --ink: #2d3142; --ink-muted: #6b7280; --ink-dim: #9aa3b2;
     --accent: #3d9dff; --accent-soft: #eaf4ff; --accent-dark: #2b7fd6;
   }
   [data-theme="dark"]{
-    --bg1: #10131d; --bg2: #1a1424; --bg: #10131d; --card: #1c2030; --border: #323850;
+    --bg1: #10131d; --bg2: #1a1424; --bg3: #1a1424; --bg: #10131d; --card: #1c2030; --border: #323850;
     --ink: #eef1f7; --ink-muted: #a7afc0; --ink-dim: #767f96;
     --accent: #5aa9ff; --accent-soft: #232840; --accent-dark: #8cc7ff;
   }
@@ -34,13 +34,13 @@
   html{ overflow-x:hidden; max-width:100vw; }
 
   body{
-    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%); color: var(--ink);
+    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); color: var(--ink);
     font-family: 'Inter', sans-serif; min-height:100vh;
   }
 
   
   header{ padding: 12px 24px 10px; text-align:center; }
-  h1{ font-family:'Manrope', sans-serif; font-weight:700; font-size:18px; margin:70px 0 4px; color: var(--ink); text-align:center; }
+  h1{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--ink); text-align:center; }
 .container{ max-width: 800px; margin: 0 auto; padding: 70px 24px 45px; }
 
   .section-block{ margin-bottom: 40px; }
@@ -128,9 +128,16 @@
     font-family:'Inter', sans-serif; border-top: 1px solid var(--border);
   }
 
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
+
   .hamburger-btn{
-    position:fixed; top:16px; right:16px; z-index:20;
-    width:42px; height:42px; border-radius:50%;
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
@@ -150,7 +157,7 @@
   .hamburger-theme-toggle{
     display:flex; align-items:center; justify-content:center; gap:6px;
     width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
-    font-size:14px; color: var(--text, var(--ink)); background: var(--bg1, var(--ink-soft)); border:2px solid var(--border);
+    font-size:14px; color: var(--text, var(--ink)); background: var(--card, var(--ink-soft)); border:2px solid var(--border);
     border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
   }
   .hamburger-theme-toggle:hover{ border-color: var(--accent); color: var(--accent-dark); }
@@ -188,9 +195,6 @@
 </head>
 <body>
 
-<button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
-  <span></span><span></span><span></span>
-</button>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
@@ -223,7 +227,14 @@
   </div>
 </div>
 
-<h1 class="page-title-sm">Solo Raid Mechanics</h1>
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <h1 class="page-title-sm">Solo Raid Mechanics</h1>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
 
 <div class="container" id="container"></div>
 

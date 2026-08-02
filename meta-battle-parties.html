@@ -21,7 +21,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg1: #eaf4ff; --bg2: #fff7e8; --bg: #eaf4ff; --card: #ffffff; --border: #e7edf5;
+    --bg1: #ffffff; --bg2: #ffd6a8; --bg3: #f2a6b0; --bg: #ffffff; --card: #ffffff; --border: #e7edf5;
     --ink: #2d3142; --ink-muted: #6b7280; --ink-dim: #9aa3b2;
     --accent: #3d9dff; --accent-soft: #eaf4ff; --accent-dark: #2b7fd6;
     --normal:#9199A1; --fire:#E2661C; --water:#3E8DE0; --electric:#E0B316;
@@ -31,7 +31,7 @@
     --steel:#7A8A9A; --fairy:#E091C9;
   }
   [data-theme="dark"]{
-    --bg1: #10131d; --bg2: #1a1424; --bg: #10131d; --card: #1c2030; --border: #323850;
+    --bg1: #10131d; --bg2: #1a1424; --bg3: #1a1424; --bg: #10131d; --card: #1c2030; --border: #323850;
     --ink: #eef1f7; --ink-muted: #a7afc0; --ink-dim: #767f96;
     --accent: #5aa9ff; --accent-soft: #232840; --accent-dark: #8cc7ff;
   }
@@ -43,7 +43,7 @@
   html{ max-width:100vw; }
 
   body{
-    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 100%); color: var(--ink);
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); color: var(--ink);
     font-family: 'Inter', sans-serif; min-height:100vh;
   }
 
@@ -190,7 +190,7 @@
   .hamburger-theme-toggle{
     display:flex; align-items:center; justify-content:center; gap:6px;
     width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
-    font-size:14px; color: var(--text, var(--ink)); background: var(--bg1, var(--ink-soft)); border:2px solid var(--border);
+    font-size:14px; color: var(--text, var(--ink)); background: var(--card, var(--ink-soft)); border:2px solid var(--border);
     border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
   }
   .hamburger-theme-toggle:hover{ border-color: var(--accent); color: var(--accent-dark); }
