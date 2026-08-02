@@ -706,12 +706,19 @@
     </div>
 
     <div class="mod-consolidated-grid">
-      <div class="mod-cell catch-tank-only">
+      <div class="mod-cell">
         <label for="numCM"># of Charge Moves</label>
         <select id="numCM">
           <option value="1">1</option>
           <option value="2">2</option>
           <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
         </select>
       </div>
       <div class="mod-cell">
@@ -2246,7 +2253,7 @@ function runCalculation(){
   const mainDPSMode = ctMode === "maindps";
   const cmBuffer = !doubleCT && !mainDPSMode && document.getElementById("cmBuffer").checked;
   const resolveNerf = !mainDPSMode && document.getElementById("resolveNerf").checked;
-  const numCM = mainDPSMode ? 1 : parseInt(document.getElementById("numCM").value);
+  const numCM = parseInt(document.getElementById("numCM").value);
 
   const playerMods = {
     eff: 1, // set per-move below
@@ -2328,12 +2335,31 @@ function runCalculation(){
     // cycle - it just taps fast moves until it has enough energy, then fires its charge move, on
     // repeat. The boss's fast-move cadence is context only (what you're incidentally tanking
     // while you attack); it doesn't constrain the timing the way a catch-tank swap would.
+    //
+    // For long-term behavior (numCM > 1), each cast's fast-move count is rounded up to the
+    // nearest whole fast move, which almost always overshoots the exact energy needed - that
+    // leftover energy carries into the next cast instead of being wasted, so simulating several
+    // casts in sequence (rather than just multiplying one cycle by N) gives a more accurate
+    // picture of sustained DPS, since the rounding overshoot gets amortized across casts.
     const mdCmEnergyCost = Math.abs(cm.energy);
-    const fastMoveCount = Math.ceil(mdCmEnergyCost / fm.energy);
-    const mdTicks = (fastMoveCount * fm.ad) + cm.ad;
-    const mdSeconds = mdTicks / 2;
-    const mdNumerator = (fastMoveCount * fastDamage) + chargeDamage;
-    const mainDPS = mdNumerator / Math.max(mdSeconds, 0.1);
+    let mdLeftoverEnergy = 0;
+    let mdTotalTicks = 0;
+    let mdTotalDamage = 0;
+    const mdCastBreakdown = [];
+    for(let cast = 0; cast < numCM; cast++){
+      const energyStillNeeded = Math.max(0, mdCmEnergyCost - mdLeftoverEnergy);
+      const fastMovesThisCast = Math.ceil(energyStillNeeded / fm.energy);
+      const energyGainedThisCast = fastMovesThisCast * fm.energy;
+      mdLeftoverEnergy = (mdLeftoverEnergy + energyGainedThisCast) - mdCmEnergyCost;
+      mdTotalTicks += (fastMovesThisCast * fm.ad) + cm.ad;
+      mdTotalDamage += (fastMovesThisCast * fastDamage) + chargeDamage;
+      mdCastBreakdown.push(fastMovesThisCast);
+    }
+    const mdSeconds = mdTotalTicks / 2;
+    const mainDPS = mdTotalDamage / Math.max(mdSeconds, 0.1);
+    const mdRotationLabel = numCM === 1
+      ? `${mdCastBreakdown[0]} &times; ${fm.n} &rarr; ${cm.n}`
+      : `${mdCastBreakdown.join("+")} &times; ${fm.n} &rarr; ${cm.n} &nbsp;(${numCM} casts)`;
 
     const loadoutHtml = `
       <div class="loadout-card">
@@ -2374,21 +2400,21 @@ function runCalculation(){
     resultsWrap.innerHTML = loadoutHtml + `
       <div class="dps-result-card">
         <div class="dps-result-main">
-          <div class="dps-result-label">Main DPS</div>
+          <div class="dps-result-label">Main DPS${numCM > 1 ? ` &middot; ${numCM} casts` : ""}</div>
           <div class="dps-result-value">${mainDPS.toFixed(1)}</div>
         </div>
         <div class="dps-result-breakdown">
           <div class="dps-result-stat">
             <span class="dps-result-stat-label">Rotation</span>
-            <span class="dps-result-stat-value">${fastMoveCount} &times; ${fm.n} &rarr; ${cm.n}</span>
+            <span class="dps-result-stat-value">${mdRotationLabel}</span>
           </div>
           <div class="dps-result-stat">
             <span class="dps-result-stat-label">Duration</span>
-            <span class="dps-result-stat-value">${mdSeconds.toFixed(2)}s (${mdTicks.toFixed(1)}t)</span>
+            <span class="dps-result-stat-value">${mdSeconds.toFixed(2)}s (${mdTotalTicks.toFixed(1)}t)</span>
           </div>
           <div class="dps-result-stat">
             <span class="dps-result-stat-label">Total Damage</span>
-            <span class="dps-result-stat-value">${mdNumerator.toFixed(0)}</span>
+            <span class="dps-result-stat-value">${mdTotalDamage.toFixed(0)}</span>
           </div>
         </div>
       </div>
