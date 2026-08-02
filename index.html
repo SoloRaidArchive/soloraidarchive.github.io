@@ -34,6 +34,8 @@
 
   body{
     margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+
+  [data-theme="dark"] body{ background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 80%, var(--bg4) 100%); }
     color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh;
     display:flex; flex-direction:column;
   }
@@ -135,10 +137,13 @@
   .footer-vod-link:hover{ text-decoration:underline; }
 
   [data-theme="dark"]{
-    --bg1: #10131d; --bg2: #1a1424; --bg3: #1a1424;
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024;
     --card: #1c2030; --border: #323850;
     --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
     --blue: #5aa9ff; --blue-dark: #8cc7ff;
+  }
+  [data-theme="dark"] body{
+    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
   }
   [data-theme="dark"] h1{ text-shadow: 3px 3px 0 rgba(90,169,255,0.2); }
 

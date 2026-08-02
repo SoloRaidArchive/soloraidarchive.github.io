@@ -31,9 +31,12 @@
     --steel:#7A8A9A; --fairy:#E091C9;
   }
   [data-theme="dark"]{
-    --bg1: #10131d; --bg2: #1a1424; --bg3: #1a1424; --bg: #10131d; --card: #1c2030; --border: #323850;
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024; --bg: #10131d; --card: #1c2030; --border: #323850;
     --ink: #eef1f7; --ink-muted: #a7afc0; --ink-dim: #767f96;
     --accent: #5aa9ff; --accent-soft: #232840; --accent-dark: #8cc7ff;
+  }
+  [data-theme="dark"] body{
+    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
   }
   [data-theme="dark"] .slot-icon{ background:#eaeaec; border-color:#3a3f56; }
   [data-theme="dark"] .slot-count{ background:#2a2e42; color: var(--ink-muted); }
@@ -44,6 +47,8 @@
 
   body{
     margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); color: var(--ink);
+
+  [data-theme="dark"] body{ background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 80%, var(--bg4) 100%); }
     font-family: 'Inter', sans-serif; min-height:100vh;
   }
 
