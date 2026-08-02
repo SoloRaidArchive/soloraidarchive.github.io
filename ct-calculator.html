@@ -2336,30 +2336,59 @@ function runCalculation(){
   if(mainDPSMode){
     // ============ MAIN DPS MODE ============
     // Pure player rotation math: the boss only ever uses its fast move here (no charge move, no
-    // catch-tanking, no swapping), so there's nothing external gating this Pokemon's own attack
-    // cycle - it just taps fast moves until it has enough energy, then fires its charge move, on
-    // repeat. The boss's fast-move cadence is context only (what you're incidentally tanking
-    // while you attack); it doesn't constrain the timing the way a catch-tank swap would.
+    // catch-tanking, no swapping). But the player's Pokemon is still the active target, so every
+    // time the boss's fast move actually lands, the player gains bonus energy from the damage
+    // taken (the same 50%-of-damage-taken mechanic used for absorbing a charge move) - that energy
+    // counts toward the charge move just like the player's own fast-move energy does, and reduces
+    // how many of the player's own fast moves are actually needed to reach the threshold.
+    //
+    // The boss's fast-move landing schedule is 0-indexed here: its first hit lands at tick 0 (the
+    // very start of the encounter), then repeats every bossFMMove.ad ticks - simulated as an
+    // ongoing, independent timeline that keeps landing through charge-move cast animations too,
+    // not just during the player's own fast-move taps.
     //
     // For long-term behavior (numCM > 1), each cast's fast-move count is rounded up to the
     // nearest whole fast move, which almost always overshoots the exact energy needed - that
-    // leftover energy carries into the next cast instead of being wasted, so simulating several
-    // casts in sequence (rather than just multiplying one cycle by N) gives a more accurate
-    // picture of sustained DPS, since the rounding overshoot gets amortized across casts.
+    // leftover energy (from both sources) carries into the next cast instead of being wasted, so
+    // simulating several casts in sequence (rather than just multiplying one cycle by N) gives a
+    // more accurate picture of sustained DPS.
     const mdCmEnergyCost = Math.abs(cm.energy);
-    let mdLeftoverEnergy = 0;
-    let mdTotalTicks = 0;
+    const bossFMEnergyPerHit = energyFromDamage(bossFMDamage);
+    // reuse the same boss fast-move cadence already established for catch-tank timing elsewhere
+    // in this calculator (first landing at 1+ad, then +4+ad between subsequent landings) - pull a
+    // generous batch upfront, indexed from the start of the encounter.
+    const mdBossLandings = bossFMLandingTicks(bossFMMove.ad, 200);
+    let mdBossLandingIdx = 0;
+    let mdGlobalTick = 0;
+    let mdEnergyBanked = 0;
     let mdTotalDamage = 0;
+    let mdBossHitsAbsorbed = 0;
     const mdCastBreakdown = [];
     for(let cast = 0; cast < numCM; cast++){
-      const energyStillNeeded = Math.max(0, mdCmEnergyCost - mdLeftoverEnergy);
-      const fastMovesThisCast = Math.ceil(energyStillNeeded / fm.energy);
-      const energyGainedThisCast = fastMovesThisCast * fm.energy;
-      mdLeftoverEnergy = (mdLeftoverEnergy + energyGainedThisCast) - mdCmEnergyCost;
-      mdTotalTicks += (fastMovesThisCast * fm.ad) + cm.ad;
-      mdTotalDamage += (fastMovesThisCast * fastDamage) + chargeDamage;
-      mdCastBreakdown.push(fastMovesThisCast);
+      let playerTapsThisCast = 0;
+      // absorb any boss FM landings that already happened by the current tick (catches landings
+      // that occurred during the previous cast's charge-move animation)
+      while(mdBossLandingIdx < mdBossLandings.length && mdBossLandings[mdBossLandingIdx] <= mdGlobalTick){
+        mdEnergyBanked += bossFMEnergyPerHit;
+        mdBossHitsAbsorbed++;
+        mdBossLandingIdx++;
+      }
+      while(mdEnergyBanked < mdCmEnergyCost){
+        mdGlobalTick += fm.ad;
+        playerTapsThisCast++;
+        mdEnergyBanked += fm.energy;
+        while(mdBossLandingIdx < mdBossLandings.length && mdBossLandings[mdBossLandingIdx] <= mdGlobalTick){
+          mdEnergyBanked += bossFMEnergyPerHit;
+          mdBossHitsAbsorbed++;
+          mdBossLandingIdx++;
+        }
+      }
+      mdGlobalTick += cm.ad;
+      mdEnergyBanked -= mdCmEnergyCost; // leftover (from either source) carries into the next cast
+      mdTotalDamage += (playerTapsThisCast * fastDamage) + chargeDamage;
+      mdCastBreakdown.push(playerTapsThisCast);
     }
+    const mdTotalTicks = mdGlobalTick;
     const mdSeconds = mdTotalTicks / 2;
     const mainDPS = mdTotalDamage / Math.max(mdSeconds, 0.1);
     const mdRotationLabel = numCM === 1
@@ -2420,6 +2449,10 @@ function runCalculation(){
           <div class="dps-result-stat">
             <span class="dps-result-stat-label">Total Damage</span>
             <span class="dps-result-stat-value">${mdTotalDamage.toFixed(0)}</span>
+          </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Boss FM Energy</span>
+            <span class="dps-result-stat-value">${mdBossHitsAbsorbed} hits &middot; +${mdBossHitsAbsorbed * bossFMEnergyPerHit}</span>
           </div>
         </div>
       </div>
