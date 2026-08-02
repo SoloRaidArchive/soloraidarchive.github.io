@@ -21,7 +21,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg1: #ffffff; --bg2: #ffd6a8; --bg3: #f2a6b0; --bg: #ffffff; --card: #ffffff; --border: #e7edf5;
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce; --bg: #ffffff; --card: #ffffff; --border: #e7edf5;
     --ink: #2d3142; --ink-muted: #6b7280; --ink-dim: #9aa3b2;
     --accent: #3d9dff; --accent-soft: #eaf4ff; --accent-dark: #2b7fd6;
   }
@@ -108,12 +108,8 @@
   .clip-player.open{ display:block; }
   .clip-player iframe{ width:100%; height:100%; border:none; }
 
-  .clip-gif-label{
-    font-family:'Manrope', sans-serif; font-weight:800; font-size:10.5px; color: var(--ink-dim);
-    text-transform:uppercase; letter-spacing:0.04em;
-  }
   .clip-video{
-    display:block; margin-top:8px; width:100%; max-width:220px;
+    display:block; margin-top:0; width:100%; max-width:220px;
     border-radius:12px; background:#000; border:2px solid var(--border);
   }
   .clip-attribution{
@@ -255,7 +251,7 @@ const SECTIONS = [
       {name:"Tick Perfect Cast", abbr:"TPC", desc:"Precisely timing the final tap — not spamming — just before a charge move cast. Successful TPC avoids the energy resolve DPS nerf; very hard to execute consistently.", clip:"assets/clips/tpc-vs-energy-resolve.mp4", attribution:"DarKnight"},
       {name:"Clean Exit", abbr:"Exit", desc:"Relobbying during a charge move's animation for maximum energy efficiency and time savings.", clip:"assets/clips/clean-exit-example.mp4"},
       {name:"Rejoin", abbr:"Rejoin", desc:"A rejoin lasting 6.5–7 seconds, only utilizing potions to quickly re-enter the fight.", clip:"assets/clips/rejoin-example.mp4", attribution:"SpiritedBloom"},
-      {name:"Execute", abbr:"Execute", desc:"Executing a boss with a low animation-duration or low-cost charge move.", clip:"assets/clips/execute-example.mp4"},
+      {name:"Execute", abbr:"Execute", desc:"Executing a boss with a low animation-duration or low-cost charge move.", clip:"assets/clips/execute-example.mp4", attribution:"SpiritedBloom"},
       {name:"Hot Swap", abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", clip:"assets/clips/hotswap-example.mp4"},
       {name:"Recycle", abbr:"RCY", desc:"Reusing the same Main DPS Pokémon across multiple rejoins instead of a fresh one each time.", clip:""},
     ]
@@ -265,12 +261,12 @@ const SECTIONS = [
     sub: "Refinements layered on top of the core techniques",
     entries: [
       {name:"Hotswap Chain", abbr:"HS Chain", desc:"When a boss casts charge moves in rapid succession, forcing the user to Catch Tank from one attacker straight into the next in rapid succession. Heavily RNG-based, but the highest DPS cycle achievable in a raid.", clip:"assets/clips/hotswap-chain.mp4"},
-      {name:"Combo Charge Move", abbr:"CCM", desc:"Using a small charge move when the enemy charge move would otherwise overflow in energy. e.g. Necrozma Dusk Mane lowering energy with an Iron Head before tanking a full Earthquake if Sunsteel Strike can't be cast in time.", clip:"assets/clips/combo-charge-move.mp4"},
+      {name:"Combo Charge Move", abbr:"CCM", desc:"Using a small charge move when the enemy charge move would otherwise overflow in energy. e.g. Necrozma Dusk Mane lowering energy with an Iron Head before tanking a full Earthquake if Sunsteel Strike can't be cast in time.", clip:"assets/clips/combo-charge-move.mp4", attribution:"SpiritedBloom"},
       {name:"Charge Move Buffer", abbr:"Buffer", desc:"When swapping — mainly to perform a Catch Tank — you can immediately cast a charge move (if you have the energy for it) without a fast move first, by buffering a charged move from your active Pokémon.", clip:"assets/clips/move-buffer.mp4", attribution:"DarKnight"},
       {name:"Trailing Catch Tank", abbr:"Trailing CT", desc:"A 6th Pokémon used to catch trailing charge moves when nearing a rejoin. This trailing Pokémon typically uses low energy-cost moves (Breaking Swipe, Aura Sphere, etc.) to increase consistency.", clip:"assets/clips/trailing-ct-example.mp4", attribution:"SpiritedBloom"},
       {name:"Advanced Rejoin", abbr:"Fast Rejoin", desc:"A rejoin lasting 5.5 seconds. Upon exiting the raid, the user first swipes to their party and buffers the animation by tapping the heal bag. This interaction saves roughly 1.0 second on average.", clip:""},
       {name:"Charge Move Delay", abbr:"CM Delay", desc:"Used against bosses with 1-bar charge moves. Intentionally delaying 2-bar or 3-bar charge move casts to force out fast moves instead — usually giving the player 2 free fast moves.", clip:""},
-      {name:"Substitute", abbr:"Sub", desc:"Primary DPSer moves to the 2nd slot from the 2nd cycle onwards to avoid rejoining into a lethal charge move. A substitute (usually a Catch Tank) is moved to the first slot.", clip:"assets/clips/substitute-example.mp4"},
+      {name:"Substitute", abbr:"Sub", desc:"Primary DPSer moves to the 2nd slot from the 2nd cycle onwards to avoid rejoining into a lethal charge move. A substitute (usually a Catch Tank) is moved to the first slot.", clip:"assets/clips/substitute-example.mp4", attribution:"SpiritedBloom"},
     ]
   },
   {
@@ -298,9 +294,6 @@ function clipHtml(clipUrl, uid, attribution){
   const embed = parseEmbed(clipUrl);
   if(embed.type === "video"){
     return `
-    <div class="clip-row">
-      <span class="clip-gif-label">Clip</span>
-    </div>
     <video class="clip-video" autoplay loop muted playsinline preload="metadata">
       <source src="${embed.srcMp4}" type="video/mp4">
       <source src="${embed.srcWebm}" type="video/webm">

@@ -21,7 +21,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg1: #ffffff; --bg2: #ffd6a8; --bg3: #f2a6b0;
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
     --card: #ffffff; --border: #e7edf5;
     --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
     --blue: #3d9dff; --blue-dark: #2b7fd6;
@@ -286,6 +286,27 @@
   [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
   .live-boss-date{ font-size:10px; font-weight:700; color: var(--text-muted); }
 
+  .popular-links-row{
+    max-width: 640px; margin: 0 auto 18px; padding: 0 24px;
+    display:flex; gap:10px;
+  }
+  .popular-link{
+    flex:1; display:flex; align-items:center; justify-content:center; text-align:center;
+    min-width:0; background: var(--card); border-radius:16px;
+    padding: 14px 8px; text-decoration:none; color: var(--text);
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px; line-height:1.3;
+    border: 2px solid transparent;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+    transition: transform .12s ease;
+  }
+  .popular-link:hover{ transform: translateY(-2px); }
+
   .boss-search-wrap{
     max-width: 640px; margin: 0 auto 18px; padding: 0 24px; position:relative;
   }
@@ -375,6 +396,12 @@
     <input id="bossSearch" type="text" placeholder="Search a boss" autocomplete="off">
   </div>
   <div id="bossSearchResults" class="boss-search-results"></div>
+</div>
+
+<div class="popular-links-row">
+  <a class="popular-link" href="research.html">Most Used Raiders</a>
+  <a class="popular-link" href="ct-database.html">Viable Catch Tanks</a>
+  <a class="popular-link" href="solo-raid-mechanics.html">Solo Raid Mechanics</a>
 </div>
 
 <div class="page-layout">
