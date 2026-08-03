@@ -202,6 +202,16 @@
   }
   .calc-btn:active{ transform: translateY(3px); box-shadow:none; }
 
+  .share-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; margin-top:10px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:14px;
+    color: var(--text); background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding: 12px; cursor:pointer; transition: border-color .12s ease;
+  }
+  .share-btn:hover{ border-color: var(--blue); }
+  .share-btn.copied{ border-color:#1f9d5c; color:#1f9d5c; }
+
   .results-wrap{ margin-top: 24px; }
   .results-table{ width:100%; border-collapse:separate; border-spacing:0 8px; }
 
@@ -785,6 +795,10 @@
   </div>
 
   <button class="calc-btn" id="calcBtn">Calculate</button>
+  <button class="share-btn" id="shareBtn" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    <span id="shareBtnLabel">Copy Shareable Link</span>
+  </button>
 
   <div class="duration-unit-toggle" id="durationUnitToggle">
     <span class="duration-unit-label">Show time as</span>
@@ -2215,6 +2229,22 @@ function bossFMLandingTicks(bossFMAnimTicks, count){
   return landings;
 }
 
+// ============ BOSS CONTINUOUS FAST-MOVE CADENCE (standalone, not post-charge-move) ============
+// Used when the boss is just attacking on its own normal cadence with no charge-move landing to
+// anchor against (e.g. Main DPS mode, where the boss never casts a charge move at all). 0-indexed:
+// the first hit lands at tick 0, then every (3 + fm_ad) ticks after that. This is a distinct model
+// from bossFMLandingTicks() above, which is specifically the boss's post-charge-move recovery and
+// chained-fast-move cadence - the two are not interchangeable.
+function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
+  const landings = [];
+  let t = 0;
+  for(let i = 0; i < count; i++){
+    landings.push(t);
+    t += (3 + bossFMAnimTicks);
+  }
+  return landings;
+}
+
 // ============ MAIN CALCULATION ============
 function runCalculation(){
   const resultsWrap = document.getElementById("resultsWrap");
@@ -2357,7 +2387,7 @@ function runCalculation(){
     // reuse the same boss fast-move cadence already established for catch-tank timing elsewhere
     // in this calculator (first landing at 1+ad, then +4+ad between subsequent landings) - pull a
     // generous batch upfront, indexed from the start of the encounter.
-    const mdBossLandings = bossFMLandingTicks(bossFMMove.ad, 200);
+    const mdBossLandings = bossFMContinuousLandingTicks(bossFMMove.ad, 200);
     let mdBossLandingIdx = 0;
     let mdGlobalTick = 0;
     let mdEnergyBanked = 0;
@@ -3386,6 +3416,59 @@ function autoSetEffectiveness(){
 });
 
 document.getElementById("calcBtn").addEventListener("click", runCalculation);
+
+// ============ SHAREABLE SETUP URLS ============
+// Reuses the exact same captureSetup()/applySetup() machinery already used for the local
+// "Recent Setups" history feature - the only difference is where the setup object is stored
+// (a URL query param instead of localStorage).
+function encodeSetupForUrl(setup){
+  const json = JSON.stringify(setup);
+  return btoa(unescape(encodeURIComponent(json)));
+}
+function decodeSetupFromUrl(encoded){
+  const json = decodeURIComponent(escape(atob(encoded)));
+  return JSON.parse(json);
+}
+function buildShareUrl(){
+  const setup = captureSetup();
+  const encoded = encodeSetupForUrl(setup);
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.searchParams.set("setup", encoded);
+  return url.toString();
+}
+document.getElementById("shareBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("shareBtn");
+  const label = document.getElementById("shareBtnLabel");
+  const url = buildShareUrl();
+  try{
+    await navigator.clipboard.writeText(url);
+  }catch(e){
+    // clipboard API unavailable/blocked - fall back to a manual prompt so the link is still usable
+    window.prompt("Copy this link:", url);
+  }
+  const originalText = label.textContent;
+  btn.classList.add("copied");
+  label.textContent = "Link Copied!";
+  setTimeout(() => {
+    btn.classList.remove("copied");
+    label.textContent = originalText;
+  }, 2000);
+});
+
+// on load, check for a shared setup in the URL and apply it automatically
+(function applySharedSetupFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get("setup");
+  if(!encoded) return;
+  try{
+    const setup = decodeSetupFromUrl(encoded);
+    applySetup(setup);
+    setTimeout(runCalculation, 50);
+  }catch(e){
+    console.error("Failed to apply shared setup from URL:", e);
+  }
+})();
 
 function updateCTMode(){
   const mode = document.querySelector('input[name="ctMode"]:checked').value;
