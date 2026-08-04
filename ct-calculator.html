@@ -495,7 +495,7 @@
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
-    <a href="index.html">🏠 Home</a>
+    <a href="index.html"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
@@ -3420,21 +3420,39 @@ document.getElementById("calcBtn").addEventListener("click", runCalculation);
 // ============ SHAREABLE SETUP URLS ============
 // Reuses the exact same captureSetup()/applySetup() machinery already used for the local
 // "Recent Setups" history feature - the only difference is where the setup object is stored
-// (a URL query param instead of localStorage).
+// (a URL query param instead of localStorage). Field names are remapped to short keys before
+// encoding specifically to keep the shared URL as compact as possible; the mapping is only used
+// at the encode/decode boundary, so nothing else in the app needs to know about it.
+const SETUP_SHORT_KEYS = {
+  pokemonName:"n", pokemonLevel:"l", ivAtk:"ia", ivDef:"id", ivHp:"ih",
+  playerCM:"pc", playerFM:"pf", effCM:"ec", effFM:"ef", stabCM:"sc", stabFM:"sf",
+  friendship:"fr", primalMega:"pm", numCM:"nc",
+  weatherSelect:"w", dodgeCM:"dc", dodgeFM:"df", t7Enraged:"t7", shieldAE:"sa",
+  zacianBlade:"zb", cmBuffer:"cb", partyPower:"pp", resolveNerf:"rn",
+  bossName:"bn", bossTier:"bt", bossCM:"bc", bossFM:"bf",
+  effBossCM:"ebc", effBossFM:"ebf", bossStabCM:"bsc", bossStabFM:"bsf", shadowDebuff:"sd",
+  ctMode:"m",
+};
+const SETUP_LONG_KEYS = Object.fromEntries(Object.entries(SETUP_SHORT_KEYS).map(([k,v]) => [v,k]));
 function encodeSetupForUrl(setup){
-  const json = JSON.stringify(setup);
+  const short = {};
+  Object.entries(setup).forEach(([k,v]) => { short[SETUP_SHORT_KEYS[k] || k] = v; });
+  const json = JSON.stringify(short);
   return btoa(unescape(encodeURIComponent(json)));
 }
 function decodeSetupFromUrl(encoded){
   const json = decodeURIComponent(escape(atob(encoded)));
-  return JSON.parse(json);
+  const short = JSON.parse(json);
+  const setup = {};
+  Object.entries(short).forEach(([k,v]) => { setup[SETUP_LONG_KEYS[k] || k] = v; });
+  return setup;
 }
 function buildShareUrl(){
   const setup = captureSetup();
   const encoded = encodeSetupForUrl(setup);
   const url = new URL(window.location.href);
   url.search = "";
-  url.searchParams.set("setup", encoded);
+  url.searchParams.set("s", encoded);
   return url.toString();
 }
 document.getElementById("shareBtn").addEventListener("click", async () => {
@@ -3459,7 +3477,7 @@ document.getElementById("shareBtn").addEventListener("click", async () => {
 // on load, check for a shared setup in the URL and apply it automatically
 (function applySharedSetupFromUrl(){
   const params = new URLSearchParams(window.location.search);
-  const encoded = params.get("setup");
+  const encoded = params.get("s");
   if(!encoded) return;
   try{
     const setup = decodeSetupFromUrl(encoded);
