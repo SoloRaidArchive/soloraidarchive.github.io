@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How to Solo Lunala — Solo Raid Archive</title>
+<style>
+  :root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
+    --blue: #3d9dff; --blue-dark: #2b7fd6; --accent-soft: #eef2ff;
+  }
+  body{
+    font-family:'Inter', sans-serif; margin:0; padding:0;
+    background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+    color: var(--text); min-height:100vh;
+  }
+  .page{ max-width:720px; margin:0 auto; padding:28px 20px 60px; }
+
+  .guide-header{ text-align:center; margin-bottom:22px; }
+  .guide-eyebrow{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--blue-dark);
+    text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;
+  }
+  .guide-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:30px; margin:0 0 8px; }
+
+  .toc{
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:14px 18px; margin:18px 0; font-family:'Inter',sans-serif; font-size:12.5px;
+  }
+  .toc-title{ font-family:'Manrope',sans-serif; font-weight:800; font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+  .toc a{ display:inline-block; color:var(--blue-dark); text-decoration:none; margin:0 10px 4px 0; font-weight:600; }
+
+  .section-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:20px; margin:34px 0 4px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-num{
+    width:26px; height:26px; border-radius:50%; background: var(--blue); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0;
+  }
+
+  .info-box{
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    padding:18px 20px; margin-top:12px;
+  }
+  .boss-sprite-row{ display:flex; justify-content:center; margin-bottom:12px; }
+  .boss-sprite{ width:90px; height:90px; object-fit:contain; }
+  .type-icon-row{ display:flex; gap:8px; margin-bottom:16px; justify-content:center; }
+  .type-icon-wrap{
+    display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; color:#fff;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
+  }
+  .stat-row{ display:flex; gap:10px; margin-bottom:16px; }
+  .stat-cell{ flex:1; background: var(--accent-soft); border-radius:10px; padding:10px 8px; text-align:center; }
+  .stat-label{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; }
+  .stat-value{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; color: var(--blue-dark); margin-top:2px; }
+  .movepool-label{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10.5px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; }
+  .movepool-row{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .move-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:600; color: var(--text);
+    background: var(--accent-soft); padding:5px 11px 5px 8px; border-radius:8px;
+  }
+  .move-chip.charge{ background:#fdeee0; }
+  .move-type-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  .weather-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .weather-chip{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12px;
+    background: var(--accent-soft); color: var(--blue-dark); padding:8px 16px; border-radius:999px;
+    border:1.5px solid var(--blue);
+  }
+
+  .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .route-btn{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12px;
+    background: var(--card); color: var(--text-dim); border:1.5px solid var(--border);
+    padding:9px 14px; border-radius:999px; cursor:pointer;
+  }
+  .route-btn.active{ background: var(--blue); color:#fff; border-color: var(--blue); }
+
+  .strategy-block{ margin:14px 0; }
+  .strategy-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin-bottom:4px; }
+  .battle-party{ background: var(--accent-soft); border-radius:12px; padding:12px 14px; margin-top:10px; }
+  .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
+  .battle-mon{ display:flex; align-items:center; gap:10px; padding:5px 0; font-size:12.5px; }
+  .battle-mon-icon{ width:36px; height:36px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; }
+  .battle-mon-meta{ color: var(--text-dim); font-size:11px; }
+  .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
+  .strategy-tags{ display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+  .strategy-tag{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
+    background: var(--accent-soft); padding:2px 9px; border-radius:999px;
+  }
+  .strategy-text{ font-size:14px; color: var(--text); line-height:1.75; margin:0 0 6px; }
+  .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; }
+  .strategy-credit{ font-size:11px; color: var(--text-dim); margin-top:4px; }
+
+  .load-state{ text-align:center; color: var(--text-dim); font-size:13px; padding:30px 0; }
+  .load-error{ text-align:center; color:#c62828; font-size:13px; padding:20px; background:#fff0f0; border-radius:10px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="guide-header">
+    <div class="guide-eyebrow">Boss Guide</div>
+    <h1 class="guide-title">How to Solo Lunala</h1>
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">On this page</div>
+    <a href="#info">Boss Info</a>
+    <a href="#weather">Weather Presets</a>
+    <a href="#strategy">Strategy</a>
+  </div>
+
+  <!-- ============ 1. BOSS INFO (static - species data, not volunteer content) ============ -->
+  <h2 class="section-title" id="info"><span class="section-num">1</span>Boss Info</h2>
+  <div class="info-box">
+    <div class="boss-sprite-row">
+      <img class="boss-sprite" src="https://db.pokemongohub.net/images/official/full/792.webp" alt="Lunala" onerror="this.style.display='none'">
+    </div>
+    <div class="type-icon-row">
+      <span class="type-icon-wrap" style="background:#E0426E;">Psychic</span>
+      <span class="type-icon-wrap" style="background:#5B4B8A;">Ghost</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="stat-label">ATK</div><div class="stat-value">213.3</div></div>
+      <div class="stat-cell"><div class="stat-label">DEF</div><div class="stat-value">162.7</div></div>
+      <div class="stat-cell"><div class="stat-label">HP</div><div class="stat-value">15,000</div></div>
+    </div>
+    <div class="movepool-label">Fast Moves</div>
+    <div class="movepool-row" id="fast-move-row"></div>
+    <div class="movepool-label">Charge Moves</div>
+    <div class="movepool-row" id="charge-move-row"></div>
+  </div>
+
+  <!-- ============ 2. WEATHER PRESETS (derived from loaded strategies) ============ -->
+  <h2 class="section-title" id="weather"><span class="section-num">2</span>Weather Preset(s)</h2>
+  <div class="weather-row" id="weather-row">
+    <span class="load-state">Loading...</span>
+  </div>
+
+  <!-- ============ 3. STRATEGY (route selector + the selected route's content) ============ -->
+  <h2 class="section-title" id="strategy"><span class="section-num">3</span>Strategy</h2>
+  <div class="route-row" id="route-row"></div>
+  <div id="strategy-list">
+    <div class="load-state">Loading strategies...</div>
+  </div>
+
+</div>
+
+<script>
+const MOVE_TYPES = {
+  "Confusion": {type:"Psychic", color:"#E0426E"},
+  "Air Slash": {type:"Flying", color:"#8B93E0"},
+  "Shadow Claw": {type:"Ghost", color:"#5B4B8A"},
+  "Shadow Ball": {type:"Ghost", color:"#5B4B8A"},
+  "Psychic": {type:"Psychic", color:"#E0426E"},
+  "Moonblast": {type:"Fairy", color:"#E091C9"},
+  "Future Sight": {type:"Psychic", color:"#E0426E"},
+};
+function moveChipHtml(name, isCharge){
+  const info = MOVE_TYPES[name];
+  const dot = info ? `<span class="move-type-dot" style="background:${info.color};" title="${info.type}"></span>` : "";
+  return `<span class="move-chip${isCharge ? " charge" : ""}">${dot}${name}</span>`;
+}
+document.getElementById('fast-move-row').innerHTML = ["Confusion","Air Slash","Shadow Claw"].map(m => moveChipHtml(m, false)).join('');
+document.getElementById('charge-move-row').innerHTML = ["Shadow Ball","Psychic","Moonblast","Future Sight"].map(m => moveChipHtml(m, true)).join('');
+
+// ============ SPRITE RESOLUTION (ported faithfully from the tier archive pages) ============
+// This is the same lookup chain used everywhere else on the site - special-case name mappings,
+// shadow-form CDN routing, local sprite files, and a GitHub-hosted animated GIF fallback. Kept
+// identical here rather than reinvented so a Pokemon that resolves correctly on e.g. tier5-raids
+// resolves the same way here.
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zacian hero":"zacian-hero", "zamazenta hero":"zamazenta-hero", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "mega heracross":"heracross-mega", "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
+const DEX_MAP = {
+  "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "dialga":483, "groudon":383, "mamoswine":473,
+  "salamence":373, "gengar":94, "tyrantrum":697, "rhyperior":464,
+  "kyogre":382, "mewtwo":150, "excadrill":530, "blaziken":257,
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
+}
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega skarmory": "https://db.pokemongohub.net/images/official/full/227_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+const ANI_OVERRIDES = {
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent",
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+const ANI_URL_OVERRIDES = {
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "slowbro-mega", "solgaleo", "stakataka", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+function monSpriteUrl(name){
+  const key = name.trim().toLowerCase();
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
+  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
+  }
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
+  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
+
+function routeLabel(s){
+  const parts = [s.difficulty, s.weather];
+  if(s.adventureEffect && s.adventureEffect !== "None") parts.push(s.adventureEffect);
+  return parts.join(" \u00b7 ");
+}
+
+function strategyBlockHtml(s){
+  return `
+    <div class="strategy-block">
+      ${s.strategyName ? `<div class="strategy-name">${escapeHtml(s.strategyName)}</div>` : ""}
+      <div class="strategy-tags">
+        <span class="strategy-tag">${escapeHtml(s.difficulty)}</span>
+        <span class="strategy-tag">${escapeHtml(s.weather)}</span>
+        ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${escapeHtml(s.adventureEffect)}</span>` : ""}
+      </div>
+      <p class="strategy-text">${escapeHtml(s.text)}</p>
+      ${s.vod ? `<a class="strategy-vod" href="${escapeAttr(s.vod)}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
+      ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
+        <div class="battle-party">
+          <div class="battle-party-label">${escapeHtml(p.label)}</div>
+          ${p.mons.map(m => `
+            <div class="battle-mon">
+              <div class="battle-mon-icon"><img src="${monSpriteUrl(m.name)}" alt="${escapeAttr(m.name)}" title="${escapeAttr(m.name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>
+              <div>
+                ${m.level ? `<div class="battle-mon-level">Lv ${escapeHtml(m.level)}</div>` : ""}
+                ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).map(escapeHtml).join(' / ')}</div>` : ""}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('') : ""}
+      ${s.submittedBy ? `<div class="strategy-credit">Submitted by ${escapeHtml(s.submittedBy)}</div>` : ""}
+    </div>
+  `;
+}
+
+let loadedStrategies = [];
+function selectRoute(index){
+  document.querySelectorAll('.route-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+  document.getElementById('strategy-list').innerHTML = strategyBlockHtml(loadedStrategies[index]);
+}
+
+async function loadGuide(){
+  const weatherRow = document.getElementById('weather-row');
+  const routeRow = document.getElementById('route-row');
+  const strategyList = document.getElementById('strategy-list');
+
+  try{
+    const res = await fetch('data/guides/lunala.json');
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if(!data.strategies || data.strategies.length === 0){
+      strategyList.innerHTML = '<div class="load-state">No strategies documented yet.</div>';
+      weatherRow.innerHTML = '<span class="load-state">No data yet.</span>';
+      return;
+    }
+    loadedStrategies = data.strategies;
+
+    const weathers = [...new Set(data.strategies.map(s => s.weather))];
+    weatherRow.innerHTML = weathers.map(w => `<span class="weather-chip">${escapeHtml(w)}</span>`).join('');
+
+    routeRow.innerHTML = data.strategies.map((s, i) =>
+      `<button type="button" class="route-btn" onclick="selectRoute(${i})">${escapeHtml(routeLabel(s))}</button>`
+    ).join('');
+    selectRoute(0);
+  }catch(e){
+    strategyList.innerHTML = `<div class="load-error">Couldn't load strategy data: ${escapeHtml(e.message)}</div>`;
+    weatherRow.innerHTML = '';
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? "" : String(str);
+  return div.innerHTML;
+}
+function escapeAttr(str){
+  return escapeHtml(str).replace(/"/g, "&quot;");
+}
+
+loadGuide();
+</script>
+</body>
+</html>
