@@ -79,7 +79,18 @@
     <div class="editor-title">Add a strategy</div>
     <div class="editor-subtitle">Changes appear live on the right as you type</div>
 
-    <div class="existing-note">This boss already has 1 documented strategy. New entries are added alongside it on the same page - not a separate page.</div>
+    <div class="existing-note" id="mode-note">New strategies are added to this boss's guide page - not a separate page.</div>
+
+    <div class="field-group">
+      <label class="field-label">Boss</label>
+      <select id="f-boss">
+        <option value="" disabled selected>Loading bosses...</option>
+      </select>
+    </div>
+    <div class="field-group" id="new-boss-row" style="display:none;">
+      <label class="field-label">New boss name</label>
+      <input type="text" id="f-boss-new" placeholder="e.g. Xerneas">
+    </div>
 
     <div class="field-row">
       <div class="field-group">
@@ -125,26 +136,17 @@
       <input type="text" id="f-name" placeholder="Spiritedbloom">
     </div>
 
-    <button class="add-btn" id="submit-btn" onclick="addStrategy()">Submit for review</button>
+    <button class="add-btn" id="submit-btn" onclick="addStrategy()" disabled>Submit for review</button>
     <div id="submit-status" style="font-size:12px; margin-top:10px; line-height:1.5;"></div>
   </div>
 
   <div class="preview-panel">
     <div class="preview-inner">
       <div class="preview-label">Live preview</div>
-      <h1 class="guide-title">How to Solo Lunala</h1>
+      <h1 class="guide-title" id="preview-title">Select a boss to begin</h1>
 
       <div class="section-title"><span class="section-num">3</span>Strategy</div>
-      <div id="strategy-list">
-        <div class="strategy-block">
-          <div class="strategy-tags">
-            <span class="strategy-tag">3&#9733;</span>
-            <span class="strategy-tag">Extreme</span>
-          </div>
-          <p class="strategy-text">Necrozma Dawn Wings (Shadow Claw / Moongeist Beam) leads as Main DPS, backed by three more copies of the same Pok&eacute;mon as Support DPS. No swapping or Catch Tank role is needed at this difficulty - each copy simply fights until it faints and the next one takes over.</p>
-          <a class="strategy-vod" href="#">Watch VOD &rarr;</a>
-        </div>
-      </div>
+      <div id="strategy-list"></div>
 
       <div class="strategy-block" id="live-preview-block">
         <div class="strategy-tags">
@@ -160,11 +162,82 @@
 </div>
 
 <script>
+const bossEl = document.getElementById('f-boss');
+const newBossRow = document.getElementById('new-boss-row');
+const newBossEl = document.getElementById('f-boss-new');
 const weatherEl = document.getElementById('f-weather');
 const diffEl = document.getElementById('f-difficulty');
 const aeEl = document.getElementById('f-ae');
 const textEl = document.getElementById('f-text');
 const vodEl = document.getElementById('f-vod');
+const submitBtn = document.getElementById('submit-btn');
+
+function slugify(name){
+  return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function currentBossName(){
+  if(bossEl.value === "__new__") return newBossEl.value.trim();
+  return bossEl.value;
+}
+
+// ---- load the boss index, populate the dropdown ----
+async function loadBossIndex(){
+  try{
+    const res = await fetch('data/guides/index.json');
+    const data = res.ok ? await res.json() : { bosses: [] };
+    bossEl.innerHTML =
+      `<option value="" disabled selected>Choose a boss...</option>` +
+      data.bosses.map(b => `<option value="${b.name}">${b.name}</option>`).join('') +
+      `<option value="__new__">+ Add a new boss</option>`;
+  }catch(e){
+    bossEl.innerHTML = `<option value="__new__" selected>+ Add a new boss</option>`;
+  }
+}
+
+// ---- when the boss selection changes, load that boss's existing guide (if any) ----
+async function onBossChange(){
+  const strategyList = document.getElementById('strategy-list');
+  const title = document.getElementById('preview-title');
+
+  if(bossEl.value === "__new__"){
+    newBossRow.style.display = "block";
+    strategyList.innerHTML = "";
+    title.textContent = "New guide";
+    submitBtn.disabled = true;
+    return;
+  }
+  newBossRow.style.display = "none";
+
+  const boss = bossEl.value;
+  title.textContent = `How to Solo ${boss}`;
+  strategyList.innerHTML = `<div class="strategy-text placeholder">Loading existing strategies...</div>`;
+  submitBtn.disabled = false;
+
+  try{
+    const res = await fetch(`data/guides/${slugify(boss)}.json`);
+    if(!res.ok) throw new Error("not found");
+    const data = await res.json();
+    strategyList.innerHTML = (data.strategies || []).map(s => `
+      <div class="strategy-block">
+        <div class="strategy-tags">
+          <span class="strategy-tag">${s.difficulty}</span>
+          <span class="strategy-tag">${s.weather}</span>
+        </div>
+        <p class="strategy-text">${s.text}</p>
+        ${s.vod ? `<a class="strategy-vod" href="${s.vod}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
+      </div>
+    `).join('') || `<div class="strategy-text placeholder">No strategies documented yet - yours would be the first.</div>`;
+  }catch(e){
+    strategyList.innerHTML = `<div class="strategy-text placeholder">No strategies documented yet - yours would be the first.</div>`;
+  }
+}
+bossEl.addEventListener('change', onBossChange);
+newBossEl.addEventListener('input', () => {
+  document.getElementById('preview-title').textContent = newBossEl.value.trim()
+    ? `How to Solo ${newBossEl.value.trim()}` : "New guide";
+  submitBtn.disabled = !newBossEl.value.trim();
+});
 
 function syncPreview(){
   document.getElementById('p-weather').textContent = weatherEl.value;
@@ -192,17 +265,18 @@ function syncPreview(){
 const WORKER_URL = "https://guide-submissions.solo-raid-archive.workers.dev";
 
 async function addStrategy(){
+  const boss = currentBossName();
+  if(!boss){ alert('Choose or enter a boss first.'); return; }
   if(!textEl.value.trim()){ alert('Add strategy text first.'); return; }
-  const btn = document.getElementById('submit-btn');
   const status = document.getElementById('submit-status');
   const nameEl = document.getElementById('f-name');
 
-  btn.disabled = true;
-  btn.textContent = "Submitting...";
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Submitting...";
   status.textContent = "";
 
   const payload = {
-    boss: "Lunala",
+    boss: boss,
     weather: weatherEl.value,
     adventureEffect: aeEl.value,
     difficulty: diffEl.value,
@@ -223,7 +297,6 @@ async function addStrategy(){
     status.innerHTML = `Submitted! <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--blue-dark); font-weight:700;">View the pull request &rarr;</a><br>A maintainer will review it before it goes live.`;
     status.style.color = "#1f9d5c";
 
-    // reflect it in the local preview too, so the volunteer sees what they just sent
     const block = document.createElement('div');
     block.className = 'strategy-block';
     block.innerHTML = `
@@ -242,11 +315,13 @@ async function addStrategy(){
     status.textContent = `Couldn't submit: ${e.message}`;
     status.style.color = "#c62828";
   }finally{
-    btn.disabled = false;
-    btn.textContent = "Submit for review";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Submit for review";
   }
 }
+
 syncPreview();
+loadBossIndex();
 </script>
 
 </body>
