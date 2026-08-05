@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>How to Solo Lunala — Solo Raid Archive</title>
-<link rel="icon" href="../assets/icons/favicon.ico">
+<link rel="icon" href="../../assets/icons/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -149,6 +149,13 @@
     background: var(--accent-soft); padding:2px 9px; border-radius:999px;
   }
   .strategy-text{ font-size:14px; color: var(--text); line-height:1.75; margin:0 0 6px; }
+  .strategy-text p{ margin:0 0 8px; }
+  .strategy-text h2{ font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:14px 0 6px; }
+  .strategy-text h3{ font-family:'Manrope', sans-serif; font-weight:700; font-size:15px; margin:12px 0 5px; }
+  .strategy-text blockquote{ margin:8px 0; padding:6px 12px; border-left:3px solid var(--blue); color: var(--text-dim); }
+  .strategy-text ol, .strategy-text ul{ margin:4px 0 8px; padding-left:22px; }
+  .strategy-text img{ max-width:100%; border-radius:8px; margin:6px 0; }
+  .strategy-text strong{ font-weight:800; }
   .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; }
   .strategy-credit{ font-size:11px; color: var(--text-dim); margin-top:4px; }
 
@@ -166,25 +173,25 @@
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
-    <a href="../index.html"><img src="../assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+    <a href="../../index.html"><img src="../../assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
-    <a href="../research.html" class="hamburger-featured">Most Used Raiders</a>
-    <a href="../ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
-    <a href="../solo-raid-mechanics.html" class="hamburger-featured">Solo Raid Mechanics</a>
-    <a href="../meta-battle-parties.html">Meta Battle Parties</a>
-    <a href="../ct-calculator.html">Catch Tank Calculator</a>
-    <a href="../move-data.html">Move Data</a>
-    <a href="../pokemon-stats.html">Pokémon Stats</a>
-    <a href="../reference.html">Difficulty &amp; Role Reference</a>
+    <a href="../../research.html" class="hamburger-featured">Most Used Raiders</a>
+    <a href="../../ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+    <a href="../../solo-raid-mechanics.html" class="hamburger-featured">Solo Raid Mechanics</a>
+    <a href="../../meta-battle-parties.html">Meta Battle Parties</a>
+    <a href="../../ct-calculator.html">Catch Tank Calculator</a>
+    <a href="../../move-data.html">Move Data</a>
+    <a href="../../pokemon-stats.html">Pokémon Stats</a>
+    <a href="../../reference.html">Difficulty &amp; Role Reference</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Raid Archives</div>
-    <a href="../tier4-raids.html">Mega</a>
-    <a href="../tier5-raids.html">Legendary</a>
-    <a href="../tier5-ae-raids.html">Legendary AE</a>
-    <a href="../tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+    <a href="../../tier4-raids.html">Mega</a>
+    <a href="../../tier5-raids.html">Legendary</a>
+    <a href="../../tier5-ae-raids.html">Legendary AE</a>
+    <a href="../../tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Resources</div>
@@ -261,7 +268,7 @@ document.getElementById('charge-move-row').innerHTML = ["Shadow Ball","Psychic",
 
 function monSpriteUrl(name){
   const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  return `../assets/sprites/${slug}.gif`;
+  return `../../assets/sprites/${slug}.gif`;
 }
 
 function routeLabel(s){
@@ -279,7 +286,7 @@ function strategyBlockHtml(s){
         <span class="strategy-tag">${escapeHtml(s.weather)}</span>
         ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${escapeHtml(s.adventureEffect)}</span>` : ""}
       </div>
-      <p class="strategy-text">${escapeHtml(s.text)}</p>
+      <div class="strategy-text">${s.text}</div>
       ${s.vod ? `<a class="strategy-vod" href="${escapeAttr(s.vod)}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
@@ -311,7 +318,7 @@ async function loadGuide(){
   const strategyDisplay = document.getElementById('strategy-display');
 
   try{
-    const res = await fetch('../data/guides/lunala.json', { cache: "no-store" });
+    const res = await fetch('lunala.json', { cache: "no-store" });
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
 
