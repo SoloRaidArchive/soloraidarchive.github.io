@@ -1,7 +1,54 @@
 {
   "boss": "Lunala",
-  "types": ["Psychic", "Ghost"],
+  "types": [
+    "Psychic",
+    "Ghost"
+  ],
   "strategies": [
-   
+    {
+      "strategyName": "Necrozma Dawn Wings Hotswap (TTW: 275-285s)",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "3★",
+      "text": "On each Necrozma Dawn Wings (NDW) cast shadow claw and aim for 2-3 Moongeist Beams. If the active NDW is too low hp to build another Moongeist Beam, switch to the next one. If Lunala is casting Shadow Ball, dodge each shadow ball. Moongeist Beam and Shadow Ball both share identical animation durations (3.0s). If you're at risk of Shadow Ball occurring at the same time, pre-dodging can help protect the Moongeist beam cast.",
+      "vod": "https://www.youtube.com/watch?v=ssD-yUQGrLg",
+      "submittedBy": "Spiritedbloom",
+      "battleParties": [
+        {
+          "label": "Battle Party (2-3 Rejoins)",
+          "mons": [
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "~40",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": ""
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "~40",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": ""
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "~40",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": ""
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "~40",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": ""
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-05T21:06:23.137Z"
+    }
   ]
 }
