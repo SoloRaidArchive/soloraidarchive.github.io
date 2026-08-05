@@ -1644,7 +1644,7 @@ async function injectGuideLinks(){
     document.querySelectorAll(".guide-link-slot").forEach(slot => {
       const slug = guideByBoss.get(slot.dataset.boss);
       if(!slug) return;
-      slot.innerHTML = `<a class="see-guide-link" href="${slug}.html">📖 See guide</a>`;
+      slot.innerHTML = `<a class="see-guide-link" href="guides/${slug}.html">📖 See guide</a>`;
     });
   }catch(e){ /* no guides yet, or index unreachable - cards render fine without the link */ }
 }

@@ -586,7 +586,7 @@ async function buildBossSearchIndex(){
         BOSS_SEARCH_INDEX.push({
           boss: b.name,
           slug: b.slug,
-          archive: `${b.slug}.html`,
+          archive: `guides/${b.slug}.html`,
           label: "Guide",
           isGuide: true,
         });
@@ -651,7 +651,7 @@ async function renderGuidesSection(){
     if(bosses.length === 0) return;
 
     row.innerHTML = bosses.map(b => `
-      <a class="archive-pill" href="${b.slug}.html">
+      <a class="archive-pill" href="guides/${b.slug}.html">
         <div class="archive-pill-icon">📖</div>
         <span class="archive-pill-label">${b.name}</span>
       </a>
