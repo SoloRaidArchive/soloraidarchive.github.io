@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<title>Guide Editor</title>
 <style>
   :root{
     --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
@@ -13,11 +14,7 @@
   body{ font-family:'Inter', sans-serif; margin:0; padding:0; background:#f0f0f2; color: var(--text); }
 
   .editor-shell{ display:flex; height:100vh; }
-
-  .editor-panel{
-    width:400px; flex-shrink:0; background:#fff; border-right:2px solid var(--border);
-    padding:20px; overflow-y:auto;
-  }
+  .editor-panel{ width:420px; flex-shrink:0; background:#fff; border-right:2px solid var(--border); padding:20px; overflow-y:auto; }
   .editor-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin-bottom:2px; }
   .editor-subtitle{ font-size:12px; color: var(--text-dim); margin-bottom:18px; }
   .field-group{ margin-bottom:16px; }
@@ -28,7 +25,7 @@
     width:100%; font-family:'Inter', sans-serif; font-size:13.5px; padding:9px 10px;
     border:1.5px solid var(--border); border-radius:8px; color: var(--text); background:#fff;
   }
-  textarea{ resize:vertical; min-height:90px; line-height:1.5; }
+  textarea{ resize:vertical; min-height:70px; line-height:1.5; }
   input:focus, select:focus, textarea:focus{ outline:none; border-color: var(--blue); }
   .field-hint{ font-size:10.5px; color: var(--text-dim); margin-top:3px; }
   .add-btn{
@@ -36,38 +33,64 @@
     border-radius:9px; font-family:'Manrope', sans-serif; font-weight:700; font-size:13.5px; cursor:pointer;
   }
   .add-btn:hover{ background: var(--blue-dark); }
+  .add-btn:disabled{ background:#c9d3e0; cursor:not-allowed; }
   .existing-note{
     background:#fff8e6; border:1.5px solid #ffdb8a; border-radius:10px; padding:10px 12px;
     font-size:11.5px; color:#8a6a1a; margin-bottom:16px; line-height:1.5;
   }
+  hr.section-divider{ border:none; border-top:1.5px solid var(--border); margin:20px 0; }
+
+  .party-card{ border:1.5px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; background:#fafbfc; }
+  .party-card-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .party-card-head input{ flex:1; }
+  .party-remove-btn{ background:none; border:none; color:#c62828; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0; }
+  .mon-block{ margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .mon-block:last-child{ border-bottom:none; margin-bottom:0; }
+  .mon-row{ display:flex; gap:6px; margin-bottom:6px; align-items:center; }
+  .mon-row:last-child{ margin-bottom:0; }
+  .mon-row input{ font-size:12px; padding:7px 8px; }
+  .mon-row .mon-name{ flex:2; }
+  .mon-row .mon-level{ flex:0.7; }
+  .mon-moves-row .mon-fm, .mon-moves-row .mon-cm, .mon-moves-row .mon-cm2{ flex:1; }
+  .mon-remove-btn{ background:none; border:none; color:#b0b0b8; font-size:14px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
+  .mon-remove-btn:hover{ color:#c62828; }
+  .add-mon-btn{
+    width:100%; padding:7px; background:#fff; border:1.5px dashed var(--border); border-radius:7px;
+    font-family:'Inter', sans-serif; font-weight:600; font-size:11.5px; color: var(--blue-dark); cursor:pointer; margin-top:2px;
+  }
+  .add-mon-btn:hover{ border-color: var(--blue); }
+  .add-party-btn{
+    width:100%; padding:10px; background:#fff; border:1.5px dashed var(--blue); border-radius:9px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px; color: var(--blue-dark); cursor:pointer;
+  }
+  .add-party-btn:hover{ background: var(--accent-soft); }
 
   .preview-panel{ flex:1; overflow-y:auto; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); }
-  .preview-inner{ max-width:640px; margin:0 auto; padding:28px 24px 60px; }
-  .preview-label{
-    text-align:center; font-family:'Manrope', sans-serif; font-weight:800; font-size:10px; color: var(--blue-dark);
-    text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px;
+  .preview-inner{ max-width:640px; margin:0 auto; padding:24px 24px 60px; }
+  .preview-context{
+    display:flex; align-items:center; gap:8px; justify-content:center; margin-bottom:20px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px; color: var(--blue-dark);
+    background: var(--card); border:1.5px solid var(--border); border-radius:999px; padding:8px 16px; width:fit-content; margin-left:auto; margin-right:auto;
   }
-  .guide-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:26px; margin:0 0 20px; text-align:center; }
-  .section-title{
-    font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:26px 0 4px;
-    display:flex; align-items:center; gap:8px;
-  }
-  .section-num{
-    width:22px; height:22px; border-radius:50%; background: var(--blue); color:#fff;
-    display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0;
-  }
-  .strategy-block{ margin:12px 0; padding-bottom:12px; border-bottom:1px solid var(--border); }
-  .strategy-block:last-child{ border-bottom:none; }
-  .strategy-tags{ display:flex; gap:6px; margin-bottom:6px; }
-  .strategy-tag{
-    font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
-    background: var(--accent-soft); padding:2px 8px; border-radius:999px;
-  }
+  .section-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:22px 0 4px; display:flex; align-items:center; gap:8px; }
+  .section-num{ width:22px; height:22px; border-radius:50%; background: var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
+  .strategy-block{ margin:12px 0; padding-bottom:14px; border-bottom:1px solid var(--border); }
+  .strategy-name-preview{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; margin-bottom:4px; }
+  .strategy-tags{ display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+  .strategy-tag{ font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark); background: var(--accent-soft); padding:2px 8px; border-radius:999px; }
   .strategy-text{ font-size:13.5px; color: var(--text); line-height:1.7; }
   .strategy-text.placeholder{ color: var(--text-dim); font-style:italic; }
-  .strategy-vod{ display:inline-block; margin-top:6px; font-size:12px; font-weight:700; color: var(--blue-dark); text-decoration:none; }
+  .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; margin-top:4px; }
+
+  .preview-party{ background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px; }
+  .preview-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
+  .preview-mon{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px; }
+  .preview-mon-icon{ width:26px; height:26px; border-radius:50%; background: var(--accent-soft); flex-shrink:0; }
+  .preview-mon-name{ font-weight:700; }
+  .preview-mon-meta{ color: var(--text-dim); font-size:11px; }
+
   .new-badge{
-    display:inline-block; font-size:9px; font-weight:800; color:#1f9d5c; background:#e5f9ee;
+    display:inline-block; font-size:9px; font-weight:800; color:#b8860b; background:#fff3d2;
     padding:2px 7px; border-radius:999px; margin-left:6px; text-transform:uppercase; letter-spacing:0.03em;
   }
 </style>
@@ -79,7 +102,7 @@
     <div class="editor-title">Add a strategy</div>
     <div class="editor-subtitle">Changes appear live on the right as you type</div>
 
-    <div class="existing-note" id="mode-note">New strategies are added to this boss's guide page - not a separate page.</div>
+    <div class="existing-note">New strategies are added to this boss's guide page - not a separate page.</div>
 
     <div class="field-group">
       <label class="field-label">Boss</label>
@@ -90,6 +113,11 @@
     <div class="field-group" id="new-boss-row" style="display:none;">
       <label class="field-label">New boss name</label>
       <input type="text" id="f-boss-new" placeholder="e.g. Xerneas">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Strategy name</label>
+      <input type="text" id="f-strategy-name" placeholder="e.g. Ground Duo">
     </div>
 
     <div class="field-row">
@@ -126,14 +154,16 @@
     </div>
 
     <div class="field-group">
-      <label class="field-label">Preset image</label>
-      <input type="text" id="f-image" placeholder="(image upload goes here)">
-      <div class="field-hint">Real version: file upload, shown inline once attached</div>
-    </div>
-
-    <div class="field-group">
       <label class="field-label">Your name (credit)</label>
       <input type="text" id="f-name" placeholder="Spiritedbloom">
+    </div>
+
+    <hr class="section-divider">
+
+    <div class="field-group">
+      <label class="field-label">Battle Parties</label>
+      <div id="parties-list"></div>
+      <button type="button" class="add-party-btn" onclick="addParty()">+ Add Battle Party</button>
     </div>
 
     <button class="add-btn" id="submit-btn" onclick="addStrategy()" disabled>Submit for review</button>
@@ -142,20 +172,20 @@
 
   <div class="preview-panel">
     <div class="preview-inner">
-      <div class="preview-label">Live preview</div>
-      <h1 class="guide-title" id="preview-title">Select a boss to begin</h1>
+      <div class="preview-context">📖 Guide: <span id="p-boss">Select a boss</span></div>
 
       <div class="section-title"><span class="section-num">3</span>Strategy</div>
       <div id="strategy-list"></div>
 
       <div class="strategy-block" id="live-preview-block">
+        <div class="strategy-name-preview" id="p-strategy-name" style="display:none;"></div>
         <div class="strategy-tags">
           <span class="strategy-tag" id="p-difficulty">3&#9733;</span>
           <span class="strategy-tag" id="p-weather">Extreme</span>
-          <span class="new-badge">Editing</span>
+          <span class="strategy-tag" id="p-ae" style="display:none;"></span>
         </div>
         <p class="strategy-text placeholder" id="p-text">Start typing to see your strategy appear here...</p>
-        <a class="strategy-vod" id="p-vod" href="#" style="display:none;">Watch VOD &rarr;</a>
+        <div id="p-parties"></div>
       </div>
     </div>
   </div>
@@ -165,9 +195,10 @@
 const bossEl = document.getElementById('f-boss');
 const newBossRow = document.getElementById('new-boss-row');
 const newBossEl = document.getElementById('f-boss-new');
+const nameFieldEl = document.getElementById('f-strategy-name');
 const weatherEl = document.getElementById('f-weather');
-const diffEl = document.getElementById('f-difficulty');
 const aeEl = document.getElementById('f-ae');
+const diffEl = document.getElementById('f-difficulty');
 const textEl = document.getElementById('f-text');
 const vodEl = document.getElementById('f-vod');
 const submitBtn = document.getElementById('submit-btn');
@@ -175,13 +206,11 @@ const submitBtn = document.getElementById('submit-btn');
 function slugify(name){
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
-
 function currentBossName(){
   if(bossEl.value === "__new__") return newBossEl.value.trim();
   return bossEl.value;
 }
 
-// ---- load the boss index, populate the dropdown ----
 async function loadBossIndex(){
   try{
     const res = await fetch('data/guides/index.json');
@@ -194,23 +223,20 @@ async function loadBossIndex(){
     bossEl.innerHTML = `<option value="__new__" selected>+ Add a new boss</option>`;
   }
 }
-
-// ---- when the boss selection changes, load that boss's existing guide (if any) ----
 async function onBossChange(){
   const strategyList = document.getElementById('strategy-list');
-  const title = document.getElementById('preview-title');
+  const pBoss = document.getElementById('p-boss');
 
   if(bossEl.value === "__new__"){
     newBossRow.style.display = "block";
     strategyList.innerHTML = "";
-    title.textContent = "New guide";
+    pBoss.textContent = "(new boss)";
     submitBtn.disabled = true;
     return;
   }
   newBossRow.style.display = "none";
-
   const boss = bossEl.value;
-  title.textContent = `How to Solo ${boss}`;
+  pBoss.textContent = boss;
   strategyList.innerHTML = `<div class="strategy-text placeholder">Loading existing strategies...</div>`;
   submitBtn.disabled = false;
 
@@ -220,9 +246,11 @@ async function onBossChange(){
     const data = await res.json();
     strategyList.innerHTML = (data.strategies || []).map(s => `
       <div class="strategy-block">
+        ${s.strategyName ? `<div class="strategy-name-preview">${s.strategyName}</div>` : ""}
         <div class="strategy-tags">
           <span class="strategy-tag">${s.difficulty}</span>
           <span class="strategy-tag">${s.weather}</span>
+          ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${s.adventureEffect}</span>` : ""}
         </div>
         <p class="strategy-text">${s.text}</p>
         ${s.vod ? `<a class="strategy-vod" href="${s.vod}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
@@ -234,33 +262,100 @@ async function onBossChange(){
 }
 bossEl.addEventListener('change', onBossChange);
 newBossEl.addEventListener('input', () => {
-  document.getElementById('preview-title').textContent = newBossEl.value.trim()
-    ? `How to Solo ${newBossEl.value.trim()}` : "New guide";
+  document.getElementById('p-boss').textContent = newBossEl.value.trim() || "(new boss)";
   submitBtn.disabled = !newBossEl.value.trim();
 });
+
+let partyCounter = 0;
+function addParty(){
+  partyCounter++;
+  const id = partyCounter;
+  const el = document.createElement('div');
+  el.className = 'party-card';
+  el.dataset.partyId = id;
+  el.innerHTML = `
+    <div class="party-card-head">
+      <input type="text" class="party-label" placeholder="Lobby / party label (e.g. Lobby 1, Windy Only)">
+      <button type="button" class="party-remove-btn" onclick="removeParty(${id})">&times;</button>
+    </div>
+    <div class="mon-list" id="mon-list-${id}"></div>
+    <button type="button" class="add-mon-btn" onclick="addMon(${id})">+ Add Pok&eacute;mon</button>
+  `;
+  document.getElementById('parties-list').appendChild(el);
+  addMon(id);
+  syncPreview();
+}
+function removeParty(id){
+  document.querySelector(`.party-card[data-party-id="${id}"]`)?.remove();
+  syncPreview();
+}
+function addMon(partyId){
+  const list = document.getElementById(`mon-list-${partyId}`);
+  const row = document.createElement('div');
+  row.className = 'mon-block';
+  row.innerHTML = `
+    <div class="mon-row">
+      <input type="text" class="mon-name" placeholder="Pok&eacute;mon">
+      <input type="text" class="mon-level" placeholder="Lv">
+      <button type="button" class="mon-remove-btn" onclick="this.closest('.mon-block').remove(); syncPreview();">&times;</button>
+    </div>
+    <div class="mon-row mon-moves-row">
+      <input type="text" class="mon-fm" placeholder="Fast move">
+      <input type="text" class="mon-cm" placeholder="Charge move 1">
+      <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)">
+    </div>
+  `;
+  list.appendChild(row);
+  row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', syncPreview));
+  syncPreview();
+}
+function collectParties(){
+  return Array.from(document.querySelectorAll('.party-card')).map(card => {
+    const label = card.querySelector('.party-label').value.trim() || "Unlabeled party";
+    const mons = Array.from(card.querySelectorAll('.mon-block')).map(block => ({
+      name: block.querySelector('.mon-name').value.trim(),
+      level: block.querySelector('.mon-level').value.trim(),
+      fm: block.querySelector('.mon-fm').value.trim(),
+      cm: block.querySelector('.mon-cm').value.trim(),
+      cm2: block.querySelector('.mon-cm2').value.trim(),
+    })).filter(m => m.name);
+    return { label, mons };
+  }).filter(p => p.mons.length > 0);
+}
 
 function syncPreview(){
   document.getElementById('p-weather').textContent = weatherEl.value;
   document.getElementById('p-difficulty').textContent = diffEl.value;
 
-  const pText = document.getElementById('p-text');
-  if(textEl.value.trim()){
-    pText.textContent = textEl.value;
-    pText.classList.remove('placeholder');
-  }else{
-    pText.textContent = "Start typing to see your strategy appear here...";
-    pText.classList.add('placeholder');
-  }
+  const aeTag = document.getElementById('p-ae');
+  if(aeEl.value !== "None"){ aeTag.textContent = aeEl.value; aeTag.style.display = "inline-block"; }
+  else{ aeTag.style.display = "none"; }
 
-  const pVod = document.getElementById('p-vod');
-  if(vodEl.value.trim()){
-    pVod.href = vodEl.value.trim();
-    pVod.style.display = 'inline-block';
-  }else{
-    pVod.style.display = 'none';
-  }
+  const nameEl = document.getElementById('p-strategy-name');
+  if(nameFieldEl.value.trim()){ nameEl.textContent = nameFieldEl.value.trim(); nameEl.style.display = 'block'; }
+  else{ nameEl.style.display = 'none'; }
+
+  const pText = document.getElementById('p-text');
+  if(textEl.value.trim()){ pText.textContent = textEl.value; pText.classList.remove('placeholder'); }
+  else{ pText.textContent = "Start typing to see your strategy appear here..."; pText.classList.add('placeholder'); }
+
+  const parties = collectParties();
+  document.getElementById('p-parties').innerHTML = parties.map(p => `
+    <div class="preview-party">
+      <div class="preview-party-label">${p.label}</div>
+      ${p.mons.map(m => `
+        <div class="preview-mon">
+          <div class="preview-mon-icon"></div>
+          <div>
+            <div class="preview-mon-name">${m.name}${m.level ? ` <span class="preview-mon-meta">Lv ${m.level}</span>` : ""}</div>
+            ${(m.fm || m.cm || m.cm2) ? `<div class="preview-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).join(' / ')}</div>` : ""}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
 }
-[weatherEl, diffEl, aeEl, textEl, vodEl].forEach(el => el.addEventListener('input', syncPreview));
+[weatherEl, aeEl, diffEl, textEl, vodEl, nameFieldEl].forEach(el => el.addEventListener('input', syncPreview));
 
 const WORKER_URL = "https://guide-submissions.solo-raid-archive.workers.dev";
 
@@ -277,12 +372,14 @@ async function addStrategy(){
 
   const payload = {
     boss: boss,
+    strategyName: nameFieldEl.value.trim(),
     weather: weatherEl.value,
     adventureEffect: aeEl.value,
     difficulty: diffEl.value,
     text: textEl.value.trim(),
     vod: vodEl.value.trim(),
     submittedBy: nameEl.value.trim() || "Anonymous",
+    battleParties: collectParties(),
   };
 
   try{
@@ -300,16 +397,16 @@ async function addStrategy(){
     const block = document.createElement('div');
     block.className = 'strategy-block';
     block.innerHTML = `
+      ${nameFieldEl.value.trim() ? `<div class="strategy-name-preview">${nameFieldEl.value.trim()} <span class="new-badge">Pending review</span></div>` : `<span class="new-badge">Pending review</span>`}
       <div class="strategy-tags">
         <span class="strategy-tag">${diffEl.value}</span>
         <span class="strategy-tag">${weatherEl.value}</span>
-        <span class="new-badge" style="background:#fff3d2; color:#b8860b;">Pending review</span>
       </div>
       <p class="strategy-text">${textEl.value.replace(/</g,"&lt;")}</p>
       ${vodEl.value.trim() ? `<a class="strategy-vod" href="${vodEl.value.trim()}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
     `;
     document.getElementById('strategy-list').appendChild(block);
-    textEl.value = ""; vodEl.value = "";
+    textEl.value = ""; vodEl.value = ""; nameFieldEl.value = "";
     syncPreview();
   }catch(e){
     status.textContent = `Couldn't submit: ${e.message}`;
