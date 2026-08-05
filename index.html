@@ -125,21 +125,6 @@
   .archive-pill-pct.done{ color:#1f9d5c; }
   [data-theme="dark"] .archive-pill-pct.done{ color:#5fe0a0; }
 
-  .guide-pill-row{ display:flex; flex-wrap:wrap; gap:8px; }
-  .guide-pill{
-    display:flex; align-items:center; gap:8px;
-    background: var(--card); border: 1.5px solid var(--border); border-radius: 999px;
-    padding: 7px 14px 7px 7px; text-decoration:none; color: var(--text);
-    font-family:'Manrope', sans-serif; font-weight:700; font-size:13px;
-    transition: transform .12s ease, border-color .12s ease;
-  }
-  .guide-pill:hover{ transform: translateY(-2px); border-color: var(--blue); }
-  .guide-pill-icon{
-    flex-shrink:0; width:26px; height:26px; border-radius:50%;
-    background: var(--accent-soft); display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
-  .guide-pill-icon img{ width:100%; height:100%; object-fit:contain; }
-
   .guide-pill-row{
     display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;
   }
@@ -149,7 +134,7 @@
   .guide-pill{
     display:flex; align-items:center; gap:8px; min-width:0;
     background: var(--card); border: 1.5px solid var(--border); border-radius: 999px;
-    padding: 8px 12px 8px 8px; text-decoration:none; color: var(--text);
+    padding: 16px 20px 16px 12px; text-decoration:none; color: var(--text);
     font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
     transition: transform .12s ease, border-color .12s ease;
   }
@@ -313,7 +298,7 @@
     display:flex; flex-wrap:wrap; gap:10px;
   }
   .popular-link{
-    flex: 1 1 130px; display:flex; align-items:center; justify-content:center; text-align:center;
+    flex: 1 1 105px; display:flex; align-items:center; justify-content:center; text-align:center;
     min-width:0; background: var(--card); border-radius:16px;
     padding: 14px 8px; text-decoration:none; color: var(--text);
     font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px; line-height:1.3;
@@ -459,7 +444,7 @@
   <div class="new-entries-archives-grid">
   <details class="live-boss-panel new-entries-panel" id="monthlyGuidesPanel" style="display:none;" open>
     <summary class="live-boss-summary">
-      <h2 class="patch-title" id="monthlyGuidesHeading" style="font-size:16px; margin-bottom:-4px; margin-top:4px;">Monthly Guides</h2>
+      <h2 class="patch-title" id="monthlyGuidesHeading" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Monthly Guides</h2>
     </summary>
     <div id="monthlyGuidesWrap"></div>
   </details>
@@ -657,7 +642,7 @@ async function buildSearchIndexAndCompletionStats(){
         BOSS_SEARCH_INDEX.push({
           boss: b.name,
           slug: b.slug,
-          archive: `guides/${b.slug}.html`,
+          archive: `data/guides/${b.slug}.html`,
           label: "Guide",
           isGuide: true,
         });
@@ -999,7 +984,7 @@ async function loadMonthlyGuides(){
     if(matched.length === 0) return;
 
     wrap.innerHTML = `<div class="guide-pill-row">${matched.map(boss => `
-      <a class="guide-pill" href="guides/${bossSlug(boss.name)}.html" title="${boss.name}">
+      <a class="guide-pill" href="data/guides/${bossSlug(boss.name)}.html" title="${boss.name}">
         <div class="guide-pill-icon"><img src="${spriteUrl(boss.name)}" alt="" loading="lazy" onerror="this.style.display='none'"></div>
         <span class="guide-pill-label">${boss.name}</span>
       </a>`).join("")}</div>`;
