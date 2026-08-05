@@ -125,6 +125,21 @@
   .archive-pill-pct.done{ color:#1f9d5c; }
   [data-theme="dark"] .archive-pill-pct.done{ color:#5fe0a0; }
 
+  .guide-pill-row{ display:flex; flex-wrap:wrap; gap:8px; }
+  .guide-pill{
+    display:flex; align-items:center; gap:8px;
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 999px;
+    padding: 7px 14px 7px 7px; text-decoration:none; color: var(--text);
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:13px;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .guide-pill:hover{ transform: translateY(-2px); border-color: var(--blue); }
+  .guide-pill-icon{
+    flex-shrink:0; width:26px; height:26px; border-radius:50%;
+    background: var(--accent-soft); display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .guide-pill-icon img{ width:100%; height:100%; object-fit:contain; }
+
   .guide-pill-row{
     display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;
   }
