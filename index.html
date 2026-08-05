@@ -345,6 +345,9 @@
   .boss-search-item-archive{
     font-size:10px; font-weight:700; color: var(--text-dim); flex-shrink:0;
   }
+  .boss-search-item-guide{
+    color: var(--blue-dark); background: var(--accent-soft, #eef2ff); padding:2px 8px; border-radius:999px;
+  }
   .boss-search-empty{
     font-size:12px; font-weight:600; color: var(--text-dim); text-align:center; padding:10px 0;
   }
@@ -454,6 +457,11 @@
       </a>
     </div>
 
+  </div>
+
+  <div class="archive-list" id="guidesSection" style="display:none;">
+  <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Guides</h2>
+    <div class="archive-pill-row" id="guidesPillRow"></div>
   </div>
   </div>
 
@@ -568,6 +576,23 @@ async function buildBossSearchIndex(){
     }catch(e){ /* one archive failing to load shouldn't block the others */ }
   }
   BOSS_SEARCH_INDEX.sort((a,b) => a.boss.localeCompare(b.boss));
+
+  // also index any bosses with a documented guide, linking straight to their guide page
+  try{
+    const res = await fetch('data/guides/index.json');
+    if(res.ok){
+      const data = await res.json();
+      (data.bosses || []).forEach(b => {
+        BOSS_SEARCH_INDEX.push({
+          boss: b.name,
+          slug: b.slug,
+          archive: `${b.slug}.html`,
+          label: "Guide",
+          isGuide: true,
+        });
+      });
+    }
+  }catch(e){ /* no guides yet, or index unreachable - search still works for archive entries */ }
 }
 
 // ============ ARCHIVE COMPLETION PERCENTAGES ============
@@ -612,6 +637,32 @@ async function computeArchiveCompletionPercentages(){
 }
 computeArchiveCompletionPercentages();
 
+// ============ GUIDES SECTION (landing page) ============
+// Reads the same index.json the editor's boss dropdown uses, so this list and that dropdown
+// can never drift out of sync - one source of truth for "which bosses have a guide."
+async function renderGuidesSection(){
+  const section = document.getElementById("guidesSection");
+  const row = document.getElementById("guidesPillRow");
+  try{
+    const res = await fetch("data/guides/index.json");
+    if(!res.ok) return; // no guides yet - leave the section hidden
+    const data = await res.json();
+    const bosses = data.bosses || [];
+    if(bosses.length === 0) return;
+
+    row.innerHTML = bosses.map(b => `
+      <a class="archive-pill" href="${b.slug}.html">
+        <div class="archive-pill-icon">📖</div>
+        <span class="archive-pill-label">${b.name}</span>
+      </a>
+    `).join("");
+    section.style.display = "";
+  }catch(e){
+    console.error("Failed to load guides index:", e);
+  }
+}
+renderGuidesSection();
+
 function renderBossSearchResults(query){
   const resultsEl = document.getElementById("bossSearchResults");
   const q = query.trim().toLowerCase();
@@ -625,9 +676,9 @@ function renderBossSearchResults(query){
   }
 
   resultsEl.innerHTML = matches.map(m =>
-    `<a class="boss-search-item" href="${m.archive}#boss-${m.slug}">
-      <span>${escapeHtml(m.boss)}</span>
-      <span class="boss-search-item-archive">${escapeHtml(m.label)}</span>
+    `<a class="boss-search-item" href="${m.isGuide ? m.archive : `${m.archive}#boss-${m.slug}`}">
+      <span>${m.isGuide ? "📖 " : ""}${escapeHtml(m.boss)}</span>
+      <span class="boss-search-item-archive${m.isGuide ? " boss-search-item-guide" : ""}">${escapeHtml(m.label)}</span>
     </a>`
   ).join("");
   resultsEl.classList.add("open");

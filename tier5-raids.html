@@ -166,6 +166,13 @@ body{ background:#20263a; color: var(--text-muted); }
     font-size:12px; cursor:help; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   }
   @media (hover:hover){ .card:hover{ z-index:10; } }
+  .guide-link-slot:empty{ display:none; }
+  .see-guide-link{
+    display:inline-flex; align-items:center; gap:5px; margin-top:10px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
+    color: var(--blue-dark, #2b7fd6); text-decoration:none;
+    background: var(--accent-soft, #eef2ff); padding:5px 11px; border-radius:999px;
+  }
   .highlight-flash{ animation: flashHighlight 2.2s ease; }
   @keyframes flashHighlight{
     0%, 100%{ box-shadow: none; }
@@ -1404,6 +1411,7 @@ function bossCardHtml(boss, r, cardId, idSuffix){
       <div class="boss-moveset-row">${moveStatLinesHtml(r.fast, "Fast")}${moveStatLinesHtml(r.charge, "Charge")}</div>
     </div>
     <div class="card-body">${variantBodyHtml(r, cardId)}</div>
+    <div class="guide-link-slot" data-boss="${boss.toLowerCase()}"></div>
   </div>`;
 }
 
@@ -1603,7 +1611,27 @@ applyTheme(initialTheme);
 
 const search = document.getElementById("search");
 search.addEventListener("input", buildSections);
-loadRaidsFromCSV();
+loadRaidsFromCSV().then(injectGuideLinks);
+
+// ============ GUIDE LINKS ON CARDS ============
+// Reads the same guides index the landing page search and the editor's boss dropdown use - one
+// source of truth. Runs as a lightweight enhancement pass after cards render, rather than
+// threading guide-availability through the main (synchronous) card-rendering pipeline.
+async function injectGuideLinks(){
+  try{
+    const res = await fetch('data/guides/index.json');
+    if(!res.ok) return;
+    const data = await res.json();
+    const guideByBoss = new Map((data.bosses || []).map(b => [b.name.toLowerCase(), b.slug]));
+    if(guideByBoss.size === 0) return;
+
+    document.querySelectorAll('.guide-link-slot').forEach(slot => {
+      const slug = guideByBoss.get(slot.dataset.boss);
+      if(!slug) return;
+      slot.innerHTML = `<a class="see-guide-link" href="${slug}.html">📖 See guide</a>`;
+    });
+  }catch(e){ /* no guides yet, or index unreachable - cards render fine without the link */ }
+}
 
 const gearBtn = document.getElementById("gearBtn");
 const gearPanel = document.getElementById("gearPanel");

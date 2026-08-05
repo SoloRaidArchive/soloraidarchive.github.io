@@ -75,24 +75,28 @@
   .section-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:22px 0 4px; display:flex; align-items:center; gap:8px; }
   .section-num{ width:22px; height:22px; border-radius:50%; background: var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
   .strategy-block{ margin:12px 0; padding-bottom:14px; border-bottom:1px solid var(--border); }
-  .strategy-name-preview{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; margin-bottom:4px; }
+  .strategy-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; margin-bottom:4px; }
   .strategy-tags{ display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
   .strategy-tag{ font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark); background: var(--accent-soft); padding:2px 8px; border-radius:999px; }
   .strategy-text{ font-size:13.5px; color: var(--text); line-height:1.7; }
   .strategy-text.placeholder{ color: var(--text-dim); font-style:italic; }
   .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; margin-top:4px; }
 
-  .preview-party{ background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px; }
-  .preview-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
-  .preview-mon{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px; }
-  .preview-mon-icon{ width:26px; height:26px; border-radius:50%; background: var(--accent-soft); flex-shrink:0; }
-  .preview-mon-name{ font-weight:700; }
-  .preview-mon-meta{ color: var(--text-dim); font-size:11px; }
+  .battle-party{ background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px; }
+  .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
+  .battle-mon{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px; }
+  .battle-mon-icon{ width:26px; height:26px; border-radius:50%; background: var(--accent-soft); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; }
+  .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
+  .battle-mon-meta{ color: var(--text-dim); font-size:11px; }
 
-  .new-badge{
-    display:inline-block; font-size:9px; font-weight:800; color:#b8860b; background:#fff3d2;
-    padding:2px 7px; border-radius:999px; margin-left:6px; text-transform:uppercase; letter-spacing:0.03em;
+  .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .route-btn{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12px;
+    background: var(--card); color: var(--text-dim); border:1.5px solid var(--border);
+    padding:9px 14px; border-radius:999px; cursor:pointer;
   }
+  .route-btn.active{ background: var(--blue); color:#fff; border-color: var(--blue); }
 </style>
 </head>
 <body>
@@ -175,18 +179,8 @@
       <div class="preview-context">📖 Guide: <span id="p-boss">Select a boss</span></div>
 
       <div class="section-title"><span class="section-num">3</span>Strategy</div>
-      <div id="strategy-list"></div>
-
-      <div class="strategy-block" id="live-preview-block">
-        <div class="strategy-name-preview" id="p-strategy-name" style="display:none;"></div>
-        <div class="strategy-tags">
-          <span class="strategy-tag" id="p-difficulty">3&#9733;</span>
-          <span class="strategy-tag" id="p-weather">Extreme</span>
-          <span class="strategy-tag" id="p-ae" style="display:none;"></span>
-        </div>
-        <p class="strategy-text placeholder" id="p-text">Start typing to see your strategy appear here...</p>
-        <div id="p-parties"></div>
-      </div>
+      <div class="route-row" id="preview-route-row"></div>
+      <div id="preview-strategy-display"></div>
     </div>
   </div>
 </div>
@@ -202,6 +196,111 @@ const diffEl = document.getElementById('f-difficulty');
 const textEl = document.getElementById('f-text');
 const vodEl = document.getElementById('f-vod');
 const submitBtn = document.getElementById('submit-btn');
+
+// ============ SPRITE RESOLUTION (same system used on the real guide pages) ============
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zacian hero":"zacian-hero", "zamazenta hero":"zamazenta-hero", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "mega heracross":"heracross-mega", "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
+const DEX_MAP = {
+  "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "dialga":483, "groudon":383, "mamoswine":473,
+  "salamence":373, "gengar":94, "tyrantrum":697, "rhyperior":464,
+  "kyogre":382, "mewtwo":150, "excadrill":530, "blaziken":257,
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
+}
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega skarmory": "https://db.pokemongohub.net/images/official/full/227_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+const ANI_OVERRIDES = {
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent",
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+const ANI_URL_OVERRIDES = {
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "slowbro-mega", "solgaleo", "stakataka", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+function monSpriteUrl(name){
+  const key = name.trim().toLowerCase();
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
+  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
+  }
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
+  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
 
 function slugify(name){
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -223,13 +322,83 @@ async function loadBossIndex(){
     bossEl.innerHTML = `<option value="__new__" selected>+ Add a new boss</option>`;
   }
 }
+// ============ SHARED RENDERING (identical to lunala.html's strategyBlockHtml) ============
+// Using the exact same function/markup as the real guide page is what guarantees this preview
+// can never visually drift from what volunteers actually get once merged - it's not a separate
+// approximation to keep in sync by hand.
+function strategyBlockHtml(s){
+  return `
+    <div class="strategy-block">
+      ${s.strategyName ? `<div class="strategy-name">${s.strategyName}</div>` : ""}
+      <div class="strategy-tags">
+        <span class="strategy-tag">${s.difficulty}</span>
+        <span class="strategy-tag">${s.weather}</span>
+        ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${s.adventureEffect}</span>` : ""}
+      </div>
+      <p class="strategy-text${s.isPlaceholder ? " placeholder" : ""}">${s.text}</p>
+      ${s.vod ? `<a class="strategy-vod" href="${s.vod}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
+      ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
+        <div class="battle-party">
+          <div class="battle-party-label">${p.label}</div>
+          ${p.mons.map(m => `
+            <div class="battle-mon">
+              <div class="battle-mon-icon"><img src="${monSpriteUrl(m.name)}" alt="" onerror="this.remove();"></div>
+              <div>
+                ${m.level ? `<div class="battle-mon-level">Lv ${m.level}</div>` : ""}
+                ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).join(' / ')}</div>` : ""}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('') : ""}
+      ${s.submittedBy ? `<div class="strategy-credit">Submitted by ${s.submittedBy}</div>` : ""}
+    </div>
+  `;
+}
+
+let existingStrategies = [];
+function currentLiveStrategy(){
+  return {
+    strategyName: nameFieldEl.value.trim(),
+    difficulty: diffEl.value,
+    weather: weatherEl.value,
+    adventureEffect: aeEl.value,
+    text: textEl.value.trim() || "Start typing to see your strategy appear here...",
+    isPlaceholder: !textEl.value.trim(),
+    vod: vodEl.value.trim(),
+    battleParties: collectParties(),
+  };
+}
+function renderRouteTabs(){
+  const row = document.getElementById('preview-route-row');
+  const tabs = existingStrategies.map((s, i) => {
+    const parts = [s.difficulty, s.weather];
+    if(s.adventureEffect && s.adventureEffect !== "None") parts.push(s.adventureEffect);
+    return `<button type="button" class="route-btn" onclick="selectPreviewRoute(${i})">${parts.join(" \u00b7 ")}</button>`;
+  });
+  tabs.push(`<button type="button" class="route-btn active" onclick="selectPreviewRoute('live')">Your draft</button>`);
+  row.innerHTML = tabs.join('');
+}
+function selectPreviewRoute(which){
+  document.querySelectorAll('#preview-route-row .route-btn').forEach(btn => btn.classList.remove('active'));
+  const display = document.getElementById('preview-strategy-display');
+  if(which === 'live'){
+    document.querySelector('#preview-route-row .route-btn:last-child').classList.add('active');
+    display.innerHTML = strategyBlockHtml(currentLiveStrategy());
+  }else{
+    document.querySelectorAll('#preview-route-row .route-btn')[which].classList.add('active');
+    display.innerHTML = strategyBlockHtml(existingStrategies[which]);
+  }
+}
+
 async function onBossChange(){
-  const strategyList = document.getElementById('strategy-list');
   const pBoss = document.getElementById('p-boss');
 
   if(bossEl.value === "__new__"){
     newBossRow.style.display = "block";
-    strategyList.innerHTML = "";
+    existingStrategies = [];
+    renderRouteTabs();
+    selectPreviewRoute('live');
     pBoss.textContent = "(new boss)";
     submitBtn.disabled = true;
     return;
@@ -237,28 +406,18 @@ async function onBossChange(){
   newBossRow.style.display = "none";
   const boss = bossEl.value;
   pBoss.textContent = boss;
-  strategyList.innerHTML = `<div class="strategy-text placeholder">Loading existing strategies...</div>`;
   submitBtn.disabled = false;
 
   try{
     const res = await fetch(`data/guides/${slugify(boss)}.json`);
     if(!res.ok) throw new Error("not found");
     const data = await res.json();
-    strategyList.innerHTML = (data.strategies || []).map(s => `
-      <div class="strategy-block">
-        ${s.strategyName ? `<div class="strategy-name-preview">${s.strategyName}</div>` : ""}
-        <div class="strategy-tags">
-          <span class="strategy-tag">${s.difficulty}</span>
-          <span class="strategy-tag">${s.weather}</span>
-          ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${s.adventureEffect}</span>` : ""}
-        </div>
-        <p class="strategy-text">${s.text}</p>
-        ${s.vod ? `<a class="strategy-vod" href="${s.vod}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
-      </div>
-    `).join('') || `<div class="strategy-text placeholder">No strategies documented yet - yours would be the first.</div>`;
+    existingStrategies = data.strategies || [];
   }catch(e){
-    strategyList.innerHTML = `<div class="strategy-text placeholder">No strategies documented yet - yours would be the first.</div>`;
+    existingStrategies = [];
   }
+  renderRouteTabs();
+  selectPreviewRoute('live');
 }
 bossEl.addEventListener('change', onBossChange);
 newBossEl.addEventListener('input', () => {
@@ -324,36 +483,12 @@ function collectParties(){
 }
 
 function syncPreview(){
-  document.getElementById('p-weather').textContent = weatherEl.value;
-  document.getElementById('p-difficulty').textContent = diffEl.value;
-
-  const aeTag = document.getElementById('p-ae');
-  if(aeEl.value !== "None"){ aeTag.textContent = aeEl.value; aeTag.style.display = "inline-block"; }
-  else{ aeTag.style.display = "none"; }
-
-  const nameEl = document.getElementById('p-strategy-name');
-  if(nameFieldEl.value.trim()){ nameEl.textContent = nameFieldEl.value.trim(); nameEl.style.display = 'block'; }
-  else{ nameEl.style.display = 'none'; }
-
-  const pText = document.getElementById('p-text');
-  if(textEl.value.trim()){ pText.textContent = textEl.value; pText.classList.remove('placeholder'); }
-  else{ pText.textContent = "Start typing to see your strategy appear here..."; pText.classList.add('placeholder'); }
-
-  const parties = collectParties();
-  document.getElementById('p-parties').innerHTML = parties.map(p => `
-    <div class="preview-party">
-      <div class="preview-party-label">${p.label}</div>
-      ${p.mons.map(m => `
-        <div class="preview-mon">
-          <div class="preview-mon-icon"></div>
-          <div>
-            <div class="preview-mon-name">${m.name}${m.level ? ` <span class="preview-mon-meta">Lv ${m.level}</span>` : ""}</div>
-            ${(m.fm || m.cm || m.cm2) ? `<div class="preview-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).join(' / ')}</div>` : ""}
-          </div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+  // only re-render if the "Your draft" tab is the one currently active - editing shouldn't
+  // yank the volunteer away from a different route tab they clicked over to compare against
+  const activeTab = document.querySelector('#preview-route-row .route-btn.active');
+  if(activeTab && activeTab === document.querySelector('#preview-route-row .route-btn:last-child')){
+    document.getElementById('preview-strategy-display').innerHTML = strategyBlockHtml(currentLiveStrategy());
+  }
 }
 [weatherEl, aeEl, diffEl, textEl, vodEl, nameFieldEl].forEach(el => el.addEventListener('input', syncPreview));
 
@@ -394,20 +529,19 @@ async function addStrategy(){
     status.innerHTML = `Submitted! <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--blue-dark); font-weight:700;">View the pull request &rarr;</a><br>A maintainer will review it before it goes live.`;
     status.style.color = "#1f9d5c";
 
-    const block = document.createElement('div');
-    block.className = 'strategy-block';
-    block.innerHTML = `
-      ${nameFieldEl.value.trim() ? `<div class="strategy-name-preview">${nameFieldEl.value.trim()} <span class="new-badge">Pending review</span></div>` : `<span class="new-badge">Pending review</span>`}
-      <div class="strategy-tags">
-        <span class="strategy-tag">${diffEl.value}</span>
-        <span class="strategy-tag">${weatherEl.value}</span>
-      </div>
-      <p class="strategy-text">${textEl.value.replace(/</g,"&lt;")}</p>
-      ${vodEl.value.trim() ? `<a class="strategy-vod" href="${vodEl.value.trim()}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
-    `;
-    document.getElementById('strategy-list').appendChild(block);
+    existingStrategies.push({
+      strategyName: nameFieldEl.value.trim() ? `${nameFieldEl.value.trim()} (Pending review)` : "Pending review",
+      difficulty: diffEl.value,
+      weather: weatherEl.value,
+      adventureEffect: aeEl.value,
+      text: textEl.value.trim(),
+      vod: vodEl.value.trim(),
+      battleParties: collectParties(),
+    });
+    renderRouteTabs();
+    selectPreviewRoute(existingStrategies.length - 1);
     textEl.value = ""; vodEl.value = ""; nameFieldEl.value = "";
-    syncPreview();
+    document.querySelectorAll('.party-card').forEach(c => c.remove());
   }catch(e){
     status.textContent = `Couldn't submit: ${e.message}`;
     status.style.color = "#c62828";
