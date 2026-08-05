@@ -125,6 +125,27 @@
   .archive-pill-pct.done{ color:#1f9d5c; }
   [data-theme="dark"] .archive-pill-pct.done{ color:#5fe0a0; }
 
+  .guide-pill-row{
+    display:grid; grid-template-columns: repeat(2, 1fr); gap:8px;
+  }
+  @media (max-width:400px){
+    .guide-pill-row{ grid-template-columns: 1fr; }
+  }
+  .guide-pill{
+    display:flex; align-items:center; gap:8px; min-width:0;
+    background: var(--card); border: 1.5px solid var(--border); border-radius: 999px;
+    padding: 8px 12px 8px 8px; text-decoration:none; color: var(--text);
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .guide-pill:hover{ transform: translateY(-2px); border-color: var(--blue); }
+  .guide-pill-icon{
+    flex-shrink:0; width:28px; height:28px; border-radius:50%;
+    background: var(--bg1); overflow:hidden;
+  }
+  .guide-pill-icon img{ width:100%; height:100%; object-fit:contain; }
+  .guide-pill-label{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
   footer{
     text-align:center; padding: 28px 24px 24px; font-size:12px; color: var(--text-dim); font-weight:600;
     max-width:720px; margin:0 auto; line-height:1.6;
@@ -262,20 +283,6 @@
     }
   }
   .new-entries-panel{ padding-top:14px; }
-  .new-entry-row{
-    display:flex; align-items:center; gap:10px; padding:6px 0; text-decoration:none; color:inherit;
-    border-top:1px solid var(--border);
-  }
-  .new-entry-row:first-child{ border-top:none; }
-  .new-entry-sprite{
-    width:32px; height:32px; border-radius:8px; background:#f0f0f2; flex-shrink:0; overflow:hidden;
-    border:1.5px solid var(--border);
-  }
-  .new-entry-sprite img{ width:100%; height:100%; object-fit:contain; }
-  .new-entry-info{ min-width:0; flex:1; }
-  .new-entry-date{ font-size:9.5px; font-weight:700; color: var(--text-dim); white-space:nowrap; flex-shrink:0; }
-  .new-entry-boss{ display:block; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .new-entry-meta{ display:flex; align-items:center; gap:4px; font-size:11px; color: var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .new-entry-ae-icon{ width:17px; height:17px; object-fit:contain; flex-shrink:0; }
   .weather-icon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
@@ -342,6 +349,8 @@
     font-family:'Inter', sans-serif; font-weight:700; font-size:13px; color: var(--text);
   }
   .boss-search-item:hover{ background: var(--bg1); }
+  .boss-search-item-name{ display:flex; align-items:center; gap:7px; min-width:0; }
+  .boss-search-sprite{ width:18px; height:18px; object-fit:contain; flex-shrink:0; }
   .boss-search-item-archive{
     font-size:10px; font-weight:700; color: var(--text-dim); flex-shrink:0;
   }
@@ -424,12 +433,19 @@
     <div id="liveBossWrap"></div>
   </details>
 
-  <div class="new-entries-archives-grid">
   <details class="live-boss-panel new-entries-panel" id="newEntriesPanel" style="display:none;" open>
     <summary class="live-boss-summary">
       <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Recently Published Raids</h2>
     </summary>
     <div id="newEntriesWrap"></div>
+  </details>
+
+  <div class="new-entries-archives-grid">
+  <details class="live-boss-panel new-entries-panel" id="monthlyGuidesPanel" style="display:none;" open>
+    <summary class="live-boss-summary">
+      <h2 class="patch-title" id="monthlyGuidesHeading" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Monthly Guides</h2>
+    </summary>
+    <div id="monthlyGuidesWrap"></div>
   </details>
 
   <div class="archive-list">
@@ -457,11 +473,6 @@
       </a>
     </div>
 
-  </div>
-
-  <div class="archive-list" id="guidesSection" style="display:none;">
-  <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Guides</h2>
-    <div class="archive-pill-row" id="guidesPillRow"></div>
   </div>
   </div>
 
@@ -637,32 +648,6 @@ async function computeArchiveCompletionPercentages(){
 }
 computeArchiveCompletionPercentages();
 
-// ============ GUIDES SECTION (landing page) ============
-// Reads the same index.json the editor's boss dropdown uses, so this list and that dropdown
-// can never drift out of sync - one source of truth for "which bosses have a guide."
-async function renderGuidesSection(){
-  const section = document.getElementById("guidesSection");
-  const row = document.getElementById("guidesPillRow");
-  try{
-    const res = await fetch("data/guides/index.json");
-    if(!res.ok) return; // no guides yet - leave the section hidden
-    const data = await res.json();
-    const bosses = data.bosses || [];
-    if(bosses.length === 0) return;
-
-    row.innerHTML = bosses.map(b => `
-      <a class="archive-pill" href="guides/${b.slug}.html">
-        <div class="archive-pill-icon">📖</div>
-        <span class="archive-pill-label">${b.name}</span>
-      </a>
-    `).join("");
-    section.style.display = "";
-  }catch(e){
-    console.error("Failed to load guides index:", e);
-  }
-}
-renderGuidesSection();
-
 function renderBossSearchResults(query){
   const resultsEl = document.getElementById("bossSearchResults");
   const q = query.trim().toLowerCase();
@@ -677,7 +662,7 @@ function renderBossSearchResults(query){
 
   resultsEl.innerHTML = matches.map(m =>
     `<a class="boss-search-item" href="${m.isGuide ? m.archive : `${m.archive}#boss-${m.slug}`}">
-      <span>${m.isGuide ? "📖 " : ""}${escapeHtml(m.boss)}</span>
+      <span class="boss-search-item-name">${m.isGuide ? `<img class="boss-search-sprite" src="${spriteUrl(m.boss)}" alt="" onerror="this.style.display='none'">` : ""}${escapeHtml(m.boss)}</span>
       <span class="boss-search-item-archive${m.isGuide ? " boss-search-item-guide" : ""}">${escapeHtml(m.label)}</span>
     </a>`
   ).join("");
@@ -959,6 +944,59 @@ async function loadLiveBosses(){
     console.error("Could not load live boss data:", e);
   }
 }
+// ============ MONTHLY GUIDES ============
+// Cross-references live-bosses.json (this month's active/rotating raids) against
+// data/guides/index.json (which bosses have a documented guide) and shows only the
+// intersection - a boss only appears here if it's both currently raid-able AND has a guide.
+async function loadMonthlyGuides(){
+  try{
+    const panel = document.getElementById("monthlyGuidesPanel");
+    const wrap = document.getElementById("monthlyGuidesWrap");
+    const heading = document.getElementById("monthlyGuidesHeading");
+    if(!panel || !wrap) return;
+
+    const monthName = new Date().toLocaleDateString("en-US", { month: "long" });
+    if(heading) heading.textContent = `${monthName} Guides`;
+
+    const [liveRes, guidesRes] = await Promise.all([
+      fetch("live-bosses.json").catch(() => null),
+      fetch("data/guides/index.json").catch(() => null),
+    ]);
+    if(!liveRes || !liveRes.ok || !guidesRes || !guidesRes.ok) return;
+
+    const liveData = await liveRes.json();
+    const guidesData = await guidesRes.json();
+    const guideSlugs = new Set((guidesData.bosses || []).map(b => b.slug));
+    if(guideSlugs.size === 0) return;
+
+    function bossSlug(name){ return name.toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
+
+    // flatten every active boss across all date groups, keep only ones with a guide,
+    // de-duping by slug (a boss could appear in multiple rotation windows)
+    const seen = new Set();
+    const matched = [];
+    (liveData.dateGroups || []).forEach(group => {
+      (group.bosses || []).forEach(boss => {
+        const slug = bossSlug(boss.name);
+        if(guideSlugs.has(slug) && !seen.has(slug)){
+          seen.add(slug);
+          matched.push(boss);
+        }
+      });
+    });
+    if(matched.length === 0) return;
+
+    wrap.innerHTML = `<div class="guide-pill-row">${matched.map(boss => `
+      <a class="guide-pill" href="guides/${bossSlug(boss.name)}.html" title="${boss.name}">
+        <div class="guide-pill-icon"><img src="${spriteUrl(boss.name)}" alt="" loading="lazy" onerror="this.style.display='none'"></div>
+        <span class="guide-pill-label">${boss.name}</span>
+      </a>`).join("")}</div>`;
+    panel.style.display = "";
+  }catch(e){
+    console.error("Could not load monthly guides:", e);
+  }
+}
+
 // ============ NEW RAID ENTRIES (auto-updated by a push-triggered GitHub Action) ============
 // Reads new-raid-entries.json, written by track_new_raid_entries.py. Each logged entry is a
 // genuinely new (boss, strategy) combo - editing an existing row (e.g. adding a VOD link
@@ -1012,19 +1050,16 @@ async function loadNewEntries(){
       return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     }
 
-    wrap.innerHTML = flat.map(entry => `
-      <a class="new-entry-row" href="${entryHref(entry)}">
-        <div class="new-entry-sprite"><img src="${spriteUrl(entry.boss)}" alt="${entry.boss}" loading="lazy" onerror="this.style.display='none'"></div>
-        <div class="new-entry-info">
-          <span class="new-entry-boss">${entry.boss}</span>
-          <span class="new-entry-meta">
-            ${entry.star} &middot; ${entry.strategy} &middot; ${entry.archiveLabel}
-            ${entry.weather ? weatherIcon(entry.weather) : ""}
-            ${aeTag(entry)}
-          </span>
+    wrap.innerHTML = `<div class="live-boss-row-grid">${flat.map(entry => `
+      <a class="live-boss-item" href="${entryHref(entry)}" title="${entry.boss}">
+        <div class="live-boss-icon"><img src="${spriteUrl(entry.boss)}" alt="${entry.boss}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="live-boss-meta">
+          <span class="live-boss-star">${entry.star}</span>
+          ${entry.weather ? weatherIcon(entry.weather) : ""}
+          ${aeTag(entry)}
         </div>
-        <span class="new-entry-date">${formatPushDate(entry.pushDate)}</span>
-      </a>`).join("");
+        <div class="live-boss-date">${formatPushDate(entry.pushDate)}</div>
+      </a>`).join("")}</div>`;
 
     panel.style.display = "";
   }catch(e){
@@ -1039,6 +1074,7 @@ function setLiveBossHeading(){
 }
 setLiveBossHeading();
 loadLiveBosses();
+loadMonthlyGuides();
 loadNewEntries();
 
 </script>
