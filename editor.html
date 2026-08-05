@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  :root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
+    --blue: #3d9dff; --blue-dark: #2b7fd6; --accent-soft: #eef2ff;
+  }
+  *{ box-sizing: border-box; }
+  body{ font-family:'Inter', sans-serif; margin:0; padding:0; background:#f0f0f2; color: var(--text); }
+
+  .editor-shell{ display:flex; height:100vh; }
+
+  .editor-panel{
+    width:400px; flex-shrink:0; background:#fff; border-right:2px solid var(--border);
+    padding:20px; overflow-y:auto;
+  }
+  .editor-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin-bottom:2px; }
+  .editor-subtitle{ font-size:12px; color: var(--text-dim); margin-bottom:18px; }
+  .field-group{ margin-bottom:16px; }
+  .field-label{ font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; display:block; margin-bottom:5px; }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field-group{ flex:1; }
+  input[type=text], select, textarea{
+    width:100%; font-family:'Inter', sans-serif; font-size:13.5px; padding:9px 10px;
+    border:1.5px solid var(--border); border-radius:8px; color: var(--text); background:#fff;
+  }
+  textarea{ resize:vertical; min-height:90px; line-height:1.5; }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color: var(--blue); }
+  .field-hint{ font-size:10.5px; color: var(--text-dim); margin-top:3px; }
+  .add-btn{
+    width:100%; margin-top:6px; padding:11px; background: var(--blue); color:#fff; border:none;
+    border-radius:9px; font-family:'Manrope', sans-serif; font-weight:700; font-size:13.5px; cursor:pointer;
+  }
+  .add-btn:hover{ background: var(--blue-dark); }
+  .existing-note{
+    background:#fff8e6; border:1.5px solid #ffdb8a; border-radius:10px; padding:10px 12px;
+    font-size:11.5px; color:#8a6a1a; margin-bottom:16px; line-height:1.5;
+  }
+
+  .preview-panel{ flex:1; overflow-y:auto; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); }
+  .preview-inner{ max-width:640px; margin:0 auto; padding:28px 24px 60px; }
+  .preview-label{
+    text-align:center; font-family:'Manrope', sans-serif; font-weight:800; font-size:10px; color: var(--blue-dark);
+    text-transform:uppercase; letter-spacing:0.08em; margin-bottom:14px;
+  }
+  .guide-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:26px; margin:0 0 20px; text-align:center; }
+  .section-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:26px 0 4px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-num{
+    width:22px; height:22px; border-radius:50%; background: var(--blue); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0;
+  }
+  .strategy-block{ margin:12px 0; padding-bottom:12px; border-bottom:1px solid var(--border); }
+  .strategy-block:last-child{ border-bottom:none; }
+  .strategy-tags{ display:flex; gap:6px; margin-bottom:6px; }
+  .strategy-tag{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
+    background: var(--accent-soft); padding:2px 8px; border-radius:999px;
+  }
+  .strategy-text{ font-size:13.5px; color: var(--text); line-height:1.7; }
+  .strategy-text.placeholder{ color: var(--text-dim); font-style:italic; }
+  .strategy-vod{ display:inline-block; margin-top:6px; font-size:12px; font-weight:700; color: var(--blue-dark); text-decoration:none; }
+  .new-badge{
+    display:inline-block; font-size:9px; font-weight:800; color:#1f9d5c; background:#e5f9ee;
+    padding:2px 7px; border-radius:999px; margin-left:6px; text-transform:uppercase; letter-spacing:0.03em;
+  }
+</style>
+</head>
+<body>
+
+<div class="editor-shell">
+  <div class="editor-panel">
+    <div class="editor-title">Add a strategy</div>
+    <div class="editor-subtitle">Changes appear live on the right as you type</div>
+
+    <div class="existing-note">This boss already has 1 documented strategy. New entries are added alongside it on the same page - not a separate page.</div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">Weather</label>
+        <select id="f-weather">
+          <option>Extreme</option><option>Sunny</option><option>Rainy</option>
+          <option>Partly Cloudy</option><option>Windy</option><option>Snow</option><option>Fog</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Difficulty</label>
+        <select id="f-difficulty">
+          <option>3&#9733;</option><option>4&#9733;</option><option>5&#9733;</option><option>5.5&#9733;</option><option>6&#9733;</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Adventure Effect</label>
+      <select id="f-ae">
+        <option>None</option><option>Blade Boost</option><option>Shield Boost</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Strategy text</label>
+      <textarea id="f-text" placeholder="Describe the lineup and how the fight plays out..."></textarea>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">VOD link</label>
+      <input type="text" id="f-vod" placeholder="https://youtu.be/...">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Preset image</label>
+      <input type="text" id="f-image" placeholder="(image upload goes here)">
+      <div class="field-hint">Real version: file upload, shown inline once attached</div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Your name (credit)</label>
+      <input type="text" id="f-name" placeholder="Spiritedbloom">
+    </div>
+
+    <button class="add-btn" id="submit-btn" onclick="addStrategy()">Submit for review</button>
+    <div id="submit-status" style="font-size:12px; margin-top:10px; line-height:1.5;"></div>
+  </div>
+
+  <div class="preview-panel">
+    <div class="preview-inner">
+      <div class="preview-label">Live preview</div>
+      <h1 class="guide-title">How to Solo Lunala</h1>
+
+      <div class="section-title"><span class="section-num">3</span>Strategy</div>
+      <div id="strategy-list">
+        <div class="strategy-block">
+          <div class="strategy-tags">
+            <span class="strategy-tag">3&#9733;</span>
+            <span class="strategy-tag">Extreme</span>
+          </div>
+          <p class="strategy-text">Necrozma Dawn Wings (Shadow Claw / Moongeist Beam) leads as Main DPS, backed by three more copies of the same Pok&eacute;mon as Support DPS. No swapping or Catch Tank role is needed at this difficulty - each copy simply fights until it faints and the next one takes over.</p>
+          <a class="strategy-vod" href="#">Watch VOD &rarr;</a>
+        </div>
+      </div>
+
+      <div class="strategy-block" id="live-preview-block">
+        <div class="strategy-tags">
+          <span class="strategy-tag" id="p-difficulty">3&#9733;</span>
+          <span class="strategy-tag" id="p-weather">Extreme</span>
+          <span class="new-badge">Editing</span>
+        </div>
+        <p class="strategy-text placeholder" id="p-text">Start typing to see your strategy appear here...</p>
+        <a class="strategy-vod" id="p-vod" href="#" style="display:none;">Watch VOD &rarr;</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const weatherEl = document.getElementById('f-weather');
+const diffEl = document.getElementById('f-difficulty');
+const aeEl = document.getElementById('f-ae');
+const textEl = document.getElementById('f-text');
+const vodEl = document.getElementById('f-vod');
+
+function syncPreview(){
+  document.getElementById('p-weather').textContent = weatherEl.value;
+  document.getElementById('p-difficulty').textContent = diffEl.value;
+
+  const pText = document.getElementById('p-text');
+  if(textEl.value.trim()){
+    pText.textContent = textEl.value;
+    pText.classList.remove('placeholder');
+  }else{
+    pText.textContent = "Start typing to see your strategy appear here...";
+    pText.classList.add('placeholder');
+  }
+
+  const pVod = document.getElementById('p-vod');
+  if(vodEl.value.trim()){
+    pVod.href = vodEl.value.trim();
+    pVod.style.display = 'inline-block';
+  }else{
+    pVod.style.display = 'none';
+  }
+}
+[weatherEl, diffEl, aeEl, textEl, vodEl].forEach(el => el.addEventListener('input', syncPreview));
+
+const WORKER_URL = "https://guide-submissions.solo-raid-archive.workers.dev";
+
+async function addStrategy(){
+  if(!textEl.value.trim()){ alert('Add strategy text first.'); return; }
+  const btn = document.getElementById('submit-btn');
+  const status = document.getElementById('submit-status');
+  const nameEl = document.getElementById('f-name');
+
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+  status.textContent = "";
+
+  const payload = {
+    boss: "Lunala",
+    weather: weatherEl.value,
+    adventureEffect: aeEl.value,
+    difficulty: diffEl.value,
+    text: textEl.value.trim(),
+    vod: vodEl.value.trim(),
+    submittedBy: nameEl.value.trim() || "Anonymous",
+  };
+
+  try{
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+    status.innerHTML = `Submitted! <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--blue-dark); font-weight:700;">View the pull request &rarr;</a><br>A maintainer will review it before it goes live.`;
+    status.style.color = "#1f9d5c";
+
+    // reflect it in the local preview too, so the volunteer sees what they just sent
+    const block = document.createElement('div');
+    block.className = 'strategy-block';
+    block.innerHTML = `
+      <div class="strategy-tags">
+        <span class="strategy-tag">${diffEl.value}</span>
+        <span class="strategy-tag">${weatherEl.value}</span>
+        <span class="new-badge" style="background:#fff3d2; color:#b8860b;">Pending review</span>
+      </div>
+      <p class="strategy-text">${textEl.value.replace(/</g,"&lt;")}</p>
+      ${vodEl.value.trim() ? `<a class="strategy-vod" href="${vodEl.value.trim()}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
+    `;
+    document.getElementById('strategy-list').appendChild(block);
+    textEl.value = ""; vodEl.value = "";
+    syncPreview();
+  }catch(e){
+    status.textContent = `Couldn't submit: ${e.message}`;
+    status.style.color = "#c62828";
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "Submit for review";
+  }
+}
+syncPreview();
+</script>
+
+</body>
+</html>
