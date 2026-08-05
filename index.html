@@ -310,10 +310,10 @@
 
   .popular-links-row{
     max-width: 640px; margin: 0 auto 18px; padding: 0 24px;
-    display:flex; gap:10px;
+    display:flex; flex-wrap:wrap; gap:10px;
   }
   .popular-link{
-    flex:1; display:flex; align-items:center; justify-content:center; text-align:center;
+    flex: 1 1 130px; display:flex; align-items:center; justify-content:center; text-align:center;
     min-width:0; background: var(--card); border-radius:16px;
     padding: 14px 8px; text-decoration:none; color: var(--text);
     font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px; line-height:1.3;
@@ -437,7 +437,7 @@
   <a class="popular-link" href="ct-database.html">Viable Catch Tanks</a>
   <a class="popular-link" href="solo-raid-mechanics.html">Solo Raid Mechanics</a>
   <a class="popular-link vod-submit" href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" target="_blank" rel="noopener noreferrer">Submit a VOD</a>
-  <a class="popular-link vod-submit" href="https://soloraidarchive.github.io/editor.html" target="_blank" rel="noopener noreferrer">Tentative: Submit a Guide! Requires a Github account</a>
+  <a class="popular-link vod-submit" href="editor.html" title="Requires a GitHub account">Submit a Guide</a>
 </div>
 
 <div class="page-layout">
@@ -468,22 +468,22 @@
   <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Raids</h2>
     <div class="archive-pill-row">
       <a class="archive-pill" href="tier4-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🛠️'"></div>
+        <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" loading="lazy" onerror="this.parentElement.textContent='🛠️'"></div>
         <span class="archive-pill-label">Mega</span>
         <span class="archive-pill-pct" id="pct-tier4-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier5-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🎯'"></div>
+        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" loading="lazy" onerror="this.parentElement.textContent='🎯'"></div>
         <span class="archive-pill-label">Legendary</span>
         <span class="archive-pill-pct" id="pct-tier5-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier5-ae-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='⚡'"></div>
+        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" loading="lazy" onerror="this.parentElement.textContent='⚡'"></div>
         <span class="archive-pill-label">Legendary AE</span>
         <span class="archive-pill-pct" id="pct-tier5-ae-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier6-elite-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='👑'"></div>
+        <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" loading="lazy" onerror="this.parentElement.textContent='👑'"></div>
         <span class="archive-pill-label">Mega Legendary &amp; Elite</span>
         <span class="archive-pill-pct" id="pct-tier6-elite-raids.html">…</span>
       </a>
@@ -556,6 +556,12 @@ const SEARCH_SOURCES = [
   { csv: "tier6-data.csv", archive: "tier6-elite-raids.html", label: "Mega Legendary & Elite", col: 1 },
 ];
 
+// Kicked off immediately, shared by every function that needs this data - each of these two
+// files was previously being fetched twice independently (once per consumer). Fetching once
+// here and sharing the same in-flight promise removes those duplicate round-trips entirely.
+const LIVE_BOSSES_PROMISE = fetch("live-bosses.json").then(r => r.ok ? r.json() : null).catch(() => null);
+const GUIDES_INDEX_PROMISE = fetch("data/guides/index.json").then(r => r.ok ? r.json() : null).catch(() => null);
+
 function parseCsvLine(line){
   // minimal CSV split that respects quoted fields, matching the parser used on the archive pages
   const cells = [];
@@ -578,37 +584,75 @@ function parseCsvLine(line){
 
 let BOSS_SEARCH_INDEX = [];
 
-async function buildBossSearchIndex(){
+// ============ SEARCH INDEX + ARCHIVE COMPLETION PERCENTAGES ============
+// Both used to independently fetch and parse all 4 tier CSVs - genuinely wasted duplicate
+// network requests on every page load. Merged into one pass: each CSV is fetched exactly once
+// (in parallel via Promise.all, not sequentially), and both the search index and the "% done"
+// stat are computed from that same parse. "% done" = total entries with a VOD / total entries,
+// using the exact same VOD-column-detection logic as the archive pages themselves (scan for a
+// "VOD"/"VOD*" header cell, read the next column), so an entry counts here if and only if it'd
+// also show the 📹 badge on the archive page.
+async function buildSearchIndexAndCompletionStats(){
   const seen = new Set(); // avoid duplicate rows within the same archive (multiple recorded difficulties)
-  for(const source of SEARCH_SOURCES){
+
+  await Promise.all(SEARCH_SOURCES.map(async (source) => {
+    const pctEl = document.getElementById(`pct-${source.archive}`);
     try{
       const res = await fetch(source.csv);
-      if(!res.ok) continue;
+      if(!res.ok) throw new Error("HTTP " + res.status);
       const text = await res.text();
       const lines = text.split(/\r?\n/).filter(Boolean);
+
+      let total = 0, withVod = 0;
       for(let i = 1; i < lines.length; i++){
         const cells = parseCsvLine(lines[i]);
         const boss = (cells[source.col] || "").trim();
-        if(!boss) continue;
+        if(!boss) continue; // not a real data row
+
+        // search index
         const dedupeKey = source.archive + "|" + boss.toLowerCase();
-        if(seen.has(dedupeKey)) continue;
-        seen.add(dedupeKey);
-        BOSS_SEARCH_INDEX.push({
-          boss,
-          slug: boss.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-          archive: source.archive,
-          label: source.label,
-        });
+        if(!seen.has(dedupeKey)){
+          seen.add(dedupeKey);
+          BOSS_SEARCH_INDEX.push({
+            boss,
+            slug: boss.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+            archive: source.archive,
+            label: source.label,
+          });
+        }
+
+        // completion stats
+        total++;
+        let vodIdx = -1;
+        for(let j = 0; j < cells.length; j++){
+          if(cells[j].trim() === "VOD" || cells[j].trim() === "VOD*"){ vodIdx = j; break; }
+        }
+        const vod = vodIdx !== -1 ? (cells[vodIdx+1] || "").trim() : "";
+        if(vod) withVod++;
       }
-    }catch(e){ /* one archive failing to load shouldn't block the others */ }
-  }
+
+      if(pctEl){
+        if(total === 0){
+          pctEl.textContent = "0% done";
+        }else{
+          const pct = Math.round((withVod / total) * 100);
+          pctEl.textContent = `${pct}% done`;
+          pctEl.classList.toggle("done", pct === 100);
+        }
+      }
+    }catch(e){
+      if(pctEl) pctEl.textContent = "—";
+      console.error(`Failed to load ${source.csv}:`, e);
+    }
+  }));
+
   BOSS_SEARCH_INDEX.sort((a,b) => a.boss.localeCompare(b.boss));
 
-  // also index any bosses with a documented guide, linking straight to their guide page
+  // also index any bosses with a documented guide, linking straight to their guide page -
+  // shares the same fetch loadMonthlyGuides() needs, via GUIDES_INDEX_PROMISE below
   try{
-    const res = await fetch('data/guides/index.json');
-    if(res.ok){
-      const data = await res.json();
+    const data = await GUIDES_INDEX_PROMISE;
+    if(data){
       (data.bosses || []).forEach(b => {
         BOSS_SEARCH_INDEX.push({
           boss: b.name,
@@ -621,48 +665,7 @@ async function buildBossSearchIndex(){
     }
   }catch(e){ /* no guides yet, or index unreachable - search still works for archive entries */ }
 }
-
-// ============ ARCHIVE COMPLETION PERCENTAGES ============
-// "% done" = total entries with a VOD / total entries, for that archive's CSV. Uses the exact
-// same VOD-column-detection logic as the archive pages themselves (scan for a "VOD"/"VOD*"
-// header cell, read the next column), so an entry counts here if and only if it'd also show
-// the 📹 badge on the archive page.
-async function computeArchiveCompletionPercentages(){
-  for(const source of SEARCH_SOURCES){
-    const pctEl = document.getElementById(`pct-${source.archive}`);
-    if(!pctEl) continue;
-    try{
-      const res = await fetch(source.csv);
-      if(!res.ok) throw new Error("HTTP " + res.status);
-      const text = await res.text();
-      const lines = text.split(/\r?\n/).filter(Boolean);
-      let total = 0, withVod = 0;
-      for(let i = 1; i < lines.length; i++){
-        const cells = parseCsvLine(lines[i]);
-        const boss = (cells[source.col] || "").trim();
-        if(!boss) continue; // not a real data row
-        total++;
-        let vodIdx = -1;
-        for(let j = 0; j < cells.length; j++){
-          if(cells[j].trim() === "VOD" || cells[j].trim() === "VOD*"){ vodIdx = j; break; }
-        }
-        const vod = vodIdx !== -1 ? (cells[vodIdx+1] || "").trim() : "";
-        if(vod) withVod++;
-      }
-      if(total === 0){
-        pctEl.textContent = "0% done";
-        continue;
-      }
-      const pct = Math.round((withVod / total) * 100);
-      pctEl.textContent = `${pct}% done`;
-      pctEl.classList.toggle("done", pct === 100);
-    }catch(e){
-      pctEl.textContent = "—";
-      console.error(`Failed to compute completion % for ${source.csv}:`, e);
-    }
-  }
-}
-computeArchiveCompletionPercentages();
+buildSearchIndexAndCompletionStats();
 
 function renderBossSearchResults(query){
   const resultsEl = document.getElementById("bossSearchResults");
@@ -693,7 +696,6 @@ document.addEventListener("click", (e) => {
     document.getElementById("bossSearchResults").classList.remove("open");
   }
 });
-buildBossSearchIndex();
 
 function escapeHtml(s){
   const div = document.createElement("div");
@@ -872,9 +874,8 @@ function formatGroupHeader(startDate, endDate){
 
 async function loadLiveBosses(){
   try{
-    const res = await fetch("live-bosses.json");
-    if(!res.ok) return;
-    const data = await res.json();
+    const data = await LIVE_BOSSES_PROMISE;
+    if(!data) return;
     const groups = data.dateGroups || [];
     if(!groups.length) return;
     const wrap = document.getElementById("liveBossWrap");
@@ -974,14 +975,9 @@ async function loadMonthlyGuides(){
     const monthName = new Date().toLocaleDateString("en-US", { month: "long" });
     if(heading) heading.textContent = `${monthName} Guides`;
 
-    const [liveRes, guidesRes] = await Promise.all([
-      fetch("live-bosses.json").catch(() => null),
-      fetch("data/guides/index.json").catch(() => null),
-    ]);
-    if(!liveRes || !liveRes.ok || !guidesRes || !guidesRes.ok) return;
+    const [liveData, guidesData] = await Promise.all([LIVE_BOSSES_PROMISE, GUIDES_INDEX_PROMISE]);
+    if(!liveData || !guidesData) return;
 
-    const liveData = await liveRes.json();
-    const guidesData = await guidesRes.json();
     const guideSlugs = new Set((guidesData.bosses || []).map(b => b.slug));
     if(guideSlugs.size === 0) return;
 
