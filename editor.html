@@ -67,6 +67,29 @@
   }
   .add-btn:hover{ background: var(--blue-dark); }
   .add-btn:disabled{ background:#c9d3e0; cursor:not-allowed; }
+  .char-count{ font-size:10.5px; color: var(--text-dim); text-align:right; margin-top:4px; }
+  .char-count.warn{ color:#b8791a; font-weight:700; }
+  .char-count.over{ color:#c62828; font-weight:700; }
+  .mechanic-link-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .mechanic-link-btn{
+    background: var(--accent-soft); border:1.5px solid var(--border); border-radius:999px;
+    padding:5px 12px; font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
+    color: var(--blue-dark); cursor:pointer; flex-shrink:0;
+  }
+  .mechanic-link-btn:hover{ border-color: var(--blue); }
+  .mechanic-link-hint{ font-size:10.5px; color: var(--text-dim); line-height:1.4; }
+  .mechanic-picker{
+    margin-top:8px; border:1.5px solid var(--border); border-radius:10px; background: var(--card);
+    max-height:260px; overflow-y:auto; padding:6px;
+  }
+  .mechanic-picker-section{ font-family:'Manrope', sans-serif; font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color: var(--text-dim); padding:8px 8px 4px; }
+  .mechanic-picker-item{
+    display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%;
+    background:none; border:none; text-align:left; padding:7px 8px; border-radius:7px; cursor:pointer;
+    font-family:'Inter', sans-serif; font-size:12.5px; color: var(--text);
+  }
+  .mechanic-picker-item:hover{ background: var(--accent-soft); }
+  .mechanic-picker-abbr{ font-size:10.5px; font-weight:700; color: var(--blue-dark); background: var(--accent-soft); padding:1px 7px; border-radius:999px; flex-shrink:0; }
   .info-bubble{
     background: var(--accent-soft, #eef2ff); border:1.5px solid var(--border); border-radius:10px;
     padding:10px 12px; margin-bottom:14px;
@@ -200,10 +223,16 @@
   [data-theme="dark"] .ql-snow .ql-toolbar button:hover .ql-stroke{ stroke: var(--blue); }
   @media (min-width: 1100px){
     .editor-panel{ width:560px; }
-    .mon-block{ display:grid; grid-template-columns: 1.6fr 0.7fr 1fr 1fr 1fr auto; gap:8px; align-items:center; border-bottom:none; margin-bottom:6px; padding-bottom:0; }
-    .mon-block .mon-row{ display:contents; }
-    .mon-row .mon-name{ padding-right:8px; }
-    .mon-btn-group{ position:static; }
+    .mon-block{ margin-bottom:10px; padding-bottom:10px; }
+    .mon-block:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+    .mon-row{ display:flex; gap:8px; padding-right:86px; }
+    .mon-row .mon-name{ flex:1.6; }
+    .level-wrap{ flex:0.9; gap:4px; }
+    .level-wrap .mon-level, .level-wrap .mon-level-max{ min-width:0; }
+    .level-toggle-btn{ width:24px; height:24px; font-size:12px; flex-shrink:0; }
+    .mon-btn-group{ gap:5px; }
+    .mon-optional-btn, .mon-dup-btn, .mon-remove-btn{ width:24px; height:24px; padding:0; display:flex; align-items:center; justify-content:center; font-size:13px; }
+    .mon-moves-row{ margin-top:6px; padding-right:0; }
   }
 </style>
 </head>
@@ -272,6 +301,12 @@
     <div class="field-group">
       <label class="field-label">Strategy text</label>
       <div id="f-text-editor"></div>
+      <div class="char-count" id="charCount">0 / 10,000 characters</div>
+      <div class="mechanic-link-row">
+        <button type="button" class="mechanic-link-btn" id="mechanicLinkBtn">&#128279; Link a mechanic</button>
+        <span class="mechanic-link-hint">Select some text first to link it - otherwise the mechanic's name is inserted</span>
+      </div>
+      <div class="mechanic-picker" id="mechanicPicker" style="display:none;"></div>
     </div>
 
     <div class="field-group">
@@ -332,6 +367,82 @@ const quill = new Quill('#f-text-editor', {
       ['clean'],
     ],
   },
+});
+
+// ============ MECHANIC LINKING ============
+// Lets a guide writer link a term (e.g. "TPC") straight to its section on the Solo Raid
+// Mechanics page. Uses an absolute URL rather than a relative one on purpose - this same stored
+// text gets rendered both in this editor's own preview (at the repo root) and later on the real
+// guide page (two folders deep, at data/guides/{boss}.html), so a relative link correct in one
+// context would be wrong in the other. An absolute URL is correct in both.
+const MECHANICS_BASE_URL = "https://soloraidarchive.github.io/solo-raid-mechanics.html";
+let MECHANICS_DATA = [];
+let savedQuillRange = null;
+
+fetch('data/raid-mechanics.json')
+  .then(res => res.ok ? res.json() : { sections: [] })
+  .then(data => { MECHANICS_DATA = data.sections || []; })
+  .catch(() => { MECHANICS_DATA = []; });
+
+function mechanicSlug(name){
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+
+const mechanicLinkBtn = document.getElementById('mechanicLinkBtn');
+const mechanicPicker = document.getElementById('mechanicPicker');
+
+mechanicLinkBtn.addEventListener('click', () => {
+  // capture the selection now, before focus moves to the button/picker and Quill loses it
+  savedQuillRange = quill.getSelection();
+
+  const isOpen = mechanicPicker.style.display !== 'none';
+  if(isOpen){
+    mechanicPicker.style.display = 'none';
+    return;
+  }
+
+  if(MECHANICS_DATA.length === 0){
+    mechanicPicker.innerHTML = `<div class="mechanic-picker-item" style="cursor:default;">Couldn't load mechanics list.</div>`;
+  }else{
+    mechanicPicker.innerHTML = MECHANICS_DATA.map(sec => `
+      <div class="mechanic-picker-section">${sec.title}</div>
+      ${sec.entries.map(e => `
+        <button type="button" class="mechanic-picker-item" data-name="${e.name.replace(/"/g, '&quot;')}" data-slug="${mechanicSlug(e.name)}">
+          <span>${e.name}</span>
+          <span class="mechanic-picker-abbr">${e.abbr}</span>
+        </button>
+      `).join('')}
+    `).join('');
+  }
+  mechanicPicker.style.display = 'block';
+});
+
+mechanicPicker.addEventListener('click', (e) => {
+  const item = e.target.closest('.mechanic-picker-item[data-slug]');
+  if(!item) return;
+
+  const url = `${MECHANICS_BASE_URL}#strategy-${item.dataset.slug}`;
+
+  quill.focus();
+  if(savedQuillRange && savedQuillRange.length > 0){
+    // text was selected before the picker opened - link that selection
+    quill.formatText(savedQuillRange.index, savedQuillRange.length, 'link', url);
+    quill.setSelection(savedQuillRange.index + savedQuillRange.length, 0);
+  }else{
+    // nothing was selected - insert the mechanic's name as linked text at the cursor
+    const insertAt = savedQuillRange ? savedQuillRange.index : quill.getLength();
+    quill.insertText(insertAt, item.dataset.name, 'link', url);
+    quill.setSelection(insertAt + item.dataset.name.length, 0);
+  }
+
+  mechanicPicker.style.display = 'none';
+  syncPreview();
+});
+
+document.addEventListener('click', (e) => {
+  if(!mechanicPicker.contains(e.target) && e.target !== mechanicLinkBtn){
+    mechanicPicker.style.display = 'none';
+  }
 });
 
 // ============ SPRITE RESOLUTION (same system used on the real guide pages) ============
@@ -728,6 +839,16 @@ function syncPreview(){
 }
 [weatherEl, aeEl, diffEl, vodEl, nameFieldEl].forEach(el => el.addEventListener('input', syncPreview));
 quill.on('text-change', syncPreview);
+quill.on('text-change', updateCharCount);
+
+function updateCharCount(){
+  const el = document.getElementById('charCount');
+  const len = quill.root.innerHTML.length;
+  el.textContent = `${len.toLocaleString()} / 10,000 characters`;
+  el.classList.toggle('warn', len > 8000 && len <= 10000);
+  el.classList.toggle('over', len > 10000);
+}
+updateCharCount();
 
 const WORKER_URL = "https://guide-submissions.solo-raid-archive.workers.dev";
 
@@ -735,6 +856,7 @@ async function addStrategy(){
   const boss = currentBossName();
   if(!boss){ alert('Choose or enter a boss first.'); return; }
   if(!quill.getText().trim()){ alert('Add strategy text first.'); return; }
+  if(quill.root.innerHTML.length > 10000){ alert('Strategy text is too long (max 10,000 characters). Trim it down and try again.'); return; }
   const status = document.getElementById('submit-status');
   const nameEl = document.getElementById('f-name');
 
