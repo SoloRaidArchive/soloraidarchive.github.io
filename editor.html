@@ -31,7 +31,7 @@
     .field-label{ font-size:12.5px; }
     input[type=text], select, textarea{ font-size:15px; padding:11px 12px; }
     .editor-subtitle{ font-size:13px; }
-    .existing-note, .wip-note{ font-size:12.5px; }
+    .info-line{ font-size:12.5px; }
     .add-btn{ font-size:15px; padding:13px; }
     .add-party-btn, .add-mon-btn{ font-size:13.5px; }
     .mon-row input{ font-size:13.5px; }
@@ -56,7 +56,7 @@
   .field-row .field-group{ flex:1; }
   input[type=text], select, textarea{
     width:100%; font-family:'Inter', sans-serif; font-size:13.5px; padding:9px 10px;
-    border:1.5px solid var(--border); border-radius:8px; color: var(--text); background:#fff;
+    border:1.5px solid var(--border); border-radius:8px; color: var(--text); background: var(--card);
   }
   textarea{ resize:vertical; min-height:70px; line-height:1.5; }
   input:focus, select:focus, textarea:focus{ outline:none; border-color: var(--blue); }
@@ -67,40 +67,60 @@
   }
   .add-btn:hover{ background: var(--blue-dark); }
   .add-btn:disabled{ background:#c9d3e0; cursor:not-allowed; }
-  .existing-note{
-    background:#fff8e6; border:1.5px solid #ffdb8a; border-radius:10px; padding:10px 12px;
-    font-size:11.5px; color:#8a6a1a; margin-bottom:16px; line-height:1.5;
+  .info-bubble{
+    background: var(--accent-soft, #eef2ff); border:1.5px solid var(--border); border-radius:10px;
+    padding:10px 12px; margin-bottom:14px;
   }
-  [data-theme="dark"] .existing-note{ background:#3a2f10; border-color:#6b5a1e; color:#e0c060; }
-  .wip-note{
-    background:#eef1f5; border:1.5px solid #cfd6e0; border-radius:10px; padding:10px 12px;
-    font-size:11.5px; color:#556070; margin-bottom:12px; line-height:1.5;
+  .info-line{
+    font-size:11.5px; color: var(--text-dim); line-height:1.5;
+    display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;
   }
-  [data-theme="dark"] .wip-note{ background:#232840; border-color:#3a4260; color:#a7afc0; }
+  .info-line + .info-line{ margin-top:6px; padding-top:6px; border-top:1px solid var(--border); }
+  .info-line-draft{ color:#1f7a45; }
+  [data-theme="dark"] .info-line-draft{ color:#7dd9a5; }
+  .info-line-editing{ color:#8a5a10; }
+  [data-theme="dark"] .info-line-editing{ color:#e0c060; }
+  .draft-clear-btn, .cancel-edit-btn{
+    background:none; border:1.5px solid currentColor; border-radius:999px; padding:3px 10px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:10.5px; color:inherit; cursor:pointer; flex-shrink:0;
+  }
   [data-theme="dark"] .mon-remove-btn{ color:#5a5f6e; }
+  [data-theme="dark"] .mon-dup-btn{ color:#6b7591; }
   hr.section-divider{ border:none; border-top:1.5px solid var(--border); margin:20px 0; }
 
-  .party-card{ border:1.5px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; background:#fafbfc; }
+  .party-card{ border:1.5px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; background: var(--accent-soft); }
   .party-card-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
   .party-card-head input{ flex:1; }
   .party-remove-btn{ background:none; border:none; color:#c62828; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0; }
-  .mon-block{ margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+  .mon-block{ margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border); position:relative; }
   .mon-block:last-child{ border-bottom:none; margin-bottom:0; }
   .mon-row{ display:flex; gap:6px; margin-bottom:6px; align-items:center; }
   .mon-row:last-child{ margin-bottom:0; }
   .mon-row input{ font-size:12px; padding:7px 8px; }
-  .mon-row .mon-name{ flex:2; }
-  .mon-row .mon-level{ flex:0.7; }
+  .mon-row .mon-name{ flex:2; padding-right:26px; }
+  .mon-row .mon-level{ flex:0.7; min-width:0; }
+  .level-wrap{ display:flex; gap:3px; align-items:center; flex:0.7; min-width:0; }
+  .level-wrap .mon-level{ flex:1; min-width:0; }
+  .level-wrap .mon-level-max{ flex:1; min-width:0; font-size:12px; padding:7px 6px; border:1.5px solid var(--border); border-radius:8px; color: var(--text); background: var(--card); }
+  .level-toggle-btn{
+    flex-shrink:0; background:none; border:1.5px solid var(--border); border-radius:6px;
+    width:22px; height:22px; font-size:11px; color: var(--text-dim); cursor:pointer; padding:0;
+  }
+  .level-toggle-btn.active{ background: var(--blue); border-color: var(--blue); color:#fff; }
+  .level-toggle-btn:hover{ border-color: var(--blue); }
   .mon-moves-row .mon-fm, .mon-moves-row .mon-cm, .mon-moves-row .mon-cm2{ flex:1; }
+  .mon-btn-group{ position:absolute; top:0; right:0; display:flex; gap:2px; }
   .mon-remove-btn{ background:none; border:none; color:#b0b0b8; font-size:14px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
+  .mon-dup-btn{ background:none; border:none; color:#8a93a8; font-size:13px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
+  .mon-dup-btn:hover{ color: var(--blue-dark); }
   .mon-remove-btn:hover{ color:#c62828; }
   .add-mon-btn{
-    width:100%; padding:7px; background:#fff; border:1.5px dashed var(--border); border-radius:7px;
+    width:100%; padding:7px; background: var(--card); border:1.5px dashed var(--border); border-radius:7px;
     font-family:'Inter', sans-serif; font-weight:600; font-size:11.5px; color: var(--blue-dark); cursor:pointer; margin-top:2px;
   }
   .add-mon-btn:hover{ border-color: var(--blue); }
   .add-party-btn{
-    width:100%; padding:10px; background:#fff; border:1.5px dashed var(--blue); border-radius:9px;
+    width:100%; padding:10px; background: var(--card); border:1.5px dashed var(--blue); border-radius:9px;
     font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px; color: var(--blue-dark); cursor:pointer;
   }
   .add-party-btn:hover{ background: var(--accent-soft); }
@@ -116,6 +136,12 @@
   .section-num{ width:22px; height:22px; border-radius:50%; background: var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; flex-shrink:0; }
   .strategy-block{ margin:12px 0; padding-bottom:14px; border-bottom:1px solid var(--border); }
   .strategy-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; margin-bottom:4px; }
+  .edit-strategy-btn{
+    display:inline-flex; align-items:center; gap:5px; margin-bottom:10px;
+    background: var(--blue); color:#fff; border:none; border-radius:999px;
+    padding:7px 14px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12px; cursor:pointer;
+  }
+  .edit-strategy-btn:hover{ background: var(--blue-dark); }
   .strategy-tags{ display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
   .strategy-tag{ font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark); background: var(--accent-soft); padding:2px 8px; border-radius:999px; }
   .strategy-text{ font-size:13.5px; color: var(--text); line-height:1.7; }
@@ -123,13 +149,17 @@
   .strategy-text h2{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin:14px 0 6px; }
   .strategy-text h3{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14px; margin:12px 0 5px; }
   .strategy-text blockquote{ margin:8px 0; padding:6px 12px; border-left:3px solid var(--blue); color: var(--text-dim); }
-  .strategy-text ol, .strategy-text ul{ margin:4px 0 8px; padding-left:22px; }
+  .strategy-text ol, .strategy-text ul{ margin:4px 0 8px; padding-left:22px; list-style:none; counter-reset:list-0; }
+  .strategy-text li{ position:relative; }
+  .strategy-text li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
+  .strategy-text li[data-list="ordered"]{ counter-increment:list-0; }
+  .strategy-text li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
   .strategy-text img{ max-width:100%; border-radius:8px; margin:6px 0; }
   .strategy-text strong{ font-weight:800; }
   .strategy-text.placeholder{ color: var(--text-dim); font-style:italic; }
   .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; margin-top:4px; }
 
-  .battle-party{ background:#fff; border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px; }
+  .battle-party{ background: var(--accent-soft); border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px; }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
   .battle-mon{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px; }
   .battle-mon-icon{ width:26px; height:26px; border-radius:50%; background: var(--accent-soft); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
@@ -154,6 +184,13 @@
   [data-theme="dark"] .ql-snow .ql-picker-options{ background: var(--card); border-color: var(--border); }
   [data-theme="dark"] .ql-snow.ql-toolbar button:hover .ql-stroke,
   [data-theme="dark"] .ql-snow .ql-toolbar button:hover .ql-stroke{ stroke: var(--blue); }
+  @media (min-width: 1100px){
+    .editor-panel{ width:560px; }
+    .mon-block{ display:grid; grid-template-columns: 1.6fr 0.7fr 1fr 1fr 1fr auto; gap:8px; align-items:center; border-bottom:none; margin-bottom:6px; padding-bottom:0; }
+    .mon-block .mon-row{ display:contents; }
+    .mon-row .mon-name{ padding-right:8px; }
+    .mon-btn-group{ position:static; }
+  }
 </style>
 </head>
 <body>
@@ -166,9 +203,18 @@
     </div>
     <div class="editor-subtitle">Changes appear live on the right as you type</div>
 
-    <div class="wip-note">⚠️ Requires a GitHub account to submit. This editor is still being updated - some things may change.</div>
-
-    <div class="existing-note">New strategies are added to this boss's guide page - not a separate page.</div>
+    <div class="info-bubble">
+      <div class="info-line">&#9888;&#65039; Requires a GitHub account to submit. This editor is still being updated - some things may change.</div>
+      <div class="info-line">New strategies are added to this boss's guide page - not a separate page.</div>
+      <div class="info-line info-line-draft" id="draftNote" style="display:none;">
+        &#128190; Draft restored from your last visit.
+        <button type="button" class="draft-clear-btn" id="draftClearBtn">Clear draft</button>
+      </div>
+      <div class="info-line info-line-editing" id="editingBanner" style="display:none;">
+        &#9998; Editing an existing route - saving will replace it, not add a new one.
+        <button type="button" class="cancel-edit-btn" id="cancelEditBtn">Cancel</button>
+      </div>
+    </div>
 
     <div class="field-group">
       <label class="field-label">Boss</label>
@@ -191,13 +237,13 @@
         <label class="field-label">Weather</label>
         <select id="f-weather">
           <option>Extreme</option><option>Sunny</option><option>Rainy</option>
-          <option>Partly Cloudy</option><option>Windy</option><option>Snow</option><option>Fog</option>
+          <option>Partly Cloudy</option><option>Cloudy</option><option>Windy</option><option>Snow</option><option>Fog</option>
         </select>
       </div>
       <div class="field-group">
         <label class="field-label">Difficulty</label>
         <select id="f-difficulty">
-          <option>3&#9733;</option><option>4&#9733;</option><option>5&#9733;</option><option>5.5&#9733;</option><option>6&#9733;</option>
+          <option>1&#9733;</option><option>2&#9733;</option><option>3&#9733;</option><option>4&#9733;</option><option>5&#9733;</option><option>5.5&#9733;</option><option>6&#9733;</option>
         </select>
       </div>
     </div>
@@ -215,11 +261,6 @@
     </div>
 
     <div class="field-group">
-      <label class="field-label">VOD link</label>
-      <input type="text" id="f-vod" placeholder="https://youtu.be/...">
-    </div>
-
-    <div class="field-group">
       <label class="field-label">Your name (credit)</label>
       <input type="text" id="f-name" placeholder="Spiritedbloom">
     </div>
@@ -230,6 +271,11 @@
       <label class="field-label">Battle Parties</label>
       <div id="parties-list"></div>
       <button type="button" class="add-party-btn" onclick="addParty()">+ Add Battle Party</button>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">VOD link</label>
+      <input type="text" id="f-vod" placeholder="https://youtu.be/...">
     </div>
 
     <button class="add-btn" id="submit-btn" onclick="addStrategy()" disabled>Submit for review</button>
@@ -403,9 +449,10 @@ async function loadBossIndex(){
 // Using the exact same function/markup as the real guide page is what guarantees this preview
 // can never visually drift from what volunteers actually get once merged - it's not a separate
 // approximation to keep in sync by hand.
-function strategyBlockHtml(s){
+function strategyBlockHtml(s, editIndex){
   return `
     <div class="strategy-block">
+      ${typeof editIndex === 'number' ? `<button type="button" class="edit-strategy-btn" onclick="editStrategy(${editIndex})">&#9998; Edit this route</button>` : ""}
       ${s.strategyName ? `<div class="strategy-name">${s.strategyName}</div>` : ""}
       <div class="strategy-tags">
         <span class="strategy-tag">${s.difficulty}</span>
@@ -434,6 +481,42 @@ function strategyBlockHtml(s){
 }
 
 let existingStrategies = [];
+let editingIndex = null;
+
+function editStrategy(index){
+  const s = existingStrategies[index];
+  if(!s) return;
+  editingIndex = index;
+
+  nameFieldEl.value = s.strategyName || "";
+  weatherEl.value = s.weather || weatherEl.value;
+  diffEl.value = s.difficulty || diffEl.value;
+  aeEl.value = s.adventureEffect || aeEl.value;
+  vodEl.value = s.vod || "";
+  document.getElementById('f-name').value = s.submittedBy || "";
+  if(quill) quill.root.innerHTML = s.text || "<p><br></p>";
+
+  document.querySelectorAll('.party-card').forEach(c => c.remove());
+  buildPartiesFromData(s.battleParties || [], /* trackForDraft */ false);
+  if(document.querySelectorAll('.party-card').length === 0) addParty();
+
+  document.getElementById('editingBanner').style.display = 'flex';
+  submitBtn.textContent = "Save changes to this route";
+  selectPreviewRoute('live');
+  syncPreview();
+}
+
+function cancelEdit(){
+  editingIndex = null;
+  document.getElementById('editingBanner').style.display = 'none';
+  submitBtn.textContent = "Submit for review";
+  nameFieldEl.value = ""; vodEl.value = "";
+  if(quill) quill.setText("");
+  document.querySelectorAll('.party-card').forEach(c => c.remove());
+  addParty();
+  syncPreview();
+}
+document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
 function currentLiveStrategy(){
   return {
     strategyName: nameFieldEl.value.trim(),
@@ -464,7 +547,7 @@ function selectPreviewRoute(which){
     display.innerHTML = strategyBlockHtml(currentLiveStrategy());
   }else{
     document.querySelectorAll('#preview-route-row .route-btn')[which].classList.add('active');
-    display.innerHTML = strategyBlockHtml(existingStrategies[which]);
+    display.innerHTML = strategyBlockHtml(existingStrategies[which], which);
   }
 }
 
@@ -532,29 +615,80 @@ function addMon(partyId){
   row.innerHTML = `
     <div class="mon-row">
       <input type="text" class="mon-name" placeholder="Pok&eacute;mon">
-      <input type="text" class="mon-level" placeholder="Lv">
-      <button type="button" class="mon-remove-btn" onclick="this.closest('.mon-block').remove(); syncPreview();">&times;</button>
+      <div class="level-wrap">
+        <input type="text" class="mon-level" placeholder="Lv">
+        <input type="text" class="mon-level-max" placeholder="Max" style="display:none;">
+        <button type="button" class="level-toggle-btn" title="Use a level range instead of one level" onclick="toggleLevelRange(this)">&#8646;</button>
+      </div>
     </div>
     <div class="mon-row mon-moves-row">
       <input type="text" class="mon-fm" placeholder="Fast move">
       <input type="text" class="mon-cm" placeholder="Charge move 1">
       <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)">
     </div>
+    <div class="mon-btn-group">
+      <button type="button" class="mon-dup-btn" title="Duplicate this Pok&eacute;mon" onclick="duplicateMon(this)">&#10697;</button>
+      <button type="button" class="mon-remove-btn" onclick="this.closest('.mon-block').remove(); syncPreview();">&times;</button>
+    </div>
   `;
   list.appendChild(row);
   row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', syncPreview));
+  syncPreview();
+  return row;
+}
+function toggleLevelRange(btn){
+  const wrap = btn.closest('.level-wrap');
+  const levelInput = wrap.querySelector('.mon-level');
+  const maxInput = wrap.querySelector('.mon-level-max');
+  const isRange = maxInput.style.display !== 'none';
+  if(isRange){
+    maxInput.style.display = 'none';
+    maxInput.value = '';
+    levelInput.placeholder = 'Lv';
+    btn.classList.remove('active');
+  }else{
+    maxInput.style.display = '';
+    levelInput.placeholder = 'Min';
+    btn.classList.add('active');
+  }
+  syncPreview();
+}
+function duplicateMon(btn){
+  const source = btn.closest('.mon-block');
+  const list = source.parentElement;
+  const partyId = list.id.replace('mon-list-', '');
+  const newRow = addMon(partyId);
+  // move the new entry to sit right after the one it was duplicated from, not at the end
+  source.after(newRow);
+  newRow.querySelector('.mon-name').value = source.querySelector('.mon-name').value;
+  newRow.querySelector('.mon-fm').value = source.querySelector('.mon-fm').value;
+  newRow.querySelector('.mon-cm').value = source.querySelector('.mon-cm').value;
+  newRow.querySelector('.mon-cm2').value = source.querySelector('.mon-cm2').value;
+
+  const sourceMax = source.querySelector('.mon-level-max');
+  if(sourceMax.style.display !== 'none'){
+    newRow.querySelector('.level-toggle-btn').click(); // switch the new row into range mode too
+    newRow.querySelector('.mon-level-max').value = sourceMax.value;
+  }
+  newRow.querySelector('.mon-level').value = source.querySelector('.mon-level').value;
   syncPreview();
 }
 function collectParties(){
   return Array.from(document.querySelectorAll('.party-card')).map(card => {
     const label = card.querySelector('.party-label').value.trim() || "Unlabeled party";
-    const mons = Array.from(card.querySelectorAll('.mon-block')).map(block => ({
-      name: block.querySelector('.mon-name').value.trim(),
-      level: block.querySelector('.mon-level').value.trim(),
-      fm: block.querySelector('.mon-fm').value.trim(),
-      cm: block.querySelector('.mon-cm').value.trim(),
-      cm2: block.querySelector('.mon-cm2').value.trim(),
-    })).filter(m => m.name);
+    const mons = Array.from(card.querySelectorAll('.mon-block')).map(block => {
+      const levelMin = block.querySelector('.mon-level').value.trim();
+      const maxInput = block.querySelector('.mon-level-max');
+      const levelMax = maxInput.style.display !== 'none' ? maxInput.value.trim() : '';
+      const level = levelMax ? `${levelMin}-${levelMax}` : levelMin;
+      return {
+        name: block.querySelector('.mon-name').value.trim(),
+        level,
+        fm: block.querySelector('.mon-fm').value.trim(),
+        cm: block.querySelector('.mon-cm').value.trim(),
+        cm2: block.querySelector('.mon-cm2').value.trim(),
+      };
+    }).filter(m => m.name);
     return { label, mons };
   }).filter(p => p.mons.length > 0);
 }
@@ -593,6 +727,7 @@ async function addStrategy(){
     vod: vodEl.value.trim(),
     submittedBy: nameEl.value.trim() || "Anonymous",
     battleParties: collectParties(),
+    ...(editingIndex !== null ? { editIndex: editingIndex } : {}),
   };
 
   try{
@@ -607,7 +742,7 @@ async function addStrategy(){
     status.innerHTML = `Submitted! <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--blue-dark); font-weight:700;">View the pull request &rarr;</a><br>A maintainer will review it before it goes live.`;
     status.style.color = "#1f9d5c";
 
-    existingStrategies.push({
+    const pendingEntry = {
       strategyName: nameFieldEl.value.trim() ? `${nameFieldEl.value.trim()} (Pending review)` : "Pending review",
       difficulty: diffEl.value,
       weather: weatherEl.value,
@@ -615,22 +750,159 @@ async function addStrategy(){
       text: quill.root.innerHTML,
       vod: vodEl.value.trim(),
       battleParties: collectParties(),
-    });
+    };
+    let selectIndex;
+    if(editingIndex !== null){
+      existingStrategies[editingIndex] = pendingEntry;
+      selectIndex = editingIndex;
+      editingIndex = null;
+      document.getElementById('editingBanner').style.display = 'none';
+    }else{
+      existingStrategies.push(pendingEntry);
+      selectIndex = existingStrategies.length - 1;
+    }
     renderRouteTabs();
-    selectPreviewRoute(existingStrategies.length - 1);
+    selectPreviewRoute(selectIndex);
     quill.setText(""); vodEl.value = ""; nameFieldEl.value = "";
+    clearDraft();
     document.querySelectorAll('.party-card').forEach(c => c.remove());
   }catch(e){
     status.textContent = `Couldn't submit: ${e.message}`;
     status.style.color = "#c62828";
   }finally{
     submitBtn.disabled = false;
-    submitBtn.textContent = "Submit for review";
+    submitBtn.textContent = editingIndex !== null ? "Save changes to this route" : "Submit for review";
   }
 }
 
 syncPreview();
-loadBossIndex();
+loadBossIndex().then(restoreDraft).then(() => {
+  // if there's still no battle party after restoring (or there was no draft to restore),
+  // start with one empty party ready to go - "+ Add Battle Party" should mean "add another",
+  // not "create your first one out of nothing"
+  if(document.querySelectorAll('.party-card').length === 0) addParty();
+});
+
+// ============ DRAFT AUTO-SAVE ============
+// Saves the whole form (including battle parties and the Quill content) to localStorage on
+// every change, debounced so it's not writing on literally every keystroke. Restored on next
+// visit if present - this is a real risk for a form with this much potential input (rich text,
+// multiple battle parties each with multiple Pokemon) to lose to an accidental refresh or tab close.
+const DRAFT_KEY = "guideEditorDraft";
+let saveDraftTimer = null;
+function saveDraft(){
+  clearTimeout(saveDraftTimer);
+  saveDraftTimer = setTimeout(() => {
+    try{
+      const draft = {
+        boss: bossEl.value,
+        newBoss: newBossEl.value,
+        strategyName: nameFieldEl.value,
+        weather: weatherEl.value,
+        difficulty: diffEl.value,
+        adventureEffect: aeEl.value,
+        text: quill ? quill.root.innerHTML : "",
+        vod: vodEl.value,
+        submittedBy: document.getElementById('f-name').value,
+        battleParties: collectParties(),
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    }catch(e){ /* localStorage unavailable or full - draft saving just silently doesn't happen */ }
+  }, 500);
+}
+
+async function restoreDraft(){
+  let draft;
+  try{
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if(!raw) return;
+    draft = JSON.parse(raw);
+  }catch(e){ return; }
+
+  if(draft.boss){
+    bossEl.value = draft.boss;
+    if(draft.boss === "__new__") newBossEl.value = draft.newBoss || "";
+    await onBossChange();
+  }
+  nameFieldEl.value = draft.strategyName || "";
+  weatherEl.value = draft.weather || weatherEl.value;
+  diffEl.value = draft.difficulty || diffEl.value;
+  aeEl.value = draft.adventureEffect || aeEl.value;
+  vodEl.value = draft.vod || "";
+  document.getElementById('f-name').value = draft.submittedBy || "";
+  if(quill && draft.text) quill.root.innerHTML = draft.text;
+
+  buildPartiesFromData(draft.battleParties || [], /* trackForDraft */ true);
+
+  syncPreview();
+  document.getElementById('draftNote').style.display = 'flex';
+}
+
+// shared by draft restoration and "edit an existing strategy" - builds real party-card DOM from
+// a battleParties array, including correctly restoring a saved level range ("40-45") back into
+// separate min/max inputs with range mode switched on
+function buildPartiesFromData(battleParties, trackForDraft){
+  battleParties.forEach(party => {
+    partyCounter++;
+    const id = partyCounter;
+    const el = document.createElement('div');
+    el.className = 'party-card';
+    el.dataset.partyId = id;
+    el.innerHTML = `
+      <div class="party-card-head">
+        <input type="text" class="party-label" placeholder="Lobby / party label (e.g. Lobby 1, Windy Only)" value="${party.label === 'Unlabeled party' ? '' : party.label}">
+        <button type="button" class="party-remove-btn" onclick="removeParty(${id})">&times;</button>
+      </div>
+      <div class="mon-list" id="mon-list-${id}"></div>
+      <button type="button" class="add-mon-btn" onclick="addMon(${id})">+ Add Pok&eacute;mon</button>
+    `;
+    document.getElementById('parties-list').appendChild(el);
+    el.querySelector('.party-label').addEventListener('input', trackForDraft ? () => { syncPreview(); saveDraft(); } : syncPreview);
+
+    party.mons.forEach(mon => {
+      const list = document.getElementById(`mon-list-${id}`);
+      const row = document.createElement('div');
+      row.className = 'mon-block';
+      const levelStr = mon.level || '';
+      const rangeMatch = levelStr.match(/^(\d+)\s*-\s*(\d+)$/);
+      row.innerHTML = `
+        <div class="mon-row">
+          <input type="text" class="mon-name" placeholder="Pok&eacute;mon" value="${mon.name || ''}">
+          <div class="level-wrap">
+            <input type="text" class="mon-level" placeholder="Lv" value="${rangeMatch ? rangeMatch[1] : levelStr}">
+            <input type="text" class="mon-level-max" placeholder="Max" value="${rangeMatch ? rangeMatch[2] : ''}" style="display:${rangeMatch ? '' : 'none'};">
+            <button type="button" class="level-toggle-btn${rangeMatch ? ' active' : ''}" title="Use a level range instead of one level" onclick="toggleLevelRange(this)">&#8646;</button>
+          </div>
+        </div>
+        <div class="mon-row mon-moves-row">
+          <input type="text" class="mon-fm" placeholder="Fast move" value="${mon.fm || ''}">
+          <input type="text" class="mon-cm" placeholder="Charge move 1" value="${mon.cm || ''}">
+          <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)" value="${mon.cm2 || ''}">
+        </div>
+        <div class="mon-btn-group">
+          <button type="button" class="mon-dup-btn" title="Duplicate this Pok&eacute;mon" onclick="duplicateMon(this)">&#10697;</button>
+          <button type="button" class="mon-remove-btn" onclick="this.closest('.mon-block').remove(); syncPreview();">&times;</button>
+        </div>
+      `;
+      list.appendChild(row);
+      row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', trackForDraft ? () => { syncPreview(); saveDraft(); } : syncPreview));
+    });
+  });
+}
+
+function clearDraft(){
+  try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+  document.getElementById('draftNote').style.display = 'none';
+}
+document.getElementById('draftClearBtn').addEventListener('click', clearDraft);
+
+// hook auto-save into every existing change point, rather than duplicating listeners -
+// syncPreview() already runs on every relevant edit across the whole form
+const _originalSyncPreview = syncPreview;
+syncPreview = function(){ _originalSyncPreview(); saveDraft(); };
+[weatherEl, aeEl, diffEl, vodEl, nameFieldEl, document.getElementById('f-name'), newBossEl].forEach(el => el.addEventListener('input', saveDraft));
+bossEl.addEventListener('change', saveDraft);
+if(quill) quill.on('text-change', saveDraft);
 
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
