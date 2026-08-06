@@ -222,6 +222,15 @@
     .strategy-credit{ font-size:12px; }
     .section-title{ font-size:21px; }
   }
+
+  .boss-info-top{ display:flex; align-items:center; gap:16px; margin-bottom:14px; }
+  .boss-sprite-sm{ width:64px; height:64px; object-fit:contain; flex-shrink:0; }
+  .boss-info-top-right{ flex:1; min-width:0; }
+  .type-icon-row-sm{ display:flex; gap:6px; margin-bottom:8px; }
+  .stat-row-sm{ display:flex; gap:14px; flex-wrap:wrap; }
+  .stat-cell-sm{ display:flex; align-items:baseline; gap:5px; }
+  .stat-label-sm{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10px; color: var(--text-dim); text-transform:uppercase; }
+  .stat-value-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; color: var(--blue-dark); }
 </style>
 </head>
 <body>
@@ -273,17 +282,19 @@
 
   <h2 class="section-title">Boss Info</h2>
   <div class="info-box">
-    <div class="boss-sprite-row">
-      <img class="boss-sprite" id="boss-sprite-img" alt="Lunala" onerror="this.style.display='none'">
-    </div>
-    <div class="type-icon-row">
-      <span class="type-icon-wrap" style="background:#E0426E;">Psychic</span>
-      <span class="type-icon-wrap" style="background:#5B4B8A;">Ghost</span>
-    </div>
-    <div class="stat-row">
-      <div class="stat-cell"><div class="stat-label">ATK</div><div class="stat-value">213.3</div></div>
-      <div class="stat-cell"><div class="stat-label">DEF</div><div class="stat-value">162.7</div></div>
-      <div class="stat-cell"><div class="stat-label">HP</div><div class="stat-value">15,000</div></div>
+    <div class="boss-info-top">
+      <img class="boss-sprite-sm" id="boss-sprite-img" alt="Lunala" onerror="this.style.display='none'">
+      <div class="boss-info-top-right">
+        <div class="type-icon-row-sm">
+          <span class="type-icon-wrap" style="background:#E0426E;">Psychic</span>
+          <span class="type-icon-wrap" style="background:#5B4B8A;">Ghost</span>
+        </div>
+        <div class="stat-row-sm">
+          <div class="stat-cell-sm"><span class="stat-label-sm">ATK</span><span class="stat-value-sm">213.3</span></div>
+          <div class="stat-cell-sm"><span class="stat-label-sm">DEF</span><span class="stat-value-sm">162.7</span></div>
+          <div class="stat-cell-sm"><span class="stat-label-sm">HP</span><span class="stat-value-sm">15,000</span></div>
+        </div>
+      </div>
     </div>
     <div class="movepool-label">Fast Moves</div>
     <div class="movepool-row" id="fast-move-row"></div>
