@@ -108,6 +108,14 @@
   }
   .level-toggle-btn.active{ background: var(--blue); border-color: var(--blue); color:#fff; }
   .level-toggle-btn:hover{ border-color: var(--blue); }
+  .mon-optional-btn{
+    flex-shrink:0; background:none; border:1.5px solid var(--border); border-radius:50%;
+    width:20px; height:20px; font-size:10.5px; font-weight:700; color: var(--text-dim); cursor:pointer; padding:0;
+  }
+  .mon-optional-btn.active{ background:#e0a020; border-color:#e0a020; color:#fff; }
+  .mon-optional-btn:hover{ border-color:#e0a020; }
+  .mon-block.optional-mon{ opacity:0.75; }
+  .mon-block.optional-mon .mon-name{ border-style:dashed; }
   .mon-moves-row .mon-fm, .mon-moves-row .mon-cm, .mon-moves-row .mon-cm2{ flex:1; }
   .mon-btn-group{ position:absolute; top:0; right:0; display:flex; gap:2px; }
   .mon-remove-btn{ background:none; border:none; color:#b0b0b8; font-size:14px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
@@ -165,6 +173,12 @@
   .battle-mon-icon{ width:26px; height:26px; border-radius:50%; background: var(--accent-soft); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
   .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; }
   .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
+  .battle-mon.optional{
+    border:1.5px dashed #d9a441; background: rgba(224,160,32,0.08); border-radius:8px;
+    padding:5px 7px; margin:2px 0;
+  }
+  .optional-note{ font-weight:600; color:#b8791a; font-size:10px; }
+  [data-theme="dark"] .optional-note{ color:#e0b060; }
   .battle-mon-meta{ color: var(--text-dim); font-size:11px; }
 
   .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
@@ -465,10 +479,10 @@ function strategyBlockHtml(s, editIndex){
         <div class="battle-party">
           <div class="battle-party-label">${p.label}</div>
           ${p.mons.map(m => `
-            <div class="battle-mon">
+            <div class="battle-mon${m.optional ? ' optional' : ''}">
               <div class="battle-mon-icon"><img src="${monSpriteUrl(m.name)}" alt="" onerror="this.remove();"></div>
               <div>
-                ${m.level ? `<div class="battle-mon-level">Lv ${m.level}</div>` : ""}
+                ${m.level ? `<div class="battle-mon-level">Lv ${m.level}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ''}</div>` : (m.optional ? `<div class="battle-mon-level"><span class="optional-note">(Optional)</span></div>` : "")}
                 ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).join(' / ')}</div>` : ""}
               </div>
             </div>
@@ -627,6 +641,7 @@ function addMon(partyId){
       <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)">
     </div>
     <div class="mon-btn-group">
+      <button type="button" class="mon-optional-btn" title="Mark this Pok&eacute;mon as optional" onclick="toggleOptionalMon(this)">?</button>
       <button type="button" class="mon-dup-btn" title="Duplicate this Pok&eacute;mon" onclick="duplicateMon(this)">&#10697;</button>
       <button type="button" class="mon-remove-btn" onclick="this.closest('.mon-block').remove(); syncPreview();">&times;</button>
     </div>
@@ -653,6 +668,12 @@ function toggleLevelRange(btn){
   }
   syncPreview();
 }
+function toggleOptionalMon(btn){
+  const block = btn.closest('.mon-block');
+  block.classList.toggle('optional-mon');
+  btn.classList.toggle('active');
+  syncPreview();
+}
 function duplicateMon(btn){
   const source = btn.closest('.mon-block');
   const list = source.parentElement;
@@ -671,6 +692,9 @@ function duplicateMon(btn){
     newRow.querySelector('.mon-level-max').value = sourceMax.value;
   }
   newRow.querySelector('.mon-level').value = source.querySelector('.mon-level').value;
+  if(source.classList.contains('optional-mon')){
+    newRow.querySelector('.mon-optional-btn').click(); // switch the new row into optional mode too
+  }
   syncPreview();
 }
 function collectParties(){
@@ -687,6 +711,7 @@ function collectParties(){
         fm: block.querySelector('.mon-fm').value.trim(),
         cm: block.querySelector('.mon-cm').value.trim(),
         cm2: block.querySelector('.mon-cm2').value.trim(),
+        optional: block.classList.contains('optional-mon'),
       };
     }).filter(m => m.name);
     return { label, mons };
@@ -862,7 +887,7 @@ function buildPartiesFromData(battleParties, trackForDraft){
     party.mons.forEach(mon => {
       const list = document.getElementById(`mon-list-${id}`);
       const row = document.createElement('div');
-      row.className = 'mon-block';
+      row.className = mon.optional ? 'mon-block optional-mon' : 'mon-block';
       const levelStr = mon.level || '';
       const rangeMatch = levelStr.match(/^(\d+)\s*-\s*(\d+)$/);
       row.innerHTML = `
@@ -880,6 +905,7 @@ function buildPartiesFromData(battleParties, trackForDraft){
           <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)" value="${mon.cm2 || ''}">
         </div>
         <div class="mon-btn-group">
+          <button type="button" class="mon-optional-btn${mon.optional ? ' active' : ''}" title="Mark this Pok&eacute;mon as optional" onclick="toggleOptionalMon(this)">?</button>
           <button type="button" class="mon-dup-btn" title="Duplicate this Pok&eacute;mon" onclick="duplicateMon(this)">&#10697;</button>
           <button type="button" class="mon-remove-btn" onclick="this.closest('.mon-block').remove(); syncPreview();">&times;</button>
         </div>
