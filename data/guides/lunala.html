@@ -1,9 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>How to Solo Lunala — Solo Raid Archive</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Solo Lunala (Pokémon GO) — Solo Raid Archive</title>
 <link rel="icon" href="../../assets/icons/favicon.ico">
+<meta name="description" content="How to solo Lunala in Pokémon GO: exact battle parties, weather conditions, and difficulty routes from real recorded solo clears, with video proof for every strategy.">
+<link rel="canonical" href="https://soloraidarchive.github.io/data/guides/lunala.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Solo Lunala (Pokémon GO)">
+<meta property="og:description" content="Exact battle parties, weather conditions, and difficulty routes from real recorded solo clears of Lunala, with video proof for every strategy.">
+<meta property="og:url" content="https://soloraidarchive.github.io/data/guides/lunala.html">
+<meta property="og:site_name" content="Solo Raid Archive">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="How to Solo Lunala (Pokémon GO)">
+<meta name="twitter:description" content="Exact battle parties, weather conditions, and difficulty routes from real recorded solo clears of Lunala, with video proof for every strategy.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Solo Lunala in Pokémon GO",
+  "description": "Step-by-step routes for soloing Lunala, based on real recorded clears: check the boss's type and moves, pick a route by difficulty/weather/adventure effect, then follow the matching battle party breakdown.",
+  "step": [
+    { "@type": "HowToStep", "name": "Check Boss Info", "text": "Review Lunala's typing, effective stats, and possible fast/charge moves so you know what you're up against." },
+    { "@type": "HowToStep", "name": "Choose a Route", "text": "Pick the recorded route that matches your difficulty, current weather, and any active Adventure Effect." },
+    { "@type": "HowToStep", "name": "Follow the Breakdown", "text": "Use the matching battle party - exact Pokémon, levels, and movesets - and the linked VOD as proof the strategy works." }
+  ]
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -95,6 +119,7 @@
     text-transform:uppercase; letter-spacing:0.06em; margin:20px 0 4px; text-align:center;
   }
   .guide-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:28px; margin:0 0 8px; text-align:center; }
+  .guide-static-summary{ font-size:14px; color: var(--text-muted); text-align:center; max-width:520px; margin:0 auto 18px; line-height:1.6; }
 
   .section-title{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:19px; margin:32px 0 4px;
@@ -166,6 +191,22 @@
     text-align:center; padding: 24px; font-size:12px; color: var(--text-dim);
     font-family:'Inter', sans-serif; border-top: 1px solid var(--border); margin-top:20px;
   }
+  @media (max-width: 600px){
+    .guide-title{ font-size:26px; }
+    .guide-static-summary{ font-size:15px; }
+    .strategy-text{ font-size:16px; line-height:1.7; }
+    .strategy-name{ font-size:18px; }
+    .strategy-tag{ font-size:11.5px; padding:4px 11px; }
+    .stat-label{ font-size:11px; }
+    .stat-value{ font-size:17px; }
+    .move-chip{ font-size:12.5px; }
+    .battle-mon-level{ font-size:13px; }
+    .battle-mon-meta{ font-size:12.5px; }
+    .battle-party-label{ font-size:13.5px; }
+    .route-btn{ font-size:13.5px; padding:11px 16px; }
+    .strategy-credit{ font-size:12px; }
+    .section-title{ font-size:21px; }
+  }
 </style>
 </head>
 <body>
@@ -204,7 +245,7 @@
 
 <div class="sticky-header">
   <div class="sticky-header-row">
-    <h1 class="page-title-sm">Guide</h1>
+    <div class="page-title-sm">Guide</div>
     <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -214,11 +255,12 @@
 <div class="page">
   <div class="guide-eyebrow">Boss Guide</div>
   <h1 class="guide-title">How to Solo Lunala</h1>
+  <p class="guide-static-summary">Lunala is a Psychic/Ghost-type Legendary raid boss in Pokémon GO. This guide covers every recorded solo strategy - exact battle parties, weather conditions, and difficulty routes - each backed by video proof.</p>
 
   <h2 class="section-title">Boss Info</h2>
   <div class="info-box">
     <div class="boss-sprite-row">
-      <img class="boss-sprite" src="https://db.pokemongohub.net/images/official/full/792.webp" alt="Lunala" onerror="this.style.display='none'">
+      <img class="boss-sprite" id="boss-sprite-img" alt="Lunala" onerror="this.style.display='none'">
     </div>
     <div class="type-icon-row">
       <span class="type-icon-wrap" style="background:#E0426E;">Psychic</span>
@@ -266,10 +308,75 @@ function moveChipHtml(name, isCharge){
 document.getElementById('fast-move-row').innerHTML = ["Confusion","Air Slash","Shadow Claw"].map(m => moveChipHtml(m, false)).join('');
 document.getElementById('charge-move-row').innerHTML = ["Shadow Ball","Psychic","Moonblast","Future Sight"].map(m => moveChipHtml(m, true)).join('');
 
-function monSpriteUrl(name){
-  const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  return `../../assets/sprites/${slug}.gif`;
+// ============ SPRITE RESOLUTION (full system - was regressed to a naive version during
+// an earlier rebuild of this page; restored here to match editor.html and the rest of the site) ============
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zacian hero":"zacian-hero", "zamazenta hero":"zamazenta-hero", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "mega heracross":"heracross-mega", "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
+const DEX_MAP = {
+  "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "dialga":483, "groudon":383, "mamoswine":473,
+  "salamence":373, "gengar":94, "tyrantrum":697, "rhyperior":464,
+  "kyogre":382, "mewtwo":150, "excadrill":530, "blaziken":257,
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
 }
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+};
+const ANI_OVERRIDES = {
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+const ANI_URL_OVERRIDES = {
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "slowbro-mega", "solgaleo", "stakataka", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+function monSpriteUrl(name){
+  const key = name.trim().toLowerCase();
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
+  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
+  }
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return `../../assets/sprites/${slug}.gif`;
+  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
+document.getElementById('boss-sprite-img').src = monSpriteUrl('Lunala');
 
 function routeLabel(s){
   const parts = [s.difficulty, s.weather];
