@@ -1,0 +1,30 @@
+{
+  "boss": "Nihilego",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Primal Groudon Recycle",
+      "weather": "Sunny",
+      "adventureEffect": "None",
+      "difficulty": "3★",
+      "text": "<p>This solo relies on having a Primal Groudon and spam MS/PB. At low HP, relobby with the same team. If done correctly, the raid will be completed with ~25 seconds remaining against any moveset.</p><p><br></p><p>This can also be done with a Lv40 Primal Groudon with Zacian AE.</p>",
+      "vod": "https://youtu.be/-Uuq1FUP6Vk",
+      "submittedBy": "CreatorBeastGD",
+      "battleParties": [
+        {
+          "label": "Battle Party",
+          "mons": [
+            {
+              "name": "Primal Groudon",
+              "level": "50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": ""
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-06T11:53:45.091Z"
+    }
+  ]
+}
