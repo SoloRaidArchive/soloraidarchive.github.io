@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Solo Azelf (Pokémon GO) — Solo Raid Archive</title>
+<link rel="icon" href="../../assets/icons/favicon.ico">
+<meta name="description" content="How to solo Azelf in Pokémon GO: exact battle parties, weather conditions, and difficulty routes from real recorded solo clears, with video proof for every strategy.">
+<link rel="canonical" href="https://soloraidarchive.github.io/data/guides/azelf.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Solo Azelf (Pokémon GO)">
+<meta property="og:description" content="Exact battle parties, weather conditions, and difficulty routes from real recorded solo clears of Azelf, with video proof for every strategy.">
+<meta property="og:url" content="https://soloraidarchive.github.io/data/guides/azelf.html">
+<meta property="og:site_name" content="Solo Raid Archive">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="How to Solo Azelf (Pokémon GO)">
+<meta name="twitter:description" content="Exact battle parties, weather conditions, and difficulty routes from real recorded solo clears of Azelf, with video proof for every strategy.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "How to Solo Azelf in Pokémon GO",
+  "description": "Step-by-step routes for soloing Azelf, based on real recorded clears: check the boss's type and moves, pick a route by difficulty/weather/adventure effect, then follow the matching battle party breakdown.",
+  "step": [
+    { "@type": "HowToStep", "name": "Check Boss Info", "text": "Review Azelf's typing, effective stats, and possible fast/charge moves so you know what you're up against." },
+    { "@type": "HowToStep", "name": "Choose a Route", "text": "Pick the recorded route that matches your difficulty, current weather, and any active Adventure Effect." },
+    { "@type": "HowToStep", "name": "Follow the Breakdown", "text": "Use the matching battle party - exact Pokémon, levels, and movesets - and the linked VOD as proof the strategy works." }
+  ]
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
+    --blue: #3d9dff; --blue-dark: #2b7fd6; --accent-soft: #eef2ff;
+  }
+  [data-theme="dark"]{
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024;
+    --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff; --accent-soft: #232840;
+  }
+  [data-theme="dark"] body{
+    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
+  }
+  *{ box-sizing: border-box; }
+  body{
+    font-family:'Inter', sans-serif; margin:0; padding:0;
+    background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+    color: var(--text); min-height:100vh;
+  }
+  .page{ max-width:720px; margin:0 auto; padding:20px 20px 60px; }
+
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
+  .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--text); text-align:center; }
+
+  .hamburger-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:hover{ transform: translateY(-2px); }
+  .hamburger-btn span{ display:block; width:19px; height:2.5px; border-radius:2px; background: var(--text); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:fixed; top:66px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text); background: var(--card); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--blue); color: var(--blue-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1); color: var(--blue-dark); }
+  .hamburger-section a.current{ background: var(--blue); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+
+  .guide-eyebrow{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--blue-dark);
+    text-transform:uppercase; letter-spacing:0.06em; margin:20px 0 4px; text-align:center;
+  }
+  .guide-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:28px; margin:0 0 8px; text-align:center; }
+  .guide-static-summary{ font-size:14px; color: var(--text-muted); text-align:center; max-width:520px; margin:0 auto 18px; line-height:1.6; }
+
+  .section-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:19px; margin:32px 0 4px;
+  }
+
+  .info-box{
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    padding:18px 20px; margin-top:12px;
+  }
+  .boss-sprite-row{ display:flex; justify-content:center; margin-bottom:12px; }
+  .boss-sprite{ width:90px; height:90px; object-fit:contain; }
+  .type-icon-row{ display:flex; gap:8px; margin-bottom:16px; justify-content:center; }
+  .type-icon-wrap{
+    display:flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; color:#fff;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
+  }
+  .stat-row{ display:flex; gap:10px; margin-bottom:16px; }
+  .stat-cell{ flex:1; background: var(--accent-soft); border-radius:10px; padding:10px 8px; text-align:center; }
+  .stat-label{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; }
+  .stat-value{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; color: var(--blue-dark); margin-top:2px; }
+  .movepool-label{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10.5px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; }
+  .movepool-row{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .move-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:600; color: var(--text);
+    background: var(--accent-soft); padding:5px 11px 5px 8px; border-radius:8px;
+  }
+  .move-chip.charge{ background:#fdeee0; }
+  [data-theme="dark"] .move-chip.charge{ background:#3a2a1a; }
+  .move-type-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .route-btn{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12px;
+    background: var(--card); color: var(--text-dim); border:1.5px solid var(--border);
+    padding:9px 14px; border-radius:999px; cursor:pointer;
+  }
+  .route-btn.active{ background: var(--blue); color:#fff; border-color: var(--blue); }
+
+  .strategy-block{ margin:14px 0; }
+  .strategy-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin-bottom:4px; }
+  .battle-party{ background: var(--accent-soft); border-radius:12px; padding:12px 14px; margin-top:10px; }
+  .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
+  .battle-mon{ display:flex; align-items:center; gap:10px; padding:5px 0; font-size:12.5px; }
+  .battle-mon-icon{ width:36px; height:36px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; }
+  .battle-mon-meta{ color: var(--text-dim); font-size:11px; }
+  .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
+  .strategy-tags{ display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+  .strategy-tag{
+    font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
+    background: var(--accent-soft); padding:2px 9px; border-radius:999px;
+  }
+  .strategy-text{ font-size:14px; color: var(--text); line-height:1.75; margin:0 0 6px; }
+  .strategy-text p{ margin:0 0 8px; }
+  .strategy-text h2{ font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:14px 0 6px; }
+  .strategy-text h3{ font-family:'Manrope', sans-serif; font-weight:700; font-size:15px; margin:12px 0 5px; }
+  .strategy-text blockquote{ margin:8px 0; padding:6px 12px; border-left:3px solid var(--blue); color: var(--text-dim); }
+  .strategy-text ol, .strategy-text ul{ margin:4px 0 8px; padding-left:22px; list-style:none; counter-reset:list-0; }
+  .strategy-text li{ position:relative; }
+  .strategy-text li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
+  .strategy-text li[data-list="ordered"]{ counter-increment:list-0; }
+  .strategy-text li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
+  .strategy-text img{ max-width:100%; border-radius:8px; margin:6px 0; }
+  .strategy-text strong{ font-weight:800; }
+  .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; }
+  .strategy-credit{ font-size:11px; color: var(--text-dim); margin-top:4px; }
+
+  .load-state{ text-align:center; color: var(--text-dim); font-size:13px; padding:30px 0; }
+  .load-error{ text-align:center; color:#c62828; font-size:13px; padding:20px; background:#fff0f0; border-radius:10px; }
+
+  footer{
+    text-align:center; padding: 24px; font-size:12px; color: var(--text-dim);
+    font-family:'Inter', sans-serif; border-top: 1px solid var(--border); margin-top:20px;
+  }
+  @media (max-width: 600px){
+    .guide-title{ font-size:26px; }
+    .guide-static-summary{ font-size:15px; }
+    .strategy-text{ font-size:16px; line-height:1.7; }
+    .strategy-name{ font-size:18px; }
+    .strategy-tag{ font-size:11.5px; padding:4px 11px; }
+    .stat-label{ font-size:11px; }
+    .stat-value{ font-size:17px; }
+    .move-chip{ font-size:12.5px; }
+    .battle-mon-level{ font-size:13px; }
+    .battle-mon-meta{ font-size:12.5px; }
+    .battle-party-label{ font-size:13.5px; }
+    .route-btn{ font-size:13.5px; padding:11px 16px; }
+    .strategy-credit{ font-size:12px; }
+    .section-title{ font-size:21px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="../../index.html"><img src="../../assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Research</div>
+    <a href="../../research.html" class="hamburger-featured">Most Used Raiders</a>
+    <a href="../../ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+    <a href="../../solo-raid-mechanics.html" class="hamburger-featured">Solo Raid Mechanics</a>
+    <a href="../../meta-battle-parties.html">Meta Battle Parties</a>
+    <a href="../../ct-calculator.html">Catch Tank Calculator</a>
+    <a href="../../move-data.html">Move Data</a>
+    <a href="../../pokemon-stats.html">Pokémon Stats</a>
+    <a href="../../reference.html">Difficulty &amp; Role Reference</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Raid Archives</div>
+    <a href="../../tier4-raids.html">Mega</a>
+    <a href="../../tier5-raids.html">Legendary</a>
+    <a href="../../tier5-ae-raids.html">Legendary AE</a>
+    <a href="../../tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Resources</div>
+    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+  </div>
+</div>
+
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <div class="page-title-sm">Guide</div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+
+<div class="page">
+  <div class="guide-eyebrow">Boss Guide</div>
+  <h1 class="guide-title">How to Solo Azelf</h1>
+  <p class="guide-static-summary">Azelf is a pure Psychic-type Legendary raid boss in Pokémon GO. This guide covers every recorded solo strategy - exact battle parties, weather conditions, and difficulty routes - each backed by video proof.</p>
+
+  <h2 class="section-title">Boss Info</h2>
+  <div class="info-box">
+    <div class="boss-sprite-row">
+      <img class="boss-sprite" id="boss-sprite-img" alt="Azelf" onerror="this.style.display='none'">
+    </div>
+    <div class="type-icon-row">
+      <span class="type-icon-wrap" style="background:#E0426E;">Psychic</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat-cell"><div class="stat-label">ATK</div><div class="stat-value">225.2</div></div>
+      <div class="stat-cell"><div class="stat-label">DEF</div><div class="stat-value">131.1</div></div>
+      <div class="stat-cell"><div class="stat-label">HP</div><div class="stat-value">15,000</div></div>
+    </div>
+    <div class="movepool-label">Fast Moves</div>
+    <div class="movepool-row" id="fast-move-row"></div>
+    <div class="movepool-label">Charge Moves</div>
+    <div class="movepool-row" id="charge-move-row"></div>
+  </div>
+
+  <h2 class="section-title">Routes</h2>
+  <div class="route-row" id="route-row">
+    <div class="load-state">Loading...</div>
+  </div>
+
+  <h2 class="section-title">Breakdown</h2>
+  <div id="strategy-display">
+    <div class="load-state">Loading strategies...</div>
+  </div>
+</div>
+
+<footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
+
+<script>
+const MOVE_TYPES = {
+  "Confusion": {type:"Psychic", color:"#E0426E"},
+  "Extrasensory": {type:"Psychic", color:"#E0426E"},
+  "Fire Blast": {type:"Fire", color:"#E2661C"},
+  "Future Sight": {type:"Psychic", color:"#E0426E"},
+  "Swift": {type:"Normal", color:"#9199A1"},
+};
+function moveChipHtml(name, isCharge){
+  const info = MOVE_TYPES[name];
+  const dot = info ? `<span class="move-type-dot" style="background:${info.color};" title="${info.type}"></span>` : "";
+  return `<span class="move-chip${isCharge ? " charge" : ""}">${dot}${name}</span>`;
+}
+document.getElementById('fast-move-row').innerHTML = ["Confusion","Extrasensory"].map(m => moveChipHtml(m, false)).join('');
+document.getElementById('charge-move-row').innerHTML = ["Fire Blast","Future Sight","Swift"].map(m => moveChipHtml(m, true)).join('');
+
+// ============ SPRITE RESOLUTION (full system - was regressed to a naive version during
+// an earlier rebuild of this page; restored here to match editor.html and the rest of the site) ============
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zacian hero":"zacian-hero", "zamazenta hero":"zamazenta-hero", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "mega heracross":"heracross-mega", "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
+const DEX_MAP = {
+  "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "dialga":483, "groudon":383, "mamoswine":473,
+  "salamence":373, "gengar":94, "tyrantrum":697, "rhyperior":464,
+  "kyogre":382, "mewtwo":150, "excadrill":530, "blaziken":257,
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
+}
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+};
+const ANI_OVERRIDES = {
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+const ANI_URL_OVERRIDES = {
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "slowbro-mega", "solgaleo", "stakataka", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+function monSpriteUrl(name){
+  const key = name.trim().toLowerCase();
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
+  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
+  }
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return `../../assets/sprites/${slug}.gif`;
+  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
+document.getElementById('boss-sprite-img').src = monSpriteUrl('Azelf');
+
+function routeLabel(s){
+  const parts = [s.difficulty, s.weather];
+  if(s.adventureEffect && s.adventureEffect !== "None") parts.push(s.adventureEffect);
+  return parts.join(" \u00b7 ");
+}
+
+function strategyBlockHtml(s){
+  return `
+    <div class="strategy-block">
+      ${s.strategyName ? `<div class="strategy-name">${escapeHtml(s.strategyName)}</div>` : ""}
+      <div class="strategy-tags">
+        <span class="strategy-tag">${escapeHtml(s.difficulty)}</span>
+        <span class="strategy-tag">${escapeHtml(s.weather)}</span>
+        ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${escapeHtml(s.adventureEffect)}</span>` : ""}
+      </div>
+      <div class="strategy-text">${s.text}</div>
+      ${s.vod ? `<a class="strategy-vod" href="${escapeAttr(s.vod)}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
+      ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
+        <div class="battle-party">
+          <div class="battle-party-label">${escapeHtml(p.label)}</div>
+          ${p.mons.map(m => `
+            <div class="battle-mon">
+              <div class="battle-mon-icon"><img src="${monSpriteUrl(m.name)}" alt="${escapeAttr(m.name)}" title="${escapeAttr(m.name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>
+              <div>
+                ${m.level ? `<div class="battle-mon-level">Lv ${escapeHtml(m.level)}</div>` : ""}
+                ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).map(escapeHtml).join(' / ')}</div>` : ""}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `).join('') : ""}
+      ${s.submittedBy ? `<div class="strategy-credit">Submitted by ${escapeHtml(s.submittedBy)}</div>` : ""}
+    </div>
+  `;
+}
+
+let loadedStrategies = [];
+function selectRoute(index){
+  document.querySelectorAll('.route-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+  document.getElementById('strategy-display').innerHTML = strategyBlockHtml(loadedStrategies[index]);
+}
+
+async function loadGuide(){
+  const routeRow = document.getElementById('route-row');
+  const strategyDisplay = document.getElementById('strategy-display');
+
+  try{
+    const res = await fetch('azelf.json', { cache: "no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    if(!data.strategies || data.strategies.length === 0){
+      strategyDisplay.innerHTML = '<div class="load-state">No strategies documented yet.</div>';
+      routeRow.innerHTML = '<span class="load-state">No routes yet.</span>';
+      return;
+    }
+    loadedStrategies = data.strategies;
+
+    routeRow.innerHTML = data.strategies.map((s, i) =>
+      `<button type="button" class="route-btn" onclick="selectRoute(${i})">${escapeHtml(routeLabel(s))}</button>`
+    ).join('');
+    selectRoute(0);
+  }catch(e){
+    strategyDisplay.innerHTML = `<div class="load-error">Couldn't load strategy data: ${escapeHtml(e.message)}</div>`;
+    routeRow.innerHTML = '';
+  }
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str == null ? "" : String(str);
+  return div.innerHTML;
+}
+function escapeAttr(str){
+  return escapeHtml(str).replace(/"/g, "&quot;");
+}
+
+loadGuide();
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+hamburgerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = hamburgerPanel.classList.contains("open");
+  hamburgerPanel.classList.toggle("open", !isOpen);
+  hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+document.addEventListener("click", (e) => {
+  if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
+    hamburgerPanel.classList.remove("open");
+    hamburgerBtn.setAttribute("aria-expanded", "false");
+  }
+});
+</script>
+</body>
+</html>
