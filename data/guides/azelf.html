@@ -148,7 +148,7 @@
   }
   .move-chip.charge{ background:#fdeee0; }
   [data-theme="dark"] .move-chip.charge{ background:#3a2a1a; }
-  .move-type-dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .move-type-icon{ width:14px; height:14px; flex-shrink:0; object-fit:contain; }
 
   .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
   .route-btn{
@@ -173,6 +173,11 @@
   }
   .optional-note{ font-weight:600; color:#b8791a; font-size:10px; }
   [data-theme="dark"] .optional-note{ color:#e0b060; }
+  @media (min-width: 601px){
+    .battle-mon{ padding:4px 0; }
+    .battle-mon > div:last-child{ display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+    .battle-mon-level::after{ content:"\00b7"; margin-left:6px; color: var(--text-dim); font-weight:400; }
+  }
   .strategy-tags{ display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
   .strategy-tag{
     font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
@@ -306,10 +311,11 @@ const MOVE_TYPES = {
   "Future Sight": {type:"Psychic", color:"#E0426E"},
   "Swift": {type:"Normal", color:"#9199A1"},
 };
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
   const info = MOVE_TYPES[name];
-  const dot = info ? `<span class="move-type-dot" style="background:${info.color};" title="${info.type}"></span>` : "";
-  return `<span class="move-chip${isCharge ? " charge" : ""}">${dot}${name}</span>`;
+  const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" title="${info.type}" onerror="this.remove();">` : "";
+  return `<span class="move-chip${isCharge ? " charge" : ""}">${icon}${name}</span>`;
 }
 document.getElementById('fast-move-row').innerHTML = ["Confusion","Extrasensory"].map(m => moveChipHtml(m, false)).join('');
 document.getElementById('charge-move-row').innerHTML = ["Fire Blast","Future Sight","Swift"].map(m => moveChipHtml(m, true)).join('');
@@ -462,6 +468,13 @@ function escapeAttr(str){
 }
 
 loadGuide();
+
+document.addEventListener('click', (e) => {
+  const link = e.target.closest('.strategy-text a');
+  if(!link) return;
+  e.preventDefault();
+  window.open(link.href, '_blank', 'noopener,noreferrer');
+});
 
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
