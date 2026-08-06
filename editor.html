@@ -376,13 +376,12 @@ const quill = new Quill('#f-text-editor', {
 // guide page (two folders deep, at data/guides/{boss}.html), so a relative link correct in one
 // context would be wrong in the other. An absolute URL is correct in both.
 const MECHANICS_BASE_URL = "https://soloraidarchive.github.io/solo-raid-mechanics.html";
-let MECHANICS_DATA = [];
 let savedQuillRange = null;
 
-fetch('data/raid-mechanics.json')
+const MECHANICS_DATA_PROMISE = fetch('data/raid-mechanics.json')
   .then(res => res.ok ? res.json() : { sections: [] })
-  .then(data => { MECHANICS_DATA = data.sections || []; })
-  .catch(() => { MECHANICS_DATA = []; });
+  .then(data => data.sections || [])
+  .catch(() => []);
 
 function mechanicSlug(name){
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -391,7 +390,7 @@ function mechanicSlug(name){
 const mechanicLinkBtn = document.getElementById('mechanicLinkBtn');
 const mechanicPicker = document.getElementById('mechanicPicker');
 
-mechanicLinkBtn.addEventListener('click', () => {
+mechanicLinkBtn.addEventListener('click', async () => {
   // capture the selection now, before focus moves to the button/picker and Quill loses it
   savedQuillRange = quill.getSelection();
 
@@ -401,10 +400,15 @@ mechanicLinkBtn.addEventListener('click', () => {
     return;
   }
 
-  if(MECHANICS_DATA.length === 0){
+  mechanicPicker.innerHTML = `<div class="mechanic-picker-item" style="cursor:default;">Loading...</div>`;
+  mechanicPicker.style.display = 'block';
+
+  const mechanicsData = await MECHANICS_DATA_PROMISE;
+
+  if(mechanicsData.length === 0){
     mechanicPicker.innerHTML = `<div class="mechanic-picker-item" style="cursor:default;">Couldn't load mechanics list.</div>`;
   }else{
-    mechanicPicker.innerHTML = MECHANICS_DATA.map(sec => `
+    mechanicPicker.innerHTML = mechanicsData.map(sec => `
       <div class="mechanic-picker-section">${sec.title}</div>
       ${sec.entries.map(e => `
         <button type="button" class="mechanic-picker-item" data-name="${e.name.replace(/"/g, '&quot;')}" data-slug="${mechanicSlug(e.name)}">
@@ -414,7 +418,6 @@ mechanicLinkBtn.addEventListener('click', () => {
       `).join('')}
     `).join('');
   }
-  mechanicPicker.style.display = 'block';
 });
 
 mechanicPicker.addEventListener('click', (e) => {
