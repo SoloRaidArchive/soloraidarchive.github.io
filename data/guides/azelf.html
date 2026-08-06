@@ -194,6 +194,8 @@
     text-align:center; padding: 24px; font-size:12px; color: var(--text-dim);
     font-family:'Inter', sans-serif; border-top: 1px solid var(--border); margin-top:20px;
   }
+  [data-theme="dark"] footer{ color: rgba(238,241,247,0.62); }
+  [data-theme="dark"] .strategy-credit{ color: rgba(238,241,247,0.58); }
   @media (max-width: 600px){
     .guide-title{ font-size:26px; }
     .strategy-text{ font-size:16px; line-height:1.7; }
@@ -392,7 +394,6 @@ function strategyBlockHtml(s){
         ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${escapeHtml(s.adventureEffect)}</span>` : ""}
       </div>
       <div class="strategy-text">${s.text}</div>
-      ${s.vod ? `<a class="strategy-vod" href="${escapeAttr(s.vod)}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
           <div class="battle-party-label">${escapeHtml(p.label)}</div>
@@ -407,6 +408,7 @@ function strategyBlockHtml(s){
           `).join('')}
         </div>
       `).join('') : ""}
+      ${s.vod ? `<a class="strategy-vod" href="${escapeAttr(s.vod)}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
       ${s.submittedBy ? `<div class="strategy-credit">Submitted by ${escapeHtml(s.submittedBy)}</div>` : ""}
     </div>
   `;
