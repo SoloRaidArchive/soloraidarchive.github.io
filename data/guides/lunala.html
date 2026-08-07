@@ -119,6 +119,14 @@
     text-transform:uppercase; letter-spacing:0.06em; margin:20px 0 4px; text-align:center;
   }
   .guide-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:28px; margin:0 0 8px; text-align:center; }
+  .edit-guide-row{ text-align:center; margin-bottom:18px; }
+  .edit-guide-btn{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
+    color: var(--blue-dark); background: var(--accent-soft); padding:6px 14px; border-radius:999px;
+    text-decoration:none;
+  }
+  .edit-guide-btn:hover{ background:#dcecff; }
+  [data-theme="dark"] .edit-guide-btn:hover{ background:#2a3555; }
 
   .section-title{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:19px; margin:32px 0 4px;
@@ -161,6 +169,10 @@
   .strategy-block{ margin:14px 0; }
   .strategy-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin-bottom:4px; }
   .battle-party{ background: var(--accent-soft); border-radius:12px; padding:12px 14px; margin-top:10px; }
+  @media (min-width:601px){
+    .battle-party{ display:grid; grid-template-columns: 1fr 1fr; gap:2px 20px; align-items:start; }
+    .battle-party-label{ grid-column: 1 / -1; }
+  }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
   .battle-mon{ display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12.5px; }
   .battle-mon-icon{ width:28px; height:28px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
@@ -268,6 +280,7 @@
     <a href="../../research.html" class="hamburger-featured">Most Used Raiders</a>
     <a href="../../ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
     <a href="../../solo-raid-mechanics.html" class="hamburger-featured">Solo Raid Mechanics</a>
+    <a href="../../guides.html" class="hamburger-featured">Boss Guides</a>
     <a href="../../meta-battle-parties.html">Meta Battle Parties</a>
     <a href="../../ct-calculator.html">Catch Tank Calculator</a>
     <a href="../../move-data.html">Move Data</a>
@@ -302,6 +315,9 @@
 <div class="page">
   <div class="guide-eyebrow">Boss Guide</div>
   <h1 class="guide-title">How to Solo Lunala</h1>
+  <div class="edit-guide-row">
+    <a class="edit-guide-btn" href="../../editor.html?boss=lunala">&#9998; Edit this guide</a>
+  </div>
 
   <h2 class="section-title">Boss Info</h2>
   <div class="info-box">
