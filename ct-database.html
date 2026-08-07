@@ -348,7 +348,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     100%{ background-position: 0 0, 100% 0; }
   }
 
-  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
 </style>
 </head>
 <body>
@@ -585,16 +585,11 @@ function trySpriteShadowFallback(img, name){
   return false;
 }
 
-// Whether a shadow Pokemon's shadow-tinted sprite will even be ATTEMPTED, not just whether
-// loading it might fail. DEX_MAP only covers a hand-picked set of Pokemon - for anything not in
-// it, monSpriteUrl()/spriteUrl() silently falls through to the regular sprite from the start
-// (never requesting a shadow-specific image at all), so onerror never fires and the mist would
-// never apply. Checking this upfront, at the point the <img> tag is built, catches that case.
+// Applies to every shadow Pokemon unconditionally, regardless of whether a dedicated
+// shadow-tinted sprite exists and loads successfully - simpler than checking DEX_MAP, and
+// matches the intent that shadow status should always be visually obvious.
 function needsShadowMist(name){
-  const key = name.trim().toLowerCase();
-  if(!key.startsWith("shadow ")) return false;
-  const base = key.replace(/^shadow\s+/, "");
-  return !DEX_MAP[base];
+  return /^shadow\s+/i.test(name.trim());
 }
 
 const WEATHER_ICON_URLS = {
