@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>How to Solo Azelf (Pokémon GO) — Solo Raid Archive</title>
 <link rel="icon" href="../../assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="../../assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../../assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../assets/icons/favicon-180.png">
 <meta name="description" content="How to solo Azelf in Pokémon GO: exact battle parties, weather conditions, and difficulty routes from real recorded solo clears, with video proof for every strategy.">
 <link rel="canonical" href="https://soloraidarchive.github.io/data/guides/azelf.html">
 <meta property="og:type" content="article">
@@ -262,10 +265,10 @@
   .boss-sprite-sm{ width:64px; height:64px; object-fit:contain; flex-shrink:0; }
   .boss-info-top-right{ flex:1; min-width:0; }
   .type-icon-row-sm{ display:flex; gap:6px; margin-bottom:8px; }
-  .stat-row-sm{ display:flex; gap:14px; flex-wrap:wrap; }
+  .stat-row-sm{ display:flex; gap:14px; flex-wrap:wrap; margin:0; }
   .stat-cell-sm{ display:flex; align-items:baseline; gap:5px; }
   .stat-label-sm{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10px; color: var(--text-dim); text-transform:uppercase; }
-  .stat-value-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; color: var(--blue-dark); }
+  .stat-value-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; color: var(--blue-dark); margin:0; }
 </style>
 </head>
 <body>
@@ -312,7 +315,7 @@
   </div>
 </div>
 
-<div class="page">
+<article class="page">
   <div class="guide-eyebrow">Boss Guide</div>
   <h1 class="guide-title">How to Solo Azelf</h1>
   <div class="edit-guide-row">
@@ -327,11 +330,11 @@
         <div class="type-icon-row-sm">
           <span class="type-icon-wrap" style="background:#E0426E;">Psychic</span>
         </div>
-        <div class="stat-row-sm">
-          <div class="stat-cell-sm"><span class="stat-label-sm">ATK</span><span class="stat-value-sm">225.2</span></div>
-          <div class="stat-cell-sm"><span class="stat-label-sm">DEF</span><span class="stat-value-sm">131.1</span></div>
-          <div class="stat-cell-sm"><span class="stat-label-sm">HP</span><span class="stat-value-sm">15,000</span></div>
-        </div>
+        <dl class="stat-row-sm">
+          <div class="stat-cell-sm"><dt class="stat-label-sm">ATK</dt><dd class="stat-value-sm">225.2</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">DEF</dt><dd class="stat-value-sm">131.1</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">HP</dt><dd class="stat-value-sm">15,000</dd></div>
+        </dl>
       </div>
     </div>
     <div class="movepool-label">Fast Moves</div>
@@ -349,7 +352,7 @@
   <div id="strategy-display">
     <div class="load-state">Loading strategies...</div>
   </div>
-</div>
+</article>
 
 <footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
 
