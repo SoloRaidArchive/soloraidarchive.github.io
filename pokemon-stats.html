@@ -216,6 +216,8 @@
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
   }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
 </style>
 </head>
 <body>
@@ -640,6 +642,33 @@ function spriteUrl(name){
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
 
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+function trySpriteShadowFallback(img, name){
+  if(/^shadow\s+/i.test(name.trim()) && !img.dataset.shadowFallbackTried){
+    img.dataset.shadowFallbackTried = "1";
+    img.src = spriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    img.classList.add("shadow-mist");
+    return true;
+  }
+  return false;
+}
+
+// Whether a shadow Pokemon's shadow-tinted sprite will even be ATTEMPTED, not just whether
+// loading it might fail. DEX_MAP only covers a hand-picked set of Pokemon - for anything not in
+// it, monSpriteUrl()/spriteUrl() silently falls through to the regular sprite from the start
+// (never requesting a shadow-specific image at all), so onerror never fires and the mist would
+// never apply. Checking this upfront, at the point the <img> tag is built, catches that case.
+function needsShadowMist(name){
+  const key = name.trim().toLowerCase();
+  if(!key.startsWith("shadow ")) return false;
+  const base = key.replace(/^shadow\s+/, "");
+  return !DEX_MAP[base];
+}
+
 const CPM = {
   "40":0.7903, "40.5":0.792803968, "41":0.79530001, "41.5":0.797800015, "42":0.8003,
   "42.5":0.802799995, "43":0.8053, "43.5":0.8078, "44":0.81029999, "44.5":0.812799985,
@@ -673,7 +702,7 @@ function cardHtml(p){
   return `
   <div class="pkmn-card">
     <div class="pkmn-sprite">
-      <img src="${spriteUrl(p.n)}" alt="${p.n}" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <img class="${needsShadowMist(p.n) ? 'shadow-mist' : ''}" src="${spriteUrl(p.n)}" alt="${p.n}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${p.n}')) { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
       <div class="pkmn-sprite-fallback">?</div>
     </div>
     <div class="pkmn-info">

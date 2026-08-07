@@ -501,6 +501,8 @@
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
   }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
 </style>
 </head>
 <body>
@@ -947,6 +949,33 @@ function spriteUrl(name){
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
+
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+function trySpriteShadowFallback(img, name){
+  if(/^shadow\s+/i.test(name.trim()) && !img.dataset.shadowFallbackTried){
+    img.dataset.shadowFallbackTried = "1";
+    img.src = spriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    img.classList.add("shadow-mist");
+    return true;
+  }
+  return false;
+}
+
+// Whether a shadow Pokemon's shadow-tinted sprite will even be ATTEMPTED, not just whether
+// loading it might fail. DEX_MAP only covers a hand-picked set of Pokemon - for anything not in
+// it, monSpriteUrl()/spriteUrl() silently falls through to the regular sprite from the start
+// (never requesting a shadow-specific image at all), so onerror never fires and the mist would
+// never apply. Checking this upfront, at the point the <img> tag is built, catches that case.
+function needsShadowMist(name){
+  const key = name.trim().toLowerCase();
+  if(!key.startsWith("shadow ")) return false;
+  const base = key.replace(/^shadow\s+/, "");
+  return !DEX_MAP[base];
 }
 
 const POKEMON_TYPES = [
@@ -2442,7 +2471,7 @@ function runCalculation(){
       <div class="loadout-card">
         <div class="loadout-pokemon">
           <div class="loadout-sprite">
-            <img src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="this.style.display='none'">
+            <img class="${needsShadowMist(pkmnName) ? 'shadow-mist' : ''}" src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${pkmnName}')) { this.style.display='none'; }">
           </div>
           <div class="loadout-info">
             <div class="loadout-name">${pkmnName}</div>
@@ -2458,7 +2487,7 @@ function runCalculation(){
         <div class="loadout-vs">VS</div>
         <div class="loadout-pokemon">
           <div class="loadout-sprite">
-            <img src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="this.style.display='none'">
+            <img class="${needsShadowMist(bossName) ? 'shadow-mist' : ''}" src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${bossName}')) { this.style.display='none'; }">
           </div>
           <div class="loadout-info">
             <div class="loadout-name">${bossName}</div>
@@ -2731,7 +2760,7 @@ function runCalculation(){
     <div class="loadout-card">
       <div class="loadout-pokemon">
         <div class="loadout-sprite">
-          <img src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="this.style.display='none'">
+          <img class="${needsShadowMist(pkmnName) ? 'shadow-mist' : ''}" src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${pkmnName}')) { this.style.display='none'; }">
         </div>
         <div class="loadout-info">
           <div class="loadout-name">${pkmnName}</div>
@@ -2747,7 +2776,7 @@ function runCalculation(){
       <div class="loadout-vs">VS</div>
       <div class="loadout-pokemon">
         <div class="loadout-sprite">
-          <img src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="this.style.display='none'">
+          <img class="${needsShadowMist(bossName) ? 'shadow-mist' : ''}" src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${bossName}')) { this.style.display='none'; }">
         </div>
         <div class="loadout-info">
           <div class="loadout-name">${bossName}</div>
@@ -2805,7 +2834,7 @@ function runCalculation(){
       <div class="results-card" id="resultsCard">
         <div class="results-card-vs">
           <div class="results-card-mon">
-            <div class="results-card-icon"><img src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="this.style.display='none'"></div>
+            <div class="results-card-icon"><img class="${needsShadowMist(pkmnName) ? 'shadow-mist' : ''}" src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${pkmnName}')) { this.style.display='none'; }"></div>
             <div style="min-width:0;">
               <div class="results-card-name">${pkmnName}</div>
               <div class="results-card-moves">${fm.n}<br>${cm.n}</div>
@@ -2817,7 +2846,7 @@ function runCalculation(){
               <div class="results-card-name">${bossName}</div>
               <div class="results-card-moves">${bossFMMove.n}<br>${bossCMMove.n}</div>
             </div>
-            <div class="results-card-icon"><img src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="this.style.display='none'"></div>
+            <div class="results-card-icon"><img class="${needsShadowMist(bossName) ? 'shadow-mist' : ''}" src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${bossName}')) { this.style.display='none'; }"></div>
           </div>
         </div>
         <div class="results-card-meta">
@@ -3083,7 +3112,7 @@ function renderMiniPreview(name, stats){
   return `
     <div class="mini-preview">
       <div class="mini-preview-sprite">
-        <img src="${spriteUrl(name)}" alt="${name}" loading="lazy" onerror="this.style.display='none'">
+        <img class="${needsShadowMist(name) ? 'shadow-mist' : ''}" src="${spriteUrl(name)}" alt="${name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${name}')) { this.style.display='none'; }">
       </div>
       <div>
         <div class="mini-preview-name">${name}</div>

@@ -325,6 +325,8 @@
     .bd-weather-label{ display:none; }
     .bd-moves-row{ flex-direction:column; align-items:flex-start; flex-wrap:nowrap; gap:5px; }
   }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
 </style>
 </head>
 <body>
@@ -526,6 +528,33 @@ function spriteUrl(name){
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
+
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+function trySpriteShadowFallback(img, name){
+  if(/^shadow\s+/i.test(name.trim()) && !img.dataset.shadowFallbackTried){
+    img.dataset.shadowFallbackTried = "1";
+    img.src = spriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    img.classList.add("shadow-mist");
+    return true;
+  }
+  return false;
+}
+
+// Whether a shadow Pokemon's shadow-tinted sprite will even be ATTEMPTED, not just whether
+// loading it might fail. DEX_MAP only covers a hand-picked set of Pokemon - for anything not in
+// it, monSpriteUrl()/spriteUrl() silently falls through to the regular sprite from the start
+// (never requesting a shadow-specific image at all), so onerror never fires and the mist would
+// never apply. Checking this upfront, at the point the <img> tag is built, catches that case.
+function needsShadowMist(name){
+  const key = name.trim().toLowerCase();
+  if(!key.startsWith("shadow ")) return false;
+  const base = key.replace(/^shadow\s+/, "");
+  return !DEX_MAP[base];
 }
 function displayName(name){
   return name.replace(/\s+Incarnate$/i, "-I").replace(/\s+Therian$/i, "-T");
@@ -1098,14 +1127,14 @@ function renderLeaderboard(){
     <details class="lb-row-wrap">
       <summary class="lb-row">
         <div class="lb-rank ${rankClass}"><div class="lb-rank-change-slot">${currentRole ? "" : rankChangeBadge(r.name, i+1)}</div><div class="lb-rank-number">${i+1}</div></div>
-        <div class="lb-sprite"><img src="${spriteUrl(r.name)}" alt="${r.name}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="lb-sprite"><img class="${needsShadowMist(r.name) ? 'shadow-mist' : ''}" src="${spriteUrl(r.name)}" alt="${r.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${r.name}')) { this.style.display='none'; }"></div>
         <div class="lb-main">
           <div class="lb-name">${displayName(r.name)}</div>
           ${roleText ? `<div class="lb-roles">${roleText}</div>` : ""}
           <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(displayCount/maxCount*100).toFixed(1)}"></div></div>
         </div>
         <div class="lb-bosses">
-          ${shownBosses.map(b => `<span class="lb-boss-icon" title="${b.name}"><img src="${spriteUrl(b.name)}" alt="${b.name}" loading="lazy" onerror="this.style.display='none'"></span>`).join("")}
+          ${shownBosses.map(b => `<span class="lb-boss-icon" title="${b.name}"><img class="${needsShadowMist(b.name) ? 'shadow-mist' : ''}" src="${spriteUrl(b.name)}" alt="${b.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${b.name}')) { this.style.display='none'; }"></span>`).join("")}
           ${extra > 0 ? `<span class="lb-boss-more">+${extra}</span>` : ""}
         </div>
         <div class="lb-count">${displayCount}<span>use${displayCount===1?"":"s"}</span></div>
@@ -1120,7 +1149,7 @@ function renderLeaderboard(){
         ${groupInstances(r.instances).map(({inst, count}) => `
           <a class="bd-item" href="${inst.file}?weather=${encodeURIComponent(inst.weather || "")}&tier=${encodeURIComponent(inst.tier || "")}#boss-${bossSlug(inst.boss)}">
             <div class="bd-top-row">
-              <div class="bd-boss-icon"><img src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="this.style.display='none'"></div>
+              <div class="bd-boss-icon"><img class="${needsShadowMist(inst.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(inst.boss)}" alt="${inst.boss}" onerror="if(!trySpriteShadowFallback(this, '${inst.boss}')) { this.style.display='none'; }"></div>
               <div class="bd-name">${inst.boss}${count > 1 ? ` <span class="bd-dupe-badge" data-tooltip="Logged ${count} times with the same boss, weather, difficulty and moveset shown here — the battle parties used in each recorded attempt were different.">×${count}</span>` : ""}</div>
               <div class="bd-weather">${smallWeatherIconHtml(inst.weather)}<span class="bd-weather-label">${inst.weather || "—"}</span></div>
               ${inst.ae === "sword" ? `<span class="bd-ae-icon" data-tooltip="+10% damage dealt from your pokemon in raids"><img src="${AE_ICON}" alt="Adventure Effect" onerror="this.style.display='none'"></span>` : ""}

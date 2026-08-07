@@ -347,6 +347,8 @@ header{ padding: 12px 24px 10px; text-align:center; }
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
   }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
 </style>
 </head>
 <body>
@@ -566,6 +568,33 @@ function spriteUrl(name){
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
+
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+function trySpriteShadowFallback(img, name){
+  if(/^shadow\s+/i.test(name.trim()) && !img.dataset.shadowFallbackTried){
+    img.dataset.shadowFallbackTried = "1";
+    img.src = spriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    img.classList.add("shadow-mist");
+    return true;
+  }
+  return false;
+}
+
+// Whether a shadow Pokemon's shadow-tinted sprite will even be ATTEMPTED, not just whether
+// loading it might fail. DEX_MAP only covers a hand-picked set of Pokemon - for anything not in
+// it, monSpriteUrl()/spriteUrl() silently falls through to the regular sprite from the start
+// (never requesting a shadow-specific image at all), so onerror never fires and the mist would
+// never apply. Checking this upfront, at the point the <img> tag is built, catches that case.
+function needsShadowMist(name){
+  const key = name.trim().toLowerCase();
+  if(!key.startsWith("shadow ")) return false;
+  const base = key.replace(/^shadow\s+/, "");
+  return !DEX_MAP[base];
 }
 
 const WEATHER_ICON_URLS = {
@@ -1534,7 +1563,7 @@ function subRowHtml(s, idx){
   <tr class="sub-row">
     <td>
       <div class="sub-mon">
-        <div class="sub-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="sub-icon"><img class="${needsShadowMist(s.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${s.pokemon}')) { this.style.display='none'; }"></div>
         <div>
           <div class="sub-mon-name">${s.pokemon} ${modeBadgeHtml(s)}</div>
           <div class="sub-moveset"><span class="fm">${pFast}</span><br>${pCharge}</div>
@@ -1554,7 +1583,7 @@ function subRowHtml(s, idx){
     <td class="sub-dps-cell highlight" id="dpsct-${idx}"><span class="sub-dps-val">${s.ctDPS}</span></td>
     <td>
       <div class="sub-mon col-boss">
-        <div class="sub-icon"><img src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="sub-icon"><img class="${needsShadowMist(s.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${s.boss}')) { this.style.display='none'; }"></div>
         <div>
           <div class="sub-mon-name">${s.boss}</div>
           <div class="sub-moveset"><span class="fm">${bFast}</span><br>${bCharge}</div>
@@ -1609,7 +1638,7 @@ function subCardHtmlMobile(s, idx){
   <div class="sub-card sub-card-mobile" id="card-m-${idx}">
     <div class="sub-card-vs">
       <div class="sub-card-mon">
-        <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="sub-card-icon"><img class="${needsShadowMist(s.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${s.pokemon}')) { this.style.display='none'; }"></div>
         <div style="min-width:0;">
           <div class="sub-card-name">${s.pokemon}</div>
           ${modeBadgeHtml(s) ? `<div style="margin:2px 0 4px;">${modeBadgeHtml(s)}</div>` : ""}
@@ -1622,7 +1651,7 @@ function subCardHtmlMobile(s, idx){
           <div class="sub-card-name">${s.boss}</div>
           <div class="sub-card-moves">${bFast}<br>${bCharge}</div>
         </div>
-        <div class="sub-card-icon"><img src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="sub-card-icon"><img class="${needsShadowMist(s.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${s.boss}')) { this.style.display='none'; }"></div>
       </div>
     </div>
     <div class="sub-card-meta">
@@ -1677,7 +1706,7 @@ function subCardHtml(s, idx){
   <div class="sub-card" id="card-${idx}">
     <div class="sub-card-vs">
       <div class="sub-card-mon">
-        <div class="sub-card-icon"><img src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="sub-card-icon"><img class="${needsShadowMist(s.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(s.pokemon)}" alt="${s.pokemon}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${s.pokemon}')) { this.style.display='none'; }"></div>
         <div class="sub-card-name-block">
           <span class="sub-card-name">${s.pokemon}</span>
         </div>
@@ -1687,7 +1716,7 @@ function subCardHtml(s, idx){
         </div>
       </div>
       <div class="sub-card-mon right">
-        <div class="sub-card-icon"><img src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="sub-card-icon"><img class="${needsShadowMist(s.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(s.boss)}" alt="${s.boss}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${s.boss}')) { this.style.display='none'; }"></div>
         <div class="sub-card-name-block right">
           <span class="sub-card-name">${s.boss}</span>
         </div>

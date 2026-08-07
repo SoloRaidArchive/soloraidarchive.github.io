@@ -362,6 +362,8 @@
   .boss-search-empty{
     font-size:12px; font-weight:600; color: var(--text-dim); text-align:center; padding:10px 0;
   }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
 </style>
 </head>
 <body>
@@ -668,7 +670,7 @@ function renderBossSearchResults(query){
 
   resultsEl.innerHTML = matches.map(m =>
     `<a class="boss-search-item" href="${m.isGuide ? m.archive : `${m.archive}#boss-${m.slug}`}">
-      <span class="boss-search-item-name">${m.isGuide ? `<img class="boss-search-sprite" src="${spriteUrl(m.boss)}" alt="" onerror="this.style.display='none'">` : ""}${escapeHtml(m.boss)}</span>
+      <span class="boss-search-item-name">${m.isGuide ? `<img class="boss-search-sprite ${needsShadowMist(m.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(m.boss)}" alt="" onerror="if(!trySpriteShadowFallback(this, '${m.boss}')) { this.style.display='none'; }">` : ""}${escapeHtml(m.boss)}</span>
       <span class="boss-search-item-archive${m.isGuide ? " boss-search-item-guide" : ""}">${escapeHtml(m.label)}</span>
     </a>`
   ).join("");
@@ -814,6 +816,33 @@ function spriteUrl(name){
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
 
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+function trySpriteShadowFallback(img, name){
+  if(/^shadow\s+/i.test(name.trim()) && !img.dataset.shadowFallbackTried){
+    img.dataset.shadowFallbackTried = "1";
+    img.src = spriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    img.classList.add("shadow-mist");
+    return true;
+  }
+  return false;
+}
+
+// Whether a shadow Pokemon's shadow-tinted sprite will even be ATTEMPTED, not just whether
+// loading it might fail. DEX_MAP only covers a hand-picked set of Pokemon - for anything not in
+// it, monSpriteUrl()/spriteUrl() silently falls through to the regular sprite from the start
+// (never requesting a shadow-specific image at all), so onerror never fires and the mist would
+// never apply. Checking this upfront, at the point the <img> tag is built, catches that case.
+function needsShadowMist(name){
+  const key = name.trim().toLowerCase();
+  if(!key.startsWith("shadow ")) return false;
+  const base = key.replace(/^shadow\s+/, "");
+  return !DEX_MAP[base];
+}
+
 // ============ LIVE RAID BOSSES (auto-updated by a scheduled GitHub Action) ============
 // Reads live-bosses.json, written by scripts/update_live_bosses.py. If that file is
 // missing/empty/stale, this section just doesn't render - no broken UI either way.
@@ -893,7 +922,7 @@ async function loadLiveBosses(){
         <div class="live-boss-group-header">${formatGroupHeader(group.startDate, group.endDate)}</div>
         <div class="live-boss-row">${shown.map(boss => `
           <a class="live-boss-item" href="${bossHref(boss)}" title="${boss.name}">
-            <div class="live-boss-icon"><img src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="this.style.display='none'"></div>
+            <div class="live-boss-icon"><img class="${needsShadowMist(boss.name) ? 'shadow-mist' : ''}" src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${boss.name}')) { this.style.display='none'; }"></div>
             <div class="live-boss-meta">
               <span class="live-boss-star">${boss.difficulty}</span>
               ${weatherIcon(boss.weather)}
@@ -921,7 +950,7 @@ async function loadLiveBosses(){
       });
       return `<div class="live-boss-row live-boss-row-grid">${flat.map(boss => `
         <a class="live-boss-item" href="${bossHref(boss)}" title="${boss.name}">
-          <div class="live-boss-icon"><img src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="this.style.display='none'"></div>
+          <div class="live-boss-icon"><img class="${needsShadowMist(boss.name) ? 'shadow-mist' : ''}" src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${boss.name}')) { this.style.display='none'; }"></div>
           <div class="live-boss-meta">
             <span class="live-boss-star">${boss.difficulty}</span>
             ${weatherIcon(boss.weather)}
@@ -987,7 +1016,7 @@ async function loadMonthlyGuides(){
 
     wrap.innerHTML = `<div class="guide-pill-row">${matched.map(boss => `
       <a class="guide-pill" href="data/guides/${bossSlug(boss.name)}.html" title="${boss.name}">
-        <div class="guide-pill-icon"><img src="${spriteUrl(boss.name)}" alt="" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="guide-pill-icon"><img class="${needsShadowMist(boss.name) ? 'shadow-mist' : ''}" src="${spriteUrl(boss.name)}" alt="" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${boss.name}')) { this.style.display='none'; }"></div>
         <span class="guide-pill-label">${boss.name}</span>
       </a>`).join("")}</div>`;
     panel.style.display = "";
@@ -1051,7 +1080,7 @@ async function loadNewEntries(){
 
     wrap.innerHTML = `<div class="live-boss-row-grid">${flat.map(entry => `
       <a class="live-boss-item" href="${entryHref(entry)}" title="${entry.boss}">
-        <div class="live-boss-icon"><img src="${spriteUrl(entry.boss)}" alt="${entry.boss}" loading="lazy" onerror="this.style.display='none'"></div>
+        <div class="live-boss-icon"><img class="${needsShadowMist(entry.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(entry.boss)}" alt="${entry.boss}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${entry.boss}')) { this.style.display='none'; }"></div>
         <div class="live-boss-meta">
           <span class="live-boss-star">${entry.star}</span>
           ${entry.weather ? weatherIcon(entry.weather) : ""}

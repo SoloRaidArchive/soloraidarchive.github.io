@@ -502,6 +502,8 @@ body{ background:#20263a; color: var(--text-muted); }
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
   }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
 </style>
 </head>
 <body>
@@ -898,6 +900,33 @@ function spriteUrl(name){
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+}
+
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+function trySpriteShadowFallback(img, name){
+  if(/^shadow\s+/i.test(name.trim()) && !img.dataset.shadowFallbackTried){
+    img.dataset.shadowFallbackTried = "1";
+    img.src = spriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    img.classList.add("shadow-mist");
+    return true;
+  }
+  return false;
+}
+
+// Whether a shadow Pokemon's shadow-tinted sprite will even be ATTEMPTED, not just whether
+// loading it might fail. DEX_MAP only covers a hand-picked set of Pokemon - for anything not in
+// it, monSpriteUrl()/spriteUrl() silently falls through to the regular sprite from the start
+// (never requesting a shadow-specific image at all), so onerror never fires and the mist would
+// never apply. Checking this upfront, at the point the <img> tag is built, catches that case.
+function needsShadowMist(name){
+  const key = name.trim().toLowerCase();
+  if(!key.startsWith("shadow ")) return false;
+  const base = key.replace(/^shadow\s+/, "");
+  return !DEX_MAP[base];
 }
 
 function normalizeStrategy(s){
@@ -1353,7 +1382,7 @@ function memberRowHtml(member, isMain){
   return `
   <div class="member-row ${isMain ? "main" : ""}">
     <div class="member-icon">
-      <img src="${spriteUrl(member.n)}" alt="${member.n}" loading="lazy"
+      <img class="${needsShadowMist(member.n) ? 'shadow-mist' : ''}" src="${spriteUrl(member.n)}" alt="${member.n}" loading="lazy"
            onerror="this.parentElement.innerHTML='<div class=&quot;fallback&quot;>${member.n[0]}</div>'">
     </div>
     <div class="member-info">
@@ -1423,7 +1452,7 @@ function bossCardHtml(boss, r, cardId, idSuffix){
     </div>
     <div class="card-top">
       <div class="boss-icon">
-        <img src="${spriteUrl(boss)}" alt="${boss}" loading="lazy" onerror="this.style.display='none'">
+        <img class="${needsShadowMist(boss) ? 'shadow-mist' : ''}" src="${spriteUrl(boss)}" alt="${boss}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${boss}')) { this.style.display='none'; }">
       </div>
       <div class="boss-moveset-row">${moveStatLinesHtml(r.fast, "Fast")}${moveStatLinesHtml(r.charge, "Charge")}</div>
     </div>
@@ -1645,7 +1674,7 @@ async function injectGuideLinks(){
     document.querySelectorAll(".guide-link-slot").forEach(slot => {
       const slug = guideByBoss.get(slot.dataset.boss);
       if(!slug) return;
-      slot.innerHTML = `<a class="see-guide-link" href="data/guides/${slug}.html"><img class="see-guide-sprite" src="${spriteUrl(slot.dataset.boss)}" alt="" onerror="this.remove();">See guide</a>`;
+      slot.innerHTML = `<a class="see-guide-link" href="data/guides/${slug}.html"><img class="see-guide-sprite ${needsShadowMist(slot.dataset.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(slot.dataset.boss)}" alt="" onerror="this.remove();">See guide</a>`;
     });
   }catch(e){ /* no guides yet, or index unreachable - cards render fine without the link */ }
 }

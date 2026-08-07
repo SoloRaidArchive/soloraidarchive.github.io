@@ -229,6 +229,8 @@
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
   }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%); box-shadow: 0 0 6px rgba(168,85,247,0.5); }
 </style>
 </head>
 <body>
@@ -1017,6 +1019,33 @@ function spriteUrl(name){
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
 
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+function trySpriteShadowFallback(img, name){
+  if(/^shadow\s+/i.test(name.trim()) && !img.dataset.shadowFallbackTried){
+    img.dataset.shadowFallbackTried = "1";
+    img.src = spriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    img.classList.add("shadow-mist");
+    return true;
+  }
+  return false;
+}
+
+// Whether a shadow Pokemon's shadow-tinted sprite will even be ATTEMPTED, not just whether
+// loading it might fail. DEX_MAP only covers a hand-picked set of Pokemon - for anything not in
+// it, monSpriteUrl()/spriteUrl() silently falls through to the regular sprite from the start
+// (never requesting a shadow-specific image at all), so onerror never fires and the mist would
+// never apply. Checking this upfront, at the point the <img> tag is built, catches that case.
+function needsShadowMist(name){
+  const key = name.trim().toLowerCase();
+  if(!key.startsWith("shadow ")) return false;
+  const base = key.replace(/^shadow\s+/, "");
+  return !DEX_MAP[base];
+}
+
 const TYPE_COLORS = {
   normal:"var(--normal)", fire:"var(--fire)", water:"var(--water)", electric:"var(--electric)",
   grass:"var(--grass)", ice:"var(--ice)", fighting:"var(--fighting)", poison:"var(--poison)",
@@ -1066,7 +1095,7 @@ function slotRowHtml(s){
   return `
   <div class="slot-row">
     <div class="slot-icon">
-      <img src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
+      <img class="${needsShadowMist(s.n) ? 'shadow-mist' : ''}" src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
            onerror="this.parentElement.innerHTML='<div class=&quot;fallback&quot;>${s.n[0]}</div>'">
     </div>
     <div class="slot-info">
@@ -1081,7 +1110,7 @@ function slotRowHtml(s){
 function partySourceHtml(p, i){
   if(p.raid){
     return `<a class="party-source-link" href="${p.raid.href}" title="Jump to the recorded raid this battle party was used in">
-      <img src="${spriteUrl(p.raid.boss)}" alt="" loading="lazy" onerror="this.style.display='none'">View raid
+      <img class="${needsShadowMist(p.raid.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(p.raid.boss)}" alt="" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${p.raid.boss}')) { this.style.display='none'; }">View raid
     </a>`;
   }
   if(p.raidOptions && p.raidOptions.length){
@@ -1089,10 +1118,10 @@ function partySourceHtml(p, i){
     return `
     <div class="nav-dropdown party-source-dropdown">
       <button type="button" class="party-source-link party-source-toggle" onclick="toggleNavDropdown(event, '${panelId}')">
-        <img src="${spriteUrl(p.raidOptions[0].boss)}" alt="" loading="lazy" onerror="this.style.display='none'">${p.raidOptions.length} raids
+        <img class="${needsShadowMist(p.raidOptions[0].boss) ? 'shadow-mist' : ''}" src="${spriteUrl(p.raidOptions[0].boss)}" alt="" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${p.raidOptions[0].boss}')) { this.style.display='none'; }">${p.raidOptions.length} raids
       </button>
       <div class="nav-dropdown-panel" id="${panelId}">
-        ${p.raidOptions.map(o => `<a href="${o.href}" class="nav-dropdown-item party-source-item"><img src="${spriteUrl(o.boss)}" alt="" loading="lazy" onerror="this.style.display='none'">${o.label}</a>`).join("")}
+        ${p.raidOptions.map(o => `<a href="${o.href}" class="nav-dropdown-item party-source-item"><img class="${needsShadowMist(o.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(o.boss)}" alt="" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${o.boss}')) { this.style.display='none'; }">${o.label}</a>`).join("")}
       </div>
     </div>`;
   }
