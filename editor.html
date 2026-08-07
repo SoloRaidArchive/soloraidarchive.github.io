@@ -194,6 +194,10 @@
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
   .battle-mon{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px; }
   .battle-mon-icon{ width:26px; height:26px; border-radius:50%; background: var(--accent-soft); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .battle-mon-icon.shadow-mist{
+    background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%);
+    box-shadow: 0 0 6px rgba(168,85,247,0.5);
+  }
   .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; }
   .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
   .battle-mon.optional{
@@ -553,6 +557,16 @@ function monSpriteUrl(name){
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
 
+function battleMonIconHtml(name){
+  const isShadow = /^shadow\s+/i.test(name.trim());
+  const src = monSpriteUrl(name);
+  if(isShadow){
+    const fallbackSrc = monSpriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    return `<div class="battle-mon-icon"><img src="${src}" alt="" onerror="this.onerror=null; this.src='${fallbackSrc}'; this.parentElement.classList.add('shadow-mist');"></div>`;
+  }
+  return `<div class="battle-mon-icon"><img src="${src}" alt="" onerror="this.remove();"></div>`;
+}
+
 function slugify(name){
   return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
@@ -594,7 +608,7 @@ function strategyBlockHtml(s, editIndex){
           <div class="battle-party-label">${p.label}</div>
           ${p.mons.map(m => `
             <div class="battle-mon${m.optional ? ' optional' : ''}">
-              <div class="battle-mon-icon"><img src="${monSpriteUrl(m.name)}" alt="" onerror="this.remove();"></div>
+              ${battleMonIconHtml(m.name)}
               <div>
                 ${m.level ? `<div class="battle-mon-level">Lv ${m.level}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ''}</div>` : (m.optional ? `<div class="battle-mon-level"><span class="optional-note">(Optional)</span></div>` : "")}
                 ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).join(' / ')}</div>` : ""}

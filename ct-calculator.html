@@ -424,10 +424,23 @@
   }
   [data-theme="dark"] .boss-dmg-preview{ background:#161a28; }
   .boss-dmg-row{
-    display:flex; justify-content:space-between; align-items:center;
-    font-size:13px; font-weight:700; color: var(--text-muted); padding:4px 0;
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    font-size:13px; font-weight:700; color: var(--text-muted); padding:6px 0;
   }
-  .boss-dmg-row b{ color:#ff5b5b; font-family:'IBM Plex Mono', monospace; font-size:14px; }
+  .boss-dmg-row-info{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  @media (min-width:700px){
+    .boss-dmg-row-info{ flex-direction:row; align-items:baseline; gap:8px; }
+    .boss-dmg-row-name{ flex-shrink:0; }
+    .boss-dmg-row-stats::before{ content:"\2014"; margin-right:8px; color: var(--text-dim); }
+  }
+  .boss-dmg-row-name{ font-size:13px; font-weight:700; color: var(--text); }
+  .boss-dmg-row-stats{ font-size:11px; font-weight:600; color: var(--text-dim); }
+  .boss-dmg-row b{ flex-shrink:0; color:#ff5b5b; font-family:'IBM Plex Mono', monospace; font-size:14px; }
+  .boss-dmg-row-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  @media (max-width:420px){
+    .boss-dmg-row-stats{ font-size:10px; }
+    .boss-dmg-row b{ font-size:13px; }
+  }
   .energy-row b{ color:#e0a800; }
   [data-theme="dark"] .energy-row b{ color:#ffc94a; }
   datalist{ display:none; }
@@ -3168,8 +3181,20 @@ function playerMoveDamagePreviewHtml(){
 
   return `
     <div class="boss-dmg-preview">
-      <div class="boss-dmg-row player-dmg"><span>Fast Move — ${fm.n}</span><b>${fmDmg} dmg</b></div>
-      <div class="boss-dmg-row player-dmg"><span>Charge Move — ${cm.n}</span><b>${cmDmg} dmg</b></div>
+      <div class="boss-dmg-row player-dmg">
+        <div class="boss-dmg-row-info">
+          <div class="boss-dmg-row-name">${fm.n}</div>
+          <div class="boss-dmg-row-stats">${fm.dmg} dmg &nbsp;|&nbsp; ${Math.abs(fm.energy)} energy &nbsp;|&nbsp; ${(fm.ad/2).toFixed(1)}s</div>
+        </div>
+        <b>${fmDmg} dmg</b>
+      </div>
+      <div class="boss-dmg-row player-dmg">
+        <div class="boss-dmg-row-info">
+          <div class="boss-dmg-row-name">${cm.n}</div>
+          <div class="boss-dmg-row-stats">${cm.dmg} dmg &nbsp;|&nbsp; ${Math.abs(cm.energy)} energy &nbsp;|&nbsp; ${(cm.ad/2).toFixed(1)}s</div>
+        </div>
+        <b>${cmDmg} dmg</b>
+      </div>
       ${energyLine}
     </div>`;
 }
@@ -3214,8 +3239,20 @@ function bossMoveDamagePreviewHtml(bAtk){
 
   return `
     <div class="boss-dmg-preview">
-      <div class="boss-dmg-row"><span>Fast Move — ${bossFMMove.n}</span><b>${fmDmg} dmg</b></div>
-      <div class="boss-dmg-row"><span>Charge Move — ${bossCMMove.n}</span><b>${cmDmg} dmg</b></div>
+      <div class="boss-dmg-row">
+        <div class="boss-dmg-row-info">
+          <div class="boss-dmg-row-name">${bossFMMove.n}</div>
+          <div class="boss-dmg-row-stats">${bossFMMove.dmg} dmg &nbsp;|&nbsp; ${Math.abs(bossFMMove.energy)} energy &nbsp;|&nbsp; ${(bossFMMove.ad/2).toFixed(1)}s</div>
+        </div>
+        <b>${fmDmg} dmg</b>
+      </div>
+      <div class="boss-dmg-row">
+        <div class="boss-dmg-row-info">
+          <div class="boss-dmg-row-name">${bossCMMove.n}</div>
+          <div class="boss-dmg-row-stats">${bossCMMove.dmg} dmg &nbsp;|&nbsp; ${Math.abs(bossCMMove.energy)} energy &nbsp;|&nbsp; ${(bossCMMove.ad/2).toFixed(1)}s</div>
+        </div>
+        <b>${cmDmg} dmg</b>
+      </div>
       <div class="boss-dmg-row energy-row"><span>Charge Move Animation</span><b>${cmDurationSeconds.toFixed(1)}s</b></div>
     </div>`;
 }
