@@ -895,10 +895,6 @@ function spriteUrl(name){
   const key = name.trim().toLowerCase();
   if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
   if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
-  if (key.startsWith("shadow ")){
-    const base = key.replace(/^shadow\s+/, "");
-    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
-  }
   // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
@@ -910,13 +906,10 @@ function spriteUrl(name){
 // purple mist background so the icon still visually reads as "this is a shadow" even without a
 // properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
 // its own failure handling in that case), false if there's nothing shadow-specific to do.
+// No longer swaps to a fallback sprite on error - spriteUrl() already resolves shadow names
+// to their base sprite directly now, so there's nothing left to fall back to. Kept as a
+// pass-through rather than touching every onerror call site that still references it.
 function trySpriteShadowFallback(img, name){
-  if(/^shadow\s+/i.test(name.trim()) && !img.dataset.shadowFallbackTried){
-    img.dataset.shadowFallbackTried = "1";
-    img.src = spriteUrl(name.trim().replace(/^shadow\s+/i, ""));
-    img.classList.add("shadow-mist");
-    return true;
-  }
   return false;
 }
 
