@@ -592,6 +592,16 @@ async function loadBossIndex(){
       `<option value="" disabled selected>Choose a boss...</option>` +
       data.bosses.map(b => `<option value="${b.name}">${b.name}</option>`).join('') +
       `<option value="__new__">+ Add a new boss</option>`;
+
+    const params = new URLSearchParams(window.location.search);
+    const wantedSlug = params.get('boss');
+    if(wantedSlug){
+      const match = data.bosses.find(b => b.slug === wantedSlug);
+      if(match){
+        bossEl.value = match.name;
+        await onBossChange();
+      }
+    }
   }catch(e){
     bossEl.innerHTML = `<option value="__new__" selected>+ Add a new boss</option>`;
   }
