@@ -415,8 +415,11 @@ function battleMonIconHtml(name){
   const isShadow = /^shadow\s+/i.test(name.trim());
   const src = monSpriteUrl(name);
   if(isShadow){
+    const base = name.trim().toLowerCase().replace(/^shadow\s+/i, "");
+    const willAttemptShadowSprite = !!DEX_MAP[base];
     const fallbackSrc = monSpriteUrl(name.trim().replace(/^shadow\s+/i, ""));
-    return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.onerror=null; this.src=\'${fallbackSrc}\'; this.parentElement.classList.add(\'shadow-mist\');"></div>`;
+    const mistClass = willAttemptShadowSprite ? "" : " shadow-mist";
+    return `<div class="battle-mon-icon${mistClass}"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.onerror=null; this.src=\'${fallbackSrc}\'; this.parentElement.classList.add(\'shadow-mist\');"></div>`;
   }
   return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
 }
