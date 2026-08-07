@@ -414,10 +414,6 @@ function monSpriteUrl(name){
   const key = name.trim().toLowerCase();
   if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
   if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
-  if (key.startsWith("shadow ")){
-    const base = key.replace(/^shadow\s+/, "");
-    if (DEX_MAP[base]) return `https://db.pokemongohub.net/images/official/full/${DEX_MAP[base]}_shadow.webp`;
-  }
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `../../assets/sprites/${slug}.gif`;
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
@@ -427,8 +423,7 @@ function battleMonIconHtml(name){
   const isShadow = /^shadow\s+/i.test(name.trim());
   const src = monSpriteUrl(name);
   if(isShadow){
-    const fallbackSrc = monSpriteUrl(name.trim().replace(/^shadow\s+/i, ""));
-    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.onerror=null; this.src=\'${fallbackSrc}\';"></div>`;
+    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
   }
   return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
 }
