@@ -34,7 +34,7 @@
     background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
   }
       *{ box-sizing:border-box; }
-  html{ overflow-x:hidden; max-width:100vw; }
+  html{ max-width:100vw; }
 
   body{
     margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); color: var(--ink);
@@ -64,6 +64,11 @@
     transition: box-shadow .15s, border-color .15s;
   }
   .entry:hover{ border-color: #d6d3fb; box-shadow: 0 6px 18px rgba(91,79,224,0.08); }
+  .highlight-flash{ animation: flashHighlight 2.2s ease; }
+  @keyframes flashHighlight{
+    0%, 100%{ box-shadow: 0 1px 2px rgba(26,29,41,0.04); }
+    15%, 60%{ box-shadow: 0 0 0 3px var(--accent, #3d9dff); }
+  }
 
   .entry-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
   .entry-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:17.5px; }
@@ -242,41 +247,7 @@
 <footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
 
 <script>
-const SECTIONS = [
-  {
-    title: "Major Strategies",
-    sub: "The core techniques nearly every solo relies on",
-    entries: [
-      {name:"Catch Tank", abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move. The energy absorbed is used to return their own quick, high-damage charge move.", clip:"assets/clips/combined-catchtank.mp4", attribution:"Spiritedbloom"},
-      {name:"Tick Perfect Cast", abbr:"TPC", desc:"Precisely timing the final tap — not spamming — just before a charge move cast. Successful TPC avoids the energy resolve DPS nerf; very hard to execute consistently.", clip:"assets/clips/tpc-vs-energy-resolve.mp4", attribution:"DarKnight"},
-      {name:"Clean Exit", abbr:"Exit", desc:"Relobbying during a charge move's animation for maximum energy efficiency and time savings.", clip:"assets/clips/clean-exit-example.mp4"},
-      {name:"Rejoin", abbr:"Rejoin", desc:"A rejoin lasting 6.5–7 seconds, only utilizing potions to quickly re-enter the fight.", clip:"assets/clips/rejoin-example.mp4", attribution:"SpiritedBloom"},
-      {name:"Execute", abbr:"Execute", desc:"Executing a boss with a low animation-duration or low-cost charge move.", clip:"assets/clips/execute-example.mp4", attribution:"SpiritedBloom"},
-      {name:"Hot Swap", abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", clip:"assets/clips/hotswap-example.mp4"},
-      {name:"Recycle", abbr:"RCY", desc:"Reusing the same Main DPS Pokémon across multiple rejoins instead of a fresh one each time.", clip:""},
-    ]
-  },
-  {
-    title: "Advanced / Minor Strategies",
-    sub: "Refinements layered on top of the core techniques",
-    entries: [
-      {name:"Hotswap Chain", abbr:"HS Chain", desc:"When a boss casts charge moves in rapid succession, forcing the user to Catch Tank from one attacker straight into the next in rapid succession. Heavily RNG-based, but the highest DPS cycle achievable in a raid.", clip:"assets/clips/hotswap-chain.mp4"},
-      {name:"Combo Charge Move", abbr:"CCM", desc:"Using a small charge move when the enemy charge move would otherwise overflow in energy. e.g. Necrozma Dusk Mane lowering energy with an Iron Head before tanking a full Earthquake if Sunsteel Strike can't be cast in time.", clip:"assets/clips/combo-charge-move.mp4", attribution:"SpiritedBloom"},
-      {name:"Charge Move Buffer", abbr:"Buffer", desc:"When swapping — mainly to perform a Catch Tank — you can immediately cast a charge move (if you have the energy for it) without a fast move first, by buffering a charged move from your active Pokémon.", clip:"assets/clips/move-buffer.mp4", attribution:"DarKnight"},
-      {name:"Trailing Catch Tank", abbr:"Trailing CT", desc:"A 6th Pokémon used to catch trailing charge moves when nearing a rejoin. This trailing Pokémon typically uses low energy-cost moves (Breaking Swipe, Aura Sphere, etc.) to increase consistency.", clip:"assets/clips/trailing-ct-example.mp4", attribution:"SpiritedBloom"},
-      {name:"Advanced Rejoin", abbr:"Fast Rejoin", desc:"A rejoin lasting 5.5 seconds. Upon exiting the raid, the user first swipes to their party and buffers the animation by tapping the heal bag. This interaction saves roughly 1.0 second on average.", clip:""},
-      {name:"Charge Move Delay", abbr:"CM Delay", desc:"Used against bosses with 1-bar charge moves. Intentionally delaying 2-bar or 3-bar charge move casts to force out fast moves instead — usually giving the player 2 free fast moves.", clip:""},
-      {name:"Substitute", abbr:"Sub", desc:"Primary DPSer moves to the 2nd slot from the 2nd cycle onwards to avoid rejoining into a lethal charge move. A substitute (usually a Catch Tank) is moved to the first slot.", clip:"assets/clips/substitute-example.mp4", attribution:"SpiritedBloom"},
-    ]
-  },
-  {
-    title: "Expensive \u201CWhaling\u201D Strategies",
-    sub: "High-investment techniques for pushing the hardest content",
-    entries: [
-      {name:"Double Battle Party", abbr:"DBP", desc:"Using two identical battle parties; reduces every other rejoin time by about 40%. It can also create ideal Recommended Rejoins, which is a one-time time save.", clip:""},
-    ]
-  },
-];
+let SECTIONS = [];
 
 function parseEmbed(url){
   if(!url) return null;
@@ -362,7 +333,21 @@ function toggleClip(uid, btn){
 }
 
 const container = document.getElementById("container");
-container.innerHTML = SECTIONS.map((sec, si) => `
+loadMechanics();
+
+async function loadMechanics(){
+  try{
+    const res = await fetch("data/raid-mechanics.json");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    SECTIONS = data.sections || [];
+  }catch(e){
+    container.innerHTML = `<div class="empty">Couldn't load mechanics data. Check that data/raid-mechanics.json exists in the repo root.</div>`;
+    console.error("Failed to load raid mechanics:", e);
+    return;
+  }
+
+  container.innerHTML = SECTIONS.map((sec, si) => `
   <div class="section-block">
     <div class="section-head">
       <span class="section-title">${sec.title}</span>
@@ -371,6 +356,26 @@ container.innerHTML = SECTIONS.map((sec, si) => `
     ${sec.entries.map((e,ei) => entryHtml(e, si, ei)).join("")}
   </div>
 `).join("");
+
+  scrollToHashTarget();
+}
+
+// native browser anchor-scrolling isn't reliable here since the entries render from an async
+// fetch - the browser's own scroll-to-#hash attempt happens on initial load, before this
+// content exists in the DOM yet, and silently does nothing. Handling it explicitly after
+// render, with a highlight flash so a reader landing from a guide link can actually spot which
+// entry they were sent to.
+function scrollToHashTarget(){
+  const hash = window.location.hash;
+  if(!hash) return;
+  setTimeout(() => {
+    const el = document.querySelector(hash);
+    if(!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("highlight-flash");
+    setTimeout(() => el.classList.remove("highlight-flash"), 2200);
+  }, 50);
+}
 
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
