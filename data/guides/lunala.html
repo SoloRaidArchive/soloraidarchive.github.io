@@ -163,12 +163,24 @@
   .battle-party{ background: var(--accent-soft); border-radius:12px; padding:12px 14px; margin-top:10px; }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
   .battle-mon{ display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12.5px; }
-  .battle-mon-icon{ width:28px; height:28px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .battle-mon-icon{ width:28px; height:28px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
   .battle-mon-icon.shadow-mist{
-    background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%);
-    box-shadow: 0 0 6px rgba(168,85,247,0.5);
+    background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%);
+    box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45);
   }
-  .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; }
+  .battle-mon-icon.shadow-mist::after{
+    content:""; position:absolute; z-index:1; pointer-events:none;
+    top:-60%; left:-30%; width:160%; height:220%;
+    background: radial-gradient(ellipse 40% 28% at 50% 75%, rgba(168,85,247,0.7) 0%, rgba(147,51,234,0) 65%);
+    animation: shadowMistRise 4.5s cubic-bezier(0.33, 0, 0.4, 1) infinite;
+  }
+  @keyframes shadowMistRise{
+    0%{ transform: translateY(28%) scale(0.75); opacity:0; }
+    15%{ opacity:0.7; }
+    55%{ opacity:0.55; }
+    100%{ transform: translateY(-52%) scale(1.15); opacity:0; }
+  }
+  .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; position:relative; z-index:2; }
   .battle-mon-meta{ color: var(--text-dim); font-size:11px; }
   .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
   .battle-mon.optional{
@@ -422,11 +434,8 @@ function battleMonIconHtml(name){
   const isShadow = /^shadow\s+/i.test(name.trim());
   const src = monSpriteUrl(name);
   if(isShadow){
-    const base = name.trim().toLowerCase().replace(/^shadow\s+/i, "");
-    const willAttemptShadowSprite = !!DEX_MAP[base];
     const fallbackSrc = monSpriteUrl(name.trim().replace(/^shadow\s+/i, ""));
-    const mistClass = willAttemptShadowSprite ? "" : " shadow-mist";
-    return `<div class="battle-mon-icon${mistClass}"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.onerror=null; this.src='${fallbackSrc}'; this.parentElement.classList.add('shadow-mist');"></div>`;
+    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.onerror=null; this.src='${fallbackSrc}';"></div>`;
   }
   return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
 }
