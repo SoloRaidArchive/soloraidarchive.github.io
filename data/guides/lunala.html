@@ -162,8 +162,12 @@
   .strategy-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin-bottom:4px; }
   .battle-party{ background: var(--accent-soft); border-radius:12px; padding:12px 14px; margin-top:10px; }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
-  .battle-mon{ display:flex; align-items:center; gap:10px; padding:5px 0; font-size:12.5px; }
-  .battle-mon-icon{ width:36px; height:36px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .battle-mon{ display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12.5px; }
+  .battle-mon-icon{ width:28px; height:28px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+  .battle-mon-icon.shadow-mist{
+    background: radial-gradient(circle, rgba(168,85,247,0.55) 0%, rgba(88,28,135,0.35) 65%, rgba(46,16,74,0.2) 100%);
+    box-shadow: 0 0 6px rgba(168,85,247,0.5);
+  }
   .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; }
   .battle-mon-meta{ color: var(--text-dim); font-size:11px; }
   .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
@@ -195,7 +199,14 @@
   .strategy-text li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
   .strategy-text img{ max-width:100%; border-radius:8px; margin:6px 0; }
   .strategy-text strong{ font-weight:800; }
-  .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; }
+  .strategy-text a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
+  [data-theme="dark"] .strategy-text a{ color:#5eead4; }
+  .strategy-vod{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
+    color:#fff; text-decoration:none; background: var(--blue); padding:8px 16px; border-radius:999px;
+    margin-top:4px;
+  }
+  .strategy-vod:hover{ filter: brightness(0.9); }
   .strategy-credit{ font-size:11px; color: var(--text-dim); margin-top:4px; }
 
   .load-state{ text-align:center; color: var(--text-dim); font-size:13px; padding:30px 0; }
@@ -402,6 +413,20 @@ function monSpriteUrl(name){
   if (LOCAL_SPRITES.has(slug)) return `../../assets/sprites/${slug}.gif`;
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
+
+// Shadow Pokemon don't all have a dedicated shadow-tinted sprite available - when that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image.
+function battleMonIconHtml(name){
+  const isShadow = /^shadow\s+/i.test(name.trim());
+  const src = monSpriteUrl(name);
+  if(isShadow){
+    const fallbackSrc = monSpriteUrl(name.trim().replace(/^shadow\s+/i, ""));
+    return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.onerror=null; this.src='${fallbackSrc}'; this.parentElement.classList.add('shadow-mist');"></div>`;
+  }
+  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
+}
 document.getElementById('boss-sprite-img').src = monSpriteUrl('Lunala');
 
 function routeLabel(s){
@@ -425,7 +450,7 @@ function strategyBlockHtml(s){
           <div class="battle-party-label">${escapeHtml(p.label)}</div>
           ${p.mons.map(m => `
             <div class="battle-mon${m.optional ? " optional" : ""}">
-              <div class="battle-mon-icon"><img src="${monSpriteUrl(m.name)}" alt="${escapeAttr(m.name)}" title="${escapeAttr(m.name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>
+              ${battleMonIconHtml(m.name)}
               <div>
                 ${m.level ? `<div class="battle-mon-level">Lv ${escapeHtml(m.level)}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ""}</div>` : (m.optional ? `<div class="battle-mon-level"><span class="optional-note">(Optional)</span></div>` : "")}
                 ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).map(escapeHtml).join(' / ')}</div>` : ""}
@@ -434,7 +459,7 @@ function strategyBlockHtml(s){
           `).join('')}
         </div>
       `).join('') : ""}
-      ${s.vod ? `<a class="strategy-vod" href="${escapeAttr(s.vod)}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
+      ${s.vod ? `<a class="strategy-vod" href="${escapeAttr(s.vod)}" target="_blank" rel="noopener noreferrer">&#9654; Watch VOD</a>` : ""}
       ${s.submittedBy ? `<div class="strategy-credit">Submitted by ${escapeHtml(s.submittedBy)}</div>` : ""}
     </div>
   `;
