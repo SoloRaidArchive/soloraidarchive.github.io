@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Guide Editor</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/quill/2.0.0-dev.3/quill.snow.min.css" rel="stylesheet">
 <style>
   :root{
@@ -50,6 +54,14 @@
   }
   .theme-toggle-btn:hover{ border-color: var(--blue); }
   .editor-subtitle{ font-size:12px; color: var(--text-dim); margin-bottom:18px; }
+  .mode-toggle-row{ display:flex; gap:6px; margin-bottom:14px; background: var(--bg1); border-radius:12px; padding:4px; }
+  .mode-toggle-btn{
+    flex:1; padding:9px 10px; font-family:'Manrope', sans-serif; font-weight:700; font-size:13px;
+    border:none; border-radius:9px; background:transparent; color: var(--text-dim); cursor:pointer;
+    transition: background .15s, color .15s;
+  }
+  .mode-toggle-btn.active{ background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .mode-toggle-btn:hover:not(.active){ color: var(--text); }
   .field-group{ margin-bottom:16px; }
   .field-label{ font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; display:block; margin-bottom:5px; }
   .field-row{ display:flex; gap:10px; }
@@ -90,6 +102,51 @@
   }
   .mechanic-picker-item:hover{ background: var(--accent-soft); }
   .mechanic-picker-abbr{ font-size:10.5px; font-weight:700; color: var(--blue-dark); background: var(--accent-soft); padding:1px 7px; border-radius:999px; flex-shrink:0; }
+  .article-insert-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:6px; }
+  .article-insert-btn{
+    background: var(--accent-soft); border:1.5px solid var(--border); border-radius:999px;
+    padding:5px 12px; font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
+    color: var(--blue-dark); cursor:pointer; flex-shrink:0;
+  }
+  .article-insert-btn:hover{ border-color: var(--blue); }
+  .math-picker{
+    margin-top:8px; border:1.5px solid var(--border); border-radius:10px; background: var(--card);
+    padding:8px; display:grid; grid-template-columns: repeat(8, 1fr); gap:4px;
+  }
+  .math-picker-item{
+    background:none; border:none; border-radius:7px; cursor:pointer; padding:8px 0;
+    font-size:16px; color: var(--text); font-family:'Inter', sans-serif;
+  }
+  .math-picker-item:hover{ background: var(--accent-soft); }
+  .bp-modal-overlay{
+    position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.45);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .bp-modal{
+    background: var(--card); border-radius:16px; width:min(520px, 100%); max-height:85vh;
+    display:flex; flex-direction:column; box-shadow:0 12px 32px rgba(0,0,0,0.25);
+  }
+  .bp-modal-head{
+    display:flex; align-items:center; justify-content:space-between; padding:16px 18px;
+    border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .bp-modal-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; }
+  .bp-modal-close{
+    background:none; border:none; font-size:22px; line-height:1; color: var(--text-dim); cursor:pointer;
+    padding:2px 6px;
+  }
+  .bp-modal-close:hover{ color: var(--text); }
+  .bp-modal-body{ padding:16px 18px; overflow-y:auto; flex:1; }
+  .bp-modal-foot{
+    display:flex; align-items:center; justify-content:flex-end; gap:10px; padding:14px 18px;
+    border-top:1px solid var(--border); flex-shrink:0;
+  }
+  .bp-modal-cancel{
+    background:none; border:1.5px solid var(--border); border-radius:8px; padding:9px 16px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:13px; color: var(--text-dim); cursor:pointer;
+  }
+  .bp-modal-cancel:hover{ border-color: var(--text-dim); color: var(--text); }
+  .bp-modal-foot .add-btn{ width:auto; padding:9px 18px; }
   .info-bubble{
     background: var(--accent-soft, #eef2ff); border:1.5px solid var(--border); border-radius:10px;
     padding:10px 12px; margin-bottom:14px;
@@ -189,6 +246,22 @@
   .strategy-text strong{ font-weight:800; }
   .strategy-text a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
   [data-theme="dark"] .strategy-text a{ color:#5eead4; }
+  .article-preview-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:19px; margin-bottom:10px; line-height:1.3; }
+  .article-preview-meta{ display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .article-category{
+    display:inline-block; font-family:'Manrope', sans-serif; font-weight:800; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.03em; color: var(--blue-dark); background: var(--accent-soft);
+    padding:5px 12px; border-radius:999px;
+  }
+  .article-byline{ font-size:12.5px; color: var(--text-dim); }
+  .article-body{ font-size:14px; line-height:1.7; }
+  .article-body p{ margin:0 0 12px; }
+  .article-body a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
+  [data-theme="dark"] .article-body a{ color:#5eead4; }
+  .article-table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:13px; }
+  .article-table th, .article-table td{ border:1px solid var(--border); padding:8px 10px; text-align:left; }
+  .article-table th{ background: var(--accent-soft); font-family:'Manrope', sans-serif; font-weight:800; }
+  .article-table tr:nth-child(even) td{ background: var(--bg1); }
   .strategy-text.placeholder{ color: var(--text-dim); font-style:italic; }
   .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; margin-top:4px; }
 
@@ -235,6 +308,22 @@
   [data-theme="dark"] .ql-editor.ql-blank::before{ color: var(--text-dim); }
   [data-theme="dark"] .ql-snow .ql-stroke{ stroke: var(--text-dim); }
   [data-theme="dark"] .ql-snow .ql-fill{ fill: var(--text-dim); }
+  .a-editor-wrap{ position:relative; }
+  .a-editor-wrap #a-text-editor .ql-editor{ padding-left:32px; }
+  .drag-handles-overlay{ position:absolute; top:0; left:0; width:32px; pointer-events:none; }
+  .drag-handle{
+    position:absolute; left:2px; width:20px; height:20px; border-radius:5px;
+    display:flex; align-items:center; justify-content:center; cursor:grab;
+    color: var(--text-dim); font-size:13px; pointer-events:auto; background: var(--bg1);
+    opacity:0; transition: opacity .12s;
+  }
+  .a-editor-wrap:hover .drag-handle{ opacity:1; }
+  .drag-handle:hover{ background: var(--accent-soft); color: var(--blue-dark); }
+  .drag-handle:active{ cursor:grabbing; }
+  .a-editor-drop-line{
+    position:absolute; left:32px; right:0; height:2px; background: var(--blue); pointer-events:none;
+    display:none; z-index:5;
+  }
   [data-theme="dark"] .ql-snow .ql-picker{ color: var(--text-dim); }
   [data-theme="dark"] .ql-snow .ql-picker-options{ background: var(--card); border-color: var(--border); }
   [data-theme="dark"] .ql-snow.ql-toolbar button:hover .ql-stroke,
@@ -264,9 +353,15 @@
     </div>
     <div class="editor-subtitle">Changes appear live on the right as you type</div>
 
+    <div class="mode-toggle-row" id="modeToggleRow">
+      <button type="button" class="mode-toggle-btn active" id="modeGuideBtn" data-mode="guide">Guide Strategy</button>
+      <button type="button" class="mode-toggle-btn" id="modeArticleBtn" data-mode="article">Research Article</button>
+    </div>
+
     <div class="info-bubble">
       <div class="info-line">&#9888;&#65039; Requires a GitHub account to submit. This editor is still being updated - some things may change.</div>
-      <div class="info-line">New strategies are added to this boss's guide page - not a separate page.</div>
+      <div class="info-line" id="guideModeInfoLine">New strategies are added to this boss's guide page - not a separate page.</div>
+      <div class="info-line" id="articleModeInfoLine" style="display:none;">Articles are reviewed before publishing, same as guide strategies.</div>
       <div class="info-line info-line-draft" id="draftNote" style="display:none;">
         &#128190; Draft restored from your last visit.
         <button type="button" class="draft-clear-btn" id="draftClearBtn">Clear draft</button>
@@ -277,6 +372,7 @@
       </div>
     </div>
 
+    <div id="guideModeFields">
     <div class="field-group">
       <label class="field-label">Boss</label>
       <select id="f-boss">
@@ -347,15 +443,83 @@
 
     <button class="add-btn" id="submit-btn" onclick="addStrategy()" disabled>Submit for review</button>
     <div id="submit-status" style="font-size:12px; margin-top:10px; line-height:1.5;"></div>
+    </div>
+
+    <div id="articleModeFields" style="display:none;">
+      <div class="field-group">
+        <label class="field-label">Article title</label>
+        <input type="text" id="a-title" placeholder="e.g. Which Legendaries Are Worth Saving Stardust For?">
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Category</label>
+        <select id="a-category">
+          <option value="Meta Analysis">Meta Analysis</option>
+          <option value="Tips & Tricks">Tips & Tricks</option>
+          <option value="Game Update">Game Update</option>
+          <option value="Community">Community</option>
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Article body</label>
+        <div class="a-editor-wrap" id="aEditorWrap">
+          <div id="a-text-editor"></div>
+          <div class="drag-handles-overlay" id="dragHandlesOverlay"></div>
+          <div class="a-editor-drop-line" id="aEditorDropLine"></div>
+        </div>
+        <div class="char-count" id="articleCharCount">0 / 10,000 characters</div>
+        <div class="article-insert-row">
+          <button type="button" class="article-insert-btn" id="insertTableBtn">&#128202; Table</button>
+          <button type="button" class="article-insert-btn" id="insertMathBtn">&#8722; Math symbol</button>
+          <button type="button" class="article-insert-btn" id="insertImageBtn">&#128247; Image</button>
+          <button type="button" class="article-insert-btn" id="insertBattlePartyBtn">&#9876;&#65039; Battle party</button>
+          <input type="file" id="articleImageFileInput" accept="image/*" style="display:none;">
+        </div>
+        <div class="math-picker" id="mathPicker" style="display:none;"></div>
+        <div class="math-picker" id="imageChoicePicker" style="display:none; grid-template-columns:1fr;"></div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Your name (credit)</label>
+        <input type="text" id="a-submitted-by" placeholder="e.g. Spiritedbloom">
+      </div>
+
+      <button class="add-btn" id="article-submit-btn" onclick="submitArticleForm()" disabled>Submit for review</button>
+      <div id="article-submit-status" style="font-size:12px; margin-top:10px; line-height:1.5;"></div>
+    </div>
   </div>
 
   <div class="preview-panel">
     <div class="preview-inner">
-      <div class="preview-context">📖 Guide: <span id="p-boss">Select a boss</span></div>
+      <div id="guidePreviewContent">
+        <div class="preview-context">📖 Guide: <span id="p-boss">Select a boss</span></div>
 
-      <div class="section-title"><span class="section-num">3</span>Strategy</div>
-      <div class="route-row" id="preview-route-row"></div>
-      <div id="preview-strategy-display"></div>
+        <div class="section-title"><span class="section-num">3</span>Strategy</div>
+        <div class="route-row" id="preview-route-row"></div>
+        <div id="preview-strategy-display"></div>
+      </div>
+      <div id="articlePreviewContent" style="display:none;">
+        <div class="preview-context">📰 Article Preview</div>
+        <div id="preview-article-display"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bp-modal-overlay" id="bpModalOverlay" style="display:none;">
+  <div class="bp-modal">
+    <div class="bp-modal-head">
+      <div class="bp-modal-title">Insert a battle party</div>
+      <button type="button" class="bp-modal-close" id="bpModalCloseBtn">&times;</button>
+    </div>
+    <div class="bp-modal-body">
+      <div id="modal-parties-list"></div>
+      <button type="button" class="add-party-btn" id="modalAddPartyBtn">+ Add Battle Party</button>
+    </div>
+    <div class="bp-modal-foot">
+      <button type="button" class="bp-modal-cancel" id="bpModalCancelBtn">Cancel</button>
+      <button type="button" class="add-btn" id="bpModalInsertBtn">Insert into article</button>
     </div>
   </div>
 </div>
@@ -382,6 +546,20 @@ const quill = new Quill('#f-text-editor', {
       ['blockquote'],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['image'],
+      ['clean'],
+    ],
+  },
+});
+
+const articleQuill = new Quill('#a-text-editor', {
+  theme: 'snow',
+  placeholder: 'Write the article...',
+  modules: {
+    toolbar: [
+      [{ 'header': [2, 3, false] }],
+      ['bold', 'italic', 'strike'],
+      ['blockquote'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['clean'],
     ],
   },
@@ -865,6 +1043,135 @@ function collectParties(){
   }).filter(p => p.mons.length > 0);
 }
 
+// ============ BATTLE PARTY MODAL (for articles) ============
+// A separate, parallel set of party-builder functions - reusing addMon()/duplicateMon() directly
+// would collide with the guide form's own party state, since those are tightly coupled to that
+// form's specific ID scheme and global partyCounter. This modal builds one party, then generates
+// real .battle-party HTML (matching what a published guide page renders) and inserts it into the
+// article at the cursor - it does not persist as form state the way guide battle parties do.
+let modalPartyCounter = 0;
+const bpModalOverlay = document.getElementById('bpModalOverlay');
+
+document.getElementById('insertBattlePartyBtn').addEventListener('click', () => {
+  document.getElementById('modal-parties-list').innerHTML = '';
+  modalPartyCounter = 0;
+  addModalParty();
+  bpModalOverlay.style.display = 'flex';
+});
+document.getElementById('bpModalCloseBtn').addEventListener('click', () => { bpModalOverlay.style.display = 'none'; });
+document.getElementById('bpModalCancelBtn').addEventListener('click', () => { bpModalOverlay.style.display = 'none'; });
+document.getElementById('modalAddPartyBtn').addEventListener('click', addModalParty);
+
+function addModalParty(){
+  modalPartyCounter++;
+  const id = modalPartyCounter;
+  const el = document.createElement('div');
+  el.className = 'party-card';
+  el.dataset.partyId = id;
+  el.innerHTML = `
+    <div class="party-card-head">
+      <input type="text" class="party-label" placeholder="Lobby / party label (e.g. Lobby 1, Windy Only)">
+      <button type="button" class="party-remove-btn" onclick="this.closest('.party-card').remove();">&times;</button>
+    </div>
+    <div class="mon-list" id="modal-mon-list-${id}"></div>
+    <button type="button" class="add-mon-btn" onclick="addModalMon(${id})">+ Add Pok&eacute;mon</button>
+  `;
+  document.getElementById('modal-parties-list').appendChild(el);
+  addModalMon(id);
+}
+function addModalMon(partyId){
+  const list = document.getElementById(`modal-mon-list-${partyId}`);
+  const row = document.createElement('div');
+  row.className = 'mon-block';
+  row.innerHTML = `
+    <div class="mon-row">
+      <input type="text" class="mon-name" placeholder="Pok&eacute;mon">
+      <div class="level-wrap">
+        <input type="text" class="mon-level" placeholder="Lv">
+        <input type="text" class="mon-level-max" placeholder="Max" style="display:none;">
+        <button type="button" class="level-toggle-btn" title="Use a level range instead of one level" onclick="toggleLevelRange(this)">&#8646;</button>
+      </div>
+    </div>
+    <div class="mon-row mon-moves-row">
+      <input type="text" class="mon-fm" placeholder="Fast move">
+      <input type="text" class="mon-cm" placeholder="Charge move 1">
+      <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)">
+    </div>
+    <div class="mon-btn-group">
+      <button type="button" class="mon-optional-btn" title="Mark this Pok&eacute;mon as optional" onclick="toggleOptionalMon(this)">?</button>
+      <button type="button" class="mon-dup-btn" title="Duplicate this Pok&eacute;mon" onclick="duplicateModalMon(this)">&#10697;</button>
+      <button type="button" class="mon-remove-btn" onclick="this.closest('.mon-block').remove();">&times;</button>
+    </div>
+  `;
+  list.appendChild(row);
+  return row;
+}
+function duplicateModalMon(btn){
+  const source = btn.closest('.mon-block');
+  const list = source.parentElement;
+  const partyId = list.id.replace('modal-mon-list-', '');
+  const newRow = addModalMon(partyId);
+  source.after(newRow);
+  newRow.querySelector('.mon-name').value = source.querySelector('.mon-name').value;
+  newRow.querySelector('.mon-fm').value = source.querySelector('.mon-fm').value;
+  newRow.querySelector('.mon-cm').value = source.querySelector('.mon-cm').value;
+  newRow.querySelector('.mon-cm2').value = source.querySelector('.mon-cm2').value;
+
+  const sourceMax = source.querySelector('.mon-level-max');
+  if(sourceMax.style.display !== 'none'){
+    newRow.querySelector('.level-toggle-btn').click();
+    newRow.querySelector('.mon-level-max').value = sourceMax.value;
+  }
+  newRow.querySelector('.mon-level').value = source.querySelector('.mon-level').value;
+  if(source.classList.contains('optional-mon')){
+    newRow.querySelector('.mon-optional-btn').click();
+  }
+}
+function collectModalParties(){
+  return Array.from(document.querySelectorAll('#modal-parties-list .party-card')).map(card => {
+    const label = card.querySelector('.party-label').value.trim() || "Unlabeled party";
+    const mons = Array.from(card.querySelectorAll('.mon-block')).map(block => {
+      const levelMin = block.querySelector('.mon-level').value.trim();
+      const maxInput = block.querySelector('.mon-level-max');
+      const levelMax = maxInput.style.display !== 'none' ? maxInput.value.trim() : '';
+      const level = levelMax ? `${levelMin}-${levelMax}` : levelMin;
+      return {
+        name: block.querySelector('.mon-name').value.trim(),
+        level,
+        fm: block.querySelector('.mon-fm').value.trim(),
+        cm: block.querySelector('.mon-cm').value.trim(),
+        cm2: block.querySelector('.mon-cm2').value.trim(),
+        optional: block.classList.contains('optional-mon'),
+      };
+    }).filter(m => m.name);
+    return { label, mons };
+  }).filter(p => p.mons.length > 0);
+}
+function articleBattlePartyHtml(parties){
+  return parties.map(party => `
+    <div class="battle-party">
+      <div class="battle-party-label">${escapeHtml(party.label)}</div>
+      ${party.mons.map(m => `
+        <div class="battle-mon${m.optional ? " optional" : ""}">
+          ${battleMonIconHtml(m.name)}
+          <div>
+            ${m.level ? `<div class="battle-mon-level">Lv ${escapeHtml(m.level)}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ""}</div>` : (m.optional ? `<div class="battle-mon-level"><span class="optional-note">(Optional)</span></div>` : "")}
+            ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).map(escapeHtml).join(' / ')}</div>` : ""}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+document.getElementById('bpModalInsertBtn').addEventListener('click', () => {
+  const parties = collectModalParties();
+  if(parties.length === 0){ alert('Add at least one Pok\u00e9mon to a party first.'); return; }
+  const html = articleBattlePartyHtml(parties) + '<p><br></p>';
+  const range = articleQuill.getSelection(true) || { index: articleQuill.getLength() };
+  articleQuill.clipboard.dangerouslyPasteHTML(range.index, html);
+  bpModalOverlay.style.display = 'none';
+});
+
 function syncPreview(){
   // only re-render if the "Your draft" tab is the one currently active - editing shouldn't
   // yank the volunteer away from a different route tab they clicked over to compare against
@@ -885,6 +1192,264 @@ function updateCharCount(){
   el.classList.toggle('over', len > 10000);
 }
 updateCharCount();
+
+function updateArticleCharCount(){
+  const el = document.getElementById('articleCharCount');
+  // plain text length, not innerHTML - images (base64) and tables would otherwise inflate this
+  // to the point of being meaningless once those richer content types are in the mix
+  const len = articleQuill.getText().length;
+  el.textContent = `${len.toLocaleString()} / 10,000 characters`;
+  el.classList.toggle('warn', len > 8000 && len <= 10000);
+  el.classList.toggle('over', len > 10000);
+}
+articleQuill.on('text-change', updateArticleCharCount);
+updateArticleCharCount();
+
+// ============ TABLE INSERT ============
+document.getElementById('insertTableBtn').addEventListener('click', () => {
+  const rows = parseInt(prompt('How many rows?', '3'), 10);
+  const cols = parseInt(prompt('How many columns?', '3'), 10);
+  if(!rows || !cols || rows < 1 || cols < 1 || rows > 20 || cols > 10){
+    alert('Enter a valid row/column count (up to 20 rows, 10 columns).');
+    return;
+  }
+  const range = articleQuill.getSelection(true);
+  let html = '<table class="article-table"><tbody>';
+  for(let r = 0; r < rows; r++){
+    html += '<tr>';
+    for(let c = 0; c < cols; c++){
+      html += r === 0 ? '<th>Header</th>' : '<td>Cell</td>';
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table><p><br></p>';
+  articleQuill.clipboard.dangerouslyPasteHTML(range.index, html);
+});
+
+// ============ MATH SYMBOL PICKER ============
+const MATH_SYMBOLS = ['×', '÷', '±', '≥', '≤', '≈', '≠', '→', '←', '∞', '°', '√', '²', '³', '½', '¼'];
+const mathPicker = document.getElementById('mathPicker');
+let savedArticleRange = null;
+document.getElementById('insertMathBtn').addEventListener('click', () => {
+  savedArticleRange = articleQuill.getSelection(true);
+  const isOpen = mathPicker.style.display !== 'none';
+  if(isOpen){ mathPicker.style.display = 'none'; return; }
+  mathPicker.innerHTML = MATH_SYMBOLS.map(sym => `<button type="button" class="math-picker-item" data-sym="${sym}">${sym}</button>`).join('');
+  mathPicker.style.display = 'grid';
+});
+mathPicker.addEventListener('click', (e) => {
+  const btn = e.target.closest('.math-picker-item');
+  if(!btn) return;
+  const index = savedArticleRange ? savedArticleRange.index : articleQuill.getLength();
+  articleQuill.insertText(index, btn.dataset.sym, 'user');
+  articleQuill.setSelection(index + 1);
+  mathPicker.style.display = 'none';
+});
+
+// ============ IMAGE INSERT (upload or URL, consolidated into one button) ============
+// Uploaded images are shown immediately as a base64 preview so the writer sees what they're
+// getting, but that base64 data is NOT what ends up in the stored article body - it's tracked
+// separately here and swapped for a real committed file path server-side on submit, the same
+// way the guide editor's preset-image upload already works. This keeps the stored article JSON
+// from ballooning with embedded image data.
+let pendingImageUploads = [];
+const imageChoicePicker = document.getElementById('imageChoicePicker');
+document.getElementById('insertImageBtn').addEventListener('click', () => {
+  const isOpen = imageChoicePicker.style.display !== 'none';
+  if(isOpen){ imageChoicePicker.style.display = 'none'; return; }
+  imageChoicePicker.innerHTML = `
+    <button type="button" class="math-picker-item" style="font-size:12.5px; padding:8px; grid-column:1;" id="imageChoiceUpload">&#128193; Upload a file</button>
+    <button type="button" class="math-picker-item" style="font-size:12.5px; padding:8px; grid-column:1;" id="imageChoiceUrl">&#128279; Paste a URL</button>
+  `;
+  imageChoicePicker.style.display = 'grid';
+  document.getElementById('imageChoiceUpload').addEventListener('click', () => {
+    imageChoicePicker.style.display = 'none';
+    document.getElementById('articleImageFileInput').click();
+  });
+  document.getElementById('imageChoiceUrl').addEventListener('click', () => {
+    imageChoicePicker.style.display = 'none';
+    const url = prompt('Image URL:');
+    if(!url || !url.trim()) return;
+    const range = articleQuill.getSelection(true) || { index: articleQuill.getLength() };
+    articleQuill.insertEmbed(range.index, 'image', url.trim(), 'user');
+    articleQuill.setSelection(range.index + 1);
+  });
+});
+document.getElementById('articleImageFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  if(file.size > 5_000_000){ alert('Image too large (max 5MB).'); e.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const base64DataUri = reader.result;
+    const tempId = `upload-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    pendingImageUploads.push({ tempId, base64: base64DataUri, filename: file.name });
+    const range = articleQuill.getSelection(true) || { index: articleQuill.getLength() };
+    articleQuill.insertEmbed(range.index, 'image', base64DataUri, 'user');
+    articleQuill.setSelection(range.index + 1);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+// ============ DRAG-TO-REORDER ============
+// Quill's content model doesn't natively support reordering top-level blocks (paragraphs,
+// tables, battle parties) by dragging. This adds a small handle next to each block instead of
+// modifying Quill's own contenteditable content directly (which risks Quill stripping foreign
+// elements on its next internal render) - the handles live in a separate absolutely-positioned
+// overlay, kept in sync with each block's actual position. Reordering itself works by moving the
+// real DOM nodes directly; Quill's own MutationObserver (the same mechanism that already makes
+// dangerouslyPasteHTML() work for table/battle-party insertion) picks up the change, but the
+// preview/char-count sync is also triggered manually here as a safety net either way.
+const dragHandlesOverlay = document.getElementById('dragHandlesOverlay');
+const aEditorWrap = document.getElementById('aEditorWrap');
+const aEditorDropLine = document.getElementById('aEditorDropLine');
+let draggedBlockIndex = null;
+
+function refreshDragHandles(){
+  const blocks = Array.from(articleQuill.root.children);
+  dragHandlesOverlay.innerHTML = blocks.map((block, i) => {
+    const top = block.offsetTop;
+    const height = block.offsetHeight;
+    return `<div class="drag-handle" draggable="true" data-index="${i}" style="top:${top}px; height:${Math.min(height, 28)}px;" title="Drag to reorder">&#8942;&#8942;</div>`;
+  }).join('');
+}
+
+dragHandlesOverlay.addEventListener('dragstart', (e) => {
+  const handle = e.target.closest('.drag-handle');
+  if(!handle) return;
+  draggedBlockIndex = parseInt(handle.dataset.index, 10);
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', String(draggedBlockIndex));
+});
+
+aEditorWrap.addEventListener('dragover', (e) => {
+  if(draggedBlockIndex === null) return;
+  e.preventDefault();
+  const blocks = Array.from(articleQuill.root.children);
+  const wrapRect = aEditorWrap.getBoundingClientRect();
+  let targetTop = null;
+  for(const block of blocks){
+    const rect = block.getBoundingClientRect();
+    const mid = rect.top + rect.height / 2;
+    if(e.clientY < mid){
+      targetTop = rect.top - wrapRect.top;
+      break;
+    }
+  }
+  if(targetTop === null){
+    const lastBlock = blocks[blocks.length - 1];
+    targetTop = lastBlock ? (lastBlock.getBoundingClientRect().bottom - wrapRect.top) : 0;
+  }
+  aEditorDropLine.style.top = `${targetTop}px`;
+  aEditorDropLine.style.display = 'block';
+});
+
+aEditorWrap.addEventListener('dragleave', (e) => {
+  if(e.target === aEditorWrap || !aEditorWrap.contains(e.relatedTarget)){
+    aEditorDropLine.style.display = 'none';
+  }
+});
+
+aEditorWrap.addEventListener('drop', (e) => {
+  e.preventDefault();
+  aEditorDropLine.style.display = 'none';
+  if(draggedBlockIndex === null) return;
+
+  const blocks = Array.from(articleQuill.root.children);
+  const draggedNode = blocks[draggedBlockIndex];
+  if(!draggedNode) { draggedBlockIndex = null; return; }
+
+  let insertBeforeNode = null;
+  for(const block of blocks){
+    if(block === draggedNode) continue;
+    const rect = block.getBoundingClientRect();
+    if(e.clientY < rect.top + rect.height / 2){
+      insertBeforeNode = block;
+      break;
+    }
+  }
+
+  if(insertBeforeNode){
+    articleQuill.root.insertBefore(draggedNode, insertBeforeNode);
+  }else{
+    articleQuill.root.appendChild(draggedNode);
+  }
+
+  draggedBlockIndex = null;
+  refreshDragHandles();
+  updateArticleCharCount();
+  syncArticlePreview();
+});
+
+articleQuill.on('text-change', refreshDragHandles);
+
+function escapeHtml(str){
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// ============ MODE TOGGLE ============
+const modeGuideBtn = document.getElementById('modeGuideBtn');
+const modeArticleBtn = document.getElementById('modeArticleBtn');
+const guideModeFields = document.getElementById('guideModeFields');
+const articleModeFields = document.getElementById('articleModeFields');
+const guideModeInfoLine = document.getElementById('guideModeInfoLine');
+const articleModeInfoLine = document.getElementById('articleModeInfoLine');
+const guidePreviewContent = document.getElementById('guidePreviewContent');
+const articlePreviewContent = document.getElementById('articlePreviewContent');
+const editorTitleEl = document.querySelector('.editor-title');
+let currentMode = 'guide';
+
+function setMode(mode){
+  currentMode = mode;
+  modeGuideBtn.classList.toggle('active', mode === 'guide');
+  modeArticleBtn.classList.toggle('active', mode === 'article');
+  guideModeFields.style.display = mode === 'guide' ? '' : 'none';
+  articleModeFields.style.display = mode === 'article' ? '' : 'none';
+  guideModeInfoLine.style.display = mode === 'guide' ? '' : 'none';
+  articleModeInfoLine.style.display = mode === 'article' ? '' : 'none';
+  guidePreviewContent.style.display = mode === 'guide' ? '' : 'none';
+  articlePreviewContent.style.display = mode === 'article' ? '' : 'none';
+  editorTitleEl.textContent = mode === 'guide' ? 'Add a strategy' : 'Write an article';
+  if(mode === 'article') syncArticlePreview();
+}
+modeGuideBtn.addEventListener('click', () => setMode('guide'));
+modeArticleBtn.addEventListener('click', () => setMode('article'));
+modeArticleBtn.addEventListener('click', () => setTimeout(refreshDragHandles, 50));
+
+// support ?mode=article in the URL, so a link from a real article page's "Edit this article"
+// button lands here in article mode rather than the default guide mode
+try{
+  const modeParam = new URLSearchParams(window.location.search).get('mode');
+  if(modeParam === 'article') setMode('article');
+}catch(e){}
+
+// ============ ARTICLE LIVE PREVIEW ============
+function articlePreviewHtml(){
+  const title = document.getElementById('a-title').value.trim() || 'Untitled Article';
+  const category = document.getElementById('a-category').value;
+  const submittedBy = document.getElementById('a-submitted-by').value.trim() || 'Anonymous';
+  const body = articleQuill.root.innerHTML;
+  return `
+    <div class="article-preview-title">${escapeHtml(title)}</div>
+    <div class="article-preview-meta">
+      <span class="article-category">${escapeHtml(category)}</span>
+      <span class="article-byline">By ${escapeHtml(submittedBy)}</span>
+    </div>
+    <div class="article-body">${body}</div>
+  `;
+}
+function syncArticlePreview(){
+  if(currentMode !== 'article') return;
+  document.getElementById('preview-article-display').innerHTML = articlePreviewHtml();
+}
+document.getElementById('a-title').addEventListener('input', syncArticlePreview);
+document.getElementById('a-category').addEventListener('change', syncArticlePreview);
+document.getElementById('a-submitted-by').addEventListener('input', syncArticlePreview);
+articleQuill.on('text-change', syncArticlePreview);
+document.getElementById('a-title').addEventListener('input', () => {
+  document.getElementById('article-submit-btn').disabled = !document.getElementById('a-title').value.trim();
+});
 
 const WORKER_URL = "https://guide-submissions.solo-raid-archive.workers.dev";
 
@@ -955,6 +1520,64 @@ async function addStrategy(){
   }finally{
     submitBtn.disabled = false;
     submitBtn.textContent = editingIndex !== null ? "Save changes to this route" : "Submit for review";
+  }
+}
+
+async function submitArticleForm(){
+  const title = document.getElementById('a-title').value.trim();
+  if(!title){ alert('Add an article title first.'); return; }
+  if(!articleQuill.getText().trim()){ alert('Add the article body first.'); return; }
+
+  // swap each uploaded image's base64 data for a short placeholder token before measuring/
+  // sending body length - otherwise a single embedded photo would blow past any reasonable
+  // text limit on its own, and the Worker validates length before it ever gets a chance to
+  // commit the real files and shrink these back down
+  let cleanedBody = articleQuill.root.innerHTML;
+  for(const upload of pendingImageUploads){
+    cleanedBody = cleanedBody.split(upload.base64).join(`{{UPLOAD:${upload.tempId}}}`);
+  }
+
+  if(cleanedBody.length > 10000){ alert('Article body is too long (max 10,000 characters, not counting uploaded images). Trim it down and try again.'); return; }
+
+  const status = document.getElementById('article-submit-status');
+  const articleSubmitBtn = document.getElementById('article-submit-btn');
+
+  articleSubmitBtn.disabled = true;
+  articleSubmitBtn.textContent = "Submitting...";
+  status.textContent = "";
+
+  const payload = {
+    type: "article",
+    title: title,
+    category: document.getElementById('a-category').value,
+    body: cleanedBody,
+    submittedBy: document.getElementById('a-submitted-by').value.trim() || "Anonymous",
+    images: pendingImageUploads.map(u => ({ tempId: u.tempId, base64: u.base64, filename: u.filename })),
+  };
+
+  try{
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+    status.innerHTML = `Submitted! <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--blue-dark); font-weight:700;">View the pull request &rarr;</a><br>A maintainer will review it before it goes live.`;
+    status.style.color = "#1f9d5c";
+
+    document.getElementById('a-title').value = "";
+    document.getElementById('a-submitted-by').value = "";
+    articleQuill.setText("");
+    pendingImageUploads = [];
+    syncArticlePreview();
+  }catch(e){
+    status.textContent = `Couldn't submit: ${e.message}`;
+    status.style.color = "#c62828";
+  }finally{
+    articleSubmitBtn.disabled = false;
+    articleSubmitBtn.textContent = "Submit for review";
   }
 }
 
