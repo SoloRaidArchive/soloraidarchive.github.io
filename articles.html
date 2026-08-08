@@ -3,20 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Boss Guides — Solo Raid Archive</title>
+<title>Research Articles — Solo Raid Archive</title>
 <link rel="icon" href="assets/icons/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
-<meta name="description" content="Step-by-step solo strategies for every raid boss currently covered in the archive, with real recorded battle parties.">
-<link rel="canonical" href="https://soloraidarchive.github.io/guides.html">
+<meta name="description" content="Community-written research and analysis articles for Pokemon GO raiding.">
+<link rel="canonical" href="https://soloraidarchive.github.io/articles.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Boss Guides | Solo Raid Archive">
-<meta property="og:description" content="Step-by-step solo strategies for every raid boss currently covered in the archive, with real recorded battle parties.">
-<meta property="og:url" content="https://soloraidarchive.github.io/guides.html">
+<meta property="og:title" content="Research Articles | Solo Raid Archive">
+<meta property="og:description" content="Community-written research and analysis articles for Pokemon GO raiding.">
+<meta property="og:url" content="https://soloraidarchive.github.io/articles.html">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Boss Guides | Solo Raid Archive">
-<meta name="twitter:description" content="Step-by-step solo strategies for every raid boss currently covered in the archive, with real recorded battle parties.">
+<meta name="twitter:title" content="Research Articles | Solo Raid Archive">
+<meta name="twitter:description" content="Community-written research and analysis articles for Pokemon GO raiding.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -54,11 +54,6 @@
     transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
   }
   .guide-card:hover{ transform: translateY(-2px); box-shadow: 0 8px 20px rgba(61,157,255,0.14); border-color:#b9dbff; }
-  .guide-card-sprite{
-    width:52px; height:52px; border-radius:50%; background: var(--accent-soft); flex-shrink:0;
-    display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
-  .guide-card-sprite img{ width:100%; height:100%; object-fit:contain; }
   .guide-card-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15.5px; }
   .guide-card-cta{ font-size:12px; color: var(--text-dim); margin-top:2px; }
 
@@ -147,8 +142,8 @@
     <a href="research.html">Most Used Raiders</a>
     <a href="ct-database.html">Viable Catch Tanks</a>
     <a href="solo-raid-mechanics.html">Solo Raid Mechanics</a>
-    <a href="guides.html" class="current hamburger-featured">Boss Guides</a>
-    <a href="articles.html" class="hamburger-featured">Research Articles</a>
+    <a href="guides.html" class="hamburger-featured">Boss Guides</a>
+    <a href="articles.html" class="current hamburger-featured">Research Articles</a>
     <a href="meta-battle-parties.html">Meta Battle Parties</a>
     <a href="ct-calculator.html">Catch Tank Calculator</a>
     <a href="move-data.html">Move Data</a>
@@ -173,7 +168,7 @@
 
 <div class="sticky-header">
   <div class="sticky-header-row">
-    <h1 class="page-title-sm">Guide</h1>
+    <h1 class="page-title-sm">Articles</h1>
     <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -181,102 +176,44 @@
 </div>
 
 <div class="container">
-  <div class="page-eyebrow">Boss Guides</div>
-  <h2 class="page-title">Solo Strategies by Boss</h2>
+  <div class="page-eyebrow">Research Articles</div>
+  <h2 class="page-title">Community Research &amp; Analysis</h2>
   <div class="guide-grid" id="guideGrid"></div>
 </div>
 
 <footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
 
 <script>
-const DB_OVERRIDES = {
-  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
-  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
-  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
-  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
-  "zacian crown":"zacian-crowned", "zacian hero":"zacian-hero", "zamazenta hero":"zamazenta-hero", "zamazenta crown":"zamazenta-crowned",
-  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
-  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
-  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
-  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
-  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
-  "mega heracross":"heracross-mega", "palkia origin":"palkia-origin",
-  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
-};
-function toDbSlug(name){
-  let n = name.trim().toLowerCase();
-  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
-  n = n.replace(/^shadow\s+/, "");
-  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
-  const megaMatch = n.match(/^mega\s+(.+)$/);
-  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
-  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
-  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
-  return n.replace(/\s+/g, "-");
-}
-const GOHUB_OVERRIDES = {
-  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
-  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
-  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
-};
-const ANI_OVERRIDES = {
-  "zacian crown": "zacian-crownedsword",
-  "zamazenta crown": "zamazenta-crownedshield",
-  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
-  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
-  "necrozma dawn wings": "necrozma-dawnwings",
-  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
-  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
-  "ho-oh": "hooh",
-  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
-  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
-  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
-};
-const ANI_URL_OVERRIDES = {
-  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
-  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
-};
-const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "slowbro-mega", "solgaleo", "stakataka", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
-function monSpriteUrl(name){
-  const key = name.trim().toLowerCase();
-  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
-  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
-  const slug = (ANI_OVERRIDES[key] || toDbSlug(name)).replace(/-alolan$/, "-alola");
-  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
-  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
-}
-
 function escapeAttr(str){
   return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-const guideGrid = document.getElementById("guideGrid");
-loadGuideList();
+const articleGrid = document.getElementById("guideGrid");
+loadArticleList();
 
-async function loadGuideList(){
-  let bosses = [];
+async function loadArticleList(){
+  let articles = [];
   try{
-    const res = await fetch("data/guides/index.json", { cache: "no-store" });
+    const res = await fetch("data/articles/index.json", { cache: "no-store" });
     if(!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
-    bosses = data.bosses || [];
+    articles = data.articles || [];
   }catch(e){
-    guideGrid.innerHTML = `<div class="empty-state">Couldn't load the guide list. Try refreshing the page.</div>`;
-    console.error("Failed to load guide index:", e);
+    articleGrid.innerHTML = `<div class="empty-state">Couldn't load the article list. Try refreshing the page.</div>`;
+    console.error("Failed to load article index:", e);
     return;
   }
 
-  if(bosses.length === 0){
-    guideGrid.innerHTML = `<div class="empty-state">No guides published yet - check back soon.</div>`;
+  if(articles.length === 0){
+    articleGrid.innerHTML = `<div class="empty-state">No articles published yet - check back soon.</div>`;
     return;
   }
 
-  guideGrid.innerHTML = bosses.map(b => `
-    <a class="guide-card" href="data/guides/${escapeAttr(b.slug)}.html">
-      <div class="guide-card-sprite"><img src="${monSpriteUrl(b.name)}" alt="" onerror="this.remove();"></div>
+  articleGrid.innerHTML = articles.map(a => `
+    <a class="guide-card" href="data/articles/${escapeAttr(a.slug)}.html">
       <div>
-        <div class="guide-card-name">${b.name}</div>
-        <div class="guide-card-cta">View solo strategies &rarr;</div>
+        <div class="guide-card-name">${escapeAttr(a.title)}</div>
+        <div class="guide-card-cta">${escapeAttr(a.category)} &middot; Read article &rarr;</div>
       </div>
     </a>
   `).join("");
