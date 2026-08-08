@@ -122,14 +122,16 @@
     text-transform:uppercase; letter-spacing:0.06em; margin:20px 0 4px; text-align:center;
   }
   .guide-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:28px; margin:0 0 8px; text-align:center; }
-  .edit-guide-row{ text-align:center; margin-bottom:18px; }
+  .edit-guide-row{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
   .edit-guide-btn{
     display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
     color: var(--blue-dark); background: var(--accent-soft); padding:6px 14px; border-radius:999px;
-    text-decoration:none;
+    text-decoration:none; border:none; font-family:'Inter', sans-serif; cursor:pointer;
   }
   .edit-guide-btn:hover{ background:#dcecff; }
   [data-theme="dark"] .edit-guide-btn:hover{ background:#2a3555; }
+  .share-guide-btn.copied{ background:#d4f5dd; color:#1f7a45; }
+  [data-theme="dark"] .share-guide-btn.copied{ background:#12301f; color:#7dd9a5; }
 
   .section-title{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:19px; margin:32px 0 4px;
@@ -320,6 +322,7 @@
   <h1 class="guide-title">How to Solo Nihilego</h1>
   <div class="edit-guide-row">
     <a class="edit-guide-btn" href="../../editor.html?boss=nihilego">&#9998; Edit this guide</a>
+    <button type="button" class="edit-guide-btn share-guide-btn" id="shareGuideBtn">&#128228; Share</button>
   </div>
 
   <h2 class="section-title">Boss Info</h2>
@@ -557,6 +560,30 @@ applyTheme(initialTheme);
 
 const hamburgerBtn = document.getElementById("hamburgerBtn");
 const hamburgerPanel = document.getElementById("hamburgerPanel");
+const shareGuideBtn = document.getElementById('shareGuideBtn');
+shareGuideBtn.addEventListener('click', async () => {
+  const shareData = { title: document.title, url: window.location.href };
+  if(navigator.share){
+    try{ await navigator.share(shareData); }
+    catch(e){ /* user cancelled the share sheet - no action needed */ }
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(window.location.href);
+    showShareCopiedState();
+  }catch(e){
+    prompt('Copy this link:', window.location.href);
+  }
+});
+function showShareCopiedState(){
+  shareGuideBtn.classList.add('copied');
+  shareGuideBtn.innerHTML = '&#9989; Copied!';
+  setTimeout(() => {
+    shareGuideBtn.classList.remove('copied');
+    shareGuideBtn.innerHTML = '&#128228; Share';
+  }, 2000);
+}
+
 hamburgerBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = hamburgerPanel.classList.contains("open");
