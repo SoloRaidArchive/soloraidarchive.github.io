@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Articles — Solo Raid Archive</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+<meta name="description" content="Community-written research and analysis articles for Pokemon GO raiding.">
+<link rel="canonical" href="https://soloraidarchive.github.io/articles.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Research Articles | Solo Raid Archive">
+<meta property="og:description" content="Community-written research and analysis articles for Pokemon GO raiding.">
+<meta property="og:url" content="https://soloraidarchive.github.io/articles.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Research Articles | Solo Raid Archive">
+<meta name="twitter:description" content="Community-written research and analysis articles for Pokemon GO raiding.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce; --bg: #ffffff; --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #9aa3b2;
+    --accent: #3d9dff; --accent-soft: #eaf4ff; --accent-dark: #2b7fd6;
+    --blue: #3d9dff; --blue-dark: #2b7fd6;
+  }
+  [data-theme="dark"]{
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024; --bg: #10131d; --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --accent: #5aa9ff; --accent-soft: #232840; --accent-dark: #8cc7ff;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff;
+  }
+  [data-theme="dark"] body{
+    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
+  }
+  *{ box-sizing:border-box; }
+  html{ max-width:100vw; }
+  body{
+    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); color: var(--text);
+    font-family: 'Inter', sans-serif; min-height:100vh;
+  }
+  .container{ max-width:800px; margin:0 auto; padding:24px 20px 60px; }
+  .page-eyebrow{ font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color: var(--blue-dark); text-align:center; margin-bottom:6px; }
+  .page-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:26px; margin:0 0 24px; text-align:center; }
+
+  .guide-grid{ display:grid; grid-template-columns: 1fr; gap:12px; }
+  @media (min-width:560px){ .guide-grid{ grid-template-columns: 1fr 1fr; } }
+
+  .guide-card{
+    display:flex; align-items:center; gap:14px; background: var(--card); border:2px solid var(--border);
+    border-radius:16px; padding:14px 16px; text-decoration:none; color: var(--text);
+    transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  .guide-card:hover{ transform: translateY(-2px); box-shadow: 0 8px 20px rgba(61,157,255,0.14); border-color:#b9dbff; }
+  .guide-card-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15.5px; }
+  .guide-card-cta{ font-size:12px; color: var(--text-dim); margin-top:2px; }
+
+  .empty-state{ text-align:center; color: var(--text-dim); font-size:14px; padding:40px 20px; }
+
+  footer{
+    text-align:center; padding: 24px; font-size:12px; color: var(--text-dim);
+    font-family:'Inter', sans-serif; border-top: 1px solid var(--border); margin-top:20px;
+  }
+
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
+  .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--text); text-align:center; }
+
+  .hamburger-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:hover{ transform: translateY(-2px); }
+  .hamburger-btn span{ display:block; width:19px; height:2.5px; border-radius:2px; background: var(--text); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:fixed; top:66px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text); background: var(--card); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--accent); color: var(--accent-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1); color: var(--accent-dark); }
+  .hamburger-section a.current{ background: var(--accent); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  .hamburger-section a.hamburger-featured.current{
+    background-image:
+      linear-gradient(var(--accent), var(--accent)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="index.html"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Research</div>
+    <a href="research.html">Most Used Raiders</a>
+    <a href="ct-database.html">Viable Catch Tanks</a>
+    <a href="solo-raid-mechanics.html">Solo Raid Mechanics</a>
+    <a href="guides.html" class="hamburger-featured">Boss Guides</a>
+    <a href="articles.html" class="current hamburger-featured">Research Articles</a>
+    <a href="meta-battle-parties.html">Meta Battle Parties</a>
+    <a href="ct-calculator.html">Catch Tank Calculator</a>
+    <a href="move-data.html">Move Data</a>
+    <a href="pokemon-stats.html">Pokémon Stats</a>
+    <a href="reference.html">Difficulty &amp; Role Reference</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Raid Archives</div>
+    <a href="tier4-raids.html">Mega</a>
+    <a href="tier5-raids.html">Legendary</a>
+    <a href="tier5-ae-raids.html">Legendary AE</a>
+    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Resources</div>
+    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+  </div>
+</div>
+
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <h1 class="page-title-sm">Articles</h1>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="page-eyebrow">Research Articles</div>
+  <h2 class="page-title">Community Research &amp; Analysis</h2>
+  <div class="guide-grid" id="guideGrid"></div>
+</div>
+
+<footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
+
+<script>
+function escapeAttr(str){
+  return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+const articleGrid = document.getElementById("guideGrid");
+loadArticleList();
+
+async function loadArticleList(){
+  let articles = [];
+  try{
+    const res = await fetch("articles/index.json", { cache: "no-store" });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    articles = data.articles || [];
+  }catch(e){
+    articleGrid.innerHTML = `<div class="empty-state">Couldn't load the article list. Try refreshing the page.</div>`;
+    console.error("Failed to load article index:", e);
+    return;
+  }
+
+  if(articles.length === 0){
+    articleGrid.innerHTML = `<div class="empty-state">No articles published yet - check back soon.</div>`;
+    return;
+  }
+
+  articleGrid.innerHTML = articles.map(a => `
+    <a class="guide-card" href="articles/${escapeAttr(a.slug)}.html">
+      <div>
+        <div class="guide-card-name">${escapeAttr(a.title)}</div>
+        <div class="guide-card-cta">${escapeAttr(a.category)} &middot; Read article &rarr;</div>
+      </div>
+    </a>
+  `).join("");
+}
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+hamburgerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = hamburgerPanel.classList.contains("open");
+  hamburgerPanel.classList.toggle("open", !isOpen);
+  hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+document.addEventListener("click", (e) => {
+  if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
+    hamburgerPanel.classList.remove("open");
+    hamburgerBtn.setAttribute("aria-expanded", "false");
+  }
+});
+</script>
+
+</body>
+</html>
