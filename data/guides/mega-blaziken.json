@@ -1,0 +1,73 @@
+{
+  "boss": "Mega Blaziken",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Mega Rayquaza or Mega Mewtwo Recycle",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "2★",
+      "text": "<h2>Overview: </h2><h3>Estimated Time to Win: [220s - 265s]</h3><p>This strategy revolves around <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-recycle\" target=\"_blank\">recycling</a> powerful Mega Pokemon to defeat Mega Blaziken. This is mostly an easy strategy with only a few curve balls thrown in depending on Mega Blaziken's moveset. Overall, Mega Rayquaza &amp; Mewtwo's typing are a strong advantage resisting fire &amp; fighting moves with the latter resisting fighting only. </p><p><br></p><h2>Basic Strategy: </h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Create a battle party with only the respective Mega or Primal. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>DPS with Mega Ray's Dragon Ascent, Mega Mewtwo's Psystrike or optionally Primal Groudon's Precipice Blades. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>When the Mega is too low to continue, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">exit the lobby, heal and rejoin.</a></li></ol><p><br></p><h3>vs Brave Bird: </h3><p>Mega Blaziken also learns Brave Bird (130dmg | 2.0s AD), a very powerful and fast charge move. Brave Bird's advantage is both its high damage and speed; outspeeding Dragon Ascent by 1.5s and Psystrike by 0.5s while also hitting Mega Mewtwo X for super effective damage.</p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Dodging prior to Brave Bird is recommended. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Opting for additional counters such as: Shadow Mewtwo, Shadow Groudon, Shadow Garchomp, Landorus Therian, etc. </li></ol>",
+      "vods": [
+        {
+          "url": "https://www.youtube.com/watch?v=DkaXDqLEd94",
+          "label": "TTW: 204s (Lv 50 Mega Ray, Focus Blast, 4 Rejoins)"
+        }
+      ],
+      "submittedBy": "SpiritedBloom",
+      "battleParties": [
+        {
+          "label": "Mega Rayquaza Recycle",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Mega Rayquaza",
+              "level": "40-50",
+              "fm": "Air Slash",
+              "cm": "Dragon Ascent",
+              "cm2": "",
+              "optional": false
+            }
+          ]
+        },
+        {
+          "label": "Mega Mewtwo Y Recycle",
+          "secondaryLabel": "Mega Mewtwo X Recycle",
+          "mons": [
+            {
+              "name": "Mega Mewtwo Y",
+              "level": "40-53",
+              "fm": "Any",
+              "cm": "Psystrike",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "Mega Mewtwo X",
+              "level": "40-53",
+              "fm": "Confusion or Psycho Cut",
+              "cm": "Psystrike",
+              "cm2": "",
+              "optional": true
+            }
+          ]
+        },
+        {
+          "label": "Primal Groudon Optional Route",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Primal Groudon",
+              "level": "40-50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-09T23:08:41.006Z"
+    }
+  ]
+}
