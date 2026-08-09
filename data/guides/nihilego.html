@@ -23,11 +23,11 @@
   "@context": "https://schema.org",
   "@type": "HowTo",
   "name": "How to Solo Nihilego in Pokémon GO",
-  "description": "Step-by-step routes for soloing Nihilego, based on real recorded clears: check the boss's type and moves, pick a route by difficulty/weather/adventure effect, then follow the matching battle party breakdown.",
+  "description": "Step-by-step routes for soloing Nihilego, based on real recorded clears: check the boss's type and moves, pick a route by difficulty/weather/adventure effect, then follow the matching battle party.",
   "step": [
     { "@type": "HowToStep", "name": "Check Boss Info", "text": "Review Nihilego's typing, effective stats, and possible fast/charge moves so you know what you're up against." },
     { "@type": "HowToStep", "name": "Choose a Route", "text": "Pick the recorded route that matches your difficulty, current weather, and any active Adventure Effect." },
-    { "@type": "HowToStep", "name": "Follow the Breakdown", "text": "Use the matching battle party - exact Pokémon, levels, and movesets - and the linked VOD as proof the strategy works." }
+    { "@type": "HowToStep", "name": "Follow the Battle Party", "text": "Use the matching battle party - exact Pokémon, levels, and movesets - and the linked VOD as proof the strategy works." }
   ]
 }
 </script>
@@ -370,7 +370,6 @@
     <div class="load-state">Loading...</div>
   </div>
 
-  <h2 class="section-title">Breakdown</h2>
   <div id="strategy-display">
     <div class="load-state">Loading strategies...</div>
   </div>
@@ -492,7 +491,6 @@ function strategyBlockHtml(s){
         <span class="strategy-tag">${escapeHtml(s.weather)}</span>
         ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${escapeHtml(s.adventureEffect)}</span>` : ""}
       </div>
-      <div class="strategy-text">${s.text}</div>
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
           <div class="battle-party-label">${escapeHtml(p.label)}</div>
@@ -508,6 +506,7 @@ function strategyBlockHtml(s){
           `).join('')}
         </div>
       `).join('') : ""}
+      <div class="strategy-text">${s.text}</div>
       ${(() => {
         const raw = (s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []);
         if(raw.length === 0) return "";
