@@ -201,6 +201,11 @@
   .mon-remove-btn{ background:none; border:none; color:#b0b0b8; font-size:14px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
   .mon-dup-btn{ background:none; border:none; color:#8a93a8; font-size:13px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
   .mon-dup-btn:hover{ color: var(--blue-dark); }
+  .vod-row{ display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; }
+  .vod-row-inputs{ flex:1; display:flex; flex-direction:column; gap:5px; }
+  .vod-label-input{ font-size:12.5px; }
+  .vod-remove-btn{ background:none; border:none; color:#b0b0b8; font-size:16px; cursor:pointer; flex-shrink:0; padding:2px 6px; margin-top:2px; }
+  .vod-remove-btn:hover{ color:#e05252; }
   .mon-remove-btn:hover{ color:#c62828; }
   .add-mon-btn{
     width:100%; padding:7px; background: var(--card); border:1.5px dashed var(--border); border-radius:7px;
@@ -258,12 +263,29 @@
   .article-body p{ margin:0 0 12px; }
   .article-body a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
   [data-theme="dark"] .article-body a{ color:#5eead4; }
+  .mechanic-preview{
+    position:fixed; z-index:60; width:240px; background: var(--card); border:2px solid var(--border);
+    border-radius:12px; padding:8px; box-shadow:0 10px 28px rgba(0,0,0,0.22);
+    display:none; pointer-events:none;
+  }
+  .mechanic-preview.visible{ display:block; }
+  .mechanic-preview video{ width:100%; border-radius:7px; display:block; background:#000; }
+  .mechanic-preview-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--text);
+    margin-top:6px; text-align:center;
+  }
   .article-table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:13px; }
   .article-table th, .article-table td{ border:1px solid var(--border); padding:8px 10px; text-align:left; }
   .article-table th{ background: var(--accent-soft); font-family:'Manrope', sans-serif; font-weight:800; }
   .article-table tr:nth-child(even) td{ background: var(--bg1); }
   .strategy-text.placeholder{ color: var(--text-dim); font-style:italic; }
-  .strategy-vod{ display:inline-block; font-size:12.5px; font-weight:700; color: var(--blue-dark); text-decoration:none; margin-top:4px; }
+  .strategy-vod-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .strategy-vod{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
+    color:#fff; text-decoration:none; background: var(--blue); padding:8px 16px; border-radius:999px;
+    margin-top:0;
+  }
+  .strategy-vod:hover{ filter: brightness(0.9); }
 
   .battle-party{ background: var(--accent-soft); border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px; }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
@@ -437,8 +459,9 @@
     </div>
 
     <div class="field-group">
-      <label class="field-label">VOD link</label>
-      <input type="text" id="f-vod" placeholder="https://youtu.be/...">
+      <label class="field-label">VOD link(s)</label>
+      <div id="vod-list"></div>
+      <button type="button" class="add-mon-btn" id="addVodBtn">+ Add another VOD</button>
     </div>
 
     <button class="add-btn" id="submit-btn" onclick="addStrategy()" disabled>Submit for review</button>
@@ -454,10 +477,10 @@
       <div class="field-group">
         <label class="field-label">Category</label>
         <select id="a-category">
-          <option value="Raid DPS">Raid DPS</option>
-          <option value="Raid Mechanics">Raid Mechanics</option>
+          <option value="Meta Analysis">Meta Analysis</option>
+          <option value="Tips & Tricks">Tips & Tricks</option>
           <option value="Game Update">Game Update</option>
-          <option value="Mathematics">Mathematics</option>
+          <option value="Community">Community</option>
         </select>
       </div>
 
@@ -507,6 +530,11 @@
   </div>
 </div>
 
+<div class="mechanic-preview" id="mechanicPreview">
+  <video id="mechanicPreviewVideo" autoplay loop muted playsinline preload="none"></video>
+  <div class="mechanic-preview-label" id="mechanicPreviewLabel"></div>
+</div>
+
 <div class="bp-modal-overlay" id="bpModalOverlay" style="display:none;">
   <div class="bp-modal">
     <div class="bp-modal-head">
@@ -533,8 +561,46 @@ const nameFieldEl = document.getElementById('f-strategy-name');
 const weatherEl = document.getElementById('f-weather');
 const aeEl = document.getElementById('f-ae');
 const diffEl = document.getElementById('f-difficulty');
-const vodEl = document.getElementById('f-vod');
+const vodListEl = document.getElementById('vod-list');
 const submitBtn = document.getElementById('submit-btn');
+
+function addVodField(url, label){
+  const row = document.createElement('div');
+  row.className = 'vod-row';
+  const escUrl = url ? String(url).replace(/"/g, '&quot;') : '';
+  const escLabel = label ? String(label).replace(/"/g, '&quot;') : '';
+  row.innerHTML = `
+    <div class="vod-row-inputs">
+      <input type="text" class="vod-input" placeholder="https://youtu.be/..." value="${escUrl}">
+      <input type="text" class="vod-label-input" placeholder="Label (e.g. No Catch Tank)" value="${escLabel}">
+    </div>
+    <button type="button" class="vod-remove-btn" onclick="this.closest('.vod-row').remove(); syncPreview();">&times;</button>
+  `;
+  vodListEl.appendChild(row);
+  row.querySelectorAll('.vod-input, .vod-label-input').forEach(el => el.addEventListener('input', () => syncPreview()));
+}
+function collectVods(){
+  return Array.from(document.querySelectorAll('.vod-row'))
+    .map(row => ({
+      url: row.querySelector('.vod-input').value.trim(),
+      label: row.querySelector('.vod-label-input').value.trim(),
+    }))
+    .filter(v => v.url);
+}
+// Accepts any stored shape: the oldest single vod:"url" string, last version's vods:["url"]
+// plain-string array, or the current vods:[{url,label}] object array - so editing/restoring an
+// older strategy doesn't lose data or break.
+function resetVodFields(vods){
+  vodListEl.innerHTML = '';
+  const list = (vods && vods.length) ? vods : [{url:'', label:''}];
+  list.forEach(v => {
+    if(typeof v === "string") addVodField(v, '');
+    else addVodField(v.url || '', v.label || '');
+  });
+}
+document.getElementById('addVodBtn').addEventListener('click', () => addVodField('', ''));
+resetVodFields([]);
+
 
 const quill = new Quill('#f-text-editor', {
   theme: 'snow',
@@ -582,6 +648,68 @@ const MECHANICS_DATA_PROMISE = fetch('data/raid-mechanics.json')
 function mechanicSlug(name){
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }
+
+// ============ MECHANIC HOVER VIDEO PREVIEW ============
+// Same feature as on the published guide/article pages, reusing the mechanics data already
+// being fetched for the "Link a mechanic" picker above, so writers can see how this behaves
+// without leaving the editor.
+let mechanicClipMap = null;
+MECHANICS_DATA_PROMISE.then(sections => {
+  mechanicClipMap = {};
+  sections.forEach(sec => {
+    (sec.entries || []).forEach(e => {
+      if(e.clip) mechanicClipMap[mechanicSlug(e.name)] = { clip: e.clip, name: e.name };
+    });
+  });
+});
+
+const mechanicPreview = document.getElementById('mechanicPreview');
+const mechanicPreviewVideo = document.getElementById('mechanicPreviewVideo');
+const mechanicPreviewLabel = document.getElementById('mechanicPreviewLabel');
+let mechanicHoverTimer = null;
+
+function showMechanicPreview(link){
+  const match = link.href.match(/#strategy-([a-z0-9-]+)/i);
+  if(!match || !mechanicClipMap) return;
+  const entry = mechanicClipMap[match[1]];
+  if(!entry) return;
+
+  const rect = link.getBoundingClientRect();
+  mechanicPreview.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 256))}px`;
+  const previewHeight = 170;
+  const showAbove = rect.top > previewHeight + 12;
+  mechanicPreview.style.top = showAbove ? `${rect.top - previewHeight - 8}px` : `${rect.bottom + 8}px`;
+
+  mechanicPreviewVideo.querySelectorAll('source').forEach(s => s.remove());
+  const mp4Source = document.createElement('source');
+  mp4Source.src = entry.clip;
+  mp4Source.type = 'video/mp4';
+  const webmSource = document.createElement('source');
+  webmSource.src = entry.clip.replace(/\.mp4($|\?)/i, '.webm$1');
+  webmSource.type = 'video/webm';
+  mechanicPreviewVideo.appendChild(mp4Source);
+  mechanicPreviewVideo.appendChild(webmSource);
+  mechanicPreviewVideo.load();
+  mechanicPreviewLabel.textContent = entry.name;
+  mechanicPreview.classList.add('visible');
+}
+function hideMechanicPreview(){
+  clearTimeout(mechanicHoverTimer);
+  mechanicPreview.classList.remove('visible');
+  mechanicPreviewVideo.pause();
+}
+document.addEventListener('mouseover', (e) => {
+  const link = e.target.closest('.strategy-text a, .article-body a');
+  if(!link) return;
+  clearTimeout(mechanicHoverTimer);
+  mechanicHoverTimer = setTimeout(() => showMechanicPreview(link), 500);
+});
+document.addEventListener('mouseout', (e) => {
+  const link = e.target.closest('.strategy-text a, .article-body a');
+  if(!link) return;
+  if(link.contains(e.relatedTarget)) return;
+  hideMechanicPreview();
+});
 
 const mechanicLinkBtn = document.getElementById('mechanicLinkBtn');
 const mechanicPicker = document.getElementById('mechanicPicker');
@@ -799,7 +927,14 @@ function strategyBlockHtml(s, editIndex){
         ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${s.adventureEffect}</span>` : ""}
       </div>
       <div class="strategy-text${s.isPlaceholder ? " placeholder" : ""}">${s.text}</div>
-      ${s.vod ? `<a class="strategy-vod" href="${s.vod}" target="_blank" rel="noopener noreferrer">Watch VOD &rarr;</a>` : ""}
+      ${(() => {
+        const raw = (s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []);
+        if(raw.length === 0) return "";
+        const vodList = raw.map(v => typeof v === "string" ? {url: v, label: ""} : v);
+        return `<div class="strategy-vod-row">${vodList.map((v, i) =>
+          `<a class="strategy-vod" href="${v.url}" target="_blank" rel="noopener noreferrer">${v.label ? escapeHtml(v.label) : `Watch VOD${vodList.length > 1 ? ` ${i + 1}` : ""}`} &rarr;</a>`
+        ).join("")}</div>`;
+      })()}
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
           <div class="battle-party-label">${p.label}</div>
@@ -831,7 +966,7 @@ function editStrategy(index){
   weatherEl.value = s.weather || weatherEl.value;
   diffEl.value = s.difficulty || diffEl.value;
   aeEl.value = s.adventureEffect || aeEl.value;
-  vodEl.value = s.vod || "";
+  resetVodFields((s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []));
   document.getElementById('f-name').value = s.submittedBy || "";
   if(quill) quill.root.innerHTML = s.text || "<p><br></p>";
 
@@ -849,7 +984,7 @@ function cancelEdit(){
   editingIndex = null;
   document.getElementById('editingBanner').style.display = 'none';
   submitBtn.textContent = "Submit for review";
-  nameFieldEl.value = ""; vodEl.value = "";
+  nameFieldEl.value = ""; resetVodFields([]);
   if(quill) quill.setText("");
   document.querySelectorAll('.party-card').forEach(c => c.remove());
   addParty();
@@ -864,7 +999,7 @@ function currentLiveStrategy(){
     adventureEffect: aeEl.value,
     text: quill.getText().trim() ? quill.root.innerHTML : "Start typing to see your strategy appear here...",
     isPlaceholder: !quill.getText().trim(),
-    vod: vodEl.value.trim(),
+    vods: collectVods(),
     battleParties: collectParties(),
   };
 }
@@ -1180,7 +1315,7 @@ function syncPreview(){
     document.getElementById('preview-strategy-display').innerHTML = strategyBlockHtml(currentLiveStrategy());
   }
 }
-[weatherEl, aeEl, diffEl, vodEl, nameFieldEl].forEach(el => el.addEventListener('input', syncPreview));
+[weatherEl, aeEl, diffEl, nameFieldEl].forEach(el => el.addEventListener('input', syncPreview));
 quill.on('text-change', syncPreview);
 quill.on('text-change', updateCharCount);
 
@@ -1472,7 +1607,7 @@ async function addStrategy(){
     adventureEffect: aeEl.value,
     difficulty: diffEl.value,
     text: quill.root.innerHTML,
-    vod: vodEl.value.trim(),
+    vods: collectVods(),
     submittedBy: nameEl.value.trim() || "Anonymous",
     battleParties: collectParties(),
     ...(editingIndex !== null ? { editIndex: editingIndex } : {}),
@@ -1496,7 +1631,7 @@ async function addStrategy(){
       weather: weatherEl.value,
       adventureEffect: aeEl.value,
       text: quill.root.innerHTML,
-      vod: vodEl.value.trim(),
+      vods: collectVods(),
       battleParties: collectParties(),
     };
     let selectIndex;
@@ -1511,7 +1646,7 @@ async function addStrategy(){
     }
     renderRouteTabs();
     selectPreviewRoute(selectIndex);
-    quill.setText(""); vodEl.value = ""; nameFieldEl.value = "";
+    quill.setText(""); resetVodFields([]); nameFieldEl.value = "";
     clearDraft();
     document.querySelectorAll('.party-card').forEach(c => c.remove());
   }catch(e){
@@ -1608,7 +1743,7 @@ function saveDraft(){
         difficulty: diffEl.value,
         adventureEffect: aeEl.value,
         text: quill ? quill.root.innerHTML : "",
-        vod: vodEl.value,
+        vods: collectVods(),
         submittedBy: document.getElementById('f-name').value,
         battleParties: collectParties(),
       };
@@ -1634,7 +1769,7 @@ async function restoreDraft(){
   weatherEl.value = draft.weather || weatherEl.value;
   diffEl.value = draft.difficulty || diffEl.value;
   aeEl.value = draft.adventureEffect || aeEl.value;
-  vodEl.value = draft.vod || "";
+  resetVodFields((draft.vods && draft.vods.length) ? draft.vods : (draft.vod ? [draft.vod] : []));
   document.getElementById('f-name').value = draft.submittedBy || "";
   if(quill && draft.text) quill.root.innerHTML = draft.text;
 
@@ -1707,7 +1842,7 @@ document.getElementById('draftClearBtn').addEventListener('click', clearDraft);
 // syncPreview() already runs on every relevant edit across the whole form
 const _originalSyncPreview = syncPreview;
 syncPreview = function(){ _originalSyncPreview(); saveDraft(); };
-[weatherEl, aeEl, diffEl, vodEl, nameFieldEl, document.getElementById('f-name'), newBossEl].forEach(el => el.addEventListener('input', saveDraft));
+[weatherEl, aeEl, diffEl, nameFieldEl, document.getElementById('f-name'), newBossEl].forEach(el => el.addEventListener('input', saveDraft));
 bossEl.addEventListener('change', saveDraft);
 if(quill) quill.on('text-change', saveDraft);
 
