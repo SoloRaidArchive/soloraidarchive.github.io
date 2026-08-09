@@ -243,12 +243,13 @@
   .edit-strategy-btn:hover{ background: var(--blue-dark); }
   .strategy-tags{ display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; }
   .strategy-tag{ font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark); background: var(--accent-soft); padding:2px 8px; border-radius:999px; }
-  .strategy-text{ font-size:13.5px; color: var(--text); line-height:1.7; }
-  .strategy-text p{ margin:0 0 8px; }
+  .strategy-text{ font-size:13.5px; color: var(--text); line-height:1.4; }
+  .strategy-text p{ margin:0 0 6px; }
   .strategy-text h2{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin:14px 0 6px; }
   .strategy-text h3{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14px; margin:12px 0 5px; }
+  .strategy-text h4{ font-family:'Manrope', sans-serif; font-weight:700; font-size:13px; margin:10px 0 4px; }
   .strategy-text blockquote{ margin:8px 0; padding:6px 12px; border-left:3px solid var(--blue); color: var(--text-dim); }
-  .strategy-text ol, .strategy-text ul{ margin:4px 0 8px; padding-left:22px; list-style:none; counter-reset:list-0; }
+  .strategy-text ol, .strategy-text ul{ margin:4px 0 6px; padding-left:22px; list-style:none; counter-reset:list-0; }
   .strategy-text li{ position:relative; }
   .strategy-text li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
   .strategy-text li[data-list="ordered"]{ counter-increment:list-0; }
@@ -265,8 +266,9 @@
     padding:5px 12px; border-radius:999px;
   }
   .article-byline{ font-size:12.5px; color: var(--text-dim); }
-  .article-body{ font-size:14px; line-height:1.7; }
+  .article-body{ font-size:14px; line-height:1.4; }
   .article-body p{ margin:0 0 12px; }
+  .article-body h2, .article-body h3, .article-body h4{ font-family:'Manrope', sans-serif; font-weight:800; margin:20px 0 10px; }
   .article-body a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
   [data-theme="dark"] .article-body a{ color:#5eead4; }
   .mechanic-preview{
@@ -321,7 +323,7 @@
   .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
   .battle-mon.optional{
     border:1.5px dashed #d9a441; background: rgba(224,160,32,0.08); border-radius:8px;
-    padding:5px 7px; margin:2px 0;
+    padding:5px 7px; margin:2px 0 2px -7px; width:calc(100% + 14px);
   }
   .optional-note{ font-weight:600; color:#b8791a; font-size:10px; }
   [data-theme="dark"] .optional-note{ color:#e0b060; }
@@ -340,6 +342,9 @@
   [data-theme="dark"] .ql-editor.ql-blank::before{ color: var(--text-dim); }
   [data-theme="dark"] .ql-snow .ql-stroke{ stroke: var(--text-dim); }
   [data-theme="dark"] .ql-snow .ql-fill{ fill: var(--text-dim); }
+  .ql-editor p{ margin-bottom:8px; }
+  .ql-editor h1, .ql-editor h2{ margin:14px 0 6px; }
+  .ql-editor h3, .ql-editor h4{ margin:12px 0 5px; }
   .a-editor-wrap{ position:relative; }
   .a-editor-wrap #a-text-editor .ql-editor{ padding-left:32px; }
   .drag-handles-overlay{ position:absolute; top:0; left:0; width:32px; pointer-events:none; }
@@ -617,7 +622,7 @@ const quill = new Quill('#f-text-editor', {
   placeholder: 'Describe the lineup and how the fight plays out...',
   modules: {
     toolbar: [
-      [{ 'header': [2, 3, false] }],
+      [{ 'header': [2, 3, 4, false] }],
       ['bold', 'italic', 'strike'],
       ['blockquote'],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
@@ -632,7 +637,7 @@ const articleQuill = new Quill('#a-text-editor', {
   placeholder: 'Write the article...',
   modules: {
     toolbar: [
-      [{ 'header': [2, 3, false] }],
+      [{ 'header': [2, 3, 4, false] }],
       ['bold', 'italic', 'strike'],
       ['blockquote'],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
@@ -936,15 +941,6 @@ function strategyBlockHtml(s, editIndex){
         <span class="strategy-tag">${s.weather}</span>
         ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${s.adventureEffect}</span>` : ""}
       </div>
-      <div class="strategy-text${s.isPlaceholder ? " placeholder" : ""}">${s.text}</div>
-      ${(() => {
-        const raw = (s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []);
-        if(raw.length === 0) return "";
-        const vodList = raw.map(v => typeof v === "string" ? {url: v, label: ""} : v);
-        return `<div class="strategy-vod-row">${vodList.map((v, i) =>
-          `<a class="strategy-vod" href="${v.url}" target="_blank" rel="noopener noreferrer">${v.label ? escapeHtml(v.label) : `Watch VOD${vodList.length > 1 ? ` ${i + 1}` : ""}`} &rarr;</a>`
-        ).join("")}</div>`;
-      })()}
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
           <div class="battle-party-label">${p.label}</div>
@@ -960,6 +956,15 @@ function strategyBlockHtml(s, editIndex){
           `).join('')}
         </div>
       `).join('') : ""}
+      <div class="strategy-text${s.isPlaceholder ? " placeholder" : ""}">${s.text}</div>
+      ${(() => {
+        const raw = (s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []);
+        if(raw.length === 0) return "";
+        const vodList = raw.map(v => typeof v === "string" ? {url: v, label: ""} : v);
+        return `<div class="strategy-vod-row">${vodList.map((v, i) =>
+          `<a class="strategy-vod" href="${v.url}" target="_blank" rel="noopener noreferrer">${v.label ? escapeHtml(v.label) : `Watch VOD${vodList.length > 1 ? ` ${i + 1}` : ""}`} &rarr;</a>`
+        ).join("")}</div>`;
+      })()}
       ${s.submittedBy ? `<div class="strategy-credit">Submitted by ${s.submittedBy}</div>` : ""}
     </div>
   `;
