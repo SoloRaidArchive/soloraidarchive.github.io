@@ -1,0 +1,61 @@
+{
+  "boss": "Blaziken",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Rainy Budget Solo",
+      "weather": "Rainy",
+      "adventureEffect": "None",
+      "difficulty": "4★",
+      "text": "<p>With even a budget party such as the above, soloing Mega Blaziken is relatively easy. See the vod for details. </p>",
+      "vods": [
+        {
+          "url": "https://www.youtube.com/watch?v=V7W7x2GAdyo",
+          "label": ""
+        }
+      ],
+      "submittedBy": "rwaterbender",
+      "battleParties": [
+        {
+          "label": "Unlabeled party",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "primal groudon",
+              "level": "40",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "mewtwo",
+              "level": "48",
+              "fm": "Psycho Cut",
+              "cm": "Psystrike",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "Kyogre",
+              "level": "37",
+              "fm": "Waterfall",
+              "cm": "Origin Pulse",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "Shadow Mewtwo",
+              "level": "37",
+              "fm": "Psycho Cut",
+              "cm": "Psystrike",
+              "cm2": "",
+              "optional": false
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-09T23:20:46.247Z"
+    }
+  ]
+}
