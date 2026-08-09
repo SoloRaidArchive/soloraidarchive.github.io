@@ -7,17 +7,21 @@
       "weather": "Extreme",
       "adventureEffect": "None",
       "difficulty": "2★",
-      "text": "<h2>Overview: </h2><h3>Estimated Time to Win: [220s - 265s]</h3><p>This strategy revolves around <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-recycle\" target=\"_blank\">recycling</a> powerful Mega Pokemon to defeat Mega Blaziken. This is mostly an easy strategy with only a few curve balls thrown in depending on Mega Blaziken's moveset. Overall, Mega Rayquaza &amp; Mewtwo's typing are a strong advantage resisting fire &amp; fighting moves with the latter resisting fighting only. </p><p><br></p><h2>Basic Strategy: </h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Create a battle party with only the respective Mega or Primal. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>DPS with Mega Ray's Dragon Ascent, Mega Mewtwo's Psystrike or optionally Primal Groudon's Precipice Blades. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>When the Mega is too low to continue, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">exit the lobby, heal and rejoin.</a></li></ol><p><br></p><h3>vs Brave Bird: </h3><p>Mega Blaziken also learns Brave Bird (130dmg | 2.0s AD), a very powerful and fast charge move. Brave Bird's advantage is both its high damage and speed; outspeeding Dragon Ascent by 1.5s and Psystrike by 0.5s while also hitting Mega Mewtwo X for super effective damage.</p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Dodging prior to Brave Bird is recommended. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Opting for additional counters such as: Shadow Mewtwo, Shadow Groudon, Shadow Garchomp, Landorus Therian, etc. </li></ol>",
+      "text": "<h2>Overview: </h2><h3>Estimated Time to Win: [220s - 265s]</h3><p>This strategy revolves around <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-recycle\" target=\"_blank\">recycling</a> powerful Mega Pokemon to defeat Mega Blaziken. This is mostly an easy strategy with only a few curve balls thrown in depending on Mega Blaziken's moveset. Overall, Mega Rayquaza &amp; Mewtwo's typing are a strong advantage resisting fire &amp; fighting moves with the latter resisting fighting only. </p><p><br></p><h2>Basic Strategy: </h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Create a battle party with only the respective Mega or Primal. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>DPS with Mega Ray's Dragon Ascent, Mega Mewtwo's Psystrike or optionally Primal Groudon's Precipice Blades. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>If a heavy charge move (Focus Blast, Overheat) is being used, the player can optionally dodge. Simply swipe left or right when the text appears. <em>Note: Dodges cannot be inputted in the middle of an attack animation</em></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>When the Mega is too low to continue, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">exit the lobby, heal and rejoin.</a></li></ol><p><br></p><h3>vs Brave Bird: </h3><p>Mega Blaziken also learns Brave Bird (130dmg | 2.0s AD), a very powerful and fast charge move. Brave Bird's advantage is both its high damage and speed; outspeeding Dragon Ascent by 1.5s and Psystrike by 0.5s while also hitting Mega Mewtwo X for super effective damage.</p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Dodging prior to Brave Bird is recommended. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Opting for additional counters such as: Shadow Mewtwo, Shadow Groudon, Shadow Garchomp, Landorus Therian, etc. </li></ol><h2>Video Credits: </h2><p>https://www.youtube.com/@darknight418 </p><p>https://www.youtube.com/@SpiritedBloom</p>",
       "vods": [
         {
           "url": "https://www.youtube.com/watch?v=DkaXDqLEd94",
-          "label": "TTW: 204s (Lv 50 Mega Ray, Focus Blast, 4 Rejoins)"
+          "label": "TTW: 204s (Lv 50 Mega Ray DPS, Focus Blast, 4 Rejoins)"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=3kOoiHYglJg",
+          "label": "TTW: 195s (Lv 52 Mewtwo Y Dodge, Focus Blast, 2 Rejoins)"
         }
       ],
-      "submittedBy": "SpiritedBloom",
+      "submittedBy": "Anonymous",
       "battleParties": [
         {
-          "label": "Mega Rayquaza Recycle",
+          "label": "Mega Rayquaza Route",
           "secondaryLabel": "",
           "mons": [
             {
@@ -31,8 +35,8 @@
           ]
         },
         {
-          "label": "Mega Mewtwo Y Recycle",
-          "secondaryLabel": "Mega Mewtwo X Recycle",
+          "label": "Mega Mewtwo Y Route",
+          "secondaryLabel": "Mega Mewtwo X Route",
           "mons": [
             {
               "name": "Mega Mewtwo Y",
@@ -67,7 +71,7 @@
           ]
         }
       ],
-      "submittedAt": "2026-08-09T23:08:41.006Z"
+      "submittedAt": "2026-08-09T23:16:56.868Z"
     }
   ]
 }
