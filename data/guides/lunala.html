@@ -179,6 +179,10 @@
     .battle-party-label{ grid-column: 1 / -1; }
   }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
+  .battle-party-label-secondary{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px; color:#b8791a; margin:-4px 0 8px;
+  }
+  [data-theme="dark"] .battle-party-label-secondary{ color:#e0b060; }
   .battle-mon{ display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12.5px; }
   .battle-mon-icon{ width:28px; height:28px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
   .battle-mon-icon.shadow-mist{
@@ -495,6 +499,7 @@ function strategyBlockHtml(s){
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
           <div class="battle-party-label">${escapeHtml(p.label)}</div>
+          ${p.secondaryLabel ? `<div class="battle-party-label-secondary">${escapeHtml(p.secondaryLabel)}</div>` : ""}
           ${p.mons.map(m => `
             <div class="battle-mon${m.optional ? " optional" : ""}">
               ${battleMonIconHtml(m.name)}
