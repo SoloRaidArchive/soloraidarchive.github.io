@@ -177,6 +177,7 @@
   @media (min-width:601px){
     .battle-party{ display:grid; grid-template-columns: 1fr 1fr; gap:2px 20px; align-items:start; }
     .battle-party-label{ grid-column: 1 / -1; }
+    .battle-party-label-secondary{ grid-column: 1 / -1; }
   }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
   .battle-party-label-secondary{
@@ -245,7 +246,7 @@
     font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--text);
     margin-top:6px; text-align:center;
   }
-  .strategy-vod-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .strategy-vod-row{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-top:4px; }
   .strategy-vod{
     display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
     color:#fff; text-decoration:none; background: var(--blue); padding:8px 16px; border-radius:999px;
