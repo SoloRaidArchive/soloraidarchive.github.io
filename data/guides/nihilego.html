@@ -230,10 +230,22 @@
   .strategy-text strong{ font-weight:800; }
   .strategy-text a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
   [data-theme="dark"] .strategy-text a{ color:#5eead4; }
+  .mechanic-preview{
+    position:fixed; z-index:60; width:240px; background: var(--card); border:2px solid var(--border);
+    border-radius:12px; padding:8px; box-shadow:0 10px 28px rgba(0,0,0,0.22);
+    display:none; pointer-events:none;
+  }
+  .mechanic-preview.visible{ display:block; }
+  .mechanic-preview video{ width:100%; border-radius:7px; display:block; background:#000; }
+  .mechanic-preview-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--text);
+    margin-top:6px; text-align:center;
+  }
+  .strategy-vod-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
   .strategy-vod{
     display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
     color:#fff; text-decoration:none; background: var(--blue); padding:8px 16px; border-radius:999px;
-    margin-top:4px;
+    margin-top:0;
   }
   .strategy-vod:hover{ filter: brightness(0.9); }
   .strategy-credit{ font-size:11px; color: var(--text-dim); margin-top:4px; }
@@ -358,6 +370,11 @@
     <div class="load-state">Loading strategies...</div>
   </div>
 </article>
+
+<div class="mechanic-preview" id="mechanicPreview">
+  <video id="mechanicPreviewVideo" autoplay loop muted playsinline preload="none"></video>
+  <div class="mechanic-preview-label" id="mechanicPreviewLabel"></div>
+</div>
 
 <footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
 
@@ -485,7 +502,14 @@ function strategyBlockHtml(s){
           `).join('')}
         </div>
       `).join('') : ""}
-      ${s.vod ? `<a class="strategy-vod" href="${escapeAttr(s.vod)}" target="_blank" rel="noopener noreferrer">&#9654; Watch VOD</a>` : ""}
+      ${(() => {
+        const raw = (s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []);
+        if(raw.length === 0) return "";
+        const vodList = raw.map(v => typeof v === "string" ? {url: v, label: ""} : v);
+        return `<div class="strategy-vod-row">${vodList.map((v, i) =>
+          `<a class="strategy-vod" href="${escapeAttr(v.url)}" target="_blank" rel="noopener noreferrer">&#9654; ${v.label ? escapeHtml(v.label) : `Watch VOD${vodList.length > 1 ? ` ${i + 1}` : ""}`}</a>`
+        ).join("")}</div>`;
+      })()}
       ${s.submittedBy ? `<div class="strategy-credit">Submitted by ${escapeHtml(s.submittedBy)}</div>` : ""}
     </div>
   `;
@@ -539,6 +563,80 @@ document.addEventListener('click', (e) => {
   if(!link) return;
   e.preventDefault();
   window.open(link.href, '_blank', 'noopener,noreferrer');
+});
+
+// ============ MECHANIC HOVER VIDEO PREVIEW ============
+// Hovering a mechanic link for a moment shows a small bubble playing its reference clip, without
+// having to click through to the mechanics page. Built on the same clip data solo-raid-mechanics.html
+// already uses - matches a link's slug (from its #strategy-{slug} anchor) against each mechanic's
+// own slug to find the right clip.
+function mechanicSlug(name){
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+let mechanicClipMap = null;
+async function loadMechanicClips(){
+  try{
+    const res = await fetch('../../data/raid-mechanics.json', { cache: "no-store" });
+    if(!res.ok) return;
+    const data = await res.json();
+    mechanicClipMap = {};
+    (data.sections || []).forEach(sec => {
+      (sec.entries || []).forEach(e => {
+        if(e.clip) mechanicClipMap[mechanicSlug(e.name)] = { clip: e.clip, name: e.name };
+      });
+    });
+  }catch(err){
+    mechanicClipMap = {};
+  }
+}
+loadMechanicClips();
+
+const mechanicPreview = document.getElementById('mechanicPreview');
+const mechanicPreviewVideo = document.getElementById('mechanicPreviewVideo');
+const mechanicPreviewLabel = document.getElementById('mechanicPreviewLabel');
+let mechanicHoverTimer = null;
+
+function showMechanicPreview(link){
+  const match = link.href.match(/#strategy-([a-z0-9-]+)/i);
+  if(!match || !mechanicClipMap) return;
+  const entry = mechanicClipMap[match[1]];
+  if(!entry) return;
+
+  const rect = link.getBoundingClientRect();
+  mechanicPreview.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 256))}px`;
+  const previewHeight = 170;
+  const showAbove = rect.top > previewHeight + 12;
+  mechanicPreview.style.top = showAbove ? `${rect.top - previewHeight - 8}px` : `${rect.bottom + 8}px`;
+
+  mechanicPreviewVideo.querySelectorAll('source').forEach(s => s.remove());
+  const mp4Source = document.createElement('source');
+  mp4Source.src = `../../${entry.clip}`;
+  mp4Source.type = 'video/mp4';
+  const webmSource = document.createElement('source');
+  webmSource.src = `../../${entry.clip.replace(/\.mp4($|\?)/i, '.webm$1')}`;
+  webmSource.type = 'video/webm';
+  mechanicPreviewVideo.appendChild(mp4Source);
+  mechanicPreviewVideo.appendChild(webmSource);
+  mechanicPreviewVideo.load();
+  mechanicPreviewLabel.textContent = entry.name;
+  mechanicPreview.classList.add('visible');
+}
+function hideMechanicPreview(){
+  clearTimeout(mechanicHoverTimer);
+  mechanicPreview.classList.remove('visible');
+  mechanicPreviewVideo.pause();
+}
+document.addEventListener('mouseover', (e) => {
+  const link = e.target.closest('.strategy-text a');
+  if(!link) return;
+  clearTimeout(mechanicHoverTimer);
+  mechanicHoverTimer = setTimeout(() => showMechanicPreview(link), 500);
+});
+document.addEventListener('mouseout', (e) => {
+  const link = e.target.closest('.strategy-text a');
+  if(!link) return;
+  if(link.contains(e.relatedTarget)) return;
+  hideMechanicPreview();
 });
 
 const themeToggle = document.getElementById("themeToggle");
