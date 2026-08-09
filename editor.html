@@ -172,6 +172,12 @@
   .party-card-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
   .party-card-head input{ flex:1; }
   .party-remove-btn{ background:none; border:none; color:#c62828; font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0; }
+  .party-label-secondary{
+    width:100%; margin-bottom:10px; color:#b8791a; font-size:12.5px;
+    border-color:#e0c088 !important;
+  }
+  .party-label-secondary::placeholder{ color:#c99a4f; opacity:0.8; }
+  [data-theme="dark"] .party-label-secondary{ color:#e0b060; border-color:#7a5a2a !important; }
   .mon-block{ margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border); position:relative; }
   .mon-block:last-child{ border-bottom:none; margin-bottom:0; }
   .mon-row{ display:flex; gap:6px; margin-bottom:6px; align-items:center; }
@@ -289,6 +295,10 @@
 
   .battle-party{ background: var(--accent-soft); border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px; }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
+  .battle-party-label-secondary{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px; color:#b8791a; margin:-4px 0 8px;
+  }
+  [data-theme="dark"] .battle-party-label-secondary{ color:#e0b060; }
   .battle-mon{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:12px; }
   .battle-mon-icon{ width:26px; height:26px; border-radius:50%; background: var(--accent-soft); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
   .battle-mon-icon.shadow-mist{
@@ -938,6 +948,7 @@ function strategyBlockHtml(s, editIndex){
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
           <div class="battle-party-label">${p.label}</div>
+          ${p.secondaryLabel ? `<div class="battle-party-label-secondary">${p.secondaryLabel}</div>` : ""}
           ${p.mons.map(m => `
             <div class="battle-mon${m.optional ? ' optional' : ''}">
               ${battleMonIconHtml(m.name)}
@@ -1071,6 +1082,7 @@ function addParty(){
       <input type="text" class="party-label" placeholder="Lobby / party label (e.g. Lobby 1, Windy Only)">
       <button type="button" class="party-remove-btn" onclick="removeParty(${id})">&times;</button>
     </div>
+    <input type="text" class="party-label-secondary" placeholder="Optional-Pok&eacute;mon variant label (e.g. 1-2 Rejoin) - shown in orange">
     <div class="mon-list" id="mon-list-${id}"></div>
     <button type="button" class="add-mon-btn" onclick="addMon(${id})">+ Add Pok&eacute;mon</button>
   `;
@@ -1160,6 +1172,7 @@ function duplicateMon(btn){
 function collectParties(){
   return Array.from(document.querySelectorAll('.party-card')).map(card => {
     const label = card.querySelector('.party-label').value.trim() || "Unlabeled party";
+    const secondaryLabel = card.querySelector('.party-label-secondary').value.trim();
     const mons = Array.from(card.querySelectorAll('.mon-block')).map(block => {
       const levelMin = block.querySelector('.mon-level').value.trim();
       const maxInput = block.querySelector('.mon-level-max');
@@ -1174,7 +1187,7 @@ function collectParties(){
         optional: block.classList.contains('optional-mon'),
       };
     }).filter(m => m.name);
-    return { label, mons };
+    return { label, secondaryLabel, mons };
   }).filter(p => p.mons.length > 0);
 }
 
@@ -1208,6 +1221,7 @@ function addModalParty(){
       <input type="text" class="party-label" placeholder="Lobby / party label (e.g. Lobby 1, Windy Only)">
       <button type="button" class="party-remove-btn" onclick="this.closest('.party-card').remove();">&times;</button>
     </div>
+    <input type="text" class="party-label-secondary" placeholder="Optional-Pok&eacute;mon variant label (e.g. 1-2 Rejoin) - shown in orange">
     <div class="mon-list" id="modal-mon-list-${id}"></div>
     <button type="button" class="add-mon-btn" onclick="addModalMon(${id})">+ Add Pok&eacute;mon</button>
   `;
@@ -1265,6 +1279,7 @@ function duplicateModalMon(btn){
 function collectModalParties(){
   return Array.from(document.querySelectorAll('#modal-parties-list .party-card')).map(card => {
     const label = card.querySelector('.party-label').value.trim() || "Unlabeled party";
+    const secondaryLabel = card.querySelector('.party-label-secondary').value.trim();
     const mons = Array.from(card.querySelectorAll('.mon-block')).map(block => {
       const levelMin = block.querySelector('.mon-level').value.trim();
       const maxInput = block.querySelector('.mon-level-max');
@@ -1279,13 +1294,14 @@ function collectModalParties(){
         optional: block.classList.contains('optional-mon'),
       };
     }).filter(m => m.name);
-    return { label, mons };
+    return { label, secondaryLabel, mons };
   }).filter(p => p.mons.length > 0);
 }
 function articleBattlePartyHtml(parties){
   return parties.map(party => `
     <div class="battle-party">
       <div class="battle-party-label">${escapeHtml(party.label)}</div>
+      ${party.secondaryLabel ? `<div class="battle-party-label-secondary">${escapeHtml(party.secondaryLabel)}</div>` : ""}
       ${party.mons.map(m => `
         <div class="battle-mon${m.optional ? " optional" : ""}">
           ${battleMonIconHtml(m.name)}
@@ -1794,11 +1810,13 @@ function buildPartiesFromData(battleParties, trackForDraft){
         <input type="text" class="party-label" placeholder="Lobby / party label (e.g. Lobby 1, Windy Only)" value="${party.label === 'Unlabeled party' ? '' : party.label}">
         <button type="button" class="party-remove-btn" onclick="removeParty(${id})">&times;</button>
       </div>
+      <input type="text" class="party-label-secondary" placeholder="Optional-Pok&eacute;mon variant label (e.g. 1-2 Rejoin) - shown in orange" value="${party.secondaryLabel || ''}">
       <div class="mon-list" id="mon-list-${id}"></div>
       <button type="button" class="add-mon-btn" onclick="addMon(${id})">+ Add Pok&eacute;mon</button>
     `;
     document.getElementById('parties-list').appendChild(el);
     el.querySelector('.party-label').addEventListener('input', trackForDraft ? () => { syncPreview(); saveDraft(); } : syncPreview);
+    el.querySelector('.party-label-secondary').addEventListener('input', trackForDraft ? () => { syncPreview(); saveDraft(); } : syncPreview);
 
     party.mons.forEach(mon => {
       const list = document.getElementById(`mon-list-${id}`);
