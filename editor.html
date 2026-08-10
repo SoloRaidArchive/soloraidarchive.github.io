@@ -168,6 +168,26 @@
   [data-theme="dark"] .mon-dup-btn{ color:#6b7591; }
   hr.section-divider{ border:none; border-top:1.5px solid var(--border); margin:20px 0; }
 
+  /* ---- Deletion ---- */
+  .delete-section{ margin-top:18px; }
+  .delete-section-hint{ font-size:11.5px; color: var(--text-dim); line-height:1.5; margin-bottom:8px; }
+  .delete-link-btn{
+    background:none; border:1.5px solid var(--border); border-radius:8px; padding:9px 12px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px; color:#c62828; cursor:pointer;
+    width:100%; text-align:left; margin-top:6px;
+  }
+  .delete-link-btn:hover{ border-color:#c62828; background:#fff5f5; }
+  [data-theme="dark"] .delete-link-btn:hover{ background:#2a1414; }
+  .delete-link-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+  .danger-confirm-input{ margin-top:10px; }
+  .danger-confirm-hint{ font-size:12px; color: var(--text-dim); line-height:1.5; margin-bottom:4px; }
+  .danger-confirm-boss{ font-weight:800; color: var(--text); }
+  .danger-modal-submit{
+    background:#c62828 !important; color:#fff !important;
+  }
+  .danger-modal-submit:hover{ background:#a51f1f !important; }
+  .danger-modal-submit:disabled{ background:#e3a3a3 !important; }
+
   .party-card{ border:1.5px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; background: var(--accent-soft); }
   .party-card-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
   .party-card-head input{ flex:1; }
@@ -481,6 +501,13 @@
 
     <button class="add-btn" id="submit-btn" onclick="addStrategy()" disabled>Submit for review</button>
     <div id="submit-status" style="font-size:12px; margin-top:10px; line-height:1.5;"></div>
+
+    <hr class="section-divider">
+    <div class="delete-section">
+      <div class="delete-section-hint">Deleting requires a soloraidarchive owner's permission - this opens a pull request, nothing is removed until an owner merges it.</div>
+      <button type="button" class="delete-link-btn" id="deleteRouteBtn" onclick="openDeleteRouteModal()" style="display:none;">Delete this route&hellip;</button>
+      <button type="button" class="delete-link-btn" id="deleteGuideBtn" onclick="openDeleteGuideModal()" style="display:none;">Delete this guide&hellip;</button>
+    </div>
     </div>
 
     <div id="articleModeFields" style="display:none;">
@@ -563,6 +590,57 @@
     <div class="bp-modal-foot">
       <button type="button" class="bp-modal-cancel" id="bpModalCancelBtn">Cancel</button>
       <button type="button" class="add-btn" id="bpModalInsertBtn">Insert into article</button>
+    </div>
+  </div>
+</div>
+
+<div class="bp-modal-overlay" id="deleteGuideModalOverlay" style="display:none;">
+  <div class="bp-modal">
+    <div class="bp-modal-head">
+      <div class="bp-modal-title">Delete guide</div>
+      <button type="button" class="bp-modal-close" id="deleteGuideModalCloseBtn">&times;</button>
+    </div>
+    <div class="bp-modal-body">
+      <div class="danger-confirm-hint">
+        Delete <span class="danger-confirm-boss" id="deleteGuideModalBossName"></span>? This requires a
+        soloraidarchive owner's permission - it opens a pull request and nothing is removed until an owner merges it.
+      </div>
+      <div class="danger-confirm-hint">Type the boss name below to confirm.</div>
+      <div class="danger-confirm-input">
+        <input type="text" id="deleteGuideConfirmInput" placeholder="Type the boss name exactly">
+      </div>
+      <div class="field-group" style="margin-top:12px; margin-bottom:0;">
+        <label class="field-label">Reason (optional, shown to reviewers)</label>
+        <input type="text" id="deleteGuideReasonInput" placeholder="e.g. duplicate of another guide">
+      </div>
+    </div>
+    <div class="bp-modal-foot">
+      <button type="button" class="bp-modal-cancel" id="deleteGuideModalCancelBtn">Cancel</button>
+      <button type="button" class="add-btn danger-modal-submit" id="deleteGuideModalSubmitBtn" disabled>Open deletion PR</button>
+    </div>
+  </div>
+</div>
+
+<div class="bp-modal-overlay" id="deleteRouteModalOverlay" style="display:none;">
+  <div class="bp-modal">
+    <div class="bp-modal-head">
+      <div class="bp-modal-title">Delete route</div>
+      <button type="button" class="bp-modal-close" id="deleteRouteModalCloseBtn">&times;</button>
+    </div>
+    <div class="bp-modal-body">
+      <div class="danger-confirm-hint">
+        Delete <span class="danger-confirm-boss" id="deleteRouteModalRouteName"></span> from
+        <span class="danger-confirm-boss" id="deleteRouteModalBossName"></span>'s guide? This requires a
+        soloraidarchive owner's permission - it opens a pull request and nothing is removed until an owner merges it.
+      </div>
+      <div class="field-group" style="margin-top:12px; margin-bottom:0;">
+        <label class="field-label">Reason (optional, shown to reviewers)</label>
+        <input type="text" id="deleteRouteReasonInput" placeholder="e.g. outdated, replaced by another route">
+      </div>
+    </div>
+    <div class="bp-modal-foot">
+      <button type="button" class="bp-modal-cancel" id="deleteRouteModalCancelBtn">Cancel</button>
+      <button type="button" class="add-btn danger-modal-submit" id="deleteRouteModalSubmitBtn">Open deletion PR</button>
     </div>
   </div>
 </div>
@@ -991,6 +1069,7 @@ function editStrategy(index){
   if(document.querySelectorAll('.party-card').length === 0) addParty();
 
   document.getElementById('editingBanner').style.display = 'flex';
+  document.getElementById('deleteRouteBtn').style.display = 'block';
   submitBtn.textContent = "Save changes to this route";
   selectPreviewRoute('live');
   syncPreview();
@@ -999,6 +1078,7 @@ function editStrategy(index){
 function cancelEdit(){
   editingIndex = null;
   document.getElementById('editingBanner').style.display = 'none';
+  document.getElementById('deleteRouteBtn').style.display = 'none';
   submitBtn.textContent = "Submit for review";
   nameFieldEl.value = ""; resetVodFields([]);
   if(quill) quill.setText("");
@@ -1046,6 +1126,7 @@ async function onBossChange(){
 
   if(bossEl.value === "__new__"){
     newBossRow.style.display = "block";
+    document.getElementById('deleteGuideBtn').style.display = "none";
     existingStrategies = [];
     renderRouteTabs();
     selectPreviewRoute('live');
@@ -1054,6 +1135,7 @@ async function onBossChange(){
     return;
   }
   newBossRow.style.display = "none";
+  document.getElementById('deleteGuideBtn').style.display = "block";
   const boss = bossEl.value;
   pBoss.textContent = boss;
   submitBtn.disabled = false;
@@ -1609,6 +1691,138 @@ document.getElementById('a-title').addEventListener('input', () => {
 
 const WORKER_URL = "https://guide-submissions.solo-raid-archive.workers.dev";
 
+// ============ DELETE GUIDE ============
+// Deletions never touch the live site directly - like every other submission, they only
+// open a pull request (via the Worker's GitHub PR flow) for a soloraidarchive owner to
+// review and merge.
+const deleteGuideModalOverlay = document.getElementById('deleteGuideModalOverlay');
+const deleteGuideConfirmInput = document.getElementById('deleteGuideConfirmInput');
+const deleteGuideModalSubmitBtn = document.getElementById('deleteGuideModalSubmitBtn');
+
+function openDeleteGuideModal(){
+  const boss = currentBossName();
+  if(!boss || bossEl.value === "__new__") return;
+  document.getElementById('deleteGuideModalBossName').textContent = boss;
+  deleteGuideConfirmInput.value = "";
+  document.getElementById('deleteGuideReasonInput').value = "";
+  deleteGuideModalSubmitBtn.disabled = true;
+  deleteGuideModalOverlay.style.display = 'flex';
+}
+function closeDeleteGuideModal(){ deleteGuideModalOverlay.style.display = 'none'; }
+document.getElementById('deleteGuideModalCloseBtn').addEventListener('click', closeDeleteGuideModal);
+document.getElementById('deleteGuideModalCancelBtn').addEventListener('click', closeDeleteGuideModal);
+deleteGuideConfirmInput.addEventListener('input', () => {
+  deleteGuideModalSubmitBtn.disabled = deleteGuideConfirmInput.value.trim() !== currentBossName().trim();
+});
+
+async function submitGuideDeletion(){
+  const boss = currentBossName();
+  const status = document.getElementById('submit-status');
+  deleteGuideModalSubmitBtn.disabled = true;
+  deleteGuideModalSubmitBtn.textContent = "Opening PR...";
+
+  const payload = {
+    type: "delete_guide",
+    boss: boss,
+    reason: document.getElementById('deleteGuideReasonInput').value.trim(),
+  };
+
+  try{
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+    closeDeleteGuideModal();
+    status.innerHTML = `Deletion PR opened. <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:#c62828; font-weight:700;">View the pull request &rarr;</a><br>The guide stays live until a maintainer reviews and merges it.`;
+    status.style.color = "#c62828";
+  }catch(e){
+    status.textContent = `Couldn't open deletion PR: ${e.message}`;
+    status.style.color = "#c62828";
+  }finally{
+    deleteGuideModalSubmitBtn.textContent = "Open deletion PR";
+    deleteGuideModalSubmitBtn.disabled = deleteGuideConfirmInput.value.trim() !== boss.trim();
+  }
+}
+deleteGuideModalSubmitBtn.addEventListener('click', submitGuideDeletion);
+
+// ============ DELETE ROUTE ============
+const deleteRouteModalOverlay = document.getElementById('deleteRouteModalOverlay');
+const deleteRouteModalSubmitBtn = document.getElementById('deleteRouteModalSubmitBtn');
+
+function routeSummaryLabel(s){
+  const parts = [s.difficulty, s.weather];
+  if(s.adventureEffect && s.adventureEffect !== "None") parts.push(s.adventureEffect);
+  const base = parts.join(" \u00b7 ");
+  return s.strategyName ? `${s.strategyName} (${base})` : base;
+}
+
+function openDeleteRouteModal(){
+  if(editingIndex === null) return;
+  const s = existingStrategies[editingIndex];
+  if(!s) return;
+  document.getElementById('deleteRouteModalRouteName').textContent = routeSummaryLabel(s);
+  document.getElementById('deleteRouteModalBossName').textContent = currentBossName();
+  document.getElementById('deleteRouteReasonInput').value = "";
+  deleteRouteModalSubmitBtn.disabled = false;
+  deleteRouteModalSubmitBtn.textContent = "Open deletion PR";
+  deleteRouteModalOverlay.style.display = 'flex';
+}
+function closeDeleteRouteModal(){ deleteRouteModalOverlay.style.display = 'none'; }
+document.getElementById('deleteRouteModalCloseBtn').addEventListener('click', closeDeleteRouteModal);
+document.getElementById('deleteRouteModalCancelBtn').addEventListener('click', closeDeleteRouteModal);
+
+async function submitRouteDeletion(){
+  if(editingIndex === null) return;
+  const boss = currentBossName();
+  const index = editingIndex;
+  const s = existingStrategies[index];
+  const label = routeSummaryLabel(s);
+  const status = document.getElementById('submit-status');
+
+  deleteRouteModalSubmitBtn.disabled = true;
+  deleteRouteModalSubmitBtn.textContent = "Opening PR...";
+
+  const payload = {
+    type: "delete_route",
+    boss: boss,
+    deleteIndex: index,
+    routeSummary: label,
+    reason: document.getElementById('deleteRouteReasonInput').value.trim(),
+  };
+
+  try{
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if(!res.ok || !data.ok) throw new Error(data.error || `Request failed (${res.status})`);
+
+    closeDeleteRouteModal();
+
+    // Optimistically drop it from local state so the tab list/preview reflect the pending
+    // PR, same as how a normal add/edit is mirrored locally before the PR is merged.
+    existingStrategies.splice(index, 1);
+    cancelEdit();
+    renderRouteTabs();
+    selectPreviewRoute('live');
+
+    status.innerHTML = `Deletion PR opened for &ldquo;${escapeHtml(label)}&rdquo;. <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:#c62828; font-weight:700;">View the pull request &rarr;</a><br>This route stays live until a maintainer reviews and merges it.`;
+    status.style.color = "#c62828";
+  }catch(e){
+    deleteRouteModalSubmitBtn.textContent = "Open deletion PR";
+    deleteRouteModalSubmitBtn.disabled = false;
+    status.textContent = `Couldn't open deletion PR: ${e.message}`;
+    status.style.color = "#c62828";
+  }
+}
+deleteRouteModalSubmitBtn.addEventListener('click', submitRouteDeletion);
+
 async function addStrategy(){
   const boss = currentBossName();
   if(!boss){ alert('Choose or enter a boss first.'); return; }
@@ -1661,6 +1875,7 @@ async function addStrategy(){
       selectIndex = editingIndex;
       editingIndex = null;
       document.getElementById('editingBanner').style.display = 'none';
+      document.getElementById('deleteRouteBtn').style.display = 'none';
     }else{
       existingStrategies.push(pendingEntry);
       selectIndex = existingStrategies.length - 1;
