@@ -171,6 +171,22 @@
     padding:9px 14px; border-radius:999px; cursor:pointer;
   }
   .route-btn.active{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .route-dropdown{ position:relative; }
+  .route-dropdown-toggle{ display:inline-flex; align-items:center; gap:6px; }
+  .route-dropdown-caret{ width:9px; height:9px; flex-shrink:0; transition:transform .15s; }
+  .route-dropdown.open .route-dropdown-caret{ transform:rotate(180deg); }
+  .route-dropdown-menu{
+    position:absolute; top:calc(100% + 6px); left:0; z-index:20; min-width:220px;
+    background: var(--card); border:1.5px solid var(--border); border-radius:12px;
+    padding:6px; box-shadow:0 10px 28px rgba(0,0,0,0.14); display:none;
+  }
+  .route-dropdown.open .route-dropdown-menu{ display:block; }
+  .route-dropdown-item{
+    display:block; width:100%; text-align:left; background:none; border:none; border-radius:8px;
+    padding:9px 10px; font-family:'Inter', sans-serif; font-size:12.5px; color: var(--text); cursor:pointer;
+  }
+  .route-dropdown-item:hover{ background: var(--accent-soft); }
+  .route-dropdown-item.active{ background: var(--accent-soft); font-weight:700; color: var(--blue-dark); }
 
   .strategy-block{ margin:14px 0; }
   .strategy-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin-bottom:4px; }
@@ -523,10 +539,38 @@ function strategyBlockHtml(s){
 }
 
 let loadedStrategies = [];
+
+function strategyDropdownLabel(s, fallbackNum){
+  return s.strategyName ? s.strategyName : `Route ${fallbackNum}`;
+}
+
 function selectRoute(index){
-  document.querySelectorAll('.route-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+  document.querySelectorAll('.route-btn[data-index]').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.index) === index);
+  });
+  document.querySelectorAll('.route-dropdown').forEach(dd => {
+    const indices = (dd.dataset.indices || '').split(',').map(Number);
+    dd.querySelector('.route-dropdown-toggle').classList.toggle('active', indices.includes(index));
+    dd.querySelectorAll('.route-dropdown-item').forEach(item => {
+      item.classList.toggle('active', Number(item.dataset.index) === index);
+    });
+    dd.classList.remove('open');
+  });
   document.getElementById('strategy-display').innerHTML = strategyBlockHtml(loadedStrategies[index]);
 }
+
+function toggleRouteDropdown(btn){
+  const dd = btn.closest('.route-dropdown');
+  const wasOpen = dd.classList.contains('open');
+  document.querySelectorAll('.route-dropdown.open').forEach(d => d.classList.remove('open'));
+  if(!wasOpen) dd.classList.add('open');
+}
+
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.route-dropdown')){
+    document.querySelectorAll('.route-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
 
 async function loadGuide(){
   const routeRow = document.getElementById('route-row');
@@ -544,9 +588,43 @@ async function loadGuide(){
     }
     loadedStrategies = data.strategies;
 
-    routeRow.innerHTML = data.strategies.map((s, i) =>
-      `<button type="button" class="route-btn" onclick="selectRoute(${i})">${escapeHtml(routeLabel(s))}</button>`
-    ).join('');
+    // Two strategies can legitimately share the same difficulty/weather/adventureEffect combo -
+    // they're not duplicates, just different battle-party approaches to the same conditions (see
+    // "Mega Rayquaza or Mega Mewtwo Recycle" vs "Shadow Mewtwo Party" here, both 2* Extreme).
+    // Submissions were never meant to be deduped on that combo. What was broken is that they
+    // rendered as two identically-labeled tab buttons with no way to tell them apart. Strategies
+    // sharing a label now collapse into one dropdown button, with one menu item per strategy
+    // named after its strategyName.
+    const groups = [];
+    const groupIndexByLabel = new Map();
+    data.strategies.forEach((s, i) => {
+      const label = routeLabel(s);
+      if(!groupIndexByLabel.has(label)){
+        groupIndexByLabel.set(label, groups.length);
+        groups.push({ label, indices: [] });
+      }
+      groups[groupIndexByLabel.get(label)].indices.push(i);
+    });
+
+    routeRow.innerHTML = groups.map(g => {
+      if(g.indices.length === 1){
+        const i = g.indices[0];
+        return `<button type="button" class="route-btn" data-index="${i}" onclick="selectRoute(${i})">${escapeHtml(g.label)}</button>`;
+      }
+      const items = g.indices.map((i, n) =>
+        `<button type="button" class="route-dropdown-item" data-index="${i}" onclick="selectRoute(${i})">${escapeHtml(strategyDropdownLabel(data.strategies[i], n + 1))}</button>`
+      ).join('');
+      return `
+        <div class="route-dropdown" data-indices="${g.indices.join(',')}">
+          <button type="button" class="route-btn route-dropdown-toggle" onclick="toggleRouteDropdown(this)">
+            ${escapeHtml(g.label)}
+            <svg class="route-dropdown-caret" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="route-dropdown-menu">${items}</div>
+        </div>
+      `;
+    }).join('');
+
     selectRoute(0);
   }catch(e){
     strategyDisplay.innerHTML = `<div class="load-error">Couldn't load strategy data: ${escapeHtml(e.message)}</div>`;
