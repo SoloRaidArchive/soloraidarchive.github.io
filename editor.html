@@ -726,6 +726,19 @@ const quill = new Quill('#f-text-editor', {
   },
 });
 
+// Scaffold shown in the strategy text box before a route is written, so first-time contributors
+// have a structure to follow rather than a blank box. Applied whenever the box is about to start
+// empty (initial load with no saved draft, after canceling an edit, after a successful submit) -
+// never overwrites an existing draft or an existing route being edited, both of which set
+// quill.root.innerHTML directly themselves.
+const STRATEGY_TEXT_TEMPLATE = '<h2>Overview</h2><p><br></p><h4>Est Time to Win</h4><p><br></p><h2>Main Strategy</h2><p><br></p><h2>Video Credits</h2><p><br></p>';
+function applyStrategyTemplate(){
+  if(!quill) return;
+  quill.root.innerHTML = STRATEGY_TEXT_TEMPLATE;
+  syncPreview();
+  updateCharCount();
+}
+
 const articleQuill = new Quill('#a-text-editor', {
   theme: 'snow',
   placeholder: 'Write the article...',
@@ -1097,7 +1110,7 @@ function cancelEdit(){
   document.getElementById('deleteRouteBtn').style.display = 'none';
   submitBtn.textContent = "Submit for review";
   nameFieldEl.value = ""; resetVodFields([]);
-  if(quill) quill.setText("");
+  applyStrategyTemplate();
   document.querySelectorAll('.party-card').forEach(c => c.remove());
   addParty();
   syncPreview();
@@ -1942,8 +1955,9 @@ async function addStrategy(){
     }
     renderRouteTabs();
     selectPreviewRoute(selectIndex);
-    quill.setText(""); resetVodFields([]); nameFieldEl.value = "";
+    resetVodFields([]); nameFieldEl.value = "";
     clearDraft();
+    applyStrategyTemplate();
     document.querySelectorAll('.party-card').forEach(c => c.remove());
   }catch(e){
     status.textContent = `Couldn't submit: ${e.message}`;
@@ -2052,9 +2066,15 @@ async function restoreDraft(){
   let draft;
   try{
     const raw = localStorage.getItem(DRAFT_KEY);
-    if(!raw) return;
+    if(!raw){
+      applyStrategyTemplate();
+      return;
+    }
     draft = JSON.parse(raw);
-  }catch(e){ return; }
+  }catch(e){
+    applyStrategyTemplate();
+    return;
+  }
 
   if(draft.boss){
     bossEl.value = draft.boss;
@@ -2068,6 +2088,7 @@ async function restoreDraft(){
   resetVodFields((draft.vods && draft.vods.length) ? draft.vods : (draft.vod ? [draft.vod] : []));
   document.getElementById('f-name').value = draft.submittedBy || "";
   if(quill && draft.text) quill.root.innerHTML = draft.text;
+  else applyStrategyTemplate();
 
   buildPartiesFromData(draft.battleParties || [], /* trackForDraft */ true);
 
