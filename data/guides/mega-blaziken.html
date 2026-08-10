@@ -347,10 +347,21 @@
 
   <h2 class="section-title">Boss Info</h2>
   <div class="info-box">
-    <div class="boss-sprite-row">
-      <img class="boss-sprite" id="boss-sprite-img" alt="Mega Blaziken" onerror="this.style.display='none'">
+    <div class="boss-info-top">
+      <img class="boss-sprite-sm" id="boss-sprite-img" alt="Mega Blaziken" onerror="this.style.display='none'">
+      <div class="boss-info-top-right">
+        <div class="type-icon-row-sm"><span class="type-icon-wrap" style="background:#E2661C;">Fire</span><span class="type-icon-wrap" style="background:#A2402A;">Fighting</span></div>
+        <dl class="stat-row-sm">
+          <div class="stat-cell-sm"><dt class="stat-label-sm">ATK</dt><dd class="stat-value-sm">271.8</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">DEF</dt><dd class="stat-value-sm">144.6</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">HP</dt><dd class="stat-value-sm">9,000</dd></div>
+        </dl>
+      </div>
     </div>
-    <p class="boss-info-placeholder">Type, stats, and movepool haven't been added for this boss yet - edit this page to fill them in (see how Lunala's or Azelf's guide page does it for the pattern to copy).</p>
+    <div class="movepool-label">Fast Moves</div>
+    <div class="movepool-row" id="fast-move-row"></div>
+    <div class="movepool-label">Charge Moves</div>
+    <div class="movepool-row" id="charge-move-row"></div>
   </div>
 
   <h2 class="section-title">Routes</h2>
@@ -372,11 +383,16 @@
 
 <script>
 const MOVE_TYPES = {
-  "Confusion": {type:"Psychic", color:"#E0426E"},
-  "Extrasensory": {type:"Psychic", color:"#E0426E"},
-  "Fire Blast": {type:"Fire", color:"#E2661C"},
-  "Future Sight": {type:"Psychic", color:"#E0426E"},
-  "Swift": {type:"Normal", color:"#9199A1"},
+  "Counter": {type:"Fighting", color:"#A2402A"},
+  "Fire Spin": {type:"Fire", color:"#E2661C"},
+  "Ember": {type:"Fire", color:"#E2661C"},
+  "Brave Bird": {type:"Flying", color:"#8B93E0"},
+  "Focus Blast": {type:"Fighting", color:"#A2402A"},
+  "Overheat": {type:"Fire", color:"#E2661C"},
+  "Stone Edge": {type:"Rock", color:"#B5651D"},
+  "Blast Burn": {type:"Fire", color:"#E2661C"},
+  "Blaze Kick": {type:"Fire", color:"#E2661C"},
+  "Aura Sphere": {type:"Fighting", color:"#A2402A"},
 };
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
@@ -384,7 +400,8 @@ function moveChipHtml(name, isCharge){
   const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" title="${info.type}" onerror="this.remove();">` : "";
   return `<span class="move-chip${isCharge ? " charge" : ""}">${icon}${name}</span>`;
 }
-// Boss Info movepool not populated - no fast/charge-move-row elements exist for a boss without documented stats yet (see the placeholder note above)
+document.getElementById('fast-move-row').innerHTML = ["Counter","Fire Spin","Ember"].map(m => moveChipHtml(m, false)).join('');
+document.getElementById('charge-move-row').innerHTML = ["Brave Bird","Focus Blast","Overheat","Stone Edge","Blast Burn","Blaze Kick","Aura Sphere"].map(m => moveChipHtml(m, true)).join('');
 
 // ============ SPRITE RESOLUTION (full system - was regressed to a naive version during
 // an earlier rebuild of this page; restored here to match editor.html and the rest of the site) ============
