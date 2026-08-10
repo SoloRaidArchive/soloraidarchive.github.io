@@ -23,11 +23,11 @@
   "@context": "https://schema.org",
   "@type": "HowTo",
   "name": "How to Solo Mega Blaziken in Pokémon GO",
-  "description": "Step-by-step routes for soloing Mega Blaziken, based on real recorded clears: check the boss's type and moves, pick a route by difficulty/weather/adventure effect, then follow the matching battle party breakdown.",
+  "description": "Step-by-step routes for soloing Mega Blaziken, based on real recorded clears: check the boss's type and moves, pick a route by difficulty/weather/adventure effect, then follow the matching battle party.",
   "step": [
     { "@type": "HowToStep", "name": "Check Boss Info", "text": "Review Mega Blaziken's typing, effective stats, and possible fast/charge moves so you know what you're up against." },
     { "@type": "HowToStep", "name": "Choose a Route", "text": "Pick the recorded route that matches your difficulty, current weather, and any active Adventure Effect." },
-    { "@type": "HowToStep", "name": "Follow the Breakdown", "text": "Use the matching battle party - exact Pokémon, levels, and movesets - and the linked VOD as proof the strategy works." }
+    { "@type": "HowToStep", "name": "Follow the Battle Party", "text": "Use the matching battle party - exact Pokémon, levels, and movesets - and the linked VOD as proof the strategy works." }
   ]
 }
 </script>
@@ -178,6 +178,7 @@
   @media (min-width:601px){
     .battle-party{ display:grid; grid-template-columns: 1fr 1fr; gap:2px 20px; align-items:start; }
     .battle-party-label{ grid-column: 1 / -1; }
+    .battle-party-label-secondary{ grid-column: 1 / -1; }
   }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
   .battle-party-label-secondary{
@@ -207,7 +208,7 @@
   .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
   .battle-mon.optional{
     border:1.5px dashed #d9a441; background: rgba(224,160,32,0.08); border-radius:8px;
-    padding:5px 7px; margin:2px 0;
+    padding:5px 7px; margin:2px 0 2px -7px; width:calc(100% + 14px);
   }
   .optional-note{ font-weight:600; color:#b8791a; font-size:10px; }
   [data-theme="dark"] .optional-note{ color:#e0b060; }
@@ -221,12 +222,13 @@
     font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
     background: var(--accent-soft); padding:2px 9px; border-radius:999px;
   }
-  .strategy-text{ font-size:14px; color: var(--text); line-height:1.75; margin:0 0 6px; }
-  .strategy-text p{ margin:0 0 8px; }
+  .strategy-text{ font-size:14px; color: var(--text); line-height:1.4; margin:0 0 6px; }
+  .strategy-text p{ margin:0 0 6px; }
   .strategy-text h2{ font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:14px 0 6px; }
   .strategy-text h3{ font-family:'Manrope', sans-serif; font-weight:700; font-size:15px; margin:12px 0 5px; }
+  .strategy-text h4{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14px; margin:10px 0 4px; }
   .strategy-text blockquote{ margin:8px 0; padding:6px 12px; border-left:3px solid var(--blue); color: var(--text-dim); }
-  .strategy-text ol, .strategy-text ul{ margin:4px 0 8px; padding-left:22px; list-style:none; counter-reset:list-0; }
+  .strategy-text ol, .strategy-text ul{ margin:4px 0 6px; padding-left:22px; list-style:none; counter-reset:list-0; }
   .strategy-text li{ position:relative; }
   .strategy-text li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
   .strategy-text li[data-list="ordered"]{ counter-increment:list-0; }
@@ -246,7 +248,7 @@
     font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--text);
     margin-top:6px; text-align:center;
   }
-  .strategy-vod-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .strategy-vod-row{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-top:4px; }
   .strategy-vod{
     display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
     color:#fff; text-decoration:none; background: var(--blue); padding:8px 16px; border-radius:999px;
@@ -266,7 +268,7 @@
   [data-theme="dark"] .strategy-credit{ color: rgba(238,241,247,0.58); }
   @media (max-width: 600px){
     .guide-title{ font-size:26px; }
-    .strategy-text{ font-size:16px; line-height:1.7; }
+    .strategy-text{ font-size:16px; line-height:1.4; }
     .strategy-name{ font-size:18px; }
     .strategy-tag{ font-size:11.5px; padding:4px 11px; }
     .stat-label{ font-size:11px; }
@@ -340,7 +342,7 @@
   <h1 class="guide-title">How to Solo Mega Blaziken</h1>
   <div class="edit-guide-row">
     <a class="edit-guide-btn" href="../../editor.html?boss=mega-blaziken">&#9998; Edit this guide</a>
-    <button type="button" class="edit-guide-btn share-guide-btn" id="shareGuideBtn">&#128228; Share</button>
+    <button type="button" class="edit-guide-btn share-guide-btn" id="shareGuideBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg> Share</button>
   </div>
 
   <h2 class="section-title">Boss Info</h2>
@@ -356,7 +358,6 @@
     <div class="load-state">Loading...</div>
   </div>
 
-  <h2 class="section-title">Breakdown</h2>
   <div id="strategy-display">
     <div class="load-state">Loading strategies...</div>
   </div>
@@ -475,7 +476,6 @@ function strategyBlockHtml(s){
         <span class="strategy-tag">${escapeHtml(s.weather)}</span>
         ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${escapeHtml(s.adventureEffect)}</span>` : ""}
       </div>
-      <div class="strategy-text">${s.text}</div>
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
           <div class="battle-party-label">${escapeHtml(p.label)}</div>
@@ -491,6 +491,7 @@ function strategyBlockHtml(s){
           `).join('')}
         </div>
       `).join('') : ""}
+      <div class="strategy-text">${s.text}</div>
       ${(() => {
         const raw = (s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []);
         if(raw.length === 0) return "";
@@ -668,7 +669,7 @@ function showShareCopiedState(){
   shareGuideBtn.innerHTML = '&#9989; Copied!';
   setTimeout(() => {
     shareGuideBtn.classList.remove('copied');
-    shareGuideBtn.innerHTML = '&#128228; Share';
+    shareGuideBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg> Share';
   }, 2000);
 }
 
