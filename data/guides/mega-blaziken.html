@@ -23,11 +23,11 @@
   "@context": "https://schema.org",
   "@type": "HowTo",
   "name": "How to Solo Mega Blaziken in Pokémon GO",
-  "description": "Step-by-step routes for soloing Mega Blaziken, based on real recorded clears: check the boss's type and moves, pick a route by difficulty/weather/adventure effect, then follow the matching battle party breakdown.",
+  "description": "Step-by-step routes for soloing Mega Blaziken, based on real recorded clears: check the boss's type and moves, pick a route by difficulty/weather/adventure effect, then follow the matching battle party.",
   "step": [
     { "@type": "HowToStep", "name": "Check Boss Info", "text": "Review Mega Blaziken's typing, effective stats, and possible fast/charge moves so you know what you're up against." },
     { "@type": "HowToStep", "name": "Choose a Route", "text": "Pick the recorded route that matches your difficulty, current weather, and any active Adventure Effect." },
-    { "@type": "HowToStep", "name": "Follow the Breakdown", "text": "Use the matching battle party - exact Pokémon, levels, and movesets - and the linked VOD as proof the strategy works." }
+    { "@type": "HowToStep", "name": "Follow the Battle Party", "text": "Use the matching battle party - exact Pokémon, levels, and movesets - and the linked VOD as proof the strategy works." }
   ]
 }
 </script>
@@ -171,6 +171,22 @@
     padding:9px 14px; border-radius:999px; cursor:pointer;
   }
   .route-btn.active{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .route-dropdown{ position:relative; }
+  .route-dropdown-toggle{ display:inline-flex; align-items:center; gap:6px; }
+  .route-dropdown-caret{ width:9px; height:9px; flex-shrink:0; transition:transform .15s; }
+  .route-dropdown.open .route-dropdown-caret{ transform:rotate(180deg); }
+  .route-dropdown-menu{
+    position:absolute; top:calc(100% + 6px); left:0; z-index:20; min-width:220px;
+    background: var(--card); border:1.5px solid var(--border); border-radius:12px;
+    padding:6px; box-shadow:0 10px 28px rgba(0,0,0,0.14); display:none;
+  }
+  .route-dropdown.open .route-dropdown-menu{ display:block; }
+  .route-dropdown-item{
+    display:block; width:100%; text-align:left; background:none; border:none; border-radius:8px;
+    padding:9px 10px; font-family:'Inter', sans-serif; font-size:12.5px; color: var(--text); cursor:pointer;
+  }
+  .route-dropdown-item:hover{ background: var(--accent-soft); }
+  .route-dropdown-item.active{ background: var(--accent-soft); font-weight:700; color: var(--blue-dark); }
 
   .strategy-block{ margin:14px 0; }
   .strategy-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin-bottom:4px; }
@@ -178,6 +194,7 @@
   @media (min-width:601px){
     .battle-party{ display:grid; grid-template-columns: 1fr 1fr; gap:2px 20px; align-items:start; }
     .battle-party-label{ grid-column: 1 / -1; }
+    .battle-party-label-secondary{ grid-column: 1 / -1; }
   }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
   .battle-party-label-secondary{
@@ -207,7 +224,7 @@
   .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
   .battle-mon.optional{
     border:1.5px dashed #d9a441; background: rgba(224,160,32,0.08); border-radius:8px;
-    padding:5px 7px; margin:2px 0;
+    padding:5px 7px; margin:2px 0 2px -7px; width:calc(100% + 14px);
   }
   .optional-note{ font-weight:600; color:#b8791a; font-size:10px; }
   [data-theme="dark"] .optional-note{ color:#e0b060; }
@@ -221,12 +238,13 @@
     font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
     background: var(--accent-soft); padding:2px 9px; border-radius:999px;
   }
-  .strategy-text{ font-size:14px; color: var(--text); line-height:1.75; margin:0 0 6px; }
-  .strategy-text p{ margin:0 0 8px; }
+  .strategy-text{ font-size:14px; color: var(--text); line-height:1.4; margin:0 0 6px; }
+  .strategy-text p{ margin:0 0 6px; }
   .strategy-text h2{ font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:14px 0 6px; }
   .strategy-text h3{ font-family:'Manrope', sans-serif; font-weight:700; font-size:15px; margin:12px 0 5px; }
+  .strategy-text h4{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14px; margin:10px 0 4px; }
   .strategy-text blockquote{ margin:8px 0; padding:6px 12px; border-left:3px solid var(--blue); color: var(--text-dim); }
-  .strategy-text ol, .strategy-text ul{ margin:4px 0 8px; padding-left:22px; list-style:none; counter-reset:list-0; }
+  .strategy-text ol, .strategy-text ul{ margin:4px 0 6px; padding-left:22px; list-style:none; counter-reset:list-0; }
   .strategy-text li{ position:relative; }
   .strategy-text li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
   .strategy-text li[data-list="ordered"]{ counter-increment:list-0; }
@@ -246,7 +264,7 @@
     font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--text);
     margin-top:6px; text-align:center;
   }
-  .strategy-vod-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .strategy-vod-row{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-top:4px; }
   .strategy-vod{
     display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
     color:#fff; text-decoration:none; background: var(--blue); padding:8px 16px; border-radius:999px;
@@ -266,7 +284,7 @@
   [data-theme="dark"] .strategy-credit{ color: rgba(238,241,247,0.58); }
   @media (max-width: 600px){
     .guide-title{ font-size:26px; }
-    .strategy-text{ font-size:16px; line-height:1.7; }
+    .strategy-text{ font-size:16px; line-height:1.4; }
     .strategy-name{ font-size:18px; }
     .strategy-tag{ font-size:11.5px; padding:4px 11px; }
     .stat-label{ font-size:11px; }
@@ -340,15 +358,26 @@
   <h1 class="guide-title">How to Solo Mega Blaziken</h1>
   <div class="edit-guide-row">
     <a class="edit-guide-btn" href="../../editor.html?boss=mega-blaziken">&#9998; Edit this guide</a>
-    <button type="button" class="edit-guide-btn share-guide-btn" id="shareGuideBtn">&#128228; Share</button>
+    <button type="button" class="edit-guide-btn share-guide-btn" id="shareGuideBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg> Share</button>
   </div>
 
   <h2 class="section-title">Boss Info</h2>
   <div class="info-box">
-    <div class="boss-sprite-row">
-      <img class="boss-sprite" id="boss-sprite-img" alt="Mega Blaziken" onerror="this.style.display='none'">
+    <div class="boss-info-top">
+      <img class="boss-sprite-sm" id="boss-sprite-img" alt="Mega Blaziken" onerror="this.style.display='none'">
+      <div class="boss-info-top-right">
+        <div class="type-icon-row-sm"><span class="type-icon-wrap" style="background:#E2661C;">Fire</span><span class="type-icon-wrap" style="background:#A2402A;">Fighting</span></div>
+        <dl class="stat-row-sm">
+          <div class="stat-cell-sm"><dt class="stat-label-sm">ATK</dt><dd class="stat-value-sm">271.8</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">DEF</dt><dd class="stat-value-sm">144.6</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">HP</dt><dd class="stat-value-sm">9,000</dd></div>
+        </dl>
+      </div>
     </div>
-    <p class="boss-info-placeholder">Type, stats, and movepool haven't been added for this boss yet - edit this page to fill them in (see how Lunala's or Azelf's guide page does it for the pattern to copy).</p>
+    <div class="movepool-label">Fast Moves</div>
+    <div class="movepool-row" id="fast-move-row"></div>
+    <div class="movepool-label">Charge Moves</div>
+    <div class="movepool-row" id="charge-move-row"></div>
   </div>
 
   <h2 class="section-title">Routes</h2>
@@ -356,7 +385,6 @@
     <div class="load-state">Loading...</div>
   </div>
 
-  <h2 class="section-title">Breakdown</h2>
   <div id="strategy-display">
     <div class="load-state">Loading strategies...</div>
   </div>
@@ -371,11 +399,16 @@
 
 <script>
 const MOVE_TYPES = {
-  "Confusion": {type:"Psychic", color:"#E0426E"},
-  "Extrasensory": {type:"Psychic", color:"#E0426E"},
-  "Fire Blast": {type:"Fire", color:"#E2661C"},
-  "Future Sight": {type:"Psychic", color:"#E0426E"},
-  "Swift": {type:"Normal", color:"#9199A1"},
+  "Counter": {type:"Fighting", color:"#A2402A"},
+  "Fire Spin": {type:"Fire", color:"#E2661C"},
+  "Ember": {type:"Fire", color:"#E2661C"},
+  "Brave Bird": {type:"Flying", color:"#8B93E0"},
+  "Focus Blast": {type:"Fighting", color:"#A2402A"},
+  "Overheat": {type:"Fire", color:"#E2661C"},
+  "Stone Edge": {type:"Rock", color:"#B5651D"},
+  "Blast Burn": {type:"Fire", color:"#E2661C"},
+  "Blaze Kick": {type:"Fire", color:"#E2661C"},
+  "Aura Sphere": {type:"Fighting", color:"#A2402A"},
 };
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
@@ -383,7 +416,8 @@ function moveChipHtml(name, isCharge){
   const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" title="${info.type}" onerror="this.remove();">` : "";
   return `<span class="move-chip${isCharge ? " charge" : ""}">${icon}${name}</span>`;
 }
-// Boss Info movepool not populated - no fast/charge-move-row elements exist for a boss without documented stats yet (see the placeholder note above)
+document.getElementById('fast-move-row').innerHTML = ["Counter","Fire Spin","Ember"].map(m => moveChipHtml(m, false)).join('');
+document.getElementById('charge-move-row').innerHTML = ["Brave Bird","Focus Blast","Overheat","Stone Edge","Blast Burn","Blaze Kick","Aura Sphere"].map(m => moveChipHtml(m, true)).join('');
 
 // ============ SPRITE RESOLUTION (full system - was regressed to a naive version during
 // an earlier rebuild of this page; restored here to match editor.html and the rest of the site) ============
@@ -475,7 +509,6 @@ function strategyBlockHtml(s){
         <span class="strategy-tag">${escapeHtml(s.weather)}</span>
         ${s.adventureEffect && s.adventureEffect !== "None" ? `<span class="strategy-tag">${escapeHtml(s.adventureEffect)}</span>` : ""}
       </div>
-      <div class="strategy-text">${s.text}</div>
       ${(s.battleParties && s.battleParties.length > 0) ? s.battleParties.map(p => `
         <div class="battle-party">
           <div class="battle-party-label">${escapeHtml(p.label)}</div>
@@ -491,6 +524,7 @@ function strategyBlockHtml(s){
           `).join('')}
         </div>
       `).join('') : ""}
+      <div class="strategy-text">${s.text}</div>
       ${(() => {
         const raw = (s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []);
         if(raw.length === 0) return "";
@@ -505,10 +539,38 @@ function strategyBlockHtml(s){
 }
 
 let loadedStrategies = [];
+
+function strategyDropdownLabel(s, fallbackNum){
+  return s.strategyName ? s.strategyName : `Route ${fallbackNum}`;
+}
+
 function selectRoute(index){
-  document.querySelectorAll('.route-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
+  document.querySelectorAll('.route-btn[data-index]').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.index) === index);
+  });
+  document.querySelectorAll('.route-dropdown').forEach(dd => {
+    const indices = (dd.dataset.indices || '').split(',').map(Number);
+    dd.querySelector('.route-dropdown-toggle').classList.toggle('active', indices.includes(index));
+    dd.querySelectorAll('.route-dropdown-item').forEach(item => {
+      item.classList.toggle('active', Number(item.dataset.index) === index);
+    });
+    dd.classList.remove('open');
+  });
   document.getElementById('strategy-display').innerHTML = strategyBlockHtml(loadedStrategies[index]);
 }
+
+function toggleRouteDropdown(btn){
+  const dd = btn.closest('.route-dropdown');
+  const wasOpen = dd.classList.contains('open');
+  document.querySelectorAll('.route-dropdown.open').forEach(d => d.classList.remove('open'));
+  if(!wasOpen) dd.classList.add('open');
+}
+
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.route-dropdown')){
+    document.querySelectorAll('.route-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
 
 async function loadGuide(){
   const routeRow = document.getElementById('route-row');
@@ -526,9 +588,43 @@ async function loadGuide(){
     }
     loadedStrategies = data.strategies;
 
-    routeRow.innerHTML = data.strategies.map((s, i) =>
-      `<button type="button" class="route-btn" onclick="selectRoute(${i})">${escapeHtml(routeLabel(s))}</button>`
-    ).join('');
+    // Two strategies can legitimately share the same difficulty/weather/adventureEffect combo -
+    // they're not duplicates, just different battle-party approaches to the same conditions (see
+    // "Mega Rayquaza or Mega Mewtwo Recycle" vs "Shadow Mewtwo Party" here, both 2* Extreme).
+    // Submissions were never meant to be deduped on that combo. What was broken is that they
+    // rendered as two identically-labeled tab buttons with no way to tell them apart. Strategies
+    // sharing a label now collapse into one dropdown button, with one menu item per strategy
+    // named after its strategyName.
+    const groups = [];
+    const groupIndexByLabel = new Map();
+    data.strategies.forEach((s, i) => {
+      const label = routeLabel(s);
+      if(!groupIndexByLabel.has(label)){
+        groupIndexByLabel.set(label, groups.length);
+        groups.push({ label, indices: [] });
+      }
+      groups[groupIndexByLabel.get(label)].indices.push(i);
+    });
+
+    routeRow.innerHTML = groups.map(g => {
+      if(g.indices.length === 1){
+        const i = g.indices[0];
+        return `<button type="button" class="route-btn" data-index="${i}" onclick="selectRoute(${i})">${escapeHtml(g.label)}</button>`;
+      }
+      const items = g.indices.map((i, n) =>
+        `<button type="button" class="route-dropdown-item" data-index="${i}" onclick="selectRoute(${i})">${escapeHtml(strategyDropdownLabel(data.strategies[i], n + 1))}</button>`
+      ).join('');
+      return `
+        <div class="route-dropdown" data-indices="${g.indices.join(',')}">
+          <button type="button" class="route-btn route-dropdown-toggle" onclick="toggleRouteDropdown(this)">
+            ${escapeHtml(g.label)}
+            <svg class="route-dropdown-caret" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="route-dropdown-menu">${items}</div>
+        </div>
+      `;
+    }).join('');
+
     selectRoute(0);
   }catch(e){
     strategyDisplay.innerHTML = `<div class="load-error">Couldn't load strategy data: ${escapeHtml(e.message)}</div>`;
@@ -668,7 +764,7 @@ function showShareCopiedState(){
   shareGuideBtn.innerHTML = '&#9989; Copied!';
   setTimeout(() => {
     shareGuideBtn.classList.remove('copied');
-    shareGuideBtn.innerHTML = '&#128228; Share';
+    shareGuideBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg> Share';
   }, 2000);
 }
 
