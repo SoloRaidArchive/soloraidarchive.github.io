@@ -356,6 +356,22 @@
     padding:9px 14px; border-radius:999px; cursor:pointer;
   }
   .route-btn.active{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .route-dropdown{ position:relative; }
+  .route-dropdown-toggle{ display:inline-flex; align-items:center; gap:6px; }
+  .route-dropdown-caret{ width:9px; height:9px; flex-shrink:0; transition:transform .15s; }
+  .route-dropdown.open .route-dropdown-caret{ transform:rotate(180deg); }
+  .route-dropdown-menu{
+    position:absolute; top:calc(100% + 6px); left:0; z-index:20; min-width:220px;
+    background: var(--card); border:1.5px solid var(--border); border-radius:12px;
+    padding:6px; box-shadow:0 10px 28px rgba(0,0,0,0.14); display:none;
+  }
+  .route-dropdown.open .route-dropdown-menu{ display:block; }
+  .route-dropdown-item{
+    display:block; width:100%; text-align:left; background:none; border:none; border-radius:8px;
+    padding:9px 10px; font-family:'Inter', sans-serif; font-size:12.5px; color: var(--text); cursor:pointer;
+  }
+  .route-dropdown-item:hover{ background: var(--accent-soft); }
+  .route-dropdown-item.active{ background: var(--accent-soft); font-weight:700; color: var(--blue-dark); }
   [data-theme="dark"] .ql-toolbar.ql-snow{ border-color: var(--border); background: var(--card); }
   [data-theme="dark"] .ql-container.ql-snow{ border-color: var(--border); }
   [data-theme="dark"] .ql-editor{ color: var(--text); }
@@ -1101,22 +1117,66 @@ function currentLiveStrategy(){
 }
 function renderRouteTabs(){
   const row = document.getElementById('preview-route-row');
-  const tabs = existingStrategies.map((s, i) => {
+
+  const groups = [];
+  const groupIndexByLabel = new Map();
+  existingStrategies.forEach((s, i) => {
     const parts = [s.difficulty, s.weather];
     if(s.adventureEffect && s.adventureEffect !== "None") parts.push(s.adventureEffect);
-    return `<button type="button" class="route-btn" onclick="selectPreviewRoute(${i})">${parts.join(" \u00b7 ")}</button>`;
+    const label = parts.join(" \u00b7 ");
+    if(!groupIndexByLabel.has(label)){
+      groupIndexByLabel.set(label, groups.length);
+      groups.push({ label, indices: [] });
+    }
+    groups[groupIndexByLabel.get(label)].indices.push(i);
   });
-  tabs.push(`<button type="button" class="route-btn active" onclick="selectPreviewRoute('live')">Your draft</button>`);
+
+  const tabs = groups.map(g => {
+    if(g.indices.length === 1){
+      const i = g.indices[0];
+      return `<button type="button" class="route-btn" data-index="${i}" onclick="selectPreviewRoute(${i})">${escapeHtml(g.label)}</button>`;
+    }
+    const items = g.indices.map((i, n) =>
+      `<button type="button" class="route-dropdown-item" data-index="${i}" onclick="selectPreviewRoute(${i})">${escapeHtml(existingStrategies[i].strategyName || `Route ${n + 1}`)}</button>`
+    ).join('');
+    return `
+      <div class="route-dropdown" data-indices="${g.indices.join(',')}">
+        <button type="button" class="route-btn route-dropdown-toggle" onclick="toggleRouteDropdown(this)">
+          ${escapeHtml(g.label)}
+          <svg class="route-dropdown-caret" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="route-dropdown-menu">${items}</div>
+      </div>
+    `;
+  });
+  tabs.push(`<button type="button" class="route-btn active" data-index="live" onclick="selectPreviewRoute('live')">Your draft</button>`);
   row.innerHTML = tabs.join('');
 }
+function toggleRouteDropdown(btn){
+  const dd = btn.closest('.route-dropdown');
+  const wasOpen = dd.classList.contains('open');
+  document.querySelectorAll('#preview-route-row .route-dropdown.open').forEach(d => d.classList.remove('open'));
+  if(!wasOpen) dd.classList.add('open');
+}
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('#preview-route-row .route-dropdown')){
+    document.querySelectorAll('#preview-route-row .route-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
 function selectPreviewRoute(which){
-  document.querySelectorAll('#preview-route-row .route-btn').forEach(btn => btn.classList.remove('active'));
   const display = document.getElementById('preview-strategy-display');
+  document.querySelectorAll('#preview-route-row .route-btn[data-index]').forEach(btn => {
+    btn.classList.toggle('active', String(btn.dataset.index) === String(which));
+  });
+  document.querySelectorAll('#preview-route-row .route-dropdown').forEach(dd => {
+    const indices = (dd.dataset.indices || '').split(',').map(Number);
+    dd.querySelector('.route-dropdown-toggle').classList.toggle('active', which !== 'live' && indices.includes(Number(which)));
+    dd.querySelectorAll('.route-dropdown-item').forEach(item => item.classList.toggle('active', String(item.dataset.index) === String(which)));
+    dd.classList.remove('open');
+  });
   if(which === 'live'){
-    document.querySelector('#preview-route-row .route-btn:last-child').classList.add('active');
     display.innerHTML = strategyBlockHtml(currentLiveStrategy());
   }else{
-    document.querySelectorAll('#preview-route-row .route-btn')[which].classList.add('active');
     display.innerHTML = strategyBlockHtml(existingStrategies[which], which);
   }
 }
