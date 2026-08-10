@@ -76,6 +76,75 @@
         }
       ],
       "submittedAt": "2026-08-09T23:46:35.998Z"
+    },
+    {
+      "strategyName": "Shadow Mewtwo Party",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "2★",
+      "text": "<p>A mega that deals super effective damage into blaziken and 4-5 shadow mewtwo with legacy psystrike. Nuff said; dodging is fundamental. <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">Rejoin</a>, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">Hot Swap</a></p><p>Blaze kick is a pretty fast move to react against. If facing that set, in addition to rejoins, employ <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">Hot Swap</a> and/or <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">Catch Tank</a></p>",
+      "vods": [
+        {
+          "url": "https://youtu.be/tiB6ndvzefU",
+          "label": ""
+        }
+      ],
+      "submittedBy": "Wowtastic",
+      "battleParties": [
+        {
+          "label": "General Use Case",
+          "secondaryLabel": "Usually requires 2 rejoins to accomplish. Dodge charged moves",
+          "mons": [
+            {
+              "name": "Mega Rayquaza",
+              "level": "40",
+              "fm": "Air Slash",
+              "cm": "Dragon Ascent",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "Shadow Mewtwo",
+              "level": "35",
+              "fm": "Psycho Cut",
+              "cm": "Psystrike",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "Mega Alakazam",
+              "level": "40",
+              "fm": "Psycho Cut",
+              "cm": "Psychic",
+              "cm2": "",
+              "optional": true
+            }
+          ]
+        },
+        {
+          "label": "Against Blaze Kick",
+          "secondaryLabel": "Hot Swap into another Mewtwo or use these!",
+          "mons": [
+            {
+              "name": "Shadow Salamence",
+              "level": "35",
+              "fm": "Dragon Tail",
+              "cm": "Fly",
+              "cm2": "",
+              "optional": true
+            },
+            {
+              "name": "Shadow Moltres",
+              "level": "35",
+              "fm": "Wing Attack",
+              "cm": "Fly",
+              "cm2": "",
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-10T00:15:15.484Z"
     }
   ]
 }
