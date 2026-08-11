@@ -74,12 +74,32 @@
     margin-top:6px; text-align:center;
   }
   .article-body h2, .article-body h3, .article-body h4{ font-family:'Manrope', sans-serif; font-weight:800; margin:20px 0 10px; }
-  .article-body ul, .article-body ol{ margin:0 0 14px; padding-left:22px; }
+  .article-body ul, .article-body ol{ margin:0 0 14px; padding-left:22px; list-style:none; counter-reset:list-0; }
+  .article-body li{ margin-bottom:4px; }
+  .article-body li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
+  .article-body li[data-list="ordered"]{ counter-increment:list-0; }
+  .article-body li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
+  .article-body img{ max-width:100%; height:auto; border-radius:8px; cursor:zoom-in; }
+  @media (max-width: 600px){
+    .article-body img[style*="float"]{ float:none !important; width:100% !important; margin:10px 0 !important; display:block; }
+  }
+  .img-lightbox-overlay{
+    display:none; position:fixed; inset:0; background:rgba(10,12,20,0.9); z-index:9999;
+    align-items:center; justify-content:center; padding:24px; cursor:zoom-out;
+  }
+  .img-lightbox-overlay.visible{ display:flex; }
+  .img-lightbox-img{ max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5); cursor:default; }
+  .img-lightbox-close{
+    position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,0.12); color:#fff; border:none; font-size:22px; line-height:1;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .img-lightbox-close:hover{ background:rgba(255,255,255,0.25); }
   .article-body blockquote{
     border-left:3px solid var(--accent); margin:14px 0; padding:4px 0 4px 14px; color: var(--text-muted); font-style:italic;
   }
   .article-table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:13px; }
-  .article-table th, .article-table td{ border:1px solid var(--border); padding:8px 10px; text-align:left; }
+  .article-table th, .article-table td{ border:1.5px solid var(--text-dim); padding:8px 10px; text-align:left; }
   .article-table th{ background: var(--accent-soft); font-family:'Manrope', sans-serif; font-weight:800; }
   .article-table tr:nth-child(even) td{ background: var(--bg1); }
 
@@ -240,6 +260,11 @@
   <div class="article-body"><h3>[More tips being added] </h3><h3>#1 Not creating a battle party: </h3><p><strong>Mistake:</strong> Without a battle party, significant time is lost trying to load each counter manually.  Compared to an Ideal or Average rejoin time, this can cost between 7s to 21s of time over the full raid. </p><p><strong>Rough DPS Loss</strong>: <strong>~3.5% → 8%, </strong>larger for faster raids. </p><p><strong>Solution: </strong>Create a preset battle party for quicker rejoins. A preset battle party allows you to heal injured Pokémon and swipe directly to the intended counters before rejoining the fight. </p><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Potions &amp; Battle Party: 6 → 7s </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Revive Potions &amp; Battle Party: 7s → 8s </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>No Battle Party: ≥ 15s</li></ol><p><br></p><h3>#2 Allowing Pokémon to faint </h3><p><strong>Mistake: </strong>Fainting triggers a series of time loss interactions which require a lot of backtracking to fix costing ~2.5s to ~7s per lobby. </p><p><strong>Rough DPS Loss:</strong> <strong>1% → 3.5% per rejoin.</strong></p><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>It triggers a 0.5s faint animation.</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>It forces an auto-swap, 0.5s, to the first injured Pokémon in an earlier slot. </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>The player must swap back to an intended attacker costing an additional 0.5s. </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Fainting also forces the use of revives adding 1.0s to rejoin times. </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Potential Total Time Loss: 1.5s+ per faint + 1.0s per rejoin. </li></ol><p><strong>Solution: </strong>Swap to the next attacker if the active attacker cannot meaningfully continue. This avoids the faint animation &amp; the need to revive. </p><p><br></p><h3>#3: Overprioritizing IV's &amp; Levels</h3><p><strong>Mistake: </strong>Choosing an attacker with High IV's over an attacker with stronger movesets, base-stats and levels. </p><p><strong>Rough DPS Loss: Varies but it can range above 30% </strong></p><p><strong>Short-term Solution:</strong> Pick counters with high attack stats &amp; strong movesets. Compare them with rotation calculators, successful raid parties or perform trial and error.</p><p><strong>Long-term Solution: </strong>Learn how IV's, base-stats, movesets and levels all relate to one another. <em>[Future article in progress] </em></p><p>Movesets &amp; Pokemon <strong><em>base </em></strong>stats are much stronger indicators of performance. Fig 3A compares the DPS of two pokémon, absorbing fast moves, over the first 100 energy. Picking the respective Shadow Hydreigon over Necrozma Dawn Wings is at minimum a 12.4% DPS loss. <em>Results from Main DPS calculator (catch tank calc webpage)</em></p><p><em>Fig: 3A</em></p><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Level 40 Necrozma Dawn Wings (10/15/15)</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>Level 50 Shadow Hydreigon (15/15/15)</li></ol><p><img src="/assets/articles/common-mistakes-costing-dps-7.jpg"></p><p><img src="/assets/articles/common-mistakes-costing-dps-9.png"></p></div>
 </div>
 
+<div class="img-lightbox-overlay" id="imgLightboxOverlay">
+  <button type="button" class="img-lightbox-close" id="imgLightboxCloseBtn" aria-label="Close">&times;</button>
+  <img class="img-lightbox-img" id="imgLightboxImg" src="" alt="">
+</div>
+
 <div class="mechanic-preview" id="mechanicPreview">
   <video id="mechanicPreviewVideo" autoplay loop muted playsinline preload="none"></video>
   <div class="mechanic-preview-label" id="mechanicPreviewLabel"></div>
@@ -248,6 +273,25 @@
 <footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
 
 <script>
+const imgLightboxOverlay = document.getElementById('imgLightboxOverlay');
+const imgLightboxImg = document.getElementById('imgLightboxImg');
+function openImgLightbox(src, alt){
+  imgLightboxImg.src = src;
+  imgLightboxImg.alt = alt || '';
+  imgLightboxOverlay.classList.add('visible');
+}
+function closeImgLightbox(){
+  imgLightboxOverlay.classList.remove('visible');
+  imgLightboxImg.src = '';
+}
+document.addEventListener('click', (e) => {
+  const img = e.target.closest('.article-body img');
+  if(img){ openImgLightbox(img.currentSrc || img.src, img.alt); return; }
+  if(e.target === imgLightboxOverlay) closeImgLightbox();
+});
+document.getElementById('imgLightboxCloseBtn').addEventListener('click', closeImgLightbox);
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeImgLightbox(); });
+
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
   document.documentElement.setAttribute("data-theme", theme);
