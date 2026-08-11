@@ -145,6 +145,61 @@
         }
       ],
       "submittedAt": "2026-08-10T00:15:15.484Z"
+    },
+    {
+      "strategyName": "Rainy Budget Solo",
+      "weather": "Rainy",
+      "adventureEffect": "None",
+      "difficulty": "4★",
+      "text": "<p>Mega Blaziken is a very doable solo even with a relatively budget team. Just a little dodging and weather boost and it can be solo'd with the equivalent of a Primal Groudon and 3 Kyogres at LV 40!</p>",
+      "vods": [
+        {
+          "url": "https://youtu.be/V7W7x2GAdyo?is=fnr9Ewak0g1zLy-Q",
+          "label": ""
+        }
+      ],
+      "submittedBy": "rwaterbender",
+      "battleParties": [
+        {
+          "label": "Unlabeled party",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "primal groudon",
+              "level": "40",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "Mewtwo",
+              "level": "48",
+              "fm": "Psycho Cut",
+              "cm": "Psystrike",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "Shadow Mewtwo",
+              "level": "37",
+              "fm": "Psycho Cut",
+              "cm": "Psystrike",
+              "cm2": "",
+              "optional": false
+            },
+            {
+              "name": "Kyogre",
+              "level": "37",
+              "fm": "Waterfall",
+              "cm": "Origin Pulse",
+              "cm2": "",
+              "optional": false
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-11T03:20:01.662Z"
     }
   ]
 }
