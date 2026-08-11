@@ -230,6 +230,12 @@
   .vod-row{ display:flex; align-items:flex-start; gap:6px; margin-bottom:6px; }
   .vod-row-inputs{ flex:1; display:flex; flex-direction:column; gap:5px; }
   .vod-label-input{ font-size:12.5px; }
+  .vod-credit-row{ display:flex; align-items:center; gap:6px; margin-top:1px; }
+  .vod-credit-label{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:9.5px; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.03em; flex-shrink:0;
+  }
+  .vod-credit-name-input, .vod-credit-url-input{ font-size:12px; padding:7px 9px; }
   .vod-remove-btn{ background:none; border:none; color:#b0b0b8; font-size:16px; cursor:pointer; flex-shrink:0; padding:2px 6px; margin-top:2px; }
   .vod-remove-btn:hover{ color:#e05252; }
   .mon-remove-btn:hover{ color:#c62828; }
@@ -291,6 +297,11 @@
   .article-body h2, .article-body h3, .article-body h4{ font-family:'Manrope', sans-serif; font-weight:800; margin:20px 0 10px; }
   .article-body a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
   [data-theme="dark"] .article-body a{ color:#5eead4; }
+  .article-body ul, .article-body ol{ margin:0 0 12px; padding-left:22px; list-style:none; counter-reset:list-0; }
+  .article-body li{ margin-bottom:4px; }
+  .article-body li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
+  .article-body li[data-list="ordered"]{ counter-increment:list-0; }
+  .article-body li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
   .mechanic-preview{
     position:fixed; z-index:60; width:240px; background: var(--card); border:2px solid var(--border);
     border-radius:12px; padding:8px; box-shadow:0 10px 28px rgba(0,0,0,0.22);
@@ -303,17 +314,40 @@
     margin-top:6px; text-align:center;
   }
   .article-table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:13px; }
-  .article-table th, .article-table td{ border:1px solid var(--border); padding:8px 10px; text-align:left; }
+  .article-table th, .article-table td{ border:1.5px solid var(--text-dim); padding:8px 10px; text-align:left; }
   .article-table th{ background: var(--accent-soft); font-family:'Manrope', sans-serif; font-weight:800; }
   .article-table tr:nth-child(even) td{ background: var(--bg1); }
+  .table-toolbar{
+    display:none; align-items:center; gap:4px; flex-wrap:wrap; background: var(--card);
+    border:1.5px solid var(--border); border-radius:10px; padding:6px 8px; margin-bottom:6px;
+  }
+  .table-toolbar.visible{ display:flex; }
+  .table-toolbar-label{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:10.5px; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.03em; margin-right:2px;
+  }
+  .table-toolbar-btn{
+    background: var(--accent-soft); color: var(--blue-dark); border:none; border-radius:7px;
+    padding:6px 9px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Inter', sans-serif;
+  }
+  .table-toolbar-btn:hover{ background:#dcecff; }
+  [data-theme="dark"] .table-toolbar-btn:hover{ background:#2a3555; }
+  .table-toolbar-btn.active{ background: var(--blue); color:#fff; }
+  .table-toolbar-btn.danger{ color:#c62828; }
+  .table-toolbar-divider{ width:1px; align-self:stretch; background: var(--border); margin:0 3px; }
+  .a-img-selected{ outline:2px solid var(--blue); outline-offset:2px; }
   .strategy-text.placeholder{ color: var(--text-dim); font-style:italic; }
   .strategy-vod-row{ display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-top:4px; }
+  .strategy-vod-item{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .strategy-vod{
     display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:700;
     color:#fff; text-decoration:none; background: var(--blue); padding:8px 16px; border-radius:999px;
     margin-top:0;
   }
   .strategy-vod:hover{ filter: brightness(0.9); }
+  .strategy-vod-credit{ font-size:11.5px; color: var(--text-dim); }
+  .strategy-vod-credit a{ color: var(--blue-dark); text-decoration:none; font-weight:600; }
+  .strategy-vod-credit a:hover{ text-decoration:underline; }
 
   .battle-party{ background: var(--accent-soft); border:1.5px solid var(--border); border-radius:12px; padding:12px 14px; margin-top:10px; }
   .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
@@ -382,21 +416,6 @@
   .ql-editor h1, .ql-editor h2{ margin:14px 0 6px; }
   .ql-editor h3, .ql-editor h4{ margin:12px 0 5px; }
   .a-editor-wrap{ position:relative; }
-  .a-editor-wrap #a-text-editor .ql-editor{ padding-left:32px; }
-  .drag-handles-overlay{ position:absolute; top:0; left:0; width:32px; pointer-events:none; }
-  .drag-handle{
-    position:absolute; left:2px; width:20px; height:20px; border-radius:5px;
-    display:flex; align-items:center; justify-content:center; cursor:grab;
-    color: var(--text-dim); font-size:13px; pointer-events:auto; background: var(--bg1);
-    opacity:0; transition: opacity .12s;
-  }
-  .a-editor-wrap:hover .drag-handle{ opacity:1; }
-  .drag-handle:hover{ background: var(--accent-soft); color: var(--blue-dark); }
-  .drag-handle:active{ cursor:grabbing; }
-  .a-editor-drop-line{
-    position:absolute; left:32px; right:0; height:2px; background: var(--blue); pointer-events:none;
-    display:none; z-index:5;
-  }
   [data-theme="dark"] .ql-snow .ql-picker{ color: var(--text-dim); }
   [data-theme="dark"] .ql-snow .ql-picker-options{ background: var(--card); border-color: var(--border); }
   [data-theme="dark"] .ql-snow.ql-toolbar button:hover .ql-stroke,
@@ -544,10 +563,34 @@
 
       <div class="field-group">
         <label class="field-label">Article body</label>
+        <div class="table-toolbar" id="tableToolbar">
+          <span class="table-toolbar-label">Table</span>
+          <button type="button" class="table-toolbar-btn" id="tableAddRowBtn">+ Row</button>
+          <button type="button" class="table-toolbar-btn" id="tableAddColBtn">+ Column</button>
+          <button type="button" class="table-toolbar-btn danger" id="tableDelRowBtn">&minus; Row</button>
+          <button type="button" class="table-toolbar-btn danger" id="tableDelColBtn">&minus; Column</button>
+          <div class="table-toolbar-divider"></div>
+          <span class="table-toolbar-label">Align column</span>
+          <button type="button" class="table-toolbar-btn" id="tableAlignLeftBtn" title="Align left">&#8676;</button>
+          <button type="button" class="table-toolbar-btn" id="tableAlignCenterBtn" title="Align center">&#8596;</button>
+          <button type="button" class="table-toolbar-btn" id="tableAlignRightBtn" title="Align right">&#8677;</button>
+        </div>
+        <div class="table-toolbar" id="imageToolbar">
+          <span class="table-toolbar-label">Image size</span>
+          <button type="button" class="table-toolbar-btn" data-width="25">Small</button>
+          <button type="button" class="table-toolbar-btn" data-width="50">Medium</button>
+          <button type="button" class="table-toolbar-btn" data-width="75">Large</button>
+          <button type="button" class="table-toolbar-btn" data-width="100">Full width</button>
+          <div class="table-toolbar-divider"></div>
+          <span class="table-toolbar-label">Position</span>
+          <button type="button" class="table-toolbar-btn" id="imgAlignLeftBtn" title="Float left, text wraps around">&#8676;</button>
+          <button type="button" class="table-toolbar-btn" id="imgAlignCenterBtn" title="Center, on its own line">&#8596;</button>
+          <button type="button" class="table-toolbar-btn" id="imgAlignRightBtn" title="Float right, text wraps around">&#8677;</button>
+          <div class="table-toolbar-divider"></div>
+          <button type="button" class="table-toolbar-btn danger" id="imgRemoveBtn">Remove</button>
+        </div>
         <div class="a-editor-wrap" id="aEditorWrap">
           <div id="a-text-editor"></div>
-          <div class="drag-handles-overlay" id="dragHandlesOverlay"></div>
-          <div class="a-editor-drop-line" id="aEditorDropLine"></div>
         </div>
         <div class="char-count" id="articleCharCount">0 / 10,000 characters</div>
         <div class="article-insert-row">
@@ -673,41 +716,51 @@ const diffEl = document.getElementById('f-difficulty');
 const vodListEl = document.getElementById('vod-list');
 const submitBtn = document.getElementById('submit-btn');
 
-function addVodField(url, label){
+function addVodField(url, label, creditName, creditUrl){
   const row = document.createElement('div');
   row.className = 'vod-row';
   const escUrl = url ? String(url).replace(/"/g, '&quot;') : '';
   const escLabel = label ? String(label).replace(/"/g, '&quot;') : '';
+  const escCreditName = creditName ? String(creditName).replace(/"/g, '&quot;') : '';
+  const escCreditUrl = creditUrl ? String(creditUrl).replace(/"/g, '&quot;') : '';
   row.innerHTML = `
     <div class="vod-row-inputs">
       <input type="text" class="vod-input" placeholder="https://youtu.be/..." value="${escUrl}">
       <input type="text" class="vod-label-input" placeholder="Label (e.g. No Catch Tank)" value="${escLabel}">
+      <div class="vod-credit-row">
+        <span class="vod-credit-label">Credit</span>
+        <input type="text" class="vod-credit-name-input" placeholder="Creator name" value="${escCreditName}">
+        <input type="text" class="vod-credit-url-input" placeholder="Channel link (optional)" value="${escCreditUrl}">
+      </div>
     </div>
     <button type="button" class="vod-remove-btn" onclick="this.closest('.vod-row').remove(); syncPreview();">&times;</button>
   `;
   vodListEl.appendChild(row);
-  row.querySelectorAll('.vod-input, .vod-label-input').forEach(el => el.addEventListener('input', () => syncPreview()));
+  row.querySelectorAll('.vod-input, .vod-label-input, .vod-credit-name-input, .vod-credit-url-input').forEach(el => el.addEventListener('input', () => syncPreview()));
 }
 function collectVods(){
   return Array.from(document.querySelectorAll('.vod-row'))
     .map(row => ({
       url: row.querySelector('.vod-input').value.trim(),
       label: row.querySelector('.vod-label-input').value.trim(),
+      creditName: row.querySelector('.vod-credit-name-input').value.trim(),
+      creditUrl: row.querySelector('.vod-credit-url-input').value.trim(),
     }))
     .filter(v => v.url);
 }
 // Accepts any stored shape: the oldest single vod:"url" string, last version's vods:["url"]
-// plain-string array, or the current vods:[{url,label}] object array - so editing/restoring an
-// older strategy doesn't lose data or break.
+// plain-string array, or the current vods:[{url,label,creditName,creditUrl}] object array - so
+// editing/restoring an older strategy (from before the creator-credit fields existed) doesn't
+// lose data or break, it just shows blank credit fields ready to fill in.
 function resetVodFields(vods){
   vodListEl.innerHTML = '';
-  const list = (vods && vods.length) ? vods : [{url:'', label:''}];
+  const list = (vods && vods.length) ? vods : [{url:'', label:'', creditName:'', creditUrl:''}];
   list.forEach(v => {
-    if(typeof v === "string") addVodField(v, '');
-    else addVodField(v.url || '', v.label || '');
+    if(typeof v === "string") addVodField(v, '', '', '');
+    else addVodField(v.url || '', v.label || '', v.creditName || '', v.creditUrl || '');
   });
 }
-document.getElementById('addVodBtn').addEventListener('click', () => addVodField('', ''));
+document.getElementById('addVodBtn').addEventListener('click', () => addVodField('', '', '', ''));
 resetVodFields([]);
 
 
@@ -1068,9 +1121,10 @@ function strategyBlockHtml(s, editIndex){
         const raw = (s.vods && s.vods.length) ? s.vods : (s.vod ? [s.vod] : []);
         if(raw.length === 0) return "";
         const vodList = raw.map(v => typeof v === "string" ? {url: v, label: ""} : v);
-        return `<div class="strategy-vod-row">${vodList.map((v, i) =>
-          `<a class="strategy-vod" href="${v.url}" target="_blank" rel="noopener noreferrer">${v.label ? escapeHtml(v.label) : `Watch VOD${vodList.length > 1 ? ` ${i + 1}` : ""}`} &rarr;</a>`
-        ).join("")}</div>`;
+        return `<div class="strategy-vod-row">${vodList.map((v, i) => {
+          const creditHtml = v.creditName ? `<span class="strategy-vod-credit">by ${v.creditUrl ? `<a href="${escapeHtml(v.creditUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(v.creditName)}</a>` : escapeHtml(v.creditName)}</span>` : "";
+          return `<div class="strategy-vod-item"><a class="strategy-vod" href="${v.url}" target="_blank" rel="noopener noreferrer">${v.label ? escapeHtml(v.label) : `Watch VOD${vodList.length > 1 ? ` ${i + 1}` : ""}`} &rarr;</a>${creditHtml}</div>`;
+        }).join("")}</div>`;
       })()}
       ${s.submittedBy ? `<div class="strategy-credit">Submitted by ${s.submittedBy}</div>` : ""}
     </div>
@@ -1537,6 +1591,184 @@ document.getElementById('insertTableBtn').addEventListener('click', () => {
   articleQuill.clipboard.dangerouslyPasteHTML(range.index, html);
 });
 
+// ============ TABLE TOOLBAR ============
+// Quill has no table module wired up here - tables are just raw HTML dropped into the editor via
+// dangerouslyPasteHTML above, so this toolbar operates directly on the table's real DOM nodes
+// inside articleQuill.root, then manually re-syncs char count/preview - the same "direct DOM
+// edit, then manual resync" pattern the table-insert button above already relies on.
+const tableToolbar = document.getElementById('tableToolbar');
+let activeTableCell = null;
+
+function updateTableToolbarVisibility(){
+  const sel = document.getSelection();
+  let cell = null;
+  if(sel && sel.anchorNode){
+    const el = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
+    cell = el ? el.closest('#a-text-editor td, #a-text-editor th') : null;
+  }
+  if(cell){
+    activeTableCell = cell;
+    tableToolbar.classList.add('visible');
+    hideImageToolbar();
+  }else{
+    tableToolbar.classList.remove('visible');
+  }
+}
+document.addEventListener('selectionchange', updateTableToolbarVisibility);
+
+// Toolbar buttons live outside the editor's contenteditable area, so a plain click would steal
+// focus/selection away from the table cell the user was just in - preventDefault on mousedown
+// keeps the browser's real Selection anchored on that cell through the click, the same trick
+// Quill's own toolbar uses internally.
+tableToolbar.addEventListener('mousedown', (e) => { if(e.target.closest('button')) e.preventDefault(); });
+
+function withActiveTableCell(fn){
+  if(!activeTableCell || !activeTableCell.isConnected){
+    alert('Click inside a table cell first.');
+    return;
+  }
+  const table = activeTableCell.closest('table');
+  const row = activeTableCell.closest('tr');
+  const cellIndex = Array.from(row.children).indexOf(activeTableCell);
+  fn(table, row, cellIndex);
+  updateArticleCharCount();
+  syncArticlePreview();
+}
+
+document.getElementById('tableAddRowBtn').addEventListener('click', () => withActiveTableCell((table, row) => {
+  const newRow = document.createElement('tr');
+  for(let c = 0; c < row.children.length; c++){
+    const td = document.createElement('td');
+    td.textContent = 'Cell';
+    newRow.appendChild(td);
+  }
+  row.after(newRow);
+}));
+
+document.getElementById('tableAddColBtn').addEventListener('click', () => withActiveTableCell((table, row, cellIndex) => {
+  table.querySelectorAll('tr').forEach(tr => {
+    const existing = tr.children[cellIndex];
+    const isHeader = existing && existing.tagName === 'TH';
+    const newCell = document.createElement(isHeader ? 'th' : 'td');
+    newCell.textContent = isHeader ? 'Header' : 'Cell';
+    if(existing) existing.after(newCell); else tr.appendChild(newCell);
+  });
+}));
+
+document.getElementById('tableDelRowBtn').addEventListener('click', () => withActiveTableCell((table, row) => {
+  if(table.querySelectorAll('tr').length <= 1){ alert("Can't delete the last row."); return; }
+  row.remove();
+  activeTableCell = null;
+  tableToolbar.classList.remove('visible');
+}));
+
+document.getElementById('tableDelColBtn').addEventListener('click', () => withActiveTableCell((table, row, cellIndex) => {
+  if(row.children.length <= 1){ alert("Can't delete the last column."); return; }
+  table.querySelectorAll('tr').forEach(tr => { if(tr.children[cellIndex]) tr.children[cellIndex].remove(); });
+  activeTableCell = null;
+  tableToolbar.classList.remove('visible');
+}));
+
+function alignActiveColumn(alignment){
+  withActiveTableCell((table, row, cellIndex) => {
+    table.querySelectorAll('tr').forEach(tr => {
+      if(tr.children[cellIndex]) tr.children[cellIndex].style.textAlign = alignment;
+    });
+  });
+}
+document.getElementById('tableAlignLeftBtn').addEventListener('click', () => alignActiveColumn('left'));
+document.getElementById('tableAlignCenterBtn').addEventListener('click', () => alignActiveColumn('center'));
+document.getElementById('tableAlignRightBtn').addEventListener('click', () => alignActiveColumn('right'));
+
+// ============ IMAGE TOOLBAR ============
+// Quill's default image embed has no resize/position UI at all - inserting one just drops a
+// plain <img> at natural size. Clicking an inserted image shows this toolbar instead, which sets
+// width/float directly on the real <img> element (same direct-DOM-edit-then-resync pattern as
+// the table toolbar above). Width is a percentage of the article column, not a fixed pixel size,
+// so it stays sensible on the real published page regardless of that page's column width.
+const imageToolbar = document.getElementById('imageToolbar');
+let activeImage = null;
+
+function showImageToolbar(img){
+  if(activeImage) activeImage.classList.remove('a-img-selected');
+  activeImage = img;
+  activeImage.classList.add('a-img-selected');
+  tableToolbar.classList.remove('visible');
+  imageToolbar.classList.add('visible');
+  updateImageToolbarActiveStates();
+}
+function hideImageToolbar(){
+  if(activeImage) activeImage.classList.remove('a-img-selected');
+  activeImage = null;
+  imageToolbar.classList.remove('visible');
+}
+function updateImageToolbarActiveStates(){
+  if(!activeImage) return;
+  const width = activeImage.style.width || '';
+  imageToolbar.querySelectorAll('[data-width]').forEach(btn => {
+    btn.classList.toggle('active', width === `${btn.dataset.width}%`);
+  });
+  const align = activeImage.dataset.align || 'center';
+  document.getElementById('imgAlignLeftBtn').classList.toggle('active', align === 'left');
+  document.getElementById('imgAlignCenterBtn').classList.toggle('active', align === 'center');
+  document.getElementById('imgAlignRightBtn').classList.toggle('active', align === 'right');
+}
+
+document.getElementById('a-text-editor').addEventListener('click', (e) => {
+  const img = e.target.closest('img');
+  if(img) showImageToolbar(img);
+});
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('#imageToolbar') && !e.target.closest('#a-text-editor img')){
+    hideImageToolbar();
+  }
+});
+imageToolbar.addEventListener('mousedown', (e) => { if(e.target.closest('button')) e.preventDefault(); });
+
+imageToolbar.querySelectorAll('[data-width]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if(!activeImage) return;
+    activeImage.style.width = `${btn.dataset.width}%`;
+    activeImage.style.height = 'auto';
+    updateImageToolbarActiveStates();
+    updateArticleCharCount();
+    syncArticlePreview();
+  });
+});
+
+function setImageAlign(align){
+  if(!activeImage) return;
+  activeImage.dataset.align = align;
+  if(align === 'left'){
+    activeImage.style.float = 'left';
+    activeImage.style.margin = '0 14px 10px 0';
+    activeImage.style.display = '';
+  }else if(align === 'right'){
+    activeImage.style.float = 'right';
+    activeImage.style.margin = '0 0 10px 14px';
+    activeImage.style.display = '';
+  }else{
+    activeImage.style.float = 'none';
+    activeImage.style.display = 'block';
+    activeImage.style.margin = '10px auto';
+  }
+  updateImageToolbarActiveStates();
+  updateArticleCharCount();
+  syncArticlePreview();
+}
+document.getElementById('imgAlignLeftBtn').addEventListener('click', () => setImageAlign('left'));
+document.getElementById('imgAlignCenterBtn').addEventListener('click', () => setImageAlign('center'));
+document.getElementById('imgAlignRightBtn').addEventListener('click', () => setImageAlign('right'));
+
+document.getElementById('imgRemoveBtn').addEventListener('click', () => {
+  if(!activeImage) return;
+  const img = activeImage;
+  hideImageToolbar();
+  img.remove();
+  updateArticleCharCount();
+  syncArticlePreview();
+});
+
 // ============ MATH SYMBOL PICKER ============
 const MATH_SYMBOLS = ['×', '÷', '±', '≥', '≤', '≈', '≠', '→', '←', '∞', '°', '√', '²', '³', '½', '¼'];
 const mathPicker = document.getElementById('mathPicker');
@@ -1603,97 +1835,7 @@ document.getElementById('articleImageFileInput').addEventListener('change', (e) 
   e.target.value = '';
 });
 
-// ============ DRAG-TO-REORDER ============
-// Quill's content model doesn't natively support reordering top-level blocks (paragraphs,
-// tables, battle parties) by dragging. This adds a small handle next to each block instead of
-// modifying Quill's own contenteditable content directly (which risks Quill stripping foreign
-// elements on its next internal render) - the handles live in a separate absolutely-positioned
-// overlay, kept in sync with each block's actual position. Reordering itself works by moving the
-// real DOM nodes directly; Quill's own MutationObserver (the same mechanism that already makes
-// dangerouslyPasteHTML() work for table/battle-party insertion) picks up the change, but the
-// preview/char-count sync is also triggered manually here as a safety net either way.
-const dragHandlesOverlay = document.getElementById('dragHandlesOverlay');
 const aEditorWrap = document.getElementById('aEditorWrap');
-const aEditorDropLine = document.getElementById('aEditorDropLine');
-let draggedBlockIndex = null;
-
-function refreshDragHandles(){
-  const blocks = Array.from(articleQuill.root.children);
-  dragHandlesOverlay.innerHTML = blocks.map((block, i) => {
-    const top = block.offsetTop;
-    const height = block.offsetHeight;
-    return `<div class="drag-handle" draggable="true" data-index="${i}" style="top:${top}px; height:${Math.min(height, 28)}px;" title="Drag to reorder">&#8942;&#8942;</div>`;
-  }).join('');
-}
-
-dragHandlesOverlay.addEventListener('dragstart', (e) => {
-  const handle = e.target.closest('.drag-handle');
-  if(!handle) return;
-  draggedBlockIndex = parseInt(handle.dataset.index, 10);
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', String(draggedBlockIndex));
-});
-
-aEditorWrap.addEventListener('dragover', (e) => {
-  if(draggedBlockIndex === null) return;
-  e.preventDefault();
-  const blocks = Array.from(articleQuill.root.children);
-  const wrapRect = aEditorWrap.getBoundingClientRect();
-  let targetTop = null;
-  for(const block of blocks){
-    const rect = block.getBoundingClientRect();
-    const mid = rect.top + rect.height / 2;
-    if(e.clientY < mid){
-      targetTop = rect.top - wrapRect.top;
-      break;
-    }
-  }
-  if(targetTop === null){
-    const lastBlock = blocks[blocks.length - 1];
-    targetTop = lastBlock ? (lastBlock.getBoundingClientRect().bottom - wrapRect.top) : 0;
-  }
-  aEditorDropLine.style.top = `${targetTop}px`;
-  aEditorDropLine.style.display = 'block';
-});
-
-aEditorWrap.addEventListener('dragleave', (e) => {
-  if(e.target === aEditorWrap || !aEditorWrap.contains(e.relatedTarget)){
-    aEditorDropLine.style.display = 'none';
-  }
-});
-
-aEditorWrap.addEventListener('drop', (e) => {
-  e.preventDefault();
-  aEditorDropLine.style.display = 'none';
-  if(draggedBlockIndex === null) return;
-
-  const blocks = Array.from(articleQuill.root.children);
-  const draggedNode = blocks[draggedBlockIndex];
-  if(!draggedNode) { draggedBlockIndex = null; return; }
-
-  let insertBeforeNode = null;
-  for(const block of blocks){
-    if(block === draggedNode) continue;
-    const rect = block.getBoundingClientRect();
-    if(e.clientY < rect.top + rect.height / 2){
-      insertBeforeNode = block;
-      break;
-    }
-  }
-
-  if(insertBeforeNode){
-    articleQuill.root.insertBefore(draggedNode, insertBeforeNode);
-  }else{
-    articleQuill.root.appendChild(draggedNode);
-  }
-
-  draggedBlockIndex = null;
-  refreshDragHandles();
-  updateArticleCharCount();
-  syncArticlePreview();
-});
-
-articleQuill.on('text-change', refreshDragHandles);
 
 function escapeHtml(str){
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -1726,7 +1868,6 @@ function setMode(mode){
 }
 modeGuideBtn.addEventListener('click', () => setMode('guide'));
 modeArticleBtn.addEventListener('click', () => setMode('article'));
-modeArticleBtn.addEventListener('click', () => setTimeout(refreshDragHandles, 50));
 
 // support ?mode=article in the URL, so a link from a real article page's "Edit this article"
 // button lands here in article mode rather than the default guide mode

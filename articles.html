@@ -194,7 +194,7 @@ loadArticleList();
 async function loadArticleList(){
   let articles = [];
   try{
-    const res = await fetch("data/articles/index.json", { cache: "no-store" });
+    const res = await fetch("articles/index.json", { cache: "no-store" });
     if(!res.ok) throw new Error("HTTP " + res.status);
     const data = await res.json();
     articles = data.articles || [];
@@ -210,7 +210,7 @@ async function loadArticleList(){
   }
 
   articleGrid.innerHTML = articles.map(a => `
-    <a class="guide-card" href="data/articles/${escapeAttr(a.slug)}.html">
+    <a class="guide-card" href="articles/${escapeAttr(a.slug)}.html">
       <div>
         <div class="guide-card-name">${escapeAttr(a.title)}</div>
         <div class="guide-card-cta">${escapeAttr(a.category)} &middot; Read article &rarr;</div>
