@@ -3318,11 +3318,38 @@ function populateMoveSelect(baseId, moveList){
   onMoveSelectChange(baseId);
 }
 
+let ELITE_MOVES_BY_POKEMON = {};
+async function loadEliteMoves(){
+  // Note: this file already has its own parseCSV() (returns raw rows, header included) for its
+  // existing tier5-bosses.csv import - reusing that directly here rather than introducing the
+  // separate csv-utils.js helper (which returns header-keyed objects) to avoid a same-name
+  // function collision between the two. If csv-utils.js is ever added to this file for other
+  // data, this and the existing parseCSV() will need to be reconciled into one convention.
+  try{
+    const res = await fetch("data/elite-moves.csv", { cache: "no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    const rows = parseCSV(text).slice(1); // drop header row
+    rows.forEach(([pokemon, move]) => {
+      if(!pokemon) return;
+      (ELITE_MOVES_BY_POKEMON[pokemon] = ELITE_MOVES_BY_POKEMON[pokemon] || []).push(move);
+    });
+  }catch(e){ /* boss dropdown just won't filter Elite moves if this fails to load */ }
+}
+loadEliteMoves();
+
 function updateMoveOptionsFor(nameFieldId, cmBaseId, fmBaseId){
   const name = document.getElementById(nameFieldId).value.trim().toLowerCase();
   const entry = POKEMON_MOVEPOOL[name];
-  populateMoveSelect(fmBaseId, entry ? entry.fast : []);
-  populateMoveSelect(cmBaseId, entry ? entry.charged : []);
+  // Real raid bosses can never have an Elite-TM-exclusive move - only filter this out for the
+  // boss dropdown specifically; a player's own caught Pokemon (the "pokemonName" field) can
+  // legitimately have one, so that field's move list is untouched.
+  const isBoss = nameFieldId === "bossName";
+  const elite = isBoss ? new Set(ELITE_MOVES_BY_POKEMON[name] || []) : null;
+  const fastList = entry ? (elite ? entry.fast.filter(m => !elite.has(m)) : entry.fast) : [];
+  const chargeList = entry ? (elite ? entry.charged.filter(m => !elite.has(m)) : entry.charged) : [];
+  populateMoveSelect(fmBaseId, fastList);
+  populateMoveSelect(cmBaseId, chargeList);
 }
 
 function onMoveSelectChange(baseId){
