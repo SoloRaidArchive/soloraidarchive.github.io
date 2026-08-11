@@ -302,6 +302,25 @@
   .article-body li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
   .article-body li[data-list="ordered"]{ counter-increment:list-0; }
   .article-body li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
+  .article-body img{ max-width:100%; height:auto; border-radius:8px; cursor:zoom-in; }
+  @media (max-width: 600px){
+    /* A floated image at a fixed percentage width (set via the resize toolbar for a wide desktop
+       column) can become an unreadably small sliver once that same percentage is of a narrow
+       phone screen instead - drop the float and let it go full-width there so it's still legible. */
+    .article-body img[style*="float"]{ float:none !important; width:100% !important; margin:10px 0 !important; display:block; }
+  }
+  .img-lightbox-overlay{
+    display:none; position:fixed; inset:0; background:rgba(10,12,20,0.9); z-index:9999;
+    align-items:center; justify-content:center; padding:24px; cursor:zoom-out;
+  }
+  .img-lightbox-overlay.visible{ display:flex; }
+  .img-lightbox-img{ max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5); cursor:default; }
+  .img-lightbox-close{
+    position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,0.12); color:#fff; border:none; font-size:22px; line-height:1;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .img-lightbox-close:hover{ background:rgba(255,255,255,0.25); }
   .mechanic-preview{
     position:fixed; z-index:60; width:240px; background: var(--card); border:2px solid var(--border);
     border-radius:12px; padding:8px; box-shadow:0 10px 28px rgba(0,0,0,0.22);
@@ -633,6 +652,11 @@
       </div>
     </div>
   </div>
+</div>
+
+<div class="img-lightbox-overlay" id="imgLightboxOverlay">
+  <button type="button" class="img-lightbox-close" id="imgLightboxCloseBtn" aria-label="Close">&times;</button>
+  <img class="img-lightbox-img" id="imgLightboxImg" src="" alt="">
 </div>
 
 <div class="mechanic-preview" id="mechanicPreview">
@@ -1840,6 +1864,32 @@ document.getElementById('articleImageFileInput').addEventListener('change', (e) 
 });
 
 const aEditorWrap = document.getElementById('aEditorWrap');
+
+// ============ ARTICLE IMAGE LIGHTBOX ============
+// Tap/click any image inside an .article-body to see it at full resolution. Delegated on
+// document rather than bound per-image, since the preview pane's content gets replaced wholesale
+// on every keystroke (innerHTML =) - a listener attached to a specific <img> node would be gone
+// the moment that node gets re-created. This only matches images inside .article-body, which is
+// the read-only preview pane here - the resize/position toolbar's own click handling on the live
+// Quill editing area (#a-text-editor) is a separate region, so the two never conflict.
+const imgLightboxOverlay = document.getElementById('imgLightboxOverlay');
+const imgLightboxImg = document.getElementById('imgLightboxImg');
+function openImgLightbox(src, alt){
+  imgLightboxImg.src = src;
+  imgLightboxImg.alt = alt || '';
+  imgLightboxOverlay.classList.add('visible');
+}
+function closeImgLightbox(){
+  imgLightboxOverlay.classList.remove('visible');
+  imgLightboxImg.src = '';
+}
+document.addEventListener('click', (e) => {
+  const img = e.target.closest('.article-body img');
+  if(img){ openImgLightbox(img.currentSrc || img.src, img.alt); return; }
+  if(e.target === imgLightboxOverlay) closeImgLightbox();
+});
+document.getElementById('imgLightboxCloseBtn').addEventListener('click', closeImgLightbox);
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeImgLightbox(); });
 
 function escapeHtml(str){
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
