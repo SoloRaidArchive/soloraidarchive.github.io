@@ -404,16 +404,11 @@
 
 <script>
 const MOVE_TYPES = {
-  "Counter": {type:"Fighting", color:"#A2402A"},
-  "Fire Spin": {type:"Fire", color:"#E2661C"},
-  "Ember": {type:"Fire", color:"#E2661C"},
-  "Brave Bird": {type:"Flying", color:"#8B93E0"},
-  "Focus Blast": {type:"Fighting", color:"#A2402A"},
-  "Overheat": {type:"Fire", color:"#E2661C"},
-  "Stone Edge": {type:"Rock", color:"#B5651D"},
-  "Blast Burn": {type:"Fire", color:"#E2661C"},
-  "Blaze Kick": {type:"Fire", color:"#E2661C"},
-  "Aura Sphere": {type:"Fighting", color:"#A2402A"},
+  "Confusion": {type:"Psychic", color:"#E0426E"},
+  "Extrasensory": {type:"Psychic", color:"#E0426E"},
+  "Fire Blast": {type:"Fire", color:"#E2661C"},
+  "Future Sight": {type:"Psychic", color:"#E0426E"},
+  "Swift": {type:"Normal", color:"#9199A1"},
 };
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
@@ -594,13 +589,6 @@ async function loadGuide(){
     }
     loadedStrategies = data.strategies;
 
-    // Two strategies can legitimately share the same difficulty/weather/adventureEffect combo -
-    // they're not duplicates, just different battle-party approaches to the same conditions (see
-    // "Mega Rayquaza or Mega Mewtwo Recycle" vs "Shadow Mewtwo Party" here, both 2* Extreme).
-    // Submissions were never meant to be deduped on that combo. What was broken is that they
-    // rendered as two identically-labeled tab buttons with no way to tell them apart. Strategies
-    // sharing a label now collapse into one dropdown button, with one menu item per strategy
-    // named after its strategyName.
     const groups = [];
     const groupIndexByLabel = new Map();
     data.strategies.forEach((s, i) => {
