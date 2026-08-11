@@ -546,6 +546,10 @@
     </div>
 
     <div id="articleModeFields" style="display:none;">
+      <div class="info-line info-line-editing" id="articleEditingBanner" style="display:none;">
+        &#9998; Editing an existing article - saving will update it in place, not create a new one.
+        <button type="button" class="cancel-edit-btn" id="cancelArticleEditBtn">Cancel</button>
+      </div>
       <div class="field-group">
         <label class="field-label">Article title</label>
         <input type="text" id="a-title" placeholder="e.g. Best Counters for Legendary Birds">
@@ -1869,11 +1873,64 @@ function setMode(mode){
 modeGuideBtn.addEventListener('click', () => setMode('guide'));
 modeArticleBtn.addEventListener('click', () => setMode('article'));
 
-// support ?mode=article in the URL, so a link from a real article page's "Edit this article"
-// button lands here in article mode rather than the default guide mode
+// ============ ARTICLE EDITING ============
+// Mirrors the guide-strategy edit/cancel pattern: loads an existing article's real content by
+// slug (rather than just switching to a blank article-mode form), tracks which slug is being
+// edited, and submitArticleForm() below includes that slug so the Worker updates the existing
+// file in place instead of creating a new one.
+let editingArticleSlug = null;
+
+async function loadArticleForEditing(slug){
+  const status = document.getElementById('article-submit-status');
+  try{
+    const res = await fetch(`articles/${slug}.json`, { cache: "no-store" });
+    if(!res.ok) throw new Error(`Article not found (${res.status})`);
+    const data = await res.json();
+
+    editingArticleSlug = slug;
+    document.getElementById('a-title').value = data.title || "";
+    document.getElementById('a-category').value = data.category || document.getElementById('a-category').value;
+    document.getElementById('a-submitted-by').value = data.submittedBy || "";
+    if(articleQuill) articleQuill.root.innerHTML = data.body || "<p><br></p>";
+    pendingImageUploads = [];
+
+    document.getElementById('articleEditingBanner').style.display = 'flex';
+    document.getElementById('article-submit-btn').disabled = false;
+    document.getElementById('article-submit-btn').textContent = "Save changes to this article";
+
+    updateArticleCharCount();
+    syncArticlePreview();
+  }catch(e){
+    status.textContent = `Couldn't load "${slug}" for editing: ${e.message}`;
+    status.style.color = "#c62828";
+  }
+}
+
+function cancelArticleEdit(){
+  editingArticleSlug = null;
+  document.getElementById('articleEditingBanner').style.display = 'none';
+  document.getElementById('a-title').value = "";
+  document.getElementById('a-submitted-by').value = "";
+  if(articleQuill) articleQuill.setText("");
+  pendingImageUploads = [];
+  document.getElementById('article-submit-btn').textContent = "Submit for review";
+  document.getElementById('article-submit-btn').disabled = true;
+  updateArticleCharCount();
+  syncArticlePreview();
+}
+document.getElementById('cancelArticleEditBtn').addEventListener('click', cancelArticleEdit);
+
+// support ?mode=article (land in article-writing mode) and, additionally, ?article={slug} to
+// load that article's real content for editing rather than starting from a blank form - a link
+// from a real article page's "Edit this article" button passes both.
 try{
-  const modeParam = new URLSearchParams(window.location.search).get('mode');
-  if(modeParam === 'article') setMode('article');
+  const params = new URLSearchParams(window.location.search);
+  const modeParam = params.get('mode');
+  const articleParam = params.get('article');
+  if(modeParam === 'article'){
+    setMode('article');
+    if(articleParam) loadArticleForEditing(articleParam);
+  }
 }catch(e){}
 
 // ============ ARTICLE LIVE PREVIEW ============
@@ -2139,6 +2196,7 @@ async function submitArticleForm(){
     body: cleanedBody,
     submittedBy: document.getElementById('a-submitted-by').value.trim() || "Anonymous",
     images: pendingImageUploads.map(u => ({ tempId: u.tempId, base64: u.base64, filename: u.filename })),
+    ...(editingArticleSlug ? { editSlug: editingArticleSlug } : {}),
   };
 
   try{
@@ -2150,9 +2208,11 @@ async function submitArticleForm(){
     const data = await res.json();
     if(!res.ok || !data.ok) throw new Error(data.error || `Request failed (${res.status})`);
 
-    status.innerHTML = `Submitted! <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--blue-dark); font-weight:700;">View the pull request &rarr;</a><br>A maintainer will review it before it goes live.`;
+    status.innerHTML = `${editingArticleSlug ? "Updated!" : "Submitted!"} <a href="${data.prUrl}" target="_blank" rel="noopener noreferrer" style="color:var(--blue-dark); font-weight:700;">View the pull request &rarr;</a><br>A maintainer will review it before it goes live.`;
     status.style.color = "#1f9d5c";
 
+    editingArticleSlug = null;
+    document.getElementById('articleEditingBanner').style.display = 'none';
     document.getElementById('a-title').value = "";
     document.getElementById('a-submitted-by').value = "";
     articleQuill.setText("");
@@ -2163,7 +2223,7 @@ async function submitArticleForm(){
     status.style.color = "#c62828";
   }finally{
     articleSubmitBtn.disabled = false;
-    articleSubmitBtn.textContent = "Submit for review";
+    articleSubmitBtn.textContent = editingArticleSlug ? "Save changes to this article" : "Submit for review";
   }
 }
 
