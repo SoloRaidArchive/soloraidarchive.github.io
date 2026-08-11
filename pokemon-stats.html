@@ -101,12 +101,13 @@
     text-align:center; font-family:'Inter', sans-serif; font-size:12px;
     color: var(--ink-dim); margin-bottom:14px;
   }
-  .pkmn-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap:12px; }
+  .pkmn-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap:12px; align-items:start; }
   .pkmn-card{
     background: var(--card); border:2px solid var(--border); border-radius:14px;
     padding: 14px 16px; box-shadow: 0 1px 2px rgba(26,29,41,0.04); min-width:0;
-    display:flex; align-items:center; gap:12px;
+    display:flex; flex-direction:column;
   }
+  .pkmn-card-main{ display:flex; align-items:center; gap:12px; }
   .pkmn-sprite{
     width:52px; height:52px; border-radius:10px; flex-shrink:0;
     background: #f0f0f2; border:2px solid var(--border);
@@ -130,6 +131,39 @@
   .bar-fill.atk{ background: linear-gradient(90deg,#ff7a7a,#ff5b5b); }
   .bar-fill.def{ background: linear-gradient(90deg,#5aa9ff,#3d9dff); }
   .bar-fill.hp{ background: linear-gradient(90deg,#6fe0a0,#4cd08a); }
+
+  .move-toggle-btn{
+    width:100%; margin-top:10px; border:1.5px solid var(--border); background:transparent;
+    border-radius:8px; padding:6px; font-size:12px; color: var(--ink-muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+    font-family:'Inter', sans-serif;
+  }
+  .move-toggle-btn:hover{ background: var(--bg1); }
+  [data-theme="dark"] .move-toggle-btn:hover{ background:#161a28; }
+  .move-panel{
+    display:none; height:150px; overflow-y:auto; margin-top:10px; padding-top:10px;
+    border-top:1.5px solid var(--border);
+  }
+  .move-panel.open{ display:block; }
+  .move-cat-label{
+    font-size:10px; font-weight:800; color: var(--ink-dim); text-transform:uppercase;
+    letter-spacing:0.04em; margin-bottom:5px; font-family:'Manrope', sans-serif;
+  }
+  .move-chip-row{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+  .move-chip-row:last-child{ margin-bottom:0; }
+  .move-chip{
+    display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:2px 8px;
+    border-radius:999px; white-space:nowrap; background: var(--bg1); color: var(--ink);
+    border:1px solid var(--border);
+  }
+  .move-chip.charge{ font-weight:600; }
+  .move-chip-icon{ width:13px; height:13px; flex-shrink:0; object-fit:contain; }
+  .move-various{ font-size:11px; color: var(--ink-dim); font-style:italic; }
+  .move-note{
+    font-size:10.5px; color: var(--ink-dim); font-style:italic; margin-top:8px;
+    display:flex; align-items:flex-start; gap:4px; line-height:1.35;
+  }
+  .move-note svg{ flex-shrink:0; margin-top:1px; }
 
   .empty{ text-align:center; color: var(--ink-dim); padding:60px 20px; font-family:'Inter', sans-serif; }
 
@@ -315,6 +349,7 @@
   <div class="pkmn-grid" id="pkmnGrid"></div>
 </div>
 
+<script src="data/csv-utils.js"></script>
 <script>
 const POKEMON_DB = [
 {n:"Bulbasaur",hp:128.0,atk:118.0,def:111.0},{n:"Ivysaur",hp:155.0,atk:151.0,def:143.0},{n:"Venusaur",hp:190.0,atk:198.0,def:189.0},{n:"Mega Venusaur",hp:190.0,atk:241.0,def:246.0},{n:"Charmander",hp:118.0,atk:116.0,def:93.0},{n:"Charmeleon",hp:151.0,atk:158.0,def:126.0},
@@ -518,6 +553,99 @@ const POKEMON_DB = [
 {n:"Hydrapple",hp:235.0,atk:216.0,def:186.0},{n:"Gouging Fire",hp:213.0,atk:205.0,def:208.0},{n:"Raging Bolt",hp:245.0,atk:235.0,def:165.0},{n:"Iron Boulder",hp:189.0,atk:227.0,def:195.0},{n:"Iron Crown",hp:189.0,atk:221.0,def:200.0},{n:"Terapagos",hp:207.0,atk:126.0,def:165.0},
 {n:"Pecharunt",hp:204.0,atk:181.0,def:273.0},
 ];
+
+// ============ MOVE DATA (loaded from CSV - single source of truth) ============
+// Movepool, move types, and elite-move list all come from data/*.csv so editing the sheet
+// updates every page. Elite-TM-exclusive moves are stripped here because this page is used to
+// assess raid bosses, which can never have an Elite move - matching the ct-calculator's boss
+// dropdown and the guide pages' Boss Info.
+const MOVEPOOL = {};        // lowercase name -> {fast:[], charge:[]}
+const MOVE_TYPES = {};      // move name -> type string
+const ELITE_BY_POKEMON = {};// lowercase name -> Set of elite move names
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
+const CHARGE_CAP = 12;      // above this many charge moves, show "(various)" (only Mew + Smeargle)
+let moveDataReady = false;
+
+async function loadMoveData(){
+  const [movepoolRows, moveRows, eliteRows] = await Promise.all([
+    fetchCSV("data/pokemon-movepool.csv"),
+    fetchCSV("data/moves.csv"),
+    fetchCSV("data/elite-moves.csv"),
+  ]);
+  moveRows.forEach(r => { MOVE_TYPES[r.name] = r.type; });
+  eliteRows.forEach(r => {
+    const k = r.pokemon.toLowerCase();
+    (ELITE_BY_POKEMON[k] = ELITE_BY_POKEMON[k] || new Set()).add(r.move);
+  });
+  movepoolRows.forEach(r => {
+    const k = r.pokemon.toLowerCase();
+    if(!MOVEPOOL[k]) MOVEPOOL[k] = { fast: [], charge: [] };
+    const bucket = r.category === "charge" ? "charge" : "fast";
+    MOVEPOOL[k][bucket].push(r.move);
+  });
+  moveDataReady = true;
+}
+
+// Collapse the 18 "Hidden Power <type>" variants into a single chip - they otherwise blow up the
+// fast-move list (Togekiss, Starmie, etc. show 18-20 fast moves) and break the fixed card height.
+function collapseHiddenPower(list){
+  const out = []; let seen = false;
+  for(const m of list){
+    if(m.indexOf("Hidden Power") === 0){ if(!seen){ out.push("Hidden Power"); seen = true; } }
+    else out.push(m);
+  }
+  return out;
+}
+
+// Returns the boss-legal movepool for a name (elite moves removed), or null if none on file.
+function bossMovepoolFor(name){
+  const key = name.toLowerCase();
+  const mp = MOVEPOOL[key];
+  if(!mp) return null;
+  const baseKey = key.replace(/^(mega |primal |shadow |alolan |galarian |hisuian )/, "");
+  const elite = ELITE_BY_POKEMON[key] || ELITE_BY_POKEMON[baseKey] || null;
+  const strip = list => elite ? list.filter(m => !elite.has(m)) : list;
+  return { fast: strip(mp.fast), charge: strip(mp.charge) };
+}
+
+function moveChipHtml(name, isCharge){
+  const type = MOVE_TYPES[name];
+  const icon = type
+    ? `<img class="move-chip-icon" src="${TYPE_ICON_BASE}${type.toLowerCase()}.svg" alt="${type}" title="${type}" onerror="this.remove();">`
+    : "";
+  return `<span class="move-chip${isCharge ? " charge" : ""}">${icon}${name}</span>`;
+}
+
+function movePanelHtml(name){
+  const mp = bossMovepoolFor(name);
+  if(!mp || (!mp.fast.length && !mp.charge.length)){
+    return `<div class="move-various">No move data on file.</div>`;
+  }
+  const capped = mp.charge.length > CHARGE_CAP || mp.fast.length > 40;
+  if(capped){
+    return `
+      <div class="move-cat-label">Fast</div>
+      <div class="move-chip-row"><span class="move-various">various</span></div>
+      <div class="move-cat-label">Charge</div>
+      <div class="move-chip-row"><span class="move-various">various</span></div>
+      <div class="move-note"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Learns almost every move - full list omitted.</div>`;
+  }
+  const fast = collapseHiddenPower(mp.fast);
+  return `
+    <div class="move-cat-label">Fast</div>
+    <div class="move-chip-row">${fast.map(m => moveChipHtml(m, false)).join("")}</div>
+    <div class="move-cat-label">Charge</div>
+    <div class="move-chip-row">${mp.charge.map(m => moveChipHtml(m, true)).join("")}</div>`;
+}
+
+function toggleMoves(btn){
+  const panel = btn.nextElementSibling;
+  const open = !panel.classList.contains("open");
+  panel.classList.toggle("open", open);
+  btn.querySelector(".move-toggle-caret").innerHTML = open ? "&#9650;" : "&#9660;";
+  btn.querySelector(".move-toggle-text").textContent = open ? "Hide moves" : "Show moves";
+}
+
 // ============ SPRITE LOOKUP (same approach as the raid archives / calculator) ============
 const DB_OVERRIDES = {
   "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
@@ -691,16 +819,20 @@ function cardHtml(p){
   const adjHp = Math.floor((p.hp + 15) * cpm);
   return `
   <div class="pkmn-card">
-    <div class="pkmn-sprite">
-      <img class="${needsShadowMist(p.n) ? 'shadow-mist' : ''}" src="${spriteUrl(p.n)}" alt="${p.n}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${p.n}')) { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
-      <div class="pkmn-sprite-fallback">?</div>
+    <div class="pkmn-card-main">
+      <div class="pkmn-sprite">
+        <img class="${needsShadowMist(p.n) ? 'shadow-mist' : ''}" src="${spriteUrl(p.n)}" alt="${p.n}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${p.n}')) { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
+        <div class="pkmn-sprite-fallback">?</div>
+      </div>
+      <div class="pkmn-info">
+        <div class="pkmn-name">${p.n}</div>
+        ${statBarHtml("atk", "ATK", adjAtk)}
+        ${statBarHtml("def", "DEF", adjDef)}
+        ${statBarHtml("hp", "HP", adjHp)}
+      </div>
     </div>
-    <div class="pkmn-info">
-      <div class="pkmn-name">${p.n}</div>
-      ${statBarHtml("atk", "ATK", adjAtk)}
-      ${statBarHtml("def", "DEF", adjDef)}
-      ${statBarHtml("hp", "HP", adjHp)}
-    </div>
+    <button type="button" class="move-toggle-btn" onclick="toggleMoves(this)"><span class="move-toggle-caret">&#9660;</span> <span class="move-toggle-text">Show moves</span></button>
+    <div class="move-panel">${movePanelHtml(p.n)}</div>
   </div>`;
 }
 
@@ -755,6 +887,11 @@ document.querySelectorAll("#showLimitList .hamburger-item").forEach(btn => {
 document.getElementById("levelInput").addEventListener("input", render);
 document.getElementById("noCpmToggle").addEventListener("change", render);
 render();
+
+// Move data loads asynchronously - render stats immediately (unchanged), then re-render once the
+// CSVs are in so the move panels populate. If the CSVs fail to load, the stats page still works;
+// panels just show "No move data on file."
+loadMoveData().then(render).catch(e => console.error("Move data failed to load:", e));
 
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
