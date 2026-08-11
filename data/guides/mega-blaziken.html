@@ -417,7 +417,7 @@ function moveChipHtml(name, isCharge){
   return `<span class="move-chip${isCharge ? " charge" : ""}">${icon}${name}</span>`;
 }
 document.getElementById('fast-move-row').innerHTML = ["Counter","Fire Spin","Ember"].map(m => moveChipHtml(m, false)).join('');
-document.getElementById('charge-move-row').innerHTML = ["Brave Bird","Focus Blast","Overheat","Stone Edge","Blast Burn","Blaze Kick","Aura Sphere"].map(m => moveChipHtml(m, true)).join('');
+document.getElementById('charge-move-row').innerHTML = ["Brave Bird","Focus Blast","Overheat","Blaze Kick","Aura Sphere"].map(m => moveChipHtml(m, true)).join('');
 
 // ============ SPRITE RESOLUTION (full system - was regressed to a naive version during
 // an earlier rebuild of this page; restored here to match editor.html and the rest of the site) ============
