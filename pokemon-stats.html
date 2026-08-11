@@ -567,11 +567,19 @@ const CHARGE_CAP = 12;      // above this many charge moves, show "(various)" (o
 let moveDataReady = false;
 
 async function loadMoveData(){
-  const [movepoolRows, moveRows, eliteRows] = await Promise.all([
+  // Load each CSV independently so one missing/broken file doesn't kill the others. Movepool and
+  // move types are essential (no panels without them); the elite list is optional - if it fails,
+  // moves still show, just unfiltered, rather than the whole feature going dark.
+  const [movepoolRows, moveRows] = await Promise.all([
     fetchCSV("data/pokemon-movepool.csv"),
     fetchCSV("data/moves.csv"),
-    fetchCSV("data/elite-moves.csv"),
   ]);
+  let eliteRows = [];
+  try{
+    eliteRows = await fetchCSV("data/elite-moves.csv");
+  }catch(e){
+    console.warn("elite-moves.csv not loaded - boss moves shown unfiltered:", e.message);
+  }
   moveRows.forEach(r => { MOVE_TYPES[r.name] = r.type; });
   eliteRows.forEach(r => {
     const k = r.pokemon.toLowerCase();
