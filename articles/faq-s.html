@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ&#39;s — Solo Raid Archive</title>
+<link rel="icon" href="../assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/favicon-180.png">
+<link rel="canonical" href="https://soloraidarchive.github.io/articles/faq-s.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FAQ&#39;s">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce; --bg: #ffffff; --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #9aa3b2;
+    --accent: #3d9dff; --accent-soft: #eaf4ff; --accent-dark: #2b7fd6;
+    --blue: #3d9dff; --blue-dark: #2b7fd6;
+  }
+  [data-theme="dark"]{
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024; --bg: #10131d; --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --accent: #5aa9ff; --accent-soft: #232840; --accent-dark: #8cc7ff;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff;
+  }
+  [data-theme="dark"] body{
+    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
+  }
+  *{ box-sizing:border-box; }
+  html{ max-width:100vw; }
+  body{
+    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); color: var(--text);
+    font-family: 'Inter', sans-serif; min-height:100vh;
+  }
+  .page{ max-width:680px; margin:0 auto; padding:20px 20px 60px; }
+  .article-eyebrow{ font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color: var(--blue-dark); text-align:center; margin-bottom:8px; }
+  .article-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:26px; margin:0 0 8px; text-align:center; line-height:1.3; }
+  .edit-guide-row{ text-align:center; margin-bottom:14px; }
+  .edit-guide-btn{
+    display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
+    color: var(--blue-dark); background: var(--accent-soft); padding:6px 14px; border-radius:999px;
+    text-decoration:none;
+  }
+  .edit-guide-btn:hover{ background:#dcecff; }
+  [data-theme="dark"] .edit-guide-btn:hover{ background:#2a3555; }
+  .article-meta-row{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:28px; flex-wrap:wrap; }
+  .article-category{
+    display:inline-block; font-family:'Manrope', sans-serif; font-weight:800; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.03em; color: var(--blue-dark); background: var(--accent-soft);
+    padding:5px 12px; border-radius:999px;
+  }
+  .article-byline{ font-size:12.5px; color: var(--text-dim); }
+  .article-body{
+    background: var(--card); border-radius:16px; padding:24px 26px; font-size:15px; line-height:1.4;
+  }
+  .article-body p{ margin:0 0 14px; }
+  .article-body p:last-child{ margin-bottom:0; }
+  .article-body strong{ font-weight:800; }
+  .article-body a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
+  [data-theme="dark"] .article-body a{ color:#5eead4; }
+  .mechanic-preview{
+    position:fixed; z-index:60; width:240px; background: var(--card); border:2px solid var(--border);
+    border-radius:12px; padding:8px; box-shadow:0 10px 28px rgba(0,0,0,0.22);
+    display:none; pointer-events:none;
+  }
+  .mechanic-preview.visible{ display:block; }
+  .mechanic-preview video{ width:100%; border-radius:7px; display:block; background:#000; }
+  .mechanic-preview-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--text);
+    margin-top:6px; text-align:center;
+  }
+  .article-body h2, .article-body h3, .article-body h4{ font-family:'Manrope', sans-serif; font-weight:800; margin:20px 0 10px; }
+  .article-body ul, .article-body ol{ margin:0 0 14px; padding-left:22px; list-style:none; counter-reset:list-0; }
+  .article-body li{ margin-bottom:4px; }
+  .article-body li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
+  .article-body li[data-list="ordered"]{ counter-increment:list-0; }
+  .article-body li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
+  .article-body img{ max-width:100%; height:auto; border-radius:8px; cursor:zoom-in; }
+  @media (max-width: 600px){
+    .article-body img[style*="float"]{ float:none !important; width:100% !important; margin:10px 0 !important; display:block; }
+  }
+  .img-lightbox-overlay{
+    display:none; position:fixed; inset:0; background:rgba(10,12,20,0.9); z-index:9999;
+    align-items:center; justify-content:center; padding:24px; cursor:zoom-out;
+  }
+  .img-lightbox-overlay.visible{ display:flex; }
+  .img-lightbox-img{ max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.5); cursor:default; }
+  .img-lightbox-close{
+    position:absolute; top:16px; right:16px; width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,0.12); color:#fff; border:none; font-size:22px; line-height:1;
+    cursor:pointer; display:flex; align-items:center; justify-content:center;
+  }
+  .img-lightbox-close:hover{ background:rgba(255,255,255,0.25); }
+  .article-body blockquote{
+    border-left:3px solid var(--accent); margin:14px 0; padding:4px 0 4px 14px; color: var(--text-muted); font-style:italic;
+  }
+  .article-table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:13px; }
+  .article-table th, .article-table td{ border:1.5px solid var(--text-dim); padding:8px 10px; text-align:left; }
+  .article-table th{ background: var(--accent-soft); font-family:'Manrope', sans-serif; font-weight:800; }
+  .article-table tr:nth-child(even) td{ background: var(--bg1); }
+
+  .battle-party{ background: var(--accent-soft); border-radius:12px; padding:12px 14px; margin:14px 0; }
+  @media (min-width:601px){
+    .battle-party{ display:grid; grid-template-columns: 1fr 1fr; gap:2px 20px; align-items:start; }
+    .battle-party-label{ grid-column: 1 / -1; }
+  }
+  .battle-party-label{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--blue-dark); margin-bottom:8px; }
+  .battle-mon{ display:flex; align-items:center; gap:8px; padding:3px 0; font-size:12.5px; }
+  .battle-mon-icon{ width:28px; height:28px; border-radius:50%; background: var(--card); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; position:relative; }
+  .battle-mon-icon.shadow-mist{
+    background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%);
+    box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45);
+  }
+  .battle-mon-icon.shadow-mist::after{
+    content:""; position:absolute; z-index:1; pointer-events:none;
+    top:-60%; left:-30%; width:160%; height:220%;
+    background: radial-gradient(ellipse 40% 28% at 50% 75%, rgba(168,85,247,0.7) 0%, rgba(147,51,234,0) 65%);
+    animation: shadowMistRise 4.5s cubic-bezier(0.33, 0, 0.4, 1) infinite;
+  }
+  @keyframes shadowMistRise{
+    0%{ transform: translateY(28%) scale(0.75); opacity:0; }
+    15%{ opacity:0.7; }
+    55%{ opacity:0.55; }
+    100%{ transform: translateY(-52%) scale(1.15); opacity:0; }
+  }
+  .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; position:relative; z-index:2; }
+  .battle-mon-meta{ color: var(--text-dim); font-size:11px; }
+  .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
+  @media (min-width: 601px){
+    .battle-mon{ padding:4px 0; }
+    .battle-mon > div:last-child{ display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+    .battle-mon-level::after{ content:"\00b7"; margin-left:6px; color: var(--text-dim); font-weight:400; }
+  }
+  .battle-mon.optional{
+    border:1.5px dashed #d9a441; background: rgba(224,160,32,0.08); border-radius:8px;
+    padding:5px 7px; margin:2px 0;
+  }
+  .optional-note{ font-weight:600; color:#b8791a; font-size:10px; }
+  [data-theme="dark"] .optional-note{ color:#e0b060; }
+
+  footer{
+    text-align:center; padding: 24px; font-size:12px; color: var(--text-dim);
+    font-family:'Inter', sans-serif; border-top: 1px solid var(--border); margin-top:20px;
+  }
+
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
+  .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--text); text-align:center; }
+
+  .hamburger-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:hover{ transform: translateY(-2px); }
+  .hamburger-btn span{ display:block; width:19px; height:2.5px; border-radius:2px; background: var(--text); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:fixed; top:66px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 96px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text); background: var(--card); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--accent); color: var(--accent-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1); color: var(--accent-dark); }
+  .hamburger-section a.current{ background: var(--accent); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="../index.html"><img src="../assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Research</div>
+    <a href="../research.html">Most Used Raiders</a>
+    <a href="../ct-database.html">Viable Catch Tanks</a>
+    <a href="../solo-raid-mechanics.html">Solo Raid Mechanics</a>
+    <a href="../guides.html" class="hamburger-featured">Boss Guides</a>
+    <a href="../articles.html" class="hamburger-featured">Research Articles</a>
+    <a href="../meta-battle-parties.html">Meta Battle Parties</a>
+    <a href="../ct-calculator.html">Catch Tank Calculator</a>
+    <a href="../move-data.html">Move Data</a>
+    <a href="../pokemon-stats.html">Pokémon Stats</a>
+    <a href="../reference.html">Difficulty &amp; Role Reference</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Raid Archives</div>
+    <a href="../tier4-raids.html">Mega</a>
+    <a href="../tier5-raids.html">Legendary</a>
+    <a href="../tier5-ae-raids.html">Legendary AE</a>
+    <a href="../tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+  </div>
+</div>
+
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <h1 class="page-title-sm">Article</h1>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+
+<div class="page">
+  <div class="article-eyebrow">Research Article</div>
+  <h1 class="article-title">FAQ&#39;s</h1>
+  <div class="edit-guide-row">
+    <a class="edit-guide-btn" href="../articles.html">&#8592; All Articles</a>
+    <a class="edit-guide-btn" href="../editor.html?mode=article&article=faq-s">&#9998; Edit this article</a>
+  </div>
+  <div class="article-meta-row">
+    <span class="article-category">Community</span>
+    <span class="article-byline">By SpiritedBloom</span>
+  </div>
+  <div class="article-body"><h3>Guide FAQ's: </h3><h4><strong>Q: Do IV's matter? </strong></h4><p>A: All guides assume IV's do not matter at a baseline. If they do, they will be explicitly mentioned. For a majority of solo raids throughout the archive, they in fact don't matter. </p><h4><strong>Q: Do levels matter? </strong></h4><p>A: Similarly, we will explicitly point out if levels decide whether a raid is soloable or not. Each battle party can either show levels or a range of levels. Of course generally higher levels are more helpful but they are not significant enough variables to determine something being un-soloable. </p><h4><strong>Q: If I don't have the battle party listed, how do I know I can solo it? </strong></h4><p>A: We will explicitly mention if a battle party is <strong><em>strict</em></strong> or not. Most of times battle parties are not strict; we just list the optimal option for accuracy's sake. In some guides and retroactively through community editing, we'll try to include viable budget counters and context as to their overall DPS above the minimum. </p><h4><strong>Q: How do I know if my counters are good enough? </strong></h4><p>A: Best way is through the main DPS and catch tank calculator. Main DPS calculator tells you how much damage a pokemon is doing when absorbing fast moves only. Catch tank calculator tells you how much DPS is gained through CT rotations or, in that moment, if a regular attacker fully absorbs a charge move. </p><p>Solo Tier 5 raids have an overall minimum of 50 DPS after factoring rejoins. Here's a breakpoint of DPS to Rejoin. (Counted before rejoin time)</p><h4>Tier 5 Legendary Raids: </h4><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>0 Rejoin: 50.0 DPS</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>1 Rejoin: 51.19 DPS </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>2 Rejoins: 52.44 DPS </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>3 Rejoins: 53.76 DPS </li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>4 Rejoins: 55.14 DPS </li></ol><p><strong>Tier 4 (Mega) Raids</strong></p><ol><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>0 Rejoin: 30.00 DPS</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>1 Rejoin: 30.71 DPS</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>2 Rejoins: 31.46 DPS</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>3 Rejoins: 32.25 DPS</li><li data-list="bullet"><span class="ql-ui" contenteditable="false"></span>4 Rejoins: 33.08 DPS</li></ol><p>The math is as simple as subtracting rejoin time then doing total damage/remaining time. E.g 2 rejoin 15000/286 = 52.44 DPS</p><p><br></p><h4>Q: Where can I learn about solo mechanics, how do I improve? </h4><p>A: For quick review on mechanics visit our glossary here: <a href="https://soloraidarchive.github.io/solo-raid-mechanics.html" target="_blank">Solo Raid Mechanics [Clips and short desciption]</a>, for an indepth tutorial video and voiceovers, check out this introduction playlist. <a href="https://www.youtube.com/watch?v=wUqMdYEkLck&amp;list=PLyQYzEAaBlfeb8CJRt-FnF7936qIvOktr" target="_blank">Introduction to Solo raid Mechanics tutorial videos (SpiritedBloom)</a></p><p>We have a calculator for theorycraft &amp; an archive to observe how other players defeated tough challenges. Solo raids are all about showing that player ingenuity and skill will always push above simulators. Practice makes perfect and enjoy the theorycraft! </p><h4>Q: Pokegenie, Pokebattler and other simulators say this is not soloable, are they just inaccurate?</h4><p>A: They aren't wrong but they are inaccurate. Simulators are bots playing in place of humans with no adaptation to strategy, preparation or theorycraft. They will <strong>always</strong> be several steps behind the meta. The single best question as to whether something is soloable or not is searching it up in the archive. 99.9% of the time, we'll have either the verified or theoretical approach to the boss. </p><h4>Q: How do I know what moves are good? </h4><p>A: A good starting point is DPS*DPE, something we already have labeled under <a href="https://soloraidarchive.github.io/move-data.html" target="_blank">Move-data</a> as score*. DPS*DPE and EPS*DPS (fast moves) are roughly an ~90% fit for defining move value. In solo raids, a higher value is placed on heavy damaging charge moves due to immense energy gains through catch tanking. </p><p>For the full answer, this is complex and takes experience. Fundamentally, the move which does the most DPS in a viable rotation is the best. DPS*DPE has a good alignment here but sometimes it is not perfect. This is advanced raid territory where utilizing a rotation calculator (link to it on landing page or via pokechespin) will provide the precise answer through trial and error. </p><p><strong>Q: How can I get involved? </strong></p><p>A: Submit a guide or submit a vod from the landing page. Or feel free to reach out to me via discord, my username is: cookieblob.</p></div>
+</div>
+
+<div class="img-lightbox-overlay" id="imgLightboxOverlay">
+  <button type="button" class="img-lightbox-close" id="imgLightboxCloseBtn" aria-label="Close">&times;</button>
+  <img class="img-lightbox-img" id="imgLightboxImg" src="" alt="">
+</div>
+
+<div class="mechanic-preview" id="mechanicPreview">
+  <video id="mechanicPreviewVideo" autoplay loop muted playsinline preload="none"></video>
+  <div class="mechanic-preview-label" id="mechanicPreviewLabel"></div>
+</div>
+
+<footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
+
+<script>
+const imgLightboxOverlay = document.getElementById('imgLightboxOverlay');
+const imgLightboxImg = document.getElementById('imgLightboxImg');
+function openImgLightbox(src, alt){
+  imgLightboxImg.src = src;
+  imgLightboxImg.alt = alt || '';
+  imgLightboxOverlay.classList.add('visible');
+}
+function closeImgLightbox(){
+  imgLightboxOverlay.classList.remove('visible');
+  imgLightboxImg.src = '';
+}
+document.addEventListener('click', (e) => {
+  const img = e.target.closest('.article-body img');
+  if(img){ openImgLightbox(img.currentSrc || img.src, img.alt); return; }
+  if(e.target === imgLightboxOverlay) closeImgLightbox();
+});
+document.getElementById('imgLightboxCloseBtn').addEventListener('click', closeImgLightbox);
+document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeImgLightbox(); });
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+hamburgerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = hamburgerPanel.classList.contains("open");
+  hamburgerPanel.classList.toggle("open", !isOpen);
+  hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+document.addEventListener("click", (e) => {
+  if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
+    hamburgerPanel.classList.remove("open");
+    hamburgerBtn.setAttribute("aria-expanded", "false");
+  }
+});
+
+// mechanic links open in a new tab, matching guide pages
+document.addEventListener('click', e => {
+  const link = e.target.closest('.article-body a');
+  if(link && link.href){
+    e.preventDefault();
+    window.open(link.href, '_blank', 'noopener,noreferrer');
+  }
+});
+
+// ============ MECHANIC HOVER VIDEO PREVIEW ============
+// Same as the guide-page version, but this template lives one folder deep (articles/{slug}.html),
+// not two, so paths use a single ../ instead of ../../.
+function mechanicSlug(name){
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+let mechanicClipMap = null;
+async function loadMechanicClips(){
+  try{
+    const res = await fetch('../data/raid-mechanics.json', { cache: "no-store" });
+    if(!res.ok) return;
+    const data = await res.json();
+    mechanicClipMap = {};
+    (data.sections || []).forEach(sec => {
+      (sec.entries || []).forEach(e => {
+        if(e.clip) mechanicClipMap[mechanicSlug(e.name)] = { clip: e.clip, name: e.name };
+      });
+    });
+  }catch(err){
+    mechanicClipMap = {};
+  }
+}
+loadMechanicClips();
+
+const mechanicPreview = document.getElementById('mechanicPreview');
+const mechanicPreviewVideo = document.getElementById('mechanicPreviewVideo');
+const mechanicPreviewLabel = document.getElementById('mechanicPreviewLabel');
+let mechanicHoverTimer = null;
+
+function showMechanicPreview(link){
+  const match = link.href.match(/#strategy-([a-z0-9-]+)/i);
+  if(!match || !mechanicClipMap) return;
+  const entry = mechanicClipMap[match[1]];
+  if(!entry) return;
+
+  const rect = link.getBoundingClientRect();
+  mechanicPreview.style.left = `${Math.max(8, Math.min(rect.left, window.innerWidth - 256))}px`;
+  const previewHeight = 170;
+  const showAbove = rect.top > previewHeight + 12;
+  mechanicPreview.style.top = showAbove ? `${rect.top - previewHeight - 8}px` : `${rect.bottom + 8}px`;
+
+  mechanicPreviewVideo.querySelectorAll('source').forEach(s => s.remove());
+  const mp4Source = document.createElement('source');
+  mp4Source.src = `../${entry.clip}`;
+  mp4Source.type = 'video/mp4';
+  const webmSource = document.createElement('source');
+  webmSource.src = `../${entry.clip.replace(/\.mp4($|\?)/i, '.webm$1')}`;
+  webmSource.type = 'video/webm';
+  mechanicPreviewVideo.appendChild(mp4Source);
+  mechanicPreviewVideo.appendChild(webmSource);
+  mechanicPreviewVideo.load();
+  mechanicPreviewLabel.textContent = entry.name;
+  mechanicPreview.classList.add('visible');
+}
+function hideMechanicPreview(){
+  clearTimeout(mechanicHoverTimer);
+  mechanicPreview.classList.remove('visible');
+  mechanicPreviewVideo.pause();
+}
+document.addEventListener('mouseover', (e) => {
+  const link = e.target.closest('.article-body a');
+  if(!link) return;
+  clearTimeout(mechanicHoverTimer);
+  mechanicHoverTimer = setTimeout(() => showMechanicPreview(link), 500);
+});
+document.addEventListener('mouseout', (e) => {
+  const link = e.target.closest('.article-body a');
+  if(!link) return;
+  if(link.contains(e.relatedTarget)) return;
+  hideMechanicPreview();
+});
+</script>
+
+</body>
+</html>
