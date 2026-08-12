@@ -116,7 +116,24 @@
     color: var(--text); outline:none; width:100%;
   }
   .name-iv-row{ display:flex; gap:10px; flex-wrap:wrap; }
-  .name-field{ flex:1 1 160px; min-width:140px; }
+  .name-field{ flex:1 1 160px; min-width:140px; position:relative; }
+  /* Width is locked to the name field itself (not the input's natural content width, not a fixed
+     px value) specifically so this can never spill into the IV fields sitting right next to it in
+     the same row, or into the other side's vs-column on desktop - that visual collision is the
+     reason an autocomplete wasn't added here before. */
+  .ac-list{
+    display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:40;
+    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
+    max-height:260px; overflow-y:auto; box-shadow:0 8px 24px rgba(20,24,38,0.18);
+  }
+  .ac-list.open{ display:block; }
+  .ac-item{
+    padding:8px 10px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .ac-item:hover, .ac-item.hi{ background: var(--accent-soft); }
+  [data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
+  .ac-item mark{ background:none; color: var(--blue); font-weight:800; }
   .iv-field{ flex:0 0 62px; }
   .iv-field input{ text-align:center; padding-left:4px; padding-right:4px; }
   .tier-field{ flex:0 0 120px; }
@@ -590,6 +607,7 @@
           <div class="field name-field">
             <label for="pokemonName">Pokémon</label>
             <input id="pokemonName" placeholder="e.g. Shadow Honchkrow" autocomplete="off">
+            <div class="ac-list" id="pokemonName_ac"></div>
           </div>
           <div class="field iv-field">
             <label for="pokemonLevel" title="Valid range: 20–51">Level</label>
@@ -672,6 +690,7 @@
           <div class="field name-field">
             <label for="bossName">Raid Boss</label>
             <input id="bossName" placeholder="e.g. Great Tusk" autocomplete="off">
+            <div class="ac-list" id="bossName_ac"></div>
           </div>
           <div class="field tier-field">
             <label for="bossTier">Tier</label>
@@ -981,6 +1000,7 @@ function needsShadowMist(name){
 }
 
 const POKEMON_TYPES = [
+{n:"Zygarde 50%",t1:"Dragon",t2:"Ground"},{n:"Zygarde 10%",t1:"Dragon",t2:"Ground"},{n:"Zygarde Complete",t1:"Dragon",t2:"Ground"},
 {n:"Bulbasaur",t1:"Grass",t2:"Poison"},{n:"Ivysaur",t1:"Grass",t2:"Poison"},{n:"Venusaur",t1:"Grass",t2:"Poison"},{n:"Charmander",t1:"Fire",t2:""},{n:"Charmeleon",t1:"Fire",t2:""},{n:"Charizard",t1:"Fire",t2:"Flying"},
 {n:"Squirtle",t1:"Water",t2:""},{n:"Wartortle",t1:"Water",t2:""},{n:"Blastoise",t1:"Water",t2:""},{n:"Caterpie",t1:"Bug",t2:""},{n:"Metapod",t1:"Bug",t2:""},{n:"Butterfree",t1:"Bug",t2:"Flying"},
 {n:"Weedle",t1:"Bug",t2:"Poison"},{n:"Kakuna",t1:"Bug",t2:"Poison"},{n:"Beedrill",t1:"Bug",t2:"Poison"},{n:"Pidgey",t1:"Normal",t2:"Flying"},{n:"Pidgeotto",t1:"Normal",t2:"Flying"},{n:"Pidgeot",t1:"Normal",t2:"Flying"},
@@ -1178,11 +1198,23 @@ const TYPE_CHART = {
 // Variant forms whose typing differs from their base species (Shadow/regional-without-override fall back to base)
 const TYPE_OVERRIDES = {
   "mega charizard x": {t1:"fire", t2:"dragon"},
+  "mega mewtwo x": {t1:"psychic", t2:"fighting"},
+  // Legends Z-A Mega Evolutions confirmed to change type from their base species - sourced from
+  // Serebii's official Mega Evolution listings and cross-checked against our own base-species
+  // POKEMON_TYPES entries to confirm each one is a genuine change, not just an assumption.
+  "mega clefable": {t1:"fairy", t2:"flying"},        // base Clefable: Fairy only
+  "mega meganium": {t1:"grass", t2:"fairy"},          // base Meganium: Grass only
+  "mega feraligatr": {t1:"water", t2:"dragon"},       // base Feraligatr: Water only
+  "mega chimecho": {t1:"psychic", t2:"steel"},        // base Chimecho: Psychic only
+  "mega absol z": {t1:"dark", t2:"ghost"},            // base Absol: Dark only
+  "mega staraptor": {t1:"fighting", t2:"flying"},     // base Staraptor: Normal/Flying
+  "mega garchomp z": {t1:"dragon", t2:""},            // base Garchomp: Dragon/Ground - loses Ground
+  "mega barbaracle": {t1:"rock", t2:"fighting"},      // base Barbaracle: Rock/Water
+  "mega golisopod": {t1:"bug", t2:"steel"},           // base Golisopod: Bug/Water
   "mega aggron": {t1:"steel", t2:""},
   "mega sceptile": {t1:"grass", t2:"dragon"},
   "mega gyarados": {t1:"water", t2:"dark"},
   "mega ampharos": {t1:"electric", t2:"dragon"},
-  "mega staraptor": {t1:"flying", t2:"fighting"},
   "primal groudon": {t1:"ground", t2:"fire"},
   "necrozma dusk mane": {t1:"psychic", t2:"steel"},
   "necrozma dawn wings": {t1:"psychic", t2:"ghost"},
@@ -1209,16 +1241,125 @@ const TYPE_OVERRIDES = {
   "enamorus therian": {t1:"fairy", t2:"flying"},
 };
 
+// Explicit base-species mapping for every Mega/Primal Pokemon on the site - hand-verified
+// against Serebii/Bulbapedia rather than derived by stripping "Mega "/"Primal " off the name.
+// String-stripping alone gets most of these right by coincidence, but breaks on anything where
+// the mega form's own name doesn't literally contain its base species' name - e.g. "Mega
+// Complete Zygarde" naively strips to "Complete Zygarde", which doesn't exist; the real base
+// it inherits from is "Zygarde 50%". This map is the single place that relationship is defined,
+// and both type lookup and movepool lookup below read from it.
+const BASE_FORM_MAP = {
+  "mega abomasnow": "abomasnow",
+  "mega absol": "absol",
+  "mega absol z": "absol",
+  "mega aerodactyl": "aerodactyl",
+  "mega aggron": "aggron",
+  "mega alakazam": "alakazam",
+  "mega altaria": "altaria",
+  "mega ampharos": "ampharos",
+  "mega audino": "audino",
+  "mega banette": "banette",
+  "mega barbaracle": "barbaracle",
+  "mega baxcalibur": "baxcalibur",
+  "mega beedrill": "beedrill",
+  "mega blastoise": "blastoise",
+  "mega blaziken": "blaziken",
+  "mega camerupt": "camerupt",
+  "mega chandelure": "chandelure",
+  "mega charizard x": "charizard",
+  "mega charizard y": "charizard",
+  "mega chesnaught": "chesnaught",
+  "mega chimecho": "chimecho",
+  "mega clefable": "clefable",
+  "mega complete zygarde": "zygarde 50%",
+  "mega crabominable": "crabominable",
+  "mega darkrai": "darkrai",
+  "mega delphox": "delphox",
+  "mega diancie": "diancie",
+  "mega dragalge": "dragalge",
+  "mega dragonite": "dragonite",
+  "mega drampa": "drampa",
+  "mega eelektross": "eelektross",
+  "mega emboar": "emboar",
+  "mega eternal floette": "floette",
+  "mega excadrill": "excadrill",
+  "mega falinks": "falinks",
+  "mega feraligatr": "feraligatr",
+  "mega froslass": "froslass",
+  "mega gallade": "gallade",
+  "mega garchomp": "garchomp",
+  "mega garchomp z": "garchomp",
+  "mega gardevoir": "gardevoir",
+  "mega gengar": "gengar",
+  "mega glalie": "glalie",
+  "mega glimmora": "glimmora",
+  "mega golisopod": "golisopod",
+  "mega golurk": "golurk",
+  "mega greninja": "greninja",
+  "mega gyarados": "gyarados",
+  "mega hawlucha": "hawlucha",
+  "mega heatran": "heatran",
+  "mega heracross": "heracross",
+  "mega houndoom": "houndoom",
+  "mega kangaskhan": "kangaskhan",
+  "mega latias": "latias",
+  "mega latios": "latios",
+  "mega lopunny": "lopunny",
+  "mega lucario": "lucario",
+  "mega lucario z": "lucario",
+  "mega magearna": "magearna",
+  "mega malamar": "malamar",
+  "mega manectric": "manectric",
+  "mega mawile": "mawile",
+  "mega medicham": "medicham",
+  "mega meganium": "meganium",
+  "mega meowstic": "meowstic",
+  "mega metagross": "metagross",
+  "mega mewtwo x": "mewtwo",
+  "mega mewtwo y": "mewtwo",
+  "mega pidgeot": "pidgeot",
+  "mega pinsir": "pinsir",
+  "mega pyroar": "pyroar",
+  "mega raichu x": "raichu",
+  "mega raichu y": "raichu",
+  "mega rayquaza": "rayquaza",
+  "mega sableye": "sableye",
+  "mega salamence": "salamence",
+  "mega sceptile": "sceptile",
+  "mega scizor": "scizor",
+  "mega scolipede": "scolipede",
+  "mega scovillain": "scovillain",
+  "mega scrafty": "scrafty",
+  "mega sharpedo": "sharpedo",
+  "mega skarmory": "skarmory",
+  "mega slowbro": "slowbro",
+  "mega staraptor": "staraptor",
+  "mega starmie": "starmie",
+  "mega steelix": "steelix",
+  "mega swampert": "swampert",
+  "mega tatsugiri": "tatsugiri",
+  "mega tyranitar": "tyranitar",
+  "mega venusaur": "venusaur",
+  "mega victreebel": "victreebel",
+  "mega zeraora": "zeraora",
+  "primal groudon": "groudon",
+  "primal kyogre": "kyogre",
+};
+
 function findPokemonTypes(name){
   const key = name.trim().toLowerCase();
   if (TYPE_OVERRIDES[key]) return TYPE_OVERRIDES[key];
-  // strip Shadow/Mega prefixes and retry, since those usually don't change typing unless overridden above
-  const stripped = key.replace(/^(shadow|mega|primal)\s+/, "");
-  if (TYPE_OVERRIDES[stripped]) return TYPE_OVERRIDES[stripped];
   const exact = POKEMON_TYPES.find(p => p.n.toLowerCase() === key);
   if (exact) return { t1: exact.t1.toLowerCase(), t2: exact.t2.toLowerCase() };
-  const base = POKEMON_TYPES.find(p => p.n.toLowerCase() === stripped);
-  if (base) return { t1: base.t1.toLowerCase(), t2: base.t2.toLowerCase() };
+  // Explicit base-form lookup (BASE_FORM_MAP) replaces name-stripping entirely - a mega/primal
+  // form's typing is inherited from its real base species, looked up directly, not guessed from
+  // whatever's left after removing "Mega "/"Primal " from the string.
+  const mappedBase = BASE_FORM_MAP[key];
+  if (mappedBase) {
+    if (TYPE_OVERRIDES[mappedBase]) return TYPE_OVERRIDES[mappedBase];
+    const baseEntry = POKEMON_TYPES.find(p => p.n.toLowerCase() === mappedBase);
+    if (baseEntry) return { t1: baseEntry.t1.toLowerCase(), t2: baseEntry.t2.toLowerCase() };
+  }
   // strip common forme suffixes (Origin/Altered/Incarnate/Therian/Resolute/Hero) and retry against the base species -
   // most formes don't change typing; the ones that do (e.g. Thundurus/Enamorus Therian) are already caught by the
   // explicit overrides above, which are checked first
@@ -1520,6 +1661,98 @@ const POKEMON_DB = [
 {n:"Hydrapple",hp:235.0,atk:216.0,def:186.0},{n:"Gouging Fire",hp:213.0,atk:205.0,def:208.0},{n:"Raging Bolt",hp:245.0,atk:235.0,def:165.0},{n:"Iron Boulder",hp:189.0,atk:227.0,def:195.0},{n:"Iron Crown",hp:189.0,atk:221.0,def:200.0},{n:"Terapagos",hp:207.0,atk:126.0,def:165.0},
 {n:"Pecharunt",hp:204.0,atk:181.0,def:273.0},
 ];
+
+// ============ POKEMON NAME AUTOCOMPLETE ============
+// Capped at 8 matches deliberately - this page's fields sit tightly packed next to IV inputs and,
+// on desktop, a second identical column right beside them (Player | Boss). An uncapped list (this
+// site tracks 1192 Pokemon) got long enough to visually spill past its own field into that
+// neighboring content, which is why this was left out before. Width is locked to the field itself
+// via CSS (.name-field{position:relative}) rather than the input's content width, so the dropdown
+// can never be wider than the space it's meant to occupy.
+const POKEMON_NAME_LIST = POKEMON_DB.map(p => p.n);
+
+function pokemonNameMatches(query){
+  const q = query.trim().toLowerCase();
+  if(!q) return [];
+  const startsWith = [];
+  const contains = [];
+  for(const name of POKEMON_NAME_LIST){
+    const lower = name.toLowerCase();
+    if(lower.startsWith(q)) startsWith.push(name);
+    else if(lower.includes(q)) contains.push(name);
+    if(startsWith.length >= 8) break;
+  }
+  return [...startsWith, ...contains].slice(0, 8);
+}
+
+function highlightMatch(name, query){
+  const idx = name.toLowerCase().indexOf(query.trim().toLowerCase());
+  if(idx === -1) return name;
+  return name.slice(0, idx) + "<mark>" + name.slice(idx, idx + query.trim().length) + "</mark>" + name.slice(idx + query.trim().length);
+}
+
+function initPokemonAutocomplete(inputId, listId){
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  let highlighted = -1;
+
+  function render(){
+    const matches = pokemonNameMatches(input.value);
+    if(matches.length === 0){ close(); return; }
+    list.innerHTML = matches.map((name, i) =>
+      `<div class="ac-item${i === highlighted ? ' hi' : ''}" data-name="${name.replace(/"/g, "&quot;")}">${highlightMatch(name, input.value)}</div>`
+    ).join("");
+    list.classList.add("open");
+    list.querySelectorAll(".ac-item").forEach(el => {
+      el.addEventListener("mousedown", (e) => {
+        // mousedown (not click) fires before the input's own blur, so selecting an item doesn't
+        // first close the dropdown out from under the click
+        e.preventDefault();
+        select(el.dataset.name);
+      });
+    });
+  }
+  function select(name){
+    input.value = name;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+  }
+  function close(){
+    list.classList.remove("open");
+    list.innerHTML = "";
+    highlighted = -1;
+  }
+
+  input.addEventListener("input", () => { highlighted = -1; render(); });
+  input.addEventListener("focus", () => { if(input.value.trim()) render(); });
+  input.addEventListener("keydown", (e) => {
+    const items = list.querySelectorAll(".ac-item");
+    if(!items.length) return;
+    if(e.key === "ArrowDown"){
+      e.preventDefault();
+      highlighted = Math.min(highlighted + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle("hi", i === highlighted));
+      items[highlighted]?.scrollIntoView({ block: "nearest" });
+    }else if(e.key === "ArrowUp"){
+      e.preventDefault();
+      highlighted = Math.max(highlighted - 1, 0);
+      items.forEach((el, i) => el.classList.toggle("hi", i === highlighted));
+      items[highlighted]?.scrollIntoView({ block: "nearest" });
+    }else if(e.key === "Enter" && highlighted >= 0){
+      e.preventDefault();
+      select(items[highlighted].dataset.name);
+    }else if(e.key === "Escape"){
+      close();
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if(e.target !== input && !list.contains(e.target)) close();
+  });
+}
+initPokemonAutocomplete("pokemonName", "pokemonName_ac");
+initPokemonAutocomplete("bossName", "bossName_ac");
+
 const POKEMON_MOVEPOOL = {
 "bulbasaur":{fast:["Tackle","Vine Whip"],charged:["Power Whip","Seed Bomb","Sludge Bomb"]},"shadow bulbasaur":{fast:["Tackle","Vine Whip"],charged:["Power Whip","Seed Bomb","Sludge Bomb"]},"ivysaur":{fast:["Razor Leaf","Vine Whip"],charged:["Power Whip","Sludge Bomb","Solar Beam"]},
 "shadow ivysaur":{fast:["Razor Leaf","Vine Whip"],charged:["Power Whip","Sludge Bomb","Solar Beam"]},"venusaur":{fast:["Razor Leaf","Vine Whip"],charged:["Frenzy Plant","Petal Blizzard","Sludge Bomb","Solar Beam","Sludge"]},"mega venusaur":{fast:["Razor Leaf","Vine Whip"],charged:["Frenzy Plant","Petal Blizzard","Sludge Bomb","Solar Beam","Sludge"]},
@@ -1958,8 +2191,8 @@ const POKEMON_MOVEPOOL = {
 "gourgeist small":{fast:["Hex","Razor Leaf","Incinerate"],charged:["Seed Bomb","Shadow Ball","Foul Play","Fire Blast","Poltergeist"]},"gourgeist super":{fast:["Hex","Razor Leaf","Incinerate"],charged:["Seed Bomb","Shadow Ball","Foul Play","Fire Blast","Poltergeist"]},"bergmite":{fast:["Bite","Tackle"],charged:["Crunch","Icy Wind","Mirror Coat"]},
 "avalugg":{fast:["Bite","Ice Fang"],charged:["Crunch","Avalanche","Earthquake","Body Slam","Mirror Coat","Icy Wind"]},"hisuian avalugg":{fast:["Bite","Tackle","Powder Snow"],charged:["Crunch","Rock Slide","Blizzard","Icy Wind"]},"noibat":{fast:["Wing Attack","Bite"],charged:["Dragon Pulse","Air Cutter","Heat Wave"]},
 "shadow noibat":{fast:["Wing Attack","Bite"],charged:["Dragon Pulse","Air Cutter","Heat Wave"]},"noivern":{fast:["Air Slash","Bite"],charged:["Draco Meteor","Hurricane","Heat Wave","Psychic","Boomburst"]},"shadow noivern":{fast:["Air Slash","Bite"],charged:["Draco Meteor","Hurricane","Heat Wave","Psychic","Boomburst"]},
-"xerneas":{fast:["Tackle","Zen Headbutt","Geomancy"],charged:["Moonblast","Megahorn","Close Combat","Giga Impact","Thunder"]},"yveltal":{fast:["Sucker Punch","Snarl","Gust"],charged:["Dark Pulse","Hurricane","Focus Blast","Hyper Beam","Psychic","Oblivion Wing"]},"zygarde 10":{fast:["Dragon Tail","Bite","Zen Headbutt"],charged:["Outrage","Earthquake","Crunch","Hyper Beam","Bulldoze"]},
-"zygarde":{fast:["Dragon Tail","Bite","Zen Headbutt"],charged:["Outrage","Earthquake","Crunch","Hyper Beam","Bulldoze"]},"zygarde complete":{fast:["Dragon Tail","Bite","Zen Headbutt"],charged:["Outrage","Earthquake","Crunch","Hyper Beam","Bulldoze"]},"diancie":{fast:["Tackle","Rock Throw"],charged:["Rock Slide","Moonblast","Power Gem"]},
+"xerneas":{fast:["Tackle","Zen Headbutt","Geomancy"],charged:["Moonblast","Megahorn","Close Combat","Giga Impact","Thunder"]},"yveltal":{fast:["Sucker Punch","Snarl","Gust"],charged:["Dark Pulse","Hurricane","Focus Blast","Hyper Beam","Psychic","Oblivion Wing"]},"zygarde 10%":{fast:["Dragon Tail","Bite","Zen Headbutt"],charged:["Outrage","Earthquake","Crunch","Hyper Beam","Bulldoze"]},
+"zygarde 50%":{fast:["Dragon Tail","Bite","Zen Headbutt"],charged:["Outrage","Earthquake","Crunch","Hyper Beam","Bulldoze"]},"zygarde complete":{fast:["Dragon Tail","Bite","Zen Headbutt"],charged:["Outrage","Earthquake","Crunch","Hyper Beam","Bulldoze"]},"diancie":{fast:["Tackle","Rock Throw"],charged:["Rock Slide","Moonblast","Power Gem"]},
 "mega diancie":{fast:["Tackle","Rock Throw"],charged:["Rock Slide","Moonblast","Power Gem"]},"hoopa":{fast:["Confusion","Astonish"],charged:["Shadow Ball","Psybeam","Psychic"]},"hoopa confined":{fast:["Confusion","Astonish"],charged:["Shadow Ball","Psybeam","Psychic"]},
 "hoopa unbound":{fast:["Confusion","Astonish"],charged:["Shadow Ball","Dark Pulse","Psychic"]},"volcanion":{fast:["Incinerate","Water Gun","Take Down"],charged:["Hydro Pump","Overheat","Earth Power","Sludge Bomb","Scald"]},"rowlet":{fast:["Tackle","Razor Leaf","Leafage","Magical Leaf"],charged:["Seed Bomb","Energy Ball"]},
 "dartrix":{fast:["Peck","Razor Leaf","Leafage","Magical Leaf"],charged:["Seed Bomb","Energy Ball","Brave Bird"]},"decidueye":{fast:["Astonish","Razor Leaf","Leafage","Magical Leaf"],charged:["Shadow Sneak","Energy Ball","Brave Bird","Frenzy Plant","Spirit Shackle"]},"hisuian decidueye":{fast:["Magical Leaf","Psycho Cut"],charged:["Aura Sphere","Energy Ball","Aerial Ace","Night Shade","Trailblaze"]},
@@ -3341,7 +3574,13 @@ loadEliteMoves();
 
 function updateMoveOptionsFor(nameFieldId, cmBaseId, fmBaseId){
   const name = document.getElementById(nameFieldId).value.trim().toLowerCase();
-  const entry = POKEMON_MOVEPOOL[name];
+  // Legends Z-A Mega Evolutions inherit their moveset from their base species until Niantic
+  // documents exclusive moves for them specifically (tracked by hand later, same as any other
+  // Elite/Community Day move). Rather than duplicating each base form's move list into a second
+  // entry under the mega's own name - which is exactly the kind of copy that drifts out of sync
+  // the moment the base form's real entry gets edited - a mega with no movepool entry of its own
+  // falls back to BASE_FORM_MAP's real base species, read live off that species' own entry.
+  const entry = POKEMON_MOVEPOOL[name] || POKEMON_MOVEPOOL[BASE_FORM_MAP[name]];
   // Real raid bosses can never have an Elite-TM-exclusive move - only filter this out for the
   // boss dropdown specifically; a player's own caught Pokemon (the "pokemonName" field) can
   // legitimately have one, so that field's move list is untouched.
