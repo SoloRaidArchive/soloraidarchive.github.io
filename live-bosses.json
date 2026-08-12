@@ -1,25 +1,6 @@
 {
-  "generatedAt": "2026-08-12T09:52:06.675075+00:00",
+  "generatedAt": "2026-08-12T12:39:17.991644+00:00",
   "dateGroups": [
-    {
-      "startDate": "Aug 5, 2026",
-      "endDate": "Aug 11, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Azelf",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "fog"
-        },
-        {
-          "name": "Mega Blaziken",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "2 \u2b50",
-          "weather": "Extreme"
-        }
-      ]
-    },
     {
       "startDate": "Aug 19, 2026",
       "endDate": "Aug 25, 2026",
@@ -81,6 +62,25 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "5 \u2b50",
           "weather": "Cloudy"
+        }
+      ]
+    },
+    {
+      "startDate": "Aug 5, 2026",
+      "endDate": "Aug 11, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Azelf",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "fog"
+        },
+        {
+          "name": "Mega Blaziken",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Extreme"
         }
       ]
     }
