@@ -529,6 +529,7 @@
       <div class="char-count" id="charCount">0 / 10,000 characters</div>
       <div class="mechanic-link-row">
         <button type="button" class="mechanic-link-btn" id="mechanicLinkBtn">&#128279; Link a mechanic</button>
+        <button type="button" class="mechanic-link-btn" id="insertLinkBtnGuide">&#128279; Insert link</button>
         <span class="mechanic-link-hint">Select some text first to link it - otherwise the mechanic's name is inserted</span>
       </div>
       <div class="mechanic-picker" id="mechanicPicker" style="display:none;"></div>
@@ -621,6 +622,7 @@
           <button type="button" class="article-insert-btn" id="insertMathBtn">&#8722; Math symbol</button>
           <button type="button" class="article-insert-btn" id="insertImageBtn">&#128247; Image</button>
           <button type="button" class="article-insert-btn" id="insertBattlePartyBtn">&#9876;&#65039; Battle party</button>
+          <button type="button" class="article-insert-btn" id="insertLinkBtnArticle">&#128279; Insert link</button>
           <input type="file" id="articleImageFileInput" accept="image/*" style="display:none;">
         </div>
         <div class="math-picker" id="mathPicker" style="display:none;"></div>
@@ -662,6 +664,29 @@
 <div class="mechanic-preview" id="mechanicPreview">
   <video id="mechanicPreviewVideo" autoplay loop muted playsinline preload="none"></video>
   <div class="mechanic-preview-label" id="mechanicPreviewLabel"></div>
+</div>
+
+<div class="bp-modal-overlay" id="linkModalOverlay" style="display:none;">
+  <div class="bp-modal">
+    <div class="bp-modal-head">
+      <div class="bp-modal-title">Insert a link</div>
+      <button type="button" class="bp-modal-close" id="linkModalCloseBtn">&times;</button>
+    </div>
+    <div class="bp-modal-body">
+      <div class="field-group">
+        <label class="field-label">Link text</label>
+        <input type="text" id="linkModalText" placeholder="e.g. this guide's route">
+      </div>
+      <div class="field-group" style="margin-top:14px;">
+        <label class="field-label">URL</label>
+        <input type="text" id="linkModalUrl" placeholder="https://...">
+      </div>
+    </div>
+    <div class="bp-modal-foot">
+      <button type="button" class="bp-modal-cancel" id="linkModalCancelBtn">Cancel</button>
+      <button type="button" class="add-btn" id="linkModalInsertBtn">Insert link</button>
+    </div>
+  </div>
 </div>
 
 <div class="bp-modal-overlay" id="bpModalOverlay" style="display:none;">
@@ -973,6 +998,75 @@ document.addEventListener('click', (e) => {
   if(!mechanicPicker.contains(e.target) && e.target !== mechanicLinkBtn){
     mechanicPicker.style.display = 'none';
   }
+});
+
+// ============ GENERAL "INSERT LINK" (both editors) ============
+// Unlike "Link a mechanic" (which points at a fixed internal anchor), this lets a writer link
+// ANY url with their own editable display text - e.g. crediting a source, linking a YouTube
+// video inline, or referencing an external tool. One modal, shared by both the guide-strategy
+// editor and the article editor; which Quill instance it acts on is whichever editor's button
+// opened it.
+const linkModalOverlay = document.getElementById('linkModalOverlay');
+const linkModalText = document.getElementById('linkModalText');
+const linkModalUrl = document.getElementById('linkModalUrl');
+let linkModalTargetQuill = null;
+let linkModalSavedRange = null;
+
+function openLinkModal(targetQuill){
+  linkModalTargetQuill = targetQuill;
+  // capture the selection now, before focus moves to the button/modal and Quill loses it
+  linkModalSavedRange = targetQuill.getSelection();
+  const hasSelection = linkModalSavedRange && linkModalSavedRange.length > 0;
+  linkModalText.value = hasSelection
+    ? targetQuill.getText(linkModalSavedRange.index, linkModalSavedRange.length)
+    : '';
+  linkModalUrl.value = '';
+  linkModalOverlay.style.display = 'flex';
+  (hasSelection ? linkModalUrl : linkModalText).focus();
+}
+function closeLinkModal(){
+  linkModalOverlay.style.display = 'none';
+  linkModalTargetQuill = null;
+  linkModalSavedRange = null;
+}
+
+document.getElementById('insertLinkBtnGuide').addEventListener('click', () => openLinkModal(quill));
+document.getElementById('insertLinkBtnArticle').addEventListener('click', () => openLinkModal(articleQuill));
+document.getElementById('linkModalCloseBtn').addEventListener('click', closeLinkModal);
+document.getElementById('linkModalCancelBtn').addEventListener('click', closeLinkModal);
+linkModalOverlay.addEventListener('click', (e) => { if(e.target === linkModalOverlay) closeLinkModal(); });
+
+document.getElementById('linkModalInsertBtn').addEventListener('click', () => {
+  const targetQuill = linkModalTargetQuill;
+  if(!targetQuill) return;
+
+  const text = linkModalText.value.trim();
+  let url = linkModalUrl.value.trim();
+  if(!url){ linkModalUrl.focus(); return; }
+  if(!text){ linkModalText.focus(); return; }
+  // a bare "example.com" or "www.x.com" without a scheme would otherwise be treated as a
+  // relative link (resolving against the current page) rather than an external address
+  if(!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = `https://${url}`;
+
+  targetQuill.focus();
+  const range = linkModalSavedRange;
+  if(range && range.length > 0){
+    // replace the original selection with the (possibly edited) text, linked
+    targetQuill.deleteText(range.index, range.length);
+    targetQuill.insertText(range.index, text, 'link', url);
+    targetQuill.setSelection(range.index + text.length, 0);
+  }else{
+    const insertAt = range ? range.index : targetQuill.getLength();
+    targetQuill.insertText(insertAt, text, 'link', url);
+    targetQuill.setSelection(insertAt + text.length, 0);
+  }
+
+  if(targetQuill === quill) syncPreview();
+  else syncArticlePreview();
+  closeLinkModal();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && linkModalOverlay.style.display !== 'none') closeLinkModal();
 });
 
 // ============ SPRITE RESOLUTION (same system used on the real guide pages) ============
