@@ -334,12 +334,15 @@
               "fm": "Psycho Cut",
               "cm": "Ice Beam",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": false
             }
           ]
         },
         {
-          "label": "Various Counters",
+          "label": "Various Counters (Roles Vary)",
           "secondaryLabel": "Not a full list (it's too long)",
           "mons": [
             {
@@ -348,6 +351,7 @@
               "fm": "Powder Snow",
               "cm": "Avalanche",
               "cm2": "",
+              "roles": [],
               "optional": true
             },
             {
@@ -356,6 +360,7 @@
               "fm": "Dragon Tail",
               "cm": "Dynamax Cannon",
               "cm2": "",
+              "roles": [],
               "optional": true
             },
             {
@@ -364,6 +369,7 @@
               "fm": "Charm",
               "cm": "Triple Axel",
               "cm2": "",
+              "roles": [],
               "optional": true
             },
             {
@@ -372,6 +378,7 @@
               "fm": "Ice Shard",
               "cm": "Avalanche",
               "cm2": "",
+              "roles": [],
               "optional": true
             },
             {
@@ -380,6 +387,7 @@
               "fm": "Dragon tail",
               "cm": "Breaking Swipe",
               "cm2": "",
+              "roles": [],
               "optional": true
             },
             {
@@ -388,6 +396,7 @@
               "fm": "Powder Snow",
               "cm": "Avalanche",
               "cm2": "",
+              "roles": [],
               "optional": true
             },
             {
@@ -396,6 +405,7 @@
               "fm": "Dragon Tail",
               "cm": "Spacial Rend",
               "cm2": "",
+              "roles": [],
               "optional": true
             },
             {
@@ -404,12 +414,13 @@
               "fm": "Powder Snow",
               "cm": "Weather Ball",
               "cm2": "",
+              "roles": [],
               "optional": true
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-12T21:34:42.956Z"
+      "submittedAt": "2026-08-12T23:57:26.186Z"
     }
   ]
 }
