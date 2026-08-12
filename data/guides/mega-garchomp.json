@@ -235,6 +235,121 @@
         }
       ],
       "submittedAt": "2026-08-12T04:25:40.474Z"
+    },
+    {
+      "strategyName": "No Kyurem Route(s)",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "4★",
+      "text": "<h2>Overview</h2><p>Without Kyurem Black/White, a diverse pool of counters can be accessed. This now includes some Dragon types where their signature moves are strong enough to compete against typical ice counters. Mega-Garchomp can still be comfortably solo'd but now with a noticeably slower time.</p><p>These counters are listed in a separate battle party (named Various Counters).</p><h4>Est Time to Win: Varies [230.0s-280.0s]</h4><p><br></p><h2>Main Strategies</h2><h3><strong style=\"color: rgb(238, 241, 247);\">1) Hot-Swap Route [Moderate DPS, Casual]</strong></h3><p><span style=\"color: rgb(238, 241, 247);\">The </span><a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\" style=\"color: rgb(94, 234, 212);\"><strong>Hot-Swap</strong></a> <span style=\"color: rgb(238, 241, 247);\">route is against:</span></p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Twister [50 | 3.0s AD]</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Breaking Swipe* [45 | 1.0s AD]</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Sand Tomb [60 | 4.0s AD]</span></li></ol><p>Simply DPS and swap to the next attacker when the active attacker cannot continue.</p><p><br></p><h3>2) Dodging [Low DPS, Slightly Mechanical]</h3><p>The dodge route is typically against: </p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Outrage [110 | 4.0s AD]</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Earthquake [140 | 3.5s AD]</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Fire Blast* [140 | 4.0s AD]</span></li></ol><p>Fire Blast is lethal to Shadow Mamoswine/Weavile (Dodge recommended)</p><p>Earthquake is lethal to Shadow Mamoswine/Eternatus/Shadow Weavile (Dodge recommended) </p><p>Outrage is lethal to Shadow Weavile. </p><p>To get a full idea of how much damage these pokemon will take from certain moves visit the <a href=\"https://soloraidarchive.github.io/ct-calculator.html\" target=\"_blank\">catch tank / DPS calculator</a></p><p><br></p><h3>3) Catch Tanking [High DPS, Mechanical]</h3><p>Because of the long animations from each move, Mega Garchomp is great practice to for beginner catch tanking. Garchomps heavy charge move animations last between 3.5-4.0s. Whereas the above counters have charge moves with animations lasting at most 2.5s. Only Mega Mewtwo Y's Ice beam is slower; at 3.5s AD. </p><p>The <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">catch tank</a> route is typically against:</p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Outrage [110 | 4.0s AD]</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Earthquake [140 | 3.5s AD]</span></li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span><span style=\"color: rgb(238, 241, 247);\">Fire Blast* [140 | 4.0s AD]</span></li></ol><p><br></p><p>Any/Outrage: Caught comfortably by Eternatus, Mamoswine, Mega Ray</p><p>MS/Outrage: Any of the above, Shadow Mamoswine, Palkia Origin </p><p>---</p><p>Any/Earthquake: Mamoswine</p><p>MS/Earthquake: Any of the above, Palkia Origin, Baxcalibur </p><p>--- </p><p>Any/Fire Blast: Baxcalibur</p>",
+      "vods": [
+        {
+          "url": "https://www.youtube.com/watch?v=4SNeqB0PG2s",
+          "label": "TTW: 299.0s [Extreme, Lv 40 Mamoswines, MS/ST]",
+          "creditName": "Mission Cancel",
+          "creditUrl": "https://www.youtube.com/@PokeRaidRetos"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=rx56eeOZJpM",
+          "label": "TTW: 270.5s [Extreme, MMY Only, MS/TW]",
+          "creditName": "TheAaronGaming",
+          "creditUrl": "https://www.youtube.com/@theaarongaming"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=H4JqAWsEDmE&t=5s",
+          "label": "TTW: 296s [Extreme, 1 lv 40 Sh-Mamoswine, Dodge]",
+          "creditName": "Mission Cancel",
+          "creditUrl": "https://www.youtube.com/@PokeRaidRetos"
+        }
+      ],
+      "submittedBy": "SpiritedBloom",
+      "battleParties": [
+        {
+          "label": "Mega Mewtwo Y Recycle",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Mega Mewtwo Y",
+              "level": "45-53",
+              "fm": "Psycho Cut",
+              "cm": "Ice Beam",
+              "cm2": "",
+              "optional": false
+            }
+          ]
+        },
+        {
+          "label": "Various Counters",
+          "secondaryLabel": "Not a full list (it's too long)",
+          "mons": [
+            {
+              "name": "Shadow Mamoswine",
+              "level": "40-50",
+              "fm": "Powder Snow",
+              "cm": "Avalanche",
+              "cm2": "",
+              "optional": true
+            },
+            {
+              "name": "Eternatus",
+              "level": "40-50",
+              "fm": "Dragon Tail",
+              "cm": "Dynamax Cannon",
+              "cm2": "",
+              "optional": true
+            },
+            {
+              "name": "Mega Gardevoir",
+              "level": "45+",
+              "fm": "Charm",
+              "cm": "Triple Axel",
+              "cm2": "",
+              "optional": true
+            },
+            {
+              "name": "Shadow Weavile",
+              "level": "40-50",
+              "fm": "Ice Shard",
+              "cm": "Avalanche",
+              "cm2": "",
+              "optional": true
+            },
+            {
+              "name": "Mega Rayquaza",
+              "level": "45-51",
+              "fm": "Dragon tail",
+              "cm": "Breaking Swipe",
+              "cm2": "",
+              "optional": true
+            },
+            {
+              "name": "Mamoswine",
+              "level": "40-50",
+              "fm": "Powder Snow",
+              "cm": "Avalanche",
+              "cm2": "",
+              "optional": true
+            },
+            {
+              "name": "Palkia Origin",
+              "level": "40-50",
+              "fm": "Dragon Tail",
+              "cm": "Spacial Rend",
+              "cm2": "",
+              "optional": true
+            },
+            {
+              "name": "Mega Abomasnow",
+              "level": "40-50",
+              "fm": "Powder Snow",
+              "cm": "Weather Ball",
+              "cm2": "",
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-12T21:01:01.013Z"
     }
   ]
 }
