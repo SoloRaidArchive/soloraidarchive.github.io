@@ -155,13 +155,9 @@
   .movepool-label{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10.5px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; }
   .movepool-row{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
   .move-chip{
-    display:inline-flex; align-items:center; gap:6px;
-    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:600; color: var(--text);
-    background: var(--accent-soft); padding:5px 11px 5px 8px; border-radius:8px;
+    display:inline-flex; align-items:center; padding:6px 12px; border-radius:999px; color:#fff;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
   }
-  .move-chip.charge{ background:#fdeee0; }
-  [data-theme="dark"] .move-chip.charge{ background:#3a2a1a; }
-  .move-type-icon{ width:14px; height:14px; flex-shrink:0; object-fit:contain; }
 
   .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
   .route-btn{
@@ -414,11 +410,12 @@ const MOVE_TYPES = {
   "Sludge Bomb": {type:"Poison", color:"#8A3F94"},
   "Rock Slide": {type:"Rock", color:"#B5651D"},
 };
-const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
+  // Same solid-color pill already used for the Boss Info type badges - a move's chip IS its
+  // type color, no separate icon or accent-border layered on top of a generic chip.
   const info = MOVE_TYPES[name];
-  const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" title="${info.type}" onerror="this.remove();">` : "";
-  return `<span class="move-chip${isCharge ? " charge" : ""}">${icon}${name}</span>`;
+  const bg = info ? info.color : "#9199A1";
+  return `<span class="move-chip" style="background:${bg};" title="${info ? info.type : ""}">${name}</span>`;
 }
 document.getElementById('fast-move-row').innerHTML = ["Acid","Pound","Poison Jab"].map(m => moveChipHtml(m, false)).join('');
 document.getElementById('charge-move-row').innerHTML = ["Power Gem","Gunk Shot","Sludge Bomb","Rock Slide"].map(m => moveChipHtml(m, true)).join('');
