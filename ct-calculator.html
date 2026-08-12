@@ -3583,9 +3583,13 @@ function updateMoveOptionsFor(nameFieldId, cmBaseId, fmBaseId){
   const entry = POKEMON_MOVEPOOL[name] || POKEMON_MOVEPOOL[BASE_FORM_MAP[name]];
   // Real raid bosses can never have an Elite-TM-exclusive move - only filter this out for the
   // boss dropdown specifically; a player's own caught Pokemon (the "pokemonName" field) can
-  // legitimately have one, so that field's move list is untouched.
+  // legitimately have one, so that field's move list is untouched. Elite moves are recorded
+  // against the base species (e.g. "salamence"), not every mega/primal form built on top of it,
+  // so this reads through the same BASE_FORM_MAP used for movepool inheritance just above -
+  // without it, "Mega Salamence" would never match its own "salamence" elite-move entry and
+  // Outrage would wrongly stay in the boss dropdown.
   const isBoss = nameFieldId === "bossName";
-  const elite = isBoss ? new Set(ELITE_MOVES_BY_POKEMON[name] || []) : null;
+  const elite = isBoss ? new Set(ELITE_MOVES_BY_POKEMON[name] || ELITE_MOVES_BY_POKEMON[BASE_FORM_MAP[name]] || []) : null;
   const fastList = entry ? (elite ? entry.fast.filter(m => !elite.has(m)) : entry.fast) : [];
   const chargeList = entry ? (elite ? entry.charged.filter(m => !elite.has(m)) : entry.charged) : [];
   populateMoveSelect(fmBaseId, fastList);
