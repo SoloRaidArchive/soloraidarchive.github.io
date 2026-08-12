@@ -155,9 +155,10 @@
   .movepool-label{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10.5px; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px; }
   .movepool-row{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
   .move-chip{
-    display:inline-flex; align-items:center; padding:6px 12px; border-radius:999px; color:#fff;
+    display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; color:#fff;
     font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
   }
+  .move-type-icon{ width:13px; height:13px; flex-shrink:0; object-fit:contain; filter:brightness(0) invert(1); }
 
   .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
   .route-btn{
@@ -410,12 +411,15 @@ const MOVE_TYPES = {
   "Sludge Bomb": {type:"Poison", color:"#8A3F94"},
   "Rock Slide": {type:"Rock", color:"#B5651D"},
 };
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
   // Same solid-color pill already used for the Boss Info type badges - a move's chip IS its
-  // type color, no separate icon or accent-border layered on top of a generic chip.
+  // type color. The small type icon rides on top of that same colored pill, forced to solid
+  // white via CSS filter so it reads clearly against any type's color.
   const info = MOVE_TYPES[name];
   const bg = info ? info.color : "#9199A1";
-  return `<span class="move-chip" style="background:${bg};" title="${info ? info.type : ""}">${name}</span>`;
+  const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" onerror="this.remove();">` : "";
+  return `<span class="move-chip" style="background:${bg};" title="${info ? info.type : ""}">${icon}${name}</span>`;
 }
 document.getElementById('fast-move-row').innerHTML = ["Acid","Pound","Poison Jab"].map(m => moveChipHtml(m, false)).join('');
 document.getElementById('charge-move-row').innerHTML = ["Power Gem","Gunk Shot","Sludge Bomb","Rock Slide"].map(m => moveChipHtml(m, true)).join('');
