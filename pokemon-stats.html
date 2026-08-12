@@ -649,6 +649,14 @@ function movePanelHtml(name){
 function toggleMoves(btn){
   const panel = btn.nextElementSibling;
   const open = !panel.classList.contains("open");
+  // Build the panel's chip HTML on first open, not during render(). Rendering ~1200 cards was
+  // eagerly building every (collapsed) card's full move list - type-icon lookups and all - for
+  // content nobody was looking at. Deferring it here keeps render() cheap and only does the work
+  // when a card is actually expanded. Cached after the first open via the data-built flag.
+  if(open && !panel.dataset.built){
+    panel.innerHTML = movePanelHtml(panel.dataset.pkmn);
+    panel.dataset.built = "1";
+  }
   panel.classList.toggle("open", open);
   btn.querySelector(".move-toggle-caret").innerHTML = open ? "&#9650;" : "&#9660;";
   btn.querySelector(".move-toggle-text").textContent = open ? "Hide moves" : "Show moves";
@@ -840,7 +848,7 @@ function cardHtml(p){
       </div>
     </div>
     <button type="button" class="move-toggle-btn" onclick="toggleMoves(this)"><span class="move-toggle-caret">&#9660;</span> <span class="move-toggle-text">Show moves</span></button>
-    <div class="move-panel">${movePanelHtml(p.n)}</div>
+    <div class="move-panel" data-pkmn="${p.n.replace(/"/g, '&quot;')}"></div>
   </div>`;
 }
 
@@ -875,7 +883,15 @@ function render(){
     : `<div class="empty">No Pokémon match your search.</div>`;
 }
 
-searchInput.addEventListener("input", render);
+// Debounce search: render() rebuilds the whole card grid (up to ~1200 cards), which costs
+// hundreds of ms with the full list shown. Without debouncing, that full rebuild fired on every
+// keystroke, making typing visibly janky. Waiting ~140ms after the last keypress collapses a
+// burst of typing into a single render while still feeling instant.
+let searchDebounceTimer = null;
+searchInput.addEventListener("input", () => {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(render, 140);
+});
 document.querySelectorAll("#sortList .hamburger-item").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("#sortList .hamburger-item").forEach(b => b.classList.remove("active"));

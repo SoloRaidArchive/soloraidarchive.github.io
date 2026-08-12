@@ -87,6 +87,16 @@ CONFIRMED_ROTATION_DATES = {
     "mega salamence": ("Jul 22, 2026", "Jul 28, 2026"),
     "kyurem": ("Jul 29, 2026", "Aug 4, 2026"),
     "mega aggron": ("Jul 29, 2026", "Aug 4, 2026"),
+    # August 2026 rotation. Windows for Mega Garchomp / Lunala / Mega Swampert / Mega Gyarados
+    # are taken from the live-scraped data already in live-bosses.json. Azelf's window
+    # (Aug 5-11) is inferred from its guide being logged Aug 5 and the consistent weekly
+    # cadence (it's the slot between Mega Aggron's Jul29-Aug4 and Mega Garchomp's Aug12-18).
+    # >>> VERIFY Azelf's exact dates against leekduck/pokemongohub before relying on them. <<<
+    "azelf": ("Aug 5, 2026", "Aug 11, 2026"),
+    "mega garchomp": ("Aug 12, 2026", "Aug 18, 2026"),
+    "lunala": ("Aug 19, 2026", "Aug 25, 2026"),
+    "mega swampert": ("Aug 19, 2026", "Aug 25, 2026"),
+    "mega gyarados": ("Aug 26, 2026", "Sep 8, 2026"),
 }
 
 
@@ -116,7 +126,8 @@ def load_known_bosses():
                 continue
             if len(row) <= boss_idx or not row[boss_idx].strip():
                 continue
-            name = row[boss_idx].strip().lower()
+            display_name = row[boss_idx].strip()
+            name = display_name.lower()
             star_raw = row[star_idx].strip() if len(row) > star_idx else ""
             weather = row[weather_idx].strip() if len(row) > weather_idx else ""
             star_num_match = re.match(r"[\d.]+", star_raw)
@@ -124,6 +135,7 @@ def load_known_bosses():
             existing = known.get(name)
             if existing is None or star_num < existing["starNum"]:
                 known[name] = {
+                    "name": display_name,
                     "archivePage": archive_page,
                     "difficulty": star_raw,
                     "starNum": star_num,
@@ -187,6 +199,12 @@ def parse_pokebattler_datetime(date_str):
         return datetime.strptime(date_str, "%b %d, %Y").replace(hour=23, minute=59)
     except ValueError:
         return None
+
+
+def same_month(dt, ref):
+    """True if dt falls in the same calendar month+year as ref. Used for the 'keep this
+    month's rotation bosses visible until the month actually flips' rule."""
+    return dt is not None and dt.year == ref.year and dt.month == ref.month
 
 
 def fetch_current_bosses():
@@ -278,10 +296,11 @@ def main():
 
     results = []
     seen = set()
-    for name in current_names:
-        key = normalize_name(name)
-        if key not in known_bosses or key in seen:
-            continue
+
+    def build_result(name, key):
+        """Assembles one result dict for a known boss, applying the expiry rule. Returns the
+        dict to append, or None if the boss should be filtered out. Shared by the live-API
+        pass and the this-month-rotation retention pass below so both use identical logic."""
         info = known_bosses[key]
         # Prefer the static, hand-verified CONFIRMED_ROTATION_DATES table over whatever
         # the live website scrape found - it's cross-checked against two independent
@@ -297,22 +316,29 @@ def main():
         # Monthly Rotation (usually 1-2 weeks).
         category = "event" if (start_date and date_only(start_date) == date_only(end_date)) else "rotation"
 
-        # NOTE: there is deliberately no "hasn't started yet" exclusion here anymore. An
-        # earlier version of this script excluded future-dated Events specifically,
-        # reasoning that a boss like Zamazenta Hero shouldn't show before its July 26 slot
-        # began. That was solving the wrong problem: the actual Zamazenta bug was that
-        # date-matching FAILED for it (a hyphen mismatch, since fixed), so it fell into the
-        # undated "currently active" bucket with no context at all. Now that date-matching
-        # works correctly, a boss with a real future date is accurately labeled as such
-        # (e.g. a group header reading "Jul 26") - excluding it just hides real, correctly
-        # -dated upcoming info, which is exactly what happened here: it silently emptied
-        # the entire "Event raids" row the one time an event was more than a few days out.
-        if end_dt and now > end_dt:
-            print(f"  skipping {name}: window ended {end_date}, already over")
-            continue
+        # Expiry rule differs by category:
+        #  - ROTATION bosses stay visible for the WHOLE month their window falls in, even
+        #    after the ~1-2 week window itself has passed, and only drop once the calendar
+        #    month actually flips. People still want retroactive monthly boss guides (e.g.
+        #    Azelf mid-to-late August after its early-August window ended). A rotation boss
+        #    is dropped only when its end date is in an EARLIER month than today.
+        #  - EVENTS (one-day windows) keep the old behavior: dropped the moment they're over,
+        #    since a finished one-day event isn't a "this month's rotation" people revisit.
+        # No "hasn't started yet" exclusion (future-dated bosses show with a dated header);
+        # that was removed earlier after it silently emptied the Event row for a distant event.
+        if end_dt:
+            if category == "event":
+                if now > end_dt:
+                    print(f"  skipping {name}: event window ended {end_date}, already over")
+                    return None
+            else:  # rotation
+                # dropped only once we're past the month the window ended in
+                month_over = (now.year, now.month) > (end_dt.year, end_dt.month)
+                if month_over:
+                    print(f"  skipping {name}: rotation window's month ({end_date}) has passed")
+                    return None
 
-        seen.add(key)
-        results.append({
+        return {
             "name": name,
             "startDate": start_date,
             "endDate": end_date,
@@ -320,7 +346,40 @@ def main():
             "archivePage": info["archivePage"],
             "difficulty": info["difficulty"],
             "weather": info["weather"],
-        })
+        }
+
+    # Pass 1: everything the live API currently reports as active.
+    for name in current_names:
+        key = normalize_name(name)
+        if key not in known_bosses or key in seen:
+            continue
+        r = build_result(name, key)
+        if r is None:
+            continue
+        seen.add(key)
+        results.append(r)
+
+    # Pass 2: retain THIS MONTH's confirmed rotation bosses even after the live API stops
+    # reporting them. Once a rotation window ends, Pokebattler drops the boss from its API
+    # entirely, so it never reaches Pass 1 - which is why a boss like Azelf vanished from the
+    # landing page the moment its early-August window closed, mid-August. Anything in the
+    # hand-verified CONFIRMED_ROTATION_DATES table whose window ended in the current month is
+    # re-added here (build_result still applies the month-flip drop, so next month it falls off
+    # on its own). Bosses whose window is a future month are left to Pass 1 / the live scrape.
+    for key, (start_date, end_date) in CONFIRMED_ROTATION_DATES.items():
+        if key in seen or key not in known_bosses:
+            continue
+        end_dt = parse_pokebattler_datetime(end_date)
+        if not same_month(end_dt, now):
+            continue
+        # reconstruct the display name from the CSV's known record (title-cased key is close,
+        # but known_bosses stores the canonical name via load_known_bosses)
+        display_name = known_bosses[key].get("name") or key.title()
+        r = build_result(display_name, key)
+        if r is None:
+            continue
+        seen.add(key)
+        results.append(r)
 
     grouped = {}
     order = []

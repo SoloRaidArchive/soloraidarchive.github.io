@@ -1783,7 +1783,14 @@ function render(){
     : `<div class="empty">No submissions match your search yet.</div>`;
 }
 
-searchInput.addEventListener("input", render);
+// Debounce: render() rebuilds three separate layouts (desktop table + two card grids). Firing
+// that on every keystroke made search laggy; coalescing a burst of typing into one render keeps
+// it responsive.
+let searchDebounceTimer = null;
+searchInput.addEventListener("input", () => {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(render, 140);
+});
 sortSelect.addEventListener("change", render);
 modeFilter.addEventListener("change", render);
 loadSubmissionsFromCSV();
