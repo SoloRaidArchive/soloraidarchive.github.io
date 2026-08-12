@@ -11,7 +11,9 @@
       "vods": [
         {
           "url": "https://youtu.be/-Uuq1FUP6Vk",
-          "label": ""
+          "label": "",
+          "creditName": "",
+          "creditUrl": ""
         }
       ],
       "submittedBy": "CreatorBeastGD",
@@ -26,12 +28,15 @@
               "fm": "Mud Shot",
               "cm": "Precipice Blades",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": false
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-09T06:42:44.003Z"
+      "submittedAt": "2026-08-12T23:59:21.166Z"
     }
   ]
 }
