@@ -87,12 +87,12 @@ CONFIRMED_ROTATION_DATES = {
     "mega salamence": ("Jul 22, 2026", "Jul 28, 2026"),
     "kyurem": ("Jul 29, 2026", "Aug 4, 2026"),
     "mega aggron": ("Jul 29, 2026", "Aug 4, 2026"),
-    # August 2026 rotation. Windows for Mega Garchomp / Lunala / Mega Swampert / Mega Gyarados
-    # are taken from the live-scraped data already in live-bosses.json. Azelf's window
-    # (Aug 5-11) is inferred from its guide being logged Aug 5 and the consistent weekly
-    # cadence (it's the slot between Mega Aggron's Jul29-Aug4 and Mega Garchomp's Aug12-18).
-    # >>> VERIFY Azelf's exact dates against leekduck/pokemongohub before relying on them. <<<
+    # August 2026 rotation. These are NOT inferred - they were recovered from the repo's own
+    # git history of live-bosses.json (commit 5cafe24e, generated 2026-08-05), which is the
+    # authoritative record of what the live scrape actually saw at the time. Azelf and Mega
+    # Blaziken share the Aug 5-11 window.
     "azelf": ("Aug 5, 2026", "Aug 11, 2026"),
+    "mega blaziken": ("Aug 5, 2026", "Aug 11, 2026"),
     "mega garchomp": ("Aug 12, 2026", "Aug 18, 2026"),
     "lunala": ("Aug 19, 2026", "Aug 25, 2026"),
     "mega swampert": ("Aug 19, 2026", "Aug 25, 2026"),
