@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-12T18:43:41.958766+00:00",
+  "generatedAt": "2026-08-12T21:32:35.527027+00:00",
   "dateGroups": [
     {
       "startDate": "Aug 19, 2026",
@@ -34,14 +34,117 @@
       ]
     },
     {
-      "startDate": "Aug 26, 2026",
-      "endDate": "Sep 8, 2026",
-      "category": "rotation",
+      "startDate": "Sep 5, 2026",
+      "endDate": "Sep 5, 2026",
+      "category": "event",
       "bosses": [
         {
-          "name": "Mega Gyarados",
+          "name": "Mega Abomasnow",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Alakazam",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Ampharos",
           "archivePage": "tier4-raids.html",
           "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Banette",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Beedrill",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Gengar",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Houndoom",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Manectric",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Pinsir",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Slowbro",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        }
+      ]
+    },
+    {
+      "startDate": "Sep 6, 2026",
+      "endDate": "Sep 6, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Mega Aerodactyl",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Audino",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Camerupt",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Lopunny",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Sableye",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Mega Sharpedo",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Steelix",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "5 \u2b50",
           "weather": "Cloudy"
         }
       ]
@@ -52,15 +155,28 @@
       "category": "rotation",
       "bosses": [
         {
+          "name": "Mega Aggron",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
           "name": "Kyurem",
           "archivePage": "tier5-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "snow"
-        },
+        }
+      ]
+    },
+    {
+      "startDate": "Aug 26, 2026",
+      "endDate": "Sep 8, 2026",
+      "category": "rotation",
+      "bosses": [
         {
-          "name": "Mega Aggron",
+          "name": "Mega Gyarados",
           "archivePage": "tier4-raids.html",
-          "difficulty": "5 \u2b50",
+          "difficulty": "3 \u2b50",
           "weather": "Cloudy"
         }
       ]
