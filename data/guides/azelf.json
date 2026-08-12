@@ -11,15 +11,21 @@
       "vods": [
         {
           "url": "https://www.youtube.com/watch?v=yH8ptUICK1s&time_continue=0&source_ve_path=MjM4NTE&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F&embeds_referring_origin=https%3A%2F%2Fwww.reddit.com",
-          "label": "TTW: 277.5s (Full Size, 1-2 rejoins, Future Sight)"
+          "label": "TTW: 277.5s (Full Size, 1-2 rejoins, Future Sight)",
+          "creditName": "",
+          "creditUrl": ""
         },
         {
           "url": "https://www.youtube.com/watch?v=Qfc357XZK2E&feature=youtu.be",
-          "label": "TTW: 297.5s (Low Budget, 4 rejoins, Future Sight)"
+          "label": "TTW: 297.5s (Low Budget, 4 rejoins, Future Sight)",
+          "creditName": "",
+          "creditUrl": ""
         },
         {
           "url": "https://www.youtube.com/watch?v=2yNBIdsp70s",
-          "label": "TTW: 299.0s (Full Size, 2-3 Rejoins, Fire Blast double CT, Lag)"
+          "label": "TTW: 299.0s (Full Size, 2-3 Rejoins, Fire Blast double CT, Lag)",
+          "creditName": "",
+          "creditUrl": ""
         }
       ],
       "submittedBy": "SpiritedBloom",
@@ -34,6 +40,10 @@
               "fm": "Lick",
               "cm": "Shadow Ball",
               "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Executor"
+              ],
               "optional": false
             },
             {
@@ -42,6 +52,9 @@
               "fm": "Any",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": false
             },
             {
@@ -50,6 +63,10 @@
               "fm": "Any",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
               "optional": false
             },
             {
@@ -58,6 +75,10 @@
               "fm": "Any",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
               "optional": false
             },
             {
@@ -66,6 +87,10 @@
               "fm": "Any",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
               "optional": true
             },
             {
@@ -74,12 +99,16 @@
               "fm": "Any",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
               "optional": true
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-10T21:51:17.247Z"
+      "submittedAt": "2026-08-12T23:58:10.755Z"
     },
     {
       "strategyName": "Necrozma Dawn Wings DPS",
