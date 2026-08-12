@@ -223,6 +223,36 @@
   .mon-block.optional-mon{ opacity:0.75; }
   .mon-block.optional-mon .mon-name{ border-style:dashed; }
   .mon-moves-row .mon-fm, .mon-moves-row .mon-cm, .mon-moves-row .mon-cm2{ flex:1; }
+  .mon-role-row{ margin-top:4px; display:flex; flex-wrap:wrap; gap:6px; }
+  .role-chip{
+    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:700; padding:6px 12px;
+    border-radius:999px; border:1.5px solid var(--border); background:transparent;
+    color: var(--text-dim); cursor:pointer; line-height:1.2; min-height:30px;
+  }
+  .role-chip:hover{ border-color: var(--text-dim); }
+  /* Same palette as the Difficulty & Role Reference page's own .role-chip - Main DPS red,
+     Support DPS teal, Catch Tank purple, Executor gray - so a role reads the same color
+     everywhere on the site, not just here. */
+  .role-chip.active[data-role="Main DPS"]{ background:#ffe1e1; color:#c62828; border-color:#c62828; }
+  .role-chip.active[data-role="Support DPS"]{ background:#dff5f3; color:#00897b; border-color:#00897b; }
+  .role-chip.active[data-role="Catch Tank"]{ background:#f2ebff; color:#7d4fd6; border-color:#7d4fd6; }
+  .role-chip.active[data-role="Executor"]{ background:#e9e9eb; color:#292929; border-color:#292929; }
+  [data-theme="dark"] .role-chip.active[data-role="Main DPS"]{ background:rgba(220,53,69,0.22); color:#ff9494; border-color:#ff9494; }
+  [data-theme="dark"] .role-chip.active[data-role="Support DPS"]{ background:rgba(0,150,136,0.22); color:#5eded4; border-color:#5eded4; }
+  [data-theme="dark"] .role-chip.active[data-role="Catch Tank"]{ background:rgba(155,123,240,0.2); color:#c1a8ff; border-color:#c1a8ff; }
+  [data-theme="dark"] .role-chip.active[data-role="Executor"]{ background:rgba(255,255,255,0.14); color:#e4e4e6; border-color:#e4e4e6; }
+  .role-badge{
+    display:inline-block; font-size:10px; font-weight:800; text-transform:uppercase;
+    letter-spacing:0.03em; padding:1px 7px; border-radius:999px; margin:1px 4px 1px 0; vertical-align:1px;
+  }
+  .role-badge.role-main-dps{ background:#ffe1e1; color:#c62828; }
+  .role-badge.role-support-dps{ background:#dff5f3; color:#00897b; }
+  .role-badge.role-catch-tank{ background:#f2ebff; color:#7d4fd6; }
+  .role-badge.role-executor{ background:#e9e9eb; color:#292929; }
+  [data-theme="dark"] .role-badge.role-main-dps{ background:rgba(220,53,69,0.22); color:#ff9494; }
+  [data-theme="dark"] .role-badge.role-support-dps{ background:rgba(0,150,136,0.22); color:#5eded4; }
+  [data-theme="dark"] .role-badge.role-catch-tank{ background:rgba(155,123,240,0.2); color:#c1a8ff; }
+  [data-theme="dark"] .role-badge.role-executor{ background:rgba(255,255,255,0.14); color:#e4e4e6; }
   .mon-btn-group{ position:absolute; top:0; right:0; display:flex; gap:2px; }
   .mon-remove-btn{ background:none; border:none; color:#b0b0b8; font-size:14px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
   .mon-dup-btn{ background:none; border:none; color:#8a93a8; font-size:13px; cursor:pointer; flex-shrink:0; padding:2px 4px; }
@@ -1231,7 +1261,7 @@ function strategyBlockHtml(s, editIndex){
             <div class="battle-mon${m.optional ? ' optional' : ''}">
               ${battleMonIconHtml(m.name)}
               <div>
-                ${m.level ? `<div class="battle-mon-level">Lv ${m.level}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ''}</div>` : (m.optional ? `<div class="battle-mon-level"><span class="optional-note">(Optional)</span></div>` : "")}
+                ${m.level || (m.roles && m.roles.length) || m.optional ? `<div class="battle-mon-level">${m.level ? `Lv ${m.level}` : ''}${roleBadgesHtml(m.roles)}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ''}</div>` : ""}
                 ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).join(' / ')}</div>` : ""}
               </div>
             </div>
@@ -1406,6 +1436,36 @@ newBossEl.addEventListener('input', () => {
   submitBtn.disabled = !newBossEl.value.trim();
 });
 
+// Shared by both battle-party editors (the guide-strategy inline one and the article "insert
+// battle party" modal) so the two never drift out of sync with each other - one definition of
+// what a role field looks like, used everywhere a mon-block gets created. Tap-toggle chips
+// rather than a <select multiple> - a native multi-select needs ctrl/cmd-click to pick more than
+// one option, which doesn't exist as a gesture on mobile at all, whereas independent tap targets
+// work identically on touch and pointer input.
+const MON_ROLES = ["Main DPS", "Support DPS", "Catch Tank", "Executor"];
+function monRoleSelectHtml(){
+  return `<div class="mon-row mon-role-row">
+    ${MON_ROLES.map(r => `<button type="button" class="role-chip" data-role="${r}" onclick="toggleRoleChip(this)">${r}</button>`).join('')}
+  </div>`;
+}
+function toggleRoleChip(btn){
+  btn.classList.toggle('active');
+}
+function getMonRoles(block){
+  return Array.from(block.querySelectorAll('.role-chip.active')).map(c => c.dataset.role);
+}
+function setMonRoles(block, roles){
+  const set = new Set(roles || []);
+  block.querySelectorAll('.role-chip').forEach(c => c.classList.toggle('active', set.has(c.dataset.role)));
+}
+function roleBadgesHtml(roles, escape){
+  const esc = escape || (s => s);
+  return (roles || []).map(r => `<span class="${roleBadgeClass(r)}">${esc(r)}</span>`).join('');
+}
+function roleBadgeClass(role){
+  return `role-badge role-${role.toLowerCase().replace(/\s+/g, '-')}`;
+}
+
 let partyCounter = 0;
 function addParty(){
   partyCounter++;
@@ -1448,6 +1508,7 @@ function addMon(partyId){
       <input type="text" class="mon-cm" placeholder="Charge move 1">
       <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)">
     </div>
+    ${monRoleSelectHtml()}
     <div class="mon-btn-group">
       <button type="button" class="mon-optional-btn" title="Mark this Pok&eacute;mon as optional" onclick="toggleOptionalMon(this)">?</button>
       <button type="button" class="mon-dup-btn" title="Duplicate this Pok&eacute;mon" onclick="duplicateMon(this)">&#10697;</button>
@@ -1456,6 +1517,7 @@ function addMon(partyId){
   `;
   list.appendChild(row);
   row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', syncPreview));
+  row.querySelectorAll('.role-chip').forEach(c => c.addEventListener('click', syncPreview));
   syncPreview();
   return row;
 }
@@ -1493,6 +1555,7 @@ function duplicateMon(btn){
   newRow.querySelector('.mon-fm').value = source.querySelector('.mon-fm').value;
   newRow.querySelector('.mon-cm').value = source.querySelector('.mon-cm').value;
   newRow.querySelector('.mon-cm2').value = source.querySelector('.mon-cm2').value;
+  setMonRoles(newRow, getMonRoles(source));
 
   const sourceMax = source.querySelector('.mon-level-max');
   if(sourceMax.style.display !== 'none'){
@@ -1520,6 +1583,7 @@ function collectParties(){
         fm: block.querySelector('.mon-fm').value.trim(),
         cm: block.querySelector('.mon-cm').value.trim(),
         cm2: block.querySelector('.mon-cm2').value.trim(),
+        roles: getMonRoles(block),
         optional: block.classList.contains('optional-mon'),
       };
     }).filter(m => m.name);
@@ -1582,6 +1646,7 @@ function addModalMon(partyId){
       <input type="text" class="mon-cm" placeholder="Charge move 1">
       <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)">
     </div>
+    ${monRoleSelectHtml()}
     <div class="mon-btn-group">
       <button type="button" class="mon-optional-btn" title="Mark this Pok&eacute;mon as optional" onclick="toggleOptionalMon(this)">?</button>
       <button type="button" class="mon-dup-btn" title="Duplicate this Pok&eacute;mon" onclick="duplicateModalMon(this)">&#10697;</button>
@@ -1601,6 +1666,7 @@ function duplicateModalMon(btn){
   newRow.querySelector('.mon-fm').value = source.querySelector('.mon-fm').value;
   newRow.querySelector('.mon-cm').value = source.querySelector('.mon-cm').value;
   newRow.querySelector('.mon-cm2').value = source.querySelector('.mon-cm2').value;
+  setMonRoles(newRow, getMonRoles(source));
 
   const sourceMax = source.querySelector('.mon-level-max');
   if(sourceMax.style.display !== 'none'){
@@ -1627,6 +1693,7 @@ function collectModalParties(){
         fm: block.querySelector('.mon-fm').value.trim(),
         cm: block.querySelector('.mon-cm').value.trim(),
         cm2: block.querySelector('.mon-cm2').value.trim(),
+        roles: getMonRoles(block),
         optional: block.classList.contains('optional-mon'),
       };
     }).filter(m => m.name);
@@ -1642,7 +1709,7 @@ function articleBattlePartyHtml(parties){
         <div class="battle-mon${m.optional ? " optional" : ""}">
           ${battleMonIconHtml(m.name)}
           <div>
-            ${m.level ? `<div class="battle-mon-level">Lv ${escapeHtml(m.level)}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ""}</div>` : (m.optional ? `<div class="battle-mon-level"><span class="optional-note">(Optional)</span></div>` : "")}
+            ${m.level || (m.roles && m.roles.length) || m.optional ? `<div class="battle-mon-level">${m.level ? `Lv ${escapeHtml(m.level)}` : ''}${roleBadgesHtml(m.roles, escapeHtml)}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ""}</div>` : ""}
             ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).map(escapeHtml).join(' / ')}</div>` : ""}
           </div>
         </div>
@@ -2484,6 +2551,7 @@ function buildPartiesFromData(battleParties, trackForDraft){
           <input type="text" class="mon-cm" placeholder="Charge move 1" value="${mon.cm || ''}">
           <input type="text" class="mon-cm2" placeholder="Charge move 2 (optional)" value="${mon.cm2 || ''}">
         </div>
+        ${monRoleSelectHtml()}
         <div class="mon-btn-group">
           <button type="button" class="mon-optional-btn${mon.optional ? ' active' : ''}" title="Mark this Pok&eacute;mon as optional" onclick="toggleOptionalMon(this)">?</button>
           <button type="button" class="mon-dup-btn" title="Duplicate this Pok&eacute;mon" onclick="duplicateMon(this)">&#10697;</button>
@@ -2491,7 +2559,9 @@ function buildPartiesFromData(battleParties, trackForDraft){
         </div>
       `;
       list.appendChild(row);
+      setMonRoles(row, mon.roles || (mon.role ? [mon.role] : []));
       row.querySelectorAll('input').forEach(inp => inp.addEventListener('input', trackForDraft ? () => { syncPreview(); saveDraft(); } : syncPreview));
+      row.querySelectorAll('.role-chip').forEach(c => c.addEventListener('click', trackForDraft ? () => { syncPreview(); saveDraft(); } : syncPreview));
     });
   });
 }
