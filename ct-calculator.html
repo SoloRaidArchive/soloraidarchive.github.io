@@ -1473,7 +1473,11 @@ let movepoolLoadFailed = false;
 let PENDING_MOVE_SELECTION = null;
 
 async function fetchCSVRows(path){
-  const res = await fetch(path, { cache: "force-cache" });
+  // Default caching (not "force-cache"): the browser still caches these across pages, but it
+  // revalidates instead of serving a stale copy indefinitely. force-cache would keep handing back
+  // whatever it first received - including a bad response captured during a partial deploy - with
+  // no way for a user to recover short of a hard refresh.
+  const res = await fetch(path);
   if(!res.ok) throw new Error(`${path} HTTP ${res.status}`);
   return parseCSVObjects(await res.text());
 }
@@ -1533,8 +1537,12 @@ function refreshMoveDropdowns(){
     restoreMoveSelection("bossCM", pending.bossCM);
     restoreMoveSelection("bossFM", pending.bossFM);
     PENDING_MOVE_SELECTION = null;
-    updatePlayerPreview(); updateBossPreview(); updatePlayerMovePreview();
   }
+  // Always re-render previews and re-run type detection, not just for shared links: a user who
+  // typed a Pokemon name while the CSVs were still in flight would otherwise be left with no
+  // stat preview and effectiveness stuck at 1x, with nothing on screen indicating why.
+  updatePlayerPreview(); updateBossPreview(); updatePlayerMovePreview();
+  autoSetEffectiveness();
 }
 let MOVE_DB = [];
 // ============ CPM TABLE (levels 40-51, half-level increments) ============
@@ -2870,8 +2878,8 @@ function onCustomMoveChange(baseId){
   document.getElementById(id).addEventListener("input", updatePlayerMovePreview);
   document.getElementById(id).addEventListener("change", updatePlayerMovePreview);
 });
-document.getElementById("pokemonName").addEventListener("input", () => updateMoveOptionsFor("pokemonName","playerCM","playerFM"));
-document.getElementById("pokemonName").addEventListener("change", () => updateMoveOptionsFor("pokemonName","playerCM","playerFM"));
+document.getElementById("pokemonName").addEventListener("input", () => { updateMoveOptionsFor("pokemonName","playerCM","playerFM"); autoSetEffectiveness(); });
+document.getElementById("pokemonName").addEventListener("change", () => { updateMoveOptionsFor("pokemonName","playerCM","playerFM"); autoSetEffectiveness(); });
 [
   "playerCM","playerFM","effCM","effFM","stabCM","stabFM",
   "partyPower","zacianBlade","primalMega","friendship",
@@ -2893,8 +2901,8 @@ document.getElementById("weatherSelect").addEventListener("change", () => {
   updatePlayerMovePreview();
   updateBossPreview();
 });
-document.getElementById("bossName").addEventListener("input", () => updateMoveOptionsFor("bossName","bossCM","bossFM"));
-document.getElementById("bossName").addEventListener("change", () => updateMoveOptionsFor("bossName","bossCM","bossFM"));
+document.getElementById("bossName").addEventListener("input", () => { updateMoveOptionsFor("bossName","bossCM","bossFM"); autoSetEffectiveness(); });
+document.getElementById("bossName").addEventListener("change", () => { updateMoveOptionsFor("bossName","bossCM","bossFM"); autoSetEffectiveness(); });
 
 // ============ AUTO-EFFECTIVENESS (based on typing) ============
 function isStabMatch(elem, types){
