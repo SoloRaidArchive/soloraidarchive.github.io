@@ -69,6 +69,14 @@
     transition: background .15s ease, color .15s ease;
   }
   .ct-mode-toggle input:checked + label{ background: var(--blue); color:#fff; }
+  /* Compact dropdown beside the Raid Boss name (Main DPS mode only) picking which of the two
+     cadences to calculate, rather than always rendering both at once. Fixed-basis like
+     .tier-field so a long boss name shrinks its own field instead of squeezing this one. */
+  .cadence-field{ flex:0 0 128px; }
+  body:not(.ct-mode-maindps) .cadence-field{ display:none; }
+  @media (max-width: 600px){
+    .cadence-field{ flex:1 1 140px; }
+  }
   .ct-mode-desc{
     font-size:11.5px; color: var(--text-dim); font-weight:600; line-height:1.5; margin: -10px 0 16px;
     max-width:600px;
@@ -76,8 +84,12 @@
   .single-ct-only{ }
   body.ct-mode-double .single-ct-only{ display:none; }
   body.ct-mode-maindps .single-ct-only{ display:none; }
+  /* Boss charge-move inputs used to be hidden in Main DPS mode, back when that mode modelled
+     fast moves only. Its second column now models absorbing the boss's charge move, so those
+     inputs are needed in every mode and are no longer hidden here. */
   .catch-tank-only{ }
-  body.ct-mode-maindps .catch-tank-only{ display:none; }
+  /* Boss charge-move inputs are irrelevant to the fast-moves-only cadence, so hide them there */
+  body.cadence-fm-only .catch-tank-only{ display:none; }
 
   .duration-unit-toggle{
     display:flex; align-items:center; gap:8px; margin:10px 0 4px;
@@ -116,7 +128,7 @@
     color: var(--text); outline:none; width:100%;
   }
   .name-iv-row{ display:flex; gap:10px; flex-wrap:wrap; }
-  .name-field{ flex:1 1 160px; min-width:140px; position:relative; }
+  .name-field{ flex:1 1 140px; min-width:120px; position:relative; }
   /* Width is locked to the name field itself (not the input's natural content width, not a fixed
      px value) specifically so this can never spill into the IV fields sitting right next to it in
      the same row, or into the other side's vs-column on desktop - that visual collision is the
@@ -697,6 +709,13 @@
             <select id="bossTier">
               <option value="0.79">T4/T5/T6/T7</option>
               <option value="1">Elite</option>
+            </select>
+          </div>
+          <div class="field cadence-field">
+            <label for="cadenceMode">Calculating</label>
+            <select id="cadenceMode">
+              <option value="fmonly" selected>Fast Only</option>
+              <option value="fmcm">Fast &amp; Charge</option>
             </select>
           </div>
         </div>
@@ -2564,6 +2583,10 @@ function runCalculation(){
   const ctMode = document.querySelector('input[name="ctMode"]:checked').value;
   const doubleCT = ctMode === "double";
   const mainDPSMode = ctMode === "maindps";
+  // Which cadence Main DPS mode is calculating: the player's own fast moves only, or the
+  // rotation where the boss's charge move (plus trailing fast moves) is absorbed. Only one is
+  // computed and shown at a time - showing both at once made the output hard to read.
+  const cadenceFMOnly = document.getElementById("cadenceMode").value === "fmonly";
   const cmBuffer = !doubleCT && !mainDPSMode && document.getElementById("cmBuffer").checked;
   const resolveNerf = !mainDPSMode && document.getElementById("resolveNerf").checked;
   const numCM = parseInt(document.getElementById("numCM").value);
@@ -2593,16 +2616,20 @@ function runCalculation(){
 
   const bossCMName = document.getElementById("bossCM").value.trim();
   const bossFMName = document.getElementById("bossFM").value.trim();
-  const bossCMMove = mainDPSMode ? null : findMove(bossCMName);
+  // The boss's charge move is needed everywhere EXCEPT Main DPS mode's fast-moves-only cadence,
+  // which by definition never involves one (its inputs are hidden in that case too, so requiring
+  // it would block calculation on a field the user can't even see).
+  const bossCMOptional = mainDPSMode && cadenceFMOnly;
+  const bossCMMove = findMove(bossCMName);
   const bossFMMove = findMove(bossFMName);
-  if((!mainDPSMode && !bossCMMove) || !bossFMMove){
-    resultsWrap.innerHTML = mainDPSMode
+  if((!bossCMMove && !bossCMOptional) || !bossFMMove){
+    resultsWrap.innerHTML = bossCMOptional
       ? `<div class="empty-result">Enter a valid Boss Fast Move to calculate.</div>`
       : `<div class="empty-result">Enter valid Boss Charge and Fast moves to calculate.</div>`;
     return;
   }
 
-  const bossCMMods = mainDPSMode ? null : {
+  const bossCMMods = !bossCMMove ? null : {
     eff: parseFloat(document.getElementById("effBossCM").value),
     weather: isWeatherBoosted(bossCMMove.elem),
     shadowDebuff: document.getElementById("shadowDebuff").checked,
@@ -2636,7 +2663,7 @@ function runCalculation(){
   const fastDamage = playerMoveDamage(fm, pkmnName, playerAtk, bossDef, fmModsPlayer);
 
   // --- boss move damage (hitting the player) ---
-  let bossCMDamage = mainDPSMode ? 0 : bossMoveDamage(bossCMMove, bossAtk, playerDef, bossCMMods);
+  let bossCMDamage = bossCMMove ? bossMoveDamage(bossCMMove, bossAtk, playerDef, bossCMMods) : 0;
   let bossFMDamage = bossMoveDamage(bossFMMove, bossAtk, playerDef, bossFMMods);
   if(dodgeCM) bossCMDamage = Math.floor(bossCMDamage * 0.25);
   if(dodgeFM) bossFMDamage = Math.floor(bossFMDamage * 0.25);
@@ -2703,6 +2730,60 @@ function runCalculation(){
       ? `${mdCastBreakdown[0]} &times; ${fm.n} &rarr; ${cm.n}`
       : `${mdCastBreakdown.join("+")} &times; ${fm.n} &rarr; ${cm.n} &nbsp;(${numCM} casts)`;
 
+    // ============ COLUMN 2: ABSORBING THE BOSS'S CHARGE MOVE ============
+    // Moved here from the Single Catch Tank mode, where this was previously its "Main DPS"
+    // column (the no-swap case). It's the same rotation math, using the same boss cadence:
+    //   n=0 -> charge move only                 [no floor beyond the CM animation]
+    //   n=1 -> CM + 1 trailing boss fast move    [bossFM_ad]
+    //   n=2 -> CM + 2 trailing boss fast moves   [bossFM_ad * 2 + 5]
+    // The player banks energy from the damage absorbed (50% of damage taken), which is what
+    // makes this cadence outperform tapping fast moves alone.
+    const mdEnergyFromCM = energyFromDamage(bossCMDamage);
+    const mdEnergyFromBossFM = energyFromDamage(bossFMDamage);
+    const mdCmCost = Math.abs(cm.energy);
+    const mdBossFMAD_ticks = bossFMMove.ad;
+
+    const mdAbsorbRows = [0, 1, 2].map(n => {
+      const totalCostAllCasts = numCM * mdCmCost;
+      const tankBonusForBuildup = mdEnergyFromCM + (n * mdEnergyFromBossFM);
+      const energyNeeded = Math.max(totalCostAllCasts - tankBonusForBuildup, 0);
+      const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad;
+
+      // one mandatory tap still resolves the charge button when banked tank energy alone
+      // already covers the cost - the button doesn't auto-appear without a tap
+      const mandatoryCovers = (totalCostAllCasts > 0 && tankBonusForBuildup >= totalCostAllCasts) ? 1 : 0;
+      const mandatoryFMBonus = mandatoryCovers ? fm.ad : 0;
+
+      const floorTerm = n === 0 ? 0 : n === 1 ? mdBossFMAD_ticks : mdBossFMAD_ticks * 2 + 5;
+      const innerMax = Math.max(buildupTicks, floorTerm);
+
+      let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+      const outerFloor = mdBossFMAD_ticks + 1;
+      ticks = Math.max(outerFloor, ticks);
+
+      const seconds = ticks / 2;
+      const fastPhaseTicks = Math.max(0, innerMax + mandatoryFMBonus);
+      const fastMoveCountForDPS = fastPhaseTicks / fm.ad;
+      const numerator = (chargeDamage * numCM) + (fastMoveCountForDPS * fastDamage);
+
+      const cumulativeDamage = bossCMDamage + (n * bossFMDamage);
+      const fainted = cumulativeDamage >= playerHp;
+      const dps = fainted ? 0 : numerator / Math.max(seconds, 0.1);
+
+      // does the boss actually have time to land all n trailing fast moves inside this rotation?
+      let risky = false;
+      let riskyNote = "";
+      if(!fainted && n > 0){
+        const landings = bossFMLandingTicks(mdBossFMAD_ticks, n);
+        const nthLandingTick = landings[n - 1];
+        if(nthLandingTick > ticks){
+          risky = true;
+          riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+        }
+      }
+      return { n, seconds, ticks, dps, fainted, cumulativeDamage, risky, riskyNote };
+    });
+
     const loadoutHtml = `
       <div class="loadout-card">
         <div class="loadout-pokemon">
@@ -2739,10 +2820,10 @@ function runCalculation(){
       </div>
     `;
 
-    resultsWrap.innerHTML = loadoutHtml + `
+    const fmOnlyCardHtml = `
       <div class="dps-result-card">
         <div class="dps-result-main">
-          <div class="dps-result-label">Main DPS${numCM > 1 ? ` &middot; ${numCM} casts` : ""}</div>
+          <div class="dps-result-label">Fast Moves Only${numCM > 1 ? ` &middot; ${numCM} casts` : ""}</div>
           <div class="dps-result-value">${mainDPS.toFixed(1)}</div>
         </div>
         <div class="dps-result-breakdown">
@@ -2763,8 +2844,30 @@ function runCalculation(){
             <span class="dps-result-stat-value">${mdBossHitsAbsorbed} hits &middot; +${mdBossHitsAbsorbed * bossFMEnergyPerHit}</span>
           </div>
         </div>
-      </div>
+      </div>`;
+
+    const fmCmTableHtml = `
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Boss FMs Tanked</th>
+            <th>Fast &amp; Charge DPS</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${mdAbsorbRows.map(r => `
+            <tr class="${r.fainted ? "fainted-row" : ""}">
+              <td class="row-label">${r.n}</td>
+              ${r.fainted
+                ? `<td class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
+                : `<td class="dps-val">${r.dps.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}<span class="cell-duration">${formatTime(r.seconds, r.ticks)}</span></td>`}
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
     `;
+
+    resultsWrap.innerHTML = loadoutHtml + (cadenceFMOnly ? fmOnlyCardHtml : fmCmTableHtml);
 
     addToHistory(captureSetup());
     return;
@@ -2862,7 +2965,7 @@ function runCalculation(){
 
     return {
       n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
-      mainDPS: null, trailingDPS: null, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
+      trailingDPS: null, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
     };
   }) : [0, 1, 2].map(n => {
     const totalCostAllCasts = numCM * cmEnergyCost;
@@ -2941,7 +3044,6 @@ function runCalculation(){
     const cumulativeDamage = bossCMDamage + n * bossFMDamage;
     const fainted = cumulativeDamage >= playerHp;
 
-    const mainDPS = fainted ? 0 : numerator / Math.max(seconds, 0.1);
     const trailingDPS = fainted ? 0 : numerator / Math.max(seconds + 0.5, 0.1);
     const ctDPS = fainted ? 0 : numerator / Math.max(seconds + 1.0, 0.1);
 
@@ -2963,8 +3065,7 @@ function runCalculation(){
 
     return {
       n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
-      mainDPS, trailingDPS, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
-      mainSeconds: Math.max(seconds,0), mainTicks: Math.max(ticks,0),
+      trailingDPS, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
       trailingSeconds: Math.max(seconds+0.5,0), trailingTicks: Math.max(ticks+1,0),
       ctSeconds: Math.max(seconds+1.0,0), ctTicks: Math.max(ticks+2,0),
     };
@@ -3039,7 +3140,6 @@ function runCalculation(){
           ${doubleCT ? `
           <th>Duration</th>
           <th>Catch Tank DPS</th>` : `
-          <th>Main DPS</th>
           <th>Trailing DPS</th>
           <th>Catch Tank DPS</th>`}
         </tr>
@@ -3052,13 +3152,12 @@ function runCalculation(){
             ${anyQualifies ? `<td class="submit-col">${qualifies ? `<input type="radio" name="submitRow" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</td>` : ""}
             <td class="row-label">${r.n}</td>
             ${r.fainted
-              ? `<td colspan="${doubleCT ? 2 : 3}" class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
+              ? `<td colspan="2" class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
               : doubleCT
               ? `
             <td>${formatTime(r.seconds, r.ticks)}</td>
             <td class="dps-val">${r.ctDPS.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}</td>`
               : `
-            <td class="dps-val">${r.mainDPS.toFixed(1)} dps<span class="cell-duration">${formatTime(r.mainSeconds, r.mainTicks)}</span></td>
             <td class="dps-val">${r.trailingDPS.toFixed(1)} dps<span class="cell-duration">${formatTime(r.trailingSeconds, r.trailingTicks)}</span></td>
             <td class="dps-val">${r.ctDPS.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}<span class="cell-duration">${formatTime(r.ctSeconds, r.ctTicks)}</span></td>`}
           </tr>
@@ -3108,7 +3207,7 @@ function runCalculation(){
               : `
             <div class="results-card-row-dps">
               <div>CT DPS: <b class="results-card-ct">${r.ctDPS.toFixed(1)}</b>${r.risky ? ` <span class="results-card-risky" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️</span>` : ""}<span class="results-card-row-time-inline">${formatTime(r.ctSeconds, r.ctTicks)}</span></div>
-              <div class="results-card-row-sub">Main ${r.mainDPS.toFixed(1)} (${formatTime(r.mainSeconds, r.mainTicks)}) &middot; Trailing ${r.trailingDPS.toFixed(1)} (${formatTime(r.trailingSeconds, r.trailingTicks)})</div>
+              <div class="results-card-row-sub">Trailing ${r.trailingDPS.toFixed(1)} (${formatTime(r.trailingSeconds, r.trailingTicks)})</div>
             </div>`}
           </div>`;
           }).join("")}
@@ -3141,7 +3240,7 @@ const CT_FORM_ENTRIES = {
   shieldAE: "1864788093", dodges: "2043854718", timingMods: "247891686",
   chargeCasts: "1550834516", fmsTanked: "490095272",
   ticks: "2008929913", seconds: "930703322",
-  mainDPS: "1592139824", trailingDPS: "376297052", ctDPS: "37575726", risky: "1742382831",
+  trailingDPS: "376297052", ctDPS: "37575726", risky: "1742382831",
 };
 function submitSelectedRows(){
   if(!lastCalcContext) return;
@@ -3159,12 +3258,12 @@ function submitSelectedRows(){
   const r = lastCalcContext.rowsByN[n];
   const dodges = (f.dodgeCM && f.dodgeFM) ? "Both" : f.dodgeCM ? "CM" : f.dodgeFM ? "FM" : "None";
   const timingMods = (f.cmBuffer && f.resolveNerf) ? "Both" : f.cmBuffer ? "CM Buffer" : f.resolveNerf ? "Resolve Nerf" : "None";
-  // Main DPS and Trailing DPS genuinely don't apply to double catch tank - it's a single-role
-  // technique (there's only ever a Catch Tank swap-in, never a "already in" or "trailing swap"
-  // scenario for it). Submitting "N/A" here (rather than a new dedicated form field) is how the
-  // CT Database can tell single-CT and double-CT entries apart later, with zero changes needed
-  // to the Google Form itself.
-  const mainDPSText = f.doubleCT ? "N/A (Double CT)" : r.mainDPS.toFixed(1);
+  // Trailing DPS genuinely doesn't apply to double catch tank - it's a single-role technique
+  // (there's only ever a Catch Tank swap-in, never a "trailing swap" scenario for it).
+  // Submitting "N/A" here is what lets the CT Database tell single-CT and double-CT entries
+  // apart later. This used to be detectable from EITHER Main DPS or Trailing DPS being "N/A";
+  // now that Main DPS has been removed from the form and sheet entirely, Trailing DPS is the
+  // only remaining signal, so it carries that job alone.
   const trailingDPSText = f.doubleCT ? "N/A (Double CT)" : r.trailingDPS.toFixed(1);
 
   const params = new URLSearchParams();
@@ -3183,7 +3282,6 @@ function submitSelectedRows(){
   params.set(`entry.${CT_FORM_ENTRIES.fmsTanked}`, String(n));
   params.set(`entry.${CT_FORM_ENTRIES.ticks}`, r.ticks.toFixed(1));
   params.set(`entry.${CT_FORM_ENTRIES.seconds}`, r.seconds.toFixed(2));
-  params.set(`entry.${CT_FORM_ENTRIES.mainDPS}`, mainDPSText);
   params.set(`entry.${CT_FORM_ENTRIES.trailingDPS}`, trailingDPSText);
   params.set(`entry.${CT_FORM_ENTRIES.ctDPS}`, r.ctDPS.toFixed(1));
   params.set(`entry.${CT_FORM_ENTRIES.risky}`, r.risky ? "Yes" : "No");
@@ -3480,12 +3578,16 @@ function bossMoveDamagePreviewHtml(bAtk){
   const bossFMName = document.getElementById("bossFM").value.trim();
   const bossCMMove = findMove(bossCMName);
   const bossFMMove = findMove(bossFMName);
-  if(!bossCMMove || !bossFMMove) return "";
+  // In Main DPS mode's fast-moves-only cadence the boss never casts a charge move, so its rows
+  // are omitted from this preview entirely rather than showing damage that can't occur.
+  const fmOnlyCadence = document.body.classList.contains("cadence-fm-only");
+  if(!bossFMMove) return "";
+  if(!bossCMMove && !fmOnlyCadence) return "";
 
   const shadowDebuffOn = document.getElementById("shadowDebuff").checked;
   const shieldAEOn = document.getElementById("shieldAE").checked;
 
-  const cmDmg = bossMoveDamage(bossCMMove, bAtk, playerDef, {
+  const cmDmg = !bossCMMove ? 0 : bossMoveDamage(bossCMMove, bAtk, playerDef, {
     eff: parseFloat(document.getElementById("effBossCM").value),
     weather: isWeatherBoosted(bossCMMove.elem),
     shadowDebuff: shadowDebuffOn,
@@ -3500,7 +3602,7 @@ function bossMoveDamagePreviewHtml(bAtk){
     shieldAE: shieldAEOn,
   });
 
-  const cmDurationSeconds = bossCMMove.ad / 2;
+  const cmDurationSeconds = bossCMMove ? bossCMMove.ad / 2 : 0;
 
   return `
     <div class="boss-dmg-preview">
@@ -3511,6 +3613,7 @@ function bossMoveDamagePreviewHtml(bAtk){
         </div>
         <b>${fmDmg} dmg</b>
       </div>
+      ${(fmOnlyCadence || !bossCMMove) ? "" : `
       <div class="boss-dmg-row">
         <div class="boss-dmg-row-info">
           <div class="boss-dmg-row-name">${bossCMMove.n}</div>
@@ -3518,7 +3621,7 @@ function bossMoveDamagePreviewHtml(bAtk){
         </div>
         <b>${cmDmg} dmg</b>
       </div>
-      <div class="boss-dmg-row energy-row"><span>Charge Move Animation</span><b>${cmDurationSeconds.toFixed(1)}s</b></div>
+      <div class="boss-dmg-row energy-row"><span>Charge Move Animation</span><b>${cmDurationSeconds.toFixed(1)}s</b></div>`}
     </div>`;
 }
 
@@ -3831,10 +3934,23 @@ function updateCTMode(){
   const mode = document.querySelector('input[name="ctMode"]:checked').value;
   document.body.classList.toggle("ct-mode-double", mode === "double");
   document.body.classList.toggle("ct-mode-maindps", mode === "maindps");
+  updateCadenceMode();
+}
+// In Main DPS mode the boss's charge move only matters for the "Fast & Charge" cadence, so its
+// inputs are hidden when "Fast Only" is selected. Every other mode always needs them.
+function updateCadenceMode(){
+  const isMainDPS = document.querySelector('input[name="ctMode"]:checked').value === "maindps";
+  const fmOnly = document.getElementById("cadenceMode").value === "fmonly";
+  document.body.classList.toggle("cadence-fm-only", isMainDPS && fmOnly);
+  // the boss damage preview hides its charge-move rows in the fast-only cadence, so it has to
+  // re-render when the toggle flips (not just when a move/boss changes)
+  if(typeof updateBossPreview === "function") updateBossPreview();
 }
 document.getElementById("ctModeMainDPS").addEventListener("change", updateCTMode);
 document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
 document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);
+document.getElementById("cadenceMode").addEventListener("change", updateCadenceMode);
+updateCadenceMode();
 
 function getDurationUnit(){
   return document.getElementById("durationUnitTicks").checked ? "ticks" : "seconds";
