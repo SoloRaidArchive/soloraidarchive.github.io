@@ -86,7 +86,9 @@
       "vods": [
         {
           "url": "https://youtu.be/tiB6ndvzefU",
-          "label": ""
+          "label": "",
+          "creditName": "",
+          "creditUrl": ""
         }
       ],
       "submittedBy": "Wowtastic",
@@ -101,6 +103,9 @@
               "fm": "Air Slash",
               "cm": "Dragon Ascent",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": false
             },
             {
@@ -109,6 +114,9 @@
               "fm": "Psycho Cut",
               "cm": "Psystrike",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": false
             },
             {
@@ -117,6 +125,9 @@
               "fm": "Psycho Cut",
               "cm": "Psychic",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": true
             }
           ]
@@ -131,6 +142,9 @@
               "fm": "Dragon Tail",
               "cm": "Fly",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": true
             },
             {
@@ -139,12 +153,15 @@
               "fm": "Wing Attack",
               "cm": "Fly",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": true
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-10T00:15:15.484Z"
+      "submittedAt": "2026-08-13T00:00:27.739Z"
     },
     {
       "strategyName": "Rainy Budget Solo",
