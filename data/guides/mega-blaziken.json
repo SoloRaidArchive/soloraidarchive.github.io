@@ -155,7 +155,9 @@
       "vods": [
         {
           "url": "https://youtu.be/V7W7x2GAdyo?is=fnr9Ewak0g1zLy-Q",
-          "label": ""
+          "label": "",
+          "creditName": "",
+          "creditUrl": ""
         }
       ],
       "submittedBy": "rwaterbender",
@@ -170,6 +172,9 @@
               "fm": "Mud Shot",
               "cm": "Precipice Blades",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": false
             },
             {
@@ -178,6 +183,9 @@
               "fm": "Psycho Cut",
               "cm": "Psystrike",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": false
             },
             {
@@ -186,6 +194,9 @@
               "fm": "Psycho Cut",
               "cm": "Psystrike",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": false
             },
             {
@@ -194,12 +205,15 @@
               "fm": "Waterfall",
               "cm": "Origin Pulse",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": false
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-11T03:20:01.662Z"
+      "submittedAt": "2026-08-13T00:00:40.253Z"
     }
   ]
 }
