@@ -549,10 +549,10 @@ document.addEventListener("click", (e) => {
 // with and without an active Adventure Effect) - each is kept as its own separate result rather
 // than merged, so the label always makes clear which specific archive/version it points to.
 const SEARCH_SOURCES = [
-  { csv: "tier4-data.csv", archive: "tier4-raids.html", label: "Mega", col: 0 },
-  { csv: "tier5-data.csv", archive: "tier5-raids.html", label: "Legendary", col: 0 },
-  { csv: "tier5-ae-data.csv", archive: "tier5-ae-raids.html", label: "Legendary AE", col: 0 },
-  { csv: "tier6-data.csv", archive: "tier6-elite-raids.html", label: "Mega Legendary & Elite", col: 1 },
+  { csv: "/csv/tier4-data.csv", archive: "tier4-raids.html", label: "Mega", col: 0 },
+  { csv: "/csv/tier5-data.csv", archive: "tier5-raids.html", label: "Legendary", col: 0 },
+  { csv: "/csv/tier5-ae-data.csv", archive: "tier5-ae-raids.html", label: "Legendary AE", col: 0 },
+  { csv: "/csv/tier6-data.csv", archive: "tier6-elite-raids.html", label: "Mega Legendary & Elite", col: 1 },
 ];
 
 // Kicked off immediately, shared by every function that needs this data - each of these two

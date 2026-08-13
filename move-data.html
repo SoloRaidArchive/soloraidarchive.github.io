@@ -277,7 +277,7 @@
 
 <div class="container"><div class="move-grid" id="moveGrid"></div></div>
 
-<script src="data/csv-utils.js"></script>
+<script src="/csv/csv-utils.js"></script>
 <script>
 const MOVE_TYPE_COLORS = {
   normal:"var(--normal)", fire:"var(--fire)", water:"var(--water)", electric:"var(--electric)",
@@ -289,7 +289,7 @@ const MOVE_TYPE_COLORS = {
 let MOVES = [];
 
 async function loadMoves(){
-  const rows = await fetchCSV("data/moves.csv");
+  const rows = await fetchCSV("/csv/moves.csv");
   MOVES = rows.map(r => ({
     n: r.name,
     dmg: parseFloat(r.damage),

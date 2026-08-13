@@ -830,10 +830,10 @@ async function fetchAndParseArchive(csvFile, archivePage, category, earlyOffset,
 
 async function buildPartiesFromCSVs(){
   const [tier4, tier5, tier5ae, tier6] = await Promise.all([
-    fetchAndParseArchive('tier4-data.csv', 'tier4-raids.html', 'Mega', 0, 0),
-    fetchAndParseArchive('tier5-data.csv', 'tier5-raids.html', 'Legendary', 0, -1),
-    fetchAndParseArchive('tier5-ae-data.csv', 'tier5-ae-raids.html', 'Legendary AE', 0, 0),
-    fetchAndParseArchive('tier6-data.csv', 'tier6-elite-raids.html', 'Mega Legendary & Elite', 1, 1),
+    fetchAndParseArchive('/csv/tier4-data.csv', 'tier4-raids.html', 'Mega', 0, 0),
+    fetchAndParseArchive('/csv/tier5-data.csv', 'tier5-raids.html', 'Legendary', 0, -1),
+    fetchAndParseArchive('/csv/tier5-ae-data.csv', 'tier5-ae-raids.html', 'Legendary AE', 0, 0),
+    fetchAndParseArchive('/csv/tier6-data.csv', 'tier6-elite-raids.html', 'Mega Legendary & Elite', 1, 1),
   ]);
   const allRaids = [...tier4, ...tier5, ...tier5ae, ...tier6];
 
@@ -1327,7 +1327,7 @@ async function initPage(){
     PARTIES = await buildPartiesFromCSVs();
     const [sixStarEntries, tier55Entries] = await Promise.all([
       fetchIvSpreadsheet('6_star_raids.csv', 2, 6),
-      fetchIvSpreadsheet('5dot5_converted.csv', 1, 7),
+      fetchIvSpreadsheet('/csv/5dot5_converted.csv', 1, 7),
     ]);
     const matched = applyRealIvMatching(PARTIES, [...sixStarEntries, ...tier55Entries]);
     console.log('Real IVs matched from spreadsheets:', matched);

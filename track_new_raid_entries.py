@@ -55,13 +55,13 @@ def classify_ae(cell):
 # already rely on (tier6 has a leading "Category" column, so its offsets are shifted by one;
 # tier5-data.csv has no adventure-effect column at all, hence ae_col=None there).
 ARCHIVES = [
-    {"file": "tier4-data.csv", "page": "tier4-raids.html", "label": "Mega",
+    {"file": "csv/tier4-data.csv", "page": "tier4-raids.html", "label": "Mega",
      "boss_col": 0, "star_col": 1, "strat_col": 2, "weather_col": 5, "ae_col": 6},
-    {"file": "tier5-data.csv", "page": "tier5-raids.html", "label": "Legendary",
+    {"file": "csv/tier5-data.csv", "page": "tier5-raids.html", "label": "Legendary",
      "boss_col": 0, "star_col": 1, "strat_col": 2, "weather_col": 5, "ae_col": None},
-    {"file": "tier5-ae-data.csv", "page": "tier5-ae-raids.html", "label": "Legendary AE",
+    {"file": "csv/tier5-ae-data.csv", "page": "tier5-ae-raids.html", "label": "Legendary AE",
      "boss_col": 0, "star_col": 1, "strat_col": 2, "weather_col": 5, "ae_col": 6},
-    {"file": "tier6-data.csv", "page": "tier6-elite-raids.html", "label": "Mega Legendary & Elite",
+    {"file": "csv/tier6-data.csv", "page": "tier6-elite-raids.html", "label": "Mega Legendary & Elite",
      "boss_col": 1, "star_col": 2, "strat_col": 3, "weather_col": 6, "ae_col": 7},
 ]
 

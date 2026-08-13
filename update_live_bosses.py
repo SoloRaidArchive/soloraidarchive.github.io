@@ -53,10 +53,10 @@ BOSS_NAME_WEB_RE = re.compile(
 )
 
 ARCHIVE_CSVS = {
-    "tier4-data.csv": "tier4-raids.html",
-    "tier5-data.csv": "tier5-raids.html",
-    "tier5-ae-data.csv": "tier5-ae-raids.html",
-    "tier6-data.csv": "tier6-elite-raids.html",
+    "csv/tier4-data.csv": "tier4-raids.html",
+    "csv/tier5-data.csv": "tier5-raids.html",
+    "csv/tier5-ae-data.csv": "tier5-ae-raids.html",
+    "csv/tier6-data.csv": "tier6-elite-raids.html",
 }
 
 # Confirmed monthly rotation dates, keyed by normalized boss name -> (startDate, endDate)

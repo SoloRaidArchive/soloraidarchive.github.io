@@ -349,7 +349,7 @@
   <div class="pkmn-grid" id="pkmnGrid"></div>
 </div>
 
-<script src="data/csv-utils.js"></script>
+<script src="/csv/csv-utils.js"></script>
 <script>
 const POKEMON_DB = [
 {n:"Bulbasaur",hp:128.0,atk:118.0,def:111.0},{n:"Ivysaur",hp:155.0,atk:151.0,def:143.0},{n:"Venusaur",hp:190.0,atk:198.0,def:189.0},{n:"Mega Venusaur",hp:190.0,atk:241.0,def:246.0},{n:"Charmander",hp:118.0,atk:116.0,def:93.0},{n:"Charmeleon",hp:151.0,atk:158.0,def:126.0},
@@ -571,12 +571,12 @@ async function loadMoveData(){
   // move types are essential (no panels without them); the elite list is optional - if it fails,
   // moves still show, just unfiltered, rather than the whole feature going dark.
   const [movepoolRows, moveRows] = await Promise.all([
-    fetchCSV("data/pokemon-movepool.csv"),
-    fetchCSV("data/moves.csv"),
+    fetchCSV("/csv/pokemon-movepool.csv"),
+    fetchCSV("/csv/moves.csv"),
   ]);
   let eliteRows = [];
   try{
-    eliteRows = await fetchCSV("data/elite-moves.csv");
+    eliteRows = await fetchCSV("/csv/elite-moves.csv");
   }catch(e){
     console.warn("elite-moves.csv not loaded - boss moves shown unfiltered:", e.message);
   }

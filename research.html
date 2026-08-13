@@ -914,10 +914,10 @@ async function loadAllData(){
   container.innerHTML = `<div class="loading-msg">Loading raid data...</div>`;
 
   const [t4, t5, t5ae, t6] = await Promise.all([
-    fetchAndParse("tier4-data.csv", rowsToRaidsTier4),
-    fetchAndParse("tier5-data.csv", rowsToRaidsTier5),
-    fetchAndParse("tier5-ae-data.csv", rowsToRaidsTier5AE),
-    fetchAndParse("tier6-data.csv", rowsToRaidsTier6),
+    fetchAndParse("/csv/tier4-data.csv", rowsToRaidsTier4),
+    fetchAndParse("/csv/tier5-data.csv", rowsToRaidsTier5),
+    fetchAndParse("/csv/tier5-ae-data.csv", rowsToRaidsTier5AE),
+    fetchAndParse("/csv/tier6-data.csv", rowsToRaidsTier6),
   ]);
 
   const tag = (arr, file) => arr.map(r => Object.assign({}, r, { file }));
