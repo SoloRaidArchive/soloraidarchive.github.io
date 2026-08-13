@@ -122,6 +122,7 @@
     text-transform:uppercase; letter-spacing:0.06em; margin:20px 0 4px; text-align:center;
   }
   .guide-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:28px; margin:0 0 8px; text-align:center; }
+  .boss-info-placeholder{ font-size:13px; color: var(--text-dim); text-align:center; line-height:1.6; padding:10px 0; }
   .edit-guide-row{ display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:18px; flex-wrap:wrap; }
   .edit-guide-btn{
     display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
@@ -218,6 +219,18 @@
   .battle-mon-icon img{ width:100%; height:100%; object-fit:contain; position:relative; z-index:2; }
   .battle-mon-meta{ color: var(--text-dim); font-size:11px; }
   .battle-mon-level{ font-weight:700; font-size:11px; color: var(--text); }
+  .role-badge{
+    display:inline-block; font-size:10px; font-weight:800; text-transform:uppercase;
+    letter-spacing:0.03em; padding:1px 7px; border-radius:999px; margin:1px 4px 1px 0; vertical-align:1px;
+  }
+  .role-badge.role-main-dps{ background:#ffe1e1; color:#c62828; }
+  .role-badge.role-support-dps{ background:#dff5f3; color:#00897b; }
+  .role-badge.role-catch-tank{ background:#f2ebff; color:#7d4fd6; }
+  .role-badge.role-executor{ background:#e9e9eb; color:#292929; }
+  [data-theme="dark"] .role-badge.role-main-dps{ background:rgba(220,53,69,0.22); color:#ff9494; }
+  [data-theme="dark"] .role-badge.role-support-dps{ background:rgba(0,150,136,0.22); color:#5eded4; }
+  [data-theme="dark"] .role-badge.role-catch-tank{ background:rgba(155,123,240,0.2); color:#c1a8ff; }
+  [data-theme="dark"] .role-badge.role-executor{ background:rgba(255,255,255,0.14); color:#e4e4e6; }
   .battle-mon.optional{
     border:1.5px dashed #d9a441; background: rgba(224,160,32,0.08); border-radius:8px;
     padding:5px 7px; margin:2px 0 2px -7px; width:calc(100% + 14px);
@@ -479,7 +492,7 @@ const ANI_URL_OVERRIDES = {
   "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
   "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
 };
-const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "slowbro-mega", "solgaleo", "stakataka", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "lunala", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "slowbro-mega", "solgaleo", "stakataka", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
 function monSpriteUrl(name){
   const key = name.trim().toLowerCase();
   if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
@@ -489,17 +502,19 @@ function monSpriteUrl(name){
   return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
 
-// Shadow Pokemon don't all have a dedicated shadow-tinted sprite available - when that specific
-// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
-// purple mist background so the icon still visually reads as "this is a shadow" even without a
-// properly shadow-tinted image.
 function battleMonIconHtml(name){
   const isShadow = /^shadow\s+/i.test(name.trim());
   const src = monSpriteUrl(name);
   if(isShadow){
-    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
+    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
   }
-  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
+  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
+}
+function roleBadgeClass(role){
+  return `role-badge role-${role.toLowerCase().replace(/\s+/g, '-')}`;
+}
+function roleBadgesHtml(roles, escape){
+  return (roles || []).map(r => `<span class="${roleBadgeClass(r)}">${escape(r)}</span>`).join('');
 }
 document.getElementById('boss-sprite-img').src = monSpriteUrl('Lunala');
 
@@ -526,7 +541,7 @@ function strategyBlockHtml(s){
             <div class="battle-mon${m.optional ? " optional" : ""}">
               ${battleMonIconHtml(m.name)}
               <div>
-                ${m.level ? `<div class="battle-mon-level">Lv ${escapeHtml(m.level)}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ""}</div>` : (m.optional ? `<div class="battle-mon-level"><span class="optional-note">(Optional)</span></div>` : "")}
+                ${m.level || (m.roles && m.roles.length) || m.optional ? `<div class="battle-mon-level">${m.level ? `Lv ${escapeHtml(m.level)}` : ''}${roleBadgesHtml(m.roles, escapeHtml)}${m.optional ? ' <span class="optional-note">(Optional)</span>' : ""}</div>` : ""}
                 ${(m.fm || m.cm || m.cm2) ? `<div class="battle-mon-meta">${[m.fm, m.cm, m.cm2].filter(Boolean).map(escapeHtml).join(' / ')}</div>` : ""}
               </div>
             </div>
@@ -646,9 +661,6 @@ function escapeAttr(str){
 
 loadGuide();
 
-// links inside strategy text (e.g. a "TPC" mechanic link) should open in a new tab, same as the
-// VOD link - using delegation here rather than post-processing every render, since strategy
-// content re-renders each time a different route is selected
 document.addEventListener('click', (e) => {
   const link = e.target.closest('.strategy-text a');
   if(!link) return;
