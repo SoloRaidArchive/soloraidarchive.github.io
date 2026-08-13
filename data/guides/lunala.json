@@ -14,7 +14,9 @@
       "vods": [
         {
           "url": "https://www.youtube.com/watch?v=ssD-yUQGrLg",
-          "label": "Lv 50 | TTW: ~260s"
+          "label": "Lv 50 | TTW: ~260s",
+          "creditName": "",
+          "creditUrl": ""
         }
       ],
       "submittedBy": "Spiritedbloom",
@@ -29,6 +31,9 @@
               "fm": "Shadow Claw",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": false
             },
             {
@@ -37,6 +42,9 @@
               "fm": "Shadow Claw",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": false
             },
             {
@@ -45,6 +53,9 @@
               "fm": "Shadow Claw",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": false
             },
             {
@@ -53,12 +64,15 @@
               "fm": "Shadow Claw",
               "cm": "Moongeist Beam",
               "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
               "optional": false
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-09T06:48:26.273Z"
+      "submittedAt": "2026-08-13T00:01:19.653Z"
     }
   ]
 }
