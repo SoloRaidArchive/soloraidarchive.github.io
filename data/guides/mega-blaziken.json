@@ -11,15 +11,21 @@
       "vods": [
         {
           "url": "https://www.youtube.com/watch?v=DkaXDqLEd94",
-          "label": "TTW: 204s (Lv 50 Mega Ray DPS, Focus Blast, 4 Rejoins)"
+          "label": "TTW: 204s (Lv 50 Mega Ray DPS, Focus Blast, 4 Rejoins)",
+          "creditName": "",
+          "creditUrl": ""
         },
         {
           "url": "https://www.youtube.com/watch?v=3kOoiHYglJg",
-          "label": "TTW: 195s (Lv 52 Mewtwo Y Dodge, Focus Blast, 2 Rejoins)"
+          "label": "TTW: 195s (Lv 52 Mewtwo Y Dodge, Focus Blast, 2 Rejoins)",
+          "creditName": "",
+          "creditUrl": ""
         },
         {
           "url": "https://www.youtube.com/watch?v=XiGOeEy2UtU",
-          "label": "TTW: 261s (Lv ~43 Primal Kyogre, Overheat, 5 Rejoins)"
+          "label": "TTW: 261s (Lv ~43 Primal Kyogre, Overheat, 5 Rejoins)",
+          "creditName": "",
+          "creditUrl": ""
         }
       ],
       "submittedBy": "SpiritedBloom",
@@ -34,6 +40,9 @@
               "fm": "Air Slash",
               "cm": "Dragon Ascent",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": false
             }
           ]
@@ -48,6 +57,9 @@
               "fm": "Any",
               "cm": "Psystrike",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": false
             },
             {
@@ -56,6 +68,9 @@
               "fm": "Confusion or Psycho Cut",
               "cm": "Psystrike",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": true
             }
           ]
@@ -70,12 +85,15 @@
               "fm": "Mud Shot",
               "cm": "Precipice Blades",
               "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
               "optional": true
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-09T23:46:35.998Z"
+      "submittedAt": "2026-08-12T23:59:44.650Z"
     },
     {
       "strategyName": "Shadow Mewtwo Party",
