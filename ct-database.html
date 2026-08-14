@@ -333,6 +333,10 @@ header{ padding: 12px 24px 10px; text-align:center; }
     .double-ct-badge{ font-size:8px; padding:1px 4px; margin-left:2px; }
     .entries-controls{ padding:8px 12px; gap:8px; }
     .entries-head{ padding:10px 12px; }
+    /* Everything already fits within the viewport, but the fixed-layout table still reports a
+       wider intrinsic box, which left a sideways drag the user could trigger by accident on a
+       touch screen. Nothing lives out there, so the axis is locked off. */
+    .entries-scroll{ overflow-x:hidden; }
   }
 
   /* --- BEST OVERALL view (expandable, mirrors the boss cards) --- */
