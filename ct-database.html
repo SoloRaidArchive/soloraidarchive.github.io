@@ -284,6 +284,17 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .entries-table td{ padding:7px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
   .entries-table tr:hover td{ background: var(--accent-soft); }
   .entries-table td.dim{ color: var(--ink-muted); }
+  .entries-table tbody tr:not(.entry-detail){ cursor:pointer; }
+  .entries-table tbody tr.expanded td{ background: var(--accent-soft); }
+  .entry-detail td{ background: var(--bg1); padding:10px 12px !important; }
+  .entry-detail-grid{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:8px 16px;
+  }
+  .entry-detail-grid > div{ display:flex; flex-direction:column; gap:1px; }
+  .entry-detail-grid span{
+    font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color: var(--ink-dim);
+  }
+  .entry-detail-grid b{ font-size:12px; font-weight:800; }
   .entries-table .num{ text-align:right; white-space:nowrap; }
   .entries-table .num b{ font-family:'Manrope', sans-serif; font-size:13px; color: var(--accent-dark); }
   .entries-controls{
@@ -2499,6 +2510,44 @@ function renderBest(list){
 // verbose - good for reading two or three results - but that same layout makes 15+ entries slow
 // to judge. This trades the detail cards for one row per entry so a whole dataset fits on screen
 // at once and can be compared down a column.
+// The detail row shown when a table row is clicked. Only carries what the main row doesn't
+// already say, and only fields that were actually used - a submission with no dodges shows no
+// dodge item rather than a row of "None"s that read as data.
+function entryDetailRowHtml(e, cols){
+  const bits = [];
+  if(e.seconds) bits.push(["Duration", `${escapeHtml(e.seconds)}s${e.ticks ? ` (${escapeHtml(e.ticks)}t)` : ""}`]);
+  if(e.fmsTanked && e.fmsTanked !== "0") bits.push(["Boss fast moves tanked", escapeHtml(e.fmsTanked)]);
+  const casts = parseInt(e.chargeCasts, 10);
+  if(isFinite(casts) && casts >= 2) bits.push(["Charge moves cast", String(casts)]);
+  const d = (e.dodges || "").trim();
+  if(d && d.toLowerCase() !== "none") bits.push(["Dodged", escapeHtml(d)]);
+  const t = (e.timingMods || "").trim();
+  if(t && t.toLowerCase() !== "none") bits.push(["Timing modifiers", escapeHtml(t)]);
+  const tr = parseFloat(e.trailingDPS);
+  if(isFinite(tr)) bits.push(["Trailing DPS", tr.toFixed(1)]);
+  else if(/N\/A/i.test(e.trailingDPS || "")) bits.push(["Trailing DPS", "n/a for double CT"]);
+  if((e.risky || "").trim().toLowerCase() === "yes") bits.push(["Flagged", "risky timing"]);
+  if(e.ivs) bits.push(["IVs", escapeHtml(e.ivs)]);
+  if(!bits.length) return "";
+  return `<tr class="entry-detail" hidden><td colspan="${cols}">
+      <div class="entry-detail-grid">
+        ${bits.map(([k,v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("")}
+      </div>
+    </td></tr>`;
+}
+
+// Rows are click-to-expand; delegated so it survives re-sorting without rebinding.
+function wireEntryRowExpansion(overlay){
+  overlay.querySelector("tbody").addEventListener("click", ev => {
+    const tr = ev.target.closest("tr");
+    if(!tr || tr.classList.contains("entry-detail")) return;
+    const detail = tr.nextElementSibling;
+    if(!detail || !detail.classList.contains("entry-detail")) return;
+    detail.hidden = !detail.hidden;
+    tr.classList.toggle("expanded", !detail.hidden);
+  });
+}
+
 function entriesTableRowsHtml(m, sort, priorities){
   let rows = [...m.entries];
   // "Priority" toggles float the matching rows to the top rather than filtering the rest away -
@@ -2525,7 +2574,7 @@ function entriesTableRowsHtml(m, sort, priorities){
       <td class="dim col-used">${movesetHtml(e.playerMoveset || "")}</td>
       <td class="dim col-build">Lv ${escapeHtml(e.level)} &middot; ${escapeHtml(e.ivs || "")}</td>
       <td class="num"><b>${parseFloat(e.ctDPS).toFixed(1)}</b></td>
-    </tr>`).join("");
+    </tr>${entryDetailRowHtml(e, 5)}`).join("");
 }
 
 // Boss-side equivalent: same shell, but pivoted - the boss is fixed, so the first column is the
@@ -2560,7 +2609,7 @@ function openBossEntriesTable(idx){
         <td class="dim col-used">${movesetHtml(e.playerMoveset || "")}</td>
         <td class="dim col-build">Lv ${escapeHtml(e.level)} &middot; ${escapeHtml(e.ivs || "")}</td>
         <td class="num"><b>${parseFloat(e.ctDPS).toFixed(1)}</b></td>
-      </tr>`).join("");
+      </tr>${entryDetailRowHtml(e, 5)}`).join("");
   };
 
   const overlay = document.createElement("div");
@@ -2598,6 +2647,7 @@ function openBossEntriesTable(idx){
   const tbody = overlay.querySelector("tbody");
   const redraw = () => { tbody.innerHTML = rowsHtml(); };
   redraw();
+  wireEntryRowExpansion(overlay);
   overlay.querySelector(".entries-sort").addEventListener("change", e => { state.sort = e.target.value; redraw(); });
   overlay.querySelector(".prio-extreme").addEventListener("change", e => { state.priorities.extreme = e.target.checked; redraw(); });
   overlay.querySelector(".prio-blade").addEventListener("change", e => { state.priorities.blade = e.target.checked; redraw(); });
@@ -2650,6 +2700,7 @@ function openEntriesTable(idx){
   const tbody = overlay.querySelector("tbody");
   const redraw = () => { tbody.innerHTML = entriesTableRowsHtml(m, state.sort, state.priorities); };
   redraw();
+  wireEntryRowExpansion(overlay);
   overlay.querySelector(".entries-sort").addEventListener("change", e => { state.sort = e.target.value; redraw(); });
   overlay.querySelector(".prio-extreme").addEventListener("change", e => { state.priorities.extreme = e.target.checked; redraw(); });
   overlay.querySelector(".prio-blade").addEventListener("change", e => { state.priorities.blade = e.target.checked; redraw(); });
