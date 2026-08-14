@@ -149,7 +149,9 @@ body{ background:#20263a; color: var(--text-muted); }
 
   .tier-grid{
     display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 11px;
-    align-items:start;
+    /* stretch (not start) so every card in a row matches the tallest one - with "start" a card
+       whose boss name wraps to two lines made its neighbours look truncated and uneven */
+    align-items:stretch;
   }
 
   .card{
@@ -158,17 +160,18 @@ body{ background:#20263a; color: var(--text-muted); }
     transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 2px 0 rgba(45,49,66,0.05);
     position:relative; z-index:1;
   }
+  /* Sits in the name row beside the type icons rather than absolutely positioned at the card
+     corner, where it floated out of line with everything else in the header. */
   .vod-badge{
-    position:absolute; top:10px; right:10px; z-index:2;
-    width:24px; height:24px; border-radius:50%;
+    width:22px; height:22px; border-radius:50%; flex-shrink:0; margin-left:auto;
     background: var(--blue); color:#fff;
-    display:flex; align-items:center; justify-content:center;
-    font-size:12px; cursor:help; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:11px; cursor:help; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   }
   @media (hover:hover){ .card:hover{ z-index:10; } }
   .guide-link-slot:empty{ display:none; }
   .see-guide-link{
-    display:inline-flex; align-items:center; gap:5px; margin-top:10px;
+    display:inline-flex; align-items:center; gap:5px;
     font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
     color: var(--blue-dark, #2b7fd6); text-decoration:none;
     background: var(--accent-soft, #eef2ff); padding:5px 11px; border-radius:999px;
@@ -182,7 +185,7 @@ body{ background:#20263a; color: var(--text-muted); }
   .card:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(61,157,255,0.14); }
 
   .title-section{ padding-bottom:14px; border-bottom:2px solid var(--divider-contrast); margin-bottom:14px; text-align:left; }
-  .header{ position:relative; padding-right:48px; }
+  .header{ position:relative; }
   .name-group{
     display:flex; align-items:center; justify-content:flex-start; flex-wrap:nowrap; gap:6px;
     min-width:0; min-height:49px;
@@ -205,7 +208,7 @@ body{ background:#20263a; color: var(--text-muted); }
   .boss-moveset-row > span{ opacity:0.55; filter:saturate(0.35); }
   .type-icon-row{ display:flex; gap:4px; }
 
-  .meta-row{ display:flex; align-items:flex-start; min-height:50px; }
+  .meta-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:50px; }
   .meta-left{ display:flex; flex-direction:column; gap:6px; }
   .weather-tag{ font-size:20px; line-height:1; display:flex; align-items:center; gap:6px; }
   .weather-icon-wrap{
@@ -1383,7 +1386,7 @@ function vodHtml(vod){
   return `<span class="no-vod">No VOD available</span>`;
 }
 
-function variantBodyHtml(r, cardId){
+function variantBodyHtml(r, cardId, boss){
   const [main, ...rest] = r.party;
   const mainHtml = main ? memberRowHtml(main, true) : "";
   const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
@@ -1393,6 +1396,7 @@ function variantBodyHtml(r, cardId){
       <div class="meta-left">
         ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
       </div>
+      <div class="guide-link-slot" data-boss="${boss.toLowerCase()}"></div>
     </div>
     <details class="party-wrap">
       <summary class="expand-btn">
@@ -1414,12 +1418,12 @@ function bossCardHtml(boss, r, cardId, idSuffix){
   const domId = `boss-${boss.toLowerCase().replace(/[^a-z0-9]+/g,'-')}${idSuffix ? '-' + idSuffix : ''}`;
   return `
   <div class="card" id="${domId}" data-boss="${boss.toLowerCase()}" data-card-id="${cardId}">
-    ${r.vod ? `<div class="vod-badge" title="VOD available">📹</div>` : ""}
     <div class="title-section">
       <div class="header">
         <div class="name-group">
           <h2 class="boss-name">${displayName(boss)}</h2>
           <div class="type-icon-row">${typeIconsHtml(boss)}</div>
+          ${r.vod ? `<div class="vod-badge" title="VOD available">📹</div>` : ""}
         </div>
       </div>
       ${bossStatsHtml(boss)}
@@ -1430,8 +1434,7 @@ function bossCardHtml(boss, r, cardId, idSuffix){
       </div>
       <div class="boss-moveset-row">${moveStatLinesHtml(r.fast, "Fast")}${moveStatLinesHtml(r.charge, "Charge")}</div>
     </div>
-    <div class="card-body">${variantBodyHtml(r, cardId)}</div>
-    <div class="guide-link-slot" data-boss="${boss.toLowerCase()}"></div>
+    <div class="card-body">${variantBodyHtml(r, cardId, boss)}</div>
   </div>`;
 }
 

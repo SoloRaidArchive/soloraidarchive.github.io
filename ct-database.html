@@ -145,11 +145,21 @@ header{ padding: 12px 24px 10px; text-align:center; }
      at a time. Both columns are always rendered into the DOM; only CSS decides what's shown, so
      switching costs nothing and there's no re-render on resize. */
   .views-grid{ display:grid; gap:18px; }
+  .view-col-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;
+  }
   .view-col-title{
-    font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:0 0 12px;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:0;
+  }
+  .col-sort{
+    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:600; color: var(--ink-muted);
+    padding:5px 8px; border-radius:8px; border:1.5px solid var(--border); background: var(--card);
+    cursor:pointer; max-width:150px;
   }
   /* narrow: tabbed, one at a time (column headings redundant next to the active tab) */
   .view-col-title{ display:none; }
+  /* heading hides when tabbed (the active tab already names the view) but the sort stays */
+  .view-col-head{ justify-content:flex-end; }
   body:not(.view-byboss) #col-byboss{ display:none; }
   body:not(.view-best) #col-best{ display:none; }
 
@@ -157,6 +167,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     .views-grid{ grid-template-columns: 1fr 1fr; align-items:start; }
     .view-tabs, .view-intro{ display:none; }
     .view-col-title{ display:block; }
+    .view-col-head{ justify-content:space-between; }
     /* both columns visible regardless of which tab was last active */
     body:not(.view-byboss) #col-byboss,
     body:not(.view-best) #col-best{ display:block; }
@@ -205,7 +216,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .cond-icon{ width:17px; height:17px; object-fit:contain; vertical-align:-3px; margin-left:3px; }
   .ct-pick-conds .weather-icon-img{ width:17px; height:17px; }
   .ct-pick-conds{ display:inline-flex; align-items:center; gap:2px; vertical-align:-2px; }
-  .ct-pick-used{ color: var(--ink-dim); }
   .scenario-boss-icon{
     display:inline-flex; width:26px; height:26px; border-radius:50%; background: var(--accent-soft);
     align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;
@@ -284,6 +294,31 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .controls input{ flex:1; min-width:200px; max-width:340px; }
   .controls input:focus, .controls select:focus{ border-color: var(--accent); }
 
+  /* --- glossary: slide-in from the right, dismissible --- */
+  .glossary-btn{
+    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:700; color: var(--ink-muted);
+    padding:7px 12px; border-radius:999px; border:1.5px solid var(--border);
+    background: var(--card); cursor:pointer; white-space:nowrap;
+  }
+  .glossary-btn:hover{ border-color: var(--accent); color: var(--accent-dark); }
+  .glossary-overlay{
+    position:fixed; inset:0; background:rgba(20,24,38,0.35); z-index:60;
+  }
+  .glossary-panel{
+    position:fixed; top:0; right:0; bottom:0; width:min(340px, 88vw); z-index:61;
+    background: var(--card); border-left:2px solid var(--border);
+    box-shadow:-8px 0 28px rgba(20,24,38,0.16); padding:18px 20px; overflow-y:auto;
+  }
+  .glossary-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .glossary-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; margin:0; }
+  .glossary-close{
+    background:none; border:none; font-size:24px; line-height:1; cursor:pointer;
+    color: var(--ink-dim); padding:0 4px;
+  }
+  .glossary-item{ margin-bottom:18px; }
+  .glossary-item p{
+    margin:7px 0 0; font-size:12.5px; line-height:1.5; color: var(--ink-muted); font-weight:600;
+  }
   .dps-legend-wrap{ max-width: 1100px; margin: 16px auto 0; padding: 0 20px; }
   .dps-legend{
     background: var(--card); border:2px solid var(--border); border-radius:16px; padding:14px 18px;
@@ -432,8 +467,13 @@ header{ padding: 12px 24px 10px; text-align:center; }
   }
   .sub-table th.col-boss{ text-align:right; }
   .sub-table th.col-dps{ text-align:center; }
-  .weather-icon-wrap[data-tooltip], .sub-tag.icon-only[data-tooltip]{ position:relative; cursor:help; }
+  .weather-icon-wrap[data-tooltip], .sub-tag.icon-only[data-tooltip],
+  .ct-pick-dps-label[data-tooltip], .leader-best-label[data-tooltip],
+  .detail-line span[data-tooltip]{ position:relative; cursor:help; }
   .weather-icon-wrap[data-tooltip]::after,
+  .ct-pick-dps-label[data-tooltip]::after,
+  .leader-best-label[data-tooltip]::after,
+  .detail-line span[data-tooltip]::after,
   .sub-tag.icon-only[data-tooltip]::after{
     content: attr(data-tooltip);
     position:absolute; bottom: calc(100% + 8px); left:0; z-index:40;
@@ -446,6 +486,9 @@ header{ padding: 12px 24px 10px; text-align:center; }
     transition: opacity .15s ease, transform .15s ease;
   }
   .weather-icon-wrap[data-tooltip]:hover::after,
+  .ct-pick-dps-label[data-tooltip]:hover::after,
+  .leader-best-label[data-tooltip]:hover::after,
+  .detail-line span[data-tooltip]:hover::after,
   .sub-tag.icon-only[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
   .sub-table tr.sub-row{ background: var(--card); }
   .sub-table td{ padding:12px; border-top:2px solid var(--border); border-bottom:2px solid var(--border); }
@@ -626,6 +669,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <div class="view-intro" id="viewIntro"></div>
 
 <div class="controls">
+  <button type="button" class="glossary-btn" id="glossaryOpen" aria-label="What the numbers mean">? What the numbers mean</button>
   <select id="modeFilter">
     <option value="all">Mode: All</option>
     <option value="single">Mode: Single CT</option>
@@ -638,27 +682,53 @@ header{ padding: 12px 24px 10px; text-align:center; }
   </select>
 </div>
 
-<div class="dps-legend-wrap">
-  <div class="dps-legend">
-    <div class="dps-legend-item">
-      <span class="role-chip support">Trailing DPS</span>
-      <span class="role-legend-desc">Output including the trailing buffer used to safely catch one more charge move before rejoining.</span>
-    </div>
-    <div class="dps-legend-item">
+<!-- Definitions moved out of the reading flow into an on-demand panel: they're reference
+     material you need once, not something worth re-reading above every visit to the data. -->
+<div class="glossary-overlay" id="glossaryOverlay" hidden></div>
+<aside class="glossary-panel" id="glossaryPanel" hidden aria-label="What the numbers mean">
+  <div class="glossary-head">
+    <h2 class="glossary-title">What the numbers mean</h2>
+    <button type="button" class="glossary-close" id="glossaryClose" aria-label="Close">&times;</button>
+  </div>
+  <div class="glossary-body">
+    <div class="glossary-item">
       <span class="role-chip catchtank">Catch Tank DPS</span>
-      <span class="role-legend-desc">The full Catch Tank output — the number that determines how strong a submission is.</span>
+      <p>The full Catch Tank output &mdash; the number that determines how strong a submission is. This is what both columns rank by.</p>
+    </div>
+    <div class="glossary-item">
+      <span class="role-chip support">Trailing DPS</span>
+      <p>Output including the trailing buffer used to safely catch one more charge move before rejoining.</p>
+    </div>
+    <div class="glossary-item">
+      <span class="role-chip">Entries</span>
+      <p>One recorded submission. The same Pok&eacute;mon can appear several times against the same boss at different levels, IVs, weather, or adventure effects &mdash; each counts separately.</p>
     </div>
   </div>
-</div>
+</aside>
 
 <div class="container">
   <div class="views-grid">
     <section class="view-col" id="col-byboss">
-      <h2 class="view-col-title">By Raid Boss</h2>
+      <div class="view-col-head">
+        <h2 class="view-col-title">By Raid Boss</h2>
+        <select class="col-sort" id="sortByBoss" aria-label="Sort raid bosses">
+          <option value="tanks">Most catch tanks</option>
+          <option value="az">A–Z</option>
+          <option value="za">Z–A</option>
+        </select>
+      </div>
       <div id="byBossView"></div>
     </section>
     <section class="view-col" id="col-best">
-      <h2 class="view-col-title">Best Catch Tanks</h2>
+      <div class="view-col-head">
+        <h2 class="view-col-title">Best Catch Tanks</h2>
+        <select class="col-sort" id="sortBest" aria-label="Sort catch tanks">
+          <option value="dps">Highest CT DPS</option>
+          <option value="entries">Most entries</option>
+          <option value="az">A–Z</option>
+          <option value="za">Z–A</option>
+        </select>
+      </div>
       <div id="bestView"></div>
     </section>
   </div>
@@ -2019,6 +2089,19 @@ function rejoinBadgeHtml(dpsStr){
   return `<span class="rejoin-badge" title="Clears ${REJOIN_THRESHOLDS[max].dps.toFixed(2)} DPS - usable in battle parties designed to rejoin up to ${max} time${max>1?"s":""}.">Up to ${max} rejoin${max>1?"s":""}</span>`;
 }
 
+// Submissions come from a hand-typed Google Form, so the same Pokemon shows up under different
+// capitalisations ("Shadow Regigigas" / "Shadow regigigas"). Grouping on the raw string split
+// those into separate rows, which read as two different Pokemon. Group on a lowercased key and
+// display the most common spelling, so it's one entry regardless of how it was typed.
+function canonicalName(names){
+  const counts = new Map();
+  names.forEach(n => counts.set(n, (counts.get(n) || 0) + 1));
+  // most frequent wins; ties break toward the properly capitalised spelling
+  return [...counts.entries()].sort((a,b) =>
+    b[1] - a[1] || (b[0][0] === b[0][0].toUpperCase() ? 1 : 0) - (a[0][0] === a[0][0].toUpperCase() ? 1 : 0)
+  )[0][0];
+}
+
 function currentView(){
   const el = document.querySelector('input[name="dbView"]:checked');
   return el ? el.value : "byboss";
@@ -2056,7 +2139,15 @@ function renderByBoss(list){
     }).sort((a,b) => b.best - a.best);
     const tanks = new Set(subs.map(s => s.pokemon.toLowerCase()));
     return { boss, scenarios, tankCount: tanks.size, movesetCount: scenarios.length };
-  }).sort((a,b) => a.boss.localeCompare(b.boss));
+  });
+
+  const bossSort = (document.getElementById("sortByBoss") || {}).value || "tanks";
+  groups.sort((a,b) => {
+    if(bossSort === "az") return a.boss.localeCompare(b.boss);
+    if(bossSort === "za") return b.boss.localeCompare(a.boss);
+    // most catch tanks first, then alphabetically so equal counts stay in a stable, readable order
+    return b.tankCount - a.tankCount || a.boss.localeCompare(b.boss);
+  });
 
   if(!groups.length) return `<div class="empty">No submissions match your search yet.</div>`;
 
@@ -2082,13 +2173,13 @@ function renderByBoss(list){
                 <div class="ct-pick-rank">${i + 1}</div>
                 <div class="ct-pick-icon"><img src="${spriteUrl(s.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
                 <div class="ct-pick-body">
-                  <div class="ct-pick-name">${escapeHtml(s.pokemon)} <span class="ct-pick-conds">${boostIconsHtml(s)}</span></div>
-                  <div class="ct-pick-sub">Lv ${escapeHtml(s.level)} &middot; ${movesetHtml(s.playerMoveset)}</div>
+                  <div class="ct-pick-name">${escapeHtml(s.pokemon)}</div>
+                  <div class="ct-pick-sub">Lv ${escapeHtml(s.level)} &middot; ${movesetHtml(s.playerMoveset)}<span class="ct-pick-conds">${boostIconsHtml(s)}</span></div>
                   ${detailLineHtml(s)}
                 </div>
                 <div class="ct-pick-dps">
                   <div class="ct-pick-dps-val">${parseFloat(s.ctDPS).toFixed(1)}</div>
-                  <div class="ct-pick-dps-label">CT DPS</div>
+                  <div class="ct-pick-dps-label" data-tooltip="Full Catch Tank output - the number that determines how strong a submission is.">CT DPS</div>
                 </div>
               </div>
             `).join("")}
@@ -2131,8 +2222,16 @@ function boostIconsHtml(s){
 
 // Extra detail, only for values actually used - a submission with no dodges and no timing mods
 // shows neither, rather than rows of "None" that carry no information.
-function detailLineHtml(s){
+function detailLineHtml(s, showBuild){
   const bits = [];
+  // In the Best Catch Tanks view several results for the same Pokemon sit together, so the build
+  // is what tells them apart - lead with it there. In the By Boss view it's already on the row.
+  if(showBuild){
+    const lv = (s.level || "").trim();
+    const iv = (s.ivs || "").trim();
+    if(lv) bits.push(`<span>Lv <b>${escapeHtml(lv)}</b></span>`);
+    if(iv) bits.push(`<span><b>${escapeHtml(iv)}</b> IV</span>`);
+  }
   if(s.seconds) bits.push(`<span><b>${escapeHtml(s.seconds)}s</b> duration</span>`);
   if(s.fmsTanked && s.fmsTanked !== "0") bits.push(`<span><b>${escapeHtml(s.fmsTanked)}</b> boss FM tanked</span>`);
   // A single charge move is the default case and carries no information - only worth stating
@@ -2140,7 +2239,7 @@ function detailLineHtml(s){
   const casts = parseInt(s.chargeCasts, 10);
   if(isFinite(casts) && casts >= 2) bits.push(`<span><b>${casts}</b> charge moves</span>`);
   const tr = parseFloat(s.trailingDPS);
-  if(isFinite(tr)) bits.push(`<span><b>${tr.toFixed(1)}</b> trailing DPS</span>`);
+  if(isFinite(tr)) bits.push(`<span data-tooltip="Output including the trailing buffer used to safely catch one more charge move before rejoining."><b>${tr.toFixed(1)}</b> trailing DPS</span>`);
   const d = (s.dodges || "").trim();
   if(d && d.toLowerCase() !== "none") bits.push(`<span>dodged <b>${escapeHtml(d)}</b></span>`);
   const t = (s.timingMods || "").trim();
@@ -2166,8 +2265,10 @@ function renderBest(list){
   list.forEach(s => {
     const dps = parseFloat(s.ctDPS);
     if(!isFinite(dps)) return;
-    if(!byMon.has(s.pokemon)) byMon.set(s.pokemon, { pokemon: s.pokemon, entries: [], bosses: new Set() });
-    const m = byMon.get(s.pokemon);
+    const key = s.pokemon.trim().toLowerCase();
+    if(!byMon.has(key)) byMon.set(key, { pokemon: s.pokemon, spellings: [], entries: [], bosses: new Set() });
+    const m = byMon.get(key);
+    m.spellings.push(s.pokemon);
     m.entries.push(s);
     m.bosses.add(s.boss);
   });
@@ -2178,12 +2279,17 @@ function renderBest(list){
     // isn't a meaningful number - each interaction is its own scenario, so averaging them
     // produces a figure that describes no real fight.
     const best = Math.max(...dpsList);
-    return { ...m, best, bossCount: m.bosses.size };
-  }).sort((a,b) =>
-    // rank by how many bosses it covers first, then by peak output - a tank that answers five
-    // bosses is more worth building than one that spikes higher against a single matchup
-    b.bossCount - a.bossCount || b.best - a.best
-  );
+    return { ...m, pokemon: canonicalName(m.spellings), best, bossCount: m.bosses.size };
+  });
+
+  const bestSort = (document.getElementById("sortBest") || {}).value || "dps";
+  ranked.sort((a,b) => {
+    if(bestSort === "az") return a.pokemon.localeCompare(b.pokemon);
+    if(bestSort === "za") return b.pokemon.localeCompare(a.pokemon);
+    if(bestSort === "entries") return b.entries.length - a.entries.length || b.best - a.best;
+    // default: peak output, then coverage as the tiebreak
+    return b.best - a.best || b.bossCount - a.bossCount;
+  });
 
   if(!ranked.length) return `<div class="empty">No submissions match your search yet.</div>`;
 
@@ -2211,11 +2317,11 @@ function renderBest(list){
         <div class="leader-icon"><img src="${spriteUrl(m.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
         <div class="leader-body">
           <div class="leader-name">${escapeHtml(m.pokemon)}</div>
-          <div class="leader-bosses">${[...m.bosses].sort().map(b => `<span class="leader-boss-chip">${escapeHtml(b)}</span>`).join("")}</div>
+          <div class="leader-sub">${m.entries.length} ${m.entries.length === 1 ? "entry" : "entries"}</div>
         </div>
         <div class="leader-stats">
           <div class="leader-best">${m.best.toFixed(1)}</div>
-          <div class="leader-best-label">CT DPS</div>
+          <div class="leader-best-label" data-tooltip="Highest Catch Tank DPS this Pokemon has recorded.">CT DPS</div>
         </div>
         <span class="boss-caret">&#9654;</span>
       </button>
@@ -2231,12 +2337,12 @@ function renderBest(list){
             ${b.entries.map(e => `
               <div class="ct-pick">
                 <div class="ct-pick-body">
-                  <div class="ct-pick-sub ct-pick-used">used ${movesetHtml(e.playerMoveset || "")} <span class="ct-pick-conds">${boostIconsHtml(e)}</span></div>
-                  ${detailLineHtml(e)}
+                  <div class="ct-pick-sub">${movesetHtml(e.playerMoveset || "")}<span class="ct-pick-conds">${boostIconsHtml(e)}</span></div>
+                  ${detailLineHtml(e, true)}
                 </div>
                 <div class="ct-pick-dps">
                   <div class="ct-pick-dps-val">${parseFloat(e.ctDPS).toFixed(1)}</div>
-                  <div class="ct-pick-dps-label">CT DPS</div>
+                  <div class="ct-pick-dps-label" data-tooltip="Full Catch Tank output - the number that determines how strong a submission is.">CT DPS</div>
                 </div>
               </div>
             `).join("")}
@@ -2316,6 +2422,18 @@ searchInput.addEventListener("input", () => {
 sortSelect.addEventListener("change", render);
 modeFilter.addEventListener("change", render);
 document.querySelectorAll('input[name="dbView"]').forEach(el => el.addEventListener("change", render));
+(function(){
+  const panel = document.getElementById("glossaryPanel");
+  const overlay = document.getElementById("glossaryOverlay");
+  const show = on => { panel.hidden = !on; overlay.hidden = !on; };
+  document.getElementById("glossaryOpen").addEventListener("click", () => show(true));
+  document.getElementById("glossaryClose").addEventListener("click", () => show(false));
+  overlay.addEventListener("click", () => show(false));
+  document.addEventListener("keydown", e => { if(e.key === "Escape") show(false); });
+})();
+
+document.getElementById("sortByBoss").addEventListener("change", render);
+document.getElementById("sortBest").addEventListener("change", render);
 loadSubmissionsFromCSV();
 
 const themeToggle = document.getElementById("themeToggle");
