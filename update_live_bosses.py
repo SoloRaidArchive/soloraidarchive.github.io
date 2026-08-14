@@ -276,6 +276,80 @@ def fetch_boss_dates_from_website():
 
 
 
+def apply_leekduck_crosscheck(results):
+    """Drop event mega raids that LeekDuck classifies as Super Mega rather than Tier 4.
+
+    Returns a filtered copy of `results`. Anything that is not a Tier 4 EVENT entry is
+    passed through untouched: rotations (including ones whose window already closed this
+    month, which are still wanted under "Monthly raid rotations"), Tier 5, Elite, and
+    Shadow bosses are all out of scope.
+
+    An entry is dropped only when BOTH hold:
+      * some LeekDuck event overlapping its window is a Super Mega Raid Day, and
+      * no overlapping LeekDuck event lists that boss as a publishable raid boss.
+
+    Everything else is kept. In particular, LeekDuck having no opinion means keep -
+    deferring to Pokebattler, which is right ~99% of the time.
+    """
+    try:
+        import leekduck_crosscheck as lc
+        from leekduck_tiers import load_base_form_map, load_legendary_species
+    except ImportError as exc:
+        print(f"  LeekDuck cross-check unavailable ({exc}) - keeping all entries")
+        return results
+
+    try:
+        events = lc.discover_events()
+        legendary = load_legendary_species(REPO_ROOT / "csv/tier5-bosses.csv")
+        base_form_map = load_base_form_map(REPO_ROOT / "ct-calculator.html")
+
+        def sections_for(e):
+            try:
+                return lc.extract_sections(lc.http_text(e["link"]))
+            except Exception as exc:
+                print(f"    !! fetch/parse failed for {e.get('eventID')}: {exc}")
+                return None
+
+        index = lc.build_leekduck_index(events, sections_for, legendary, base_form_map,
+                                        verbose=False)
+    except Exception as exc:
+        print(f"  LeekDuck cross-check FAILED ({type(exc).__name__}: {exc}) "
+              f"- keeping all entries")
+        return results
+
+    if not any(c["publishable"] for c in index):
+        print("  LeekDuck cross-check returned no publishable bosses - markup may have "
+              "changed. Keeping all entries.")
+        return results
+
+    kept = []
+    for r in results:
+        if r.get("category") != "event" or r.get("archivePage") != lc.TIER4_ARCHIVE_PAGE:
+            kept.append(r)
+            continue
+
+        g_start = lc.parse_site_date(r.get("startDate"))
+        g_end = lc.parse_site_date(r.get("endDate"))
+        overlapping = [c for c in index
+                       if lc.overlaps(g_start, g_end, c["start"], c["end"])]
+
+        if any(r["name"] in c["publishable"] for c in overlapping):
+            kept.append(r)
+            continue
+
+        smd = [c for c in overlapping if c["isSuperMegaDay"]]
+        if smd:
+            print(f"  skipping {r['name']}: LeekDuck says {smd[0]['eventID']} is a "
+                  f"Super Mega Raid Day, not a Tier 4 Mega Raid")
+            continue
+
+        kept.append(r)
+
+    dropped = len(results) - len(kept)
+    print(f"  LeekDuck cross-check: {dropped} event mega raid(s) dropped as Super Mega")
+    return kept
+
+
 def main():
     known_bosses = load_known_bosses()
     print(f"Loaded {len(known_bosses)} known boss names from this site's own archives")
@@ -308,6 +382,18 @@ def main():
         # Only fall back to the live scrape for bosses not yet in that table (e.g. a new
         # month's rotation before it's been manually confirmed and added).
         start_date, end_date = CONFIRMED_ROTATION_DATES.get(key) or dates_by_name.get(key, (None, None))
+
+        # NULL-DATE RULE: an entry with neither a start nor an end date is never published.
+        # Every expiry check below is skipped when end_dt is None, so an undated boss used
+        # to persist forever - which is how Mega Raichu X/Y stayed on the site from July
+        # onward. Rotation data is only trustworthy when the window is defined, so drop it
+        # rather than show it under "Currently active".
+        # This rule is local and needs no network, so it still applies when the LeekDuck
+        # cross-check below is unavailable.
+        if not start_date and not end_date:
+            print(f"  skipping {name}: no start/end date - undated entries are not published")
+            return None
+
         end_dt = parse_pokebattler_datetime(end_date)
 
         # Classify BEFORE filtering: a single calendar day (start == end) is an Event -
@@ -380,6 +466,19 @@ def main():
             continue
         seen.add(key)
         results.append(r)
+
+    # ---- LEEKDUCK CROSS-CHECK (event mega raids only) ----------------------------------
+    # Pokebattler stays authoritative for what is running and when. LeekDuck answers one
+    # question: for a mega raid attached to an EVENT, is it a Tier 4 Mega Raid or a Super
+    # Mega Raid? Pokebattler lists Super Mega Raid Days as ordinary megas, which is how
+    # Mega Starmie (Aug 22) and Mega Staraptor (Sep 19) reached the site.
+    #
+    # FAILS OPEN, DELIBERATELY. If ScrapedDuck or leekduck.com is unreachable, or the
+    # parser returns nothing because their markup changed, this drops NOTHING and logs
+    # loudly. Silence from a cross-check must never be read as "delete everything" - that
+    # would empty the page on any upstream outage. Rotations are never touched here at
+    # all; neither are non-mega entries.
+    results = apply_leekduck_crosscheck(results)
 
     grouped = {}
     order = []

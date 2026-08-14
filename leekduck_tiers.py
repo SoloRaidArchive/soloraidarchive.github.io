@@ -225,12 +225,35 @@ def conflicts(classifications: list[BossClassification]) -> dict[str, list[BossC
     return {n: cs for n, cs in by_name.items() if len({c.tier for c in cs}) > 1}
 
 
+# A boss list item on LeekDuck carries a Pokemon icon from their CDN, e.g.
+#   https://cdn.leekduck.com/assets/img/pokemon_icons/pm445.fMEGA.icon.png
+# Requiring that icon is what separates a real boss entry from a nav or footer link.
+POKEMON_ICON_RE = re.compile(r"/pokemon_icons?[/_]", re.IGNORECASE)
+
+# Chrome that repeats on every page and must never contribute bosses.
+CHROME_TAGS = {"nav", "header", "footer", "aside"}
+
+
 def extract_sections(html: str) -> list[Section]:
     """Parse a LeekDuck event page into heading-scoped boss lists.
 
-    UNVERIFIED AGAINST LIVE MARKUP - see module docstring. leekduck.com is unreachable
-    from the sandbox, so the selectors below are written against the page's visible
-    heading/list structure and must be confirmed on the first real CI run.
+    STILL UNVERIFIED AGAINST LIVE MARKUP - leekduck.com is unreachable from the dev
+    sandbox. Treat the first --live run as the real test.
+
+    An earlier version took every <li> on the page. On realistic markup that returned
+    'Eggs' and 'Events' as Tier 4 bosses: footer list items inherited whatever heading
+    appeared earlier in the document. Two defences, both structural rather than a guess
+    at one container class that could be renamed:
+
+      1. Skip anything inside nav/header/footer/aside.
+      2. Require a Pokemon icon image in the <li>. Every real boss entry has one; nav and
+         footer links do not. This is the load-bearing check - it holds even if the page
+         is restructured, and it fails CLOSED (a boss without a recognisable icon is
+         dropped, not silently published under whatever heading came before it).
+
+    Because it fails closed, a markup change shows up as an empty boss list - which the
+    caller reports and treats as "no LeekDuck opinion" - rather than as confident
+    misclassification.
     """
     try:
         from bs4 import BeautifulSoup
@@ -239,20 +262,30 @@ def extract_sections(html: str) -> list[Section]:
 
     soup = BeautifulSoup(html, "html.parser")
     sections: list[Section] = []
-    # heading level -> text, maintained as a stack so nested headings accumulate a path
     path: dict[int, str] = {}
     current: Section | None = None
 
+    def in_chrome(el) -> bool:
+        return any(p.name in CHROME_TAGS for p in el.parents)
+
+    def has_pokemon_icon(el) -> bool:
+        return any(POKEMON_ICON_RE.search(img.get("src") or "") for img in el.find_all("img"))
+
     for el in soup.find_all(["h1", "h2", "h3", "h4", "li"]):
+        if in_chrome(el):
+            continue
+
         if el.name != "li":
             level = int(el.name[1])
-            text = el.get_text(" ", strip=True)
             path = {lvl: t for lvl, t in path.items() if lvl < level}
-            path[level] = text
+            path[level] = el.get_text(" ", strip=True)
             current = None
             continue
 
-        name = el.get_text(" ", strip=True)
+        if not has_pokemon_icon(el):
+            continue
+        # Drop the alt/label text of nested images so only the visible name remains.
+        name = " ".join(el.get_text(" ", strip=True).split())
         if not name:
             continue
         if current is None:
