@@ -237,6 +237,10 @@
   }
   .optional-note{ font-weight:600; color:#b8791a; font-size:10px; }
   [data-theme="dark"] .optional-note{ color:#e0b060; }
+  // Level+role and the moveset are always stacked as two rows (level/role on top, moves
+  // underneath) - this used to force them onto one flex row with a middle-dot separator at
+  // >=601px, cramming everything onto one crowded line on desktop. Removed so the layout is the
+  // same clean two-row block at every width, matching what mobile already did by default.
   @media (min-width: 601px){
     .battle-mon{ padding:4px 0; }
   }
