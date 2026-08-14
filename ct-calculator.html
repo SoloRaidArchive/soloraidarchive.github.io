@@ -1221,9 +1221,17 @@ const BASE_FORM_MAP = {
 
 function findPokemonTypes(name){
   const key = name.trim().toLowerCase();
-  if (TYPE_OVERRIDES[key]) return TYPE_OVERRIDES[key];
+  // Explicit typing from csv/pokemon-stats.csv (merged with pokemon-types.csv) comes
+  // FIRST. Anything stated in that file is authoritative - it is the whole point of
+  // having typing as data rather than as inheritance plus a list of exceptions.
   const exact = POKEMON_TYPES.find(p => p.n.toLowerCase() === key);
-  if (exact) return { t1: exact.t1.toLowerCase(), t2: exact.t2.toLowerCase() };
+  if (exact && exact.t1) return { t1: exact.t1.toLowerCase(), t2: (exact.t2 || "").toLowerCase() };
+  // TYPE_OVERRIDES is now a FALLBACK, only consulted for names the CSVs do not state.
+  // It currently disagrees with the CSV on nothing (checked entry by entry), so this
+  // reorder changes no result today; it means future corrections go in the CSV and take
+  // effect without also having to edit this table. Entries here can be retired as the
+  // CSV covers them.
+  if (TYPE_OVERRIDES[key]) return TYPE_OVERRIDES[key];
   // Explicit base-form lookup (BASE_FORM_MAP) replaces name-stripping entirely - a mega/primal
   // form's typing is inherited from its real base species, looked up directly, not guessed from
   // whatever's left after removing "Mega "/"Primal " from the string.
@@ -1512,7 +1520,25 @@ async function loadCoreDataFromCSV(){
     ]);
 
     POKEMON_DB = statsRows.map(r => ({ n: r.name, hp: parseFloat(r.hp), atk: parseFloat(r.atk), def: parseFloat(r.def) }));
-    POKEMON_TYPES = typeRows.map(r => ({ n: r.name, t1: r.type1, t2: r.type2 }));
+    // Typing now lives in csv/pokemon-stats.csv alongside the stats, as type1/type2. That
+    // file is the authority: it states a Pokemon's typing explicitly instead of the site
+    // deriving it from a base species and patching the exceptions by hand, which is how
+    // Mega Pinsir, Mega Audino and Mega Lopunny ended up resolving to their base species'
+    // typing with nothing flagging it.
+    //
+    // pokemon-types.csv is still loaded and still matters: it carries 111 species that
+    // pokemon-stats.csv does not list at all. It is merged underneath as a fallback, so
+    // stats-CSV rows win wherever both files know a name, and nothing that resolved before
+    // stops resolving now. Rows with a blank type1 are skipped rather than inserted as
+    // empty - an empty entry would match and return no typing, shadowing the fallback.
+    const typesByName = new Map();
+    typeRows.forEach(r => {
+      if(r.name && r.type1) typesByName.set(r.name.trim().toLowerCase(), { n: r.name, t1: r.type1, t2: r.type2 || "" });
+    });
+    statsRows.forEach(r => {
+      if(r.name && r.type1) typesByName.set(r.name.trim().toLowerCase(), { n: r.name, t1: r.type1, t2: r.type2 || "" });
+    });
+    POKEMON_TYPES = [...typesByName.values()];
     MOVE_DB = moveRows.map(r => ({
       n: r.name, dmg: parseFloat(r.damage), energy: parseFloat(r.energy),
       ad: parseFloat(r.turns), type: r.category, elem: r.type,
