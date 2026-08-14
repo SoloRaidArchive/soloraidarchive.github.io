@@ -286,11 +286,13 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .entries-table td.dim{ color: var(--ink-muted); }
   .entries-table tbody tr:not(.entry-detail){ cursor:pointer; }
   .entries-table tbody tr.expanded td{ background: var(--accent-soft); }
-  .entry-detail td{ background: var(--bg1); padding:10px 12px !important; }
-  .entry-detail-grid{
-    display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:8px 16px;
+  .entry-detail td{ background: var(--bg1); padding:6px 12px !important; }
+  /* single horizontal line: label and value inline, items separated by a divider */
+  .entry-detail-grid{ display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 14px; }
+  .entry-detail-grid > div{ display:inline-flex; align-items:baseline; gap:5px; white-space:nowrap; }
+  .entry-detail-grid > div + div{
+    border-left:1px solid var(--border); padding-left:14px; margin-left:0;
   }
-  .entry-detail-grid > div{ display:flex; flex-direction:column; gap:1px; }
   .entry-detail-grid span{
     font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color: var(--ink-dim);
   }
@@ -350,6 +352,11 @@ header{ padding: 12px 24px 10px; text-align:center; }
        wider intrinsic box, which left a sideways drag the user could trigger by accident on a
        touch screen. Nothing lives out there, so the axis is locked off. */
     .entries-scroll{ overflow-x:hidden; }
+    /* The detail row spans all columns, and its content forced the fixed-layout table wider than
+       the viewport - which squeezed the real columns into half the screen. There isn't room for
+       it at this width, so it's dropped entirely on mobile and rows stay non-interactive. */
+    .entry-detail{ display:none !important; }
+    .entries-table tbody tr:not(.entry-detail){ cursor:default; }
   }
 
   /* --- BEST OVERALL view (expandable, mirrors the boss cards) --- */
@@ -2515,19 +2522,14 @@ function renderBest(list){
 // dodge item rather than a row of "None"s that read as data.
 function entryDetailRowHtml(e, cols){
   const bits = [];
-  if(e.seconds) bits.push(["Duration", `${escapeHtml(e.seconds)}s${e.ticks ? ` (${escapeHtml(e.ticks)}t)` : ""}`]);
-  if(e.fmsTanked && e.fmsTanked !== "0") bits.push(["Boss fast moves tanked", escapeHtml(e.fmsTanked)]);
-  const casts = parseInt(e.chargeCasts, 10);
-  if(isFinite(casts) && casts >= 2) bits.push(["Charge moves cast", String(casts)]);
+  if(e.seconds) bits.push(["Duration", `${escapeHtml(e.seconds)}s`]);
+  if(e.fmsTanked && e.fmsTanked !== "0") bits.push(["FMs tanked", escapeHtml(e.fmsTanked)]);
   const d = (e.dodges || "").trim();
-  if(d && d.toLowerCase() !== "none") bits.push(["Dodged", escapeHtml(d)]);
+  if(d && d.toLowerCase() !== "none") bits.push(["Dodges", escapeHtml(d)]);
   const t = (e.timingMods || "").trim();
-  if(t && t.toLowerCase() !== "none") bits.push(["Timing modifiers", escapeHtml(t)]);
+  if(t && t.toLowerCase() !== "none") bits.push(["CM buffer", escapeHtml(t)]);
   const tr = parseFloat(e.trailingDPS);
-  if(isFinite(tr)) bits.push(["Trailing DPS", tr.toFixed(1)]);
-  else if(/N\/A/i.test(e.trailingDPS || "")) bits.push(["Trailing DPS", "n/a for double CT"]);
-  if((e.risky || "").trim().toLowerCase() === "yes") bits.push(["Flagged", "risky timing"]);
-  if(e.ivs) bits.push(["IVs", escapeHtml(e.ivs)]);
+  bits.push(["Trailing DPS", isFinite(tr) ? tr.toFixed(1) : "N/A"]);
   if(!bits.length) return "";
   return `<tr class="entry-detail" hidden><td colspan="${cols}">
       <div class="entry-detail-grid">
