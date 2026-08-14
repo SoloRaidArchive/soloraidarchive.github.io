@@ -715,8 +715,8 @@ header{ padding: 12px 24px 10px; text-align:center; }
       <div class="view-col-head">
         <h2 class="view-col-title">Best Catch Tanks</h2>
         <select class="col-sort" id="sortBest" aria-label="Sort catch tanks">
-          <option value="dps">Highest CT DPS</option>
-          <option value="entries">Most entries</option>
+          <option value="entries" selected>Most entries</option>
+          <option value="dps">Highest avg CT DPS</option>
           <option value="az">A–Z</option>
           <option value="za">Z–A</option>
         </select>
@@ -2146,7 +2146,7 @@ function renderByBoss(list){
   return groups.map((g, gi) => `
     <div class="boss-group" id="bossGroup-${gi}">
       <button type="button" class="boss-toggle" onclick="toggleBossGroup(${gi})" aria-expanded="false">
-        <div class="boss-group-icon"><img src="${spriteUrl(g.boss)}" alt="" loading="lazy" onerror="this.remove();"></div>
+        <div class="boss-group-icon"><img class="${needsShadowMist(g.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(g.boss)}" alt="" loading="lazy" onerror="this.remove();"></div>
         <div style="min-width:0;">
           <div class="boss-group-name">${escapeHtml(g.boss)}</div>
           <div class="boss-group-meta">${g.tankCount} catch tank${g.tankCount !== 1 ? "s" : ""}</div>
@@ -2163,7 +2163,7 @@ function renderByBoss(list){
             ${sc.entries.map((s, i) => `
               <div class="ct-pick">
                 <div class="ct-pick-rank">${i + 1}</div>
-                <div class="ct-pick-icon"><img src="${spriteUrl(s.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
+                <div class="ct-pick-icon"><img class="${needsShadowMist(s.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(s.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
                 <div class="ct-pick-body">
                   <div class="ct-pick-name">${escapeHtml(s.pokemon)}</div>
                   <div class="ct-pick-sub">Lv ${escapeHtml(s.level)} &middot; ${movesetHtml(s.playerMoveset)}<span class="ct-pick-conds">${boostIconsHtml(s)}</span></div>
@@ -2267,20 +2267,22 @@ function renderBest(list){
 
   const ranked = [...byMon.values()].map(m => {
     const dpsList = m.entries.map(e => parseFloat(e.ctDPS)).filter(isFinite);
-    // Only "best" is surfaced. An average across bosses/weather/adventure-effect combinations
-    // isn't a meaningful number - each interaction is its own scenario, so averaging them
-    // produces a figure that describes no real fight.
+    // The headline figure is the AVERAGE across this Pokemon's recorded entries, not its single
+    // best result - a peak from one favourable matchup overstates how it performs generally,
+    // whereas the average reflects its typical showing across everything it's been tried against.
+    // The per-scenario numbers are still exact in the expansion below, where they belong.
+    const avg = dpsList.reduce((a,b) => a + b, 0) / dpsList.length;
     const best = Math.max(...dpsList);
-    return { ...m, pokemon: canonicalName(m.spellings), best, bossCount: m.bosses.size };
+    return { ...m, pokemon: canonicalName(m.spellings), avg, best, bossCount: m.bosses.size };
   });
 
-  const bestSort = (document.getElementById("sortBest") || {}).value || "dps";
+  const bestSort = (document.getElementById("sortBest") || {}).value || "entries";
   ranked.sort((a,b) => {
     if(bestSort === "az") return a.pokemon.localeCompare(b.pokemon);
     if(bestSort === "za") return b.pokemon.localeCompare(a.pokemon);
-    if(bestSort === "entries") return b.entries.length - a.entries.length || b.best - a.best;
-    // default: peak output, then coverage as the tiebreak
-    return b.best - a.best || b.bossCount - a.bossCount;
+    if(bestSort === "entries") return b.entries.length - a.entries.length || b.avg - a.avg;
+    // sorts on the same average the row displays, so the ordering matches what's on screen
+    return b.avg - a.avg || b.bossCount - a.bossCount;
   });
 
   if(!ranked.length) return `<div class="empty">No submissions match your search yet.</div>`;
@@ -2306,14 +2308,14 @@ function renderBest(list){
     <div class="leader-group" id="leaderGroup-${i}">
       <button type="button" class="leader-toggle" onclick="toggleLeaderGroup(${i})" aria-expanded="false">
         <div class="leader-rank">${i + 1}</div>
-        <div class="leader-icon"><img src="${spriteUrl(m.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
+        <div class="leader-icon"><img class="${needsShadowMist(m.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(m.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
         <div class="leader-body">
           <div class="leader-name">${escapeHtml(m.pokemon)}</div>
           <div class="leader-sub">${m.entries.length} ${m.entries.length === 1 ? "entry" : "entries"}</div>
         </div>
         <div class="leader-stats">
-          <div class="leader-best">${m.best.toFixed(1)}</div>
-          <div class="leader-best-label" data-tooltip="Highest Catch Tank DPS this Pokemon has recorded.">CT DPS</div>
+          <div class="leader-best">${m.avg.toFixed(1)}</div>
+          <div class="leader-best-label" data-tooltip="Average Catch Tank DPS across all ${m.entries.length} recorded ${m.entries.length === 1 ? "entry" : "entries"} for this Pok&eacute;mon.">Avg CT DPS</div>
         </div>
         <span class="boss-caret">&#9654;</span>
       </button>
@@ -2321,7 +2323,7 @@ function renderBest(list){
         ${bossBlocks.map(b => `
           <div class="scenario">
             <div class="scenario-head">
-              <span class="scenario-boss-icon"><img src="${spriteUrl(b.boss)}" alt="" loading="lazy" onerror="this.parentElement.remove();"></span>
+              <span class="scenario-boss-icon"><img class="${needsShadowMist(b.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(b.boss)}" alt="" loading="lazy" onerror="this.parentElement.remove();"></span>
               <span class="scenario-moveset">${escapeHtml(b.boss)}</span>
               <span class="scenario-boss-moves">${movesetHtml(b.moveset)}</span>
               <span class="ct-pick-conds">${weatherIcon(b.weather || "")}</span>
