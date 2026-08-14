@@ -661,7 +661,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <div class="view-intro" id="viewIntro"></div>
 
 <div class="controls">
-  <button type="button" class="glossary-btn" id="glossaryOpen" aria-label="What the numbers mean">? What the numbers mean</button>
+  <button type="button" class="glossary-btn" id="glossaryOpen" aria-label="What the numbers mean">Info: Trailing vs CT DPS</button>
   <select id="modeFilter">
     <option value="all">Mode: All</option>
     <option value="single">Mode: Single CT</option>
@@ -685,15 +685,15 @@ header{ padding: 12px 24px 10px; text-align:center; }
   <div class="glossary-body">
     <div class="glossary-item">
       <span class="role-chip catchtank">Catch Tank DPS</span>
-      <p>The full Catch Tank output &mdash; the number that determines how strong a submission is. This is what both columns rank by.</p>
+      <p>Standard Catch Tank rotation &mdash; It calculates fast move(s) and charge move damage used over total time; including forward and backward swap time</p>
     </div>
     <div class="glossary-item">
       <span class="role-chip support">Trailing DPS</span>
-      <p>Output including the trailing buffer used to safely catch one more charge move before rejoining.</p>
+      <p>Unique Exit Rotation. It calculates fast move(s) and charge move damage used over total time; only including forward swap time</p>
     </div>
     <div class="glossary-item">
       <span class="role-chip">Entries</span>
-      <p>One recorded submission. The same Pok&eacute;mon can appear several times against the same boss at different levels, IVs, weather, or adventure effects &mdash; each counts separately.</p>
+      <p>The same Pok&eacute;mon can appear several times against the same boss at different levels, IVs, weather, or adventure effects &mdash; each counts separately.</p>
     </div>
   </div>
 </aside>
@@ -702,7 +702,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   <div class="views-grid">
     <section class="view-col" id="col-byboss">
       <div class="view-col-head">
-        <h2 class="view-col-title">By Raid Boss</h2>
+        <h2 class="view-col-title">Catch Tanks by Raid Boss</h2>
         <select class="col-sort" id="sortByBoss" aria-label="Sort raid bosses">
           <option value="tanks">Most catch tanks</option>
           <option value="az">A–Z</option>
@@ -713,7 +713,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     </section>
     <section class="view-col" id="col-best">
       <div class="view-col-head">
-        <h2 class="view-col-title">Best Catch Tanks</h2>
+        <h2 class="view-col-title">Catch Tanks by Usage</h2>
         <select class="col-sort" id="sortBest" aria-label="Sort catch tanks">
           <option value="entries" selected>Most entries</option>
           <option value="dps">Highest avg CT DPS</option>
