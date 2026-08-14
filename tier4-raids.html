@@ -186,10 +186,16 @@ body{ background:#20263a; color: var(--text-muted); }
 
   .title-section{ padding-bottom:14px; border-bottom:2px solid var(--divider-contrast); margin-bottom:14px; text-align:left; }
   .header{ position:relative; }
+  /* The type icons live INSIDE the <h2> as trailing inline content rather than as a sibling flex
+     item. As a sibling, a name long enough to wrap made the <h2> box as wide as its longest line,
+     leaving the icons parked far to the right of where they sit on single-line cards. Inline,
+     they simply follow the last word - identical behaviour whether the name takes one line or
+     two - and the whole row stays left-aligned. */
   .name-group{
     display:flex; align-items:center; justify-content:flex-start; flex-wrap:nowrap; gap:6px;
     min-width:0; min-height:49px;
   }
+  .type-icon-row{ display:inline-flex; gap:4px; vertical-align:middle; margin-left:6px; }
   .type-icon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
     width:22px; height:22px; border-radius:50%; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.2);
@@ -206,7 +212,6 @@ body{ background:#20263a; color: var(--text-muted); }
   .boss-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size: 21px; line-height:1.15; margin:0; text-align:left; min-width:0; }
   .boss-moveset-row{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; flex:1; min-width:0; }
   .boss-moveset-row > span{ opacity:0.55; filter:saturate(0.35); }
-  .type-icon-row{ display:flex; gap:4px; }
 
   .meta-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:50px; }
   .meta-left{ display:flex; flex-direction:column; gap:6px; }
@@ -1437,8 +1442,7 @@ function bossCardHtml(boss, r, cardId, idSuffix){
     <div class="title-section">
       <div class="header">
         <div class="name-group">
-          <h2 class="boss-name">${displayName(boss)}</h2>
-          <div class="type-icon-row">${typeIconsHtml(boss)}</div>
+          <h2 class="boss-name">${displayName(boss)}<span class="type-icon-row">${typeIconsHtml(boss)}</span></h2>
           ${r.vod ? `<div class="vod-badge" title="VOD available">📹</div>` : ""}
         </div>
       </div>
