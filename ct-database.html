@@ -229,6 +229,112 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .detail-sep{ margin:0 5px; opacity:.5; }
   .detail-risky{ color:#b23c3c; font-weight:800; }
 
+  .double-ct-badge{
+    display:inline-block; font-family:'Manrope', sans-serif; font-weight:800; font-size:9px;
+    text-transform:uppercase; letter-spacing:0.04em; padding:2px 6px; border-radius:999px;
+    background:#f2ebff; color:#7d4fd6; margin-left:4px; white-space:nowrap; vertical-align:1px;
+  }
+  [data-theme="dark"] .double-ct-badge{ background:rgba(155,123,240,0.22); color:#c1a8ff; }
+
+  /* boss named once, its moveset+weather variants nested beneath */
+  .boss-block{ border-top:1.5px solid var(--border); padding-top:10px; margin-top:10px; }
+  .boss-block:first-child{ border-top:none; margin-top:0; }
+  .boss-block-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .boss-block .scenario{ border-top:none; padding:4px 0 0; margin-left:34px; }
+  .boss-block .scenario-head.cond-row{ margin-bottom:4px; }
+
+  .view-all-btn{
+    width:100%; margin:2px 0 10px; padding:8px; border-radius:9px; cursor:pointer;
+    border:1.5px dashed var(--border); background:transparent; color: var(--accent-dark);
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px;
+  }
+  .view-all-btn:hover{ background: var(--accent-soft); border-style:solid; }
+
+  .entries-overlay{
+    position:fixed; inset:0; background:rgba(20,24,38,0.45); z-index:80;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .entries-modal{
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    width:min(860px, 100%); max-height:88vh; display:flex; flex-direction:column;
+    box-shadow:0 12px 40px rgba(20,24,38,0.25); overflow:hidden;
+  }
+  .entries-head{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0;
+  }
+  .entries-title{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .entries-title h3{ font-family:'Manrope', sans-serif; font-size:16px; margin:0; }
+  .entries-sub{ font-size:11.5px; color: var(--ink-dim); font-weight:600; margin-top:1px; }
+  .entries-icon{
+    width:38px; height:38px; border-radius:50%; background: var(--accent-soft); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .entries-icon img{ width:100%; height:100%; object-fit:contain; }
+  .entries-close{ background:none; border:none; font-size:26px; line-height:1; cursor:pointer; color: var(--ink-dim); padding:0 4px; }
+  .entries-scroll{ overflow:auto; flex:1; }
+  .entries-table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  .entries-table th{
+    position:sticky; top:0; background: var(--card); text-align:left; font-family:'Manrope', sans-serif;
+    font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:0.04em;
+    color: var(--ink-dim); padding:8px 12px; border-bottom:1.5px solid var(--border); white-space:nowrap;
+  }
+  .entries-table td{ padding:7px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .entries-table tr:hover td{ background: var(--accent-soft); }
+  .entries-table td.dim{ color: var(--ink-muted); }
+  .entries-table .num{ text-align:right; white-space:nowrap; }
+  .entries-table .num b{ font-family:'Manrope', sans-serif; font-size:13px; color: var(--accent-dark); }
+  .entries-controls{
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    padding:10px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0;
+  }
+  .entries-sort{
+    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:600; color: var(--ink-muted);
+    padding:5px 8px; border-radius:8px; border:1.5px solid var(--border); background: var(--card); cursor:pointer;
+  }
+  .entries-toggle{
+    display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600;
+    color: var(--ink-muted); cursor:pointer; white-space:nowrap;
+  }
+  .entries-boss-icon{
+    display:inline-flex; width:30px; height:30px; border-radius:50%; background: var(--accent-soft);
+    align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; vertical-align:middle;
+  }
+  .entries-boss-icon img{ width:100%; height:100%; object-fit:contain; }
+  /* Shadow bosses inherit the site-wide img.shadow-mist treatment (defined once, further down)
+     rather than a local variant - at sprite-only sizes the mist is the only thing distinguishing
+     a shadow boss from its normal form, so it must match everywhere else exactly. */
+  .entries-boss-icon.no-sprite{ font-size:10px; font-weight:800; color: var(--accent-dark); text-transform:uppercase; }
+  .boss-cell{ white-space:nowrap; }
+  .entries-boss-name{ vertical-align:middle; margin-left:6px; }
+
+  @media (max-width:600px){
+    .entries-overlay{ padding:0; }
+    .entries-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; }
+    /* Sprite replaces the boss name, which is what actually frees the width - the moveset then
+       fits on one line without shrinking type past legibility. Used/Build stay hidden: for a
+       single Pokemon they're near-identical on every row. */
+    .entries-table th:nth-child(1){ width:44px; }
+    .entries-boss-name{ display:none; }
+    .col-used, .col-build{ display:none; }
+    .entries-table th, .entries-table td{ padding:6px 5px; font-size:10.5px; }
+    .entries-table th{ white-space:normal; }
+    .entries-table{ table-layout:fixed; width:100%; }
+    .entries-table td:nth-child(5), .entries-table th:nth-child(5){ width:52px; }
+    /* Individual move names stay unbroken, but the cell may wrap BETWEEN them. The longest
+       movesets ("Dragon Breath / Draco Meteor" plus type icons) need ~427px of content against
+       ~294px of available width - one line isn't reachable at a legible size, so wrapping is
+       preferable to a horizontal scroll. Most movesets still fit on a single line. */
+    .entries-table .move-inline{ white-space:nowrap; }
+    .entries-table td:nth-child(2){ white-space:normal; }
+    .entries-table .move-sep{ margin:0 2px; }
+    .entries-table .move-type-icon-wrap{ width:13px; height:13px; margin-right:2px; }
+    .entries-boss-icon{ width:26px; height:26px; }
+    .double-ct-badge{ font-size:8px; padding:1px 4px; margin-left:2px; }
+    .entries-controls{ padding:8px 12px; gap:8px; }
+    .entries-head{ padding:10px 12px; }
+  }
+
   /* --- BEST OVERALL view (expandable, mirrors the boss cards) --- */
   .leader-group{
     background: var(--card); border:2px solid var(--border); border-radius:14px;
@@ -2166,7 +2272,7 @@ function renderByBoss(list){
                 <div class="ct-pick-icon"><img class="${needsShadowMist(s.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(s.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
                 <div class="ct-pick-body">
                   <div class="ct-pick-name">${escapeHtml(s.pokemon)}</div>
-                  <div class="ct-pick-sub">Lv ${escapeHtml(s.level)} &middot; ${movesetHtml(s.playerMoveset)}<span class="ct-pick-conds">${boostIconsHtml(s)}</span></div>
+                  <div class="ct-pick-sub">Lv ${escapeHtml(s.level)} &middot; ${movesetHtml(s.playerMoveset)}<span class="ct-pick-conds">${boostIconsHtml(s)}${doubleCTBadgeHtml(s)}</span></div>
                   ${detailLineHtml(s)}
                 </div>
                 <div class="ct-pick-dps">
@@ -2196,12 +2302,24 @@ function moveIconHtml(moveName){
 function movesetHtml(moveset){
   return (moveset || "").split("/").map(m => m.trim()).filter(Boolean).map(m =>
     `<span class="move-inline">${moveIconHtml(m)}${escapeHtml(m)}</span>`
-  ).join('<span class="move-sep">/</span>');
+  // Whitespace around the separator is deliberate: without it the spans are joined with no gap,
+  // which leaves the browser no line-break opportunity and forces the cell to overflow rather
+  // than wrap. The separator's own margin means this adds no visible spacing.
+  ).join(' <span class="move-sep">/</span> ');
 }
 
 // Conditions as icons rather than words: weather always (its "extreme" icon already means
 // "no boost"), Blade/Shield only when actually used.
 // Blade/Shield only - used where weather is already shown on the group header row.
+// Double catch tank is a distinct technique, not a variant of the single-CT numbers, so it's
+// marked explicitly wherever a result is shown. Detected the same way the rest of the page does
+// it - Trailing DPS reads "N/A (Double CT)" on exactly those rows.
+function doubleCTBadgeHtml(s){
+  return /N\/A/i.test(s.trailingDPS || "")
+    ? `<span class="double-ct-badge" data-tooltip="Double Catch Tank - two tanks absorbing in sequence.">DBL CT</span>`
+    : "";
+}
+
 function boostIconsHtml(s){
   let out = "";
   if((s.zacianBlade || "").trim().toLowerCase() === "yes")
@@ -2276,6 +2394,8 @@ function renderBest(list){
     return { ...m, pokemon: canonicalName(m.spellings), avg, best, bossCount: m.bosses.size };
   });
 
+  // kept so the entries-table modal can look a Pokemon's rows back up by rank index
+  window.__rankedBest = ranked;
   const bestSort = (document.getElementById("sortBest") || {}).value || "entries";
   ranked.sort((a,b) => {
     if(bestSort === "az") return a.pokemon.localeCompare(b.pokemon);
@@ -2293,16 +2413,26 @@ function renderBest(list){
     // Keyed by boss + its moveset + weather, since those three together define the fight this
     // result actually describes - the header row carries them, so results underneath differ only
     // by what the player brought and how they played it.
-    const byBoss = new Map();
+    // Two levels: the boss (named once, alphabetically) and beneath it each distinct
+    // moveset+weather it was fought under. Previously the same boss could appear several times
+    // in a row with only the moveset differing, which read as separate bosses.
+    const byBossName = new Map();
     m.entries.forEach(e => {
-      const key = `${e.boss}|||${e.bossMoveset}|||${e.weather}`;
-      if(!byBoss.has(key)) byBoss.set(key, { boss: e.boss, moveset: e.bossMoveset, weather: e.weather, entries: [] });
-      byBoss.get(key).entries.push(e);
+      if(!byBossName.has(e.boss)) byBossName.set(e.boss, new Map());
+      const key = `${e.bossMoveset}|||${e.weather}`;
+      const scen = byBossName.get(e.boss);
+      if(!scen.has(key)) scen.set(key, { moveset: e.bossMoveset, weather: e.weather, entries: [] });
+      scen.get(key).entries.push(e);
     });
-    const bossBlocks = [...byBoss.values()].map(b => {
-      b.entries.sort((x,y) => parseFloat(y.ctDPS) - parseFloat(x.ctDPS));
-      return { ...b, best: parseFloat(b.entries[0].ctDPS) };
-    }).sort((a,b) => b.best - a.best);
+    const bossBlocks = [...byBossName.entries()]
+      .map(([boss, scenMap]) => ({
+        boss,
+        scenarios: [...scenMap.values()].map(s => {
+          s.entries.sort((x,y) => parseFloat(y.ctDPS) - parseFloat(x.ctDPS));
+          return { ...s, best: parseFloat(s.entries[0].ctDPS) };
+        }).sort((a,b) => b.best - a.best),
+      }))
+      .sort((a,b) => a.boss.localeCompare(b.boss));
 
     return `
     <div class="leader-group" id="leaderGroup-${i}">
@@ -2320,31 +2450,125 @@ function renderBest(list){
         <span class="boss-caret">&#9654;</span>
       </button>
       <div class="leader-body-expand">
+        ${m.entries.length >= 8 ? `<button type="button" class="view-all-btn" onclick="openEntriesTable(${i})">View all ${m.entries.length} entries in a table</button>` : ""}
+        <div>
         ${bossBlocks.map(b => `
-          <div class="scenario">
-            <div class="scenario-head">
+          <div class="boss-block">
+            <div class="boss-block-head">
               <span class="scenario-boss-icon"><img class="${needsShadowMist(b.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(b.boss)}" alt="" loading="lazy" onerror="this.parentElement.remove();"></span>
               <span class="scenario-moveset">${escapeHtml(b.boss)}</span>
-              <span class="scenario-boss-moves">${movesetHtml(b.moveset)}</span>
-              <span class="ct-pick-conds">${weatherIcon(b.weather || "")}</span>
             </div>
-            ${b.entries.map(e => `
-              <div class="ct-pick">
-                <div class="ct-pick-body">
-                  <div class="ct-pick-sub">${movesetHtml(e.playerMoveset || "")}<span class="ct-pick-conds">${boostIconsHtml(e)}</span></div>
-                  ${detailLineHtml(e, true)}
+            ${b.scenarios.map(sc => `
+              <div class="scenario">
+                <div class="scenario-head cond-row">
+                  <span class="scenario-boss-moves">${movesetHtml(sc.moveset)}</span>
+                  <span class="ct-pick-conds">${weatherIcon(sc.weather || "")}</span>
                 </div>
-                <div class="ct-pick-dps">
-                  <div class="ct-pick-dps-val">${parseFloat(e.ctDPS).toFixed(1)}</div>
-                  <div class="ct-pick-dps-label" data-tooltip="Full Catch Tank output - the number that determines how strong a submission is.">CT DPS</div>
-                </div>
+                ${sc.entries.map(e => `
+                  <div class="ct-pick">
+                    <div class="ct-pick-body">
+                      <div class="ct-pick-sub">${movesetHtml(e.playerMoveset || "")}<span class="ct-pick-conds">${boostIconsHtml(e)}${doubleCTBadgeHtml(e)}</span></div>
+                      ${detailLineHtml(e, true)}
+                    </div>
+                    <div class="ct-pick-dps">
+                      <div class="ct-pick-dps-val">${parseFloat(e.ctDPS).toFixed(1)}</div>
+                      <div class="ct-pick-dps-label" data-tooltip="Full Catch Tank output - the number that determines how strong a submission is.">CT DPS</div>
+                    </div>
+                  </div>
+                `).join("")}
               </div>
             `).join("")}
           </div>
         `).join("")}
+        </div>
       </div>
     </div>`;
   }).join("");
+}
+
+// Dense, scannable view of every entry for one Pokemon. The inline expansion is deliberately
+// verbose - good for reading two or three results - but that same layout makes 15+ entries slow
+// to judge. This trades the detail cards for one row per entry so a whole dataset fits on screen
+// at once and can be compared down a column.
+function entriesTableRowsHtml(m, sort, priorities){
+  let rows = [...m.entries];
+  // "Priority" toggles float the matching rows to the top rather than filtering the rest away -
+  // hiding data would silently change what the table appears to say about a Pokemon.
+  const score = e => {
+    let s = 0;
+    if(priorities.extreme && /extreme/i.test(e.weather || "")) s -= 2;
+    if(priorities.blade && (e.zacianBlade || "").trim().toLowerCase() === "yes") s -= 1;
+    return s;
+  };
+  rows.sort((a,b) => {
+    const ps = score(a) - score(b);
+    if(ps) return ps;
+    if(sort === "dps") return parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
+    return a.boss.localeCompare(b.boss) || parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
+  });
+  return rows.map(e => `
+    <tr>
+      <td class="boss-cell">
+        <span class="entries-boss-icon"><img class="${needsShadowMist(e.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(e.boss)}" alt="${escapeHtml(e.boss)}" title="${escapeHtml(e.boss)}" loading="lazy" onerror="this.parentElement.classList.add('no-sprite'); this.parentElement.textContent='${escapeHtml(e.boss).slice(0,2)}';"></span>
+        <span class="entries-boss-name">${escapeHtml(e.boss)}</span>
+      </td>
+      <td class="dim">${movesetHtml(e.bossMoveset || "")} <span class="ct-pick-conds">${weatherIcon(e.weather || "")}${boostIconsHtml(e)}${doubleCTBadgeHtml(e)}</span></td>
+      <td class="dim col-used">${movesetHtml(e.playerMoveset || "")}</td>
+      <td class="dim col-build">Lv ${escapeHtml(e.level)} &middot; ${escapeHtml(e.ivs || "")}</td>
+      <td class="num"><b>${parseFloat(e.ctDPS).toFixed(1)}</b></td>
+    </tr>`).join("");
+}
+
+function openEntriesTable(idx){
+  const m = (window.__rankedBest || [])[idx];
+  if(!m) return;
+  const state = { sort: "boss", priorities: { extreme: false, blade: false } };
+
+  const overlay = document.createElement("div");
+  overlay.className = "entries-overlay";
+  overlay.innerHTML = `
+    <div class="entries-modal" role="dialog" aria-modal="true">
+      <div class="entries-head">
+        <div class="entries-title">
+          <span class="entries-icon"><img class="${needsShadowMist(m.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(m.pokemon)}" alt="" onerror="this.parentElement.remove();"></span>
+          <div>
+            <h3>${escapeHtml(m.pokemon)}</h3>
+            <div class="entries-sub">${m.entries.length} entries &middot; avg ${m.avg.toFixed(1)} CT DPS</div>
+          </div>
+        </div>
+        <button type="button" class="entries-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="entries-controls">
+        <select class="entries-sort" aria-label="Sort entries">
+          <option value="boss">Boss A&ndash;Z</option>
+          <option value="dps">CT DPS high&ndash;low</option>
+        </select>
+        <label class="entries-toggle"><input type="checkbox" class="prio-extreme"> Extreme weather first</label>
+        <label class="entries-toggle"><input type="checkbox" class="prio-blade"> Blade Boost first</label>
+      </div>
+      <div class="entries-scroll">
+        <table class="entries-table">
+          <thead>
+            <tr><th>Boss</th><th>Boss moveset</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const tbody = overlay.querySelector("tbody");
+  const redraw = () => { tbody.innerHTML = entriesTableRowsHtml(m, state.sort, state.priorities); };
+  redraw();
+  overlay.querySelector(".entries-sort").addEventListener("change", e => { state.sort = e.target.value; redraw(); });
+  overlay.querySelector(".prio-extreme").addEventListener("change", e => { state.priorities.extreme = e.target.checked; redraw(); });
+  overlay.querySelector(".prio-blade").addEventListener("change", e => { state.priorities.blade = e.target.checked; redraw(); });
+  const close = () => overlay.remove();
+  overlay.querySelector(".entries-close").addEventListener("click", close);
+  overlay.addEventListener("click", e => { if(e.target === overlay) close(); });
+  document.addEventListener("keydown", function esc(e){
+    if(e.key === "Escape"){ close(); document.removeEventListener("keydown", esc); }
+  });
 }
 
 function toggleLeaderGroup(i){
