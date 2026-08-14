@@ -1136,10 +1136,8 @@ const GOHUB_OVERRIDES = {
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
   "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
   "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
-  "mega starmie": "https://db.pokemongohub.net/images/official/full/121_mega_with_bg.webp",
   "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
   "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
-  "mega skarmory": "https://db.pokemongohub.net/images/official/full/227_mega_with_bg.webp",
   "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
   "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
   "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
@@ -1190,14 +1188,34 @@ const ANI_URL_OVERRIDES = {
   "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
   "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
 };
-const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "slowbro-mega", "solgaleo", "stakataka", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+
+// ---- Sprite source priority: local -> mgrann03 -> pokemongohub (fallback) ----
+// GOHUB_OVERRIDES is no longer consulted up front. mgrann03 only carries 8 of the 35
+// override names, so the rest still need pokemongohub - but only after the preferred
+// source actually fails, not instead of it. spriteUrl() registers the fallback here and
+// this listener applies it. Capture phase runs before each element's inline onerror, so
+// stopPropagation() keeps the page's own "hide the image" handler from winning first.
+const SPRITE_FALLBACK = Object.create(null);
+document.addEventListener("error", function (e) {
+  const img = e.target;
+  if (!img || img.tagName !== "IMG" || img.dataset.spriteFallbackUsed) return;
+  const fb = SPRITE_FALLBACK[img.getAttribute("src")];
+  if (!fb) return;
+  img.dataset.spriteFallbackUsed = "1";
+  img.src = fb;
+  e.stopPropagation();
+  e.preventDefault();
+}, true);
+
 function monSpriteUrl(name){
   const key = name.trim().toLowerCase();
-  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
-  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
+  // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
-  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+  const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+  if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
+  return url;
 }
 
 function battleMonIconHtml(name){
