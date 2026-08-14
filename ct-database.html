@@ -191,6 +191,8 @@ header{ padding: 12px 24px 10px; text-align:center; }
     transition: transform .18s ease;
   }
   .boss-group.open .boss-caret{ transform: rotate(90deg); }
+  /* a table icon instead of a caret marks rows that open the popup rather than expanding */
+  .boss-caret{ font-size:13px; }
   .boss-body{ display:none; padding:0 16px 12px; }
   .boss-group.open .boss-body{ display:block; }
 
@@ -2243,6 +2245,7 @@ function renderByBoss(list){
     return { boss, scenarios, tankCount: tanks.size, movesetCount: scenarios.length };
   });
 
+  window.__byBossGroups = groups;   // so the entries table can look a boss back up by index
   const bossSort = (document.getElementById("sortByBoss") || {}).value || "tanks";
   groups.sort((a,b) => {
     if(bossSort === "az") return a.boss.localeCompare(b.boss);
@@ -2261,7 +2264,7 @@ function renderByBoss(list){
           <div class="boss-group-name">${escapeHtml(g.boss)}</div>
           <div class="boss-group-meta">${g.tankCount} catch tank${g.tankCount !== 1 ? "s" : ""}</div>
         </div>
-        <span class="boss-caret">&#9654;</span>
+        <span class="boss-caret">${g.scenarios.reduce((n,s)=>n+s.entries.length,0) >= 8 ? "&#9974;" : "&#9654;"}</span>
       </button>
       <div class="boss-body">
         ${g.scenarios.map(sc => `
@@ -2364,6 +2367,9 @@ function detailLineHtml(s, showBuild){
 }
 
 function toggleBossGroup(i){
+  const g = (window.__byBossGroups || [])[i];
+  const total = g ? g.scenarios.reduce((n,s) => n + s.entries.length, 0) : 0;
+  if(total >= ENTRY_TABLE_THRESHOLD){ openBossEntriesTable(i); return; }
   const el = document.getElementById("bossGroup-" + i);
   if(!el) return;
   const open = el.classList.toggle("open");
@@ -2451,10 +2457,9 @@ function renderBest(list){
           <div class="leader-best">${m.avg.toFixed(1)}</div>
           <div class="leader-best-label" data-tooltip="Average Catch Tank DPS across all ${m.entries.length} recorded ${m.entries.length === 1 ? "entry" : "entries"} for this Pok&eacute;mon.">Avg CT DPS</div>
         </div>
-        <span class="boss-caret">&#9654;</span>
+        <span class="boss-caret">${m.entries.length >= 8 ? "&#9974;" : "&#9654;"}</span>
       </button>
       <div class="leader-body-expand">
-        ${m.entries.length >= 8 ? `<button type="button" class="view-all-btn" onclick="openEntriesTable(${i})">View all ${m.entries.length} entries in a table</button>` : ""}
         <div>
         ${bossBlocks.map(b => `
           <div class="boss-block">
@@ -2523,6 +2528,87 @@ function entriesTableRowsHtml(m, sort, priorities){
     </tr>`).join("");
 }
 
+// Boss-side equivalent: same shell, but pivoted - the boss is fixed, so the first column is the
+// catch tank and the moveset column describes what the boss was using in that particular result.
+function openBossEntriesTable(idx){
+  const g = (window.__byBossGroups || [])[idx];
+  if(!g) return;
+  const all = g.scenarios.flatMap(s => s.entries);
+  const state = { sort: "dps", priorities: { extreme: false, blade: false } };
+
+  const rowsHtml = () => {
+    let rows = [...all];
+    const score = e => {
+      let s = 0;
+      if(state.priorities.extreme && /extreme/i.test(e.weather || "")) s -= 2;
+      if(state.priorities.blade && (e.zacianBlade || "").trim().toLowerCase() === "yes") s -= 1;
+      return s;
+    };
+    rows.sort((a,b) => {
+      const ps = score(a) - score(b);
+      if(ps) return ps;
+      if(state.sort === "name") return a.pokemon.localeCompare(b.pokemon) || parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
+      return parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
+    });
+    return rows.map(e => `
+      <tr>
+        <td class="boss-cell">
+          <span class="entries-boss-icon"><img class="${needsShadowMist(e.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(e.pokemon)}" alt="${escapeHtml(e.pokemon)}" title="${escapeHtml(e.pokemon)}" loading="lazy" onerror="this.parentElement.classList.add('no-sprite'); this.parentElement.textContent='${escapeHtml(e.pokemon).slice(0,2)}';"></span>
+          <span class="entries-boss-name">${escapeHtml(e.pokemon)}</span>
+        </td>
+        <td class="dim">${movesetHtml(e.bossMoveset || "")} <span class="ct-pick-conds">${weatherIcon(e.weather || "")}${boostIconsHtml(e)}${doubleCTBadgeHtml(e)}</span></td>
+        <td class="dim col-used">${movesetHtml(e.playerMoveset || "")}</td>
+        <td class="dim col-build">Lv ${escapeHtml(e.level)} &middot; ${escapeHtml(e.ivs || "")}</td>
+        <td class="num"><b>${parseFloat(e.ctDPS).toFixed(1)}</b></td>
+      </tr>`).join("");
+  };
+
+  const overlay = document.createElement("div");
+  overlay.className = "entries-overlay";
+  overlay.innerHTML = `
+    <div class="entries-modal" role="dialog" aria-modal="true">
+      <div class="entries-head">
+        <div class="entries-title">
+          <span class="entries-icon"><img class="${needsShadowMist(g.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(g.boss)}" alt="" onerror="this.parentElement.remove();"></span>
+          <div>
+            <h3>${escapeHtml(g.boss)}</h3>
+            <div class="entries-sub">${all.length} entries &middot; ${g.tankCount} catch tank${g.tankCount !== 1 ? "s" : ""}</div>
+          </div>
+        </div>
+        <button type="button" class="entries-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="entries-controls">
+        <select class="entries-sort" aria-label="Sort entries">
+          <option value="dps">CT DPS high&ndash;low</option>
+          <option value="name">Catch tank A&ndash;Z</option>
+        </select>
+        <label class="entries-toggle"><input type="checkbox" class="prio-extreme"> Extreme weather first</label>
+        <label class="entries-toggle"><input type="checkbox" class="prio-blade"> Blade Boost first</label>
+      </div>
+      <div class="entries-scroll">
+        <table class="entries-table">
+          <thead>
+            <tr><th>Catch tank</th><th>Boss moveset</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const tbody = overlay.querySelector("tbody");
+  const redraw = () => { tbody.innerHTML = rowsHtml(); };
+  redraw();
+  overlay.querySelector(".entries-sort").addEventListener("change", e => { state.sort = e.target.value; redraw(); });
+  overlay.querySelector(".prio-extreme").addEventListener("change", e => { state.priorities.extreme = e.target.checked; redraw(); });
+  overlay.querySelector(".prio-blade").addEventListener("change", e => { state.priorities.blade = e.target.checked; redraw(); });
+  const close = () => overlay.remove();
+  overlay.querySelector(".entries-close").addEventListener("click", close);
+  overlay.addEventListener("click", e => { if(e.target === overlay) close(); });
+  document.addEventListener("keydown", function esc(e){
+    if(e.key === "Escape"){ close(); document.removeEventListener("keydown", esc); }
+  });
+}
+
 function openEntriesTable(idx){
   const m = (window.__rankedBest || [])[idx];
   if(!m) return;
@@ -2575,7 +2661,14 @@ function openEntriesTable(idx){
   });
 }
 
+// Past ENTRY_TABLE_THRESHOLD the inline expansion stops being readable, so the row opens the
+// table directly rather than expanding into a long list. Below it, the detail cards are still
+// the nicer read for two or three results.
+const ENTRY_TABLE_THRESHOLD = 8;
+
 function toggleLeaderGroup(i){
+  const m = (window.__rankedBest || [])[i];
+  if(m && m.entries.length >= ENTRY_TABLE_THRESHOLD){ openEntriesTable(i); return; }
   const el = document.getElementById("leaderGroup-" + i);
   if(!el) return;
   const open = el.classList.toggle("open");
