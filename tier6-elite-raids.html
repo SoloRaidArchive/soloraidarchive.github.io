@@ -783,6 +783,7 @@ function scrollToHashTarget(){
 }
 
 async function loadRaidsFromCSV(){
+  await loadBossBaseStats();
   const container = document.getElementById("sections");
   try{
     const res = await fetch(CSV_URL);
@@ -1141,10 +1142,33 @@ function strategyChipsHtml(strategyStr){
     return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${p}</a>`;
   }).join(" / ");
 }
-const BOSS_BASE_STATS = [
-{n:"Mega Rayquaza",hp:227.0,atk:377.0,def:210.0},
-{n:"Regidrago",hp:400.0,atk:202.0,def:101.0}
-];
+// Boss base stats come from csv/pokemon-stats.csv - the same file pokemon-stats.html uses.
+// This page previously carried its own hardcoded BOSS_BASE_STATS array, which had drifted
+// badly out of date (42 of 1192 entries), and bossStatsHtml() returns "" on a miss - so
+// every boss added since that array was last hand-edited rendered with no stats line and
+// no error. Reading the source file directly removes the copy that can drift.
+let BOSS_BASE_STATS = [];
+
+async function loadBossBaseStats(){
+  try{
+    const res = await fetch("csv/pokemon-stats.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim());
+    const iName = header.indexOf("name"), iHp = header.indexOf("hp");
+    const iAtk = header.indexOf("atk"), iDef = header.indexOf("def");
+    if(iName < 0 || iAtk < 0 || iDef < 0) throw new Error("unexpected header: " + header.join(","));
+    BOSS_BASE_STATS = lines.map(l => {
+      const c = l.split(",");
+      return { n: (c[iName]||"").trim(), hp: parseFloat(c[iHp]), atk: parseFloat(c[iAtk]), def: parseFloat(c[iDef]) };
+    }).filter(s => s.n && !isNaN(s.atk) && !isNaN(s.def));
+  }catch(e){
+    // Loud on purpose. Failing quietly here looks identical to a boss simply not having
+    // stats, which is how the stale hardcoded array went unnoticed for so long.
+    console.error("Failed to load csv/pokemon-stats.csv - boss stats lines will be missing:", e);
+  }
+}
 const BOSS_CPM = 0.7903;
 const ELITE_CPM = 1.0;
 const ELITE_HP = 20000;

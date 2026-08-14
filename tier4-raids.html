@@ -778,6 +778,7 @@ function scrollToHashTarget(){
 }
 
 async function loadRaidsFromCSV(){
+  await loadBossBaseStats();
   const container = document.getElementById("sections");
   try{
     const res = await fetch(CSV_URL);
@@ -1146,50 +1147,33 @@ function strategyChipsHtml(strategyStr){
     return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${p}</a>`;
   }).join(" / ");
 }
-const BOSS_BASE_STATS = [
-{n:"Mega Abomasnow",hp:207.0,atk:240.0,def:191.0},
-{n:"Mega Absol",hp:163.0,atk:314.0,def:130.0},
-{n:"Mega Aerodactyl",hp:190.0,atk:292.0,def:210.0},
-{n:"Mega Aggron",hp:172.0,atk:247.0,def:331.0},
-{n:"Mega Alakazam",hp:146.0,atk:367.0,def:207.0},
-{n:"Mega Altaria",hp:181.0,atk:222.0,def:218.0},
-{n:"Mega Ampharos",hp:207.0,atk:294.0,def:203.0},
-{n:"Mega Audino",hp:230.0,atk:147.0,def:239.0},
-{n:"Mega Banette",hp:162.0,atk:312.0,def:160.0},
-{n:"Mega Beedrill",hp:163.0,atk:303.0,def:148.0},
-{n:"Mega Blastoise",hp:188.0,atk:264.0,def:237.0},
-{n:"Mega Blaziken",hp:190.0,atk:329.0,def:168.0},
-{n:"Mega Camerupt",hp:172.0,atk:253.0,def:183.0},
-{n:"Mega Charizard X",hp:186.0,atk:273.0,def:213.0},
-{n:"Mega Charizard Y",hp:186.0,atk:319.0,def:212.0},
-{n:"Mega Gallade",hp:169.0,atk:326.0,def:230.0},
-{n:"Mega Garchomp",hp:239.0,atk:339.0,def:222.0},
-{n:"Mega Gardevoir",hp:169.0,atk:326.0,def:229.0},
-{n:"Mega Gengar",hp:155.0,atk:349.0,def:199.0},
-{n:"Mega Glalie",hp:190.0,atk:252.0,def:168.0},
-{n:"Mega Gyarados",hp:216.0,atk:292.0,def:247.0},
-{n:"Mega Heracross",hp:190.0,atk:334.0,def:223.0},
-{n:"Mega Houndoom",hp:181.0,atk:289.0,def:194.0},
-{n:"Mega Kangaskhan",hp:233.0,atk:246.0,def:210.0},
-{n:"Mega Lopunny",hp:163.0,atk:282.0,def:214.0},
-{n:"Mega Lucario",hp:172.0,atk:310.0,def:175.0},
-{n:"Mega Manectric",hp:172.0,atk:286.0,def:179.0},
-{n:"Mega Mawile",hp:137.0,atk:188.0,def:217.0},
-{n:"Mega Medicham",hp:155.0,atk:205.0,def:179.0},
-{n:"Mega Metagross",hp:189.0,atk:300.0,def:289.0},
-{n:"Mega Pidgeot",hp:195.0,atk:280.0,def:175.0},
-{n:"Mega Pinsir",hp:163.0,atk:305.0,def:231.0},
-{n:"Mega Sableye",hp:137.0,atk:151.0,def:216.0},
-{n:"Mega Salamence",hp:216.0,atk:310.0,def:251.0},
-{n:"Mega Sceptile",hp:172.0,atk:320.0,def:186.0},
-{n:"Mega Scizor",hp:172.0,atk:279.0,def:250.0},
-{n:"Mega Sharpedo",hp:172.0,atk:289.0,def:144.0},
-{n:"Mega Slowbro",hp:216.0,atk:224.0,def:259.0},
-{n:"Mega Steelix",hp:181.0,atk:212.0,def:327.0},
-{n:"Mega Swampert",hp:225.0,atk:283.0,def:218.0},
-{n:"Mega Tyranitar",hp:225.0,atk:309.0,def:276.0},
-{n:"Mega Venusaur",hp:190.0,atk:241.0,def:246.0}
-];
+// Boss base stats come from csv/pokemon-stats.csv - the same file pokemon-stats.html uses.
+// This page previously carried its own hardcoded BOSS_BASE_STATS array, which had drifted
+// badly out of date (42 of 1192 entries), and bossStatsHtml() returns "" on a miss - so
+// every boss added since that array was last hand-edited rendered with no stats line and
+// no error. Reading the source file directly removes the copy that can drift.
+let BOSS_BASE_STATS = [];
+
+async function loadBossBaseStats(){
+  try{
+    const res = await fetch("csv/pokemon-stats.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim());
+    const iName = header.indexOf("name"), iHp = header.indexOf("hp");
+    const iAtk = header.indexOf("atk"), iDef = header.indexOf("def");
+    if(iName < 0 || iAtk < 0 || iDef < 0) throw new Error("unexpected header: " + header.join(","));
+    BOSS_BASE_STATS = lines.map(l => {
+      const c = l.split(",");
+      return { n: (c[iName]||"").trim(), hp: parseFloat(c[iHp]), atk: parseFloat(c[iAtk]), def: parseFloat(c[iDef]) };
+    }).filter(s => s.n && !isNaN(s.atk) && !isNaN(s.def));
+  }catch(e){
+    // Loud on purpose. Failing quietly here looks identical to a boss simply not having
+    // stats, which is how the stale hardcoded array went unnoticed for so long.
+    console.error("Failed to load csv/pokemon-stats.csv - boss stats lines will be missing:", e);
+  }
+}
 const BOSS_CPM = 0.7903;
 const BOSS_HP = 9000;
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";

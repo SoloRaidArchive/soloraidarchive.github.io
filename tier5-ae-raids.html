@@ -782,6 +782,7 @@ function scrollToHashTarget(){
 }
 
 async function loadRaidsFromCSV(){
+  await loadBossBaseStats();
   const container = document.getElementById("sections");
   try{
     const res = await fetch(CSV_URL);
@@ -1141,45 +1142,33 @@ function strategyChipsHtml(strategyStr){
     return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${p}</a>`;
   }).join(" / ");
 }
-const BOSS_BASE_STATS = [
-{n:"Articuno",hp:207.0,atk:192.0,def:236.0},
-{n:"Azelf",hp:181.0,atk:270.0,def:151.0},
-{n:"NDM",hp:200.0,atk:277.0,def:220.0},
-{n:"Blacephalon",hp:142.0,atk:315.0,def:148.0},
-{n:"Celesteela",hp:219.0,atk:207.0,def:199.0},
-{n:"Darkrai",hp:172.0,atk:285.0,def:198.0},
-{n:"Dialga",hp:205.0,atk:275.0,def:211.0},
-{n:"Enamorus Incarnate",hp:179.0,atk:281.0,def:162.0},
-{n:"Enamorus Therian",hp:179.0,atk:250.0,def:201.0},
-{n:"Enamorus Therian",hp:179.0,atk:250.0,def:201.0},
-{n:"Entei",hp:251.0,atk:235.0,def:171.0},
-{n:"Giratina Altered",hp:284.0,atk:187.0,def:225.0},
-{n:"Giratina Origin",hp:284.0,atk:225.0,def:187.0},
-{n:"Ho-oh",hp:214.0,atk:239.0,def:244.0},
-{n:"Kyurem",hp:245.0,atk:246.0,def:170.0},
-{n:"Kyurem Black",hp:245.0,atk:310.0,def:183.0},
-{n:"Kyurem White",hp:245.0,atk:310.0,def:183.0},
-{n:"Latios",hp:190.0,atk:268.0,def:212.0},
-{n:"Mewtwo",hp:214.0,atk:300.0,def:182.0},
-{n:"Necrozma",hp:219.0,atk:251.0,def:195.0},
-{n:"Palkia",hp:189.0,atk:280.0,def:215.0},
-{n:"Regigigas",hp:221.0,atk:287.0,def:210.0},
-{n:"Reshiram",hp:205.0,atk:275.0,def:211.0},
-{n:"Solgaleo",hp:264.0,atk:255.0,def:191.0},
-{n:"Tapu Bulu",hp:172.0,atk:249.0,def:215.0},
-{n:"Tapu Koko",hp:172.0,atk:250.0,def:181.0},
-{n:"Tapu Lele",hp:172.0,atk:259.0,def:208.0},
-{n:"Terrakion",hp:209.0,atk:260.0,def:192.0},
-{n:"Thundurus Incarnate",hp:188.0,atk:266.0,def:164.0},
-{n:"Tornadus Incarnate",hp:188.0,atk:266.0,def:164.0},
-{n:"Tornadus Therian",hp:188.0,atk:238.0,def:189.0},
-{n:"Xerneas",hp:246.0,atk:250.0,def:185.0},
-{n:"Xurkitree",hp:195.0,atk:330.0,def:144.0},
-{n:"Yveltal",hp:246.0,atk:250.0,def:185.0},
-{n:"Zamazenta Hero",hp:192.0,atk:254.0,def:236.0},
-{n:"Zapdos",hp:207.0,atk:253.0,def:185.0},
-{n:"Zekrom",hp:205.0,atk:275.0,def:211.0}
-];
+// Boss base stats come from csv/pokemon-stats.csv - the same file pokemon-stats.html uses.
+// This page previously carried its own hardcoded BOSS_BASE_STATS array, which had drifted
+// badly out of date (42 of 1192 entries), and bossStatsHtml() returns "" on a miss - so
+// every boss added since that array was last hand-edited rendered with no stats line and
+// no error. Reading the source file directly removes the copy that can drift.
+let BOSS_BASE_STATS = [];
+
+async function loadBossBaseStats(){
+  try{
+    const res = await fetch("csv/pokemon-stats.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim());
+    const iName = header.indexOf("name"), iHp = header.indexOf("hp");
+    const iAtk = header.indexOf("atk"), iDef = header.indexOf("def");
+    if(iName < 0 || iAtk < 0 || iDef < 0) throw new Error("unexpected header: " + header.join(","));
+    BOSS_BASE_STATS = lines.map(l => {
+      const c = l.split(",");
+      return { n: (c[iName]||"").trim(), hp: parseFloat(c[iHp]), atk: parseFloat(c[iAtk]), def: parseFloat(c[iDef]) };
+    }).filter(s => s.n && !isNaN(s.atk) && !isNaN(s.def));
+  }catch(e){
+    // Loud on purpose. Failing quietly here looks identical to a boss simply not having
+    // stats, which is how the stale hardcoded array went unnoticed for so long.
+    console.error("Failed to load csv/pokemon-stats.csv - boss stats lines will be missing:", e);
+  }
+}
 const BOSS_CPM = 0.7903;
 const BOSS_HP = 15000;
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
