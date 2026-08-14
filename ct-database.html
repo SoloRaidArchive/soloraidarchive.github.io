@@ -65,6 +65,217 @@ header{ padding: 12px 24px 10px; text-align:center; }
     max-width: 1100px; margin: 16px auto 0; padding: 0 20px;
     display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
   }
+
+  /* ============ REDESIGN: TWO PURPOSE-BUILT VIEWS ============
+     The old page was one flat table of every submission, which answers neither of the two
+     questions a new user actually arrives with. These two views each answer one directly:
+       "By Raid Boss"  -> which catch tanks are good against the boss I'm fighting?
+       "Best Overall"  -> which catch tanks are worth investing in generally?
+     The original full table is kept as a third view for people who want the raw data. */
+  .view-tabs{
+    max-width:1100px; margin:18px auto 0; padding:0 20px;
+    display:flex; gap:0; justify-content:center;
+  }
+  .view-tabs-inner{
+    display:flex; background: var(--bg1); border:2px solid var(--border);
+    border-radius:12px; padding:4px; flex-wrap:wrap; width:100%; max-width:620px;
+  }
+  [data-theme="dark"] .view-tabs-inner{ background:#161a28; }
+  .view-tabs input{ display:none; }
+  .view-tabs label{
+    flex:1; min-width:120px; text-align:center; padding:10px 12px; border-radius:9px; cursor:pointer;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--ink-dim);
+    transition: background .15s ease, color .15s ease;
+  }
+  .view-tabs input:checked + label{ background: var(--accent); color:#fff; }
+  .view-intro{
+    max-width:620px; margin:10px auto 0; padding:0 20px; text-align:center;
+    font-size:12.5px; color: var(--ink-dim); font-weight:600; line-height:1.5;
+  }
+
+  /* --- rejoin threshold badges --- */
+  .rejoin-badge{
+    display:inline-flex; align-items:center; gap:4px; font-family:'Manrope', sans-serif;
+    font-weight:800; font-size:10px; padding:2px 8px; border-radius:999px; white-space:nowrap;
+    background:#e7f5ec; color:#1c7a43;
+  }
+  [data-theme="dark"] .rejoin-badge{ background:rgba(28,122,67,0.25); color:#6ee7a0; }
+  .rejoin-badge.tier-0{ background:#eef1f5; color:#5a6472; }
+  [data-theme="dark"] .rejoin-badge.tier-0{ background:rgba(255,255,255,0.1); color:#c2cad6; }
+  .rejoin-badge.none{ background:#fdecec; color:#b23c3c; }
+  [data-theme="dark"] .rejoin-badge.none{ background:rgba(178,60,60,0.22); color:#ff9b9b; }
+
+  /* --- BY BOSS view --- */
+  .boss-group{
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 16px; margin-bottom:14px;
+  }
+  .boss-group-head{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .boss-group-icon{
+    width:44px; height:44px; border-radius:50%; background: var(--accent-soft); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .boss-group-icon img{ width:100%; height:100%; object-fit:contain; }
+  .boss-group-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; }
+  .boss-group-meta{ font-size:11.5px; color: var(--ink-dim); font-weight:600; margin-top:1px; }
+  .ct-pick{
+    display:flex; align-items:center; gap:10px; padding:8px 0;
+    border-top:1px solid var(--border);
+  }
+  .ct-pick-rank{
+    flex-shrink:0; width:22px; text-align:center; font-family:'Manrope', sans-serif;
+    font-weight:800; font-size:12px; color: var(--ink-dim);
+  }
+  .ct-pick-icon{
+    width:34px; height:34px; border-radius:50%; background: var(--accent-soft); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .ct-pick-icon img{ width:100%; height:100%; object-fit:contain; }
+  .ct-pick-body{ flex:1; min-width:0; }
+  .ct-pick-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; }
+  .ct-pick-sub{ font-size:11px; color: var(--ink-dim); font-weight:600; margin-top:1px; }
+  .ct-pick-dps{ flex-shrink:0; text-align:right; }
+  .ct-pick-dps-val{ font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; color: var(--accent-dark); }
+  .ct-pick-dps-label{ font-size:9.5px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+
+  /* --- SIDE-BY-SIDE LAYOUT ---
+     On a wide viewport both questions are answerable at once, so both columns render together
+     and the tab switcher is hidden - tabs would be pointless friction when there's room for
+     both. Below the breakpoint it falls back to exactly the previous behaviour: tabs, one view
+     at a time. Both columns are always rendered into the DOM; only CSS decides what's shown, so
+     switching costs nothing and there's no re-render on resize. */
+  .views-grid{ display:grid; gap:18px; }
+  .view-col-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:0 0 12px;
+  }
+  /* narrow: tabbed, one at a time (column headings redundant next to the active tab) */
+  .view-col-title{ display:none; }
+  body:not(.view-byboss) #col-byboss{ display:none; }
+  body:not(.view-best) #col-best{ display:none; }
+
+  @media (min-width: 1040px){
+    .views-grid{ grid-template-columns: 1fr 1fr; align-items:start; }
+    .view-tabs, .view-intro{ display:none; }
+    .view-col-title{ display:block; }
+    /* both columns visible regardless of which tab was last active */
+    body:not(.view-byboss) #col-byboss,
+    body:not(.view-best) #col-best{ display:block; }
+  }
+
+  /* --- BY BOSS: progressive disclosure ---
+     A catch tank's viability against a boss is conditional: the same tank swings 10+ DPS on
+     weather alone, or ~7 on Blade Boost. So the boss card stays collapsed showing only what a
+     new user needs to decide whether to look further, and expands into the boss's distinct
+     MOVESETS (the thing you're actually up against and can't control), each of which then lists
+     the tanks that answer it with their specific conditions attached. Nothing is averaged across
+     scenarios, because an average across different fights describes no real fight. */
+  .boss-group{ padding:0; overflow:hidden; }
+  .boss-toggle{
+    width:100%; display:flex; align-items:center; gap:12px; padding:14px 16px;
+    background:none; border:none; cursor:pointer; text-align:left; font:inherit; color:inherit;
+  }
+  .boss-toggle:hover{ background: var(--accent-soft); }
+  .boss-caret{
+    margin-left:auto; flex-shrink:0; font-size:12px; color: var(--ink-dim);
+    transition: transform .18s ease;
+  }
+  .boss-group.open .boss-caret{ transform: rotate(90deg); }
+  .boss-body{ display:none; padding:0 16px 12px; }
+  .boss-group.open .boss-body{ display:block; }
+
+  .scenario{ border-top:1.5px solid var(--border); padding:12px 0 4px; }
+  /* center-aligned so the boss sprite sits level with the name; baseline alignment pushed the
+     circular sprite out of line with the text in the Best Catch Tanks expansion */
+  .scenario-head{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+  .scenario-boss-moves{ font-size:12px; font-weight:600; color: var(--ink-muted); }
+  .scenario-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:10px; color: var(--ink-dim);
+    text-transform:uppercase; letter-spacing:0.05em;
+  }
+  .scenario-moveset{ font-family:'Manrope', sans-serif; font-weight:800; font-size:13.5px; }
+  .scenario-count{ font-size:11px; color: var(--ink-dim); font-weight:600; }
+
+  .move-type-icon-wrap{
+    display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px;
+    border-radius:50%; margin-right:4px; flex-shrink:0; vertical-align:-3px;
+  }
+  .move-type-icon{ width:10px; height:10px; object-fit:contain; filter: brightness(0) invert(1); }
+  .move-inline{ display:inline-flex; align-items:center; white-space:nowrap; }
+  .move-sep{ margin:0 5px; color: var(--ink-dim); }
+  .cond-icon{ width:17px; height:17px; object-fit:contain; vertical-align:-3px; margin-left:3px; }
+  .ct-pick-conds .weather-icon-img{ width:17px; height:17px; }
+  .ct-pick-conds{ display:inline-flex; align-items:center; gap:2px; vertical-align:-2px; }
+  .ct-pick-used{ color: var(--ink-dim); }
+  .scenario-boss-icon{
+    display:inline-flex; width:26px; height:26px; border-radius:50%; background: var(--accent-soft);
+    align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;
+  }
+  .scenario-boss-icon img{ width:100%; height:100%; object-fit:contain; }
+  .detail-line{
+    font-size:10.5px; color: var(--ink-dim); font-weight:600; margin-top:3px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:0 2px;
+  }
+  .detail-line b{ color: var(--ink); font-weight:800; }
+  .detail-sep{ margin:0 5px; opacity:.5; }
+  .detail-risky{ color:#b23c3c; font-weight:800; }
+  .cond-chip{
+    display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;
+    background: var(--bg1); color: var(--ink-dim); border:1px solid var(--border); white-space:nowrap;
+  }
+  .cond-chip.weather{ background:#eaf4ff; color:#2b7fd6; border-color:#cfe6ff; }
+  .cond-chip.ae{ background:#f3ecff; color:#6a3fc9; border-color:#e2d5ff; }
+  .cond-chip.mods{ background:#fff4e0; color:#9a6212; border-color:#ffe4b8; }
+  .ct-pick-conds{ display:flex; flex-wrap:wrap; gap:4px; margin-top:4px; }
+
+  /* --- BEST OVERALL view (expandable, mirrors the boss cards) --- */
+  .leader-group{
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    margin-bottom:10px; overflow:hidden;
+  }
+  .leader-toggle{
+    width:100%; display:flex; align-items:center; gap:12px; padding:12px 14px;
+    background:none; border:none; cursor:pointer; text-align:left; font:inherit; color:inherit;
+  }
+  .leader-toggle:hover{ background: var(--accent-soft); }
+  .leader-group.open .boss-caret{ transform: rotate(90deg); }
+  .leader-body-expand{ display:none; padding:0 14px 10px; }
+  .leader-group.open .leader-body-expand{ display:block; }
+
+  /* --- BEST OVERALL view --- */
+  .leader-row{
+    display:flex; align-items:center; gap:12px; background: var(--card);
+    border:2px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:10px;
+  }
+  .leader-rank{
+    flex-shrink:0; width:30px; height:30px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; font-family:'Manrope', sans-serif; font-weight:800; font-size:13px;
+    background: var(--accent-soft); color: var(--accent-dark);
+  }
+  .leader-row:nth-child(1) .leader-rank{ background:#ffd97a; color:#7a5a00; }
+  .leader-row:nth-child(2) .leader-rank{ background:#dfe4ea; color:#4a5460; }
+  .leader-row:nth-child(3) .leader-rank{ background:#f0c9a0; color:#7d4a1c; }
+  .leader-icon{
+    width:44px; height:44px; border-radius:50%; background: var(--accent-soft); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .leader-icon img{ width:100%; height:100%; object-fit:contain; }
+  .leader-body{ flex:1; min-width:0; }
+  .leader-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:14.5px; }
+  .leader-sub{ font-size:11.5px; color: var(--ink-dim); font-weight:600; margin-top:2px; }
+  .leader-bosses{ display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+  .leader-boss-chip{
+    font-size:10px; font-weight:700; padding:2px 7px; border-radius:999px;
+    background: var(--bg1); color: var(--ink-dim); border:1px solid var(--border);
+  }
+  .leader-stats{ flex-shrink:0; text-align:right; }
+  .leader-best{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; color: var(--accent-dark); }
+  .leader-best-label{ font-size:9.5px; color: var(--ink-dim); font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+  @media (max-width: 600px){
+    .leader-row{ flex-wrap:wrap; }
+    .leader-stats{ text-align:left; }
+    .ct-pick{ flex-wrap:wrap; }
+  }
+
   .controls input, .controls select{
     background: var(--card); border: 1px solid var(--border); color: var(--ink);
     font-size:13px; padding: 10px 14px; border-radius: 10px; outline:none;
@@ -282,10 +493,10 @@ header{ padding: 12px 24px 10px; text-align:center; }
     display:inline-block; font-family:'Manrope', sans-serif; font-weight:800; font-size:10px;
     padding:3px 8px; border-radius:999px; white-space:nowrap;
   }
-  .sub-mode-badge.single{ background: rgba(90,169,255,0.14); color: var(--blue-dark); }
+  .sub-mode-badge.single{ background: rgba(90,169,255,0.14); color: var(--accent-dark); }
   .sub-mode-badge.double{ background: rgba(168,85,247,0.14); color:#7c3aed; }
   [data-theme="dark"] .sub-mode-badge.double{ color:#c4b5fd; }
-  .sub-dps-na{ font-family:'Manrope', sans-serif; font-weight:700; font-size:12px; color: var(--text-dim); }
+  .sub-dps-na{ font-family:'Manrope', sans-serif; font-weight:700; font-size:12px; color: var(--ink-dim); }
   .sub-dps-cell.highlight .sub-dps-val{ color: var(--accent-dark); }
 
   .empty{ text-align:center; padding:60px 20px; color: var(--ink-dim); font-weight:600; }
@@ -404,6 +615,16 @@ header{ padding: 12px 24px 10px; text-align:center; }
   </div>
 </div>
 
+<div class="view-tabs">
+  <div class="view-tabs-inner">
+    <input type="radio" name="dbView" id="viewByBoss" value="byboss" checked>
+    <label for="viewByBoss">By Raid Boss</label>
+    <input type="radio" name="dbView" id="viewBest" value="best">
+    <label for="viewBest">Best Catch Tanks</label>
+  </div>
+</div>
+<div class="view-intro" id="viewIntro"></div>
+
 <div class="controls">
   <select id="modeFilter">
     <option value="all">Mode: All</option>
@@ -412,7 +633,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
   </select>
   <select id="sortSelect">
     <option value="ctdps">Sort: CT DPS (High–Low)</option>
-    <option value="maindps">Sort: Main DPS (High–Low)</option>
     <option value="boss">Sort: Boss (A–Z)</option>
     <option value="pokemon">Sort: Your Pokémon (A–Z)</option>
   </select>
@@ -420,10 +640,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
 
 <div class="dps-legend-wrap">
   <div class="dps-legend">
-    <div class="dps-legend-item">
-      <span class="role-chip main">Main DPS</span>
-      <span class="role-legend-desc">Damage output during the core attack rotation, before any Catch Tank timing buffer.</span>
-    </div>
     <div class="dps-legend-item">
       <span class="role-chip support">Trailing DPS</span>
       <span class="role-legend-desc">Output including the trailing buffer used to safely catch one more charge move before rejoining.</span>
@@ -436,6 +652,16 @@ header{ padding: 12px 24px 10px; text-align:center; }
 </div>
 
 <div class="container">
+  <div class="views-grid">
+    <section class="view-col" id="col-byboss">
+      <h2 class="view-col-title">By Raid Boss</h2>
+      <div id="byBossView"></div>
+    </section>
+    <section class="view-col" id="col-best">
+      <h2 class="view-col-title">Best Catch Tanks</h2>
+      <div id="bestView"></div>
+    </section>
+  </div>
   <div class="count" id="count"></div>
   <table class="sub-table">
     <thead>
@@ -445,7 +671,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
         <th>Weather</th>
         <th>Modifiers</th>
         <th>Duration</th>
-        <th class="col-dps">Main</th>
         <th class="col-dps">Trailing</th>
         <th class="col-dps">CT DPS</th>
         <th class="col-boss">Raid Boss</th>
@@ -1420,6 +1645,24 @@ function computeDuration(params){
 // This is the same pattern the tier4/5/5ae/6 raid archives already use for their own data.
 let SUBMISSIONS = [];
 const CSV_URL = "/csv/ct-database.csv";
+// ============ SOLO REJOIN DPS THRESHOLDS (Tier 5 Legendary) ============
+// Minimum Catch Tank DPS needed for a boss to be soloable, before factoring rejoins. Each extra
+// rejoin costs time, so it raises the DPS bar. A CT interaction that clears a given threshold can
+// be used in battle parties designed to rejoin that many times.
+const REJOIN_THRESHOLDS = [
+  { rejoins: 0, dps: 50.00 },
+  { rejoins: 1, dps: 51.19 },
+  { rejoins: 2, dps: 52.44 },
+  { rejoins: 3, dps: 53.76 },
+  { rejoins: 4, dps: 55.14 },
+];
+// Highest rejoin count this DPS can sustain, or null if it doesn't even clear the 0-rejoin bar.
+function maxRejoinsFor(dps){
+  let best = null;
+  for(const t of REJOIN_THRESHOLDS){ if(dps >= t.dps) best = t.rejoins; }
+  return best;
+}
+
 
 function parseCSV(text){
   const rows = [];
@@ -1460,7 +1703,7 @@ function rowsToSubmissions(rows){
     timingMods: idxAny(["Timing Modifiers", "Time Modifiers"]),
     chargeCasts: idx("# of Charge moves cast"), fmsTanked: idx("Boss FM Tanked"),
     ticks: idx("Ticks"), seconds: idx("Seconds"),
-    mainDPS: idx("Main DPS"), trailingDPS: idx("Trailing DPS"), ctDPS: idx("CT DPS"), risky: idx("Risk"),
+    trailingDPS: idx("Trailing DPS"), ctDPS: idx("CT DPS"), risky: idx("Risk"),
   };
   return rows.slice(1)
     .filter(r => r.length > 1 && r[col.pokemon] && r[col.pokemon].trim())
@@ -1471,7 +1714,7 @@ function rowsToSubmissions(rows){
       shieldAE: (r[col.shieldAE] || "").trim(), dodges: (r[col.dodges] || "").trim(), timingMods: (r[col.timingMods] || "").trim(),
       chargeCasts: (r[col.chargeCasts] || "").trim(), fmsTanked: (r[col.fmsTanked] || "").trim(),
       ticks: (r[col.ticks] || "").trim(), seconds: (r[col.seconds] || "").trim(),
-      mainDPS: (r[col.mainDPS] || "").trim(), trailingDPS: (r[col.trailingDPS] || "").trim(),
+      trailingDPS: (r[col.trailingDPS] || "").trim(),
       ctDPS: (r[col.ctDPS] || "").trim(), risky: (r[col.risky] || "").trim(),
     }));
 }
@@ -1490,6 +1733,8 @@ async function loadSubmissionsFromCSV(){
   }
 }
 
+// Same icon set the raid archive pages use for type glyphs
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
 const SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
 
@@ -1504,7 +1749,12 @@ function modifierTagsHtml(s){
 }
 
 function isDoubleCTSubmission(s){
-  return /N\/A/i.test(s.mainDPS) || /N\/A/i.test(s.trailingDPS);
+  // Double-CT entries carry "N/A (Double CT)" instead of a number, which is how they're told
+  // apart from single-CT entries (there's no dedicated column for it). This used to check Main
+  // DPS OR Trailing DPS; Main DPS has since been removed from the form and sheet entirely, so
+  // Trailing DPS is now the only signal - it's "N/A" on exactly the same rows, so detection is
+  // unchanged in practice.
+  return /N\/A/i.test(s.trailingDPS);
 }
 function modeBadgeHtml(s){
   if(!isDoubleCTSubmission(s)) return "";
@@ -1527,7 +1777,7 @@ function parseSubmissionParams(s){
   // roles genuinely don't apply to a double-swap technique), so the submission form carries
   // "N/A (Double CT)" text in those two fields instead of a number. That's the signal used to
   // tell single-CT and double-CT submissions apart, without needing a dedicated form field.
-  const doubleCT = /N\/A/i.test(s.mainDPS) || /N\/A/i.test(s.trailingDPS);
+  const doubleCT = /N\/A/i.test(s.trailingDPS);
   return {
     pkmnName: s.pokemon, level: parseFloat(s.level), ivAtk, ivDef, ivDefKnown, ivHp,
     playerFM: pFast, playerCM: pCharge,
@@ -1546,7 +1796,6 @@ function subRowHtml(s, idx){
 
   const duration = computeDuration(params);
   const durationText = duration ? `${duration.seconds}s (${duration.ticks}t)` : `<span class="no-data">Can't compute</span>`;
-  const mainDPSCell = params.doubleCT ? `<span class="sub-dps-na">—</span>` : `<span class="sub-dps-val">${s.mainDPS}</span>`;
   const trailingDPSCell = params.doubleCT ? `<span class="sub-dps-na">—</span>` : `<span class="sub-dps-val">${s.trailingDPS}</span>`;
 
   return `
@@ -1568,7 +1817,6 @@ function subRowHtml(s, idx){
       <div class="sub-tags">${modifierTagsHtml(s)}</div>
     </td>
     <td><div class="sub-details" id="duration-${idx}">${durationText}</div></td>
-    <td class="sub-dps-cell" id="dpsmain-${idx}">${mainDPSCell}</td>
     <td class="sub-dps-cell" id="dpstrail-${idx}">${trailingDPSCell}</td>
     <td class="sub-dps-cell highlight" id="dpsct-${idx}"><span class="sub-dps-val">${s.ctDPS}</span></td>
     <td>
@@ -1656,7 +1904,6 @@ function subCardHtmlMobile(s, idx){
     </div>
     <div class="sub-card-details">
       <div class="sub-card-dps-stack">
-        <div>Main <span>${params.doubleCT ? "—" : s.mainDPS}</span></div>
         <div>Trailing <span>${params.doubleCT ? "—" : s.trailingDPS}</span></div>
       </div>
       <div class="sub-card-divider"></div>
@@ -1741,7 +1988,6 @@ function subCardHtml(s, idx){
       </div>
       ${energyAbsorbed !== null ? `<div class="sub-card-energy-absorbed">+${energyAbsorbed} energy from ${bCharge}</div>` : ""}
       <div class="sub-card-dps-stack">
-        <div>Main <span>${params.doubleCT ? "—" : s.mainDPS}</span></div>
         <div>Trailing <span>${params.doubleCT ? "—" : s.trailingDPS}</span></div>
       </div>
       <div class="sub-card-divider"></div>
@@ -1753,6 +1999,264 @@ function toggleSubCard(id){
   document.getElementById(typeof id === "number" ? `card-${id}` : id).classList.toggle("open");
 }
 
+// Small HTML escaper for the new views - submission text comes from a public Google Form, so
+// it's rendered as text, never trusted as markup.
+function escapeHtml(str){
+  return String(str == null ? "" : str)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+// ============ REJOIN BADGE ============
+// Shows the most demanding rejoin plan this DPS can sustain, so a reader can tell at a glance
+// whether an interaction fits the battle party they're actually building.
+function rejoinBadgeHtml(dpsStr){
+  const dps = parseFloat(dpsStr);
+  if(!isFinite(dps)) return "";
+  const max = maxRejoinsFor(dps);
+  if(max === null) return `<span class="rejoin-badge none" title="Below the ${REJOIN_THRESHOLDS[0].dps.toFixed(2)} DPS needed to solo a Tier 5 boss without rejoins.">Below solo</span>`;
+  if(max === 0) return `<span class="rejoin-badge tier-0" title="Meets the ${REJOIN_THRESHOLDS[0].dps.toFixed(2)} DPS solo threshold, but not the higher bar a rejoin party needs.">Solo · 0 rejoin</span>`;
+  return `<span class="rejoin-badge" title="Clears ${REJOIN_THRESHOLDS[max].dps.toFixed(2)} DPS - usable in battle parties designed to rejoin up to ${max} time${max>1?"s":""}.">Up to ${max} rejoin${max>1?"s":""}</span>`;
+}
+
+function currentView(){
+  const el = document.querySelector('input[name="dbView"]:checked');
+  return el ? el.value : "byboss";
+}
+
+// ============ VIEW 1: BY RAID BOSS ============
+// "Which catch tanks are good against the boss I'm about to fight?" - groups every submission
+// under its boss, best DPS first, so the answer is one scan rather than a sort-and-filter task.
+function renderByBoss(list){
+  const byBoss = new Map();
+  list.forEach(s => {
+    if(!byBoss.has(s.boss)) byBoss.set(s.boss, []);
+    byBoss.get(s.boss).push(s);
+  });
+
+  const groups = [...byBoss.entries()].map(([boss, subs]) => {
+    // Group by the boss's OWN moveset first. That's the variable you're actually handed when the
+    // raid starts - you can pick your tank and often wait for weather, but not the boss's moves -
+    // so it's the honest top-level split. Everything else (weather, adventure effects, dodging)
+    // is shown per-entry rather than averaged away.
+    // Grouped by boss moveset AND weather together: the same moveset in different weather is a
+    // materially different fight (weather alone swings results ~10 DPS in this data), so
+    // "Dragon Breath / Draco Meteor [extreme]" is kept separate from the same moveset in windy.
+    const byMoveset = new Map();
+    subs.forEach(s => {
+      const moveset = s.bossMoveset || "Unknown moveset";
+      const weather = s.weather || "";
+      const key = `${moveset}|||${weather}`;
+      if(!byMoveset.has(key)) byMoveset.set(key, { moveset, weather, entries: [] });
+      byMoveset.get(key).entries.push(s);
+    });
+    const scenarios = [...byMoveset.values()].map(sc => {
+      sc.entries.sort((a,b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS));
+      return { ...sc, best: parseFloat(sc.entries[0].ctDPS) };
+    }).sort((a,b) => b.best - a.best);
+    const tanks = new Set(subs.map(s => s.pokemon.toLowerCase()));
+    return { boss, scenarios, tankCount: tanks.size, movesetCount: scenarios.length };
+  }).sort((a,b) => a.boss.localeCompare(b.boss));
+
+  if(!groups.length) return `<div class="empty">No submissions match your search yet.</div>`;
+
+  return groups.map((g, gi) => `
+    <div class="boss-group" id="bossGroup-${gi}">
+      <button type="button" class="boss-toggle" onclick="toggleBossGroup(${gi})" aria-expanded="false">
+        <div class="boss-group-icon"><img src="${spriteUrl(g.boss)}" alt="" loading="lazy" onerror="this.remove();"></div>
+        <div style="min-width:0;">
+          <div class="boss-group-name">${escapeHtml(g.boss)}</div>
+          <div class="boss-group-meta">${g.tankCount} catch tank${g.tankCount !== 1 ? "s" : ""}</div>
+        </div>
+        <span class="boss-caret">&#9654;</span>
+      </button>
+      <div class="boss-body">
+        ${g.scenarios.map(sc => `
+          <div class="scenario">
+            <div class="scenario-head">
+              <span class="scenario-moveset">${movesetHtml(sc.moveset)}</span>
+              <span class="ct-pick-conds">${weatherIcon(sc.weather || "")}</span>
+            </div>
+            ${sc.entries.map((s, i) => `
+              <div class="ct-pick">
+                <div class="ct-pick-rank">${i + 1}</div>
+                <div class="ct-pick-icon"><img src="${spriteUrl(s.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
+                <div class="ct-pick-body">
+                  <div class="ct-pick-name">${escapeHtml(s.pokemon)} <span class="ct-pick-conds">${boostIconsHtml(s)}</span></div>
+                  <div class="ct-pick-sub">Lv ${escapeHtml(s.level)} &middot; ${movesetHtml(s.playerMoveset)}</div>
+                  ${detailLineHtml(s)}
+                </div>
+                <div class="ct-pick-dps">
+                  <div class="ct-pick-dps-val">${parseFloat(s.ctDPS).toFixed(1)}</div>
+                  <div class="ct-pick-dps-label">CT DPS</div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
+// Move name -> small colored type icon, matching the raid archive pages' type-icon treatment
+// (colored disc + white glyph). Element comes from MOVE_DB, so no separate mapping to maintain.
+function moveIconHtml(moveName){
+  const mv = findMove((moveName || "").trim());
+  if(!mv || !mv.elem) return "";
+  const type = mv.elem.toLowerCase();
+  const color = TYPE_COLORS[type] || "#c7c7c7";
+  return `<span class="move-type-icon-wrap" style="background:${color};" title="${mv.elem}"><img class="move-type-icon" src="${TYPE_ICON_BASE}${type}.svg" alt="${type}" loading="lazy" onerror="this.parentElement.style.display='none'"></span>`;
+}
+
+// "Fast / Charge" string -> icon+name pairs
+function movesetHtml(moveset){
+  return (moveset || "").split("/").map(m => m.trim()).filter(Boolean).map(m =>
+    `<span class="move-inline">${moveIconHtml(m)}${escapeHtml(m)}</span>`
+  ).join('<span class="move-sep">/</span>');
+}
+
+// Conditions as icons rather than words: weather always (its "extreme" icon already means
+// "no boost"), Blade/Shield only when actually used.
+// Blade/Shield only - used where weather is already shown on the group header row.
+function boostIconsHtml(s){
+  let out = "";
+  if((s.zacianBlade || "").trim().toLowerCase() === "yes")
+    out += `<img class="cond-icon" src="${AE_ICON}" alt="Blade Boost" data-tooltip="Blade Boost: +10% damage dealt" loading="lazy" onerror="this.style.display='none'">`;
+  if((s.shieldAE || "").trim().toLowerCase() === "yes")
+    out += `<img class="cond-icon" src="${SHIELD_ICON}" alt="Shield Boost" data-tooltip="Shield Boost: +10% damage reduction" loading="lazy" onerror="this.style.display='none'">`;
+  return out;
+}
+
+
+// Extra detail, only for values actually used - a submission with no dodges and no timing mods
+// shows neither, rather than rows of "None" that carry no information.
+function detailLineHtml(s){
+  const bits = [];
+  if(s.seconds) bits.push(`<span><b>${escapeHtml(s.seconds)}s</b> duration</span>`);
+  if(s.fmsTanked && s.fmsTanked !== "0") bits.push(`<span><b>${escapeHtml(s.fmsTanked)}</b> boss FM tanked</span>`);
+  // A single charge move is the default case and carries no information - only worth stating
+  // when the route deliberately banked more than one.
+  const casts = parseInt(s.chargeCasts, 10);
+  if(isFinite(casts) && casts >= 2) bits.push(`<span><b>${casts}</b> charge moves</span>`);
+  const tr = parseFloat(s.trailingDPS);
+  if(isFinite(tr)) bits.push(`<span><b>${tr.toFixed(1)}</b> trailing DPS</span>`);
+  const d = (s.dodges || "").trim();
+  if(d && d.toLowerCase() !== "none") bits.push(`<span>dodged <b>${escapeHtml(d)}</b></span>`);
+  const t = (s.timingMods || "").trim();
+  if(t && t.toLowerCase() !== "none") bits.push(`<span><b>${escapeHtml(t)}</b></span>`);
+  if((s.risky || "").trim().toLowerCase() === "yes") bits.push(`<span class="detail-risky">risky</span>`);
+  if(!bits.length) return "";
+  return `<div class="detail-line">${bits.join('<span class="detail-sep">·</span>')}</div>`;
+}
+
+function toggleBossGroup(i){
+  const el = document.getElementById("bossGroup-" + i);
+  if(!el) return;
+  const open = el.classList.toggle("open");
+  const btn = el.querySelector(".boss-toggle");
+  if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+// ============ VIEW 2: BEST CATCH TANKS ============
+// "What should I actually invest in?" - aggregates each Pokemon across every boss it's been
+// submitted against, so a Pokemon that performs well broadly outranks a one-boss specialist.
+function renderBest(list){
+  const byMon = new Map();
+  list.forEach(s => {
+    const dps = parseFloat(s.ctDPS);
+    if(!isFinite(dps)) return;
+    if(!byMon.has(s.pokemon)) byMon.set(s.pokemon, { pokemon: s.pokemon, entries: [], bosses: new Set() });
+    const m = byMon.get(s.pokemon);
+    m.entries.push(s);
+    m.bosses.add(s.boss);
+  });
+
+  const ranked = [...byMon.values()].map(m => {
+    const dpsList = m.entries.map(e => parseFloat(e.ctDPS)).filter(isFinite);
+    // Only "best" is surfaced. An average across bosses/weather/adventure-effect combinations
+    // isn't a meaningful number - each interaction is its own scenario, so averaging them
+    // produces a figure that describes no real fight.
+    const best = Math.max(...dpsList);
+    return { ...m, best, bossCount: m.bosses.size };
+  }).sort((a,b) =>
+    // rank by how many bosses it covers first, then by peak output - a tank that answers five
+    // bosses is more worth building than one that spikes higher against a single matchup
+    b.bossCount - a.bossCount || b.best - a.best
+  );
+
+  if(!ranked.length) return `<div class="empty">No submissions match your search yet.</div>`;
+
+  return ranked.map((m, i) => {
+    // Expanded: the same conditional detail as the boss view, but pivoted - for THIS tank,
+    // which bosses is it proven against and under what conditions. Grouped by boss, best first.
+    // Keyed by boss + its moveset + weather, since those three together define the fight this
+    // result actually describes - the header row carries them, so results underneath differ only
+    // by what the player brought and how they played it.
+    const byBoss = new Map();
+    m.entries.forEach(e => {
+      const key = `${e.boss}|||${e.bossMoveset}|||${e.weather}`;
+      if(!byBoss.has(key)) byBoss.set(key, { boss: e.boss, moveset: e.bossMoveset, weather: e.weather, entries: [] });
+      byBoss.get(key).entries.push(e);
+    });
+    const bossBlocks = [...byBoss.values()].map(b => {
+      b.entries.sort((x,y) => parseFloat(y.ctDPS) - parseFloat(x.ctDPS));
+      return { ...b, best: parseFloat(b.entries[0].ctDPS) };
+    }).sort((a,b) => b.best - a.best);
+
+    return `
+    <div class="leader-group" id="leaderGroup-${i}">
+      <button type="button" class="leader-toggle" onclick="toggleLeaderGroup(${i})" aria-expanded="false">
+        <div class="leader-rank">${i + 1}</div>
+        <div class="leader-icon"><img src="${spriteUrl(m.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
+        <div class="leader-body">
+          <div class="leader-name">${escapeHtml(m.pokemon)}</div>
+          <div class="leader-bosses">${[...m.bosses].sort().map(b => `<span class="leader-boss-chip">${escapeHtml(b)}</span>`).join("")}</div>
+        </div>
+        <div class="leader-stats">
+          <div class="leader-best">${m.best.toFixed(1)}</div>
+          <div class="leader-best-label">Best CT DPS</div>
+        </div>
+        <span class="boss-caret">&#9654;</span>
+      </button>
+      <div class="leader-body-expand">
+        ${bossBlocks.map(b => `
+          <div class="scenario">
+            <div class="scenario-head">
+              <span class="scenario-boss-icon"><img src="${spriteUrl(b.boss)}" alt="" loading="lazy" onerror="this.parentElement.remove();"></span>
+              <span class="scenario-moveset">${escapeHtml(b.boss)}</span>
+              <span class="scenario-boss-moves">${movesetHtml(b.moveset)}</span>
+              <span class="ct-pick-conds">${weatherIcon(b.weather || "")}</span>
+            </div>
+            ${b.entries.map(e => `
+              <div class="ct-pick">
+                <div class="ct-pick-body">
+                  <div class="ct-pick-sub ct-pick-used">used ${movesetHtml(e.playerMoveset || "")} <span class="ct-pick-conds">${boostIconsHtml(e)}</span></div>
+                  ${detailLineHtml(e)}
+                </div>
+                <div class="ct-pick-dps">
+                  <div class="ct-pick-dps-val">${parseFloat(e.ctDPS).toFixed(1)}</div>
+                  <div class="ct-pick-dps-label">CT DPS</div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `).join("")}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function toggleLeaderGroup(i){
+  const el = document.getElementById("leaderGroup-" + i);
+  if(!el) return;
+  const open = el.classList.toggle("open");
+  const btn = el.querySelector(".leader-toggle");
+  if(btn) btn.setAttribute("aria-expanded", open ? "true" : "false");
+}
+
+const VIEW_INTROS = { byboss: "", best: "" };
+
 function render(){
   const q = searchInput.value.trim().toLowerCase();
   let list = SUBMISSIONS.filter(s => !q || s.pokemon.toLowerCase().includes(q) || s.boss.toLowerCase().includes(q));
@@ -1760,16 +2264,34 @@ function render(){
   const mode = modeFilter.value;
   if(mode !== "all"){
     list = list.filter(s => {
-      const isDouble = /N\/A/i.test(s.mainDPS) || /N\/A/i.test(s.trailingDPS);
+      const isDouble = /N\/A/i.test(s.trailingDPS);
       return mode === "double" ? isDouble : !isDouble;
     });
   }
 
   const sort = sortSelect.value;
   if(sort === "ctdps") list.sort((a,b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS));
-  else if(sort === "maindps") list.sort((a,b) => parseFloat(b.mainDPS) - parseFloat(a.mainDPS));
   else if(sort === "boss") list.sort((a,b) => a.boss.localeCompare(b.boss));
   else if(sort === "pokemon") list.sort((a,b) => a.pokemon.localeCompare(b.pokemon));
+
+  // Both columns are always rendered; CSS decides whether they sit side by side (wide) or one
+  // at a time behind the tabs (narrow). The body class is what the narrow layout keys off.
+  const view = currentView();
+  document.getElementById("viewIntro").textContent = VIEW_INTROS[view] || "";
+  document.body.classList.toggle("view-byboss", view === "byboss");
+  document.body.classList.toggle("view-best", view === "best");
+
+  // the raw submission table was removed as a view; keep its nodes out of the way
+  const tableEl = document.querySelector(".sub-table");
+  if(tableEl) tableEl.style.display = "none";
+  if(typeof cardGrid !== "undefined" && cardGrid) cardGrid.style.display = "none";
+  if(typeof cardGridMobile !== "undefined" && cardGridMobile) cardGridMobile.style.display = "none";
+  countEl.style.display = "none";
+  sortSelect.style.display = "none";   // both views have their own deliberate ordering
+
+  document.getElementById("byBossView").innerHTML = renderByBoss(list);
+  document.getElementById("bestView").innerHTML = renderBest(list);
+  return;
 
   countEl.textContent = `${list.length} submitted interaction${list.length !== 1 ? "s" : ""}`;
   grid.innerHTML = list.length
@@ -1793,6 +2315,7 @@ searchInput.addEventListener("input", () => {
 });
 sortSelect.addEventListener("change", render);
 modeFilter.addEventListener("change", render);
+document.querySelectorAll('input[name="dbView"]').forEach(el => el.addEventListener("change", render));
 loadSubmissionsFromCSV();
 
 const themeToggle = document.getElementById("themeToggle");
