@@ -351,7 +351,10 @@
               "fm": "Powder Snow",
               "cm": "Avalanche",
               "cm2": "",
-              "roles": [],
+              "roles": [
+                "Main DPS",
+                "Support DPS"
+              ],
               "optional": true
             },
             {
@@ -360,7 +363,9 @@
               "fm": "Dragon Tail",
               "cm": "Dynamax Cannon",
               "cm2": "",
-              "roles": [],
+              "roles": [
+                "Catch Tank"
+              ],
               "optional": true
             },
             {
@@ -369,7 +374,10 @@
               "fm": "Charm",
               "cm": "Triple Axel",
               "cm2": "",
-              "roles": [],
+              "roles": [
+                "Main DPS",
+                "Support DPS"
+              ],
               "optional": true
             },
             {
@@ -378,7 +386,9 @@
               "fm": "Ice Shard",
               "cm": "Avalanche",
               "cm2": "",
-              "roles": [],
+              "roles": [
+                "Support DPS"
+              ],
               "optional": true
             },
             {
@@ -387,7 +397,10 @@
               "fm": "Dragon tail",
               "cm": "Breaking Swipe",
               "cm2": "",
-              "roles": [],
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
               "optional": true
             },
             {
@@ -396,7 +409,9 @@
               "fm": "Powder Snow",
               "cm": "Avalanche",
               "cm2": "",
-              "roles": [],
+              "roles": [
+                "Support DPS"
+              ],
               "optional": true
             },
             {
@@ -405,7 +420,9 @@
               "fm": "Dragon Tail",
               "cm": "Spacial Rend",
               "cm2": "",
-              "roles": [],
+              "roles": [
+                "Catch Tank"
+              ],
               "optional": true
             },
             {
@@ -414,13 +431,16 @@
               "fm": "Powder Snow",
               "cm": "Weather Ball",
               "cm2": "",
-              "roles": [],
+              "roles": [
+                "Main DPS",
+                "Support DPS"
+              ],
               "optional": true
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-12T23:57:26.186Z"
+      "submittedAt": "2026-08-14T00:56:04.721Z"
     }
   ]
 }
