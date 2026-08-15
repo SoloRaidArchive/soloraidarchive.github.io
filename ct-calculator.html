@@ -1884,12 +1884,22 @@ function runCalculation(){
       }
       const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
 
-      const floorTerm = n === 0 ? 0 : n === 1 ? mdBossFMAD_ticks : mdBossFMAD_ticks * 2 + 5;
-      const innerMax = Math.max(buildupTicks, floorTerm);
+      // Boss and player rotations run independently: the boss's chained fast moves land while the
+      // player is mid-rotation, charge-move animations included. So the "was there time for n hits
+      // to land" floor is checked against the WHOLE rotation, not against the fast-move phase.
+      // Folding it into innerMax added the boss's fast-move time ON TOP of the charge animations
+      // instead of overlapping with them, and inflated fastPhaseTicks so the numerator credited
+      // fast moves the player never taps.
+      // Only the Fast & Charge cadence reaches this code - Fast Only has no boss charge move to
+      // chain from and models the boss with bossFMContinuousLandingTicks instead.
+      const innerMax = buildupTicks;
 
       let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+      // n=2 is the player deliberately staying in to take the second hit after their own rotation
+      // has finished - waiting, not acting, so the duration grows but the fast-move count does not.
+      const bossFMFloor = n === 0 ? 0 : n === 1 ? mdBossFMAD_ticks : mdBossFMAD_ticks * 2 + 5;
       const outerFloor = mdBossFMAD_ticks + 1;
-      ticks = Math.max(outerFloor, ticks);
+      ticks = Math.max(outerFloor, bossFMFloor, ticks);
       ticks += netResolveNerfCasts; // 1 tick of dead time per nerfed cast
 
       const seconds = ticks / 2;
@@ -2044,12 +2054,23 @@ function runCalculation(){
     const mandatoryCovers = (totalCostAllCasts > 0 && tankBonusForBuildup >= totalCostAllCasts) ? 1 : 0;
     const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
 
-    const floorTerm = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
-    const innerMax = Math.max(buildupTicks, floorTerm);
+    const innerMax = buildupTicks;
     const mandatoryFMBonus = mandatoryCovers ? fm.ad : 0;
     const swap1FMTicks = fm.ad; // always cast, unconditionally, every rotation
 
-    let ticks = swap1FMTicks + innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+    // The tanked fast moves chain off the SECOND absorbed charge move, not the first. Swap 1 is
+    // over before this rotation's timer starts (see the model note above); the boss's post-charge
+    // fast-move chain that gets tanked here follows swap 2's absorption. So the floor is measured
+    // against the swap-2 window alone - swap1FMTicks is carried-forward cost from an earlier
+    // window and would falsely satisfy the floor if it were included.
+    //
+    // As in the other modes, the floor applies to the whole swap-2 rotation rather than to its
+    // fast-move phase, because the boss's hits land during charge animations too. n=2 is the
+    // player waiting out the second hit after their own rotation is done: duration grows, but
+    // fastPhaseTicks does not, so no extra fast moves are credited for standing still.
+    const swap2Ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+    const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
+    let ticks = swap1FMTicks + Math.max(swap2Ticks, bossFMFloor);
     const outerFloor = bossFMAD_ticks + 1;
     ticks = Math.max(outerFloor, ticks);
 
@@ -2139,8 +2160,19 @@ function runCalculation(){
     const mandatoryCovers = (remainingCost > 0 && tankBonusForBuildup >= remainingCost) ? 1 : 0;
     const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
 
-    const floorTerm = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
-    const innerMax = Math.max(buildupTicks, floorTerm);
+    // The player's rotation and the boss's are independent: the boss's fast moves land while the
+    // player is mid-rotation, including during charge-move animations. So the "is there time for
+    // the boss to land n fast moves" floor is checked against the WHOLE rotation below, not
+    // against the fast-move phase alone.
+    //
+    // It used to be folded in here as Math.max(buildupTicks, floorTerm), which added the boss's
+    // fast-move time ON TOP of the charge-move animations rather than overlapping with them.
+    // That made an identical rotation report two different durations: Shadow Garchomp (Dragon
+    // Tail / Breaking Swipe) casting 1 fast + 2 charge against Regidrago came out 3.0s with no
+    // fast move tanked and 3.5s with one tanked, despite the player doing exactly the same thing
+    // both times. It only showed up when the tank's energy burst covered the casts outright
+    // (buildupTicks = 0), so the floor had nothing else to hide behind.
+    const innerMax = buildupTicks;
 
     // one mandatory tap is still needed to resolve the button on the first non-buffered cast if
     // tank energy alone (banked, no buildup) already covers its cost - even with no buffer, the
@@ -2149,8 +2181,12 @@ function runCalculation(){
 
     let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
 
+    // Boss fast-move floors, now against the full rotation. These only bind when the player's
+    // own rotation is genuinely too short for the boss to have landed n hits - which is the real
+    // constraint - rather than every time a hit is tanked.
+    const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
     const outerFloor = bossFMAD_ticks + 1;
-    ticks = Math.max(outerFloor, ticks);
+    ticks = Math.max(outerFloor, bossFMFloor, ticks);
 
     // dodge terms (in ticks); FM dodge is asymmetric per confirmed sheet behavior
     const dodgeCMTicks = dodgeCM ? 2 : 0;
