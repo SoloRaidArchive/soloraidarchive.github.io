@@ -1510,9 +1510,8 @@ async function fetchCSVRows(path){
 // the calculator able to name a Pokemon it has no stats for, which is worse than a clean failure.
 async function loadCoreDataFromCSV(){
   try{
-    const [statsRows, typeRows, moveRows, movepoolRows] = await Promise.all([
+    const [statsRows, moveRows, movepoolRows] = await Promise.all([
       fetchCSVRows("/csv/pokemon-stats.csv"),
-      fetchCSVRows("/csv/pokemon-types.csv"),
       fetchCSVRows("/csv/moves.csv"),
       fetchCSVRows("/csv/pokemon-movepool.csv"),
     ]);
@@ -1524,15 +1523,11 @@ async function loadCoreDataFromCSV(){
     // Mega Pinsir, Mega Audino and Mega Lopunny ended up resolving to their base species'
     // typing with nothing flagging it.
     //
-    // pokemon-types.csv is still loaded and still matters: it carries 111 species that
-    // pokemon-stats.csv does not list at all. It is merged underneath as a fallback, so
-    // stats-CSV rows win wherever both files know a name, and nothing that resolved before
-    // stops resolving now. Rows with a blank type1 are skipped rather than inserted as
-    // empty - an empty entry would match and return no typing, shadowing the fallback.
+    // csv/pokemon-types.csv is no longer fetched. It only added names that pokemon-stats.csv
+    // does not list, and POKEMON_NAME_LIST is built from POKEMON_DB - so those names were
+    // never selectable here and their typings were unreachable. Verified: every one of the
+    // 2286 selectable names still resolves a type with that file gone.
     const typesByName = new Map();
-    typeRows.forEach(r => {
-      if(r.name && r.type1) typesByName.set(r.name.trim().toLowerCase(), { n: r.name, t1: r.type1, t2: r.type2 || "" });
-    });
     statsRows.forEach(r => {
       if(r.name && r.type1) typesByName.set(r.name.trim().toLowerCase(), { n: r.name, t1: r.type1, t2: r.type2 || "" });
     });
@@ -1551,6 +1546,7 @@ async function loadCoreDataFromCSV(){
     }
     POKEMON_MOVEPOOL = map;
 
+    applyEliteFlags(movepoolRows);
     POKEMON_NAME_LIST = POKEMON_DB.map(p => p.n);
     movepoolReady = true;
   }catch(e){
@@ -2844,30 +2840,18 @@ function populateMoveSelect(baseId, moveList){
 }
 
 let ELITE_MOVES_BY_POKEMON = {};
-async function loadEliteMoves(){
-  // Uses the raw-row parseCSV() primitive (see the CSV conventions note above) - this loader
-  // predates parseCSVObjects() and its positional access is correct as written, so it is left
-  // alone rather than churned for style.
+function applyEliteFlags(movepoolRows){
+  // Elite-TM status is the `elite` column on csv/pokemon-movepool.csv. This used to fetch
+  // that file a second time - 361 KB downloaded twice per page load - even though
+  // loadCoreDataFromCSV() had already parsed the same rows. It now reads the rows it is
+  // handed, so the file is fetched once.
   try{
-    // Elite-TM status now lives as an `elite` flag column on csv/pokemon-movepool.csv
-    // rather than in a separate csv/elite-moves.csv. Both files described the same
-    // (pokemon, move) pairs - all 279 elite rows already existed in the movepool - so the
-    // second file was a partial duplicate that had to be kept in sync by hand.
-    const res = await fetch("/csv/pokemon-movepool.csv", { cache: "no-store" });
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    const rows = parseCSV(text);
-    const header = (rows.shift() || []).map(h => String(h).trim());
-    const iP = header.indexOf("pokemon"), iM = header.indexOf("move"), iE = header.indexOf("elite");
-    if(iP < 0 || iM < 0 || iE < 0) throw new Error("unexpected header: " + header.join(","));
-    rows.forEach(cols => {
-      const pokemon = cols[iP], move = cols[iM];
-      if(!pokemon || String(cols[iE]).trim() !== "1") return;
-      (ELITE_MOVES_BY_POKEMON[pokemon] = ELITE_MOVES_BY_POKEMON[pokemon] || []).push(move);
+    movepoolRows.forEach(r => {
+      if(!r.pokemon || String(r.elite || "").trim() !== "1") return;
+      (ELITE_MOVES_BY_POKEMON[r.pokemon] = ELITE_MOVES_BY_POKEMON[r.pokemon] || []).push(r.move);
     });
-  }catch(e){ /* boss dropdown just won't filter Elite moves if this fails to load */ }
+  }catch(e){ /* boss dropdown just won't filter Elite moves if this fails */ }
 }
-loadEliteMoves();
 loadCoreDataFromCSV();
 
 function updateMoveOptionsFor(nameFieldId, cmBaseId, fmBaseId){
