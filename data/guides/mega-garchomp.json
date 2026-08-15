@@ -441,6 +441,60 @@
         }
       ],
       "submittedAt": "2026-08-14T00:56:04.721Z"
+    },
+    {
+      "strategyName": "Shadow Ice Pokemon Spam",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "3★",
+      "text": "<p>Before the Kyurem-fusions were added in Unova Tour, Shadow Mamoswine was the name-brand ice type attacker of its time.  While the monstrosities that are the Kyurem forms allow for extremely fast times and to some extent, trivialized this raid, shadow mamoswine still has what it takes to defeat this raid, even against sets using fire blast!</p><p><br></p><p>Garchomp's charged moves hurt alot, it is imperative that you Dodge its charged moves.</p><p><br></p><p>Garchomp's high attack makes it such that you may faint out through fast attacks. <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">Hot Swap</a> is necessary to maintain charged move damage</p><p><br></p><p>Relobbying is inevitable, please <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">Rejoin</a> and <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-recycle\" target=\"_blank\">Recycle</a> your party members</p>",
+      "vods": [
+        {
+          "url": "https://youtu.be/sxi_36VRRfM",
+          "label": "5 Mamoswine Route: PFC (MS + EQ)",
+          "creditName": "Wowtastic",
+          "creditUrl": ""
+        },
+        {
+          "url": "https://youtu.be/BSDvq5-njbM",
+          "label": "4 Mamoswine, 2 Weavile: Sunny (MS + Fire Blast)",
+          "creditName": "Wowtastic",
+          "creditUrl": ""
+        }
+      ],
+      "submittedBy": "Wowtastic",
+      "battleParties": [
+        {
+          "label": "What do you expect?",
+          "secondaryLabel": "4-5 mamoswine preferred, fill the rest with weavile",
+          "mons": [
+            {
+              "name": "Shadow Mamoswine",
+              "level": "38-40",
+              "fm": "Powder Snow",
+              "cm": "Avalanche",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Weavile",
+              "level": "38-40",
+              "fm": "Ice Shard",
+              "cm": "Avalanche",
+              "cm2": "",
+              "roles": [
+                "Main DPS",
+                "Support DPS"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-15T23:50:54.343Z"
     }
   ]
 }
