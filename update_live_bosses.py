@@ -176,6 +176,11 @@ def normalize_name(name):
     one boss never matched, which is exactly what caused it to fall through with no date
     info and incorrectly show as active before its July 26 window actually started."""
     cleaned = name.replace(" - ", " ").strip().lower()
+    # The website also writes X/Y forms with a bare hyphen and no spaces ("Mega Raichu-X",
+    # "Mega Charizard-Y") while the archives and the API use a space ("Mega Raichu X").
+    # Restricted to a trailing single X or Y on purpose: a blanket hyphen strip would
+    # mangle "Ho-Oh" and "Porygon-Z", whose hyphens are part of the real name.
+    cleaned = re.sub(r"-([xy])$", r" \1", cleaned)
     if re.match(r"^(burn|chill|douse|shock)\s+genesect$", cleaned):
         return "genesect"
     cleaned = re.sub(r"\s+of many battles$", "", cleaned)
@@ -267,7 +272,14 @@ def fetch_boss_dates_from_website():
         end = date_matches[i + 1].start() if i + 1 < len(date_matches) else len(text)
         block_text = text[start:end]
         for name in BOSS_NAME_WEB_RE.findall(block_text):
-            clean_name = re.sub(r"Regional$", "", name).strip()
+            # The page text is joined with no separator, so consecutive entries run
+            # together as "...Mega Dragonite2079CP2599CPMega Malamar1279CP...". The name
+            # pattern then starts matching at the previous boss's trailing "CP" and
+            # captures "CPMega Malamar". Only the FIRST boss in each dated block survived
+            # that; every subsequent one got a bogus key and was silently dropped, which
+            # is why multi-boss event days never came through.
+            clean_name = re.sub(r"^CP", "", name)
+            clean_name = re.sub(r"Regional$", "", clean_name).strip()
             key = normalize_name(clean_name)
             if key not in dates_by_name:
                 dates_by_name[key] = (m.group(1), m.group(2))
@@ -316,6 +328,29 @@ def apply_leekduck_crosscheck(results):
     import re as _re
 
     SUPER_MEGA_RE = _re.compile(r"super[-\s]?mega[-\s]?raid", _re.IGNORECASE)
+    DATE_HEAD_RE = _re.compile(r"^([A-Za-z]+ \d+, \d+)")
+
+    def parse_day(date_str):
+        """'Aug 22, 2026 10:00 AM' -> date. Time suffix is dropped before parsing.
+
+        THIS IS LOAD-BEARING. build_result passes dates straight from the Pokebattler
+        website scrape, which formats them WITH a time ("Aug 22, 2026 10:00 AM").
+        date_only() strips the time, but only later, when groups are assembled - by which
+        point this function has already run. A strict "%b %d, %Y" parse returns None on
+        every one of those, every entry then looks undated, and the whole check silently
+        no-ops while reporting success. That is exactly what happened: Mega Starmie and
+        Mega Staraptor survived run after run because their dates carried a time and
+        nothing here could read it.
+        """
+        if not date_str:
+            return None
+        m = DATE_HEAD_RE.match(date_str.strip())
+        if not m:
+            return None
+        try:
+            return datetime.strptime(m.group(1), "%b %d, %Y")
+        except ValueError:
+            return None
 
     try:
         import leekduck_crosscheck as lc
@@ -363,8 +398,8 @@ def apply_leekduck_crosscheck(results):
             kept.append(r)
             continue
 
-        start = lc.parse_site_date(r.get("startDate"))
-        end = lc.parse_site_date(r.get("endDate"))
+        start = parse_day(r.get("startDate"))
+        end = parse_day(r.get("endDate"))
         window = f"{r.get('startDate')} -> {r.get('endDate')}"
         if not start or not end:
             print(f"  keep {r['name']} [{window}]: undated, nothing to match against")
@@ -508,7 +543,33 @@ def main():
         seen.add(key)
         results.append(r)
 
-    # ---- LEEKDUCK CROSS-CHECK (event mega raids only) ----------------------------------
+    # Pass 3: bosses Pokebattler's WEBSITE lists that its API leaves out.
+    #
+    # fetch_boss_dates_from_website() already parses every boss name out of each dated
+    # block on pokebattler.com/raids - it just discarded the names and kept only the
+    # dates, because the API was treated as the sole authority on WHICH bosses exist.
+    # That is fine for ordinary rotations, but the API omits the per-day Mega line-up for
+    # multi-day event weeks: Mega Ascension's Aug 31 - Sep 4 blocks (Mega Dragonite, Mega
+    # Malamar, Mega Victreebel, Mega Falinks, Mega Skarmory, Mega Starmie, Mega Raichu
+    # X/Y) are all plainly listed on the website with their own date headers, and none of
+    # them ever reached this script.
+    #
+    # These are Pokebattler's own numbers from Pokebattler's own page - the same source,
+    # read more completely. Everything downstream still applies: known_bosses filters to
+    # documented solos, build_result applies the expiry and category rules, and the
+    # LeekDuck cross-check still gets to drop any of them that turn out to be Super Mega.
+    for key, (start_date, end_date) in dates_by_name.items():
+        if key in seen or key not in known_bosses:
+            continue
+        display_name = known_bosses[key].get("name") or key.title()
+        r = build_result(display_name, key)
+        if r is None:
+            continue
+        seen.add(key)
+        results.append(r)
+        print(f"  website: added {display_name} ({start_date} -> {end_date}) - "
+              f"listed on pokebattler.com/raids but absent from its API")
+
     # Pokebattler stays authoritative for what is running and when. LeekDuck answers one
     # question: for a mega raid attached to an EVENT, is it a Tier 4 Mega Raid or a Super
     # Mega Raid? Pokebattler lists Super Mega Raid Days as ordinary megas, which is how
