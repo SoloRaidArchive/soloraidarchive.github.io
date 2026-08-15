@@ -233,6 +233,17 @@ def fetch_current_bosses():
     for tier_entry in data.get("tiers", []):
         tier_key = tier_entry.get("tier", "")
         raids = tier_entry.get("raids", [])
+        # Super Mega tiers, per Pokebattler's own naming:
+        #   RAID_LEVEL_4_MEGA_ENHANCED  -> Super Mega
+        #   RAID_LEVEL_5_MEGA_ENHANCED  -> Super Mega Legendary
+        # These are a different raid class, not soloable Tier 4 Mega raids, and this
+        # archive does not cover them. The tier name states it outright, so they are
+        # excluded here at the source rather than being pulled in and filtered out later
+        # by matching names against an external schedule.
+        if "_MEGA_ENHANCED" in tier_key:
+            active = sum(1 for r in raids if r.get("cp", 0) == 0)
+            print(f"[{tier_key}] skipping {active} boss(es) - Super Mega tier, not Tier 4 Mega")
+            continue
         current_in_tier = 0
         for raid in raids:
             if raid.get("cp", 0) != 0:
@@ -578,10 +589,21 @@ def main():
     # Mega Raichu X on Sep 4 and Sep 5. Keying by name alone kept only the first and
     # silently dropped the Sep 5/Sep 6 appearances.
     seen_windows = {(normalize_name(r["name"]), date_only(r.get("startDate"))) for r in results}
+    seen_names = {normalize_name(r["name"]) for r in results}
     for key, start_date, end_date in web_occurrences:
         if key not in known_bosses:
             continue
-        if (key, date_only(start_date)) in seen_windows:
+        # A block for an already-running rotation has no "From" date - DATE_BLOCK_RE's
+        # first group is optional - so the occurrence carries start=None. That cannot be
+        # matched against a dated entry, and treating (name, None) as a distinct window
+        # added a SECOND copy of a boss already present: Mega Garchomp appeared twice in
+        # the monthly rotation, once with its real Aug 12-18 window and once undated.
+        # With no start date there is no window to distinguish, so fall back to matching
+        # on the name alone.
+        if not start_date:
+            if key in seen_names:
+                continue
+        elif (key, date_only(start_date)) in seen_windows:
             continue
         info = known_bosses[key]
         r = build_result(info.get("name") or key.title(), key,
@@ -589,6 +611,7 @@ def main():
         if r is None:
             continue
         seen_windows.add((key, date_only(start_date)))
+        seen_names.add(key)
         results.append(r)
         print(f"  website: added {r['name']} ({date_only(start_date)} -> {date_only(end_date)}) - "
               f"listed on pokebattler.com/raids but absent from its API")
