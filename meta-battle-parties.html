@@ -291,179 +291,51 @@
 <div class="content" id="content"></div>
 
 <script>
-const POKEMON_TYPES = [
-{n:"Bulbasaur",t1:"Grass",t2:"Poison"},{n:"Ivysaur",t1:"Grass",t2:"Poison"},{n:"Venusaur",t1:"Grass",t2:"Poison"},{n:"Charmander",t1:"Fire",t2:""},{n:"Charmeleon",t1:"Fire",t2:""},{n:"Charizard",t1:"Fire",t2:"Flying"},
-{n:"Squirtle",t1:"Water",t2:""},{n:"Wartortle",t1:"Water",t2:""},{n:"Blastoise",t1:"Water",t2:""},{n:"Caterpie",t1:"Bug",t2:""},{n:"Metapod",t1:"Bug",t2:""},{n:"Butterfree",t1:"Bug",t2:"Flying"},
-{n:"Weedle",t1:"Bug",t2:"Poison"},{n:"Kakuna",t1:"Bug",t2:"Poison"},{n:"Beedrill",t1:"Bug",t2:"Poison"},{n:"Pidgey",t1:"Normal",t2:"Flying"},{n:"Pidgeotto",t1:"Normal",t2:"Flying"},{n:"Pidgeot",t1:"Normal",t2:"Flying"},
-{n:"Rattata",t1:"Normal",t2:""},{n:"Raticate",t1:"Normal",t2:""},{n:"Spearow",t1:"Normal",t2:"Flying"},{n:"Fearow",t1:"Normal",t2:"Flying"},{n:"Ekans",t1:"Poison",t2:""},{n:"Arbok",t1:"Poison",t2:""},
-{n:"Pikachu",t1:"Electric",t2:""},{n:"Raichu",t1:"Electric",t2:""},{n:"Sandshrew",t1:"Ground",t2:""},{n:"Sandslash",t1:"Ground",t2:""},{n:"Nidoran♀",t1:"Poison",t2:""},{n:"Nidorina",t1:"Poison",t2:""},
-{n:"Nidoqueen",t1:"Poison",t2:"Ground"},{n:"Nidoran♂",t1:"Poison",t2:""},{n:"Nidorino",t1:"Poison",t2:""},{n:"Nidoking",t1:"Poison",t2:"Ground"},{n:"Clefairy",t1:"Fairy",t2:""},{n:"Clefable",t1:"Fairy",t2:""},
-{n:"Vulpix",t1:"Fire",t2:""},{n:"Ninetales",t1:"Fire",t2:""},{n:"Jigglypuff",t1:"Normal",t2:"Fairy"},{n:"Wigglytuff",t1:"Normal",t2:"Fairy"},{n:"Zubat",t1:"Poison",t2:"Flying"},{n:"Golbat",t1:"Poison",t2:"Flying"},
-{n:"Oddish",t1:"Grass",t2:"Poison"},{n:"Gloom",t1:"Grass",t2:"Poison"},{n:"Vileplume",t1:"Grass",t2:"Poison"},{n:"Paras",t1:"Bug",t2:"Grass"},{n:"Parasect",t1:"Bug",t2:"Grass"},{n:"Venonat",t1:"Bug",t2:"Poison"},
-{n:"Venomoth",t1:"Bug",t2:"Poison"},{n:"Diglett",t1:"Ground",t2:""},{n:"Dugtrio",t1:"Ground",t2:""},{n:"Meowth",t1:"Normal",t2:""},{n:"Persian",t1:"Normal",t2:""},{n:"Psyduck",t1:"Water",t2:""},
-{n:"Golduck",t1:"Water",t2:""},{n:"Mankey",t1:"Fighting",t2:""},{n:"Primeape",t1:"Fighting",t2:""},{n:"Growlithe",t1:"Fire",t2:""},{n:"Arcanine",t1:"Fire",t2:""},{n:"Poliwag",t1:"Water",t2:""},
-{n:"Poliwhirl",t1:"Water",t2:""},{n:"Poliwrath",t1:"Water",t2:"Fighting"},{n:"Abra",t1:"Psychic",t2:""},{n:"Kadabra",t1:"Psychic",t2:""},{n:"Alakazam",t1:"Psychic",t2:""},{n:"Machop",t1:"Fighting",t2:""},
-{n:"Machoke",t1:"Fighting",t2:""},{n:"Machamp",t1:"Fighting",t2:""},{n:"Bellsprout",t1:"Grass",t2:"Poison"},{n:"Weepinbell",t1:"Grass",t2:"Poison"},{n:"Victreebel",t1:"Grass",t2:"Poison"},{n:"Tentacool",t1:"Water",t2:"Poison"},
-{n:"Tentacruel",t1:"Water",t2:"Poison"},{n:"Geodude",t1:"Rock",t2:"Ground"},{n:"Graveler",t1:"Rock",t2:"Ground"},{n:"Golem",t1:"Rock",t2:"Ground"},{n:"Ponyta",t1:"Fire",t2:""},{n:"Rapidash",t1:"Fire",t2:""},
-{n:"Slowpoke",t1:"Water",t2:"Psychic"},{n:"Slowbro",t1:"Water",t2:"Psychic"},{n:"Magnemite",t1:"Electric",t2:"Steel"},{n:"Magneton",t1:"Electric",t2:"Steel"},{n:"Farfetch'd",t1:"Normal",t2:"Flying"},{n:"Doduo",t1:"Normal",t2:"Flying"},
-{n:"Dodrio",t1:"Normal",t2:"Flying"},{n:"Seel",t1:"Water",t2:""},{n:"Dewgong",t1:"Water",t2:"Ice"},{n:"Grimer",t1:"Poison",t2:""},{n:"Muk",t1:"Poison",t2:""},{n:"Shellder",t1:"Water",t2:""},
-{n:"Cloyster",t1:"Water",t2:"Ice"},{n:"Gastly",t1:"Ghost",t2:"Poison"},{n:"Haunter",t1:"Ghost",t2:"Poison"},{n:"Gengar",t1:"Ghost",t2:"Poison"},{n:"Onix",t1:"Rock",t2:"Ground"},{n:"Drowzee",t1:"Psychic",t2:""},
-{n:"Hypno",t1:"Psychic",t2:""},{n:"Krabby",t1:"Water",t2:""},{n:"Kingler",t1:"Water",t2:""},{n:"Voltorb",t1:"Electric",t2:""},{n:"Electrode",t1:"Electric",t2:""},{n:"Exeggcute",t1:"Grass",t2:"Psychic"},
-{n:"Exeggutor",t1:"Grass",t2:"Psychic"},{n:"Cubone",t1:"Ground",t2:""},{n:"Marowak",t1:"Ground",t2:""},{n:"Hitmonlee",t1:"Fighting",t2:""},{n:"Hitmonchan",t1:"Fighting",t2:""},{n:"Lickitung",t1:"Normal",t2:""},
-{n:"Koffing",t1:"Poison",t2:""},{n:"Weezing",t1:"Poison",t2:""},{n:"Rhyhorn",t1:"Ground",t2:"Rock"},{n:"Rhydon",t1:"Ground",t2:"Rock"},{n:"Chansey",t1:"Normal",t2:""},{n:"Tangela",t1:"Grass",t2:""},
-{n:"Kangaskhan",t1:"Normal",t2:""},{n:"Horsea",t1:"Water",t2:""},{n:"Seadra",t1:"Water",t2:""},{n:"Goldeen",t1:"Water",t2:""},{n:"Seaking",t1:"Water",t2:""},{n:"Staryu",t1:"Water",t2:""},
-{n:"Starmie",t1:"Water",t2:"Psychic"},{n:"Mr. Mime",t1:"Psychic",t2:"Fairy"},{n:"Scyther",t1:"Bug",t2:"Flying"},{n:"Jynx",t1:"Ice",t2:"Psychic"},{n:"Electabuzz",t1:"Electric",t2:""},{n:"Magmar",t1:"Fire",t2:""},
-{n:"Pinsir",t1:"Bug",t2:""},{n:"Tauros",t1:"Normal",t2:""},{n:"Magikarp",t1:"Water",t2:""},{n:"Gyarados",t1:"Water",t2:"Flying"},{n:"Lapras",t1:"Water",t2:"Ice"},{n:"Ditto",t1:"Normal",t2:""},
-{n:"Eevee",t1:"Normal",t2:""},{n:"Vaporeon",t1:"Water",t2:""},{n:"Jolteon",t1:"Electric",t2:""},{n:"Flareon",t1:"Fire",t2:""},{n:"Porygon",t1:"Normal",t2:""},{n:"Omanyte",t1:"Rock",t2:"Water"},
-{n:"Omastar",t1:"Rock",t2:"Water"},{n:"Kabuto",t1:"Rock",t2:"Water"},{n:"Kabutops",t1:"Rock",t2:"Water"},{n:"Aerodactyl",t1:"Rock",t2:"Flying"},{n:"Snorlax",t1:"Normal",t2:""},{n:"Articuno",t1:"Ice",t2:"Flying"},
-{n:"Zapdos",t1:"Electric",t2:"Flying"},{n:"Moltres",t1:"Fire",t2:"Flying"},{n:"Dratini",t1:"Dragon",t2:""},{n:"Dragonair",t1:"Dragon",t2:""},{n:"Dragonite",t1:"Dragon",t2:"Flying"},{n:"Mewtwo",t1:"Psychic",t2:""},
-{n:"Mew",t1:"Psychic",t2:""},{n:"Chikorita",t1:"Grass",t2:""},{n:"Bayleef",t1:"Grass",t2:""},{n:"Meganium",t1:"Grass",t2:""},{n:"Cyndaquil",t1:"Fire",t2:""},{n:"Quilava",t1:"Fire",t2:""},
-{n:"Typhlosion",t1:"Fire",t2:""},{n:"Totodile",t1:"Water",t2:""},{n:"Croconaw",t1:"Water",t2:""},{n:"Feraligatr",t1:"Water",t2:""},{n:"Sentret",t1:"Normal",t2:""},{n:"Furret",t1:"Normal",t2:""},
-{n:"Hoothoot",t1:"Normal",t2:"Flying"},{n:"Noctowl",t1:"Normal",t2:"Flying"},{n:"Ledyba",t1:"Bug",t2:"Flying"},{n:"Ledian",t1:"Bug",t2:"Flying"},{n:"Spinarak",t1:"Bug",t2:"Poison"},{n:"Ariados",t1:"Bug",t2:"Poison"},
-{n:"Crobat",t1:"Poison",t2:"Flying"},{n:"Chinchou",t1:"Water",t2:"Electric"},{n:"Lanturn",t1:"Water",t2:"Electric"},{n:"Pichu",t1:"Electric",t2:""},{n:"Cleffa",t1:"Fairy",t2:""},{n:"Igglybuff",t1:"Normal",t2:"Fairy"},
-{n:"Togepi",t1:"Fairy",t2:""},{n:"Togetic",t1:"Fairy",t2:"Flying"},{n:"Natu",t1:"Psychic",t2:"Flying"},{n:"Xatu",t1:"Psychic",t2:"Flying"},{n:"Mareep",t1:"Electric",t2:""},{n:"Flaaffy",t1:"Electric",t2:""},
-{n:"Ampharos",t1:"Electric",t2:""},{n:"Bellossom",t1:"Grass",t2:""},{n:"Marill",t1:"Water",t2:"Fairy"},{n:"Azumarill",t1:"Water",t2:"Fairy"},{n:"Sudowoodo",t1:"Rock",t2:""},{n:"Politoed",t1:"Water",t2:""},
-{n:"Hoppip",t1:"Grass",t2:"Flying"},{n:"Skiploom",t1:"Grass",t2:"Flying"},{n:"Jumpluff",t1:"Grass",t2:"Flying"},{n:"Aipom",t1:"Normal",t2:""},{n:"Sunkern",t1:"Grass",t2:""},{n:"Sunflora",t1:"Grass",t2:""},
-{n:"Yanma",t1:"Bug",t2:"Flying"},{n:"Wooper",t1:"Water",t2:"Ground"},{n:"Quagsire",t1:"Water",t2:"Ground"},{n:"Espeon",t1:"Psychic",t2:""},{n:"Umbreon",t1:"Dark",t2:""},{n:"Murkrow",t1:"Dark",t2:"Flying"},
-{n:"Slowking",t1:"Water",t2:"Psychic"},{n:"Misdreavus",t1:"Ghost",t2:""},{n:"Unown",t1:"Psychic",t2:""},{n:"Wobbuffet",t1:"Psychic",t2:""},{n:"Girafarig",t1:"Normal",t2:"Psychic"},{n:"Pineco",t1:"Bug",t2:""},
-{n:"Forretress",t1:"Bug",t2:"Steel"},{n:"Dunsparce",t1:"Normal",t2:""},{n:"Gligar",t1:"Ground",t2:"Flying"},{n:"Steelix",t1:"Steel",t2:"Ground"},{n:"Snubbull",t1:"Fairy",t2:""},{n:"Granbull",t1:"Fairy",t2:""},
-{n:"Qwilfish",t1:"Water",t2:"Poison"},{n:"Scizor",t1:"Bug",t2:"Steel"},{n:"Shuckle",t1:"Bug",t2:"Rock"},{n:"Heracross",t1:"Bug",t2:"Fighting"},{n:"Sneasel",t1:"Dark",t2:"Ice"},{n:"Teddiursa",t1:"Normal",t2:""},
-{n:"Ursaring",t1:"Normal",t2:""},{n:"Slugma",t1:"Fire",t2:""},{n:"Magcargo",t1:"Fire",t2:"Rock"},{n:"Swinub",t1:"Ice",t2:"Ground"},{n:"Piloswine",t1:"Ice",t2:"Ground"},{n:"Corsola",t1:"Water",t2:"Rock"},
-{n:"Remoraid",t1:"Water",t2:""},{n:"Octillery",t1:"Water",t2:""},{n:"Delibird",t1:"Ice",t2:"Flying"},{n:"Mantine",t1:"Water",t2:"Flying"},{n:"Skarmory",t1:"Steel",t2:"Flying"},{n:"Houndour",t1:"Dark",t2:"Fire"},
-{n:"Houndoom",t1:"Dark",t2:"Fire"},{n:"Kingdra",t1:"Water",t2:"Dragon"},{n:"Phanpy",t1:"Ground",t2:""},{n:"Donphan",t1:"Ground",t2:""},{n:"Porygon2",t1:"Normal",t2:""},{n:"Stantler",t1:"Normal",t2:""},
-{n:"Smeargle",t1:"Normal",t2:""},{n:"Tyrogue",t1:"Fighting",t2:""},{n:"Hitmontop",t1:"Fighting",t2:""},{n:"Smoochum",t1:"Ice",t2:"Psychic"},{n:"Elekid",t1:"Electric",t2:""},{n:"Magby",t1:"Fire",t2:""},
-{n:"Miltank",t1:"Normal",t2:""},{n:"Blissey",t1:"Normal",t2:""},{n:"Raikou",t1:"Electric",t2:""},{n:"Entei",t1:"Fire",t2:""},{n:"Suicune",t1:"Water",t2:""},{n:"Larvitar",t1:"Rock",t2:"Ground"},
-{n:"Pupitar",t1:"Rock",t2:"Ground"},{n:"Tyranitar",t1:"Rock",t2:"Dark"},{n:"Lugia",t1:"Psychic",t2:"Flying"},{n:"Ho-oh",t1:"Fire",t2:"Flying"},{n:"Celebi",t1:"Psychic",t2:"Grass"},{n:"Treecko",t1:"Grass",t2:""},
-{n:"Grovyle",t1:"Grass",t2:""},{n:"Sceptile",t1:"Grass",t2:""},{n:"Torchic",t1:"Fire",t2:""},{n:"Combusken",t1:"Fire",t2:"Fighting"},{n:"Blaziken",t1:"Fire",t2:"Fighting"},{n:"Mudkip",t1:"Water",t2:""},
-{n:"Marshtomp",t1:"Water",t2:"Ground"},{n:"Swampert",t1:"Water",t2:"Ground"},{n:"Poochyena",t1:"Dark",t2:""},{n:"Mightyena",t1:"Dark",t2:""},{n:"Zigzagoon",t1:"Normal",t2:""},{n:"Linoone",t1:"Normal",t2:""},
-{n:"Wurmple",t1:"Bug",t2:""},{n:"Silcoon",t1:"Bug",t2:""},{n:"Beautifly",t1:"Bug",t2:"Flying"},{n:"Cascoon",t1:"Bug",t2:""},{n:"Dustox",t1:"Bug",t2:"Poison"},{n:"Lotad",t1:"Water",t2:"Grass"},
-{n:"Lombre",t1:"Water",t2:"Grass"},{n:"Ludicolo",t1:"Water",t2:"Grass"},{n:"Seedot",t1:"Grass",t2:""},{n:"Nuzleaf",t1:"Grass",t2:"Dark"},{n:"Shiftry",t1:"Grass",t2:"Dark"},{n:"Taillow",t1:"Normal",t2:"Flying"},
-{n:"Swellow",t1:"Normal",t2:"Flying"},{n:"Wingull",t1:"Water",t2:"Flying"},{n:"Pelipper",t1:"Water",t2:"Flying"},{n:"Ralts",t1:"Psychic",t2:"Fairy"},{n:"Kirlia",t1:"Psychic",t2:"Fairy"},{n:"Gardevoir",t1:"Psychic",t2:"Fairy"},
-{n:"Surskit",t1:"Bug",t2:"Water"},{n:"Masquerain",t1:"Bug",t2:"Flying"},{n:"Shroomish",t1:"Grass",t2:""},{n:"Breloom",t1:"Grass",t2:"Fighting"},{n:"Slakoth",t1:"Normal",t2:""},{n:"Vigoroth",t1:"Normal",t2:""},
-{n:"Slaking",t1:"Normal",t2:""},{n:"Nincada",t1:"Bug",t2:"Ground"},{n:"Ninjask",t1:"Bug",t2:"Flying"},{n:"Shedinja",t1:"Bug",t2:"Ghost"},{n:"Whismur",t1:"Normal",t2:""},{n:"Loudred",t1:"Normal",t2:""},
-{n:"Exploud",t1:"Normal",t2:""},{n:"Makuhita",t1:"Fighting",t2:""},{n:"Hariyama",t1:"Fighting",t2:""},{n:"Azurill",t1:"Normal",t2:"Fairy"},{n:"Nosepass",t1:"Rock",t2:""},{n:"Skitty",t1:"Normal",t2:""},
-{n:"Delcatty",t1:"Normal",t2:""},{n:"Sableye",t1:"Dark",t2:"Ghost"},{n:"Mawile",t1:"Steel",t2:"Fairy"},{n:"Aron",t1:"Steel",t2:"Rock"},{n:"Lairon",t1:"Steel",t2:"Rock"},{n:"Aggron",t1:"Steel",t2:"Rock"},
-{n:"Meditite",t1:"Fighting",t2:"Psychic"},{n:"Medicham",t1:"Fighting",t2:"Psychic"},{n:"Electrike",t1:"Electric",t2:""},{n:"Manectric",t1:"Electric",t2:""},{n:"Plusle",t1:"Electric",t2:""},{n:"Minun",t1:"Electric",t2:""},
-{n:"Volbeat",t1:"Bug",t2:""},{n:"Illumise",t1:"Bug",t2:""},{n:"Roselia",t1:"Grass",t2:"Poison"},{n:"Gulpin",t1:"Poison",t2:""},{n:"Swalot",t1:"Poison",t2:""},{n:"Carvanha",t1:"Water",t2:"Dark"},
-{n:"Sharpedo",t1:"Water",t2:"Dark"},{n:"Wailmer",t1:"Water",t2:""},{n:"Wailord",t1:"Water",t2:""},{n:"Numel",t1:"Fire",t2:"Ground"},{n:"Camerupt",t1:"Fire",t2:"Ground"},{n:"Torkoal",t1:"Fire",t2:""},
-{n:"Spoink",t1:"Psychic",t2:""},{n:"Grumpig",t1:"Psychic",t2:""},{n:"Spinda",t1:"Normal",t2:""},{n:"Trapinch",t1:"Ground",t2:""},{n:"Vibrava",t1:"Ground",t2:"Dragon"},{n:"Flygon",t1:"Ground",t2:"Dragon"},
-{n:"Cacnea",t1:"Grass",t2:""},{n:"Cacturne",t1:"Grass",t2:"Dark"},{n:"Swablu",t1:"Normal",t2:"Flying"},{n:"Altaria",t1:"Dragon",t2:"Flying"},{n:"Zangoose",t1:"Normal",t2:""},{n:"Seviper",t1:"Poison",t2:""},
-{n:"Lunatone",t1:"Rock",t2:"Psychic"},{n:"Solrock",t1:"Rock",t2:"Psychic"},{n:"Barboach",t1:"Water",t2:"Ground"},{n:"Whiscash",t1:"Water",t2:"Ground"},{n:"Corphish",t1:"Water",t2:""},{n:"Crawdaunt",t1:"Water",t2:"Dark"},
-{n:"Baltoy",t1:"Ground",t2:"Psychic"},{n:"Claydol",t1:"Ground",t2:"Psychic"},{n:"Lileep",t1:"Rock",t2:"Grass"},{n:"Cradily",t1:"Rock",t2:"Grass"},{n:"Anorith",t1:"Rock",t2:"Bug"},{n:"Armaldo",t1:"Rock",t2:"Bug"},
-{n:"Feebas",t1:"Water",t2:""},{n:"Milotic",t1:"Water",t2:""},{n:"Castform",t1:"Normal",t2:""},{n:"Kecleon",t1:"Normal",t2:""},{n:"Shuppet",t1:"Ghost",t2:""},{n:"Banette",t1:"Ghost",t2:""},
-{n:"Duskull",t1:"Ghost",t2:""},{n:"Dusclops",t1:"Ghost",t2:""},{n:"Tropius",t1:"Grass",t2:"Flying"},{n:"Chimecho",t1:"Psychic",t2:""},{n:"Absol",t1:"Dark",t2:""},{n:"Wynaut",t1:"Psychic",t2:""},
-{n:"Snorunt",t1:"Ice",t2:""},{n:"Glalie",t1:"Ice",t2:""},{n:"Spheal",t1:"Ice",t2:"Water"},{n:"Sealeo",t1:"Ice",t2:"Water"},{n:"Walrein",t1:"Ice",t2:"Water"},{n:"Clamperl",t1:"Water",t2:""},
-{n:"Huntail",t1:"Water",t2:""},{n:"Gorebyss",t1:"Water",t2:""},{n:"Relicanth",t1:"Water",t2:"Rock"},{n:"Luvdisc",t1:"Water",t2:""},{n:"Bagon",t1:"Dragon",t2:""},{n:"Shelgon",t1:"Dragon",t2:""},
-{n:"Salamence",t1:"Dragon",t2:"Flying"},{n:"Beldum",t1:"Steel",t2:"Psychic"},{n:"Metang",t1:"Steel",t2:"Psychic"},{n:"Metagross",t1:"Steel",t2:"Psychic"},{n:"Regirock",t1:"Rock",t2:""},{n:"Regice",t1:"Ice",t2:""},
-{n:"Registeel",t1:"Steel",t2:""},{n:"Latias",t1:"Dragon",t2:"Psychic"},{n:"Latios",t1:"Dragon",t2:"Psychic"},{n:"Kyogre",t1:"Water",t2:""},{n:"Groudon",t1:"Ground",t2:""},{n:"Rayquaza",t1:"Dragon",t2:"Flying"},
-{n:"Jirachi",t1:"Steel",t2:"Psychic"},{n:"Deoxys",t1:"Psychic",t2:""},{n:"Turtwig",t1:"Grass",t2:""},{n:"Grotle",t1:"Grass",t2:""},{n:"Torterra",t1:"Grass",t2:"Ground"},{n:"Chimchar",t1:"Fire",t2:""},
-{n:"Monferno",t1:"Fire",t2:"Fighting"},{n:"Infernape",t1:"Fire",t2:"Fighting"},{n:"Piplup",t1:"Water",t2:""},{n:"Prinplup",t1:"Water",t2:""},{n:"Empoleon",t1:"Water",t2:"Steel"},{n:"Starly",t1:"Normal",t2:"Flying"},
-{n:"Staravia",t1:"Normal",t2:"Flying"},{n:"Staraptor",t1:"Normal",t2:"Flying"},{n:"Bidoof",t1:"Normal",t2:""},{n:"Bibarel",t1:"Normal",t2:"Water"},{n:"Kricketot",t1:"Bug",t2:""},{n:"Kricketune",t1:"Bug",t2:""},
-{n:"Shinx",t1:"Electric",t2:""},{n:"Luxio",t1:"Electric",t2:""},{n:"Luxray",t1:"Electric",t2:""},{n:"Budew",t1:"Grass",t2:"Poison"},{n:"Roserade",t1:"Grass",t2:"Poison"},{n:"Cranidos",t1:"Rock",t2:""},
-{n:"Rampardos",t1:"Rock",t2:""},{n:"Shieldon",t1:"Rock",t2:"Steel"},{n:"Bastiodon",t1:"Rock",t2:"Steel"},{n:"Burmy",t1:"Bug",t2:""},{n:"Wormadam",t1:"Bug",t2:"Grass"},{n:"Mothim",t1:"Bug",t2:"Flying"},
-{n:"Combee",t1:"Bug",t2:"Flying"},{n:"Vespiquen",t1:"Bug",t2:"Flying"},{n:"Pachirisu",t1:"Electric",t2:""},{n:"Buizel",t1:"Water",t2:""},{n:"Floatzel",t1:"Water",t2:""},{n:"Cherubi",t1:"Grass",t2:""},
-{n:"Cherrim",t1:"Grass",t2:""},{n:"Shellos",t1:"Water",t2:""},{n:"Gastrodon",t1:"Water",t2:"Ground"},{n:"Ambipom",t1:"Normal",t2:""},{n:"Drifloon",t1:"Ghost",t2:"Flying"},{n:"Drifblim",t1:"Ghost",t2:"Flying"},
-{n:"Buneary",t1:"Normal",t2:""},{n:"Lopunny",t1:"Normal",t2:""},{n:"Mismagius",t1:"Ghost",t2:""},{n:"Honchkrow",t1:"Dark",t2:"Flying"},{n:"Glameow",t1:"Normal",t2:""},{n:"Purugly",t1:"Normal",t2:""},
-{n:"Chingling",t1:"Psychic",t2:""},{n:"Stunky",t1:"Poison",t2:"Dark"},{n:"Skuntank",t1:"Poison",t2:"Dark"},{n:"Bronzor",t1:"Steel",t2:"Psychic"},{n:"Bronzong",t1:"Steel",t2:"Psychic"},{n:"Bonsly",t1:"Rock",t2:""},
-{n:"Mime Jr.",t1:"Psychic",t2:"Fairy"},{n:"Happiny",t1:"Normal",t2:""},{n:"Chatot",t1:"Normal",t2:"Flying"},{n:"Spiritomb",t1:"Ghost",t2:"Dark"},{n:"Gible",t1:"Dragon",t2:"Ground"},{n:"Gabite",t1:"Dragon",t2:"Ground"},
-{n:"Garchomp",t1:"Dragon",t2:"Ground"},{n:"Munchlax",t1:"Normal",t2:""},{n:"Riolu",t1:"Fighting",t2:""},{n:"Lucario",t1:"Fighting",t2:"Steel"},{n:"Hippopotas",t1:"Ground",t2:""},{n:"Hippowdon",t1:"Ground",t2:""},
-{n:"Skorupi",t1:"Poison",t2:"Bug"},{n:"Drapion",t1:"Poison",t2:"Dark"},{n:"Croagunk",t1:"Poison",t2:"Fighting"},{n:"Toxicroak",t1:"Poison",t2:"Fighting"},{n:"Carnivine",t1:"Grass",t2:""},{n:"Finneon",t1:"Water",t2:""},
-{n:"Lumineon",t1:"Water",t2:""},{n:"Mantyke",t1:"Water",t2:"Flying"},{n:"Snover",t1:"Grass",t2:"Ice"},{n:"Abomasnow",t1:"Grass",t2:"Ice"},{n:"Weavile",t1:"Dark",t2:"Ice"},{n:"Magnezone",t1:"Electric",t2:"Steel"},
-{n:"Lickilicky",t1:"Normal",t2:""},{n:"Rhyperior",t1:"Ground",t2:"Rock"},{n:"Tangrowth",t1:"Grass",t2:""},{n:"Electivire",t1:"Electric",t2:""},{n:"Magmortar",t1:"Fire",t2:""},{n:"Togekiss",t1:"Fairy",t2:"Flying"},
-{n:"Yanmega",t1:"Bug",t2:"Flying"},{n:"Leafeon",t1:"Grass",t2:""},{n:"Glaceon",t1:"Ice",t2:""},{n:"Gliscor",t1:"Ground",t2:"Flying"},{n:"Mamoswine",t1:"Ice",t2:"Ground"},{n:"Porygon-Z",t1:"Normal",t2:""},
-{n:"Gallade",t1:"Psychic",t2:"Fighting"},{n:"Probopass",t1:"Rock",t2:"Steel"},{n:"Dusknoir",t1:"Ghost",t2:""},{n:"Froslass",t1:"Ice",t2:"Ghost"},{n:"Rotom",t1:"Electric",t2:"Ghost"},{n:"Uxie",t1:"Psychic",t2:""},
-{n:"Mesprit",t1:"Psychic",t2:""},{n:"Azelf",t1:"Psychic",t2:""},{n:"Dialga",t1:"Steel",t2:"Dragon"},{n:"Palkia",t1:"Water",t2:"Dragon"},{n:"Heatran",t1:"Fire",t2:"Steel"},{n:"Regigigas",t1:"Normal",t2:""},
-{n:"Giratina",t1:"Ghost",t2:"Dragon"},{n:"Cresselia",t1:"Psychic",t2:""},{n:"Phione",t1:"Water",t2:""},{n:"Manaphy",t1:"Water",t2:""},{n:"Darkrai",t1:"Dark",t2:""},{n:"Shaymin",t1:"Grass",t2:""},
-{n:"Arceus",t1:"Normal",t2:""},{n:"Victini",t1:"Psychic",t2:"Fire"},{n:"Snivy",t1:"Grass",t2:""},{n:"Servine",t1:"Grass",t2:""},{n:"Serperior",t1:"Grass",t2:""},{n:"Tepig",t1:"Fire",t2:""},
-{n:"Pignite",t1:"Fire",t2:"Fighting"},{n:"Emboar",t1:"Fire",t2:"Fighting"},{n:"Oshawott",t1:"Water",t2:""},{n:"Dewott",t1:"Water",t2:""},{n:"Samurott",t1:"Water",t2:""},{n:"Patrat",t1:"Normal",t2:""},
-{n:"Watchog",t1:"Normal",t2:""},{n:"Lillipup",t1:"Normal",t2:""},{n:"Herdier",t1:"Normal",t2:""},{n:"Stoutland",t1:"Normal",t2:""},{n:"Purrloin",t1:"Dark",t2:""},{n:"Liepard",t1:"Dark",t2:""},
-{n:"Pansage",t1:"Grass",t2:""},{n:"Simisage",t1:"Grass",t2:""},{n:"Pansear",t1:"Fire",t2:""},{n:"Simisear",t1:"Fire",t2:""},{n:"Panpour",t1:"Water",t2:""},{n:"Simipour",t1:"Water",t2:""},
-{n:"Munna",t1:"Psychic",t2:""},{n:"Musharna",t1:"Psychic",t2:""},{n:"Pidove",t1:"Normal",t2:"Flying"},{n:"Tranquill",t1:"Normal",t2:"Flying"},{n:"Unfezant",t1:"Normal",t2:"Flying"},{n:"Blitzle",t1:"Electric",t2:""},
-{n:"Zebstrika",t1:"Electric",t2:""},{n:"Roggenrola",t1:"Rock",t2:""},{n:"Boldore",t1:"Rock",t2:""},{n:"Gigalith",t1:"Rock",t2:""},{n:"Woobat",t1:"Psychic",t2:"Flying"},{n:"Swoobat",t1:"Psychic",t2:"Flying"},
-{n:"Drilbur",t1:"Ground",t2:""},{n:"Excadrill",t1:"Ground",t2:"Steel"},{n:"Audino",t1:"Normal",t2:""},{n:"Timburr",t1:"Fighting",t2:""},{n:"Gurdurr",t1:"Fighting",t2:""},{n:"Conkeldurr",t1:"Fighting",t2:""},
-{n:"Tympole",t1:"Water",t2:""},{n:"Palpitoad",t1:"Water",t2:"Ground"},{n:"Seismitoad",t1:"Water",t2:"Ground"},{n:"Throh",t1:"Fighting",t2:""},{n:"Sawk",t1:"Fighting",t2:""},{n:"Sewaddle",t1:"Bug",t2:"Grass"},
-{n:"Swadloon",t1:"Bug",t2:"Grass"},{n:"Leavanny",t1:"Bug",t2:"Grass"},{n:"Venipede",t1:"Bug",t2:"Poison"},{n:"Whirlipede",t1:"Bug",t2:"Poison"},{n:"Scolipede",t1:"Bug",t2:"Poison"},{n:"Cottonee",t1:"Grass",t2:"Fairy"},
-{n:"Whimsicott",t1:"Grass",t2:"Fairy"},{n:"Petilil",t1:"Grass",t2:""},{n:"Lilligant",t1:"Grass",t2:""},{n:"Basculin",t1:"Water",t2:""},{n:"Sandile",t1:"Ground",t2:"Dark"},{n:"Krokorok",t1:"Ground",t2:"Dark"},
-{n:"Krookodile",t1:"Ground",t2:"Dark"},{n:"Darumaka",t1:"Fire",t2:""},{n:"Darmanitan",t1:"Fire",t2:""},{n:"Maractus",t1:"Grass",t2:""},{n:"Dwebble",t1:"Bug",t2:"Rock"},{n:"Crustle",t1:"Bug",t2:"Rock"},
-{n:"Scraggy",t1:"Dark",t2:"Fighting"},{n:"Scrafty",t1:"Dark",t2:"Fighting"},{n:"Sigilyph",t1:"Psychic",t2:"Flying"},{n:"Yamask",t1:"Ghost",t2:""},{n:"Cofagrigus",t1:"Ghost",t2:""},{n:"Tirtouga",t1:"Water",t2:"Rock"},
-{n:"Carracosta",t1:"Water",t2:"Rock"},{n:"Archen",t1:"Rock",t2:"Flying"},{n:"Archeops",t1:"Rock",t2:"Flying"},{n:"Trubbish",t1:"Poison",t2:""},{n:"Garbodor",t1:"Poison",t2:""},{n:"Zorua",t1:"Dark",t2:""},
-{n:"Zoroark",t1:"Dark",t2:""},{n:"Minccino",t1:"Normal",t2:""},{n:"Cinccino",t1:"Normal",t2:""},{n:"Gothita",t1:"Psychic",t2:""},{n:"Gothorita",t1:"Psychic",t2:""},{n:"Gothitelle",t1:"Psychic",t2:""},
-{n:"Solosis",t1:"Psychic",t2:""},{n:"Duosion",t1:"Psychic",t2:""},{n:"Reuniclus",t1:"Psychic",t2:""},{n:"Ducklett",t1:"Water",t2:"Flying"},{n:"Swanna",t1:"Water",t2:"Flying"},{n:"Vanillite",t1:"Ice",t2:""},
-{n:"Vanillish",t1:"Ice",t2:""},{n:"Vanilluxe",t1:"Ice",t2:""},{n:"Deerling",t1:"Normal",t2:"Grass"},{n:"Sawsbuck",t1:"Normal",t2:"Grass"},{n:"Emolga",t1:"Electric",t2:"Flying"},{n:"Karrablast",t1:"Bug",t2:""},
-{n:"Escavalier",t1:"Bug",t2:"Steel"},{n:"Foongus",t1:"Grass",t2:"Poison"},{n:"Amoonguss",t1:"Grass",t2:"Poison"},{n:"Frillish",t1:"Water",t2:"Ghost"},{n:"Jellicent",t1:"Water",t2:"Ghost"},{n:"Alomomola",t1:"Water",t2:""},
-{n:"Joltik",t1:"Bug",t2:"Electric"},{n:"Galvantula",t1:"Bug",t2:"Electric"},{n:"Ferroseed",t1:"Grass",t2:"Steel"},{n:"Ferrothorn",t1:"Grass",t2:"Steel"},{n:"Klink",t1:"Steel",t2:""},{n:"Klang",t1:"Steel",t2:""},
-{n:"Klinklang",t1:"Steel",t2:""},{n:"Tynamo",t1:"Electric",t2:""},{n:"Eelektrik",t1:"Electric",t2:""},{n:"Eelektross",t1:"Electric",t2:""},{n:"Elgyem",t1:"Psychic",t2:""},{n:"Beheeyem",t1:"Psychic",t2:""},
-{n:"Litwick",t1:"Ghost",t2:"Fire"},{n:"Lampent",t1:"Ghost",t2:"Fire"},{n:"Chandelure",t1:"Ghost",t2:"Fire"},{n:"Axew",t1:"Dragon",t2:""},{n:"Fraxure",t1:"Dragon",t2:""},{n:"Haxorus",t1:"Dragon",t2:""},
-{n:"Cubchoo",t1:"Ice",t2:""},{n:"Beartic",t1:"Ice",t2:""},{n:"Cryogonal",t1:"Ice",t2:""},{n:"Shelmet",t1:"Bug",t2:""},{n:"Accelgor",t1:"Bug",t2:""},{n:"Stunfisk",t1:"Ground",t2:"Electric"},
-{n:"Mienfoo",t1:"Fighting",t2:""},{n:"Mienshao",t1:"Fighting",t2:""},{n:"Druddigon",t1:"Dragon",t2:""},{n:"Golett",t1:"Ground",t2:"Ghost"},{n:"Golurk",t1:"Ground",t2:"Ghost"},{n:"Pawniard",t1:"Dark",t2:"Steel"},
-{n:"Bisharp",t1:"Dark",t2:"Steel"},{n:"Bouffalant",t1:"Normal",t2:""},{n:"Rufflet",t1:"Normal",t2:"Flying"},{n:"Braviary",t1:"Normal",t2:"Flying"},{n:"Vullaby",t1:"Dark",t2:"Flying"},{n:"Mandibuzz",t1:"Dark",t2:"Flying"},
-{n:"Heatmor",t1:"Fire",t2:""},{n:"Durant",t1:"Bug",t2:"Steel"},{n:"Deino",t1:"Dark",t2:"Dragon"},{n:"Zweilous",t1:"Dark",t2:"Dragon"},{n:"Hydreigon",t1:"Dark",t2:"Dragon"},{n:"Larvesta",t1:"Bug",t2:"Fire"},
-{n:"Volcarona",t1:"Bug",t2:"Fire"},{n:"Cobalion",t1:"Steel",t2:"Fighting"},{n:"Terrakion",t1:"Rock",t2:"Fighting"},{n:"Virizion",t1:"Grass",t2:"Fighting"},{n:"Tornadus",t1:"Flying",t2:""},{n:"Thundurus",t1:"Electric",t2:"Flying"},
-{n:"Reshiram",t1:"Dragon",t2:"Fire"},{n:"Zekrom",t1:"Dragon",t2:"Electric"},{n:"Landorus",t1:"Ground",t2:"Flying"},{n:"Kyurem",t1:"Dragon",t2:"Ice"},{n:"Keldeo",t1:"Water",t2:"Fighting"},{n:"Meloetta",t1:"Normal",t2:"Psychic"},
-{n:"Genesect",t1:"Bug",t2:"Steel"},{n:"Chespin",t1:"Grass",t2:""},{n:"Quilladin",t1:"Grass",t2:""},{n:"Chesnaught",t1:"Grass",t2:"Fighting"},{n:"Fennekin",t1:"Fire",t2:""},{n:"Braixen",t1:"Fire",t2:""},
-{n:"Delphox",t1:"Fire",t2:"Psychic"},{n:"Froakie",t1:"Water",t2:""},{n:"Frogadier",t1:"Water",t2:""},{n:"Greninja",t1:"Water",t2:"Dark"},{n:"Bunnelby",t1:"Normal",t2:""},{n:"Diggersby",t1:"Normal",t2:"Ground"},
-{n:"Fletchling",t1:"Normal",t2:"Flying"},{n:"Fletchinder",t1:"Fire",t2:"Flying"},{n:"Talonflame",t1:"Fire",t2:"Flying"},{n:"Scatterbug",t1:"Bug",t2:""},{n:"Spewpa",t1:"Bug",t2:""},{n:"Vivillon",t1:"Bug",t2:"Flying"},
-{n:"Litleo",t1:"Fire",t2:"Normal"},{n:"Pyroar",t1:"Fire",t2:"Normal"},{n:"Flabébé",t1:"Fairy",t2:""},{n:"Floette",t1:"Fairy",t2:""},{n:"Florges",t1:"Fairy",t2:""},{n:"Skiddo",t1:"Grass",t2:""},
-{n:"Gogoat",t1:"Grass",t2:""},{n:"Pancham",t1:"Fighting",t2:""},{n:"Pangoro",t1:"Fighting",t2:"Dark"},{n:"Furfrou",t1:"Normal",t2:""},{n:"Espurr",t1:"Psychic",t2:""},{n:"Meowstic",t1:"Psychic",t2:""},
-{n:"Honedge",t1:"Steel",t2:"Ghost"},{n:"Doublade",t1:"Steel",t2:"Ghost"},{n:"Aegislash",t1:"Steel",t2:"Ghost"},{n:"Spritzee",t1:"Fairy",t2:""},{n:"Aromatisse",t1:"Fairy",t2:""},{n:"Swirlix",t1:"Fairy",t2:""},
-{n:"Slurpuff",t1:"Fairy",t2:""},{n:"Inkay",t1:"Dark",t2:"Psychic"},{n:"Malamar",t1:"Dark",t2:"Psychic"},{n:"Binacle",t1:"Rock",t2:"Water"},{n:"Barbaracle",t1:"Rock",t2:"Water"},{n:"Skrelp",t1:"Poison",t2:"Water"},
-{n:"Dragalge",t1:"Poison",t2:"Dragon"},{n:"Clauncher",t1:"Water",t2:""},{n:"Clawitzer",t1:"Water",t2:""},{n:"Helioptile",t1:"Electric",t2:"Normal"},{n:"Heliolisk",t1:"Electric",t2:"Normal"},{n:"Tyrunt",t1:"Rock",t2:"Dragon"},
-{n:"Tyrantrum",t1:"Rock",t2:"Dragon"},{n:"Amaura",t1:"Rock",t2:"Ice"},{n:"Aurorus",t1:"Rock",t2:"Ice"},{n:"Sylveon",t1:"Fairy",t2:""},{n:"Hawlucha",t1:"Fighting",t2:"Flying"},{n:"Dedenne",t1:"Electric",t2:"Fairy"},
-{n:"Carbink",t1:"Rock",t2:"Fairy"},{n:"Goomy",t1:"Dragon",t2:""},{n:"Sliggoo",t1:"Dragon",t2:""},{n:"Goodra",t1:"Dragon",t2:""},{n:"Klefki",t1:"Steel",t2:"Fairy"},{n:"Phantump",t1:"Ghost",t2:"Grass"},
-{n:"Trevenant",t1:"Ghost",t2:"Grass"},{n:"Pumpkaboo",t1:"Ghost",t2:"Grass"},{n:"Gourgeist",t1:"Ghost",t2:"Grass"},{n:"Bergmite",t1:"Ice",t2:""},{n:"Avalugg",t1:"Ice",t2:""},{n:"Noibat",t1:"Flying",t2:"Dragon"},
-{n:"Noivern",t1:"Flying",t2:"Dragon"},{n:"Xerneas",t1:"Fairy",t2:""},{n:"Yveltal",t1:"Dark",t2:"Flying"},{n:"Zygarde",t1:"Dragon",t2:"Ground"},{n:"Diancie",t1:"Rock",t2:"Fairy"},{n:"Hoopa",t1:"Psychic",t2:"Ghost"},
-{n:"Volcanion",t1:"Fire",t2:"Water"},{n:"Rowlet",t1:"Grass",t2:"Flying"},{n:"Dartrix",t1:"Grass",t2:"Flying"},{n:"Decidueye",t1:"Grass",t2:"Ghost"},{n:"Litten",t1:"Fire",t2:""},{n:"Torracat",t1:"Fire",t2:""},
-{n:"Incineroar",t1:"Fire",t2:"Dark"},{n:"Popplio",t1:"Water",t2:""},{n:"Brionne",t1:"Water",t2:""},{n:"Primarina",t1:"Water",t2:"Fairy"},{n:"Pikipek",t1:"Normal",t2:"Flying"},{n:"Trumbeak",t1:"Normal",t2:"Flying"},
-{n:"Toucannon",t1:"Normal",t2:"Flying"},{n:"Yungoos",t1:"Normal",t2:""},{n:"Gumshoos",t1:"Normal",t2:""},{n:"Grubbin",t1:"Bug",t2:""},{n:"Charjabug",t1:"Bug",t2:"Electric"},{n:"Vikavolt",t1:"Bug",t2:"Electric"},
-{n:"Crabrawler",t1:"Fighting",t2:""},{n:"Crabominable",t1:"Fighting",t2:"Ice"},{n:"Oricorio",t1:"Fire",t2:"Flying"},{n:"Cutiefly",t1:"Bug",t2:"Fairy"},{n:"Ribombee",t1:"Bug",t2:"Fairy"},{n:"Rockruff",t1:"Rock",t2:""},
-{n:"Lycanroc",t1:"Rock",t2:""},{n:"Wishiwashi",t1:"Water",t2:""},{n:"Mareanie",t1:"Poison",t2:"Water"},{n:"Toxapex",t1:"Poison",t2:"Water"},{n:"Mudbray",t1:"Ground",t2:""},{n:"Mudsdale",t1:"Ground",t2:""},
-{n:"Dewpider",t1:"Water",t2:"Bug"},{n:"Araquanid",t1:"Water",t2:"Bug"},{n:"Fomantis",t1:"Grass",t2:""},{n:"Lurantis",t1:"Grass",t2:""},{n:"Morelull",t1:"Grass",t2:"Fairy"},{n:"Shiinotic",t1:"Grass",t2:"Fairy"},
-{n:"Salandit",t1:"Poison",t2:"Fire"},{n:"Salazzle",t1:"Poison",t2:"Fire"},{n:"Stufful",t1:"Normal",t2:"Fighting"},{n:"Bewear",t1:"Normal",t2:"Fighting"},{n:"Bounsweet",t1:"Grass",t2:""},{n:"Steenee",t1:"Grass",t2:""},
-{n:"Tsareena",t1:"Grass",t2:""},{n:"Comfey",t1:"Fairy",t2:""},{n:"Oranguru",t1:"Normal",t2:"Psychic"},{n:"Passimian",t1:"Fighting",t2:""},{n:"Wimpod",t1:"Bug",t2:"Water"},{n:"Golisopod",t1:"Bug",t2:"Water"},
-{n:"Sandygast",t1:"Ghost",t2:"Ground"},{n:"Palossand",t1:"Ghost",t2:"Ground"},{n:"Pyukumuku",t1:"Water",t2:""},{n:"Type: Null",t1:"Normal",t2:""},{n:"Silvally",t1:"Normal",t2:""},{n:"Minior",t1:"Rock",t2:"Flying"},
-{n:"Komala",t1:"Normal",t2:""},{n:"Turtonator",t1:"Fire",t2:"Dragon"},{n:"Togedemaru",t1:"Electric",t2:"Steel"},{n:"Mimikyu",t1:"Ghost",t2:"Fairy"},{n:"Bruxish",t1:"Water",t2:"Psychic"},{n:"Drampa",t1:"Normal",t2:"Dragon"},
-{n:"Dhelmise",t1:"Ghost",t2:"Grass"},{n:"Jangmo-o",t1:"Dragon",t2:""},{n:"Hakamo-o",t1:"Dragon",t2:"Fighting"},{n:"Kommo-o",t1:"Dragon",t2:"Fighting"},{n:"Tapu Koko",t1:"Electric",t2:"Fairy"},{n:"Tapu Lele",t1:"Psychic",t2:"Fairy"},
-{n:"Tapu Bulu",t1:"Grass",t2:"Fairy"},{n:"Tapu Fini",t1:"Water",t2:"Fairy"},{n:"Cosmog",t1:"Psychic",t2:""},{n:"Cosmoem",t1:"Psychic",t2:""},{n:"Solgaleo",t1:"Psychic",t2:"Steel"},{n:"Lunala",t1:"Psychic",t2:"Ghost"},
-{n:"Nihilego",t1:"Rock",t2:"Poison"},{n:"Buzzwole",t1:"Bug",t2:"Fighting"},{n:"Pheromosa",t1:"Bug",t2:"Fighting"},{n:"Xurkitree",t1:"Electric",t2:""},{n:"Celesteela",t1:"Steel",t2:"Flying"},{n:"Kartana",t1:"Grass",t2:"Steel"},
-{n:"Guzzlord",t1:"Dark",t2:"Dragon"},{n:"Necrozma",t1:"Psychic",t2:""},{n:"Magearna",t1:"Steel",t2:"Fairy"},{n:"Marshadow",t1:"Fighting",t2:"Ghost"},{n:"Poipole",t1:"Poison",t2:""},{n:"Naganadel",t1:"Poison",t2:"Dragon"},
-{n:"Stakataka",t1:"Rock",t2:"Steel"},{n:"Blacephalon",t1:"Fire",t2:"Ghost"},{n:"Zeraora",t1:"Electric",t2:""},{n:"Meltan",t1:"Steel",t2:""},{n:"Melmetal",t1:"Steel",t2:""},{n:"Grookey",t1:"Grass",t2:""},
-{n:"Thwackey",t1:"Grass",t2:""},{n:"Rillaboom",t1:"Grass",t2:""},{n:"Scorbunny",t1:"Fire",t2:""},{n:"Raboot",t1:"Fire",t2:""},{n:"Cinderace",t1:"Fire",t2:""},{n:"Sobble",t1:"Water",t2:""},
-{n:"Drizzile",t1:"Water",t2:""},{n:"Inteleon",t1:"Water",t2:""},{n:"Skwovet",t1:"Normal",t2:""},{n:"Greedent",t1:"Normal",t2:""},{n:"Rookidee",t1:"Flying",t2:""},{n:"Corvisquire",t1:"Flying",t2:""},
-{n:"Corviknight",t1:"Flying",t2:"Steel"},{n:"Blipbug",t1:"Bug",t2:""},{n:"Dottler",t1:"Bug",t2:"Psychic"},{n:"Orbeetle",t1:"Bug",t2:"Psychic"},{n:"Nickit",t1:"Dark",t2:""},{n:"Thievul",t1:"Dark",t2:""},
-{n:"Gossifleur",t1:"Grass",t2:""},{n:"Eldegoss",t1:"Grass",t2:""},{n:"Wooloo",t1:"Normal",t2:""},{n:"Dubwool",t1:"Normal",t2:""},{n:"Chewtle",t1:"Water",t2:""},{n:"Drednaw",t1:"Water",t2:"Rock"},
-{n:"Yamper",t1:"Electric",t2:""},{n:"Boltund",t1:"Electric",t2:""},{n:"Rolycoly",t1:"Rock",t2:""},{n:"Carkol",t1:"Rock",t2:"Fire"},{n:"Coalossal",t1:"Rock",t2:"Fire"},{n:"Applin",t1:"Grass",t2:"Dragon"},
-{n:"Flapple",t1:"Grass",t2:"Dragon"},{n:"Appletun",t1:"Grass",t2:"Dragon"},{n:"Silicobra",t1:"Ground",t2:""},{n:"Sandaconda",t1:"Ground",t2:""},{n:"Cramorant",t1:"Flying",t2:"Water"},{n:"Arrokuda",t1:"Water",t2:""},
-{n:"Barraskewda",t1:"Water",t2:""},{n:"Toxel",t1:"Electric",t2:"Poison"},{n:"Toxtricity",t1:"Electric",t2:"Poison"},{n:"Sizzlipede",t1:"Fire",t2:"Bug"},{n:"Centiskorch",t1:"Fire",t2:"Bug"},{n:"Clobbopus",t1:"Fighting",t2:""},
-{n:"Grapploct",t1:"Fighting",t2:""},{n:"Sinistea",t1:"Ghost",t2:""},{n:"Polteageist",t1:"Ghost",t2:""},{n:"Hatenna",t1:"Psychic",t2:""},{n:"Hattrem",t1:"Psychic",t2:""},{n:"Hatterene",t1:"Psychic",t2:"Fairy"},
-{n:"Impidimp",t1:"Dark",t2:"Fairy"},{n:"Morgrem",t1:"Dark",t2:"Fairy"},{n:"Grimmsnarl",t1:"Dark",t2:"Fairy"},{n:"Obstagoon",t1:"Dark",t2:"Normal"},{n:"Perrserker",t1:"Steel",t2:""},{n:"Cursola",t1:"Ghost",t2:""},
-{n:"Sirfetch'd",t1:"Fighting",t2:""},{n:"Mr. Rime",t1:"Ice",t2:"Psychic"},{n:"Runerigus",t1:"Ground",t2:"Ghost"},{n:"Milcery",t1:"Fairy",t2:""},{n:"Alcremie",t1:"Fairy",t2:""},{n:"Falinks",t1:"Fighting",t2:""},
-{n:"Pincurchin",t1:"Electric",t2:""},{n:"Snom",t1:"Ice",t2:"Bug"},{n:"Frosmoth",t1:"Ice",t2:"Bug"},{n:"Stonjourner",t1:"Rock",t2:""},{n:"Eiscue",t1:"Ice",t2:""},{n:"Indeedee",t1:"Psychic",t2:"Normal"},
-{n:"Morpeko",t1:"Electric",t2:"Dark"},{n:"Cufant",t1:"Steel",t2:""},{n:"Copperajah",t1:"Steel",t2:""},{n:"Dracozolt",t1:"Electric",t2:"Dragon"},{n:"Arctozolt",t1:"Electric",t2:"Ice"},{n:"Dracovish",t1:"Water",t2:"Dragon"},
-{n:"Arctovish",t1:"Water",t2:"Ice"},{n:"Duraludon",t1:"Steel",t2:"Dragon"},{n:"Dreepy",t1:"Dragon",t2:"Ghost"},{n:"Drakloak",t1:"Dragon",t2:"Ghost"},{n:"Dragapult",t1:"Dragon",t2:"Ghost"},{n:"Zacian",t1:"Fairy",t2:""},
-{n:"Zamazenta",t1:"Fighting",t2:""},{n:"Eternatus",t1:"Poison",t2:"Dragon"},{n:"Kubfu",t1:"Fighting",t2:""},{n:"Urshifu",t1:"Fighting",t2:"Dark"},{n:"Zarude",t1:"Dark",t2:"Grass"},{n:"Regieleki",t1:"Electric",t2:""},
-{n:"Regidrago",t1:"Dragon",t2:""},{n:"Glastrier",t1:"Ice",t2:""},{n:"Spectrier",t1:"Ghost",t2:""},{n:"Calyrex",t1:"Psychic",t2:"Grass"},{n:"Wyrdeer",t1:"Normal",t2:"Psychic"},{n:"Kleavor",t1:"Bug",t2:"Rock"},
-{n:"Ursaluna",t1:"Ground",t2:"Normal"},{n:"Basculegion",t1:"Water",t2:"Ghost"},{n:"Sneasler",t1:"Fighting",t2:"Poison"},{n:"Overqwil",t1:"Dark",t2:"Poison"},{n:"Enamorus",t1:"Fairy",t2:"Flying"},{n:"Sprigatito",t1:"Grass",t2:""},
-{n:"Floragato",t1:"Grass",t2:""},{n:"Meowscarada",t1:"Grass",t2:"Dark"},{n:"Fuecoco",t1:"Fire",t2:""},{n:"Crocalor",t1:"Fire",t2:""},{n:"Skeledirge",t1:"Fire",t2:"Ghost"},{n:"Quaxly",t1:"Water",t2:""},
-{n:"Quaxwell",t1:"Water",t2:""},{n:"Quaquaval",t1:"Water",t2:"Fighting"},{n:"Lechonk",t1:"Normal",t2:""},{n:"Oinkologne",t1:"Normal",t2:""},{n:"Tarountula",t1:"Bug",t2:""},{n:"Spidops",t1:"Bug",t2:""},
-{n:"Nymble",t1:"Bug",t2:""},{n:"Lokix",t1:"Bug",t2:"Dark"},{n:"Pawmi",t1:"Electric",t2:""},{n:"Pawmo",t1:"Electric",t2:"Fighting"},{n:"Pawmot",t1:"Electric",t2:"Fighting"},{n:"Tandemaus",t1:"Normal",t2:""},
-{n:"Maushold",t1:"Normal",t2:""},{n:"Fidough",t1:"Fairy",t2:""},{n:"Dachsbun",t1:"Fairy",t2:""},{n:"Smoliv",t1:"Grass",t2:"Normal"},{n:"Dolliv",t1:"Grass",t2:"Normal"},{n:"Arboliva",t1:"Grass",t2:"Normal"},
-{n:"Squawkabilly",t1:"Normal",t2:"Flying"},{n:"Nacli",t1:"Rock",t2:""},{n:"Naclstack",t1:"Rock",t2:""},{n:"Garganacl",t1:"Rock",t2:""},{n:"Charcadet",t1:"Fire",t2:""},{n:"Armarouge",t1:"Fire",t2:"Psychic"},
-{n:"Ceruledge",t1:"Fire",t2:"Ghost"},{n:"Tadbulb",t1:"Electric",t2:""},{n:"Bellibolt",t1:"Electric",t2:""},{n:"Wattrel",t1:"Electric",t2:"Flying"},{n:"Kilowattrel",t1:"Electric",t2:"Flying"},{n:"Maschiff",t1:"Dark",t2:""},
-{n:"Mabosstiff",t1:"Dark",t2:""},{n:"Shroodle",t1:"Poison",t2:"Normal"},{n:"Grafaiai",t1:"Poison",t2:"Normal"},{n:"Bramblin",t1:"Grass",t2:"Ghost"},{n:"Brambleghast",t1:"Grass",t2:"Ghost"},{n:"Toedscool",t1:"Ground",t2:"Grass"},
-{n:"Toedscruel",t1:"Ground",t2:"Grass"},{n:"Klawf",t1:"Rock",t2:""},{n:"Capsakid",t1:"Grass",t2:""},{n:"Scovillain",t1:"Grass",t2:"Fire"},{n:"Rellor",t1:"Bug",t2:""},{n:"Rabsca",t1:"Bug",t2:"Psychic"},
-{n:"Flittle",t1:"Psychic",t2:""},{n:"Espathra",t1:"Psychic",t2:""},{n:"Tinkatink",t1:"Fairy",t2:"Steel"},{n:"Tinkatuff",t1:"Fairy",t2:"Steel"},{n:"Tinkaton",t1:"Fairy",t2:"Steel"},{n:"Wiglett",t1:"Water",t2:""},
-{n:"Wugtrio",t1:"Water",t2:""},{n:"Bombirdier",t1:"Flying",t2:"Dark"},{n:"Finizen",t1:"Water",t2:""},{n:"Palafin",t1:"Water",t2:""},{n:"Varoom",t1:"Steel",t2:"Poison"},{n:"Revavroom",t1:"Steel",t2:"Poison"},
-{n:"Cyclizar",t1:"Dragon",t2:"Normal"},{n:"Orthworm",t1:"Steel",t2:""},{n:"Glimmet",t1:"Rock",t2:"Poison"},{n:"Glimmora",t1:"Rock",t2:"Poison"},{n:"Greavard",t1:"Ghost",t2:""},{n:"Houndstone",t1:"Ghost",t2:""},
-{n:"Flamigo",t1:"Flying",t2:"Fighting"},{n:"Cetoddle",t1:"Ice",t2:""},{n:"Cetitan",t1:"Ice",t2:""},{n:"Veluza",t1:"Water",t2:"Psychic"},{n:"Dondozo",t1:"Water",t2:""},{n:"Tatsugiri",t1:"Dragon",t2:"Water"},
-{n:"Annihilape",t1:"Fighting",t2:"Ghost"},{n:"Clodsire",t1:"Poison",t2:"Ground"},{n:"Farigiraf",t1:"Normal",t2:"Psychic"},{n:"Dudunsparce",t1:"Normal",t2:""},{n:"Kingambit",t1:"Dark",t2:"Steel"},{n:"Great Tusk",t1:"Ground",t2:"Fighting"},
-{n:"Scream Tail",t1:"Fairy",t2:"Psychic"},{n:"Brute Bonnet",t1:"Grass",t2:"Dark"},{n:"Flutter Mane",t1:"Ghost",t2:"Fairy"},{n:"Slither Wing",t1:"Bug",t2:"Fighting"},{n:"Sandy Shocks",t1:"Electric",t2:"Ground"},{n:"Iron Treads",t1:"Ground",t2:"Steel"},
-{n:"Iron Bundle",t1:"Ice",t2:"Water"},{n:"Iron Hands",t1:"Fighting",t2:"Electric"},{n:"Iron Jugulis",t1:"Dark",t2:"Flying"},{n:"Iron Moth",t1:"Fire",t2:"Poison"},{n:"Iron Thorns",t1:"Rock",t2:"Electric"},{n:"Frigibax",t1:"Dragon",t2:"Ice"},
-{n:"Arctibax",t1:"Dragon",t2:"Ice"},{n:"Baxcalibur",t1:"Dragon",t2:"Ice"},{n:"Gimmighoul",t1:"Ghost",t2:""},{n:"Gholdengo",t1:"Steel",t2:"Ghost"},{n:"Wo-Chien",t1:"Dark",t2:"Grass"},{n:"Chien-Pao",t1:"Dark",t2:"Ice"},
-{n:"Ting-Lu",t1:"Dark",t2:"Ground"},{n:"Chi-Yu",t1:"Dark",t2:"Fire"},{n:"Roaring Moon",t1:"Dragon",t2:"Dark"},{n:"Iron Valiant",t1:"Fairy",t2:"Fighting"},{n:"Koraidon",t1:"Fighting",t2:"Dragon"},{n:"Miraidon",t1:"Electric",t2:"Dragon"},
-{n:"Walking Wake",t1:"Water",t2:"Dragon"},{n:"Iron Leaves",t1:"Grass",t2:"Psychic"},{n:"Dipplin",t1:"Grass",t2:"Dragon"},{n:"Poltchageist",t1:"Grass",t2:"Ghost"},{n:"Sinistcha",t1:"Grass",t2:"Ghost"},{n:"Okidogi",t1:"Poison",t2:"Fighting"},
-{n:"Munkidori",t1:"Poison",t2:"Psychic"},{n:"Fezandipiti",t1:"Poison",t2:"Fairy"},{n:"Ogerpon",t1:"Grass",t2:""},{n:"Archaludon",t1:"Steel",t2:"Dragon"},{n:"Hydrapple",t1:"Grass",t2:"Dragon"},{n:"Gouging Fire",t1:"Fire",t2:"Dragon"},
-{n:"Raging Bolt",t1:"Electric",t2:"Dragon"},{n:"Iron Boulder",t1:"Rock",t2:"Psychic"},{n:"Iron Crown",t1:"Steel",t2:"Psychic"},{n:"Terapagos",t1:"Normal",t2:""},{n:"Pecharunt",t1:"Poison",t2:"Ghost"},
-];
+// POKEMON_TYPES is built by loadTypeData() below.
+
+// Typing is loaded from csv/pokemon-stats.csv (type1/type2), merged with
+// csv/pokemon-types.csv underneath. Both are needed: the stats CSV is authoritative and
+// covers the megas, but 111 species appear only in pokemon-types.csv, and 146 stats rows
+// still have no type of their own. They conflict on nothing.
+//
+// This page previously carried a hardcoded copy of this data, which had drifted: the
+// Therian formes had lost their Flying type and every Legends Z-A mega was absent. Reading
+// the source removes the copy that can drift.
+async function loadTypeData(){
+  function parse(text){
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim());
+    const iName = header.indexOf("name"), i1 = header.indexOf("type1"), i2 = header.indexOf("type2");
+    if(iName < 0 || i1 < 0) return [];
+    return lines.map(l => {
+      const c = l.split(",");
+      return { n: (c[iName]||"").trim(), t1: (c[i1]||"").trim(), t2: (i2 >= 0 ? (c[i2]||"").trim() : "") };
+    }).filter(r => r.n && r.t1);
+  }
+  try{
+    const [statsRes, typesRes] = await Promise.all([
+      fetch("csv/pokemon-stats.csv"),
+      fetch("csv/pokemon-types.csv"),
+    ]);
+    if(!statsRes.ok) throw new Error("pokemon-stats.csv HTTP " + statsRes.status);
+    const byName = new Map();
+    if(typesRes.ok) parse(await typesRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
+    parse(await statsRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
+    TYPE_ROWS = [...byName.values()];
+    POKEMON_TYPES = TYPE_ROWS.map(r => ({ n: r.n, t1: r.t1, t2: r.t2 || "" }));
+    BOSS_TYPES = {};
+    TYPE_ROWS.forEach(r => { BOSS_TYPES[r.n.toLowerCase()] = { t1: r.t1.toLowerCase(), t2: (r.t2||"").toLowerCase() }; });
+  }catch(e){
+    // Loud on purpose: a quiet failure here looks exactly like a boss legitimately having
+    // no type icons, which is how the stale inline table went unnoticed.
+    console.error("Failed to load type data - type icons will be missing:", e);
+  }
+}
+let TYPE_ROWS = [];
+let BOSS_TYPES = {};
+// POKEMON_TYPES keeps its historical [{n,t1,t2}] shape for existing callers.
+let POKEMON_TYPES = [];
+
 const TYPE_OVERRIDES = {
   "mega charizard x": {t1:"fire", t2:"dragon"},
   "mega aggron": {t1:"steel", t2:""},
@@ -1068,7 +940,12 @@ const MOVE_TYPES = {
   "force palm":"fighting","aura sphere":"fighting","confusion":"psychic","psystrike":"psychic",
   "psychic":"psychic","smack down":"rock","rock slide":"rock","rock throw":"rock",
   "meteor beam":"rock","rock wrecker":"rock","charge beam":"electric","fusion bolt":"electric",
-  "lock on":"electric","thunder cage":"electric","thunder shock":"electric","wild charge":"electric",
+  "thunder cage":"electric","thunder shock":"electric","wild charge":"electric",
+  // Lock On is a NORMAL-type fast move, not Electric. It sat in the electric block here
+  // while research.html, tier4-raids.html and tier5-raids.html all had it as normal, and
+  // csv/moves.csv - the authority - lists it as Normal. Regieleki is the reason it is
+  // commonly mistaken for Electric.
+  "lock on":"normal",
   "fire fang":"fire","fusion flare":"fire","incinerate":"fire","mind blown":"fire",
   "fire spin":"fire","blast burn/blaze kick":"fire","mud shot":"ground","sandsear storm":"ground",
   "astonish":"ghost","shadow claw":"ghost","shadow ball":"ghost","lick/shadow claw":"ghost",
@@ -1338,6 +1215,7 @@ function applyRealIvMatching(cards, ivEntries){
 }
 
 async function initPage(){
+  await loadTypeData();
   const el = document.getElementById("content");
   el.innerHTML = `<div class="empty">Loading battle parties from the archives…</div>`;
   try{

@@ -772,6 +772,7 @@ function scrollToHashTarget(){
 }
 
 async function loadRaidsFromCSV(){
+  await loadTypeData();
   await loadBossBaseStats();
   const container = document.getElementById("sections");
   try{
@@ -1167,48 +1168,47 @@ async function loadBossBaseStats(){
 const BOSS_CPM = 0.7903;
 const BOSS_HP = 15000;
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
-const BOSS_TYPES = {
-  "articuno": {t1:"ice", t2:"flying"},
-  "azelf": {t1:"psychic", t2:""},
-  "blacephalon": {t1:"fire", t2:"ghost"},
-  "buzzwole": {t1:"bug", t2:"fighting"},
-  "deoxys": {t1:"psychic", t2:""},
-  "deoxys attack": {t1:"psychic", t2:""},
-  "enamorus incarnate": {t1:"fairy", t2:"flying"},
-  "enamorus therian": {t1:"fairy", t2:""},
-  "genesect": {t1:"bug", t2:"steel"},
-  "giratina origin": {t1:"ghost", t2:"dragon"},
-  "guzzlord": {t1:"dark", t2:"dragon"},
-  "heatran": {t1:"fire", t2:"steel"},
-  "ho-oh": {t1:"fire", t2:"flying"},
-  "hoopa unbound": {t1:"psychic", t2:"dark"},
-  "kartana": {t1:"grass", t2:"steel"},
-  "kyurem": {t1:"dragon", t2:"ice"},
-  "kyurem black": {t1:"dragon", t2:"ice"},
-  "kyurem white": {t1:"dragon", t2:"ice"},
-  "landorus incarnate": {t1:"ground", t2:"flying"},
-  "landorus therian": {t1:"ground", t2:"flying"},
-  "lunala": {t1:"psychic", t2:"ghost"},
-  "mewtwo": {t1:"psychic", t2:""},
-  "moltres": {t1:"fire", t2:"flying"},
-  "necrozma": {t1:"psychic", t2:""},
-  "necrozma dawn wings": {t1:"psychic", t2:"ghost"},
-  "nihilego": {t1:"rock", t2:"poison"},
-  "pheromosa": {t1:"bug", t2:"fighting"},
-  "rayquaza": {t1:"dragon", t2:"flying"},
-  "regidrago": {t1:"dragon", t2:""},
-  "regieleki": {t1:"electric", t2:""},
-  "stakataka": {t1:"rock", t2:"steel"},
-  "tapu bulu": {t1:"grass", t2:"fairy"},
-  "terrakion": {t1:"rock", t2:"fighting"},
-  "thundurus incarnate": {t1:"electric", t2:"flying"},
-  "thundurus therian": {t1:"electric", t2:""},
-  "tornadus incarnate": {t1:"flying", t2:""},
-  "virizion": {t1:"grass", t2:"fighting"},
-  "xerneas": {t1:"fairy", t2:""},
-  "xurkitree": {t1:"electric", t2:""},
-  "zekrom": {t1:"dragon", t2:"electric"},
-};
+// BOSS_TYPES is built by loadTypeData() below.
+
+// Typing is loaded from csv/pokemon-stats.csv (type1/type2), merged with
+// csv/pokemon-types.csv underneath. Both are needed: the stats CSV is authoritative and
+// covers the megas, but 111 species appear only in pokemon-types.csv, and 146 stats rows
+// still have no type of their own. They conflict on nothing.
+//
+// This page previously carried a hardcoded copy of this data, which had drifted: the
+// Therian formes had lost their Flying type and every Legends Z-A mega was absent. Reading
+// the source removes the copy that can drift.
+async function loadTypeData(){
+  function parse(text){
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim());
+    const iName = header.indexOf("name"), i1 = header.indexOf("type1"), i2 = header.indexOf("type2");
+    if(iName < 0 || i1 < 0) return [];
+    return lines.map(l => {
+      const c = l.split(",");
+      return { n: (c[iName]||"").trim(), t1: (c[i1]||"").trim(), t2: (i2 >= 0 ? (c[i2]||"").trim() : "") };
+    }).filter(r => r.n && r.t1);
+  }
+  try{
+    const [statsRes, typesRes] = await Promise.all([
+      fetch("csv/pokemon-stats.csv"),
+      fetch("csv/pokemon-types.csv"),
+    ]);
+    if(!statsRes.ok) throw new Error("pokemon-stats.csv HTTP " + statsRes.status);
+    const byName = new Map();
+    if(typesRes.ok) parse(await typesRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
+    parse(await statsRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
+    TYPE_ROWS = [...byName.values()];
+    BOSS_TYPES = {};
+    TYPE_ROWS.forEach(r => { BOSS_TYPES[r.n.toLowerCase()] = { t1: r.t1.toLowerCase(), t2: (r.t2||"").toLowerCase() }; });
+  }catch(e){
+    // Loud on purpose: a quiet failure here looks exactly like a boss legitimately having
+    // no type icons, which is how the stale inline table went unnoticed.
+    console.error("Failed to load type data - type icons will be missing:", e);
+  }
+}
+let TYPE_ROWS = [];
+let BOSS_TYPES = {};
 function typeIconsHtml(bossName){
   const t = BOSS_TYPES[bossName.trim().toLowerCase()];
   if(!t) return "";

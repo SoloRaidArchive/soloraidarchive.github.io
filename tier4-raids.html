@@ -778,6 +778,7 @@ function scrollToHashTarget(){
 }
 
 async function loadRaidsFromCSV(){
+  await loadTypeData();
   await loadBossBaseStats();
   const container = document.getElementById("sections");
   try{
@@ -1177,50 +1178,47 @@ async function loadBossBaseStats(){
 const BOSS_CPM = 0.7903;
 const BOSS_HP = 9000;
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
-const BOSS_TYPES = {
-  "mega abomasnow": {t1:"grass", t2:"ice"},
-  "mega absol": {t1:"dark", t2:""},
-  "mega aerodactyl": {t1:"rock", t2:"flying"},
-  "mega aggron": {t1:"steel", t2:""},
-  "mega alakazam": {t1:"psychic", t2:""},
-  "mega altaria": {t1:"dragon", t2:"flying"},
-  "mega ampharos": {t1:"electric", t2:"dragon"},
-  "mega audino": {t1:"normal", t2:""},
-  "mega banette": {t1:"ghost", t2:""},
-  "mega beedrill": {t1:"bug", t2:"poison"},
-  "mega blastoise": {t1:"water", t2:""},
-  "mega blaziken": {t1:"fire", t2:"fighting"},
-  "mega camerupt": {t1:"fire", t2:"ground"},
-  "mega charizard x": {t1:"fire", t2:"dragon"},
-  "mega charizard y": {t1:"fire", t2:"flying"},
-  "mega gallade": {t1:"psychic", t2:"fighting"},
-  "mega garchomp": {t1:"dragon", t2:"ground"},
-  "mega gardevoir": {t1:"psychic", t2:"fairy"},
-  "mega gengar": {t1:"ghost", t2:"poison"},
-  "mega glalie": {t1:"ice", t2:""},
-  "mega gyarados": {t1:"water", t2:"dark"},
-  "mega heracross": {t1:"bug", t2:"fighting"},
-  "mega houndoom": {t1:"dark", t2:"fire"},
-  "mega kangaskhan": {t1:"normal", t2:""},
-  "mega lopunny": {t1:"normal", t2:""},
-  "mega lucario": {t1:"fighting", t2:"steel"},
-  "mega manectric": {t1:"electric", t2:""},
-  "mega mawile": {t1:"steel", t2:"fairy"},
-  "mega medicham": {t1:"fighting", t2:"psychic"},
-  "mega metagross": {t1:"steel", t2:"psychic"},
-  "mega pidgeot": {t1:"normal", t2:"flying"},
-  "mega pinsir": {t1:"bug", t2:""},
-  "mega sableye": {t1:"dark", t2:"ghost"},
-  "mega salamence": {t1:"dragon", t2:"flying"},
-  "mega sceptile": {t1:"grass", t2:"dragon"},
-  "mega scizor": {t1:"bug", t2:"steel"},
-  "mega sharpedo": {t1:"water", t2:"dark"},
-  "mega slowbro": {t1:"water", t2:"psychic"},
-  "mega steelix": {t1:"steel", t2:"ground"},
-  "mega swampert": {t1:"water", t2:"ground"},
-  "mega tyranitar": {t1:"rock", t2:"dark"},
-  "mega venusaur": {t1:"grass", t2:"poison"},
-};
+// BOSS_TYPES is built by loadTypeData() below.
+
+// Typing is loaded from csv/pokemon-stats.csv (type1/type2), merged with
+// csv/pokemon-types.csv underneath. Both are needed: the stats CSV is authoritative and
+// covers the megas, but 111 species appear only in pokemon-types.csv, and 146 stats rows
+// still have no type of their own. They conflict on nothing.
+//
+// This page previously carried a hardcoded copy of this data, which had drifted: the
+// Therian formes had lost their Flying type and every Legends Z-A mega was absent. Reading
+// the source removes the copy that can drift.
+async function loadTypeData(){
+  function parse(text){
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim());
+    const iName = header.indexOf("name"), i1 = header.indexOf("type1"), i2 = header.indexOf("type2");
+    if(iName < 0 || i1 < 0) return [];
+    return lines.map(l => {
+      const c = l.split(",");
+      return { n: (c[iName]||"").trim(), t1: (c[i1]||"").trim(), t2: (i2 >= 0 ? (c[i2]||"").trim() : "") };
+    }).filter(r => r.n && r.t1);
+  }
+  try{
+    const [statsRes, typesRes] = await Promise.all([
+      fetch("csv/pokemon-stats.csv"),
+      fetch("csv/pokemon-types.csv"),
+    ]);
+    if(!statsRes.ok) throw new Error("pokemon-stats.csv HTTP " + statsRes.status);
+    const byName = new Map();
+    if(typesRes.ok) parse(await typesRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
+    parse(await statsRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
+    TYPE_ROWS = [...byName.values()];
+    BOSS_TYPES = {};
+    TYPE_ROWS.forEach(r => { BOSS_TYPES[r.n.toLowerCase()] = { t1: r.t1.toLowerCase(), t2: (r.t2||"").toLowerCase() }; });
+  }catch(e){
+    // Loud on purpose: a quiet failure here looks exactly like a boss legitimately having
+    // no type icons, which is how the stale inline table went unnoticed.
+    console.error("Failed to load type data - type icons will be missing:", e);
+  }
+}
+let TYPE_ROWS = [];
+let BOSS_TYPES = {};
 function typeIconsHtml(bossName){
   const t = BOSS_TYPES[bossName.trim().toLowerCase()];
   if(!t) return "";
