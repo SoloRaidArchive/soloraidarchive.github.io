@@ -231,6 +231,20 @@
   }
 
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+
+/* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator. */
+.ac-wrap{ position:relative; }
+.ac-list{
+  position:absolute; left:0; right:0; top:100%; z-index:60; display:none;
+  background: var(--card, #fff); border:1px solid var(--border, #d8dbe6);
+  border-radius:10px; margin-top:4px; overflow:hidden;
+  box-shadow:0 8px 22px rgba(0,0,0,.12);
+}
+.ac-list.open{ display:block; }
+.ac-item{ padding:8px 12px; font-size:14px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
+[data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
+.ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
 </style>
 </head>
 <body>
@@ -345,8 +359,6 @@ const TYPE_OVERRIDES = {
   "primal groudon": {t1:"ground", t2:"fire"},
   "necrozma dusk mane": {t1:"psychic", t2:"steel"},
   "necrozma dawn wings": {t1:"psychic", t2:"ghost"},
-  "ndm": {t1:"psychic", t2:"steel"},
-  "ndw": {t1:"psychic", t2:"ghost"},
   "zacian crown": {t1:"fairy", t2:"steel"},
   "zamazenta crown": {t1:"fighting", t2:"steel"},
   "kyurem black": {t1:"dragon", t2:"ice"},
@@ -1207,5 +1219,84 @@ document.addEventListener("click", (e) => {
 });
 </script>
 
+<script>
+
+// ---- Search autocomplete (ported from ct-calculator.html) ----------------------------
+// Capped at 8 so the list can never run past the field into neighbouring content, which
+// is the same reason the calculator caps it. Names come from this page's own dataset via
+// a getter, because that dataset is filled by an async CSV load that has not run yet when
+// this script parses.
+function initSearchAutocomplete(inputId, getNames){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  const wrap = document.createElement("span");
+  wrap.className = "ac-wrap";
+  input.parentNode.insertBefore(wrap, input);
+  wrap.appendChild(input);
+  const list = document.createElement("div");
+  list.className = "ac-list";
+  wrap.appendChild(list);
+  let highlighted = -1;
+
+  function matches(query){
+    const q = (query || "").trim().toLowerCase();
+    if(!q) return [];
+    const seen = new Set(), starts = [], contains = [];
+    for(const raw of (getNames() || [])){
+      if(!raw) continue;
+      const name = String(raw);
+      const lower = name.toLowerCase();
+      if(seen.has(lower)) continue;
+      if(lower.startsWith(q)){ seen.add(lower); starts.push(name); }
+      else if(lower.includes(q)){ seen.add(lower); contains.push(name); }
+      if(starts.length >= 8) break;
+    }
+    return [...starts, ...contains].slice(0, 8);
+  }
+  function highlight(name, query){
+    const q = (query || "").trim();
+    const i = name.toLowerCase().indexOf(q.toLowerCase());
+    if(i === -1 || !q) return name;
+    return name.slice(0,i) + "<mark>" + name.slice(i, i+q.length) + "</mark>" + name.slice(i+q.length);
+  }
+  function close(){ list.classList.remove("open"); highlighted = -1; }
+  function select(name){
+    input.value = name;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+  }
+  function render(){
+    const found = matches(input.value);
+    if(!found.length){ close(); return; }
+    list.innerHTML = found.map((n,i) =>
+      `<div class="ac-item${i===highlighted?' hi':''}" data-name="${String(n).replace(/"/g,'&quot;')}">${highlight(String(n), input.value)}</div>`
+    ).join("");
+    // Match the field, not the wrapper. The wrapper becomes a grid/flex item on some
+    // pages and stretches to the track width (676px vs a 400px input on
+    // pokemon-stats.html), which made the dropdown wider than the box it belongs to.
+    list.style.width = input.offsetWidth + "px";
+    list.classList.add("open");
+    list.querySelectorAll(".ac-item").forEach(el => {
+      // mousedown, not click: it fires before the input's blur, so picking an item does
+      // not close the dropdown out from under the pointer.
+      el.addEventListener("mousedown", e => { e.preventDefault(); select(el.dataset.name); });
+    });
+  }
+  input.addEventListener("input", () => { highlighted = -1; render(); });
+  input.addEventListener("focus", render);
+  input.addEventListener("blur", () => setTimeout(close, 120));
+  input.addEventListener("keydown", e => {
+    const items = list.querySelectorAll(".ac-item");
+    if(!list.classList.contains("open") || !items.length) return;
+    if(e.key === "ArrowDown"){ e.preventDefault(); highlighted = Math.min(highlighted+1, items.length-1); render(); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); highlighted = Math.max(highlighted-1, 0); render(); }
+    else if(e.key === "Enter" && highlighted >= 0){ e.preventDefault(); select(items[highlighted].dataset.name); }
+    else if(e.key === "Escape"){ close(); }
+  });
+}
+
+initSearchAutocomplete('pokemonSearch', () => (typeof PARTIES!=='undefined'?PARTIES.flatMap(p=>(p.slots||[]).map(s=>s.n)):[]));
+</script>
 </body>
 </html>
