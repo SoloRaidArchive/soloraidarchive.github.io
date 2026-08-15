@@ -253,12 +253,16 @@
 
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
 
-/* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator. */
-.ac-wrap{ position:relative; }
+/* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator.
+   The dropdown is appended to <body> and positioned with position:fixed from the input's
+   own bounding box. An earlier version wrapped the input in a span to anchor the list,
+   which changed the field's placement: these bars are centred by their parent row on
+   desktop, and the extra element pushed them hard left. Nothing wraps the input now, so
+   layout is byte-identical to before the autocomplete existed. */
 .ac-list{
-  position:absolute; left:0; right:0; top:100%; z-index:60; display:none;
+  position:fixed; z-index:2000; display:none;
   background: var(--card, #fff); border:1px solid var(--border, #d8dbe6);
-  border-radius:10px; margin-top:4px; overflow:hidden;
+  border-radius:10px; overflow:hidden;
   box-shadow:0 8px 22px rgba(0,0,0,.12);
 }
 .ac-list.open{ display:block; }
@@ -1009,13 +1013,16 @@ document.addEventListener("click", (e) => {
 function initSearchAutocomplete(inputId, getNames){
   const input = document.getElementById(inputId);
   if(!input) return;
-  const wrap = document.createElement("span");
-  wrap.className = "ac-wrap";
-  input.parentNode.insertBefore(wrap, input);
-  wrap.appendChild(input);
+  // Appended to <body>, never wrapped around the input - see the .ac-list CSS note.
   const list = document.createElement("div");
   list.className = "ac-list";
-  wrap.appendChild(list);
+  document.body.appendChild(list);
+  function place(){
+    const b = input.getBoundingClientRect();
+    list.style.left  = b.left + "px";
+    list.style.top   = (b.bottom + 4) + "px";
+    list.style.width = b.width + "px";
+  }
   let highlighted = -1;
 
   function matches(query){
@@ -1052,10 +1059,7 @@ function initSearchAutocomplete(inputId, getNames){
     list.innerHTML = found.map((n,i) =>
       `<div class="ac-item${i===highlighted?' hi':''}" data-name="${String(n).replace(/"/g,'&quot;')}">${highlight(String(n), input.value)}</div>`
     ).join("");
-    // Match the field, not the wrapper. The wrapper becomes a grid/flex item on some
-    // pages and stretches to the track width (676px vs a 400px input on
-    // pokemon-stats.html), which made the dropdown wider than the box it belongs to.
-    list.style.width = input.offsetWidth + "px";
+    place();
     list.classList.add("open");
     list.querySelectorAll(".ac-item").forEach(el => {
       // mousedown, not click: it fires before the input's blur, so picking an item does
@@ -1065,6 +1069,8 @@ function initSearchAutocomplete(inputId, getNames){
   }
   input.addEventListener("input", () => { highlighted = -1; render(); });
   input.addEventListener("focus", render);
+  window.addEventListener("scroll", () => { if(list.classList.contains("open")) place(); }, true);
+  window.addEventListener("resize", () => { if(list.classList.contains("open")) place(); });
   input.addEventListener("blur", () => setTimeout(close, 120));
   input.addEventListener("keydown", e => {
     const items = list.querySelectorAll(".ac-item");
