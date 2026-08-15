@@ -257,7 +257,7 @@ def fetch_boss_dates_from_website():
         resp.raise_for_status()
     except Exception as e:
         print(f"Could not fetch website for date info (non-fatal, dates will show as 'Currently active'): {e}")
-        return {}
+        return {}, []
 
     try:
         from bs4 import BeautifulSoup
@@ -267,6 +267,7 @@ def fetch_boss_dates_from_website():
 
     date_matches = list(DATE_BLOCK_RE.finditer(text))
     dates_by_name = {}
+    web_occurrences = []
     for i, m in enumerate(date_matches):
         start = m.end()
         end = date_matches[i + 1].start() if i + 1 < len(date_matches) else len(text)
@@ -283,8 +284,17 @@ def fetch_boss_dates_from_website():
             key = normalize_name(clean_name)
             if key not in dates_by_name:
                 dates_by_name[key] = (m.group(1), m.group(2))
-    print(f"Found date info for {len(dates_by_name)} boss(es) on the website")
-    return dates_by_name
+            # dates_by_name keeps only the FIRST window per boss, which is all the date
+            # lookup needs. But a boss can legitimately appear in several dated blocks -
+            # Mega Victreebel runs on Aug 31 AND again on Sep 5, Mega Starmie on Sep 3 AND
+            # Sep 5 - and keying by name alone collapses those into one. Every occurrence
+            # is recorded separately here so each (boss, window) can stand on its own.
+            occurrence = (key, m.group(1), m.group(2))
+            if occurrence not in web_occurrences:
+                web_occurrences.append(occurrence)
+    print(f"Found date info for {len(dates_by_name)} boss(es) on the website "
+          f"({len(web_occurrences)} boss/window occurrence(s))")
+    return dates_by_name, web_occurrences
 
 
 
@@ -433,7 +443,7 @@ def main():
     current_names = fetch_current_bosses()
     print(f"Fetched {len(current_names)} total current boss entries from Pokebattler's API")
 
-    dates_by_name = fetch_boss_dates_from_website()
+    dates_by_name, web_occurrences = fetch_boss_dates_from_website()
     now = datetime.now()
 
     def date_only(date_str):
@@ -447,17 +457,21 @@ def main():
     results = []
     seen = set()
 
-    def build_result(name, key):
+    def build_result(name, key, override_dates=None):
         """Assembles one result dict for a known boss, applying the expiry rule. Returns the
         dict to append, or None if the boss should be filtered out. Shared by the live-API
-        pass and the this-month-rotation retention pass below so both use identical logic."""
+        pass and the this-month-rotation retention pass below so both use identical logic.
+
+        override_dates supplies an explicit (start, end) for the website pass, where the
+        same boss can appear on several days and the name-keyed dates_by_name lookup would
+        return whichever window happened to come first."""
         info = known_bosses[key]
         # Prefer the static, hand-verified CONFIRMED_ROTATION_DATES table over whatever
         # the live website scrape found - it's cross-checked against two independent
         # sources and, once entered, doesn't drift if Pokebattler's page changes wording.
         # Only fall back to the live scrape for bosses not yet in that table (e.g. a new
         # month's rotation before it's been manually confirmed and added).
-        start_date, end_date = CONFIRMED_ROTATION_DATES.get(key) or dates_by_name.get(key, (None, None))
+        start_date, end_date = override_dates or CONFIRMED_ROTATION_DATES.get(key) or dates_by_name.get(key, (None, None))
 
         # NULL-DATE RULE: an entry with neither a start nor an end date is never published.
         # Every expiry check below is skipped when end_dt is None, so an undated boss used
@@ -558,16 +572,25 @@ def main():
     # read more completely. Everything downstream still applies: known_bosses filters to
     # documented solos, build_result applies the expiry and category rules, and the
     # LeekDuck cross-check still gets to drop any of them that turn out to be Super Mega.
-    for key, (start_date, end_date) in dates_by_name.items():
-        if key in seen or key not in known_bosses:
+    # Deduped by (boss, day), NOT by boss. `seen` above is name-keyed, which is right for
+    # the rotation passes but wrong here: a boss can run on several separate event days.
+    # Mega Victreebel is on Aug 31 and again on Sep 5; Mega Starmie on Sep 3 and Sep 5;
+    # Mega Raichu X on Sep 4 and Sep 5. Keying by name alone kept only the first and
+    # silently dropped the Sep 5/Sep 6 appearances.
+    seen_windows = {(normalize_name(r["name"]), date_only(r.get("startDate"))) for r in results}
+    for key, start_date, end_date in web_occurrences:
+        if key not in known_bosses:
             continue
-        display_name = known_bosses[key].get("name") or key.title()
-        r = build_result(display_name, key)
+        if (key, date_only(start_date)) in seen_windows:
+            continue
+        info = known_bosses[key]
+        r = build_result(info.get("name") or key.title(), key,
+                         override_dates=(start_date, end_date))
         if r is None:
             continue
-        seen.add(key)
+        seen_windows.add((key, date_only(start_date)))
         results.append(r)
-        print(f"  website: added {display_name} ({start_date} -> {end_date}) - "
+        print(f"  website: added {r['name']} ({date_only(start_date)} -> {date_only(end_date)}) - "
               f"listed on pokebattler.com/raids but absent from its API")
 
     # Pokebattler stays authoritative for what is running and when. LeekDuck answers one

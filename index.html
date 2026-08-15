@@ -947,12 +947,20 @@ async function loadLiveBosses(){
       </div>`;
     }
 
-    function renderRotationRow(rotationGroups){
+    // A single event period with this many or more bosses keeps its own labelled block.
+    // A day with a real line-up (GO Fest weekend days run 7-14 bosses) reads better under
+    // its own header; it is the days with two or three bosses that waste vertical space,
+    // each costing a full stacked header block for one icon. Those consolidate onto a
+    // shared row instead, with each item carrying its own date caption.
+    const EVENT_BLOCK_MIN = 5;
+
+    function renderFlatRow(groups, cap){
       // Flatten every date group into one flat list (keeping each boss's own dates),
       // then sort live/ongoing first, soonest-upcoming next, furthest-out last - all on
       // one horizontal row instead of stacked per-date blocks, to save vertical space.
+      // Each item carries its own date caption, so a shared row stays unambiguous.
       const flat = [];
-      rotationGroups.forEach(group => {
+      groups.forEach(group => {
         group.bosses.forEach(boss => {
           flat.push(Object.assign({}, boss, { startDate: group.startDate, endDate: group.endDate }));
         });
@@ -963,7 +971,14 @@ async function loadLiveBosses(){
         if(!b.startDate) return 1;
         return new Date(a.startDate) - new Date(b.startDate);
       });
-      return `<div class="live-boss-row live-boss-row-grid">${flat.map(boss => `
+      // `cap` mirrors the per-group MAX_SHOWN limit that renderGroup applies. Without it,
+      // consolidating event periods made MOBILE taller, not shorter: the old stacked
+      // blocks each showed at most 5 icons behind a "see all" link, while a flat row
+      // showed every one - measured at +326px on a 390px viewport even though desktop
+      // shrank by 98px. Capping the shared row restores the mobile behaviour.
+      const shown = (cap && flat.length > cap) ? flat.slice(0, cap) : flat;
+      const overflow = flat.length - shown.length;
+      return `<div class="live-boss-row live-boss-row-grid">${shown.map(boss => `
         <a class="live-boss-item" href="${bossHref(boss)}" title="${boss.name}">
           <div class="live-boss-icon"><img class="${needsShadowMist(boss.name) ? 'shadow-mist' : ''}" src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${boss.name}')) { this.style.display='none'; }"></div>
           <div class="live-boss-meta">
@@ -971,8 +986,11 @@ async function loadLiveBosses(){
             ${weatherIcon(boss.weather)}
           </div>
           <div class="live-boss-date">${formatGroupHeader(boss.startDate, boss.endDate)}</div>
-        </a>`).join("")}</div>`;
+        </a>`).join("")}</div>${overflow > 0 ? `<a class="live-boss-more" href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">See all ${flat.length} raids on Pokebattler &rarr;</a>` : ""}`;
     }
+
+    // Kept as an alias so the rotation call site reads the same as before.
+    const renderRotationRow = renderFlatRow;
 
     const eventGroups = groups.filter(g => g.category === "event");
     const rotationGroups = groups.filter(g => g.category !== "event");
@@ -980,7 +998,15 @@ async function loadLiveBosses(){
     let html = "";
     if(eventGroups.length){
       html += `<div class="live-boss-section-label">Event raids</div>`;
-      html += eventGroups.map(renderGroup).join("");
+      // Event raids arrive as many short periods - a run of one-day events used to render
+      // one stacked, separately-headed block each, which ate vertical space fast. Small
+      // periods are consolidated onto a shared row instead, exactly like the monthly
+      // rotation, with each boss carrying its own date caption. Only a period big enough
+      // to dominate that row (EVENT_BLOCK_MIN) keeps a block of its own.
+      const bigGroups = eventGroups.filter(g => g.bosses.length >= EVENT_BLOCK_MIN);
+      const smallGroups = eventGroups.filter(g => g.bosses.length < EVENT_BLOCK_MIN);
+      html += bigGroups.map(renderGroup).join("");
+      if(smallGroups.length) html += renderFlatRow(smallGroups, isMobile ? MAX_SHOWN : 0);
     }
     if(rotationGroups.length){
       html += `<div class="live-boss-section-label">Monthly rotation</div>`;
