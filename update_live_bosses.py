@@ -277,76 +277,84 @@ def fetch_boss_dates_from_website():
 
 
 def apply_leekduck_crosscheck(results):
-    """Drop event mega raids that LeekDuck explicitly identifies as Super Mega raids.
+    """Drop event mega raids that LeekDuck identifies as Super Mega raids.
 
-    Returns a filtered copy of `results`. Anything that is not a Tier 4 EVENT entry is
-    passed through untouched: rotations (including ones whose window already closed this
-    month, which are still wanted under "Monthly raid rotations"), Tier 5, Elite and
-    Shadow bosses are all out of scope.
+    SOURCE: ScrapedDuck JSON, NOT leekduck.com HTML.
+    ------------------------------------------------
+    leekduck.com returns 403 to non-browser requests, so every page fetch fails from a
+    CI runner. The previous version skipped any event whose HTML could not be read, which
+    meant the index came back EMPTY, the whole check failed open, and nothing was ever
+    dropped - Mega Starmie (Aug 22) and Mega Staraptor (Sep 19) survived every run while
+    the logs looked healthy. That was a dependency on an unreachable source, not a parsing
+    bug.
+
+    ScrapedDuck mirrors LeekDuck as JSON on raw.githubusercontent.com, which IS reachable,
+    and it already carries everything this decision needs:
+
+        eventID / name   "starmie-super-mega-raid-day-2026", "Super Mega Raid Day"
+        start / end      real ISO timestamps
+        bosses[]         named for raid-battles events
+
+    Super Mega Raid Days are identified from the event's slug and title. No HTML, no
+    parsing of page structure, nothing that can silently return nothing.
 
     MATCHING IS 1-TO-1 ON (BOSS, WINDOW)
     ------------------------------------
-    An entry is matched to the single LeekDuck event whose window CONTAINS it, not to
-    "any event whose dates happen to overlap". Tier is a property of a boss in a specific
-    event, so Mega Starmie on Aug 22 (Super Mega Raid Day) and Mega Starmie on Sep 3
-    (Mega Ascension, an ordinary Mega Raid) are two separate questions with two separate
-    answers. Overlap matching blurred them together: a boss could be cleared by an event
-    weeks away that merely shared a date range, or condemned by one it had nothing to do
-    with. Containment ties each entry to the event it actually belongs to.
+    An entry is matched to the single event whose window CONTAINS it, never to "any event
+    whose dates overlap". Tier is a property of a boss within a specific event: Mega
+    Starmie on Aug 22 (Super Mega Raid Day) and Mega Starmie on Sep 3 (Mega Ascension,
+    an ordinary Mega Raid) are separate questions with separate answers.
 
     REMOVAL REQUIRES POSITIVE EVIDENCE
     ----------------------------------
-    An entry is dropped ONLY when the matching event says, in so many words, that this
-    boss is a Super Mega raid - either:
-
-      * the boss sits under a "Super Mega Raids" heading on that event's page, or
-      * the event is a Super Mega Raid Day (by slug or title) and does not list the boss
-        as an ordinary Mega Raid boss elsewhere on the page.
-
-    Absence of evidence is never removal. If no event matches, if the page could not be
-    parsed, or if the event simply does not mention the boss, the entry is KEPT and
-    Pokebattler stands. Mega Ascension is the case this protects: it is a plain event that
-    runs ordinary Mega Raids, it is not a Super Mega Raid Day, and nothing about it should
-    cause a removal.
+    An entry is dropped ONLY when its matching event is a Super Mega Raid Day and does not
+    list that boss as an ordinary Mega Raid boss. Anything else is kept: no matching event,
+    a plain event, a rotation, or a fetch failure all mean KEEP and Pokebattler stands.
+    Mega Ascension and Mega Finale are plain events running ordinary Mega Raids and can
+    never trigger a removal.
     """
+    import re as _re
+
+    SUPER_MEGA_RE = _re.compile(r"super[-\s]?mega[-\s]?raid", _re.IGNORECASE)
+
     try:
         import leekduck_crosscheck as lc
-        from leekduck_tiers import load_base_form_map, load_legendary_species
     except ImportError as exc:
         print(f"  LeekDuck cross-check unavailable ({exc}) - keeping all entries")
         return results
 
     try:
         events = lc.discover_events()
-        legendary = load_legendary_species(REPO_ROOT / "csv/tier5-bosses.csv")
-        base_form_map = load_base_form_map(REPO_ROOT / "ct-calculator.html")
-
-        def sections_for(e):
-            try:
-                return lc.extract_sections(lc.http_text(e["link"]))
-            except Exception as exc:
-                print(f"    !! fetch/parse failed for {e.get('eventID')}: {exc}")
-                return None
-
-        index = lc.build_leekduck_index(events, sections_for, legendary, base_form_map,
-                                        verbose=False)
     except Exception as exc:
-        print(f"  LeekDuck cross-check FAILED ({type(exc).__name__}: {exc}) "
-              f"- keeping all entries")
+        print(f"  LeekDuck cross-check FAILED ({type(exc).__name__}: {exc}) - keeping all entries")
         return results
 
-    parsed = [c for c in index if c["publishable"] or c["superMega"]]
-    print(f"  LeekDuck: {len(index)} event(s) discovered, {len(parsed)} with a readable "
-          f"boss list")
-    if not parsed:
-        print("  LeekDuck cross-check found no readable boss lists - markup may have "
-              "changed. Keeping all entries.")
+    index = []
+    for e in events:
+        start = lc.parse_iso(e.get("start"))
+        end = lc.parse_iso(e.get("end"))
+        if not start or not end:
+            continue
+        bosses = {b.get("name") for b in
+                  (e.get("extraData") or {}).get("raidbattles", {}).get("bosses", [])
+                  if b.get("name")}
+        eid = e.get("eventID") or ""
+        index.append({
+            "eventID": eid,
+            "start": start,
+            "end": end,
+            "bosses": bosses,
+            "isSuperMega": bool(SUPER_MEGA_RE.search(eid) or SUPER_MEGA_RE.search(e.get("name") or "")),
+        })
+
+    smd = [c["eventID"] for c in index if c["isSuperMega"]]
+    print(f"  LeekDuck: {len(index)} dated event(s) from ScrapedDuck, "
+          f"{len(smd)} Super Mega Raid Day(s): {', '.join(smd) or 'none'}")
+    if not index:
+        print("  LeekDuck cross-check got no usable events - keeping all entries")
         return results
 
     def contains(event, start, end):
-        """True when the event's window covers the entry's window, at day granularity."""
-        if not event["start"] or not event["end"] or not start or not end:
-            return False
         return event["start"].date() <= start.date() and event["end"].date() >= end.date()
 
     kept = []
@@ -358,30 +366,24 @@ def apply_leekduck_crosscheck(results):
         start = lc.parse_site_date(r.get("startDate"))
         end = lc.parse_site_date(r.get("endDate"))
         window = f"{r.get('startDate')} -> {r.get('endDate')}"
-
-        matches = [c for c in index if contains(c, start, end)]
-        if not matches:
-            print(f"  keep {r['name']} [{window}]: no LeekDuck event covers this window")
+        if not start or not end:
+            print(f"  keep {r['name']} [{window}]: undated, nothing to match against")
             kept.append(r)
             continue
 
-        # Prefer the tightest covering event - the one this entry actually belongs to.
+        matches = [c for c in index if contains(c, start, end)]
+        if not matches:
+            print(f"  keep {r['name']} [{window}]: no event covers this window")
+            kept.append(r)
+            continue
+
+        # Tightest covering event is the one this entry actually belongs to.
         event = min(matches, key=lambda c: (c["end"] - c["start"]).total_seconds())
-        eid = event["eventID"]
-
-        if r["name"] in event["superMega"]:
-            print(f"  DROP {r['name']} [{window}]: listed under a Super Mega Raids "
-                  f"heading in {eid}")
+        if event["isSuperMega"] and r["name"] not in event["bosses"]:
+            print(f"  DROP {r['name']} [{window}]: {event['eventID']} is a Super Mega Raid "
+                  f"Day and does not list it as a Mega Raid boss")
             continue
-
-        if event["isSuperMegaDay"] and r["name"] not in event["publishable"]:
-            print(f"  DROP {r['name']} [{window}]: {eid} is a Super Mega Raid Day and "
-                  f"does not list it as a Mega Raid boss")
-            continue
-
-        why = ("listed as a Mega Raid boss" if r["name"] in event["publishable"]
-               else "not identified as Super Mega")
-        print(f"  keep {r['name']} [{window}]: {eid} - {why}")
+        print(f"  keep {r['name']} [{window}]: {event['eventID']} is not a Super Mega Raid Day")
         kept.append(r)
 
     dropped = len(results) - len(kept)
