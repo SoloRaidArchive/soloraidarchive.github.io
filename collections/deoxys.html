@@ -553,7 +553,13 @@ body{ background:#20263a; color: var(--text-muted); }
      it to a plain colour - white in light mode. Only padding is set now, so both themes keep the
      landing page's gradient. */
   body{ padding:20px; }
+  /* The 940px cap meant a 1920px screen showed exactly the same cramped 96px slots as a 1024px
+     one - the extra width went entirely to empty margin. It now widens in steps, so a bigger
+     screen actually buys wider party columns instead of more whitespace. */
   .wrap{max-width:940px;margin:0 auto}
+  @media (min-width:1250px){ .wrap{max-width:1120px} }
+  @media (min-width:1500px){ .wrap{max-width:1320px} }
+  @media (min-width:1800px){ .wrap{max-width:1500px} }
   .crumb-header{font-size:15px;font-weight:700;display:flex;align-items:center;gap:7px;
                 min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
                 padding-left:2px;flex:1}
@@ -598,16 +604,26 @@ body{ background:#20263a; color: var(--text-muted); }
   /* The party member's name. This rule was missing entirely - the name was being styled only by
      the broad ".slot span" caption rule, which is why it read grey, and why narrowing that rule
      left it at the browser default 16px. --text is white in dark mode, near-black in light. */
-  .slot .sname{font-size:10.5px;font-weight:700;line-height:1.25;color:var(--text)}
+  /* Two lines reserved. Names run from "Entei" to "Necrozma Dawn Wings", so a one-line name next
+     to a two-line one pushed its moves and roles up out of alignment with the rest of the row. */
+  .slot .sname{font-size:10.5px;font-weight:700;line-height:1.25;color:var(--text);
+               min-height:calc(1.25em * 2);display:flex;align-items:flex-start}
   .slot > span:not([class]){font-size:9.5px;color:var(--ink-dim);text-align:left;line-height:1.2;margin-top:2px}
+  /* Always rendered, so the row exists whether or not there is a link - omitting it left the
+     card's content bottom at a different height from its neighbour's. */
   .vod{font-size:12px;color:var(--accent);margin-top:10px;display:inline-block;text-decoration:none}
+  .vod-none{color:var(--text-dim);font-style:italic;cursor:default}
 
   /* Multi-column on desktop: a strategy card is narrow, so one per row wasted most of the width.
      Collapses to a single column on narrow screens. */
   /* stretch, not start: a card whose party wraps to a second row was leaving its neighbour
      visibly shorter. Stretching makes both cards in a row end at the same place; the party grid
      inside keeps its own rows even, so the extra space falls below the content. */
-  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px;
+  /* Capped at two columns rather than auto-fill. With auto-fill a wider container just added a
+     THIRD card per row, which made every card - and therefore every party slot - narrower: slots
+     shrank from 96px at 1024 to 71px at 1280. Two columns means extra screen width goes into card
+     width, which is what relieves the congestion. */
+  .cards-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
               align-items:stretch}
   .rcard{display:flex;flex-direction:column}
   .rcard .vod{margin-top:auto;padding-top:8px}
@@ -654,7 +670,7 @@ body{ background:#20263a; color: var(--text-muted); }
      the page has the same number of party rows regardless of how big the party is - that is what
      keeps neighbouring cards the same height. Anything past the fourth member is revealed by the
      expand control, up to eight total (two rows). */
-  .party{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;margin-top:11px;
+  .party{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 16px;margin-top:11px;
          grid-auto-rows:1fr}
   @media (max-width:520px){ .party{grid-template-columns:repeat(2,1fr)} }
   .slot.extra{display:none}
@@ -1035,7 +1051,11 @@ async function load(){
   const crumb = document.getElementById("crumbTier");
   crumb.href = crumbSrc.page; crumb.textContent = crumbSrc.tier;
 
-  const boss = ROWS.length ? ROWS[0].boss : PAGE_SLUG.replace(/-/g," ");
+    // Title-cased fallback. The worker can create a collection page at submission time, before any
+  // archive row for that boss exists, so this name is what a visitor sees until the CSV catches up
+  // - "nosuchboss" read as a bug, "Nosuchboss" reads as an empty page.
+  const boss = ROWS.length ? ROWS[0].boss
+    : PAGE_SLUG.replace(/-/g," ").replace(/\b[a-z]/g, c => c.toUpperCase());
   document.title = `${boss} — Solo Raid Archive`;
   document.getElementById("bossName").textContent = boss;
   document.getElementById("crumbBoss").textContent = boss;
@@ -1217,9 +1237,13 @@ function render(){
           <span class="slot-roles">${roleChips(s.roles)}</span>
         </span>`).join("")}</div>
       ${r.slots.length > 4 ? `<button class="party-more" type="button" data-party="party-${i}">+${r.slots.length - 4} more</button>` : ""}
-      ${r.link ? `<a class="vod" href="${r.link}" target="_blank" rel="noopener noreferrer">&#9654; Watch VOD</a>` : ""}
+      ${r.link
+        ? `<a class="vod" href="${r.link}" target="_blank" rel="noopener noreferrer">&#9654; Watch VOD</a>`
+        : `<span class="vod vod-none">No VOD available yet</span>`}
     </div>`).join("")
-    : `<div class="empty">No strategies match these filters.</div>`;
+    : `<div class="empty">${ROWS.length
+          ? "No strategies match these filters."
+          : "No strategies recorded for this boss yet. If you have a solo, use Submit a VOD above."}</div>`;
 
   // Expand reveals the rest of the party in place; it does not navigate or reflow anything else.
   document.querySelectorAll(".party-more").forEach(btn => {
