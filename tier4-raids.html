@@ -802,14 +802,14 @@ async function loadBossIndex(){
     table.forEach(r => {
       const name = (r[iName]||"").trim();
       if(!name) return;
-      if(!byBoss.has(name)) byBoss.set(name, { name, count:0, lowest:Infinity, lowestLabel:"", highest:-Infinity });
+      if(!byBoss.has(name)) byBoss.set(name, { name, count:0, lowest:Infinity, lowestLabel:"", highest:-Infinity, highestLabel:"" });
       const b = byBoss.get(name);
       b.count++;
       const v = starValue(r[iStar]);
       if(v < b.lowest){ b.lowest = v; b.lowestLabel = (r[iStar]||"").trim(); }
       // tracked separately: the card shows the LOWEST star a boss was solved at, but sorting
       // by "highest" has to rank on the hardest one, which may be a different row entirely.
-      if(v !== Infinity && v > b.highest) b.highest = v;
+      if(v !== Infinity && v > b.highest){ b.highest = v; b.highestLabel = (r[iStar]||"").trim(); }
     });
     const bosses = [...byBoss.values()].sort((a,b)=>a.name.localeCompare(b.name));
     ALL_BOSSES = bosses;
@@ -837,6 +837,14 @@ function sortedBosses(){
 // re-parsing ~50 cards and re-requesting their sprites on each character typed, which is what
 // made the page feel heavy; toggling display costs nothing and keeps the images cached.
 let CARD_NODES = new Map();
+// Which star the card shows depends on how the list is sorted. Ranking by hardest clear while
+// still printing the easiest one made the order look arbitrary - Azelf sorted first under
+// "Highest difficulty" but displayed "4 \u2b50", its LOWEST, when its hardest is 7.
+function starLabelFor(b){
+  const mode = (document.getElementById("sortSelect") || {}).value || "name";
+  return (mode === "difficulty-desc" ? b.highestLabel : b.lowestLabel) || "\u2014";
+}
+
 function buildCardsOnce(){
   const grid = document.getElementById("bossGrid");
   if(CARD_NODES.size) return;
@@ -848,7 +856,7 @@ function buildCardsOnce(){
     a.innerHTML =
       '<img src="' + spriteUrl(b.name) + '" alt="' + b.name + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' +
       '<div class="bn">' + b.name + '</div>' +
-      '<div class="bm">' + (b.lowestLabel || "\u2014") + ' \u00b7 ' + b.count +
+      '<div class="bm">' + starLabelFor(b) + ' \u00b7 ' + b.count +
         ' strateg' + (b.count===1?'y':'ies') + '</div>';
     CARD_NODES.set(b.name, a);
     frag.appendChild(a);
@@ -866,6 +874,15 @@ function renderGrid(){
     (q ? list.length + " of " + ALL_BOSSES.length : ALL_BOSSES.length) +
     " boss" + ((q?list.length:ALL_BOSSES.length)===1?"":"es") + " \u00b7 " +
     list.reduce((n,b)=>n+b.count,0) + " strategies";
+  // Cards are built once and reused, so the label is refreshed here rather than at build time.
+  ALL_BOSSES.forEach(b => {
+    const node = CARD_NODES.get(b.name);
+    if(!node) return;
+    const meta = node.querySelector(".bm");
+    if(meta) meta.textContent = starLabelFor(b) + " \u00b7 " + b.count +
+                                " strateg" + (b.count === 1 ? "y" : "ies");
+  });
+
   const shown = new Set(list.map(b => b.name));
   CARD_NODES.forEach((node, name) => { node.style.display = shown.has(name) ? "" : "none"; });
   list.forEach(b => grid.appendChild(CARD_NODES.get(b.name)));   // reorder in place
