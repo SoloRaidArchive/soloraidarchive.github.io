@@ -548,9 +548,19 @@ body{ background:#20263a; color: var(--text-muted); }
     --accent: var(--blue); --accent-soft: rgba(61,157,255,.12); --amber:#e8a33a;
   }
   *{box-sizing:border-box}
-  body{margin:0;padding:20px;background:var(--bg);color:var(--ink);
-       font-family:'Manrope',-apple-system,Segoe UI,Roboto,sans-serif}
+  /* No background here on purpose. The site stylesheet paints the body with a gradient
+     (light: bg1->bg2->bg3, dark: a four-stop version), and setting background:var(--bg) flattened
+     it to a plain colour - white in light mode. Only padding is set now, so both themes keep the
+     landing page's gradient. */
+  body{ padding:20px; }
   .wrap{max-width:940px;margin:0 auto}
+  .crumb-header{font-size:15px;font-weight:700;display:flex;align-items:center;gap:7px;
+                min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+                padding-left:2px;flex:1}
+  .crumb-header a{color:var(--blue);text-decoration:none}
+  .crumb-header a:hover{text-decoration:underline}
+  .crumb-sep{color:var(--text-dim);font-weight:400}
+  #crumbBoss{color:var(--text)}
   .crumb{font-size:12px;color:var(--ink-dim);margin-bottom:10px}
   .crumb a{color:var(--accent);text-decoration:none}
   .head{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--border)}
@@ -583,7 +593,13 @@ body{ background:#20263a; color: var(--text-muted); }
   .party{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
   .slot{display:flex;flex-direction:column;align-items:center;width:56px}
   .slot img{width:40px;height:40px;object-fit:contain}
-  .slot span{font-size:9.5px;color:var(--ink-dim);text-align:center;line-height:1.2;margin-top:2px}
+  /* Was ".slot span", which repainted every descendant - including the Pokemon name - in the
+     muted colour. Narrowed so it only affects captions that have no class of their own. */
+  /* The party member's name. This rule was missing entirely - the name was being styled only by
+     the broad ".slot span" caption rule, which is why it read grey, and why narrowing that rule
+     left it at the browser default 16px. --text is white in dark mode, near-black in light. */
+  .slot .sname{font-size:10.5px;font-weight:700;line-height:1.25;color:var(--text)}
+  .slot > span:not([class]){font-size:9.5px;color:var(--ink-dim);text-align:left;line-height:1.2;margin-top:2px}
   .vod{font-size:12px;color:var(--accent);margin-top:10px;display:inline-block;text-decoration:none}
 
   /* Multi-column on desktop: a strategy card is narrow, so one per row wasted most of the width.
@@ -602,7 +618,10 @@ body{ background:#20263a; color: var(--text-muted); }
      the same treatment the guide pages use for boss movesets. */
   .move-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
              color:#fff;border-radius:99px;padding:2px 7px;white-space:nowrap;margin:2px 2px 0 0}
-  .move-type-icon{width:11px;height:11px;filter:brightness(0) invert(1)}
+  /* Specific enough to beat any generic img sizing inherited from the site stylesheet, and
+     flex:none so the chip's inline-flex layout cannot stretch it. */
+  .rcard .move-chip .move-type-icon{width:11px;height:11px;min-width:11px;max-width:11px;
+    min-height:11px;max-height:11px;flex:0 0 11px;object-fit:contain;filter:brightness(0) invert(1)}
   .slot{width:auto;min-width:56px;max-width:104px}
 
   /* Contrast: move chips are solid type colours, several of which (electric, ice, grass) are far
@@ -632,7 +651,9 @@ body{ background:#20263a; color: var(--text-muted); }
          margin-top:11px;grid-auto-rows:1fr}
   @media (max-width:520px){ .party{grid-template-columns:repeat(2,1fr)} }
   .slot{display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:auto;max-width:none;gap:3px}
-  .slot img{width:44px;height:44px;object-fit:contain;margin-left:-2px}
+  /* Direct child only. ".slot img" also matched the type icons nested inside the move chips
+     and outranked .move-type-icon on specificity, blowing them up to sprite size. */
+  .slot > img{width:44px;height:44px;object-fit:contain;margin-left:-2px}
   .slot-moves{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
   .slot-roles{display:flex;flex-wrap:wrap;gap:3px}
   .role-chip{display:inline-block;font-size:9px;font-weight:800;border-radius:99px;padding:2px 6px;
@@ -658,10 +679,11 @@ body{ background:#20263a; color: var(--text-muted); }
 <body>
 <div class="sticky-header">
   <div class="sticky-header-row">
-    <div class="search-wrap">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input id="search" type="text" placeholder="Search this boss's strategies…" autocomplete="off">
-    </div>
+    <!-- The search box that lived here filtered this one boss's handful of strategies, which the
+         difficulty/weather dropdowns below already do better. The breadcrumb takes the slot
+         instead: it is the only navigation cue on the page and was easy to miss down in the body. -->
+    <div class="crumb-header"><a id="crumbTier" href="../tier5-raids.html">Tier 5 Legendary</a>
+      <span class="crumb-sep">&rsaquo;</span> <span id="crumbBoss">…</span></div>
     <div class="header-buttons">
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -715,7 +737,6 @@ body{ background:#20263a; color: var(--text-muted); }
 </div>
 
 <div class="wrap">
-  <div class="crumb"><a href="../tier5-raids.html">Tier 5 Legendary</a> &rsaquo; <span id="crumbBoss">…</span></div>
   <div class="head">
     <div class="head-main">
       <img id="bossSprite" alt="" onerror="this.style.visibility='hidden'">
@@ -889,6 +910,7 @@ function toDbSlug(name){
   if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
   return n.replace(/\s+/g, "-");
 }
+function needsShadowMist(name){ return /^shadow\s+/i.test((name||"").trim()); }
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name))
@@ -986,14 +1008,16 @@ async function load(){
 
   const tiers = [...new Set(ROWS.map(r => r.src.tier))];
   const crumbSrc = ROWS.length ? ROWS[0].src : SOURCES[1];
-  const crumb = document.querySelector(".crumb a");
+  const crumb = document.getElementById("crumbTier");
   crumb.href = crumbSrc.page; crumb.textContent = crumbSrc.tier;
 
   const boss = ROWS.length ? ROWS[0].boss : PAGE_SLUG.replace(/-/g," ");
   document.title = `${boss} — Solo Raid Archive`;
   document.getElementById("bossName").textContent = boss;
   document.getElementById("crumbBoss").textContent = boss;
-  document.getElementById("bossSprite").src = spriteUrl(boss);
+  const bossImg = document.getElementById("bossSprite");
+  bossImg.src = spriteUrl(boss);
+  bossImg.className = needsShadowMist(boss) ? "shadow-mist" : "";
   const aeCount = ROWS.filter(r => r.ae).length;
   // Strategy count only. Tier name and the "N with Adventure Effect" tail crowded the header on
   // mobile and squeezed the See guide button; the tier is in the breadcrumb and the adventure
@@ -1056,11 +1080,17 @@ async function loadMoveTypes(){
   }
 }
 function moveChipHtml(name){
-  // Plain text, not a pill. Two coloured badges per slot plus a role badge stacked three deep
-  // and forced every card to a different height; the move name alone carries the information.
+  // Coloured pill + white type icon, matching the guide pages. Types come from csv/moves.csv.
   const clean = (name || "").trim();
   if(!clean || /^any$/i.test(clean)) return "";
-  return '<span class="move-txt">' + clean + '</span>';
+  const type = MOVE_TYPES[clean.toLowerCase()];
+  const bg = type ? (TYPE_COLORS[type.toLowerCase()] || "#9199A1") : "#9199A1";
+  const icon = type ? '<img class="move-type-icon" src="' + TYPE_ICON_BASE + type.toLowerCase() +
+                      '.svg" alt="" onerror="this.remove();">' : "";
+  // Label colour follows the pill's luminance - white is unreadable on electric/ice/grass.
+  const light = isLightHex(bg) ? " on-light" : "";
+  return '<span class="move-chip' + light + '" style="background:' + bg + ';" title="' + (type||"") + '">' +
+         icon + clean + '</span>';
 }
 
 const WEATHER_ICON_URLS = {
@@ -1132,7 +1162,7 @@ function render(){
       </div>
       <div class="party">${r.slots.map(s => `
         <span class="slot">
-          <img src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
+          <img class="${needsShadowMist(s.n) ? 'shadow-mist' : ''}" src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
                onerror="this.style.visibility='hidden'">
           <span class="sname">${s.n}</span>
           <span class="slot-moves">${moveChipHtml(s.fm)}${moveChipHtml(s.cm)}</span>
