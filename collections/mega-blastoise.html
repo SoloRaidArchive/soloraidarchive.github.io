@@ -682,6 +682,10 @@ body{ background:#20263a; color: var(--text-muted); }
   /* Direct child only. ".slot img" also matched the type icons nested inside the move chips
      and outranked .move-type-icon on specificity, blowing them up to sprite size. */
   .slot .sprite-wrap > img{width:44px;height:44px;object-fit:contain;margin-left:-2px}
+  /* The stand-in is a small square icon rather than artwork, so it is inset and softened to read
+     as a placeholder instead of masquerading as a real counter. */
+  .slot .sprite-wrap > img.placeholder{width:34px;height:34px;margin:5px 0 5px 3px;opacity:.75;
+                                       border-radius:8px}
   .slot-moves{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
   .slot-roles{display:flex;flex-wrap:wrap;gap:3px}
   /* Quantity reads as a count, not a role, so it is deliberately neutral rather than sharing
@@ -950,8 +954,16 @@ function toDbSlug(name){
   if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
   return n.replace(/\s+/g, "-");
 }
+// Some strategies name no specific counter - the sheet records the slot as "Various", meaning any
+// suitable attacker works. There is no Pokemon to draw, so spriteUrl would build "various.gif" and
+// the image would simply vanish, leaving a nameless gap. The site icon stands in instead.
+const PLACEHOLDER_SPRITE = "../assets/icons/favicon-32.png";
+function isPlaceholderEntry(name){
+  return /^(various|varies|any)$/i.test((name || "").trim());
+}
 function needsShadowMist(name){ return /^shadow\s+/i.test((name||"").trim()); }
 function spriteUrl(name){
+  if(isPlaceholderEntry(name)) return PLACEHOLDER_SPRITE;
   const key = name.trim().toLowerCase();
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name))
                  .replace(/-alolan$/, "-alola");
@@ -1228,7 +1240,7 @@ function render(){
       <div class="party" id="party-${i}">${r.slots.map((s, si) => `
         <span class="slot${si >= 4 ? ' extra' : ''}">
           <span class="sprite-wrap">
-            <img class="${needsShadowMist(s.n) ? 'shadow-mist' : ''}" src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
+            <img class="${isPlaceholderEntry(s.n) ? 'placeholder' : (needsShadowMist(s.n) ? 'shadow-mist' : '')}" src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
                  onerror="this.style.visibility='hidden'">
             ${qtyLabel(s.roles)}
           </span>
