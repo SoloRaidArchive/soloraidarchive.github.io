@@ -4,10 +4,14 @@ on:
   push:
     branches: [main]
     paths:
-      - "tier4-data.csv"
-      - "tier5-data.csv"
-      - "tier5-ae-data.csv"
-      - "tier6-data.csv"
+      # These moved to csv/ when the CSVs were consolidated. The trigger still pointed at the
+      # old repo-root paths, which no longer exist, so a push touching the archives never fired
+      # this workflow - it only ever ran via manual dispatch, where it skips by design because
+      # there is no "before" SHA to diff against. Net effect: it had silently stopped running.
+      - "csv/tier4-data.csv"
+      - "csv/tier5-data.csv"
+      - "csv/tier5-ae-data.csv"
+      - "csv/tier6-data.csv"
   workflow_dispatch: {}
     # ^ manual runs have no "before" push SHA to diff against, so the script just skips -
     # this is here mainly so you can confirm the workflow itself is wired up correctly.
