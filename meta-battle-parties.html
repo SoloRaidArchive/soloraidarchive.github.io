@@ -685,7 +685,10 @@ async function buildPartiesFromCSVs(){
 
     const partySlug = [...new Set(canonical.party.map(p => slugDyn(p.n)))].sort().join(',');
     const options = raids.map(r => {
-      const href = `${r.archivePage}?weather=${encodeURIComponent(r.weather)}&tier=${r.tier}&party=${encodeURIComponent(partySlug)}#boss-${slugDyn(r.boss)}`;
+      // Collections replaced the per-tier archives, so link to the boss's own page rather
+      // than the tier index - archivePage still names the tier page, which no longer lists
+      // individual strategies. Derived from the boss name for the same reason as elsewhere.
+      const href = `collections/${slugDyn(r.boss)}.html`;
       const label = `${r.boss} — ${r.category}, ${r.weather.replace(/\b\w/g, c => c.toUpperCase())}, ${r.tier} ⭐`;
       return { href, boss: r.boss, label };
     });

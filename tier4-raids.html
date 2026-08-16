@@ -584,9 +584,28 @@ body{ background:#20263a; color: var(--text-muted); }
   .boss-card img{width:56px;height:56px;object-fit:contain;margin-bottom:6px}
   .boss-card .bn{font-size:13px;font-weight:800;line-height:1.25}
   .boss-card .bm{font-size:11px;color:var(--ink-dim,#767f96);margin-top:5px}
+
+  .index-controls{max-width:1080px;margin:0 auto;padding:10px 14px 0;display:flex;
+                  align-items:center;gap:10px;flex-wrap:wrap}
+  .index-controls label{font-size:12px;font-weight:700;color:var(--ink-dim,#767f96)}
+  .index-controls select{font:inherit;font-size:12.5px;padding:6px 10px;border-radius:8px;
+                         border:1px solid var(--border,#d8dbe6);background:var(--card,#fff);color:inherit}
   .index-count{max-width:1080px;margin:0 auto;padding:0 14px;font-size:12.5px;color:var(--ink-dim,#767f96)}
 </style>
 
+
+</div>
+<!-- Closes the sticky header wrapper. Its closing tag was removed along with the
+     gear/filter panel during the index conversion, which left the hamburger panel
+     positioned against the page instead of the header - it opened ~1500px down. -->
+<div class="index-controls">
+  <label for="sortSelect">Sort</label>
+  <select id="sortSelect">
+    <option value="name">Name (A–Z)</option>
+    <option value="difficulty">Lowest difficulty</option>
+    <option value="count">Number of strategies</option>
+  </select>
+</div>
 <div class="index-count" id="indexCount"></div>
 <div class="boss-grid" id="bossGrid"></div>
 <div class="home-link-bottom-wrap">
@@ -596,6 +615,54 @@ body{ background:#20263a; color: var(--text-muted); }
 
 <script>
 // ============ BOSS INDEX ============
+// ---- Theme, restored ----
+// This block was dropped when the page became an index, so it always rendered light regardless
+// of the saved preference. It runs BEFORE the grid builds so there is no flash of light theme.
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  if(themeToggle) themeToggle.textContent = theme === "dark" ? "\u2600\ufe0f Light Mode" : "\ud83c\udf19 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+if(themeToggle){
+  themeToggle.addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    applyTheme(cur === "dark" ? "light" : "dark");
+  });
+}
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved) initialTheme = saved;
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) initialTheme = "dark";
+}catch(e){}
+applyTheme(initialTheme);
+
+// ---- Hamburger, restored ----
+// Same cause: the wiring lived in the script block the conversion replaced, so the button was
+// inert. The gear/filter panel is gone for good - filters belong on the collection pages now -
+// so only the hamburger is wired, and the gear button is hidden rather than left as a dead control.
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+const gearBtn = document.getElementById("gearBtn");
+if(gearBtn) gearBtn.style.display = "none";
+function closeHamburger(){
+  if(!hamburgerPanel) return;
+  hamburgerPanel.classList.remove("open");
+  hamburgerBtn.setAttribute("aria-expanded", "false");
+}
+if(hamburgerBtn && hamburgerPanel){
+  hamburgerBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = hamburgerPanel.classList.contains("open");
+    hamburgerPanel.classList.toggle("open", !isOpen);
+    hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+  });
+  document.addEventListener("click", (e) => {
+    if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn) closeHamburger();
+  });
+}
+
 const CSV_URL = "/csv/tier4-data.csv";
 
 const ANI_OVERRIDES = {
@@ -655,11 +722,31 @@ const GOHUB_OVERRIDES = {
   "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
 };
 const ANI_CDN = "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/";
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zacian hero":"zacian-hero", "zamazenta hero":"zamazenta-hero", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "mega heracross":"heracross-mega", "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
 function toDbSlug(name){
-  return name.trim().toLowerCase()
-    .replace(/^mega\s+(.*?)\s+([xy])$/, "$1-mega$2")
-    .replace(/^mega\s+(.+)$/, "$1-mega")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  // PokemonDB uses a suffix for regional forms (e.g. "raichu-alolan"), not a prefix
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
 }
 // Local first, then the mgrann03 formula, with pokemongohub registered as a runtime fallback -
 // the same order the live pages use. mgrann03 has no artwork for the newest Legends Z-A megas,
@@ -732,27 +819,65 @@ async function loadBossIndex(){
 // The page already has a search box; before this it filtered strategy cards that no longer
 // exist here, so typing did nothing. It now filters the boss grid.
 let ALL_BOSSES = [];
+function sortedBosses(){
+  const mode = (document.getElementById("sortSelect") || {}).value || "name";
+  const list = ALL_BOSSES.slice();
+  if(mode === "difficulty") list.sort((a,b) => a.lowest - b.lowest || a.name.localeCompare(b.name));
+  else if(mode === "count")  list.sort((a,b) => b.count - a.count || a.name.localeCompare(b.name));
+  else                        list.sort((a,b) => a.name.localeCompare(b.name));
+  return list;
+}
+
+// Cards are built once and then shown/hidden. Rebuilding innerHTML for every keystroke meant
+// re-parsing ~50 cards and re-requesting their sprites on each character typed, which is what
+// made the page feel heavy; toggling display costs nothing and keeps the images cached.
+let CARD_NODES = new Map();
+function buildCardsOnce(){
+  const grid = document.getElementById("bossGrid");
+  if(CARD_NODES.size) return;
+  const frag = document.createDocumentFragment();
+  ALL_BOSSES.forEach(b => {
+    const a = document.createElement("a");
+    a.className = "boss-card";
+    a.href = "collections/" + slugify(b.name) + ".html";
+    a.innerHTML =
+      '<img src="' + spriteUrl(b.name) + '" alt="' + b.name + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' +
+      '<div class="bn">' + b.name + '</div>' +
+      '<div class="bm">' + (b.lowestLabel || "\u2014") + ' \u00b7 ' + b.count +
+        ' strateg' + (b.count===1?'y':'ies') + '</div>';
+    CARD_NODES.set(b.name, a);
+    frag.appendChild(a);
+  });
+  grid.appendChild(frag);
+}
+
 function renderGrid(){
   const grid = document.getElementById("bossGrid");
   const box = document.getElementById("search");
   const q = (box && box.value || "").trim().toLowerCase();
-  const list = q ? ALL_BOSSES.filter(b => b.name.toLowerCase().includes(q)) : ALL_BOSSES;
+  buildCardsOnce();
+  const list = sortedBosses().filter(b => !q || b.name.toLowerCase().includes(q));
   document.getElementById("indexCount").textContent =
     (q ? list.length + " of " + ALL_BOSSES.length : ALL_BOSSES.length) +
     " boss" + ((q?list.length:ALL_BOSSES.length)===1?"":"es") + " \u00b7 " +
     list.reduce((n,b)=>n+b.count,0) + " strategies";
-  grid.innerHTML = list.length ? list.map(b =>
-      '<a class="boss-card" href="collections/' + slugify(b.name) + '.html">' +
-        '<img src="' + spriteUrl(b.name) + '" alt="' + b.name + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' +
-        '<div class="bn">' + b.name + '</div>' +
-        '<div class="bm">' + (b.lowestLabel || "\u2014") + ' \u00b7 ' + b.count +
-          ' strateg' + (b.count===1?'y':'ies') + '</div>' +
-      '</a>').join("") : '<div class="empty">No bosses match that search.</div>';
+  const shown = new Set(list.map(b => b.name));
+  CARD_NODES.forEach((node, name) => { node.style.display = shown.has(name) ? "" : "none"; });
+  list.forEach(b => grid.appendChild(CARD_NODES.get(b.name)));   // reorder in place
+  let empty = document.getElementById("gridEmpty");
+  if(!list.length){
+    if(!empty){ empty = document.createElement("div"); empty.id = "gridEmpty";
+                empty.className = "empty"; empty.textContent = "No bosses match that search.";
+                grid.parentNode.insertBefore(empty, grid.nextSibling); }
+    empty.style.display = "";
+  }else if(empty){ empty.style.display = "none"; }
 }
 
 (function(){
   const box = document.getElementById("search");
   if(box) box.addEventListener("input", renderGrid);
+  const sortBox = document.getElementById("sortSelect");
+  if(sortBox) sortBox.addEventListener("change", renderGrid);
 })();
 loadBossIndex();
 </script>
