@@ -2028,6 +2028,14 @@ function runCalculation(){
   // the normal way, so it fully cancels CM Buffer's "immediate, no-tap" premise for this rotation.
   const effectiveBuffer = cmBuffer && !dodgeCM && !dodgeFM;
 
+  // Build-up ticks for an arbitrary number of tanked hits - lets the single-CT branch ask
+  // whether hit n's energy actually shortened anything, or was surplus.
+  function buildupTicksFor(k){
+    const totalCost = numCM * cmEnergyCost;
+    const bonus = energyFromCM + (k * energyFromBossFM);
+    return Math.ceil(Math.max(totalCost - bonus, 0) / fm.energy) * fm.ad;
+  }
+
   const rows = doubleCT ? [0, 1, 2].map(n => {
     // ============ DOUBLE CATCH TANK MODEL ============
     // The boss's charge move is absorbed TWICE, across two separate swaps. Swap 1 (tank CM #1,
@@ -2171,7 +2179,7 @@ function runCalculation(){
     // fast move tanked and 3.5s with one tanked, despite the player doing exactly the same thing
     // both times. It only showed up when the tank's energy burst covered the casts outright
     // (buildupTicks = 0), so the floor had nothing else to hide behind.
-    const innerMax = buildupTicks;
+    let innerMax = buildupTicks;
 
     // one mandatory tap is still needed to resolve the button on the first non-buffered cast if
     // tank energy alone (banked, no buildup) already covers its cost - even with no buffer, the
@@ -2183,9 +2191,58 @@ function runCalculation(){
     // Boss fast-move floors, now against the full rotation. These only bind when the player's
     // own rotation is genuinely too short for the boss to have landed n hits - which is the real
     // constraint - rather than every time a hit is tanked.
-    const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
+    // A tanked fast move's energy cannot be spent before that fast move lands. The boss's
+    // chained hits land on a fixed schedule (bossFMLandingTicks): the 1st at 1+animTicks, the
+    // 2nd at 2*animTicks+5. If the player leans on hit n's energy to shorten their build-up,
+    // they must still be standing there at that tick - so the FAST PHASE cannot end sooner.
+    //
+    // This was wrong before, and visibly so. Necrozma Dawn Wings (Psycho Cut / Moongeist Beam)
+    // against Blacephalon (Incinerate / Overheat): Incinerate has 5 animation ticks, so its
+    // chained hit lands at tick 6 - exactly 3.0s, exactly when Moongeist Beam is cast. Tanking
+    // it cut build-up from 6 ticks to 4, moving the cast to tick 4 and crediting energy from a
+    // hit that had not arrived. Flooring the fast phase at the landing tick makes 0 and 1 hits
+    // tanked come out identical here, which is correct: the hit lands as the cast happens, so
+    // it buys nothing.
+    //
+    // A tanked hit's energy cannot be spent before the hit lands.
+    //
+    // Build-up was reduced by the tank bonus outright, which let the charge move be cast EARLIER
+    // than the hit that paid for it. Necrozma Dawn Wings (Psycho Cut / Moongeist Beam) vs
+    // Blacephalon (Incinerate / Overheat) needs 6 fast ticks unaided; Incinerate lands at tick 6.
+    // With 1 hit tanked the model dropped build-up to 4 and cast at tick 4 - two ticks before the
+    // energy existed. Flooring only the total duration hid that in the timing but not in the
+    // damage: the rotation still credited 4 fast moves instead of 6, so DPS differed for what is
+    // physically the identical rotation.
+    //
+    // castTick is when the charge move actually goes off:
+    //   * never before the last relied-on hit lands (its energy does not exist yet), and
+    //   * never later than the player would have managed unaided - a hit landing after the
+    //     unaided cast time simply buys nothing and the player casts on schedule.
+    // The unaided time is recomputed the same way as this row's, mandatory tap included, so a
+    // floored build-up cannot double-count that tap on top of the wait.
+    const landings = bossFMLandingTicks(bossFMAD_ticks, Math.max(n, 1));
+    const lastLanding = n > 0 ? landings[n - 1] : 0;
+
+    function castTickFor(k){
+      const bonus = leftoverBurstEnergy + k * energyFromBossFM;
+      const need = Math.max(remainingCost - bonus, 0);
+      const build = Math.ceil(need / fm.energy) * fm.ad;
+      const mand = (remainingCost > 0 && bonus >= remainingCost) ? fm.ad : 0;
+      return build + mand;
+    }
+    const naturalCast = buildupTicks + mandatoryFMBonus;
+    const castTick = n > 0
+      ? Math.min(castTickFor(0), Math.max(naturalCast, lastLanding))
+      : naturalCast;
+
+    // Rebuild both phases from castTick so damage and duration always agree.
+    innerMax = Math.max(0, castTick - mandatoryFMBonus);
+    ticks = castTick + (cm.ad * numCM);
+
+    // Staying in for hit n extends the rotation only when the player's own rotation ends first;
+    // that extra time is spent waiting, so it adds no fast moves.
     const outerFloor = bossFMAD_ticks + 1;
-    ticks = Math.max(outerFloor, bossFMFloor, ticks);
+    ticks = Math.max(outerFloor, ticks, n > 0 ? lastLanding : 0);
 
     // dodge terms (in ticks); FM dodge is asymmetric per confirmed sheet behavior
     const dodgeCMTicks = dodgeCM ? 2 : 0;
