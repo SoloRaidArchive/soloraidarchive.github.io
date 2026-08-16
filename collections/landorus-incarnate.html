@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boss Collection — Solo Raid Archive</title>
+<!--
+  PROTOTYPE - Layer 2 boss collection page.
+
+  One page per boss, holding every strategy for that boss. Which boss is decided by the
+  page's own filename (collections/<slug>.html), so a single template serves all of them
+  and there is no per-page boss constant to drift out of sync with the CSV.
+
+  The slug rule is the SAME one the worker already uses for guide pages:
+      boss.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")
+  Reusing it means a boss's guide and its collection derive from one identifier instead of
+  two rules that can disagree. It also collapses the 'Enamorus Therian' / 'Enamorus therian'
+  spelling split, which would otherwise have produced two separate pages for one boss.
+
+  Adventure Effect is a FILTER here, not a separate page - this is what replaces
+  tier5-ae-raids.html. Rows from both source sheets now sit in csv/tier5-merged.csv, with an
+  'Adventure effect Image' column that is empty for non-AE strategies.
+-->
+<style>
+  :root{
+    --bg:#10131d; --card:#1c2030; --border:#323850;
+    --ink:#eef1f7; --ink-muted:#a7afc0; --ink-dim:#767f96;
+    --accent:#5aa9ff; --accent-soft:#232840; --amber:#e8a33a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:20px;background:var(--bg);color:var(--ink);
+       font-family:'Manrope',-apple-system,Segoe UI,Roboto,sans-serif}
+  .wrap{max-width:940px;margin:0 auto}
+  .crumb{font-size:12px;color:var(--ink-dim);margin-bottom:10px}
+  .crumb a{color:var(--accent);text-decoration:none}
+  .head{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+  .head img{width:64px;height:64px;object-fit:contain}
+  .bname{font-size:22px;font-weight:800;line-height:1.15}
+  .bsub{font-size:12.5px;color:var(--ink-dim);margin-top:4px}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;padding:13px 0;border-bottom:1px solid var(--border)}
+  .fbtn{font-size:12px;font-weight:700;padding:6px 11px;border-radius:99px;cursor:pointer;
+        border:1px solid var(--border);background:var(--card);color:var(--ink-muted)}
+  .fbtn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+  .fbtn.ae.on{background:#3a2c14;border-color:var(--amber);color:var(--amber)}
+  .count{font-size:12px;color:var(--ink-dim);padding:12px 0 2px}
+  .rcard{background:var(--card);border:1px solid var(--border);border-radius:12px;
+         padding:13px 15px;margin-top:11px}
+  .rtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .rtitle{font-size:14.5px;font-weight:800}
+  .rsub{font-size:11.5px;color:var(--ink-dim);margin-top:4px}
+  /* The adventure effect is shown as its own icon inline with the weather, matching how
+     tier5-ae-raids.html presents it - sword = Blade Boost (+10% damage dealt), shield =
+     Behemoth Bash (+10% damage taken reduction). Same two CDN URLs, so the classification
+     is by exact URL rather than by keyword: the real URLs are opaque hashes that contain
+     neither "sword" nor "shield". */
+  .ae-icon{width:17px;height:17px;vertical-align:-4px;margin-left:2px}
+  /* Elite is the only soloable category that appears under more than one tier, so a card
+     from it needs to say so - otherwise an Elite strategy sitting next to a Tier 5 one on the
+     same boss page is indistinguishable. */
+  .tiertag{font-size:10px;font-weight:800;background:var(--accent-soft);color:var(--accent);
+           border-radius:99px;padding:3px 8px;white-space:nowrap}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .party{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
+  .slot{display:flex;flex-direction:column;align-items:center;width:56px}
+  .slot img{width:40px;height:40px;object-fit:contain}
+  .slot span{font-size:9.5px;color:var(--ink-dim);text-align:center;line-height:1.2;margin-top:2px}
+  .vod{font-size:12px;color:var(--accent);margin-top:10px;display:inline-block;text-decoration:none}
+  .empty{color:var(--ink-dim);font-size:13px;padding:22px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumb"><a href="../tier5-raids.html">Tier 5 Legendary</a> &rsaquo; <span id="crumbBoss">…</span></div>
+  <div class="head">
+    <img id="bossSprite" alt="" onerror="this.style.visibility='hidden'">
+    <div>
+      <div class="bname" id="bossName">Loading…</div>
+      <div class="bsub" id="bossSub"></div>
+    </div>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="count" id="count"></div>
+  <div id="cards"></div>
+</div>
+
+<script>
+// Same rule the worker uses for guide slugs - see the note at the top of this file.
+function slugify(s){ return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+
+// The boss is taken from this page's own filename, so one template serves every collection.
+const PAGE_SLUG = location.pathname.split("/").pop().replace(/\.html$/, "");
+
+// Sprite resolution is the site's own, lifted verbatim rather than reimplemented. A hand-rolled
+// slug rule was tried first and diverged immediately - "ho-oh" instead of "hooh",
+// "necrozma-dawn-wings" instead of "necrozma-dawnwings" - blanking ten bosses. Order is local,
+// then the mgrann03 formula, then pokemongohub as a runtime fallback, matching the live pages;
+// mgrann03 has no artwork for the newest Legends Z-A megas.
+const ANI_OVERRIDES = {
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
+  // Shorthand names used elsewhere on the site (e.g. the CT calculator's Pokemon list) for the
+  // same Incarnate/Therian formes already covered above by their full names - same Pokemon, same GIF.
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+const ANI_CDN = "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/";
+const SPRITE_FALLBACK = Object.create(null);
+document.addEventListener("error", function (e) {
+  const img = e.target;
+  if (!img || img.tagName !== "IMG" || img.dataset.spriteFallbackUsed) return;
+  const fb = SPRITE_FALLBACK[img.getAttribute("src")];
+  if (!fb) return;
+  img.dataset.spriteFallbackUsed = "1";
+  img.src = fb;
+  e.stopPropagation();
+  e.preventDefault();
+}, true);
+function toDbSlug(name){
+  return name.trim().toLowerCase()
+    .replace(/^mega\s+(.*?)\s+([xy])$/, "$1-mega$2")
+    .replace(/^mega\s+(.+)$/, "$1-mega")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+function spriteUrl(name){
+  const key = name.trim().toLowerCase();
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name))
+                 .replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return "/assets/sprites/" + slug + ".gif";
+  const url = ANI_CDN + slug + ".gif";
+  if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
+  return url;
+}
+const AE_ICON     = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
+const SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
+// Matched on the exact URL, never on keywords - the CDN URLs are opaque hashes and contain
+// neither "sword" nor "shield". Anything else non-empty is treated as sword, which is what
+// tier5-ae-raids.html does and keeps an unrecognised future URL visible rather than dropped.
+function aeKind(cell){
+  const v = (cell || "").trim();
+  if(!v) return "";
+  return v === SHIELD_ICON ? "shield" : "sword";
+}
+
+let ROWS = [], STATE = { star:null, weather:null, ae:false, vod:false };
+
+function parseCSV(text){
+  const rows=[]; let row=[], cur="", q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c === '"'){ if(text[i+1] === '"'){ cur+='"'; i++; } else q=false; } else cur+=c; }
+    else if(c === '"') q=true;
+    else if(c === ","){ row.push(cur); cur=""; }
+    else if(c === "\n"){ row.push(cur); rows.push(row); row=[]; cur=""; }
+    else if(c !== "\r") cur+=c;
+  }
+  if(cur||row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+// One template serves every tier. Each source is read by HEADER NAME rather than column
+// index, which matters because the sheets are not positionally identical: tier6-data.csv has a
+// leading "Category" column the others lack, and it spells the adventure-effect column
+// "Adventure effect" while tier4 and the merged tier5 use "Adventure effect Image".
+//
+// A boss can also legitimately appear in more than one tier - Regidrago is in both the Tier 5
+// and Tier 6 sheets - so all sources are loaded and the rows are combined, each tagged with
+// where it came from, instead of guessing a single tier from the boss name.
+const SOURCES = [
+  { csv: "/csv/tier4-data.csv",   tier: "Tier 4 Mega",      page: "../tier4-raids.html" },
+  { csv: "/csv/tier5-merged.csv", tier: "Tier 5 Legendary", page: "../tier5-raids.html" },
+  { csv: "/csv/tier6-data.csv",   tier: "Tier 6 & Elite",   page: "../tier6-elite-raids.html" },
+];
+
+function rowsFrom(text, src){
+  const grid = parseCSV(text);
+  const header = grid.shift().map(h => h.trim());
+  const iName = header.indexOf("Boss Name"), iStar = header.indexOf("Star");
+  const iStrat = header.indexOf("Strat"), iFM = header.indexOf("FM"), iCM = header.indexOf("CM");
+  const iWeather = header.indexOf("Weather");
+  // tier6 spells this one differently - accept either
+  const iAE = header.indexOf("Adventure effect Image") !== -1
+            ? header.indexOf("Adventure effect Image")
+            : header.indexOf("Adventure effect");
+  const iVOD = header.indexOf("VOD"), iLink = header.indexOf("Link");
+  // Only tier6-data.csv carries this; it distinguishes Elite raids from ordinary Tier 6 ones.
+  const iCategory = header.indexOf("Category");
+  // party slots repeat: Pokemon N, Roles, FM, CM
+  const slotIdx = [];
+  header.forEach((h,i) => { if(/^Pokemon \d$/.test(h.trim())) slotIdx.push(i); });
+
+  return grid.filter(r => r[iName] && slugify(r[iName]) === PAGE_SLUG).map(r => ({
+    src,
+    boss: r[iName].trim(), star: (r[iStar]||"").trim(), strat: (r[iStrat]||"").trim(),
+    fm: (r[iFM]||"").trim(), cm: (r[iCM]||"").trim(), weather: (r[iWeather]||"").trim(),
+    ae: iAE !== -1 ? aeKind(r[iAE]) : "",
+    category: iCategory !== -1 ? (r[iCategory]||"").trim() : "",
+    vod: (r[iVOD]||"").trim(), link: (r[iLink]||"").trim(),
+    slots: slotIdx.map(i => ({ n:(r[i]||"").trim(), roles:(r[i+1]||"").trim(),
+                               fm:(r[i+2]||"").trim(), cm:(r[i+3]||"").trim() }))
+                  .filter(s => s.n),
+  }));
+}
+
+async function load(){
+  const loaded = await Promise.all(SOURCES.map(async src => {
+    try{
+      const res = await fetch(src.csv);
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      return rowsFrom(await res.text(), src);
+    }catch(e){
+      // Loud, and never fatal: a boss whose rows live in another sheet must still render.
+      console.error("Failed to load " + src.csv + ":", e);
+      return [];
+    }
+  }));
+  ROWS = loaded.flat();
+
+  const tiers = [...new Set(ROWS.map(r => r.src.tier))];
+  const crumbSrc = ROWS.length ? ROWS[0].src : SOURCES[1];
+  const crumb = document.querySelector(".crumb a");
+  crumb.href = crumbSrc.page; crumb.textContent = crumbSrc.tier;
+
+  const boss = ROWS.length ? ROWS[0].boss : PAGE_SLUG.replace(/-/g," ");
+  document.title = `${boss} — Solo Raid Archive`;
+  document.getElementById("bossName").textContent = boss;
+  document.getElementById("crumbBoss").textContent = boss;
+  document.getElementById("bossSprite").src = spriteUrl(boss);
+  const aeCount = ROWS.filter(r => r.ae).length;
+  document.getElementById("bossSub").textContent =
+    `${tiers.join(" · ")} · ${ROWS.length} strateg${ROWS.length===1?"y":"ies"}` +
+    (aeCount ? ` · ${aeCount} with Adventure Effect` : "");
+  buildFilters(); render();
+}
+
+function buildFilters(){
+  const stars = [...new Set(ROWS.map(r => r.star).filter(Boolean))].sort();
+  const weathers = [...new Set(ROWS.map(r => r.weather).filter(Boolean))].sort();
+  const el = document.getElementById("filters");
+  const mk = (label, on, fn, cls="") =>
+    `<span class="fbtn ${cls} ${on?"on":""}" data-fn="${fn}">${label}</span>`;
+  el.innerHTML =
+    mk("All", !STATE.star && !STATE.weather && !STATE.ae && !STATE.vod, "reset") +
+    stars.map(s => mk(s, STATE.star===s, `star:${s}`)).join("") +
+    weathers.map(w => mk(w, STATE.weather===w, `weather:${w}`)).join("") +
+    (ROWS.some(r => r.ae) ? mk("Adventure Effect", STATE.ae, "ae", "ae") : "") +
+    (ROWS.some(r => r.vod) ? mk("Has VOD", STATE.vod, "vod") : "");
+  el.querySelectorAll(".fbtn").forEach(b => b.addEventListener("click", () => {
+    const fn = b.dataset.fn;
+    if(fn === "reset") STATE = { star:null, weather:null, ae:false, vod:false };
+    else if(fn === "ae") STATE.ae = !STATE.ae;
+    else if(fn === "vod") STATE.vod = !STATE.vod;
+    else{
+      const [k,v] = fn.split(/:(.+)/);
+      STATE[k] = STATE[k] === v ? null : v;
+    }
+    buildFilters(); render();
+  }));
+}
+
+function aeIconHtml(kind){
+  if(kind === "sword")  return ` <img class="ae-icon" src="${AE_ICON}" alt="Blade Boost" title="Blade Boost — +10% damage dealt from your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
+  if(kind === "shield") return ` <img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash" title="Behemoth Bash — +10% damage reduction for your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
+  return "";
+}
+
+function render(){
+  const list = ROWS.filter(r =>
+    (!STATE.star || r.star === STATE.star) &&
+    (!STATE.weather || r.weather === STATE.weather) &&
+    (!STATE.ae || r.ae) && (!STATE.vod || r.vod));
+  document.getElementById("count").textContent =
+    `Showing ${list.length} of ${ROWS.length}`;
+  document.getElementById("cards").innerHTML = list.length ? list.map(r => `
+    <div class="rcard">
+      <div class="rtop">
+        <div>
+          <div class="rtitle">${r.fm || "—"} / ${r.cm || "—"}</div>
+          <div class="rsub">${[r.star, r.weather, r.strat].filter(Boolean).join(" · ")}${aeIconHtml(r.ae)}</div>
+        </div>
+        <span class="tags">
+          ${/^elite$/i.test(r.category) ? `<span class="tiertag">ELITE RAID</span>` : ""}
+        </span>
+      </div>
+      <div class="party">${r.slots.map(s => `
+        <span class="slot">
+          <img src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
+               onerror="this.style.visibility='hidden'">
+          <span>${s.n}</span>
+        </span>`).join("")}</div>
+      ${r.link ? `<a class="vod" href="${r.link}" target="_blank" rel="noopener noreferrer">&#9654; Watch VOD</a>` : ""}
+    </div>`).join("")
+    : `<div class="empty">No strategies match these filters.</div>`;
+}
+
+load();
+</script>
+</body>
+</html>
