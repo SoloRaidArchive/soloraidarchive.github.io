@@ -511,7 +511,11 @@ function monSpriteUrl(name){
   const key = name.trim().toLowerCase();
   // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
-  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
+  if (LOCAL_SPRITES.has(slug)) return `/assets/sprites/${slug}.gif`;  // root-relative:
+  // guide pages live at data/guides/, where a bare "assets/..." resolves to
+  // data/guides/assets/... and 404s. Every other asset on those pages already uses an
+  // absolute or ../../ path. This site is served from the domain root, so a leading slash
+  // is correct at any depth and keeps root-level pages working unchanged.
   const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
   if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
   return url;
