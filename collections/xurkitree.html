@@ -604,7 +604,13 @@ body{ background:#20263a; color: var(--text-muted); }
 
   /* Multi-column on desktop: a strategy card is narrow, so one per row wasted most of the width.
      Collapses to a single column on narrow screens. */
-  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px;align-items:start}
+  /* stretch, not start: a card whose party wraps to a second row was leaving its neighbour
+     visibly shorter. Stretching makes both cards in a row end at the same place; the party grid
+     inside keeps its own rows even, so the extra space falls below the content. */
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px;
+              align-items:stretch}
+  .rcard{display:flex;flex-direction:column}
+  .rcard .vod{margin-top:auto;padding-top:8px}
   @media (max-width:700px){ .cards-grid{grid-template-columns:1fr} }
   .rcard{margin-top:0}
   .see-guide{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;
@@ -644,18 +650,36 @@ body{ background:#20263a; color: var(--text-muted); }
   /* Even columns so each row of party members lines up across the card, but everything inside a
      column is flush left rather than centred - centred captions under a left-hanging sprite read
      as misaligned. */
-  /* grid-auto-rows:1fr keeps every ROW the same height too, not just the slots within one row.
-     Without it a party that wraps (5 members at two columns on mobile) left the final row
-     shorter than the ones above it. */
-  .party{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px 12px;
-         margin-top:11px;grid-auto-rows:1fr}
+  /* Exactly four per row. The first row is always what a collapsed card shows, so every card on
+     the page has the same number of party rows regardless of how big the party is - that is what
+     keeps neighbouring cards the same height. Anything past the fourth member is revealed by the
+     expand control, up to eight total (two rows). */
+  .party{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 8px;margin-top:11px;
+         grid-auto-rows:1fr}
   @media (max-width:520px){ .party{grid-template-columns:repeat(2,1fr)} }
+  .slot.extra{display:none}
+  .party.expanded .slot.extra{display:flex}
+  .party-more{background:none;border:none;padding:6px 0 0;cursor:pointer;
+              font:inherit;font-size:11.5px;font-weight:700;color:var(--blue)}
+  .party-more:hover{text-decoration:underline}
   .slot{display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:auto;max-width:none;gap:3px}
   /* Direct child only. ".slot img" also matched the type icons nested inside the move chips
      and outranked .move-type-icon on specificity, blowing them up to sprite size. */
-  .slot > img{width:44px;height:44px;object-fit:contain;margin-left:-2px}
+  .slot .sprite-wrap > img{width:44px;height:44px;object-fit:contain;margin-left:-2px}
   .slot-moves{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
   .slot-roles{display:flex;flex-wrap:wrap;gap:3px}
+  /* Quantity reads as a count, not a role, so it is deliberately neutral rather than sharing
+     the role colour scheme. */
+  /* Corner badge on the sprite. Absolutely positioned so it occupies no layout space at all -
+     the previous inline text cost a line in every slot and wrapped when a slot had two roles. */
+  .sprite-wrap{position:relative;display:inline-block;line-height:0}
+  /* Deliberately quiet: it is a secondary detail sitting on top of the artwork, so it uses the
+     muted surface colours rather than the accent, and is sized to sit inside the sprite's corner
+     instead of overhanging it. */
+  .qty-badge{position:absolute;top:-2px;right:-4px;min-width:14px;height:14px;padding:0 3px;
+             border-radius:99px;background:var(--border);color:var(--text-muted);
+             font-size:8px;font-weight:800;line-height:14px;text-align:center;letter-spacing:.02em;
+             box-shadow:0 0 0 1.5px var(--card)}
   .role-chip{display:inline-block;font-size:9px;font-weight:800;border-radius:99px;padding:2px 6px;
              margin-top:0;white-space:nowrap}
   .role-chip.main{background:#fde7e9;color:#c0303d}
@@ -1113,13 +1137,34 @@ function isLightHex(hex){
   return (0.2126*((n>>16)&255) + 0.7152*((n>>8)&255) + 0.0722*(n&255)) > 165;
 }
 // "Main DPS, 1x" -> chips. The trailing "1x" is a quantity, not a role.
+function splitRoles(roles){
+  const parts = (roles || "").split(",").map(x => x.trim()).filter(Boolean);
+  const isQty = (t) => /^\d+x$/i.test(t) || /^varies$/i.test(t);
+  return { roles: parts.filter(t => !isQty(t)), qty: parts.filter(isQty) };
+}
 function roleChips(roles){
-  if(!roles) return "";
-  return roles.split(",").map(x => x.trim()).filter(x => x && !/^\d+x$/i.test(x))
-    .map(x => { const k = x.toLowerCase();
-      const cls = k.includes("main") ? "main" : k.includes("support") ? "support"
-                : k.includes("catch") ? "catchtank" : k.includes("execut") ? "executor" : "other";
-      return '<span class="role-chip ' + cls + '">' + x + '</span>'; }).join("");
+  // Roles only. The quantity rides on the NAME line instead: with two roles plus a count the
+  // row wrapped to a second line, which broke the uniform slot height it was meant to preserve.
+  return splitRoles(roles).roles.map(x => {
+    const k = x.toLowerCase();
+    const cls = k.includes("main") ? "main" : k.includes("support") ? "support"
+              : k.includes("catch") ? "catchtank" : k.includes("execut") ? "executor" : "other";
+    return '<span class="role-chip ' + cls + '">' + x + '</span>';
+  }).join("");
+}
+function qtyLabel(roles){
+  // Rendered as a corner badge on the sprite rather than inline text: as text it consumed a line
+  // (or wrapped one) in every slot, and the whole layout depends on slots being the same height.
+  // How many of this Pokemon the party runs - "Catch Tank, 5x" means five of them, which is
+  // often the whole point of the strategy, so it is shown rather than discarded.
+  const q = splitRoles(roles).qty;
+  if(!q.length) return "";
+  const t = q[0];
+  // Keeps the sheet's own "1x"/"5x" wording rather than a bare number - the trailing x is what
+  // makes it read as a count instead of a slot index.
+  const label = /^varies$/i.test(t) ? "?" : t.toLowerCase();
+  const title = /^varies$/i.test(t) ? "Quantity varies" : label + " used in this party";
+  return '<span class="qty-badge" title="' + title + '">' + label + '</span>';
 }
 
 // ---- Guide link ----
@@ -1149,7 +1194,7 @@ function render(){
     (!STATE.ae || r.ae) && (!STATE.vod || r.vod));
   document.getElementById("collCount").textContent =
     `Showing ${list.length} of ${ROWS.length}`;
-  document.getElementById("cards").innerHTML = list.length ? list.map(r => `
+  document.getElementById("cards").innerHTML = list.length ? list.map((r, i) => `
     <div class="rcard">
       <div class="rtop">
         <div>
@@ -1160,17 +1205,31 @@ function render(){
           ${/^elite$/i.test(r.category) ? `<span class="tiertag">ELITE RAID</span>` : ""}
         </span>
       </div>
-      <div class="party">${r.slots.map(s => `
-        <span class="slot">
-          <img class="${needsShadowMist(s.n) ? 'shadow-mist' : ''}" src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
-               onerror="this.style.visibility='hidden'">
+      <div class="party" id="party-${i}">${r.slots.map((s, si) => `
+        <span class="slot${si >= 4 ? ' extra' : ''}">
+          <span class="sprite-wrap">
+            <img class="${needsShadowMist(s.n) ? 'shadow-mist' : ''}" src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
+                 onerror="this.style.visibility='hidden'">
+            ${qtyLabel(s.roles)}
+          </span>
           <span class="sname">${s.n}</span>
           <span class="slot-moves">${moveChipHtml(s.fm)}${moveChipHtml(s.cm)}</span>
           <span class="slot-roles">${roleChips(s.roles)}</span>
         </span>`).join("")}</div>
+      ${r.slots.length > 4 ? `<button class="party-more" type="button" data-party="party-${i}">+${r.slots.length - 4} more</button>` : ""}
       ${r.link ? `<a class="vod" href="${r.link}" target="_blank" rel="noopener noreferrer">&#9654; Watch VOD</a>` : ""}
     </div>`).join("")
     : `<div class="empty">No strategies match these filters.</div>`;
+
+  // Expand reveals the rest of the party in place; it does not navigate or reflow anything else.
+  document.querySelectorAll(".party-more").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const grid = document.getElementById(btn.dataset.party);
+      const open = grid.classList.toggle("expanded");
+      const hidden = grid.querySelectorAll(".slot.extra").length;
+      btn.textContent = open ? "Show less" : `+${hidden} more`;
+    });
+  });
 }
 
 load();
