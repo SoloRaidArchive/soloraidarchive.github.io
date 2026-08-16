@@ -63,7 +63,7 @@ function parseCSV(text) {
 }
 
 // Fetches and parses a CSV. Pass the path relative to the current page (e.g.
-// "data/moves.csv" from the site root, "../data/moves.csv" one folder deep).
+// "/csv/moves.csv" - root-relative, so it resolves from any page depth).
 async function fetchCSV(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed to load ${url} (${res.status})`);
