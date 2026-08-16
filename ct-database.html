@@ -325,7 +325,18 @@ header{ padding: 12px 24px 10px; text-align:center; }
 
   @media (max-width:600px){
     .entries-overlay{ padding:0; }
+    /* 100vh is the LAYOUT viewport on mobile - it includes the space under the browser's
+       address/toolbar, so a 100vh sheet is taller than what is actually visible and its top gets
+       pushed off-screen, taking the close button with it. 100dvh tracks the visible area and
+       shrinks as the toolbars appear; the vh line stays first as the fallback for older engines. */
     .entries-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; }
+    .entries-modal{ max-height:100dvh; height:100dvh; }
+    /* Header pinned so the close button is always reachable, however far the table is scrolled. */
+    .entries-head{ position:sticky; top:0; z-index:2; background:var(--card); }
+    /* 23x26px was below any reasonable touch target. Padding brings it to 44x44 without
+       changing the glyph size. */
+    .entries-close{ min-width:44px; min-height:44px; display:flex; align-items:center;
+                    justify-content:center; margin:-8px -8px -8px 0; }
     /* Sprite replaces the boss name, which is what actually frees the width - the moveset then
        fits on one line without shrinking type past legibility. Used/Build stay hidden: for a
        single Pokemon they're near-identical on every row. */
