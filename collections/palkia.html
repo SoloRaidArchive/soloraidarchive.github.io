@@ -23,9 +23,529 @@
 -->
 <style>
   :root{
-    --bg:#10131d; --card:#1c2030; --border:#323850;
-    --ink:#eef1f7; --ink-muted:#a7afc0; --ink-dim:#767f96;
-    --accent:#5aa9ff; --accent-soft:#232840; --amber:#e8a33a;
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
+    --blue: #3d9dff; --blue-dark: #2b7fd6;
+    --red: #ff5b5b; --yellow: #ffc94a; --green: #4cd08a; --purple: #9b7bf0;
+    --t4: #e2661c; --t5: #ff5b5b; --t55: #b0203a; --t6: #9b7bf0; --t7: #5aa9ff;
+    --t3: #e0b316; --t2: #4cbf6f; --t1: #e091c9;
+    --divider-contrast: rgba(0,0,0,0.35);
+  }
+  [data-theme="dark"]{
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024;
+    --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff;
+    --divider-contrast: rgba(255,255,255,0.35);
+  }
+  [data-theme="dark"] body{
+    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
+  }
+  [data-theme="dark"] #search,
+  [data-theme="dark"] .count,
+  [data-theme="dark"]   [data-theme="dark"] #search::placeholder{ color:#767f96; }
+    [data-theme="dark"] .boss-icon{
+    background: linear-gradient(160deg, #f2f2f4, #e4e4e8); border-color:#3a4160;
+  }
+  [data-theme="dark"] .member-row{ background:#20263a; border-color:#323850; }
+  [data-theme="dark"] .member-row.main{ background:#20263a; border-color:#323850; }
+  [data-theme="dark"] .member-icon{ background: linear-gradient(160deg, #f2f2f4, #e4e4e8); border-color:#3a4160; }
+  [data-theme="dark"] .member-row.main .member-icon{ border-color:#3a4160; }
+  [data-theme="dark"] .role-chip.support{ background:rgba(0,150,136,0.22); color:#5eded4; }
+  [data-theme="dark"] .role-chip.catchtank{ background:rgba(155,123,240,0.2); color:#c1a8ff; }
+  [data-theme="dark"] .role-chip.executor{ background:rgba(255,255,255,0.14); color:#e4e4e6; }
+  [data-theme="dark"] .role-chip.main{ background:rgba(220,53,69,0.22); color:#ff9494; }
+  [data-theme="dark"] .role-chip.other{ background:#2a2f42; color:#a7afc0; }
+  [data-theme="dark"] .count-badge{ background:#2a2f42; color:#a7afc0; }
+  [data-theme="dark"] .moves > span{ background:#20263a; border-color:#323850; }
+  [data-theme="dark"] details.notes-wrap .notes-
+  html{ max-width:100vw; }
+body{ background:#20263a; color: var(--text-muted); }
+
+
+    
+
+  .home-link-bottom-wrap{ text-align:center; padding: 36px 20px 50px; }
+  .home-link-bottom{
+    display:inline-flex; align-items:center;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding: 12px 22px; font-family:'Manrope', sans-serif; font-weight:700; font-size:14px;
+    color: var(--blue-dark); text-decoration:none;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .home-link-bottom:hover{ transform: translateY(-2px); }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+
+  [data-theme="dark"] body{ background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 80%, var(--bg4) 100%); }
+    color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh; padding-bottom: 60px;
+  }
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-title-row{ text-align:center; margin-bottom:8px; }
+  .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
+  .header-buttons{ display:flex; gap:8px; flex-shrink:0; }
+  @media (min-width:700px){
+    .sticky-header-row{ display:grid; grid-template-columns: 1fr auto 1fr; gap:8px; }
+    .search-wrap{ grid-column:2; margin:0 auto; }
+    .header-buttons{ grid-column:3; justify-self:end; }
+  }
+  .sticky-header h1{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size: 17px;
+    margin: 0; color: var(--text);
+  }
+  .sticky-header .search-wrap{ margin: 0; flex:1; min-width:0; width:auto; max-width:400px; }
+        
+          
+  .controls{
+    max-width: 1760px; margin: 22px auto 0; padding: 0 20px;
+    display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:center;
+  }
+  .search-wrap{ position:relative; width:calc(100% - 40px); max-width: 480px; margin: 20px auto 0; }
+  .search-wrap svg{ position:absolute; left:16px; top:50%; transform:translateY(-50%); opacity:0.4; }
+  #search{
+    width:100%; background: #fff; border: 2px solid var(--border); color: var(--text);
+    font-family:'Inter', sans-serif; font-weight:700; font-size:16px;
+    padding: 12px 16px 12px 44px; border-radius: 999px; outline:none;
+    transition: border-color .15s, box-shadow .15s; box-shadow: 0 3px 0 rgba(0,0,0,0.04);
+  }
+  #search::placeholder{ color: var(--text-dim); font-weight:600; }
+  #search:focus{ border-color: var(--blue); box-shadow: 0 0 0 4px rgba(61,157,255,0.15); }
+  .count{
+    font-weight:700; font-size:13px; color: var(--text-dim); white-space:nowrap;
+    padding: 8px 16px; background:#fff; border-radius:999px; border: 2px solid var(--border);
+  }
+
+          
+  .tier-section{ margin: 14px 0 0; padding: 0; }
+  #sections{ max-width: 1760px; margin: 0 auto; padding: 0 20px; }
+  .tier-header{
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .tier-header .tier-pill-lg{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:16px; color:#fff;
+    padding: 6px 16px; border-radius: 999px; box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+  }
+  .tier-header .tier-pill-lg.t4{ background: var(--t4); }
+  .tier-header .tier-pill-lg.t5{ background: var(--t5); }
+  .tier-header .tier-pill-lg.t55{ background: var(--t55); }
+  .tier-header .tier-pill-lg.t6{ background: var(--t6); }
+  .tier-header .tier-pill-lg.t7{ background: var(--t7); }
+  .tier-header .tier-pill-lg.t3{ background: var(--t3); }
+  .tier-header .tier-pill-lg.t2{ background: var(--t2); }
+  .tier-header .tier-pill-lg.t1{ background: var(--t1); }
+  .tier-header .tier-name{ font-family:'Manrope', sans-serif; font-weight:700; color: var(--text-dim); font-size:14px; }
+  .tier-header{ cursor:pointer; user-select:none; border-radius:10px; transition: background .15s ease; margin: 0 0 14px; padding: 6px 8px 6px 0; }
+  .tier-header:hover{ background: rgba(90,169,255,0.08); }
+  .tier-header:hover .tier-line{ background: var(--blue); }
+  .tier-line{ flex:1; height:2px; background: var(--border); border-radius:2px; transition: background .15s ease; }
+  .tier-collapse-chevron{
+    font-size:16px; color: var(--text-dim); font-weight:800; flex-shrink:0;
+    transition: transform .18s ease;
+  }
+  .tier-collapse-chevron.collapsed{ transform: rotate(-90deg); }
+
+  .tier-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 11px;
+    /* stretch (not start) so every card in a row matches the tallest one - with "start" a card
+       whose boss name wraps to two lines made its neighbours look truncated and uneven */
+    align-items:stretch;
+  }
+
+  .card{
+    background: var(--card); border: 2px solid var(--border); border-radius: 16px;
+    padding: 16px; display:flex; flex-direction:column; gap: 14px; min-width:0; overflow-x:hidden; overflow-y:visible;
+    transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 2px 0 rgba(45,49,66,0.05);
+    position:relative; z-index:1;
+  }
+  /* Sits in the name row beside the type icons rather than absolutely positioned at the card
+     corner, where it floated out of line with everything else in the header. */
+  .vod-badge{
+    width:22px; height:22px; border-radius:50%; flex-shrink:0; margin-left:auto;
+    background: var(--blue); color:#fff;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:11px; cursor:help; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  @media (hover:hover){ .card:hover{ z-index:10; } }
+  .guide-link-slot:empty{ display:none; }
+  .see-guide-link{
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
+    color: var(--blue-dark, #2b7fd6); text-decoration:none;
+    background: var(--accent-soft, #eef2ff); padding:5px 11px; border-radius:999px;
+  }
+  .see-guide-sprite{ width:16px; height:16px; object-fit:contain; flex-shrink:0; }
+  .highlight-flash{ animation: flashHighlight 2.2s ease; }
+  @keyframes flashHighlight{
+    0%, 100%{ box-shadow: none; }
+    15%, 60%{ box-shadow: 0 0 0 3px var(--blue); }
+  }
+  .card:hover{ transform: translateY(-2px); box-shadow: 0 10px 22px rgba(61,157,255,0.14); }
+
+  .title-section{ padding-bottom:14px; border-bottom:2px solid var(--divider-contrast); margin-bottom:14px; text-align:left; }
+  .header{ position:relative; }
+  /* The type icons live INSIDE the <h2> as trailing inline content rather than as a sibling flex
+     item. As a sibling, a name long enough to wrap made the <h2> box as wide as its longest line,
+     leaving the icons parked far to the right of where they sit on single-line cards. Inline,
+     they simply follow the last word - identical behaviour whether the name takes one line or
+     two - and the whole row stays left-aligned. */
+  .name-group{
+    display:flex; align-items:center; justify-content:flex-start; flex-wrap:nowrap; gap:6px;
+    min-width:0; min-height:49px;
+  }
+  .type-icon-row{ display:inline-flex; gap:4px; vertical-align:middle; margin-left:6px; }
+  .type-icon-wrap{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%; flex-shrink:0; box-shadow:0 1px 2px rgba(0,0,0,0.2);
+  }
+  .type-icon{ width:13px; height:13px; }
+  .card-top{ display:flex; align-items:center; gap: 12px; margin-bottom:12px; }
+  .boss-icon{
+    width: 56px; height: 56px; border-radius: 13px;
+    background: linear-gradient(160deg, #f2f2f4, #e4e4e8); border: 2px solid var(--border);
+    flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.4);
+  }
+  .boss-icon img{ width:100%; height:100%; object-fit:contain; padding:2px; }
+  .boss-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size: 21px; line-height:1.15; margin:0; text-align:left; min-width:0; }
+  .boss-moveset-row{ display:flex; flex-direction:column; align-items:flex-start; gap:6px; flex:1; min-width:0; }
+  .boss-moveset-row > span{ opacity:0.55; filter:saturate(0.35); }
+
+  .meta-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:50px; }
+  .meta-left{ display:flex; flex-direction:column; gap:6px; }
+  .weather-tag{ font-size:20px; line-height:1; display:flex; align-items:center; gap:6px; }
+  .weather-icon-wrap{
+    display:inline-flex; align-items:center; justify-content:center; vertical-align:middle;
+  }
+  .weather-icon-wrap.extreme{ background:none; padding:0; }
+  .weather-icon-img{ width:30px; height:30px; object-fit:contain; }
+  .weather-icon-wrap.extreme .weather-icon-img{ mix-blend-mode:normal; }
+  .weather-label{ font-size:12.5px; font-weight:700; color: var(--text-muted); vertical-align:middle; }
+  .boss-stats-line{ font-size:11.5px; font-weight:700; color: var(--text-dim); position:relative; cursor:help; display:inline-block; }
+  .weather-icon-wrap.extreme .weather-icon-img{ filter: invert(1) grayscale(1) brightness(0.3); }
+  [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
+  .ae-icon{ width:26px; height:26px; }
+
+
+  .party-label{
+    font-size:11px; font-weight:800; letter-spacing:0.06em; text-transform:uppercase;
+    color: var(--text-dim); margin: 10px 0 6px;
+  }
+  .party-label:first-child{ margin-top: 0; }
+  .party-list{ display:flex; flex-direction:column; gap:7px; min-width:0; }
+  .party-wrap{ margin-top: auto; padding-top: 12px; }
+  .party-count-badge{
+    background: var(--bg1); color: var(--text-dim); font-size:10px; font-weight:800;
+    padding:1px 7px; border-radius:99px; text-transform:none; letter-spacing:normal;
+  }
+  [data-theme="dark"] .party-count-badge{ background:#20263a; }
+  .party-chevron{
+    font-size:15px; color: var(--blue-dark); font-weight:800;
+    transition: transform .18s ease;
+  }
+  .party-wrap[open] .party-chevron{ transform: rotate(90deg); }
+
+  .expand-btn{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background: var(--bg1); border:2px solid var(--border); border-radius:12px;
+    padding:10px 14px; cursor:pointer; user-select:none; list-style:none;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:13px; color: var(--text-muted);
+    transition: border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .expand-btn::-webkit-details-marker{ display:none; }
+  .expand-btn::marker{ display:none; content:""; }
+  .expand-btn:hover{ border-color: var(--blue); color: var(--blue-dark); background: rgba(90,169,255,0.08); }
+  .expand-strategy{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+  .expand-action{ display:flex; align-items:center; gap:5px; flex-shrink:0; white-space:nowrap; }
+  .expand-hide{ display:none; }
+  .twin-badge-inline{
+    display:inline-flex; align-items:center; gap:4px; min-width:0; flex-shrink:1;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12px; color:#a16207;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:help;
+  }
+  [data-theme="dark"] .twin-badge-inline{ color:#facc15; }
+  .party-wrap[open] .expand-see{ display:none; }
+  .party-wrap[open] .expand-hide{ display:inline; }
+  .details-panel{ margin-top:12px; }
+
+  .strategy-chip{
+    display:inline-block; background: var(--card); border:1.5px solid var(--border);
+    color: var(--blue-dark); font-family:'Inter', sans-serif; font-weight:800; font-size:11px;
+    padding:2px 8px; border-radius:7px; text-decoration:none; position:relative; cursor:help;
+  }
+  a.strategy-chip{ cursor:pointer; }
+  a.strategy-chip:hover{ border-color: var(--blue); background: rgba(90,169,255,0.1); }
+  .strategy-chip-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+  .strategy-label{ font-family:'Inter', sans-serif; font-weight:800; font-size:11px; color: var(--ink-muted); }
+  .weather-icon-wrap[data-tooltip], .ae-tag[data-tooltip], .boss-moveset-row > span[data-tooltip], .boss-stats-line[data-tooltip], .move-stat-line[data-tooltip], .twin-badge-inline[data-tooltip]{ position:relative; cursor:help; }
+  .weather-icon-wrap[data-tooltip]::after,
+  .ae-tag[data-tooltip]::after,
+  .boss-moveset-row > span[data-tooltip]::after,
+  .boss-stats-line[data-tooltip]::after,
+  .move-stat-line[data-tooltip]::after,
+  .twin-badge-inline[data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; bottom: calc(100% + 8px); left:0; z-index:40;
+    width:220px; max-width:60vw; background: var(--text); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transform: translateY(4px);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .strategy-chip[data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; top: calc(100% + 8px); left:0; z-index:40;
+    width:220px; max-width:60vw; background: var(--text); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transform: translateY(-4px);
+    transition: opacity .15s ease, transform .15s ease;
+  }
+  .strategy-chip[data-tooltip]:hover::after,
+  .weather-icon-wrap[data-tooltip]:hover::after,
+  .ae-tag[data-tooltip]:hover::after,
+  .boss-moveset-row > span[data-tooltip]:hover::after,
+  .boss-stats-line[data-tooltip]:hover::after,
+  .move-stat-line[data-tooltip]:hover::after,
+  .twin-badge-inline[data-tooltip]:hover::after{ opacity:1; transform: translateY(0); pointer-events:auto; }
+
+  /* Touch devices have no hover state, so the move stats would otherwise be permanently hidden.
+     Show them as a normal always-visible line instead of a floating tooltip in that case. */
+  @media (hover: none){
+    .move-stat-line[data-tooltip]::after{
+      content: attr(data-tooltip);
+      position: static; display:block;
+      width:auto; max-width:none; background:none; box-shadow:none;
+      color: var(--text-dim); font-size:10.5px; font-weight:600; line-height:1.4;
+      padding:0; margin-top:2px;
+      opacity:1; transform:none; pointer-events:auto; transition:none;
+    }
+  }
+  .member-row{
+    display:flex; align-items:center; gap: 11px; min-width:0;
+    background: #f8fafc; border: 2px solid var(--border); border-radius: 13px; padding: 8px 11px;
+  }
+  .member-row.main{ background: #f8fafc; border-color: var(--border); }
+  .member-icon{
+    width: 54px; height: 54px; border-radius: 12px; background: linear-gradient(160deg, #f2f2f4, #e4e4e8); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden; border: 2px solid var(--border);
+  }
+  .member-row.main .member-icon{ border-color: var(--border); }
+  .member-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .member-icon .fallback{ font-family:'Manrope', sans-serif; font-weight:700; color: var(--text-dim); font-size:15px; }
+  .member-info{ display:flex; flex-direction:column; gap:1px; min-width:0; flex:1; }
+  .member-name{ font-size:14.5px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+  .role-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .party-moveset{
+    font-size:11px; color: var(--text-muted); font-weight:800; margin-top:4px;
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .move-stat-line{ margin-bottom:5px; }
+  .move-stat-line:last-child{ margin-bottom:0; }
+  .move-stat-name{ display:flex; align-items:center; gap:6px; font-size:11.5px; }
+  .move-stat-name b{ color: var(--text); font-weight:800; }
+  .move-type-badge{
+    flex-shrink:0; display:inline-block;
+    font-family:'Inter', sans-serif; font-size:10px; font-weight:700; color:#fff;
+    padding:3px 9px; border-radius:999px; line-height:1.4;
+  }
+  .role-chip{
+    align-self:flex-start; font-size:11px; font-weight:800; padding:2px 9px; border-radius:999px;
+  }
+  .role-chip.support{ background:#dff5f3; color:#00897b; }
+  .role-chip.catchtank{ background:#f2ebff; color:#7d4fd6; }
+  .role-chip.executor{ background:#e9e9eb; color:#292929; }
+  .role-chip.main{ background:#ffe1e1; color:#c62828; }
+  .role-chip.other{ background:#f1f2f4; color:#6b7280; }
+  .count-badge{
+    font-size:10.5px; font-weight:800; color: var(--text-dim);
+    background:#f1f2f4; padding:2px 8px; border-radius:999px;
+  }
+
+  .boss-moveset-row > span{
+    background: #f6f8fc; border: 2px solid var(--border); border-radius: 999px; padding: 6px 12px;
+    display:flex; align-items:center; gap:6px; min-width:0; font-size:13px; font-weight:800; color: var(--text-muted);
+  }
+  .move-tag{
+    flex-shrink:0; font-size:9px; font-weight:800; letter-spacing:0.02em;
+    text-transform:uppercase; opacity:0.85; width:13px; text-align:center;
+  }
+  .move-name{
+    font-size:12.5px; font-weight:800; flex:1; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+
+  details.notes-wrap{ font-size:12.5px; }
+  details.notes-wrap summary{
+    cursor:pointer; font-weight:800; color: var(--text-muted); list-style:none;
+    display:flex; align-items:center; gap:6px; user-select:none;
+    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
+    padding:8px 12px; transition: border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  details.notes-wrap summary:hover{ border-color: var(--blue); color: var(--blue-dark); background: rgba(90,169,255,0.08); }
+  details.notes-wrap summary::-webkit-details-marker{ display:none; }
+  details.notes-wrap summary::before{ content:"▸"; font-size:10px; transition:transform .12s; }
+  details.notes-wrap[open] summary::before{ transform:rotate(90deg); }
+  details.notes-wrap .notes-body{
+    margin-top:6px; color: var(--text-muted); font-weight:600; line-height:1.5;
+    background:#f6f8fc; border-radius: 10px; padding: 9px 11px;
+  }
+
+  .card-body{ display:flex; flex-direction:column; gap:20px; flex:1; }
+  .card-bottom{ display:flex; justify-content:flex-end; margin-top:18px; padding-top:12px; border-top:1px solid var(--border); }
+  .vod-btn{
+    font-family:'Manrope', sans-serif; font-size:13.5px; font-weight:700; color: #fff;
+    background: var(--red); border:none; border-radius:999px; padding: 8px 16px;
+    text-decoration:none; display:inline-flex; align-items:center; gap:6px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.12); transition: transform .15s;
+  }
+  .vod-btn:hover{ transform: translateY(-2px); }
+  .vod-btn svg{ width:11px; height:11px; }
+  .no-vod{ font-size:12px; font-weight:700; color: var(--text-dim); }
+
+  .empty{ text-align:center; color: var(--text-dim); font-weight:700; padding: 60px 20px; }
+
+      .filter-block{
+    background:#fff; border:2px solid var(--border); border-radius:16px; padding:14px 16px;
+  }
+  
+                                        .filter-panel .filter-options{ margin-top:0; padding:0 2px; }
+                    .filter-clear{
+    font-size:10.5px; font-weight:700; color: var(--blue-dark); cursor:pointer;
+    background:none; border:none; padding:0; margin-top:8px; display:block;
+  }
+  .filter-options{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .filter-note{ font-size:10.5px; font-weight:600; color: var(--text-dim); margin-top:6px; line-height:1.4; }
+  .filter-chk{
+    display:flex; align-items:center; gap:8px; padding:10px 8px; font-family:'Manrope', sans-serif;
+    font-weight:700; font-size:13.5px; color: var(--text, var(--ink)); cursor:pointer;
+    user-select:none; line-height:1.3; border-radius:10px; min-height:40px; box-sizing:border-box;
+  }
+  .filter-chk input{
+    accent-color: var(--blue); width:15px; height:15px; min-width:15px; min-height:15px;
+    flex-shrink:0; cursor:pointer; box-sizing:border-box;
+  }
+  .filter-chk:hover{ background: var(--bg1, var(--ink-soft)); color: var(--blue-dark); }
+@media (max-width:520px){
+    .tier-grid{ grid-template-columns: minmax(0, 1fr); }
+    .sticky-header{ padding: 8px 12px; }
+  }
+
+  .hamburger-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .hamburger-btn:hover{ transform: translateY(-2px); } }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:absolute; top:calc(100% + 1px); right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 106px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .gear-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .gear-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .gear-btn:hover{ transform: translateY(-2px); } }
+  .filter-line{ display:block; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); }
+  .filter-line-1{ width:16px; } .filter-line-2{ width:11px; } .filter-line-3{ width:6px; }
+  .gear-panel{
+    display:none; position:absolute; top:calc(100% + 1px); right:16px; z-index:19;
+    width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:12px; max-height:calc(100vh - 106px); overflow-y:auto; overflow-x:hidden;
+  }
+  .gear-panel.open{ display:flex; }
+  .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text, var(--ink)); background: var(--bg1, var(--ink-soft)); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--blue); color: var(--blue-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim, var(--ink-dim)); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text, var(--ink)); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1, var(--ink-soft)); color: var(--blue-dark); }
+  .hamburger-section a.current{ background: var(--blue); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  .hamburger-section a.hamburger-featured.current{
+    background-image:
+      linear-gradient(var(--blue), var(--blue)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+
+/* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator.
+   The dropdown is appended to <body> and positioned with position:fixed from the input's
+   own bounding box. An earlier version wrapped the input in a span to anchor the list,
+   which changed the field's placement: these bars are centred by their parent row on
+   desktop, and the extra element pushed them hard left. Nothing wraps the input now, so
+   layout is byte-identical to before the autocomplete existed. */
+.ac-list{
+  position:fixed; z-index:2000; display:none;
+  background: var(--card, #fff); border:1px solid var(--border, #d8dbe6);
+  border-radius:10px; overflow:hidden;
+  box-shadow:0 8px 22px rgba(0,0,0,.12);
+}
+.ac-list.open{ display:block; }
+.ac-item{ padding:8px 12px; font-size:14px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
+[data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
+.ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
+</style>
+<style>
+  :root{
+    /* Aliases onto the site's own tokens rather than fixed values. This block previously
+       hardcoded dark colours (--bg:#10131d, --ink:#eef1f7 ...), which overrode the site
+       stylesheet in BOTH themes - so a light-mode visitor still got a dark page. The site sheet
+       already flips --card/--border/--text under [data-theme="dark"], so aliasing inherits the
+       correct palette automatically. */
+    /* --card and --border are NOT redeclared: the site sheet already defines them and flips
+       them per theme. Aliasing a token onto itself (--card: var(--card)) is a self-reference
+       that resolves to nothing, which stripped every card background. */
+    --bg: var(--bg1);
+    --ink: var(--text); --ink-muted: var(--text-muted); --ink-dim: var(--text-dim);
+    --accent: var(--blue); --accent-soft: rgba(61,157,255,.12); --amber:#e8a33a;
   }
   *{box-sizing:border-box}
   body{margin:0;padding:20px;background:var(--bg);color:var(--ink);
@@ -42,7 +562,7 @@
         border:1px solid var(--border);background:var(--card);color:var(--ink-muted)}
   .fbtn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
   .fbtn.ae.on{background:#3a2c14;border-color:var(--amber);color:var(--amber)}
-  .count{font-size:12px;color:var(--ink-dim);padding:12px 0 2px}
+  .coll-count{font-size:12px;color:var(--ink-dim);padding:12px 0 2px}
   .rcard{background:var(--card);border:1px solid var(--border);border-radius:12px;
          padding:13px 15px;margin-top:11px}
   .rtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -65,25 +585,205 @@
   .slot img{width:40px;height:40px;object-fit:contain}
   .slot span{font-size:9.5px;color:var(--ink-dim);text-align:center;line-height:1.2;margin-top:2px}
   .vod{font-size:12px;color:var(--accent);margin-top:10px;display:inline-block;text-decoration:none}
+
+  /* Multi-column on desktop: a strategy card is narrow, so one per row wasted most of the width.
+     Collapses to a single column on narrow screens. */
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px;align-items:start}
+  @media (max-width:700px){ .cards-grid{grid-template-columns:1fr} }
+  .rcard{margin-top:0}
+  .see-guide{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;
+             text-decoration:none;color:var(--accent,#5aa9ff);border:1px solid var(--accent,#5aa9ff);
+             border-radius:99px;padding:5px 12px}
+  .see-guide:hover{background:var(--accent-soft,#232840)}
+  .head{justify-content:space-between}
+  .head-main{display:flex;align-items:center;gap:14px}
+  .moveset-label{color:var(--ink-dim,#767f96);font-weight:700}
+  /* Move chips: a move's pill IS its type colour, with the type icon forced white on top -
+     the same treatment the guide pages use for boss movesets. */
+  .move-chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+             color:#fff;border-radius:99px;padding:2px 7px;white-space:nowrap;margin:2px 2px 0 0}
+  .move-type-icon{width:11px;height:11px;filter:brightness(0) invert(1)}
+  .slot{width:auto;min-width:56px;max-width:104px}
+
+  /* Contrast: move chips are solid type colours, several of which (electric, ice, grass) are far
+     too light for white text. Luminance picks the label colour per chip so both themes read. */
+  /* Scoped under .rcard: the site stylesheet applies a grey text colour to a broad
+     [data-theme="dark"] selector group that also catches these chips, washing the labels out
+     against their solid type colours. */
+  .rcard .move-chip, [data-theme="dark"] .rcard .move-chip{color:#fff}
+  .rcard .move-chip.on-light, [data-theme="dark"] .rcard .move-chip.on-light{color:#1b1f2a}
+  .rcard .move-chip.on-light .move-type-icon{filter:none}
+  .coll-count{color:var(--ink-dim,#767f96);background:none;border:none;padding:12px 0 2px}
+  /* Filters as dropdowns - four wrapped rows of pills pushed the first card off-screen on mobile. */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+  .filters select{font:inherit;font-size:12.5px;padding:6px 10px;border-radius:8px;
+                  border:1px solid var(--border);background:var(--card);color:inherit;max-width:100%}
+  .filters .fchk{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;
+                 color:var(--ink-muted);cursor:pointer}
+  /* Fixed tracks so sprite and caption share a centre line - the sprite used to sit left of a
+     wider box while its label centred under it. */
+  /* Even columns so each row of party members lines up across the card, but everything inside a
+     column is flush left rather than centred - centred captions under a left-hanging sprite read
+     as misaligned. */
+  /* grid-auto-rows:1fr keeps every ROW the same height too, not just the slots within one row.
+     Without it a party that wraps (5 members at two columns on mobile) left the final row
+     shorter than the ones above it. */
+  .party{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px 12px;
+         margin-top:11px;grid-auto-rows:1fr}
+  @media (max-width:520px){ .party{grid-template-columns:repeat(2,1fr)} }
+  .slot{display:flex;flex-direction:column;align-items:flex-start;text-align:left;width:auto;max-width:none;gap:3px}
+  .slot img{width:44px;height:44px;object-fit:contain;margin-left:-2px}
+  .slot-moves{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+  .slot-roles{display:flex;flex-wrap:wrap;gap:3px}
+  .role-chip{display:inline-block;font-size:9px;font-weight:800;border-radius:99px;padding:2px 6px;
+             margin-top:0;white-space:nowrap}
+  .role-chip.main{background:#fde7e9;color:#c0303d}
+  .role-chip.support{background:#dff5f3;color:#00897b}
+  .role-chip.catchtank{background:#f2ebff;color:#7d4fd6}
+  .role-chip.executor{background:#e9e9eb;color:#292929}
+  .role-chip.other{background:#eceef3;color:#5a6072}
+  [data-theme="dark"] .role-chip.main{background:rgba(220,53,69,.22);color:#ff9494}
+  [data-theme="dark"] .role-chip.support{background:rgba(0,150,136,.22);color:#5eded4}
+  [data-theme="dark"] .role-chip.catchtank{background:rgba(155,123,240,.2);color:#c1a8ff}
+  [data-theme="dark"] .role-chip.executor{background:rgba(255,255,255,.14);color:#e4e4e6}
+  [data-theme="dark"] .role-chip.other{background:#2a2f42;color:#a7afc0}
+  .weather-icon-img{width:15px;height:15px;vertical-align:-3px;margin-right:3px}
+  .submit-row{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+  .submit-row a{font-size:12.5px;font-weight:700;text-decoration:none;border-radius:99px;
+                padding:6px 14px;border:1px solid #e0913a;color:#e0913a}
+  .submit-row a:hover{background:rgba(224,145,58,.12)}
   .empty{color:var(--ink-dim);font-size:13px;padding:22px 0}
 </style>
 </head>
 <body>
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="search" type="text" placeholder="Search this boss's strategies…" autocomplete="off">
+    </div>
+    <div class="header-buttons">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
+        <span class="filter-line filter-line-1"></span>
+        <span class="filter-line filter-line-2"></span>
+        <span class="filter-line filter-line-3"></span>
+      </button>
+    </div>
+  </div>
+
+
+  <div class="hamburger-panel" id="hamburgerPanel">
+    <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+    <div class="hamburger-section">
+      <a href="../index.html"><img src="../assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Research</div>
+      <a href="../research.html" class="hamburger-featured">Most Used Raiders</a>
+      <a href="../ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+    <a href="../solo-raid-mechanics.html" class="hamburger-featured">Solo Raid Mechanics</a>
+    <a href="../guides.html" class="hamburger-featured">Boss Guides</a>
+    <a href="../articles.html" class="hamburger-featured">Research Articles</a>
+      <a href="../meta-battle-parties.html">Meta Battle Parties</a>
+      <a href="../ct-calculator.html">Catch Tank Calculator</a>
+      <a href="../move-data.html">Move Data</a>
+      <a href="../pokemon-stats.html">Pokémon Stats</a>
+        <a href="../reference.html">Difficulty &amp; Role Reference</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Raid Archives</div>
+      <a href="../tier4-raids.html">Mega</a>
+      <a href="../tier5-raids.html" class="current">Legendary</a>
+      <a href="../tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Resources</div>
+      <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+      <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+      <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+      <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+    </div>
+  </div>
+
+  
+
+
+
+</div>
+
 <div class="wrap">
   <div class="crumb"><a href="../tier5-raids.html">Tier 5 Legendary</a> &rsaquo; <span id="crumbBoss">…</span></div>
   <div class="head">
-    <img id="bossSprite" alt="" onerror="this.style.visibility='hidden'">
-    <div>
-      <div class="bname" id="bossName">Loading…</div>
-      <div class="bsub" id="bossSub"></div>
+    <div class="head-main">
+      <img id="bossSprite" alt="" onerror="this.style.visibility='hidden'">
+      <div>
+        <div class="bname" id="bossName">Loading…</div>
+        <div class="bsub" id="bossSub"></div>
+      </div>
     </div>
+    <span id="guideSlot"></span>
   </div>
   <div class="filters" id="filters"></div>
-  <div class="count" id="count"></div>
-  <div id="cards"></div>
+  <div class="coll-count" id="collCount"></div>
+  <div class="submit-row">
+  <a href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" target="_blank" rel="noopener noreferrer">Submit a VOD</a>
+  <a href="../editor.html" title="Requires a GitHub account">Submit a Guide</a>
+</div>
+<div id="cards" class="cards-grid"></div>
 </div>
 
 <script>
+// ---- Theme, restored ----
+// This block was dropped when the page became an index, so it always rendered light regardless
+// of the saved preference. It runs BEFORE the grid builds so there is no flash of light theme.
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  if(themeToggle) themeToggle.textContent = theme === "dark" ? "\u2600\ufe0f Light Mode" : "\ud83c\udf19 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+if(themeToggle){
+  themeToggle.addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    applyTheme(cur === "dark" ? "light" : "dark");
+  });
+}
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved) initialTheme = saved;
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) initialTheme = "dark";
+}catch(e){}
+applyTheme(initialTheme);
+
+// ---- Hamburger, restored ----
+// Same cause: the wiring lived in the script block the conversion replaced, so the button was
+// inert. The gear/filter panel is gone for good - filters belong on the collection pages now -
+// so only the hamburger is wired, and the gear button is hidden rather than left as a dead control.
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+const gearBtn = document.getElementById("gearBtn");
+if(gearBtn) gearBtn.style.display = "none";
+function closeHamburger(){
+  if(!hamburgerPanel) return;
+  hamburgerPanel.classList.remove("open");
+  hamburgerBtn.setAttribute("aria-expanded", "false");
+}
+if(hamburgerBtn && hamburgerPanel){
+  hamburgerBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = hamburgerPanel.classList.contains("open");
+    hamburgerPanel.classList.toggle("open", !isOpen);
+    hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+  });
+  document.addEventListener("click", (e) => {
+    if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn) closeHamburger();
+  });
+}
+
 // Same rule the worker uses for guide slugs - see the note at the top of this file.
 function slugify(s){ return s.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
 
@@ -163,11 +863,31 @@ document.addEventListener("error", function (e) {
   e.stopPropagation();
   e.preventDefault();
 }, true);
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zacian hero":"zacian-hero", "zamazenta hero":"zamazenta-hero", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "mega heracross":"heracross-mega", "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
 function toDbSlug(name){
-  return name.trim().toLowerCase()
-    .replace(/^mega\s+(.*?)\s+([xy])$/, "$1-mega$2")
-    .replace(/^mega\s+(.+)$/, "$1-mega")
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  // PokemonDB uses a suffix for regional forms (e.g. "raichu-alolan"), not a prefix
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
 }
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
@@ -250,6 +970,7 @@ function rowsFrom(text, src){
 }
 
 async function load(){
+  await loadMoveTypes();
   const loaded = await Promise.all(SOURCES.map(async src => {
     try{
       const res = await fetch(src.csv);
@@ -274,35 +995,115 @@ async function load(){
   document.getElementById("crumbBoss").textContent = boss;
   document.getElementById("bossSprite").src = spriteUrl(boss);
   const aeCount = ROWS.filter(r => r.ae).length;
-  document.getElementById("bossSub").textContent =
-    `${tiers.join(" · ")} · ${ROWS.length} strateg${ROWS.length===1?"y":"ies"}` +
-    (aeCount ? ` · ${aeCount} with Adventure Effect` : "");
+  // Strategy count only. Tier name and the "N with Adventure Effect" tail crowded the header on
+  // mobile and squeezed the See guide button; the tier is in the breadcrumb and the adventure
+  // effect shows on each card that has one.
+  document.getElementById("bossSub").textContent = `${ROWS.length} strateg${ROWS.length===1?"y":"ies"}`;
+  injectGuideLink(boss);
   buildFilters(); render();
 }
 
 function buildFilters(){
-  const stars = [...new Set(ROWS.map(r => r.star).filter(Boolean))].sort();
+  // Dropdowns rather than pill rows: difficulty, weather, adventure effect and VOD as toggles
+  // wrapped onto four rows and pushed the first card off-screen on mobile.
+  const stars = [...new Set(ROWS.map(r => r.star).filter(Boolean))]
+                  .sort((a,b) => (parseFloat(a)||0) - (parseFloat(b)||0));
   const weathers = [...new Set(ROWS.map(r => r.weather).filter(Boolean))].sort();
   const el = document.getElementById("filters");
-  const mk = (label, on, fn, cls="") =>
-    `<span class="fbtn ${cls} ${on?"on":""}" data-fn="${fn}">${label}</span>`;
   el.innerHTML =
-    mk("All", !STATE.star && !STATE.weather && !STATE.ae && !STATE.vod, "reset") +
-    stars.map(s => mk(s, STATE.star===s, `star:${s}`)).join("") +
-    weathers.map(w => mk(w, STATE.weather===w, `weather:${w}`)).join("") +
-    (ROWS.some(r => r.ae) ? mk("Adventure Effect", STATE.ae, "ae", "ae") : "") +
-    (ROWS.some(r => r.vod) ? mk("Has VOD", STATE.vod, "vod") : "");
-  el.querySelectorAll(".fbtn").forEach(b => b.addEventListener("click", () => {
-    const fn = b.dataset.fn;
-    if(fn === "reset") STATE = { star:null, weather:null, ae:false, vod:false };
-    else if(fn === "ae") STATE.ae = !STATE.ae;
-    else if(fn === "vod") STATE.vod = !STATE.vod;
-    else{
-      const [k,v] = fn.split(/:(.+)/);
-      STATE[k] = STATE[k] === v ? null : v;
-    }
-    buildFilters(); render();
-  }));
+    '<select id="fStar"><option value="">All difficulties</option>' +
+      stars.map(v => '<option value="' + v + '"' + (STATE.star===v?" selected":"") + '>' + v + '</option>').join("") +
+    '</select>' +
+    '<select id="fWeather"><option value="">All weather</option>' +
+      weathers.map(v => '<option value="' + v + '"' + (STATE.weather===v?" selected":"") + '>' + v + '</option>').join("") +
+    '</select>' +
+    (ROWS.some(r => r.ae) ? '<label class="fchk"><input type="checkbox" id="fAE"' + (STATE.ae?" checked":"") + '> Adventure Effect</label>' : "") +
+    (ROWS.some(r => r.vod) ? '<label class="fchk"><input type="checkbox" id="fVOD"' + (STATE.vod?" checked":"") + '> Has VOD</label>' : "");
+  const on = (id, fn) => { const e = document.getElementById(id); if(e) e.addEventListener("change", fn); };
+  on("fStar", e => { STATE.star = e.target.value || null; render(); });
+  on("fWeather", e => { STATE.weather = e.target.value || null; render(); });
+  on("fAE", e => { STATE.ae = e.target.checked; render(); });
+  on("fVOD", e => { STATE.vod = e.target.checked; render(); });
+}
+
+
+// ---- Move chips ----
+// Type colour + white type icon, matching the guide pages' boss-move treatment. Types come from
+// csv/moves.csv, which is already the single source for move data across the site.
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
+const TYPE_COLORS = {
+  normal:"#9199A1", fire:"#FF9C54", water:"#4D90D5", electric:"#F3D23B", grass:"#63BB5B",
+  ice:"#74CEC0", fighting:"#CE4069", poison:"#AB6AC8", ground:"#D97746", flying:"#8FA8DD",
+  psychic:"#F97176", bug:"#90C12C", rock:"#C7B78B", ghost:"#5269AC", dragon:"#0A6DC4",
+  dark:"#5A5366", steel:"#5A8EA1", fairy:"#EC8FE6"
+};
+let MOVE_TYPES = {};
+async function loadMoveTypes(){
+  try{
+    const res = await fetch("/csv/moves.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim());
+    const iN = header.indexOf("name"), iT = header.indexOf("type");
+    lines.forEach(l => {
+      const c = l.split(",");
+      const n = (c[iN]||"").trim(), t = (c[iT]||"").trim();
+      if(n && t) MOVE_TYPES[n.toLowerCase()] = t;
+    });
+  }catch(e){
+    // Chips fall back to a neutral pill rather than disappearing.
+    console.error("Failed to load csv/moves.csv - move chips will be uncoloured:", e);
+  }
+}
+function moveChipHtml(name){
+  // Plain text, not a pill. Two coloured badges per slot plus a role badge stacked three deep
+  // and forced every card to a different height; the move name alone carries the information.
+  const clean = (name || "").trim();
+  if(!clean || /^any$/i.test(clean)) return "";
+  return '<span class="move-txt">' + clean + '</span>';
+}
+
+const WEATHER_ICON_URLS = {
+  "clear":"../assets/icons/weather-clear.png", "sunny":"../assets/icons/weather-clear.png",
+  "cloudy":"../assets/icons/weather-cloudy.png", "partly cloudy":"../assets/icons/weather-partly-cloudy.png",
+  "windy":"../assets/icons/weather-windy.png", "rainy":"../assets/icons/weather-rain.png",
+  "snow":"../assets/icons/weather-snow.png", "fog":"../assets/icons/weather-fog.png",
+  "extreme":"../assets/icons/weather-extreme.png",
+};
+function weatherHtml(w){
+  const key = (w || "").trim().toLowerCase();
+  const url = WEATHER_ICON_URLS[key];
+  const icon = url ? '<img class="weather-icon-img" src="' + url + '" alt="" loading="lazy" onerror="this.remove();">' : "";
+  return w ? icon + w : "";
+}
+// Type colours run from near-black to pale yellow; white text is unreadable on the light ones,
+// so the label colour follows the pill's luminance rather than being fixed.
+function isLightHex(hex){
+  const h = hex.replace("#",""); const n = parseInt(h,16);
+  return (0.2126*((n>>16)&255) + 0.7152*((n>>8)&255) + 0.0722*(n&255)) > 165;
+}
+// "Main DPS, 1x" -> chips. The trailing "1x" is a quantity, not a role.
+function roleChips(roles){
+  if(!roles) return "";
+  return roles.split(",").map(x => x.trim()).filter(x => x && !/^\d+x$/i.test(x))
+    .map(x => { const k = x.toLowerCase();
+      const cls = k.includes("main") ? "main" : k.includes("support") ? "support"
+                : k.includes("catch") ? "catchtank" : k.includes("execut") ? "executor" : "other";
+      return '<span class="role-chip ' + cls + '">' + x + '</span>'; }).join("");
+}
+
+// ---- Guide link ----
+// Reads data/guides/index.json, the same index the landing page and editor use.
+async function injectGuideLink(bossName){
+  try{
+    const res = await fetch("/data/guides/index.json");
+    if(!res.ok) return;
+    const data = await res.json();
+    const hit = (data.bosses || []).find(b => b.name.toLowerCase() === bossName.toLowerCase());
+    if(!hit) return;
+    document.getElementById("guideSlot").innerHTML =
+      '<a class="see-guide" href="/data/guides/' + hit.slug + '.html">See guide &rsaquo;</a>';
+  }catch(e){ /* no guide index - header just has no button */ }
 }
 
 function aeIconHtml(kind){
@@ -316,14 +1117,14 @@ function render(){
     (!STATE.star || r.star === STATE.star) &&
     (!STATE.weather || r.weather === STATE.weather) &&
     (!STATE.ae || r.ae) && (!STATE.vod || r.vod));
-  document.getElementById("count").textContent =
+  document.getElementById("collCount").textContent =
     `Showing ${list.length} of ${ROWS.length}`;
   document.getElementById("cards").innerHTML = list.length ? list.map(r => `
     <div class="rcard">
       <div class="rtop">
         <div>
-          <div class="rtitle">${r.fm || "—"} / ${r.cm || "—"}</div>
-          <div class="rsub">${[r.star, r.weather, r.strat].filter(Boolean).join(" · ")}${aeIconHtml(r.ae)}</div>
+          <div class="rtitle"><span class="moveset-label">Boss Moveset:</span> ${r.fm || "\u2014"} / ${r.cm || "\u2014"}</div>
+          <div class="rsub">${[r.star, weatherHtml(r.weather), r.strat].filter(Boolean).join(" · ")}${aeIconHtml(r.ae)}</div>
         </div>
         <span class="tags">
           ${/^elite$/i.test(r.category) ? `<span class="tiertag">ELITE RAID</span>` : ""}
@@ -333,7 +1134,9 @@ function render(){
         <span class="slot">
           <img src="${spriteUrl(s.n)}" alt="${s.n}" loading="lazy"
                onerror="this.style.visibility='hidden'">
-          <span>${s.n}</span>
+          <span class="sname">${s.n}</span>
+          <span class="slot-moves">${moveChipHtml(s.fm)}${moveChipHtml(s.cm)}</span>
+          <span class="slot-roles">${roleChips(s.roles)}</span>
         </span>`).join("")}</div>
       ${r.link ? `<a class="vod" href="${r.link}" target="_blank" rel="noopener noreferrer">&#9654; Watch VOD</a>` : ""}
     </div>`).join("")
