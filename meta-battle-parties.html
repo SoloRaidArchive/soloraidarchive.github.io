@@ -291,7 +291,6 @@
       <div class="hamburger-section-label">Raid Archives</div>
       <a href="tier4-raids.html">Mega</a>
       <a href="tier5-raids.html">Legendary</a>
-      <a href="tier5-ae-raids.html">Legendary AE</a>
       <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
     </div>
     <div class="hamburger-section">
@@ -639,7 +638,7 @@ async function buildPartiesFromCSVs(){
   const [tier4, tier5, tier5ae, tier6] = await Promise.all([
     fetchAndParseArchive('/csv/tier4-data.csv', 'tier4-raids.html', 'Mega', 0, 0),
     fetchAndParseArchive('/csv/tier5-data.csv', 'tier5-raids.html', 'Legendary', 0, -1),
-    fetchAndParseArchive('/csv/tier5-ae-data.csv', 'tier5-ae-raids.html', 'Legendary AE', 0, 0),
+    fetchAndParseArchive('/csv/tier5-merged.csv', 'tier5-raids.html', 'Legendary', 0, 0),
     fetchAndParseArchive('/csv/tier6-data.csv', 'tier6-elite-raids.html', 'Mega Legendary & Elite', 1, 1),
   ]);
   const allRaids = [...tier4, ...tier5, ...tier5ae, ...tier6];

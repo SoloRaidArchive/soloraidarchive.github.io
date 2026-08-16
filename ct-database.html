@@ -785,7 +785,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
       <div class="hamburger-section-label">Raid Archives</div>
       <a href="tier4-raids.html">Mega</a>
       <a href="tier5-raids.html">Legendary</a>
-      <a href="tier5-ae-raids.html">Legendary AE</a>
       <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
     </div>
     <div class="hamburger-section">
@@ -1924,7 +1923,7 @@ function renderByBoss(list){
           <div class="boss-group-name">${escapeHtml(g.boss)}</div>
           <div class="boss-group-meta">${g.tankCount} catch tank${g.tankCount !== 1 ? "s" : ""}</div>
         </div>
-        <span class="boss-caret">${g.scenarios.reduce((n,s)=>n+s.entries.length,0) >= ENTRY_TABLE_THRESHOLD ? "&#9974;" : "&#9654;"}</span>
+        <span class="boss-caret">${g.scenarios.reduce((n,s)=>n+s.entries.length,0) >= 8 ? "&#9974;" : "&#9654;"}</span>
       </button>
       <div class="boss-body">
         ${g.scenarios.map(sc => `
@@ -2117,7 +2116,7 @@ function renderBest(list){
           <div class="leader-best">${m.avg.toFixed(1)}</div>
           <div class="leader-best-label" data-tooltip="Average Catch Tank DPS across all ${m.entries.length} recorded ${m.entries.length === 1 ? "entry" : "entries"} for this Pok&eacute;mon.">Avg CT DPS</div>
         </div>
-        <span class="boss-caret">${m.entries.length >= ENTRY_TABLE_THRESHOLD ? "&#9974;" : "&#9654;"}</span>
+        <span class="boss-caret">${m.entries.length >= 8 ? "&#9974;" : "&#9654;"}</span>
       </button>
       <div class="leader-body-expand">
         <div>
@@ -2356,13 +2355,10 @@ function openEntriesTable(idx){
   });
 }
 
-// Every group opens the table, regardless of how many entries it holds. Previously this was 8:
-// larger groups got the table and smaller ones expanded inline into detail cards, so the same
-// click did two different things depending on how much data happened to exist behind it - and a
-// boss silently changed behaviour as submissions accumulated. One consistent view removes that,
-// and the table's sort control and priority toggles now apply everywhere rather than only to the
-// crowded groups. Set back to 8 to restore the split.
-const ENTRY_TABLE_THRESHOLD = 1;
+// Past ENTRY_TABLE_THRESHOLD the inline expansion stops being readable, so the row opens the
+// table directly rather than expanding into a long list. Below it, the detail cards are still
+// the nicer read for two or three results.
+const ENTRY_TABLE_THRESHOLD = 8;
 
 function toggleLeaderGroup(i){
   const m = (window.__rankedBest || [])[i];

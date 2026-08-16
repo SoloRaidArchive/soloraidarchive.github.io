@@ -392,7 +392,6 @@
       <div class="hamburger-section-label">Raid Archives</div>
       <a href="tier4-raids.html">Mega</a>
       <a href="tier5-raids.html">Legendary</a>
-      <a href="tier5-ae-raids.html">Legendary AE</a>
       <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
     </div>
     <div class="hamburger-section">
@@ -948,10 +947,12 @@ async function loadAllData(){
   const container = document.getElementById("container");
   container.innerHTML = `<div class="loading-msg">Loading raid data...</div>`;
 
-  const [t4, t5, t5ae, t6] = await Promise.all([
+  // The two tier-5 sheets are one file now. rowsToRaidsTier5AE is the parser that fits it:
+  // the merged schema carries the Adventure effect column at index 6, so party slots start at 7,
+  // and rowsToRaidsTier5 would read them one column short.
+  const [t4, t5, t6] = await Promise.all([
     fetchAndParse("/csv/tier4-data.csv", rowsToRaidsTier4),
-    fetchAndParse("/csv/tier5-data.csv", rowsToRaidsTier5),
-    fetchAndParse("/csv/tier5-ae-data.csv", rowsToRaidsTier5AE),
+    fetchAndParse("/csv/tier5-merged.csv", rowsToRaidsTier5AE),
     fetchAndParse("/csv/tier6-data.csv", rowsToRaidsTier6),
   ]);
 
@@ -959,7 +960,6 @@ async function loadAllData(){
   const allRaids = [
     ...tag(t4, "tier4-raids.html"),
     ...tag(t5, "tier5-raids.html"),
-    ...tag(t5ae, "tier5-ae-raids.html"),
     ...tag(t6, "tier6-elite-raids.html"),
   ];
 

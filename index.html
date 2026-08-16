@@ -401,7 +401,6 @@
     <div class="hamburger-section-label">Raid Archives</div>
     <a href="tier4-raids.html">Mega</a>
     <a href="tier5-raids.html">Legendary</a>
-    <a href="tier5-ae-raids.html">Legendary AE</a>
     <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
   </div>
   <div class="hamburger-section">
@@ -476,11 +475,6 @@
         <span class="archive-pill-label">Legendary</span>
         <span class="archive-pill-pct" id="pct-tier5-raids.html">…</span>
       </a>
-      <a class="archive-pill" href="tier5-ae-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
-        <span class="archive-pill-label">Legendary AE</span>
-        <span class="archive-pill-pct" id="pct-tier5-ae-raids.html">…</span>
-      </a>
       <a class="archive-pill" href="tier6-elite-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Mega Legendary &amp; Elite</span>
@@ -550,8 +544,7 @@ document.addEventListener("click", (e) => {
 // than merged, so the label always makes clear which specific archive/version it points to.
 const SEARCH_SOURCES = [
   { csv: "/csv/tier4-data.csv", archive: "tier4-raids.html", label: "Mega", col: 0 },
-  { csv: "/csv/tier5-data.csv", archive: "tier5-raids.html", label: "Legendary", col: 0 },
-  { csv: "/csv/tier5-ae-data.csv", archive: "tier5-ae-raids.html", label: "Legendary AE", col: 0 },
+  { csv: "/csv/tier5-merged.csv", archive: "tier5-raids.html", label: "Legendary", col: 0 },
   { csv: "/csv/tier6-data.csv", archive: "tier6-elite-raids.html", label: "Mega Legendary & Elite", col: 1 },
 ];
 
@@ -926,7 +919,10 @@ async function loadLiveBosses(){
       if(boss.weather) params.set("weather", boss.weather.toLowerCase());
       if(tierMatch) params.set("tier", tierMatch[0]);
       const query = params.toString();
-      return `${boss.archivePage}${query ? "?" + query : ""}#boss-${bossSlug(boss.name)}`;
+      // Collections replaced the per-tier archives. Derived from the boss NAME rather than
+      // read from archivePage so live-bosses.json needs no migration and no stored value
+      // can go stale; every boss it lists comes from the archive CSVs, so each has a page.
+      return `collections/${bossSlug(boss.name)}.html`;
     }
 
     function renderGroup(group){
@@ -1095,9 +1091,13 @@ async function loadNewEntries(){
       if(entry.vod) params.set("vod", entry.vod);
       if(entry.fast) params.set("fm", entry.fast);
       if(entry.charge) params.set("cm", entry.charge);
-      const query = params.toString();
       const slug = entry.boss.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      return `${entry.archivePage}${query ? "?" + query : ""}#boss-${slug}`;
+      // Collections replaced the per-tier archives, so the link is derived from the boss NAME
+      // rather than the stored archivePage. new-raid-entries.json is an append-only log written
+      // by track_new_raid_entries.py, and older rows still record "tier5-ae-raids.html" - a page
+      // that no longer exists. Deriving the target keeps historical rows working without
+      // rewriting the log, and stops any future archive rename from stranding them again.
+      return `collections/${slug}.html`;
     }
 
     function aeTag(entry){

@@ -514,24 +514,6 @@ body{ background:#20263a; color: var(--text-muted); }
   }
 
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
-
-/* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator.
-   The dropdown is appended to <body> and positioned with position:fixed from the input's
-   own bounding box. An earlier version wrapped the input in a span to anchor the list,
-   which changed the field's placement: these bars are centred by their parent row on
-   desktop, and the extra element pushed them hard left. Nothing wraps the input now, so
-   layout is byte-identical to before the autocomplete existed. */
-.ac-list{
-  position:fixed; z-index:2000; display:none;
-  background: var(--card, #fff); border:1px solid var(--border, #d8dbe6);
-  border-radius:10px; overflow:hidden;
-  box-shadow:0 8px 22px rgba(0,0,0,.12);
-}
-.ac-list.open{ display:block; }
-.ac-item{ padding:8px 12px; font-size:14px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
-[data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
-.ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
 </style>
 </head>
 <body>
@@ -582,7 +564,6 @@ body{ background:#20263a; color: var(--text-muted); }
       <div class="hamburger-section-label">Raid Archives</div>
       <a href="tier4-raids.html">Mega</a>
       <a href="tier5-raids.html">Legendary</a>
-      <a href="tier5-ae-raids.html">Legendary AE</a>
       <a href="tier6-elite-raids.html" class="current">Mega Legendary &amp; Elite</a>
     </div>
     <div class="hamburger-section">
@@ -594,267 +575,50 @@ body{ background:#20263a; color: var(--text-muted); }
     </div>
   </div>
 
-  <div class="gear-panel" id="gearPanel">
-  <div class="controls">
-    <div class="hamburger-section">
-      <div class="hamburger-section-label">Weather</div>
-      <div class="filter-options" id="weatherFilters"></div>
-      <button class="filter-clear" onclick="clearFilterGroup('weather')">Clear</button>
-    </div>
-  </div>
-  </div>
-</div>
+  
+<style>
+  /* Layer 1 boss index - see convert_tier_index.py for why cards carry only these four fields. */
+  .boss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:11px;
+             max-width:1080px;margin:18px auto;padding:0 14px}
+  .boss-card{background:var(--card,#fff);border:1px solid var(--border,#d8dbe6);border-radius:12px;
+             padding:12px 9px 10px;text-align:center;text-decoration:none;color:inherit;display:block}
+  .boss-card:hover{border-color:var(--blue,#3e6ae0)}
+  .boss-card img{width:56px;height:56px;object-fit:contain;margin-bottom:6px}
+  .boss-card .bn{font-size:13px;font-weight:800;line-height:1.25}
+  .boss-card .bm{font-size:11px;color:var(--ink-dim,#767f96);margin-top:5px}
+  .index-count{max-width:1080px;margin:0 auto;padding:0 14px;font-size:12.5px;color:var(--ink-dim,#767f96)}
+</style>
 
-
-
-<div id="sections"></div>
-
+<div class="index-count" id="indexCount"></div>
+<div class="boss-grid" id="bossGrid"></div>
 <div class="home-link-bottom-wrap">
   <a class="home-link-bottom" href="index.html">← Back to Home</a>
 </div>
 
-<script>
-const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
-const SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
 
-// ============ LIVE CSV LOADING ============
-// Update raids by replacing tier6-data.csv in the repo — no HTML editing needed.
-let RAIDS = [];
+<script>
+// ============ BOSS INDEX ============
 const CSV_URL = "/csv/tier6-data.csv";
 
-function parseCSV(text){
-  const rows = [];
-  let row = [], field = "", inQuotes = false;
-  for(let i = 0; i < text.length; i++){
-    const c = text[i];
-    if(inQuotes){
-      if(c === '"'){
-        if(text[i+1] === '"'){ field += '"'; i++; }
-        else inQuotes = false;
-      } else field += c;
-    } else {
-      if(c === '"') inQuotes = true;
-      else if(c === ","){ row.push(field); field = ""; }
-      else if(c === "\r"){ /* skip */ }
-      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
-      else field += c;
-    }
-  }
-  if(field.length || row.length){ row.push(field); rows.push(row); }
-  return rows;
-}
-
-const WEATHER_NAME_MAP = {
-  "clear":"Clear","cloudy":"Cloudy","partly cloudy":"Partly Cloudy","windy":"Windy",
-  "rain":"Rain","rainy":"Rain","snow":"Snow","fog":"Fog","extreme":"Extreme",
+const ANI_OVERRIDES = {
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
+  // Shorthand names used elsewhere on the site (e.g. the CT calculator's Pokemon list) for the
+  // same Incarnate/Therian formes already covered above by their full names - same Pokemon, same GIF.
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
 };
-function normalizeWeather(w){
-  w = (w || "").trim();
-  if(!w) return w;
-  const key = WEATHER_NAME_MAP[w.toLowerCase()];
-  return key || (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
-}
-
-// New clean CSV layout (single header row, no blank spacer columns):
-// category=0, boss=1, tier=2, strategy=3, fast=4, charge=5, weather=6, ae=7
-// Party slots (6 max, uniform order): base=8+4*i -> name,role,fast,charge
-function rowsToRaids(rows){
-  const raids = [];
-  for(const row of rows){
-    if(row.length < 11) continue;
-    const categoryRaw = (row[0] || "").trim();
-    if(!categoryRaw) continue;
-    const category = /elite/i.test(categoryRaw) ? "Elite" : "T6";
-    const boss = (row[1] || "").trim();
-    const tierRaw = (row[2] || "").trim();
-    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
-    if(!boss || !tierMatch) continue;
-    const tier = tierMatch[1];
-    const strategy = (row[3] || "").trim();
-    const fast = (row[4] || "").trim();
-    const charge = (row[5] || "").trim();
-    const weather = normalizeWeather(row[6]);
-    const aeCell = (row[7] || "").trim();
-    const ae = aeCell === SHIELD_ICON ? "shield" : (aeCell === AE_ICON ? "sword" : (aeCell ? "sword" : ""));
-    // matched by exact URL against the known icon constants above, not by searching the URL text for
-    // keywords like "shield"/"bash" - real CDN URLs are opaque hashes and rarely contain those words,
-    // which silently misclassified every Shield AE row (e.g. Articuno/Catch Tank/Blizzard) as sword
-
-    let vodIdx = -1;
-    for(let i = 0; i < row.length; i++){
-      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
-    }
-
-    const party = [];
-    for(let i = 0; i < 6; i++){
-      const base = 8 + 4*i;
-      if(vodIdx !== -1 && base >= vodIdx) break;
-      const name = (row[base] || "").trim();
-      const role = (row[base+1] || "").trim();
-      const pfast = (row[base+2] || "").trim();
-      const pcharge = (row[base+3] || "").trim();
-      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
-    }
-
-    let vod = "", notes = "";
-    if(vodIdx !== -1){
-      vod = (row[vodIdx+1] || "").trim();
-      notes = (row[vodIdx+2] || "").trim();
-    } else {
-      const trail = row.slice(32).map(x => x.trim()).filter(Boolean);
-      if(trail.length) notes = trail[trail.length-1];
-    }
-
-    if(party.length === 0){
-      for(let i = 0; i < row.length; i++){
-        if(row[i].trim() === "Various"){
-          for(let j = i+1; j < Math.min(i+4, row.length); j++){
-            if(row[j].includes("Main DPS")){
-              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
-              break;
-            }
-          }
-          break;
-        }
-      }
-    }
-
-    raids.push({ boss, category, tier, strategy, fast, charge, weather, ae, vod, notes, party });
-  }
-  return raids;
-}
-
-function scrollToHashTarget(){
-  const hash = window.location.hash;
-  if(!hash) return;
-  // give the DOM a moment to finish painting the freshly-built cards
-  setTimeout(() => {
-    let el = document.querySelector(hash);
-    if(!el) return;
-    // if arriving from a deep link, a boss may now have multiple separate cards (one per
-    // strategy) - find the specific card that actually matches
-    const params = new URLSearchParams(window.location.search);
-    const wantVod = params.get("vod");
-    const wantWeather = params.get("weather");
-    const wantTier = params.get("tier");
-    const wantParty = params.get("party");
-    const wantPartySet = wantParty ? wantParty.split(",").filter(Boolean).sort().join(",") : null;
-    const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-    const bossName = el.getAttribute("data-boss");
-    // VOD is the one field guaranteed unique per real strategy - weather/tier alone can't
-    // disambiguate two strategies for the same boss that only differ in the boss's own
-    // moveset (e.g. Darkrai/Shadow Ball vs Darkrai/Focus Blast, same weather and tier), so
-    // an exact VOD match takes priority over everything else whenever it's available.
-    let vodMatched = false;
-    if(wantVod){
-      const vodCandidates = document.querySelectorAll(`.card[data-boss="${CSS.escape(bossName)}"]`);
-      for(const c of vodCandidates){
-        const r = CARD_DATA[c.getAttribute("data-card-id")];
-        if(r && r.vod && r.vod.trim() === wantVod.trim()){
-          el = c;
-          vodMatched = true;
-          break;
-        }
-      }
-    }
-    const wantFm = params.get("fm");
-    const wantCm = params.get("cm");
-    if(!vodMatched && (wantWeather || wantTier || wantFm || wantCm || wantPartySet)){
-      const candidates = document.querySelectorAll(`.card[data-boss="${CSS.escape(bossName)}"]`);
-      let weatherTierMatch = null;
-      let matched = false;
-      for(const c of candidates){
-        const r = CARD_DATA[c.getAttribute("data-card-id")];
-        if(!r) continue;
-        const weatherOk = !wantWeather || (r.weather || "").toLowerCase() === wantWeather.toLowerCase();
-        const tierOk = !wantTier || r.tier === wantTier;
-        // the boss's own moveset - needed to tell apart two strategies for the same boss that
-        // only differ here (e.g. Darkrai/Shadow Ball vs Darkrai/Focus Blast), which weather+tier
-        // alone can't distinguish since both can otherwise be identical
-        const fmOk = !wantFm || (r.fast || "").toLowerCase() === wantFm.toLowerCase();
-        const cmOk = !wantCm || (r.charge || "").toLowerCase() === wantCm.toLowerCase();
-        if(weatherOk && tierOk && fmOk && cmOk){
-          if(!weatherTierMatch) weatherTierMatch = c;
-          // if a party fingerprint was given, only accept an exact composition match -
-          // this is what correctly separates twin battle parties (same weather/tier/moveset,
-          // different roster) rather than landing on whichever twin comes first in the DOM
-          if(wantPartySet){
-            const partySet = (r.party || []).map(p => slug(p.n)).filter(Boolean).sort().join(",");
-            if(partySet === wantPartySet){ el = c; matched = true; break; }
-          } else {
-            el = c;
-            matched = true;
-            break;
-          }
-        }
-      }
-      // party fingerprint didn't find an exact hit (e.g. stale link) - fall back to the
-      // best weather/tier match rather than showing nothing
-      if(wantPartySet && !matched && weatherTierMatch) el = weatherTierMatch;
-    }
-    const wrap = el.querySelector(".party-wrap");
-    if(wrap) wrap.setAttribute("open", "");
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("highlight-flash");
-    setTimeout(() => el.classList.remove("highlight-flash"), 2200);
-  }, 150);
-}
-
-async function loadRaidsFromCSV(){
-  await loadMoveDb();
-  await loadTypeData();
-  await loadBossBaseStats();
-  const container = document.getElementById("sections");
-  try{
-    const res = await fetch(CSV_URL);
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
-    const rows = parseCSV(text);
-    RAIDS = rowsToRaids(rows);
-    initializeFromRaids();
-    scrollToHashTarget();
-  }catch(e){
-    console.error("Failed to load raid data:", e);
-    if(container){
-      container.innerHTML = `<div class="empty">Couldn't load raid data from ${CSV_URL}. This page needs to be served over http(s) — opening the file directly (file://) blocks this. Check the live site, and make sure ${CSV_URL} exists in the repo root.</div>`;
-    }
-  }
-}
-
-const DB_OVERRIDES = {
-  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
-  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
-  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega",
-  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
-  "zacian crown":"zacian-crowned", "zacian hero":"zacian-hero", "zamazenta hero":"zamazenta-hero", "zamazenta crown":"zamazenta-crowned",
-  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane", "ndm":"necrozma-dusk-mane",
-  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
-  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
-  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
-  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
-  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
-};
-const DEX_MAP = {
-  "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
-  "palkia":484, "dialga":483, "groudon":383, "mamoswine":473,
-  "salamence":373, "gengar":94, "tyrantrum":697, "rhyperior":464,
-  "kyogre":382, "mewtwo":150,
-};
-function toDbSlug(name){
-  let n = name.trim().toLowerCase();
-  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
-  n = n.replace(/^shadow\s+/, "");
-  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
-  const megaMatch = n.match(/^mega\s+(.+)$/);
-  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
-  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
-  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
-  return n.replace(/\s+/g, "-");
-}
-function displayName(name){
-  return name.replace(/\s+Incarnate$/i, "-I").replace(/\s+Therian$/i, "-T");
-}
-// Very recent Legends: Z-A Mega Evolutions - use PokemonGoHub direct artwork instead of guessing PokemonDB slugs
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
 const GOHUB_OVERRIDES = {
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
@@ -892,41 +656,16 @@ const GOHUB_OVERRIDES = {
   "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
   "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
 };
-// Filenames in the animated GIF repo don't always match PokemonDB's own slug convention -
-// e.g. Crowned formes append "sword"/"shield" with no hyphen, Necrozma fusions drop the
-// internal hyphen in the form suffix, and the Tapu deities have no hyphen at all.
-const ANI_OVERRIDES = {
-  "zacian crown": "zacian-crownedsword",
-  "zamazenta crown": "zamazenta-crownedshield",
-  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
-  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
-  "necrozma dawn wings": "necrozma-dawnwings",
-  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
-  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
-  "ho-oh": "hooh",
-  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
-  "zygarde 10%": "zygarde-tenpercent",
-  "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
-  // Shorthand names used elsewhere on the site (e.g. the CT calculator's Pokemon list) for the
-  // same Incarnate/Therian formes already covered above by their full names - same Pokemon, same GIF.
-  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
-  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
-  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
-};
-// A few Origin formes aren't in the animated "ani" set at all - they live as static
-// PNGs in a differently-named directory with no per-Pokemon slug pattern to guess from.
-const ANI_URL_OVERRIDES = {
-  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
-  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
-};
-const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
-
-// ---- Sprite source priority: local -> mgrann03 -> pokemongohub (fallback) ----
-// GOHUB_OVERRIDES is no longer consulted up front. mgrann03 only carries 8 of the 35
-// override names, so the rest still need pokemongohub - but only after the preferred
-// source actually fails, not instead of it. spriteUrl() registers the fallback here and
-// this listener applies it. Capture phase runs before each element's inline onerror, so
-// stopPropagation() keeps the page's own "hide the image" handler from winning first.
+const ANI_CDN = "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/";
+function toDbSlug(name){
+  return name.trim().toLowerCase()
+    .replace(/^mega\s+(.*?)\s+([xy])$/, "$1-mega$2")
+    .replace(/^mega\s+(.+)$/, "$1-mega")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+// Local first, then the mgrann03 formula, with pokemongohub registered as a runtime fallback -
+// the same order the live pages use. mgrann03 has no artwork for the newest Legends Z-A megas,
+// so without the fallback Mega Raichu X/Y and Mega Staraptor render blank.
 const SPRITE_FALLBACK = Object.create(null);
 document.addEventListener("error", function (e) {
   const img = e.target;
@@ -941,807 +680,84 @@ document.addEventListener("error", function (e) {
 
 function spriteUrl(name){
   const key = name.trim().toLowerCase();
-  // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
-  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
-  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
-  const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name))
+                 .replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return "/assets/sprites/" + slug + ".gif";
+  const url = ANI_CDN + slug + ".gif";
   if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
   return url;
 }
-
-// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
-// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
-// purple mist background so the icon still visually reads as "this is a shadow" even without a
-// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
-// its own failure handling in that case), false if there's nothing shadow-specific to do.
-// No longer swaps to a fallback sprite on error - spriteUrl() already resolves shadow names
-// to their base sprite directly now, so there's nothing left to fall back to. Kept as a
-// pass-through rather than touching every onerror call site that still references it.
-function trySpriteShadowFallback(img, name){
-  return false;
+function slugify(s){ return s.trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""); }
+function parseCSV(text){
+  const rows=[]; let row=[],cur="",q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else if(c==='"') q=true;
+    else if(c===","){ row.push(cur); cur=""; }
+    else if(c==="\n"){ row.push(cur); rows.push(row); row=[]; cur=""; }
+    else if(c!=="\r") cur+=c;
+  }
+  if(cur||row.length){ row.push(cur); rows.push(row); }
+  return rows;
 }
+// "5.5 \u2b50" -> 5.5, used only to pick the LOWEST difficulty a boss has been solved at.
+function starValue(s){ const m=(s||"").match(/[\d.]+/); return m ? parseFloat(m[0]) : Infinity; }
 
-// Applies to every shadow Pokemon unconditionally, regardless of whether a dedicated
-// shadow-tinted sprite exists and loads successfully - simpler than checking DEX_MAP, and
-// matches the intent that shadow status should always be visually obvious.
-function needsShadowMist(name){
-  return /^shadow\s+/i.test(name.trim());
-}
-
-function normalizeStrategy(s){
-  if(!s) return s;
-  let out = s;
-  // Contract every known strategy name down to its short abbreviation, so the
-  // toggle bar always has room for "See details" regardless of how it was entered in the sheet.
-  out = out.replace(/\bdouble\s*catch\s*tank\b/gi, "2x CT");
-  out = out.replace(/\bdouble\s*ct\b/gi, "2x CT");
-  out = out.replace(/\bhot\s*swap\s*chain\b/gi, "HS Chain");
-  out = out.replace(/\bhot\s*swap\b/gi, "HS");
-  out = out.replace(/\bcatch\s*tank\b/gi, "CT");
-  out = out.replace(/\btick\s*perfect\s*cast\b/gi, "TPC");
-  out = out.replace(/\bdouble\s*battle\s*party\b/gi, "DBP");
-  out = out.replace(/\brecycle\b/gi, "RCY");
-  out = out.replace(/\bvaries\b/gi, "Various");
-
-  const parts = out.split("/").map(p => p.trim()).filter(Boolean);
-  if(parts.length >= 3) return "Various";
-  return parts.join("/");
-}
-
-const CATEGORY_ORDER = ["Elite","T6"];
-const CATEGORY_NAMES = {"Elite":"Elite Tier","T6":"Mega Legendary"};
-function tierClass(t){ return {"4":"t4","5":"t5","5.5":"t55","6":"t6","7":"t7","3":"t3","2":"t2","1":"t1"}[t] || "t5"; }
-function tierLabel(t){ return (t === "5.5" ? "5.5" : t) + "★"; }
-
-const TYPE_COLORS = {
-  normal:"#9199A1", fire:"#E2661C", water:"#3E8DE0", electric:"#E0B316",
-  grass:"#4E9A3A", ice:"#5AC9C9", fighting:"#A2402A", poison:"#8A3F94",
-  ground:"#6B4423", flying:"#8B93E0", psychic:"#E0426E", bug:"#7B9A1E",
-  rock:"#B5651D", ghost:"#5B4B8A", dragon:"#5B3FE0", dark:"#4A4238",
-  steel:"#7A8A9A", fairy:"#E091C9", unknown:"#9aa3b2",
-};
-let MOVE_TYPES = {};
-function getMoveType(move){
-  if(!move) return null;
-  const key = move.trim().toLowerCase();
-  if(key === "any" || key === "varies") return null;
-  return MOVE_TYPES[key] || null;
-}
-const TYPE_TEXT_COLOR = {
-  normal:"#161616", fire:"#161616", water:"#ffffff", electric:"#161616",
-  grass:"#ffffff", ice:"#161616", fighting:"#ffffff", poison:"#ffffff",
-  ground:"#ffffff", flying:"#161616", psychic:"#ffffff", bug:"#ffffff",
-  rock:"#ffffff", ghost:"#ffffff", dragon:"#ffffff", dark:"#ffffff",
-  steel:"#ffffff", fairy:"#161616",
-};
-// Hidden Power is entered in the CSV abbreviated (e.g. "HP Fig", "Hidden Power (Fi)") - expand it for display
-const HP_TYPE_MAP = {
-  "bug":"Bug", "bu":"Bug",
-  "da":"Dark", "dark":"Dark",
-  "dr":"Dragon", "dragon":"Dragon",
-  "el":"Electric", "electric":"Electric",
-  "fig":"Fighting", "fighting":"Fighting",
-  "fi":"Fire", "fire":"Fire",
-  "fl":"Flying", "flying":"Flying",
-  "gh":"Ghost", "ghost":"Ghost",
-  "gra":"Grass", "gr":"Grass", "grass":"Grass",
-  "gro":"Ground", "ground":"Ground",
-  "i":"Ice", "ice":"Ice",
-  "po":"Poison", "poison":"Poison",
-  "ps":"Psychic", "psychic":"Psychic",
-  "ro":"Rock", "rock":"Rock",
-  "st":"Steel", "steel":"Steel",
-  "wa":"Water", "water":"Water",
-};
-// Move data is loaded from csv/moves.csv - the single source shared by every page.
-// This page previously carried its own 344-entry MOVE_DB array, duplicated verbatim
-// across six files. MOVE_TYPES is derived from the same rows via the CSV's `type`
-// column, so the name -> type map no longer needs maintaining separately either.
-let MOVE_DB = [];
-async function loadMoveDb(){
+async function loadBossIndex(){
+  const grid = document.getElementById("bossGrid");
   try{
-    const res = await fetch("csv/moves.csv");
+    const res = await fetch(CSV_URL);
     if(!res.ok) throw new Error("HTTP " + res.status);
-    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
-    const header = lines.shift().split(",").map(h => h.trim());
-    const iN = header.indexOf("name"), iD = header.indexOf("damage"), iE = header.indexOf("energy");
-    const iT = header.indexOf("turns"), iC = header.indexOf("category"), iTy = header.indexOf("type");
-    if(iN < 0 || iD < 0 || iTy < 0) throw new Error("unexpected header: " + header.join(","));
-    MOVE_DB = lines.map(l => {
-      const c = l.split(",");
-      return { n: (c[iN]||"").trim(), dmg: parseFloat(c[iD]), energy: parseFloat(c[iE]),
-               ad: parseFloat(c[iT]), type: (c[iC]||"").trim(), elem: (c[iTy]||"").trim() };
-    }).filter(m => m.n);
-    // Only pages that actually use a move-name -> type map declare MOVE_TYPES;
-    // ct-database.html has none, so populating it unguarded threw a ReferenceError
-    // inside the try and silently aborted the rest of the load.
-    if(typeof MOVE_TYPES !== "undefined"){
-      MOVE_DB.forEach(m => { if(m.elem) MOVE_TYPES[m.n.toLowerCase()] = m.elem.toLowerCase(); });
-    }
+    const table = parseCSV(await res.text());
+    const header = table.shift().map(h=>h.trim());
+    const iName = header.indexOf("Boss Name"), iStar = header.indexOf("Star");
+    const byBoss = new Map();
+    table.forEach(r => {
+      const name = (r[iName]||"").trim();
+      if(!name) return;
+      if(!byBoss.has(name)) byBoss.set(name, { name, count:0, lowest:Infinity, lowestLabel:"" });
+      const b = byBoss.get(name);
+      b.count++;
+      const v = starValue(r[iStar]);
+      if(v < b.lowest){ b.lowest = v; b.lowestLabel = (r[iStar]||"").trim(); }
+    });
+    const bosses = [...byBoss.values()].sort((a,b)=>a.name.localeCompare(b.name));
+    ALL_BOSSES = bosses;
+    renderGrid();
   }catch(e){
-    // Loud on purpose: a quiet failure here looks like moves simply having no type,
-    // which is exactly how the six duplicated copies drifted without anyone noticing.
-    console.error("Failed to load csv/moves.csv - move stats and type chips will be missing:", e);
+    console.error("Failed to load boss index:", e);
+    grid.innerHTML = '<div class="empty">Couldn\'t load ' + CSV_URL + '.</div>';
   }
 }
 
-// Strategy abbreviations with hover definitions, pulled from solo-raid-mechanics.html
-const STRATEGY_INFO = {
-  "catch tank": {abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move, then return their own quick, high-damage charge move.", slug:"catch-tank"},
-  "ct": {abbr:"CT", desc:"Catch tanks intercept and absorb energy from a high-damaging charge move, then return their own quick, high-damage charge move.", slug:"catch-tank"},
-  "hot swap": {abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", slug:"hot-swap"},
-  "hs": {abbr:"HS", desc:"Switching to the next available attacker when the current attacker cannot reach another charge move.", slug:"hot-swap"},
-  "hs chain": {abbr:"HS Chain", desc:"A chain of consecutive Hot Swaps across multiple attackers within a single attempt.", slug:"hot-swap"},
-  "tick perfect cast": {abbr:"TPC", desc:"Precisely timing the final tap just before a charge move cast, avoiding the energy resolve DPS nerf. Very hard to execute consistently.", slug:"tick-perfect-cast"},
-  "tpc": {abbr:"TPC", desc:"Precisely timing the final tap just before a charge move cast, avoiding the energy resolve DPS nerf. Very hard to execute consistently.", slug:"tick-perfect-cast"},
-  "double battle party": {abbr:"DBP", desc:"Using two identical battle parties; reduces every other rejoin time by about 40%.", slug:"double-battle-party"},
-  "dbp": {abbr:"DBP", desc:"Using two identical battle parties; reduces every other rejoin time by about 40%.", slug:"double-battle-party"},
-  "recycle": {abbr:"RCY", desc:"Reusing the same Main DPS Pokémon across multiple rejoins instead of a fresh one each time.", slug:"recycle"},
-  "rcy": {abbr:"RCY", desc:"Reusing the same Main DPS Pokémon across multiple rejoins instead of a fresh one each time.", slug:"recycle"},
-  "dodge": {abbr:"Dodge", desc:"Manually dodging the boss's charge move animations to reduce incoming damage.", slug:""},
-  "double ct": {abbr:"2x CT", desc:"Using two separate Catch Tank Pokémon across the attempt instead of just one.", slug:"catch-tank"},
-  "2x ct": {abbr:"2x CT", desc:"Using two separate Catch Tank Pokémon across the attempt instead of just one.", slug:"catch-tank"},
-  "various": {abbr:"Various", desc:"Multiple different strategies were used across recorded attempts.", slug:""},
-  "varies": {abbr:"Various", desc:"Multiple different strategies were used across recorded attempts.", slug:""},
-};
-function strategyChipsHtml(strategyStr){
-  if(!strategyStr) return "";
-  const parts = strategyStr.split(/\s*\/\s*/).map(s => s.trim()).filter(Boolean);
-  return parts.map(p => {
-    const info = STRATEGY_INFO[p.toLowerCase()];
-    if(!info) return `<span class="strategy-chip">${p}</span>`;
-    const href = info.slug ? `solo-raid-mechanics.html#strategy-${info.slug}` : "solo-raid-mechanics.html";
-    return `<a href="${href}" class="strategy-chip strategy-abbr" data-tooltip="${info.desc.replace(/"/g, "&quot;")}">${p}</a>`;
-  }).join(" / ");
-}
-// Boss base stats come from csv/pokemon-stats.csv - the same file pokemon-stats.html uses.
-// This page previously carried its own hardcoded BOSS_BASE_STATS array, which had drifted
-// badly out of date (42 of 1192 entries), and bossStatsHtml() returns "" on a miss - so
-// every boss added since that array was last hand-edited rendered with no stats line and
-// no error. Reading the source file directly removes the copy that can drift.
-let BOSS_BASE_STATS = [];
-
-async function loadBossBaseStats(){
-  try{
-    const res = await fetch("csv/pokemon-stats.csv");
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const text = await res.text();
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
-    const header = lines.shift().split(",").map(h => h.trim());
-    const iName = header.indexOf("name"), iHp = header.indexOf("hp");
-    const iAtk = header.indexOf("atk"), iDef = header.indexOf("def");
-    if(iName < 0 || iAtk < 0 || iDef < 0) throw new Error("unexpected header: " + header.join(","));
-    BOSS_BASE_STATS = lines.map(l => {
-      const c = l.split(",");
-      return { n: (c[iName]||"").trim(), hp: parseFloat(c[iHp]), atk: parseFloat(c[iAtk]), def: parseFloat(c[iDef]) };
-    }).filter(s => s.n && !isNaN(s.atk) && !isNaN(s.def));
-  }catch(e){
-    // Loud on purpose. Failing quietly here looks identical to a boss simply not having
-    // stats, which is how the stale hardcoded array went unnoticed for so long.
-    console.error("Failed to load csv/pokemon-stats.csv - boss stats lines will be missing:", e);
-  }
-}
-const BOSS_CPM = 0.7903;
-const ELITE_CPM = 1.0;
-const ELITE_HP = 20000;
-const BOSS_HP = 22500;
-const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
-// BOSS_TYPES is built by loadTypeData() below.
-
-// Typing is loaded from csv/pokemon-stats.csv (type1/type2), merged with
-// csv/pokemon-types.csv underneath. Both are needed: the stats CSV is authoritative and
-// covers the megas, but 111 species appear only in pokemon-types.csv, and 146 stats rows
-// still have no type of their own. They conflict on nothing.
-//
-// This page previously carried a hardcoded copy of this data, which had drifted: the
-// Therian formes had lost their Flying type and every Legends Z-A mega was absent. Reading
-// the source removes the copy that can drift.
-async function loadTypeData(){
-  function parse(text){
-    const lines = text.split(/\r?\n/).filter(l => l.trim());
-    const header = lines.shift().split(",").map(h => h.trim());
-    const iName = header.indexOf("name"), i1 = header.indexOf("type1"), i2 = header.indexOf("type2");
-    if(iName < 0 || i1 < 0) return [];
-    return lines.map(l => {
-      const c = l.split(",");
-      return { n: (c[iName]||"").trim(), t1: (c[i1]||"").trim(), t2: (i2 >= 0 ? (c[i2]||"").trim() : "") };
-    }).filter(r => r.n && r.t1);
-  }
-  try{
-    const [statsRes, typesRes] = await Promise.all([
-      fetch("csv/pokemon-stats.csv"),
-      fetch("csv/pokemon-types.csv"),
-    ]);
-    if(!statsRes.ok) throw new Error("pokemon-stats.csv HTTP " + statsRes.status);
-    const byName = new Map();
-    if(typesRes.ok) parse(await typesRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
-    parse(await statsRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
-    TYPE_ROWS = [...byName.values()];
-    BOSS_TYPES = {};
-    TYPE_ROWS.forEach(r => { BOSS_TYPES[r.n.toLowerCase()] = { t1: r.t1.toLowerCase(), t2: (r.t2||"").toLowerCase() }; });
-  }catch(e){
-    // Loud on purpose: a quiet failure here looks exactly like a boss legitimately having
-    // no type icons, which is how the stale inline table went unnoticed.
-    console.error("Failed to load type data - type icons will be missing:", e);
-  }
-}
-let TYPE_ROWS = [];
-let BOSS_TYPES = {};
-function typeIconsHtml(bossName){
-  const t = BOSS_TYPES[bossName.trim().toLowerCase()];
-  if(!t) return "";
-  const icons = [t.t1, t.t2].filter(Boolean).map(type => {
-    const color = TYPE_COLORS[type] || TYPE_COLORS.unknown;
-    const url = `${TYPE_ICON_BASE}${type}.svg`;
-    return `<span class="type-icon-wrap" style="background:${color};" title="${type.charAt(0).toUpperCase()+type.slice(1)}"><img class="type-icon" src="${url}" alt="${type}" onerror="this.parentElement.style.display='none'"></span>`;
-  }).join("");
-  return icons;
+// The page already has a search box; before this it filtered strategy cards that no longer
+// exist here, so typing did nothing. It now filters the boss grid.
+let ALL_BOSSES = [];
+function renderGrid(){
+  const grid = document.getElementById("bossGrid");
+  const box = document.getElementById("search");
+  const q = (box && box.value || "").trim().toLowerCase();
+  const list = q ? ALL_BOSSES.filter(b => b.name.toLowerCase().includes(q)) : ALL_BOSSES;
+  document.getElementById("indexCount").textContent =
+    (q ? list.length + " of " + ALL_BOSSES.length : ALL_BOSSES.length) +
+    " boss" + ((q?list.length:ALL_BOSSES.length)===1?"":"es") + " \u00b7 " +
+    list.reduce((n,b)=>n+b.count,0) + " strategies";
+  grid.innerHTML = list.length ? list.map(b =>
+      '<a class="boss-card" href="collections/' + slugify(b.name) + '.html">' +
+        '<img src="' + spriteUrl(b.name) + '" alt="' + b.name + '" loading="lazy" onerror="this.style.visibility=\'hidden\'">' +
+        '<div class="bn">' + b.name + '</div>' +
+        '<div class="bm">' + (b.lowestLabel || "\u2014") + ' \u00b7 ' + b.count +
+          ' strateg' + (b.count===1?'y':'ies') + '</div>' +
+      '</a>').join("") : '<div class="empty">No bosses match that search.</div>';
 }
 
-
-
-function bossStatsHtml(bossName, category){
-  const key = bossName.trim().toLowerCase();
-  const stats = BOSS_BASE_STATS.find(s => s.n.toLowerCase() === key);
-  if(!stats) return "";
-  const isElite = category === "Elite";
-  const cpm = isElite ? ELITE_CPM : BOSS_CPM;
-  const hp = isElite ? ELITE_HP : BOSS_HP;
-  const atk = Math.round(stats.atk * cpm);
-  const def = Math.round(stats.def * cpm);
-  return `<div class="boss-stats-line" data-tooltip="Base stats × ${cpm} CPM${isElite ? " (Elite tier)" : " (same multiplier as the Catch Tank Calculator)"}, HP is a fixed raid pool">ATK ${atk} &middot; DEF ${def} &middot; HP ${hp}</div>`;
-}
-
-function normalizeHiddenPower(moveName){
-  if(!moveName) return moveName;
-  const m = moveName.trim().match(/^(?:HP|Hidden\s*Power)\s*\(?\s*([A-Za-z]+)\s*\)?\s*$/i);
-  if(!m) return moveName;
-  const fullType = HP_TYPE_MAP[m[1].toLowerCase()];
-  return fullType ? `Hidden Power ${fullType}` : moveName;
-}
-
-function findMoveStats(moveName){
-  const key = moveName.trim().toLowerCase();
-  return MOVE_DB.find(m => m.n.toLowerCase() === key) || null;
-}
-const BADGE_COLORS = {normal:"#9199A1", fire:"#E2661C", water:"#3E8DE0", electric:"#E0B316", grass:"#4E9A3A", ice:"#5AC9C9", fighting:"#A2402A", poison:"#8A3F94", ground:"#6B4423", flying:"#8B93E0", psychic:"#E0426E", bug:"#7B9A1E", rock:"#B5651D", ghost:"#5B4B8A", dragon:"#5B3FE0", dark:"#4A4238", steel:"#7A8A9A", fairy:"#E091C9"};
-const BADGE_TEXT = {normal:"#161616", fire:"#ffffff", water:"#ffffff", electric:"#161616", grass:"#ffffff", ice:"#161616", fighting:"#ffffff", poison:"#ffffff", ground:"#ffffff", flying:"#161616", psychic:"#ffffff", bug:"#ffffff", rock:"#ffffff", ghost:"#ffffff", dragon:"#ffffff", dark:"#ffffff", steel:"#ffffff", fairy:"#161616"};
-const TYPE_ABBR = {normal:"NOR", fire:"FIRE", water:"WAT", electric:"ELE", grass:"GRA", ice:"ICE", fighting:"FIG", poison:"POI", ground:"GRO", flying:"FLY", psychic:"PSY", bug:"BUG", rock:"ROCK", ghost:"GHO", dragon:"DRA", dark:"DARK", steel:"STE", fairy:"FAI"};
-function moveTypeBadgeHtml(moveName, stats){
-  const type = stats ? stats.elem.toLowerCase() : getMoveType(moveName);
-  if(!type || !BADGE_COLORS[type]) return "";
-  const bg = BADGE_COLORS[type];
-  const label = type.charAt(0).toUpperCase() + type.slice(1);
-  return `<span class="move-type-badge" style="background:${bg};">${label}</span>`;
-}
-function moveStatLineHtml(moveName, kind){
-  const stats = findMoveStats(moveName);
-  const badge = moveTypeBadgeHtml(moveName, stats);
-  if(!stats){
-    return `<div class="move-stat-line"><div class="move-stat-name">${badge}<b>${moveName}</b></div></div>`;
-  }
-  const seconds = (stats.ad * 0.5).toFixed(1);
-  const energyLabel = kind === "Charge" ? `${Math.abs(stats.energy)} energy cost` : `${stats.energy} energy`;
-  const tooltip = `${kind} Move: ${stats.dmg} dmg, ${energyLabel}, ${seconds}s`;
-  return `<div class="move-stat-line" data-tooltip="${tooltip}">
-    <div class="move-stat-name">${badge}<b>${moveName}</b></div>
-  </div>`;
-}
-function moveStatLinesHtml(moveStr, kind){
-  if(!moveStr) return "";
-  const lower = moveStr.trim().toLowerCase();
-  if(lower === "any" || lower === "varies"){
-    return `<div class="move-stat-line"><div class="move-stat-name"><span class="move-type-badge" style="background:#2b2b2b;">Varies</span><b>${moveStr}</b></div></div>`;
-  }
-  // some entries record two charge moves used in the same strategy, e.g. "Blast Burn & Blaze Kick"
-  const parts = moveStr.split(/\s*&\s*/).map(s => normalizeHiddenPower(s.trim())).filter(Boolean);
-  return parts.map(p => moveStatLineHtml(p, kind)).join("");
-}
-
-function moveChipHtml(label, move){
-  const displayMove = normalizeHiddenPower(move);
-  const type = getMoveType(move);
-  const color = type ? TYPE_COLORS[type] : null;
-  const stats = findMoveStats(displayMove);
-  let tooltipAttr = "";
-  if(stats){
-    const seconds = (stats.ad * 0.5).toFixed(1);
-    const energyLabel = label === "Charge" ? `${Math.abs(stats.energy)} energy cost` : `${stats.energy} energy`;
-    const tooltip = `${label} Move: ${stats.dmg} dmg, ${energyLabel}, ${seconds}s`;
-    tooltipAttr = ` data-tooltip="${tooltip}"`;
-  }
-  const style = color ? `style="background:${color}; color:#fff; border-color:${color};"` : "";
-  const shortTag = label === "Fast" ? "F" : "C";
-  return `<span ${style}${tooltipAttr}><span class="move-tag">${shortTag}</span><span class="move-name">${displayMove}</span></span>`;
-}
-
-const WEATHER_ICON_URLS = {
-  "clear":"assets/icons/weather-clear.png",
-  "sunny":"assets/icons/weather-clear.png",
-  "cloudy":"assets/icons/weather-cloudy.png",
-  "partly cloudy":"assets/icons/weather-partly-cloudy.png",
-  "windy":"assets/icons/weather-windy.png",
-  "wind":"assets/icons/weather-windy.png",
-  "rain":"assets/icons/weather-rain.png",
-  "rainy":"assets/icons/weather-rain.png",
-  "snow":"assets/icons/weather-snow.png",
-  "fog":"assets/icons/weather-fog.png",
-  "extreme":"assets/icons/weather-extreme.png",
-};
-const WEATHER_BOOST_INFO = {
-  "clear": ["Fire","Grass","Ground"], "sunny": ["Fire","Grass","Ground"],
-  "partly cloudy": ["Normal","Rock"],
-  "cloudy": ["Fairy","Fighting","Poison"],
-  "windy": ["Dragon","Flying","Psychic"], "wind": ["Dragon","Flying","Psychic"],
-  "rain": ["Water","Electric","Bug"], "rainy": ["Water","Electric","Bug"],
-  "snow": ["Ice","Steel"],
-  "fog": ["Dark","Ghost"],
-};
-function weatherTooltip(key, w){
-  const types = WEATHER_BOOST_INFO[key];
-  if(!types) return key === "extreme" ? "No weather boost is active" : "";
-  const list = types.length > 1 ? types.slice(0, -1).join(", ") + " and " + types[types.length-1] : types[0];
-  return `+20% ${list} damage dealt in raids`;
-}
-function weatherIcon(w, withLabel){
-  const key = w.trim().toLowerCase();
-  const url = WEATHER_ICON_URLS[key];
-  const tooltip = weatherTooltip(key, w);
-  const tooltipAttr = tooltip ? ` data-tooltip="${tooltip}"` : "";
-  const labelHtml = withLabel ? ` <span class="weather-label">${w}</span>` : "";
-  if(url){
-    const wrapCls = key === "extreme" ? "weather-icon-wrap extreme" : "weather-icon-wrap";
-    return `<span class="${wrapCls}"${tooltipAttr}><img class="weather-icon-img" src="${url}" alt="${w}" loading="lazy" onerror="this.parentElement.remove()"></span>${labelHtml}`;
-  }
-  return `<span${tooltipAttr}>🌤️${withLabel ? " " + w : ""}</span>`;
-}
-function parseRole(roleStr){
-  const parts = roleStr.split(",").map(p => p.trim());
-  let count = null;
-  const roleParts = [];
-  parts.forEach(p => {
-    if(/^\d+x$/i.test(p) || /^varies$/i.test(p)){
-      count = p;
-    } else {
-      roleParts.push(p);
-    }
-  });
-  return { role: roleParts.join(" + "), count };
-}
-
-function roleClass(role){
-  const r = role.toLowerCase();
-  if(r.includes("executor")) return "executor";
-  if(r.includes("catch tank")) return "catchtank";
-  if(r.includes("support")) return "support";
-  return "";
-}
-
-const ROLE_DESCRIPTIONS = {
-  main: "The primary damage dealer.",
-  support: "Steps in when Main DPS goes down.",
-  catchtank: "Intercepts large moves & returns heavy damage.",
-  executor: "Fights bosses in small windows.",
-};
-function memberRowHtml(member, isMain){
-  const cls = isMain ? "main" : roleClass(member.r) || "other";
-  const { role, count } = parseRole(member.r);
-  const hasMoveset = member.fast || member.charge;
-  return `
-  <div class="member-row ${isMain ? "main" : ""}">
-    <div class="member-icon">
-      <img class="${needsShadowMist(member.n) ? 'shadow-mist' : ''}" src="${spriteUrl(member.n)}" alt="${member.n}" loading="lazy"
-           onerror="this.parentElement.innerHTML='<div class=&quot;fallback&quot;>${member.n[0]}</div>'">
-    </div>
-    <div class="member-info">
-      <div class="member-name">${displayName(member.n)}</div>
-      <div class="role-row">
-        <span class="role-chip ${cls}" title="${ROLE_DESCRIPTIONS[cls] || ''}">${role}</span>
-        ${count ? `<span class="count-badge">${count === "Varies" ? "Varies" : "×" + count.replace(/x$/i,"")}</span>` : ""}
-      </div>
-      ${hasMoveset ? `<div class="party-moveset">
-        ${member.fast ? moveStatLinesHtml(member.fast, "Fast") : ""}
-        ${member.charge ? moveStatLinesHtml(member.charge, "Charge") : ""}
-      </div>` : ""}
-    </div>
-  </div>`;
-}
-function vodHtml(vod){
-  if(vod){
-    return `<a class="vod-btn" href="${vod}" target="_blank" rel="noopener">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> Watch VOD
-    </a>`;
-  }
-  return `<span class="no-vod">No VOD available</span>`;
-}
-
-function variantBodyHtml(r, cardId, boss){
-  const [main, ...rest] = r.party;
-  const mainHtml = main ? memberRowHtml(main, true) : "";
-  const restHtml = rest.map(m => memberRowHtml(m, false)).join("");
-
-  return `
-    <div class="meta-row">
-      <div class="meta-left">
-        ${r.weather ? `<span class="weather-tag">${weatherIcon(r.weather, true)}</span>` : ""}
-        ${r.ae === "sword" ? `<span class="ae-tag" data-tooltip="+10% damage dealt from your pokemon in raids"><img class="ae-icon" src="${AE_ICON}" alt="AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Blade Boost</span></span>` : ""}
-        ${r.ae === "shield" ? `<span class="ae-tag" data-tooltip="+10% damage reduction for your pokemon in raids"><img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash AE" loading="lazy" onerror="this.style.display='none'"> <span class="weather-label">Adventure Effect</span></span>` : ""}
-      </div>
-      <div class="guide-link-slot" data-boss="${boss.toLowerCase()}"></div>
-    </div>
-    <details class="party-wrap">
-      <summary class="expand-btn">
-        ${r.hasPartyTwin ? `<span class="twin-badge-inline" data-tooltip="Another recorded attempt uses the same weather, difficulty, and moveset, but a different battle party. Check both to compare.">🔁 Alternate Battle Party</span>` : ""}
-        <span class="expand-action"><span class="expand-see">See details</span><span class="expand-hide">Hide details</span><span class="party-chevron">›</span></span>
-      </summary>
-      <div class="details-panel">
-        ${r.strategy ? `<div class="strategy-chip-row"><span class="strategy-label">Strategy:</span>${strategyChipsHtml(r.strategy)}</div>` : ""}
-        <div class="party-label">Battle Party <span class="party-count-badge">${r.party.length}</span></div>
-        <div class="party-list">${mainHtml}${restHtml}</div>
-        ${r.notes ? `<details class="notes-wrap"><summary>Notes</summary><div class="notes-body">${r.notes}</div></details>` : ""}
-        <div class="card-bottom">${vodHtml(r.vod)}</div>
-      </div>
-    </details>
-  `;
-}
-
-function bossCardHtml(boss, r, cardId, idSuffix){
-  const domId = `boss-${boss.toLowerCase().replace(/[^a-z0-9]+/g,'-')}${idSuffix ? '-' + idSuffix : ''}`;
-  return `
-  <div class="card" id="${domId}" data-boss="${boss.toLowerCase()}" data-card-id="${cardId}">
-    <div class="title-section">
-      <div class="header">
-        <div class="name-group">
-          <h2 class="boss-name">${displayName(boss)}<span class="type-icon-row">${typeIconsHtml(boss)}</span></h2>
-          ${r.vod ? `<div class="vod-badge" title="VOD available">📹</div>` : ""}
-        </div>
-      </div>
-      ${bossStatsHtml(boss, r.category)}
-    </div>
-    <div class="card-top">
-      <div class="boss-icon">
-        <img class="${needsShadowMist(boss) ? 'shadow-mist' : ''}" src="${spriteUrl(boss)}" alt="${boss}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${boss}')) { this.style.display='none'; }">
-      </div>
-      <div class="boss-moveset-row">${moveStatLinesHtml(r.fast, "Fast")}${moveStatLinesHtml(r.charge, "Charge")}</div>
-    </div>
-    <div class="card-body">${variantBodyHtml(r, cardId, boss)}</div>
-  </div>`;
-}
-
-const TIER_WEIGHT = {"7":5,"6":4,"5.5":3,"5":2,"4":1};
-
-// Group by boss only (across all tiers), sort variants hardest -> easiest
-let bossGroups = {};
-let bossOrder = [];
-const CARD_DATA = {}; // cardId -> its single raid variant (one card = one strategy now)
-const activeWeathers = new Set();
-
-let WEATHER_LIST = [];
-const STRATEGY_LIST = ["Catch Tank", "Hot Swap", "Tick Perfect Cast", "Recycle", "Various", "Double Battle Party"];
-function strategyCategories(strategy){
-  if(!strategy) return [];
-  return STRATEGY_LIST.filter(cat => strategy.toLowerCase().includes(cat.toLowerCase()));
-}
-
-const TIER_ORDER = ["7","6","5.5","5","4","3","2","1"];
-const TIER_NAMES = {"7":"Special","6":"Nightmare","5.5":"Very Hard","5":"Hard","4":"Challenging","3":"Moderate","2":"Easy","1":"Very Easy"};
-const activeTiers = new Set();
-let DIFFICULTY_LIST = [];
-
-function partySignature(party){
-  return party.map(m => `${m.n}|${m.r}|${m.fast}|${m.charge}`).join(";");
-}
-
-function initializeFromRaids(){
-  RAIDS.forEach(r => { r.strategy = normalizeStrategy(r.strategy); });
-  bossGroups = {};
-  RAIDS.forEach(r => {
-    if(!bossGroups[r.boss]) bossGroups[r.boss] = [];
-    bossGroups[r.boss].push(r);
-  });
-  Object.keys(bossGroups).forEach(boss => {
-    bossGroups[boss].sort((a,b) => TIER_WEIGHT[b.tier] - TIER_WEIGHT[a.tier]);
-  });
-  // Flag variants that share the exact same tier/weather/moveset as another recorded
-  // attempt for the same boss, but use a genuinely different battle party - these look
-  // identical at a glance on the collapsed card, so they get a small note calling it out.
-  Object.values(bossGroups).forEach(variants => {
-    const byKey = {};
-    variants.forEach(v => {
-      const key = `${v.tier}|${v.weather}|${v.fast}|${v.charge}`;
-      if(!byKey[key]) byKey[key] = [];
-      byKey[key].push(v);
-    });
-    Object.values(byKey).forEach(group => {
-      if(group.length < 2) return;
-      const signatures = new Set(group.map(v => partySignature(v.party)));
-      if(signatures.size > 1) group.forEach(v => { v.hasPartyTwin = true; });
-    });
-  });
-  bossOrder = Object.keys(bossGroups).sort((a,b) => a.localeCompare(b));
-  WEATHER_LIST = [...new Set(RAIDS.map(r => r.weather).filter(Boolean))].sort();
-  DIFFICULTY_LIST = TIER_ORDER.filter(t => bossOrder.some(b => bossGroups[b][bossGroups[b].length - 1].tier === t));
-
-  renderWeatherFilters();
-  buildSections();
-}
-
-const TIER_DESCRIPTIONS = {
-  "7":"Perfect execution required — under 0.5% win chance.",
-  "6":"Perfect execution — roughly 1–2.5% win chance.",
-  "5.5":"Excellent execution — roughly 10–20% win chance.",
-  "5":"Good execution, favorable weather & movesets recommended.",
-  "4":"Some strategic execution — Level 40+ with select movesets.",
-  "3":"Various counters work — Level 40+.",
-  "2":"Various counters work — Level 30+.",
-  "1":"Lots of counters work — Level 30.",
-};
-
-function renderFilterGroup(containerId, list, activeSet, toggleFnName, showIcon){
-  const el = document.getElementById(containerId);
-  el.innerHTML = list.map(val => `
-    <label class="filter-chk">
-      <input type="checkbox" ${activeSet.has(val) ? "checked" : ""} onchange="${toggleFnName}('${val.replace(/'/g,"\\'")}')">
-      ${showIcon ? weatherIcon(val, false) + " " : ""}${val}
-    </label>
-  `).join("");
-}
-function renderWeatherFilters(){
-  renderFilterGroup("weatherFilters", WEATHER_LIST, activeWeathers, "toggleWeather", true);
-  const summary = document.getElementById("weatherSummaryText");
-  if(summary){
-    summary.textContent = activeWeathers.size === 0 ? "Weather: All" :
-      "Weather: " + (activeWeathers.size <= 2 ? [...activeWeathers].join(", ") : `${activeWeathers.size} selected`);
-  }
-}
-
-function toggleWeather(w){
-  if(activeWeathers.has(w)) activeWeathers.delete(w); else activeWeathers.add(w);
-  refresh();
-}
-function clearFilterGroup(group){
-  if(group === "difficulty") activeTiers.clear();
-  if(group === "weather") activeWeathers.clear();
-  refresh();
-}
-
-function refresh(){
-  renderWeatherFilters();
-  buildSections();
-}
-
-const collapsedTiers = new Set();
-function toggleTierCollapse(key){
-  if(collapsedTiers.has(key)) collapsedTiers.delete(key); else collapsedTiers.add(key);
-  buildSections();
-}
-function buildSections(){
-  const bossQuery = search.value.trim().toLowerCase();
-  const sectionsEl = document.getElementById("sections");
-  const alphabetical = false;
-  let totalVisible = 0;
-  let html = "";
-
-  const bossFilteredData = {};
-  bossOrder.forEach((boss, i) => {
-    if(bossQuery && !boss.toLowerCase().includes(bossQuery)) return;
-    let variants = bossGroups[boss].filter(v => {
-      if(activeWeathers.size > 0 && !activeWeathers.has(v.weather)) return false;
-      if(activeTiers.size > 0 && !activeTiers.has(v.tier)) return false;
-      return true;
-    });
-    if(variants.length === 0) return;
-    bossFilteredData[boss] = { i, variants };
-  });
-
-  if(alphabetical){
-    // Flat A-Z list across every category/difficulty - each variant is still its own card.
-    let cardsHtml = "";
-    bossOrder.forEach(boss => {
-      const data = bossFilteredData[boss];
-      if(!data) return;
-      data.variants.forEach((v, vi) => {
-        const cardId = `b-${data.i}-${vi}`;
-        CARD_DATA[cardId] = v;
-        cardsHtml += bossCardHtml(boss, v, cardId, vi > 0 ? String(vi + 1) : "");
-        totalVisible++;
-      });
-    });
-
-    html = cardsHtml ? `<div class="tier-grid">${cardsHtml}</div>` : "";
-    sectionsEl.innerHTML = html || `<div class="empty">No raid bosses match your filters.</div>`;
-    return;
-  }
-
-  CATEGORY_ORDER.forEach(category => {
-    let sectionCardsHtml = "";
-
-    bossOrder.forEach(boss => {
-      if(bossGroups[boss][0].category !== category) return; // only bosses whose hardest entry belongs to this category
-      const data = bossFilteredData[boss];
-      if(!data) return;
-      data.variants.forEach((v, vi) => {
-        const cardId = `b-${data.i}-${vi}`;
-        CARD_DATA[cardId] = v;
-        sectionCardsHtml += bossCardHtml(boss, v, cardId, vi > 0 ? String(vi + 1) : "");
-        totalVisible++;
-      });
-    });
-
-    if(sectionCardsHtml){
-      const isCollapsed = collapsedTiers.has(category);
-      html += `
-      <div class="tier-section">
-        <div class="tier-header" onclick="toggleTierCollapse('${category}')">
-          <span class="tier-name" style="font-size:18px;">${CATEGORY_NAMES[category] || category}</span>
-          <div class="tier-line"></div>
-          <span class="tier-collapse-chevron${isCollapsed ? " collapsed" : ""}">›</span>
-        </div>
-        <div class="tier-grid"${isCollapsed ? ' style="display:none;"' : ""}>${sectionCardsHtml}</div>
-      </div>`;
-    }
-  });
-
-  sectionsEl.innerHTML = html || `<div class="empty">No raid bosses match your filters.</div>`;
-}
-
-const themeToggle = document.getElementById("themeToggle");
-function applyTheme(theme){
-  document.documentElement.setAttribute("data-theme", theme);
-  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
-  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
-}
-themeToggle.addEventListener("click", () => {
-  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-  applyTheme(current === "dark" ? "light" : "dark");
-});
-let initialTheme = "light";
-try{
-  const saved = localStorage.getItem("raidArchiveTheme");
-  if(saved){ initialTheme = saved; }
-  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
-}catch(e){}
-applyTheme(initialTheme);
-
-const search = document.getElementById("search");
-search.addEventListener("input", buildSections);
-loadRaidsFromCSV().then(injectGuideLinks);
-
-// ============ GUIDE LINKS ON CARDS ============
-async function injectGuideLinks(){
-  try{
-    const res = await fetch("data/guides/index.json");
-    if(!res.ok) return;
-    const data = await res.json();
-    const guideByBoss = new Map((data.bosses || []).map(b => [b.name.toLowerCase(), b.slug]));
-    if(guideByBoss.size === 0) return;
-
-    document.querySelectorAll(".guide-link-slot").forEach(slot => {
-      const slug = guideByBoss.get(slot.dataset.boss);
-      if(!slug) return;
-      slot.innerHTML = `<a class="see-guide-link" href="data/guides/${slug}.html"><img class="see-guide-sprite ${needsShadowMist(slot.dataset.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(slot.dataset.boss)}" alt="" onerror="this.remove();">See guide</a>`;
-    });
-  }catch(e){ /* no guides yet, or index unreachable - cards render fine without the link */ }
-}
-
-const gearBtn = document.getElementById("gearBtn");
-const gearPanel = document.getElementById("gearPanel");
-const hamburgerBtn = document.getElementById("hamburgerBtn");
-const hamburgerPanel = document.getElementById("hamburgerPanel");
-
-function closeHamburger(){
-  hamburgerPanel.classList.remove("open");
-  hamburgerBtn.setAttribute("aria-expanded", "false");
-}
-function closeGear(){
-  gearPanel.classList.remove("open");
-  gearBtn.setAttribute("aria-expanded", "false");
-}
-
-gearBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  const isOpen = gearPanel.classList.contains("open");
-  closeHamburger();
-  gearPanel.classList.toggle("open", !isOpen);
-  gearBtn.setAttribute("aria-expanded", String(!isOpen));
-});
-hamburgerBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  const isOpen = hamburgerPanel.classList.contains("open");
-  closeGear();
-  hamburgerPanel.classList.toggle("open", !isOpen);
-  hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
-});
-document.addEventListener("click", (e) => {
-  if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
-    closeHamburger();
-  }
-  if(!gearPanel.contains(e.target) && e.target !== gearBtn){
-    closeGear();
-  }
-});
+(function(){
+  const box = document.getElementById("search");
+  if(box) box.addEventListener("input", renderGrid);
+})();
+loadBossIndex();
 </script>
 
-<script>
-
-// ---- Search autocomplete (ported from ct-calculator.html) ----------------------------
-// Capped at 8 so the list can never run past the field into neighbouring content, which
-// is the same reason the calculator caps it. Names come from this page's own dataset via
-// a getter, because that dataset is filled by an async CSV load that has not run yet when
-// this script parses.
-function initSearchAutocomplete(inputId, getNames){
-  const input = document.getElementById(inputId);
-  if(!input) return;
-  // Appended to <body>, never wrapped around the input - see the .ac-list CSS note.
-  const list = document.createElement("div");
-  list.className = "ac-list";
-  document.body.appendChild(list);
-  function place(){
-    const b = input.getBoundingClientRect();
-    list.style.left  = b.left + "px";
-    list.style.top   = (b.bottom + 4) + "px";
-    list.style.width = b.width + "px";
-  }
-  let highlighted = -1;
-
-  function matches(query){
-    const q = (query || "").trim().toLowerCase();
-    if(!q) return [];
-    const seen = new Set(), starts = [], contains = [];
-    for(const raw of (getNames() || [])){
-      if(!raw) continue;
-      const name = String(raw);
-      const lower = name.toLowerCase();
-      if(seen.has(lower)) continue;
-      if(lower.startsWith(q)){ seen.add(lower); starts.push(name); }
-      else if(lower.includes(q)){ seen.add(lower); contains.push(name); }
-      if(starts.length >= 8) break;
-    }
-    return [...starts, ...contains].slice(0, 8);
-  }
-  function highlight(name, query){
-    const q = (query || "").trim();
-    const i = name.toLowerCase().indexOf(q.toLowerCase());
-    if(i === -1 || !q) return name;
-    return name.slice(0,i) + "<mark>" + name.slice(i, i+q.length) + "</mark>" + name.slice(i+q.length);
-  }
-  function close(){ list.classList.remove("open"); highlighted = -1; }
-  function select(name){
-    input.value = name;
-    input.dispatchEvent(new Event("input", { bubbles: true }));
-    input.dispatchEvent(new Event("change", { bubbles: true }));
-    close();
-  }
-  function render(){
-    const found = matches(input.value);
-    if(!found.length){ close(); return; }
-    list.innerHTML = found.map((n,i) =>
-      `<div class="ac-item${i===highlighted?' hi':''}" data-name="${String(n).replace(/"/g,'&quot;')}">${highlight(String(n), input.value)}</div>`
-    ).join("");
-    place();
-    list.classList.add("open");
-    list.querySelectorAll(".ac-item").forEach(el => {
-      // mousedown, not click: it fires before the input's blur, so picking an item does
-      // not close the dropdown out from under the pointer.
-      el.addEventListener("mousedown", e => { e.preventDefault(); select(el.dataset.name); });
-    });
-  }
-  input.addEventListener("input", () => { highlighted = -1; render(); });
-  input.addEventListener("focus", render);
-  window.addEventListener("scroll", () => { if(list.classList.contains("open")) place(); }, true);
-  window.addEventListener("resize", () => { if(list.classList.contains("open")) place(); });
-  input.addEventListener("blur", () => setTimeout(close, 120));
-  input.addEventListener("keydown", e => {
-    const items = list.querySelectorAll(".ac-item");
-    if(!list.classList.contains("open") || !items.length) return;
-    if(e.key === "ArrowDown"){ e.preventDefault(); highlighted = Math.min(highlighted+1, items.length-1); render(); }
-    else if(e.key === "ArrowUp"){ e.preventDefault(); highlighted = Math.max(highlighted-1, 0); render(); }
-    else if(e.key === "Enter" && highlighted >= 0){ e.preventDefault(); select(items[highlighted].dataset.name); }
-    else if(e.key === "Escape"){ close(); }
-  });
-}
-
-initSearchAutocomplete('search', () => (typeof RAIDS!=='undefined'?RAIDS.map(r=>r.boss||r.name):[]));
-</script>
 </body>
 </html>
