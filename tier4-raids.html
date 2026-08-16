@@ -603,6 +603,7 @@ body{ background:#20263a; color: var(--text-muted); }
   <select id="sortSelect">
     <option value="name">Name (A–Z)</option>
     <option value="difficulty">Lowest difficulty</option>
+    <option value="difficulty-desc">Highest difficulty</option>
     <option value="count">Number of strategies</option>
   </select>
 </div>
@@ -801,11 +802,14 @@ async function loadBossIndex(){
     table.forEach(r => {
       const name = (r[iName]||"").trim();
       if(!name) return;
-      if(!byBoss.has(name)) byBoss.set(name, { name, count:0, lowest:Infinity, lowestLabel:"" });
+      if(!byBoss.has(name)) byBoss.set(name, { name, count:0, lowest:Infinity, lowestLabel:"", highest:-Infinity });
       const b = byBoss.get(name);
       b.count++;
       const v = starValue(r[iStar]);
       if(v < b.lowest){ b.lowest = v; b.lowestLabel = (r[iStar]||"").trim(); }
+      // tracked separately: the card shows the LOWEST star a boss was solved at, but sorting
+      // by "highest" has to rank on the hardest one, which may be a different row entirely.
+      if(v !== Infinity && v > b.highest) b.highest = v;
     });
     const bosses = [...byBoss.values()].sort((a,b)=>a.name.localeCompare(b.name));
     ALL_BOSSES = bosses;
@@ -823,6 +827,7 @@ function sortedBosses(){
   const mode = (document.getElementById("sortSelect") || {}).value || "name";
   const list = ALL_BOSSES.slice();
   if(mode === "difficulty") list.sort((a,b) => a.lowest - b.lowest || a.name.localeCompare(b.name));
+  else if(mode === "difficulty-desc") list.sort((a,b) => b.highest - a.highest || a.name.localeCompare(b.name));
   else if(mode === "count")  list.sort((a,b) => b.count - a.count || a.name.localeCompare(b.name));
   else                        list.sort((a,b) => a.name.localeCompare(b.name));
   return list;
