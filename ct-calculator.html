@@ -1275,7 +1275,7 @@ function parseCSV(text){
 // ---- CSV conventions used in this file ----
 // parseCSV(text)        -> raw rows (string[][]), header row INCLUDED. The primitive.
 // parseCSVObjects(text) -> array of header-keyed objects, header consumed.
-// Both share one parser. The site-wide data/csv-utils.js exposes a same-named parseCSV() with
+// Both share one parser. The site-wide csv/csv-utils.js exposes a same-named parseCSV() with
 // the header-keyed contract; it is deliberately NOT loaded into this file, because silently
 // swapping the return shape under the two existing raw-row consumers below (tier5-bosses.csv
 // and elite-moves.csv) would break them in ways that look like working software. Anything new
@@ -1435,7 +1435,7 @@ function initPokemonAutocomplete(inputId, listId){
 initPokemonAutocomplete("pokemonName", "pokemonName_ac");
 initPokemonAutocomplete("bossName", "bossName_ac");
 
-// ============ MOVEPOOL (loaded from data/pokemon-movepool.csv) ============
+// ============ MOVEPOOL (loaded from csv/pokemon-movepool.csv) ============
 // Was ~202 KB of inline object literal - 43% of this entire file - shipped to every visitor.
 // Now fetched once and browser-cached, and shared with every other page that needs it, so a
 // movepool correction is made in one file instead of being copied into several.
