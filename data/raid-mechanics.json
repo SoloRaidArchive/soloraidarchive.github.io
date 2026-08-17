@@ -61,6 +61,7 @@
           "abbr": "HS Chain",
           "desc": "When a boss casts charge moves in rapid succession, forcing the user to Catch Tank from one attacker straight into the next in rapid succession. Heavily RNG-based, but the highest DPS cycle achievable in a raid.",
           "clip": "assets/clips/hotswap-chain.mp4"
+          "attribution": "SpiritedBloom"
         },
         {
           "name": "Combo Charge Move",
@@ -93,6 +94,12 @@
           "name": "Charge Move Delay",
           "abbr": "CM Delay",
           "desc": "Used against bosses with 1-bar charge moves. Intentionally delaying 2-bar or 3-bar charge move casts to force out fast moves instead — usually giving the player 2 free fast moves.",
+          "clip": ""
+        },
+         {
+          "name": "Double Catch Tank",
+          "abbr": "DBL CT",
+          "desc": "A Catch Tank intercepts two charge moves on separate ocassions. During the second swap the sum of the energy gained, paired with fast moves, is used to quickly fire back a heavy hitting charge move.",
           "clip": ""
         },
         {
