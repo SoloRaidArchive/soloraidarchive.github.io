@@ -635,13 +635,16 @@ async function fetchAndParseArchive(csvFile, archivePage, category, earlyOffset,
 }
 
 async function buildPartiesFromCSVs(){
-  const [tier4, tier5, tier5ae, tier6] = await Promise.all([
+  // One tier-5 source. Both sheets were being fetched at once, which double-counted every non-AE
+  // Legendary strategy - those rows exist in tier5-data.csv AND in the merged file. partyOffset is
+  // 0, not -1: the merged schema carries the adventure-effect column, so party slots start one
+  // column later than they did in tier5-data.csv.
+  const [tier4, tier5, tier6] = await Promise.all([
     fetchAndParseArchive('/csv/tier4-data.csv', 'tier4-raids.html', 'Mega', 0, 0),
-    fetchAndParseArchive('/csv/tier5-data.csv', 'tier5-raids.html', 'Legendary', 0, -1),
     fetchAndParseArchive('/csv/tier5-merged.csv', 'tier5-raids.html', 'Legendary', 0, 0),
     fetchAndParseArchive('/csv/tier6-data.csv', 'tier6-elite-raids.html', 'Mega Legendary & Elite', 1, 1),
   ]);
-  const allRaids = [...tier4, ...tier5, ...tier5ae, ...tier6];
+  const allRaids = [...tier4, ...tier5, ...tier6];
 
   const groupsByFp = {};
   const groupOrder = [];
