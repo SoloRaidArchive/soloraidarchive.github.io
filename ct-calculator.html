@@ -2465,7 +2465,115 @@ const CT_FORM_ENTRIES = {
   ticks: "2008929913", seconds: "930703322",
   trailingDPS: "376297052", ctDPS: "37575726", risky: "1742382831",
 };
-function submitSelectedRows(){
+
+// ============ DUPLICATE CHECKS (pre-submission) ============
+// There was no duplicate check at all before this: submitSelectedRows() built the prefilled form
+// URL and opened it, so the same entry could be sent repeatedly and equivalent-but-differently-
+// stated entries piled up in the sheet.
+//
+// Three things are checked, and none of them blocks - each one asks for confirmation, because
+// only the submitter knows whether an apparent duplicate is actually a distinct run.
+
+// Re-runs the calculation with some inputs temporarily overridden and returns the resulting rows.
+// runCalculation() reads straight from the DOM and has no override parameter, so the inputs are
+// swapped, it is called, and everything is put back - including a final re-run so the visible
+// results and lastCalcContext match what the user actually entered.
+function calcWithOverrides(overrides){
+  const ids = Object.keys(overrides);
+  const saved = {};
+  ids.forEach(id => { const el = document.getElementById(id); if(el) saved[id] = el.value; });
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.value = overrides[id]; });
+
+  let variantRows = null;
+  try{
+    runCalculation();
+    if(lastCalcContext) variantRows = lastCalcContext.rowsByN;
+  }catch(e){
+    console.error("Duplicate check: variant calculation failed", e);
+  }
+
+  ids.forEach(id => { const el = document.getElementById(id); if(el && saved[id] !== undefined) el.value = saved[id]; });
+  runCalculation();          // restore the real numbers and lastCalcContext
+  return variantRows;
+}
+
+// Two rows are "the same result" when the numbers a reader would compare are identical. DPS is
+// compared at one decimal because that is the precision the sheet stores and the site displays -
+// a difference below that is not visible anywhere and does not make the entry distinct.
+function sameOutcome(a, b){
+  if(!a || !b) return false;
+  const dps = (x) => (x.ctDPS != null ? x.ctDPS : x.dps);
+  const near = (x, y) => x != null && y != null && Math.abs(x - y) < 0.05;
+  return near(dps(a), dps(b)) && near(a.seconds, b.seconds) && !!a.fainted === !!b.fainted;
+}
+
+// Exact match against what is already in the sheet. Compares the fields that define a run; the
+// computed outputs are deliberately NOT compared, since two identical setups must produce
+// identical outputs anyway and comparing them would only mask a genuine duplicate.
+async function findExistingSubmission(f, bossName, n, trailingDPSText){
+  try{
+    const res = await fetch("/csv/ct-database.csv", { cache: "no-store" });
+    if(!res.ok) return null;
+    const rows = parseCSV(await res.text());
+    const header = (rows.shift() || []).map(h => String(h).trim());
+    const col = (name) => header.indexOf(name);
+    const iP = col("Pokemon"), iL = col("Level"), iIV = col("IVs"), iPM = col("Player Moveset");
+    const iB = col("Boss"), iW = col("Weather"), iBM = col("Boss Moveset"), iFM = col("Boss FM Tanked");
+    const iBlade = col("Zacian Blade boost"), iShield = col("Zamazenta Shield Boost");
+    const iCM = col("# of Charge moves cast");
+    if(iP < 0 || iB < 0) return null;
+
+    const norm = (x) => String(x == null ? "" : x).trim().toLowerCase();
+    const want = {
+      p: norm(f.pokemonName), l: norm(f.level), iv: norm(`${f.ivAtk}/${f.ivDef}/${f.ivHp}`),
+      pm: norm(`${f.playerFM} / ${f.playerCM}`), b: norm(bossName), w: norm(f.weather),
+      bm: norm(`${f.bossFM} / ${f.bossCM}`), fm: norm(n),
+      blade: f.zacianBlade ? "yes" : "no", shield: f.shieldAE ? "yes" : "no", cm: norm(f.numCM),
+    };
+    return rows.find(r =>
+      norm(r[iP]) === want.p && norm(r[iB]) === want.b &&
+      (iL < 0 || norm(r[iL]) === want.l) && (iIV < 0 || norm(r[iIV]) === want.iv) &&
+      (iPM < 0 || norm(r[iPM]) === want.pm) && (iW < 0 || norm(r[iW]) === want.w) &&
+      (iBM < 0 || norm(r[iBM]) === want.bm) && (iFM < 0 || norm(r[iFM]) === want.fm) &&
+      (iBlade < 0 || norm(r[iBlade]) === want.blade) &&
+      (iShield < 0 || norm(r[iShield]) === want.shield) &&
+      (iCM < 0 || norm(r[iCM]) === want.cm)
+    ) || null;
+  }catch(e){
+    // Never block a submission because the check itself failed.
+    console.error("Duplicate check: could not read csv/ct-database.csv", e);
+    return null;
+  }
+}
+
+// Returns the warnings that apply, as plain sentences.
+async function duplicateWarnings(f, bossName, n, row, trailingDPSText){
+  const warnings = [];
+
+  const existing = await findExistingSubmission(f, bossName, n, trailingDPSText);
+  if(existing) warnings.push("This exact setup is already in the CT Database - same Pokemon, level, IVs, movesets, boss, weather and toggles.");
+
+  // IVs that change nothing. Stats are quantised, so a spread below 15/15/15 very often lands on
+  // the same attack/defence values after the CPM multiplier, producing an identical result.
+  if(!(f.ivAtk === 15 && f.ivDef === 15 && f.ivHp === 15)){
+    const variant = calcWithOverrides({ ivAtk: "15", ivDef: "15", ivHp: "15" });
+    if(variant && sameOutcome(row, variant[n])){
+      warnings.push(`These IVs (${f.ivAtk}/${f.ivDef}/${f.ivHp}) give exactly the same DPS and duration as 15/15/15, so the entry adds nothing a 15/15/15 entry would not.`);
+    }
+  }
+
+  // Weather that changes nothing - no boosted move on either side, so the entry duplicates the
+  // neutral-weather one.
+  if(String(f.weather).toLowerCase() !== "extreme"){
+    const variant = calcWithOverrides({ weatherSelect: "extreme" });
+    if(variant && sameOutcome(row, variant[n])){
+      warnings.push(`${f.weather} weather gives exactly the same DPS and duration as Extreme (no boost) here - nothing in this matchup is weather-boosted.`);
+    }
+  }
+  return warnings;
+}
+
+async function submitSelectedRows(){
   if(!lastCalcContext) return;
   const checked = [...document.querySelectorAll(".submit-checkbox:checked")];
   if(checked.length === 0){
@@ -2488,6 +2596,16 @@ function submitSelectedRows(){
   // now that Main DPS has been removed from the form and sheet entirely, Trailing DPS is the
   // only remaining signal, so it carries that job alone.
   const trailingDPSText = f.doubleCT ? "N/A (Double CT)" : r.trailingDPS.toFixed(1);
+
+  // Warn, never block: only the submitter knows whether an apparent duplicate is a distinct run,
+  // so each warning is a confirmation the user can override.
+  const warnings = await duplicateWarnings(f, lastCalcContext.bossName, n, r, trailingDPSText);
+  if(warnings.length){
+    const msg = (warnings.length === 1 ? "This looks like a duplicate:\n\n" : "This looks like a duplicate:\n\n")
+      + warnings.map(w => "\u2022 " + w).join("\n\n")
+      + "\n\nSubmit anyway?";
+    if(!confirm(msg)) return;
+  }
 
   const params = new URLSearchParams();
   params.set(`entry.${CT_FORM_ENTRIES.pokemon}`, f.pokemonName);
