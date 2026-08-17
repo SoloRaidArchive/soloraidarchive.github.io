@@ -1113,13 +1113,11 @@ async function loadTypeData(){
     }).filter(r => r.n && r.t1);
   }
   try{
-    const [statsRes, typesRes] = await Promise.all([
-      fetch("csv/pokemon-stats.csv"),
-      fetch("csv/pokemon-types.csv"),
-    ]);
+    // csv/pokemon-types.csv has been retired - pokemon-stats.csv carries type1/type2 for every
+    // name these pages can display, so fetching the second file only produced a 404 per load.
+    const statsRes = await fetch("csv/pokemon-stats.csv");
     if(!statsRes.ok) throw new Error("pokemon-stats.csv HTTP " + statsRes.status);
     const byName = new Map();
-    if(typesRes.ok) parse(await typesRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
     parse(await statsRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
     TYPE_ROWS = [...byName.values()];
     POKEMON_TYPES = TYPE_ROWS.map(r => ({ n: r.n, t1: r.t1, t2: r.t2 || "" }));
