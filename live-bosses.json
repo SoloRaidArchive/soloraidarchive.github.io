@@ -1,6 +1,25 @@
 {
-  "generatedAt": "2026-08-17T04:23:56.060405+00:00",
+  "generatedAt": "2026-08-17T06:27:38.240656+00:00",
   "dateGroups": [
+    {
+      "startDate": "Aug 19, 2026",
+      "endDate": "Aug 25, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Lunala",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Swampert",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Extreme"
+        }
+      ]
+    },
     {
       "startDate": "Aug 12, 2026",
       "endDate": "Aug 18, 2026",
@@ -224,6 +243,12 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "5 \u2b50",
           "weather": "Cloudy"
+        },
+        {
+          "name": "Kyurem",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Snow"
         }
       ]
     },
@@ -260,23 +285,16 @@
       ]
     },
     {
-      "startDate": "Aug 19, 2026",
-      "endDate": "Aug 25, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Mega Swampert",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "2 \u2b50",
-          "weather": "Extreme"
-        }
-      ]
-    },
-    {
       "startDate": "Aug 5, 2026",
       "endDate": "Aug 11, 2026",
       "category": "rotation",
       "bosses": [
+        {
+          "name": "Azelf",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Fog"
+        },
         {
           "name": "Mega Blaziken",
           "archivePage": "tier4-raids.html",
