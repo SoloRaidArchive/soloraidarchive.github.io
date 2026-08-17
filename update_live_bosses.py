@@ -54,8 +54,11 @@ BOSS_NAME_WEB_RE = re.compile(
 
 ARCHIVE_CSVS = {
     "csv/tier4-data.csv": "tier4-raids.html",
-    "csv/tier5-data.csv": "tier5-raids.html",
-    "csv/tier5-ae-data.csv": "tier5-ae-raids.html",
+    # tier5-data.csv and tier5-ae-data.csv were merged into tier5-merged.csv and then deleted.
+    # load_known_bosses() silently skips a mapped file that does not exist, so this quietly
+    # dropped EVERY Tier 5 Legendary boss from known_bosses - and since a boss the API reports is
+    # only published if it is in known_bosses, no Legendary raid could ever reach live-bosses.json.
+    "csv/tier5-merged.csv": "tier5-raids.html",
     "csv/tier6-data.csv": "tier6-elite-raids.html",
 }
 
