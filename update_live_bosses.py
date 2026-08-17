@@ -54,7 +54,8 @@ BOSS_NAME_WEB_RE = re.compile(
 
 ARCHIVE_CSVS = {
     "csv/tier4-data.csv": "tier4-raids.html",
-    "csv/tier5-merged.csv": "tier5-raids.html",
+    "csv/tier5-data.csv": "tier5-raids.html",
+    "csv/tier5-ae-data.csv": "tier5-ae-raids.html",
     "csv/tier6-data.csv": "tier6-elite-raids.html",
 }
 
@@ -175,6 +176,11 @@ def normalize_name(name):
     one boss never matched, which is exactly what caused it to fall through with no date
     info and incorrectly show as active before its July 26 window actually started."""
     cleaned = name.replace(" - ", " ").strip().lower()
+    # The website also writes X/Y forms with a bare hyphen and no spaces ("Mega Raichu-X",
+    # "Mega Charizard-Y") while the archives and the API use a space ("Mega Raichu X").
+    # Restricted to a trailing single X or Y on purpose: a blanket hyphen strip would
+    # mangle "Ho-Oh" and "Porygon-Z", whose hyphens are part of the real name.
+    cleaned = re.sub(r"-([xy])$", r" \1", cleaned)
     if re.match(r"^(burn|chill|douse|shock)\s+genesect$", cleaned):
         return "genesect"
     cleaned = re.sub(r"\s+of many battles$", "", cleaned)
@@ -227,6 +233,17 @@ def fetch_current_bosses():
     for tier_entry in data.get("tiers", []):
         tier_key = tier_entry.get("tier", "")
         raids = tier_entry.get("raids", [])
+        # Super Mega tiers, per Pokebattler's own naming:
+        #   RAID_LEVEL_4_MEGA_ENHANCED  -> Super Mega
+        #   RAID_LEVEL_5_MEGA_ENHANCED  -> Super Mega Legendary
+        # These are a different raid class, not soloable Tier 4 Mega raids, and this
+        # archive does not cover them. The tier name states it outright, so they are
+        # excluded here at the source rather than being pulled in and filtered out later
+        # by matching names against an external schedule.
+        if "_MEGA_ENHANCED" in tier_key:
+            active = sum(1 for r in raids if r.get("cp", 0) == 0)
+            print(f"[{tier_key}] skipping {active} boss(es) - Super Mega tier, not Tier 4 Mega")
+            continue
         current_in_tier = 0
         for raid in raids:
             if raid.get("cp", 0) != 0:
@@ -251,7 +268,7 @@ def fetch_boss_dates_from_website():
         resp.raise_for_status()
     except Exception as e:
         print(f"Could not fetch website for date info (non-fatal, dates will show as 'Currently active'): {e}")
-        return {}
+        return {}, []
 
     try:
         from bs4 import BeautifulSoup
@@ -261,91 +278,139 @@ def fetch_boss_dates_from_website():
 
     date_matches = list(DATE_BLOCK_RE.finditer(text))
     dates_by_name = {}
+    web_occurrences = []
     for i, m in enumerate(date_matches):
         start = m.end()
         end = date_matches[i + 1].start() if i + 1 < len(date_matches) else len(text)
         block_text = text[start:end]
         for name in BOSS_NAME_WEB_RE.findall(block_text):
-            clean_name = re.sub(r"Regional$", "", name).strip()
+            # The page text is joined with no separator, so consecutive entries run
+            # together as "...Mega Dragonite2079CP2599CPMega Malamar1279CP...". The name
+            # pattern then starts matching at the previous boss's trailing "CP" and
+            # captures "CPMega Malamar". Only the FIRST boss in each dated block survived
+            # that; every subsequent one got a bogus key and was silently dropped, which
+            # is why multi-boss event days never came through.
+            clean_name = re.sub(r"^CP", "", name)
+            clean_name = re.sub(r"Regional$", "", clean_name).strip()
             key = normalize_name(clean_name)
             if key not in dates_by_name:
                 dates_by_name[key] = (m.group(1), m.group(2))
-    print(f"Found date info for {len(dates_by_name)} boss(es) on the website")
-    return dates_by_name
+            # dates_by_name keeps only the FIRST window per boss, which is all the date
+            # lookup needs. But a boss can legitimately appear in several dated blocks -
+            # Mega Victreebel runs on Aug 31 AND again on Sep 5, Mega Starmie on Sep 3 AND
+            # Sep 5 - and keying by name alone collapses those into one. Every occurrence
+            # is recorded separately here so each (boss, window) can stand on its own.
+            occurrence = (key, m.group(1), m.group(2))
+            if occurrence not in web_occurrences:
+                web_occurrences.append(occurrence)
+    print(f"Found date info for {len(dates_by_name)} boss(es) on the website "
+          f"({len(web_occurrences)} boss/window occurrence(s))")
+    return dates_by_name, web_occurrences
 
 
 
 def apply_leekduck_crosscheck(results):
-    """Drop event mega raids that LeekDuck explicitly identifies as Super Mega raids.
+    """Drop event mega raids that LeekDuck identifies as Super Mega raids.
 
-    Returns a filtered copy of `results`. Anything that is not a Tier 4 EVENT entry is
-    passed through untouched: rotations (including ones whose window already closed this
-    month, which are still wanted under "Monthly raid rotations"), Tier 5, Elite and
-    Shadow bosses are all out of scope.
+    SOURCE: ScrapedDuck JSON, NOT leekduck.com HTML.
+    ------------------------------------------------
+    leekduck.com returns 403 to non-browser requests, so every page fetch fails from a
+    CI runner. The previous version skipped any event whose HTML could not be read, which
+    meant the index came back EMPTY, the whole check failed open, and nothing was ever
+    dropped - Mega Starmie (Aug 22) and Mega Staraptor (Sep 19) survived every run while
+    the logs looked healthy. That was a dependency on an unreachable source, not a parsing
+    bug.
+
+    ScrapedDuck mirrors LeekDuck as JSON on raw.githubusercontent.com, which IS reachable,
+    and it already carries everything this decision needs:
+
+        eventID / name   "starmie-super-mega-raid-day-2026", "Super Mega Raid Day"
+        start / end      real ISO timestamps
+        bosses[]         named for raid-battles events
+
+    Super Mega Raid Days are identified from the event's slug and title. No HTML, no
+    parsing of page structure, nothing that can silently return nothing.
 
     MATCHING IS 1-TO-1 ON (BOSS, WINDOW)
     ------------------------------------
-    An entry is matched to the single LeekDuck event whose window CONTAINS it, not to
-    "any event whose dates happen to overlap". Tier is a property of a boss in a specific
-    event, so Mega Starmie on Aug 22 (Super Mega Raid Day) and Mega Starmie on Sep 3
-    (Mega Ascension, an ordinary Mega Raid) are two separate questions with two separate
-    answers. Overlap matching blurred them together: a boss could be cleared by an event
-    weeks away that merely shared a date range, or condemned by one it had nothing to do
-    with. Containment ties each entry to the event it actually belongs to.
+    An entry is matched to the single event whose window CONTAINS it, never to "any event
+    whose dates overlap". Tier is a property of a boss within a specific event: Mega
+    Starmie on Aug 22 (Super Mega Raid Day) and Mega Starmie on Sep 3 (Mega Ascension,
+    an ordinary Mega Raid) are separate questions with separate answers.
 
     REMOVAL REQUIRES POSITIVE EVIDENCE
     ----------------------------------
-    An entry is dropped ONLY when the matching event says, in so many words, that this
-    boss is a Super Mega raid - either:
-
-      * the boss sits under a "Super Mega Raids" heading on that event's page, or
-      * the event is a Super Mega Raid Day (by slug or title) and does not list the boss
-        as an ordinary Mega Raid boss elsewhere on the page.
-
-    Absence of evidence is never removal. If no event matches, if the page could not be
-    parsed, or if the event simply does not mention the boss, the entry is KEPT and
-    Pokebattler stands. Mega Ascension is the case this protects: it is a plain event that
-    runs ordinary Mega Raids, it is not a Super Mega Raid Day, and nothing about it should
-    cause a removal.
+    An entry is dropped ONLY when its matching event is a Super Mega Raid Day and does not
+    list that boss as an ordinary Mega Raid boss. Anything else is kept: no matching event,
+    a plain event, a rotation, or a fetch failure all mean KEEP and Pokebattler stands.
+    Mega Ascension and Mega Finale are plain events running ordinary Mega Raids and can
+    never trigger a removal.
     """
+    import re as _re
+
+    SUPER_MEGA_RE = _re.compile(r"super[-\s]?mega[-\s]?raid", _re.IGNORECASE)
+    DATE_HEAD_RE = _re.compile(r"^([A-Za-z]+ \d+, \d+)")
+
+    def parse_day(date_str):
+        """'Aug 22, 2026 10:00 AM' -> date. Time suffix is dropped before parsing.
+
+        THIS IS LOAD-BEARING. build_result passes dates straight from the Pokebattler
+        website scrape, which formats them WITH a time ("Aug 22, 2026 10:00 AM").
+        date_only() strips the time, but only later, when groups are assembled - by which
+        point this function has already run. A strict "%b %d, %Y" parse returns None on
+        every one of those, every entry then looks undated, and the whole check silently
+        no-ops while reporting success. That is exactly what happened: Mega Starmie and
+        Mega Staraptor survived run after run because their dates carried a time and
+        nothing here could read it.
+        """
+        if not date_str:
+            return None
+        m = DATE_HEAD_RE.match(date_str.strip())
+        if not m:
+            return None
+        try:
+            return datetime.strptime(m.group(1), "%b %d, %Y")
+        except ValueError:
+            return None
+
     try:
         import leekduck_crosscheck as lc
-        from leekduck_tiers import load_base_form_map, load_legendary_species
     except ImportError as exc:
         print(f"  LeekDuck cross-check unavailable ({exc}) - keeping all entries")
         return results
 
     try:
         events = lc.discover_events()
-        legendary = load_legendary_species(REPO_ROOT / "csv/tier5-bosses.csv")
-        base_form_map = load_base_form_map(REPO_ROOT / "ct-calculator.html")
-
-        def sections_for(e):
-            try:
-                return lc.extract_sections(lc.http_text(e["link"]))
-            except Exception as exc:
-                print(f"    !! fetch/parse failed for {e.get('eventID')}: {exc}")
-                return None
-
-        index = lc.build_leekduck_index(events, sections_for, legendary, base_form_map,
-                                        verbose=False)
     except Exception as exc:
-        print(f"  LeekDuck cross-check FAILED ({type(exc).__name__}: {exc}) "
-              f"- keeping all entries")
+        print(f"  LeekDuck cross-check FAILED ({type(exc).__name__}: {exc}) - keeping all entries")
         return results
 
-    parsed = [c for c in index if c["publishable"] or c["superMega"]]
-    print(f"  LeekDuck: {len(index)} event(s) discovered, {len(parsed)} with a readable "
-          f"boss list")
-    if not parsed:
-        print("  LeekDuck cross-check found no readable boss lists - markup may have "
-              "changed. Keeping all entries.")
+    index = []
+    for e in events:
+        start = lc.parse_iso(e.get("start"))
+        end = lc.parse_iso(e.get("end"))
+        if not start or not end:
+            continue
+        bosses = {b.get("name") for b in
+                  (e.get("extraData") or {}).get("raidbattles", {}).get("bosses", [])
+                  if b.get("name")}
+        eid = e.get("eventID") or ""
+        index.append({
+            "eventID": eid,
+            "start": start,
+            "end": end,
+            "bosses": bosses,
+            "isSuperMega": bool(SUPER_MEGA_RE.search(eid) or SUPER_MEGA_RE.search(e.get("name") or "")),
+        })
+
+    smd = [c["eventID"] for c in index if c["isSuperMega"]]
+    print(f"  LeekDuck: {len(index)} dated event(s) from ScrapedDuck, "
+          f"{len(smd)} Super Mega Raid Day(s): {', '.join(smd) or 'none'}")
+    if not index:
+        print("  LeekDuck cross-check got no usable events - keeping all entries")
         return results
 
     def contains(event, start, end):
-        """True when the event's window covers the entry's window, at day granularity."""
-        if not event["start"] or not event["end"] or not start or not end:
-            return False
         return event["start"].date() <= start.date() and event["end"].date() >= end.date()
 
     kept = []
@@ -354,33 +419,27 @@ def apply_leekduck_crosscheck(results):
             kept.append(r)
             continue
 
-        start = lc.parse_site_date(r.get("startDate"))
-        end = lc.parse_site_date(r.get("endDate"))
+        start = parse_day(r.get("startDate"))
+        end = parse_day(r.get("endDate"))
         window = f"{r.get('startDate')} -> {r.get('endDate')}"
-
-        matches = [c for c in index if contains(c, start, end)]
-        if not matches:
-            print(f"  keep {r['name']} [{window}]: no LeekDuck event covers this window")
+        if not start or not end:
+            print(f"  keep {r['name']} [{window}]: undated, nothing to match against")
             kept.append(r)
             continue
 
-        # Prefer the tightest covering event - the one this entry actually belongs to.
+        matches = [c for c in index if contains(c, start, end)]
+        if not matches:
+            print(f"  keep {r['name']} [{window}]: no event covers this window")
+            kept.append(r)
+            continue
+
+        # Tightest covering event is the one this entry actually belongs to.
         event = min(matches, key=lambda c: (c["end"] - c["start"]).total_seconds())
-        eid = event["eventID"]
-
-        if r["name"] in event["superMega"]:
-            print(f"  DROP {r['name']} [{window}]: listed under a Super Mega Raids "
-                  f"heading in {eid}")
+        if event["isSuperMega"] and r["name"] not in event["bosses"]:
+            print(f"  DROP {r['name']} [{window}]: {event['eventID']} is a Super Mega Raid "
+                  f"Day and does not list it as a Mega Raid boss")
             continue
-
-        if event["isSuperMegaDay"] and r["name"] not in event["publishable"]:
-            print(f"  DROP {r['name']} [{window}]: {eid} is a Super Mega Raid Day and "
-                  f"does not list it as a Mega Raid boss")
-            continue
-
-        why = ("listed as a Mega Raid boss" if r["name"] in event["publishable"]
-               else "not identified as Super Mega")
-        print(f"  keep {r['name']} [{window}]: {eid} - {why}")
+        print(f"  keep {r['name']} [{window}]: {event['eventID']} is not a Super Mega Raid Day")
         kept.append(r)
 
     dropped = len(results) - len(kept)
@@ -395,7 +454,7 @@ def main():
     current_names = fetch_current_bosses()
     print(f"Fetched {len(current_names)} total current boss entries from Pokebattler's API")
 
-    dates_by_name = fetch_boss_dates_from_website()
+    dates_by_name, web_occurrences = fetch_boss_dates_from_website()
     now = datetime.now()
 
     def date_only(date_str):
@@ -409,17 +468,21 @@ def main():
     results = []
     seen = set()
 
-    def build_result(name, key):
+    def build_result(name, key, override_dates=None):
         """Assembles one result dict for a known boss, applying the expiry rule. Returns the
         dict to append, or None if the boss should be filtered out. Shared by the live-API
-        pass and the this-month-rotation retention pass below so both use identical logic."""
+        pass and the this-month-rotation retention pass below so both use identical logic.
+
+        override_dates supplies an explicit (start, end) for the website pass, where the
+        same boss can appear on several days and the name-keyed dates_by_name lookup would
+        return whichever window happened to come first."""
         info = known_bosses[key]
         # Prefer the static, hand-verified CONFIRMED_ROTATION_DATES table over whatever
         # the live website scrape found - it's cross-checked against two independent
         # sources and, once entered, doesn't drift if Pokebattler's page changes wording.
         # Only fall back to the live scrape for bosses not yet in that table (e.g. a new
         # month's rotation before it's been manually confirmed and added).
-        start_date, end_date = CONFIRMED_ROTATION_DATES.get(key) or dates_by_name.get(key, (None, None))
+        start_date, end_date = override_dates or CONFIRMED_ROTATION_DATES.get(key) or dates_by_name.get(key, (None, None))
 
         # NULL-DATE RULE: an entry with neither a start nor an end date is never published.
         # Every expiry check below is skipped when end_dt is None, so an undated boss used
@@ -505,7 +568,56 @@ def main():
         seen.add(key)
         results.append(r)
 
-    # ---- LEEKDUCK CROSS-CHECK (event mega raids only) ----------------------------------
+    # Pass 3: bosses Pokebattler's WEBSITE lists that its API leaves out.
+    #
+    # fetch_boss_dates_from_website() already parses every boss name out of each dated
+    # block on pokebattler.com/raids - it just discarded the names and kept only the
+    # dates, because the API was treated as the sole authority on WHICH bosses exist.
+    # That is fine for ordinary rotations, but the API omits the per-day Mega line-up for
+    # multi-day event weeks: Mega Ascension's Aug 31 - Sep 4 blocks (Mega Dragonite, Mega
+    # Malamar, Mega Victreebel, Mega Falinks, Mega Skarmory, Mega Starmie, Mega Raichu
+    # X/Y) are all plainly listed on the website with their own date headers, and none of
+    # them ever reached this script.
+    #
+    # These are Pokebattler's own numbers from Pokebattler's own page - the same source,
+    # read more completely. Everything downstream still applies: known_bosses filters to
+    # documented solos, build_result applies the expiry and category rules, and the
+    # LeekDuck cross-check still gets to drop any of them that turn out to be Super Mega.
+    # Deduped by (boss, day), NOT by boss. `seen` above is name-keyed, which is right for
+    # the rotation passes but wrong here: a boss can run on several separate event days.
+    # Mega Victreebel is on Aug 31 and again on Sep 5; Mega Starmie on Sep 3 and Sep 5;
+    # Mega Raichu X on Sep 4 and Sep 5. Keying by name alone kept only the first and
+    # silently dropped the Sep 5/Sep 6 appearances.
+    seen_windows = {(normalize_name(r["name"]), date_only(r.get("startDate"))) for r in results}
+    seen_names = {normalize_name(r["name"]) for r in results}
+    for key, start_date, end_date in web_occurrences:
+        if key not in known_bosses:
+            continue
+        # A block for an already-running rotation has no "From" date - DATE_BLOCK_RE's
+        # first group is optional - so the occurrence carries start=None. That cannot be
+        # matched against a dated entry, and treating (name, None) as a distinct window
+        # added a SECOND copy of a boss already present: Mega Garchomp appeared twice in
+        # the monthly rotation, once with its real Aug 12-18 window and once undated.
+        # With no start date there is no window to distinguish, so fall back to matching
+        # on the name alone.
+        if not start_date:
+            if key in seen_names:
+                print(f"  website: ignoring a second, undated listing for "
+                      f"{known_bosses[key].get('name') or key} - already included with dates")
+                continue
+        elif (key, date_only(start_date)) in seen_windows:
+            continue
+        info = known_bosses[key]
+        r = build_result(info.get("name") or key.title(), key,
+                         override_dates=(start_date, end_date))
+        if r is None:
+            continue
+        seen_windows.add((key, date_only(start_date)))
+        seen_names.add(key)
+        results.append(r)
+        print(f"  website: added {r['name']} ({date_only(start_date)} -> {date_only(end_date)}) - "
+              f"listed on pokebattler.com/raids but absent from its API")
+
     # Pokebattler stays authoritative for what is running and when. LeekDuck answers one
     # question: for a mega raid attached to an EVENT, is it a Tier 4 Mega Raid or a Super
     # Mega Raid? Pokebattler lists Super Mega Raid Days as ordinary megas, which is how
