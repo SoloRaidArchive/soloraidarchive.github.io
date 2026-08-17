@@ -28,14 +28,14 @@ venusaur,Solar Beam,charge,0
 venusaur,Sludge,charge,0
 mega venusaur,Razor Leaf,fast,0
 mega venusaur,Vine Whip,fast,0
-mega venusaur,Frenzy Plant,charge,0
+mega venusaur,Frenzy Plant,charge,1
 mega venusaur,Petal Blizzard,charge,0
 mega venusaur,Sludge Bomb,charge,0
 mega venusaur,Solar Beam,charge,0
 mega venusaur,Sludge,charge,0
 shadow venusaur,Razor Leaf,fast,0
 shadow venusaur,Vine Whip,fast,0
-shadow venusaur,Frenzy Plant,charge,0
+shadow venusaur,Frenzy Plant,charge,1
 shadow venusaur,Petal Blizzard,charge,0
 shadow venusaur,Sludge Bomb,charge,0
 shadow venusaur,Solar Beam,charge,0
@@ -78,7 +78,7 @@ mega charizard x,Ember,fast,0
 mega charizard x,Fire Spin,fast,0
 mega charizard x,Wing Attack,fast,0
 mega charizard x,Dragon Breath,fast,0
-mega charizard x,Blast Burn,charge,0
+mega charizard x,Blast Burn,charge,1
 mega charizard x,Dragon Claw,charge,0
 mega charizard x,Fire Blast,charge,0
 mega charizard x,Flamethrower,charge,0
@@ -89,7 +89,7 @@ mega charizard y,Ember,fast,0
 mega charizard y,Fire Spin,fast,0
 mega charizard y,Wing Attack,fast,0
 mega charizard y,Dragon Breath,fast,0
-mega charizard y,Blast Burn,charge,0
+mega charizard y,Blast Burn,charge,1
 mega charizard y,Dragon Claw,charge,0
 mega charizard y,Fire Blast,charge,0
 mega charizard y,Flamethrower,charge,0
@@ -100,7 +100,7 @@ shadow charizard,Ember,fast,0
 shadow charizard,Fire Spin,fast,0
 shadow charizard,Wing Attack,fast,0
 shadow charizard,Dragon Breath,fast,0
-shadow charizard,Blast Burn,charge,0
+shadow charizard,Blast Burn,charge,1
 shadow charizard,Dragon Claw,charge,0
 shadow charizard,Fire Blast,charge,0
 shadow charizard,Flamethrower,charge,0
@@ -138,7 +138,7 @@ mega blastoise,Bite,fast,0
 mega blastoise,Water Gun,fast,0
 mega blastoise,Rollout,fast,0
 mega blastoise,Flash Cannon,charge,0
-mega blastoise,Hydro Cannon,charge,0
+mega blastoise,Hydro Cannon,charge,1
 mega blastoise,Hydro Pump,charge,0
 mega blastoise,Ice Beam,charge,0
 mega blastoise,Skull Bash,charge,0
@@ -146,7 +146,7 @@ shadow blastoise,Bite,fast,0
 shadow blastoise,Water Gun,fast,0
 shadow blastoise,Rollout,fast,0
 shadow blastoise,Flash Cannon,charge,0
-shadow blastoise,Hydro Cannon,charge,0
+shadow blastoise,Hydro Cannon,charge,1
 shadow blastoise,Hydro Pump,charge,0
 shadow blastoise,Ice Beam,charge,0
 shadow blastoise,Skull Bash,charge,0
@@ -2510,11 +2510,18 @@ meganium,Earthquake,charge,0
 meganium,Frenzy Plant,charge,1
 meganium,Petal Blizzard,charge,0
 meganium,Solar Beam,charge,0
+Mega meganium,Razor Leaf,fast,0
+Mega meganium,Vine Whip,fast,0
+Mega meganium,Magical Leaf,fast,0
+Mega meganium,Earthquake,charge,0
+Mega meganium,Frenzy Plant,charge,1
+Mega meganium,Petal Blizzard,charge,0
+Mega meganium,Solar Beam,charge,0
 shadow meganium,Razor Leaf,fast,0
 shadow meganium,Vine Whip,fast,0
 shadow meganium,Magical Leaf,fast,0
 shadow meganium,Earthquake,charge,0
-shadow meganium,Frenzy Plant,charge,0
+shadow meganium,Frenzy Plant,charge,1
 shadow meganium,Petal Blizzard,charge,0
 shadow meganium,Solar Beam,charge,0
 cyndaquil,Ember,fast,0
@@ -2555,7 +2562,7 @@ hisuian typhlosion,Night Shade,charge,0
 shadow typhlosion,Ember,fast,0
 shadow typhlosion,Shadow Claw,fast,0
 shadow typhlosion,Incinerate,fast,0
-shadow typhlosion,Blast Burn,charge,0
+shadow typhlosion,Blast Burn,charge,1
 shadow typhlosion,Fire Blast,charge,0
 shadow typhlosion,Overheat,charge,0
 shadow typhlosion,Solar Beam,charge,0
@@ -2589,13 +2596,22 @@ feraligatr,Crunch,charge,0
 feraligatr,Hydro Cannon,charge,1
 feraligatr,Hydro Pump,charge,0
 feraligatr,Ice Beam,charge,0
+Mega feraligatr,Bite,fast,0
+Mega feraligatr,Water Gun,fast,1
+Mega feraligatr,Waterfall,fast,0
+Mega feraligatr,Ice Fang,fast,0
+Mega feraligatr,Shadow Claw,fast,0
+Mega feraligatr,Crunch,charge,0
+Mega feraligatr,Hydro Cannon,charge,1
+Mega feraligatr,Hydro Pump,charge,0
+Mega feraligatr,Ice Beam,charge,0
 shadow feraligatr,Bite,fast,0
 shadow feraligatr,Water Gun,fast,0
 shadow feraligatr,Waterfall,fast,0
 shadow feraligatr,Ice Fang,fast,0
 shadow feraligatr,Shadow Claw,fast,0
 shadow feraligatr,Crunch,charge,0
-shadow feraligatr,Hydro Cannon,charge,0
+shadow feraligatr,Hydro Cannon,charge,1
 shadow feraligatr,Hydro Pump,charge,0
 shadow feraligatr,Ice Beam,charge,0
 sentret,Quick Attack,fast,0
@@ -4022,7 +4038,7 @@ mega sceptile,Fury Cutter,fast,0
 mega sceptile,Aerial Ace,charge,0
 mega sceptile,Earthquake,charge,0
 mega sceptile,Leaf Blade,charge,0
-mega sceptile,Frenzy Plant,charge,0
+mega sceptile,Frenzy Plant,charge,1
 mega sceptile,Dragon Claw,charge,0
 mega sceptile,Breaking Swipe,charge,0
 shadow sceptile,Bullet Seed,fast,0
@@ -4030,7 +4046,7 @@ shadow sceptile,Fury Cutter,fast,0
 shadow sceptile,Aerial Ace,charge,0
 shadow sceptile,Earthquake,charge,0
 shadow sceptile,Leaf Blade,charge,0
-shadow sceptile,Frenzy Plant,charge,0
+shadow sceptile,Frenzy Plant,charge,1
 shadow sceptile,Dragon Claw,charge,0
 shadow sceptile,Breaking Swipe,charge,0
 torchic,Ember,fast,0
@@ -4070,7 +4086,7 @@ mega blaziken,Brave Bird,charge,0
 mega blaziken,Focus Blast,charge,0
 mega blaziken,Overheat,charge,0
 mega blaziken,Stone Edge,charge,0
-mega blaziken,Blast Burn,charge,0
+mega blaziken,Blast Burn,charge,1
 mega blaziken,Blaze Kick,charge,0
 mega blaziken,Aura Sphere,charge,0
 shadow blaziken,Counter,fast,0
@@ -4080,7 +4096,7 @@ shadow blaziken,Brave Bird,charge,0
 shadow blaziken,Focus Blast,charge,0
 shadow blaziken,Overheat,charge,0
 shadow blaziken,Stone Edge,charge,0
-shadow blaziken,Blast Burn,charge,0
+shadow blaziken,Blast Burn,charge,1
 shadow blaziken,Blaze Kick,charge,0
 shadow blaziken,Aura Sphere,charge,0
 mudkip,Tackle,fast,0
@@ -4116,7 +4132,7 @@ mega swampert,Water Gun,fast,0
 mega swampert,Earthquake,charge,0
 mega swampert,Sludge Wave,charge,0
 mega swampert,Surf,charge,0
-mega swampert,Hydro Cannon,charge,0
+mega swampert,Hydro Cannon,charge,1
 mega swampert,Muddy Water,charge,0
 mega swampert,Sludge,charge,0
 shadow swampert,Mud Shot,fast,0
@@ -4124,7 +4140,7 @@ shadow swampert,Water Gun,fast,0
 shadow swampert,Earthquake,charge,0
 shadow swampert,Sludge Wave,charge,0
 shadow swampert,Surf,charge,0
-shadow swampert,Hydro Cannon,charge,0
+shadow swampert,Hydro Cannon,charge,1
 shadow swampert,Muddy Water,charge,0
 shadow swampert,Sludge,charge,0
 poochyena,Snarl,fast,0
@@ -5604,7 +5620,7 @@ shadow torterra,Earthquake,charge,0
 shadow torterra,Solar Beam,charge,0
 shadow torterra,Sand Tomb,charge,0
 shadow torterra,Stone Edge,charge,0
-shadow torterra,Frenzy Plant,charge,0
+shadow torterra,Frenzy Plant,charge,1
 chimchar,Ember,fast,0
 chimchar,Scratch,fast,0
 chimchar,Flame Charge,charge,0
@@ -5636,7 +5652,7 @@ shadow infernape,Rock Smash,fast,0
 shadow infernape,Close Combat,charge,0
 shadow infernape,Flamethrower,charge,0
 shadow infernape,Solar Beam,charge,0
-shadow infernape,Blast Burn,charge,0
+shadow infernape,Blast Burn,charge,1
 piplup,Bubble,fast,0
 piplup,Pound,fast,0
 piplup,Bubble Beam,charge,0
@@ -5673,7 +5689,7 @@ shadow empoleon,Metal Sound,fast,0
 shadow empoleon,Blizzard,charge,0
 shadow empoleon,Flash Cannon,charge,0
 shadow empoleon,Hydro Pump,charge,0
-shadow empoleon,Hydro Cannon,charge,0
+shadow empoleon,Hydro Cannon,charge,1
 shadow empoleon,Drill Peck,charge,0
 starly,Quick Attack,fast,0
 starly,Tackle,fast,0
@@ -7044,7 +7060,7 @@ shadow serperior,Vine Whip,fast,0
 shadow serperior,Grass Knot,charge,0
 shadow serperior,Leaf Tornado,charge,0
 shadow serperior,Aerial Ace,charge,0
-shadow serperior,Frenzy Plant,charge,0
+shadow serperior,Frenzy Plant,charge,1
 tepig,Tackle,fast,0
 tepig,Ember,fast,0
 tepig,Flame Charge,charge,0
@@ -7072,13 +7088,20 @@ emboar,Rock Slide,charge,0
 emboar,Focus Blast,charge,0
 emboar,Flame Charge,charge,0
 emboar,Blast Burn,charge,1
+Mega emboar,Low Kick,fast,0
+Mega emboar,Ember,fast,0
+Mega emboar,Heat Wave,charge,0
+Mega emboar,Rock Slide,charge,0
+Mega emboar,Focus Blast,charge,0
+Mega emboar,Flame Charge,charge,0
+Mega emboar,Blast Burn,charge,1
 shadow emboar,Low Kick,fast,0
 shadow emboar,Ember,fast,0
 shadow emboar,Heat Wave,charge,0
 shadow emboar,Rock Slide,charge,0
 shadow emboar,Focus Blast,charge,0
 shadow emboar,Flame Charge,charge,0
-shadow emboar,Blast Burn,charge,0
+shadow emboar,Blast Burn,charge,1
 oshawott,Tackle,fast,0
 oshawott,Water Gun,fast,0
 oshawott,Aqua Tail,charge,0
@@ -7121,7 +7144,7 @@ shadow samurott,Hydro Pump,charge,0
 shadow samurott,Blizzard,charge,0
 shadow samurott,Megahorn,charge,0
 shadow samurott,Razor Shell,charge,0
-shadow samurott,Hydro Cannon,charge,0
+shadow samurott,Hydro Cannon,charge,1
 shadow samurott,Liquidation,charge,0
 patrat,Tackle,fast,0
 patrat,Bite,fast,0
@@ -8642,7 +8665,7 @@ mega chesnaught,Gyro Ball,charge,0
 mega chesnaught,Energy Ball,charge,0
 mega chesnaught,Superpower,charge,0
 mega chesnaught,Solar Beam,charge,0
-mega chesnaught,Frenzy Plant,charge,0
+mega chesnaught,Frenzy Plant,charge,1
 mega chesnaught,Thunder Punch,charge,0
 mega chesnaught,Seed Bomb+,charge,0
 shadow chesnaught,Low Kick,fast,0
@@ -8652,7 +8675,7 @@ shadow chesnaught,Gyro Ball,charge,0
 shadow chesnaught,Energy Ball,charge,0
 shadow chesnaught,Superpower,charge,0
 shadow chesnaught,Solar Beam,charge,0
-shadow chesnaught,Frenzy Plant,charge,0
+shadow chesnaught,Frenzy Plant,charge,1
 shadow chesnaught,Thunder Punch,charge,0
 fennekin,Scratch,fast,0
 fennekin,Ember,fast,0
@@ -8684,6 +8707,16 @@ delphox,Fire Blast,charge,0
 delphox,Blast Burn,charge,1
 delphox,Mystical Fire,charge,0
 delphox,Psyshock,charge,0
+Mega delphox,Scratch,fast,0
+Mega delphox,Fire Spin,fast,0
+Mega delphox,Zen Headbutt,fast,0
+Mega delphox,Psychic,charge,0
+Mega delphox,Flamethrower,charge,0
+Mega delphox,Flame Charge,charge,0
+Mega delphox,Fire Blast,charge,0
+Mega delphox,Blast Burn,charge,1
+Mega delphox,Mystical Fire,charge,0
+Mega delphox,Psyshock,charge,0
 shadow delphox,Scratch,fast,0
 shadow delphox,Fire Spin,fast,0
 shadow delphox,Zen Headbutt,fast,0
@@ -8691,7 +8724,7 @@ shadow delphox,Psychic,charge,0
 shadow delphox,Flamethrower,charge,0
 shadow delphox,Flame Charge,charge,0
 shadow delphox,Fire Blast,charge,0
-shadow delphox,Blast Burn,charge,0
+shadow delphox,Blast Burn,charge,1
 shadow delphox,Mystical Fire,charge,0
 shadow delphox,Psyshock,charge,0
 froakie,Pound,fast,0
@@ -8730,7 +8763,7 @@ mega greninja,Aerial Ace,charge,0
 mega greninja,Surf,charge,0
 mega greninja,Surf+,charge,0
 mega greninja,Hydro Pump,charge,0
-mega greninja,Hydro Cannon,charge,0
+mega greninja,Hydro Cannon,charge,1
 shadow greninja,Feint Attack,fast,0
 shadow greninja,Bubble,fast,0
 shadow greninja,Water Shuriken,fast,0
@@ -8738,7 +8771,7 @@ shadow greninja,Night Slash,charge,0
 shadow greninja,Aerial Ace,charge,0
 shadow greninja,Surf,charge,0
 shadow greninja,Hydro Pump,charge,0
-shadow greninja,Hydro Cannon,charge,0
+shadow greninja,Hydro Cannon,charge,1
 bunnelby,Mud Slap,fast,0
 bunnelby,Quick Attack,fast,0
 bunnelby,Dig,charge,0
@@ -10171,7 +10204,7 @@ rillaboom,Razor Leaf,fast,0
 rillaboom,Energy Ball,charge,0
 rillaboom,Grass Knot,charge,0
 rillaboom,Earth Power,charge,0
-rillaboom,Frenzy Plant,charge,0
+rillaboom,Frenzy Plant,charge,1
 scorbunny,Tackle,fast,0
 scorbunny,Fire Spin,fast,0
 scorbunny,Flame Charge,charge,0
@@ -10186,7 +10219,7 @@ cinderace,Flame Charge,charge,0
 cinderace,Flamethrower,charge,0
 cinderace,Focus Blast,charge,0
 cinderace,Pyro Ball,charge,0
-cinderace,Blast Burn,charge,0
+cinderace,Blast Burn,charge,1
 sobble,Pound,fast,0
 sobble,Water Gun,fast,0
 sobble,Water Pulse,charge,0
@@ -10201,7 +10234,7 @@ inteleon,Water Pulse,charge,0
 inteleon,Surf,charge,0
 inteleon,Shadow Ball,charge,0
 inteleon,Snipe Shot,charge,0
-inteleon,Hydro Cannon,charge,0
+inteleon,Hydro Cannon,charge,1
 skwovet,Tackle,fast,0
 skwovet,Bite,fast,0
 skwovet,Bullet Seed,fast,0
@@ -10838,7 +10871,7 @@ quaquaval,Aerial Ace,charge,0
 quaquaval,Liquidation,charge,0
 quaquaval,Close Combat,charge,0
 quaquaval,Aqua Step,charge,0
-quaquaval,Hydro Cannon,charge,0
+quaquaval,Hydro Cannon,charge,1
 lechonk,Tackle,fast,0
 lechonk,Take Down,fast,0
 lechonk,Dig,charge,0
