@@ -613,6 +613,15 @@ body{ background:#20263a; color: var(--text-muted); }
      card's content bottom at a different height from its neighbour's. */
   .vod{font-size:12px;color:var(--accent);margin-top:10px;display:inline-block;text-decoration:none}
   .vod-none{color:var(--text-dim);font-style:italic;cursor:default}
+  /* Sits directly under the VOD row. Notes are context for that specific run - level used, a
+     rejoin bug, a substitution - so they belong with the link rather than in the header. */
+  .note{font-size:11.5px;color:var(--text-muted);line-height:1.45;margin-top:6px;
+        padding-top:6px;border-top:1px dashed var(--border)}
+  .note-label{font-weight:800;color:var(--text-dim)}
+  /* Sits under the VOD line. Notes are free text from the sheet - caveats about the recording,
+     levels used, or bugs seen - so they wrap rather than truncate. */
+  .note{font-size:11.5px;line-height:1.45;color:var(--text-muted);margin-top:6px}
+  .note-label{font-weight:800;color:var(--text-dim)}
 
   /* Multi-column on desktop: a strategy card is narrow, so one per row wasted most of the width.
      Collapses to a single column on narrow screens. */
@@ -1026,6 +1035,9 @@ function rowsFrom(text, src){
   const iVOD = header.indexOf("VOD"), iLink = header.indexOf("Link");
   // Only tier6-data.csv carries this; it distinguishes Elite raids from ordinary Tier 6 ones.
   const iCategory = header.indexOf("Category");
+  // Present in all three sheets, at index 33 in tier4/tier5-merged and 34 in tier6 because of
+  // that file's leading Category column - which is why this is looked up by name, not position.
+  const iNotes = header.indexOf("Notes");
   // party slots repeat: Pokemon N, Roles, FM, CM
   const slotIdx = [];
   header.forEach((h,i) => { if(/^Pokemon \d$/.test(h.trim())) slotIdx.push(i); });
@@ -1036,7 +1048,9 @@ function rowsFrom(text, src){
     fm: (r[iFM]||"").trim(), cm: (r[iCM]||"").trim(), weather: (r[iWeather]||"").trim(),
     ae: iAE !== -1 ? aeKind(r[iAE]) : "",
     category: iCategory !== -1 ? (r[iCategory]||"").trim() : "",
+    notes: iNotes !== -1 ? (r[iNotes]||"").trim() : "",
     vod: (r[iVOD]||"").trim(), link: (r[iLink]||"").trim(),
+    notes: iNotes !== -1 ? (r[iNotes]||"").trim() : "",
     slots: slotIdx.map(i => ({ n:(r[i]||"").trim(), roles:(r[i+1]||"").trim(),
                                fm:(r[i+2]||"").trim(), cm:(r[i+3]||"").trim() }))
                   .filter(s => s.n),
@@ -1135,6 +1149,11 @@ async function loadMoveTypes(){
     console.error("Failed to load csv/moves.csv - move chips will be uncoloured:", e);
   }
 }
+// Notes are free text typed into a spreadsheet, so they are escaped rather than injected as HTML.
+function escapeHtml(t){
+  return String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
 function moveChipHtml(name){
   // Coloured pill + white type icon, matching the guide pages. Types come from csv/moves.csv.
   const clean = (name || "").trim();
@@ -1213,6 +1232,13 @@ async function injectGuideLink(bossName){
   }catch(e){ /* no guide index - header just has no button */ }
 }
 
+// Notes are author-written free text inserted via innerHTML, so anything resembling markup is
+// escaped rather than parsed.
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c =>
+    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
 function aeIconHtml(kind){
   if(kind === "sword")  return ` <img class="ae-icon" src="${AE_ICON}" alt="Blade Boost" title="Blade Boost — +10% damage dealt from your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
   if(kind === "shield") return ` <img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash" title="Behemoth Bash — +10% damage reduction for your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
@@ -1252,6 +1278,7 @@ function render(){
       ${r.link
         ? `<a class="vod" href="${r.link}" target="_blank" rel="noopener noreferrer">&#9654; Watch VOD</a>`
         : `<span class="vod vod-none">No VOD available yet</span>`}
+      ${r.notes ? `<div class="note"><span class="note-label">Note:</span> ${escapeHtml(r.notes)}</div>` : ""}
     </div>`).join("")
     : `<div class="empty">${ROWS.length
           ? "No strategies match these filters."
