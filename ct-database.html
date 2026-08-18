@@ -145,8 +145,11 @@ header{ padding: 12px 24px 10px; text-align:center; }
      at a time. Both columns are always rendered into the DOM; only CSS decides what's shown, so
      switching costs nothing and there's no re-render on resize. */
   .views-grid{ display:grid; gap:18px; }
+  /* Stacked, not side-by-side: the sort belongs to the column it controls, and sitting inline with
+     the heading it read as part of the page chrome. Underneath, left-aligned with the title, the
+     association is obvious and long option labels no longer squeeze the heading. */
   .view-col-head{
-    display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;
+    display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin-bottom:12px;
   }
   .view-col-title{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:0;
@@ -159,7 +162,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   /* narrow: tabbed, one at a time (column headings redundant next to the active tab) */
   .view-col-title{ display:none; }
   /* heading hides when tabbed (the active tab already names the view) but the sort stays */
-  .view-col-head{ justify-content:flex-end; }
+  .view-col-head{ align-items:flex-end; }   /* tabbed: heading hidden, so the sort sits right */
   body:not(.view-byboss) #col-byboss{ display:none; }
   body:not(.view-best) #col-best{ display:none; }
 
@@ -167,7 +170,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     .views-grid{ grid-template-columns: 1fr 1fr; align-items:start; }
     .view-tabs, .view-intro{ display:none; }
     .view-col-title{ display:block; }
-    .view-col-head{ justify-content:space-between; }
+    .view-col-head{ align-items:flex-start; }
     /* both columns visible regardless of which tab was last active */
     body:not(.view-byboss) #col-byboss,
     body:not(.view-best) #col-best{ display:block; }
@@ -434,6 +437,8 @@ header{ padding: 12px 24px 10px; text-align:center; }
     background: var(--card); cursor:pointer; white-space:nowrap;
   }
   .glossary-btn:hover{ border-color: var(--accent); color: var(--accent-dark); }
+  /* Matches the info button so the pair reads as one control group, but styled as the link it is. */
+  .calc-link{ text-decoration:none; display:inline-flex; align-items:center; }
   .glossary-overlay{
     position:fixed; inset:0; background:rgba(20,24,38,0.35); z-index:60;
   }
@@ -820,6 +825,13 @@ header{ padding: 12px 24px 10px; text-align:center; }
 
 <div class="controls">
   <button type="button" class="glossary-btn" id="glossaryOpen" aria-label="What the numbers mean">Info: Trailing vs CT DPS</button>
+  <!-- Every row here came out of the calculator, so a reader wanting to reproduce or extend a
+       result has somewhere to go without hunting through the nav. -->
+  <a class="glossary-btn calc-link" href="ct-calculator.html">Catch Tank Calculator &rarr;</a>
+  <select id="tierFilter">
+    <option value="legendary">Bosses: Legendary</option>
+    <option value="mega">Bosses: Tier 4 Mega</option>
+  </select>
   <select id="modeFilter">
     <option value="all">Mode: All</option>
     <option value="single">Mode: Single CT</option>
@@ -1483,6 +1495,43 @@ function computeDuration(params){
 // Update the database by replacing ct-database.csv in the repo - no HTML editing needed.
 // This is the same pattern the tier4/5/5ae/6 raid archives already use for their own data.
 let SUBMISSIONS = [];
+
+// ---- Boss tier pools ----
+// Tier 4 Mega raids accept submissions from 30 CT DPS, Legendary from 50, because a Mega fight is
+// far shorter and a catch tank clears much less damage. Averaging the two pools together would
+// drag the Legendary averages down and flatter the Mega ones, so they are never mixed: every
+// average, best and ranking on this page is computed inside the selected pool only. Entry COUNTS
+// are the one figure that spans both, since a raw count is not distorted by mixing.
+let TIER4_BOSSES = new Set();
+async function loadTier4Bosses(){
+  try{
+    const res = await fetch("csv/tier4-data.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim());
+    const iName = header.indexOf("Boss Name");
+    if(iName < 0) throw new Error("no Boss Name column");
+    lines.forEach(l => {
+      const n = (l.split(",")[iName] || "").trim();
+      if(n) TIER4_BOSSES.add(n.toLowerCase());
+    });
+  }catch(e){
+    // Non-fatal: with an empty set everything classifies as Legendary, which is what the page did
+    // before Mega submissions existed.
+    console.error("Failed to load the Tier 4 boss list - Mega/Legendary split unavailable:", e);
+  }
+}
+
+// Matched case-insensitively on purpose: the sheet contains "azelf", "Ho-oh" and "Zamazenta hero"
+// alongside their properly-cased forms, so an exact match would misfile them.
+function bossPool(bossName){
+  return TIER4_BOSSES.has((bossName || "").trim().toLowerCase()) ? "mega" : "legendary";
+}
+function currentPool(){
+  const el = document.getElementById("tierFilter");
+  return el ? el.value : "legendary";
+}
+function inCurrentPool(s){ return bossPool(s.boss) === currentPool(); }
 const CSV_URL = "/csv/ct-database.csv";
 // ============ SOLO REJOIN DPS THRESHOLDS (Tier 5 Legendary) ============
 // Minimum Catch Tank DPS needed for a boss to be soloable, before factoring rejoins. Each extra
@@ -1566,6 +1615,7 @@ async function loadSubmissionsFromCSV(){
     const res = await fetch(CSV_URL);
     if(!res.ok) throw new Error("HTTP " + res.status);
     const text = await res.text();
+    await loadTier4Bosses();      // needed before anything is grouped or averaged
     SUBMISSIONS = rowsToSubmissions(parseCSV(text));
     render();
   }catch(e){
@@ -2053,6 +2103,9 @@ function renderBest(list){
   list.forEach(s => {
     const dps = parseFloat(s.ctDPS);
     if(!isFinite(dps)) return;
+    // Averages are per-pool. A 30-DPS Mega entry averaged with a 50-DPS Legendary one would
+    // misrepresent both, which is the whole reason the pools are separate.
+    if(!inCurrentPool(s)) return;
     const key = s.pokemon.trim().toLowerCase();
     if(!byMon.has(key)) byMon.set(key, { pokemon: s.pokemon, spellings: [], entries: [], bosses: new Set() });
     const m = byMon.get(key);
@@ -2386,7 +2439,9 @@ const VIEW_INTROS = { byboss: "", best: "" };
 
 function render(){
   const q = searchInput.value.trim().toLowerCase();
-  let list = SUBMISSIONS.filter(s => !q || s.pokemon.toLowerCase().includes(q) || s.boss.toLowerCase().includes(q));
+  // Pool first: the two boss tiers have different DPS bars and are never shown together.
+  let list = SUBMISSIONS.filter(inCurrentPool)
+    .filter(s => !q || s.pokemon.toLowerCase().includes(q) || s.boss.toLowerCase().includes(q));
 
   const mode = modeFilter.value;
   if(mode !== "all"){
@@ -2442,6 +2497,10 @@ searchInput.addEventListener("input", () => {
 });
 sortSelect.addEventListener("change", render);
 modeFilter.addEventListener("change", render);
+const tierFilter = document.getElementById("tierFilter");
+// render() already rebuilds every view from the filtered list, so calling the sub-renderers
+// here as well passed them no list and threw.
+if(tierFilter) tierFilter.addEventListener("change", render);
 document.querySelectorAll('input[name="dbView"]').forEach(el => el.addEventListener("change", render));
 (function(){
   const panel = document.getElementById("glossaryPanel");

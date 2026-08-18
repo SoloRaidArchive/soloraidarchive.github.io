@@ -1309,8 +1309,52 @@ function isTier5Boss(name){
   const key = (name || "").trim().toLowerCase();
   return TIER5_BOSSES.some(b => b.toLowerCase() === key);
 }
-// CT Database submission pilot: Tier 5 solo Catch Tank only, CT DPS must clear this to qualify.
-const CT_SUBMIT_THRESHOLD = 50;
+
+// ---- Tier 4 Mega bosses ----
+// Read from this site's own Tier 4 archive, so the list stays in step with the archive rather
+// than being a second hand-maintained copy. Mega Rayquaza and Regidrago live in tier6-data.csv,
+// so they are not in here - a Mega LEGENDARY is not a Tier 4 Mega and keeps the Tier 5 bar.
+let TIER4_BOSSES = [];
+const TIER4_CSV_URL = "/csv/tier4-data.csv";
+async function loadTier4BossesFromCSV(){
+  try{
+    const res = await fetch(TIER4_CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const rows = parseCSV(await res.text());
+    const header = (rows.shift() || []).map(h => String(h).trim());
+    const iName = header.indexOf("Boss Name");
+    if(iName < 0) throw new Error("no Boss Name column");
+    TIER4_BOSSES = [...new Set(rows.map(r => (r[iName] || "").trim()).filter(Boolean))];
+  }catch(e){
+    console.error("Failed to load Tier 4 boss list:", e);
+  }
+}
+loadTier4BossesFromCSV();
+
+function isTier4MegaBoss(name){
+  const key = (name || "").trim().toLowerCase();
+  return TIER4_BOSSES.some(b => b.toLowerCase() === key);
+}
+
+// A Tier 4 Mega is a much shorter fight, so a catch tank clears far less damage before the raid
+// ends - holding it to the Tier 5 bar would reject every legitimate Mega entry. The two pools are
+// kept apart in the CT Database for the same reason: averaging a 30-DPS Mega entry against a
+// 50-DPS Legendary one would drag the Legendary averages down and misrepresent both.
+const CT_SUBMIT_THRESHOLD = 50;          // Tier 5 Legendary (and Mega Legendary)
+// 30 is not a tuning knob - it is the soloability floor, derived from the raid itself: a Tier 4
+// Mega has 9000 HP and a 300-second timer, so 9000 / 300 = 30 DPS is the minimum sustained output
+// that finishes the raid before time expires. Anything below it did not solo, which is exactly why
+// it must not be submittable. Most tank/boss pairings sit well under this (Mega Gengar tops out
+// near 13, Mega Aggron near 20) and are correctly rejected; Mega Garchomp clears it comfortably.
+const CT_SUBMIT_THRESHOLD_MEGA = 30;     // Tier 4 Mega: 9000 HP / 300s timer
+
+// The bar this particular boss has to clear.
+function submitThresholdFor(name){
+  return isTier4MegaBoss(name) ? CT_SUBMIT_THRESHOLD_MEGA : CT_SUBMIT_THRESHOLD;
+}
+function bossAcceptsSubmissions(name){
+  return isTier5Boss(name) || isTier4MegaBoss(name);
+}
 // ============ SOLO REJOIN DPS THRESHOLDS (Tier 5 Legendary) ============
 // Minimum Catch Tank DPS needed for a boss to be soloable, before factoring rejoins. Each extra
 // rejoin costs time, so it raises the DPS bar. A CT interaction that clears a given threshold can
@@ -2296,7 +2340,8 @@ function runCalculation(){
 
   // stash everything the CSV export needs, keyed by row index (n), so submitSelectedRows()
   // can read it after the fact without recomputing anything
-  const bossQualifies = isTier5Boss(bossName);
+  const bossQualifies = bossAcceptsSubmissions(bossName);
+  const submitThreshold = submitThresholdFor(bossName);
   lastCalcContext = {
     bossQualifies,
     bossName,
@@ -2352,7 +2397,7 @@ function runCalculation(){
     </div>
   `;
 
-  const anyQualifies = bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD);
+  const anyQualifies = bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= submitThreshold);
 
   resultsWrap.innerHTML = loadoutHtml + `
     <table class="results-table">
@@ -2369,7 +2414,7 @@ function runCalculation(){
       </thead>
       <tbody>
         ${rows.map(r => {
-          const qualifies = anyQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
+          const qualifies = anyQualifies && !r.fainted && r.ctDPS >= submitThreshold;
           return `
           <tr class="${r.fainted ? "fainted-row" : ""}">
             ${anyQualifies ? `<td class="submit-col">${qualifies ? `<input type="radio" name="submitRow" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</td>` : ""}
@@ -2414,7 +2459,7 @@ function runCalculation(){
         </div>
         <div class="results-card-rows">
           ${rows.map(r => {
-            const qualifies = anyQualifies && !r.fainted && r.ctDPS >= CT_SUBMIT_THRESHOLD;
+            const qualifies = anyQualifies && !r.fainted && r.ctDPS >= submitThreshold;
             return `
           <div class="results-card-row">
             <span class="results-card-row-radio">${anyQualifies && qualifies ? `<input type="radio" name="submitRowCard" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</span>
@@ -2443,11 +2488,11 @@ function runCalculation(){
     </div>
     ${anyQualifies ? `
     <div class="submit-panel">
-      <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> raids only. Rows scoring ${CT_SUBMIT_THRESHOLD}+ Catch Tank DPS are eligible — check <b>one row</b> to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
+      <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> and <b>Tier 4 Mega</b> raids. ${isTier4MegaBoss(bossName) ? `"${bossName}" is a Tier 4 Mega, so rows scoring ${CT_SUBMIT_THRESHOLD_MEGA}+` : `Rows scoring ${CT_SUBMIT_THRESHOLD}+`} Catch Tank DPS are eligible — check <b>one row</b> to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
       <button type="button" class="submit-btn" onclick="submitSelectedRows()">Submit Selected to CT Database</button>
     </div>` : (!doubleCT && bossName && !bossQualifies) ? `
     <div class="submit-panel submit-panel-disabled">
-      <div class="submit-note">CT Database submissions are currently only accepted for Tier 5 raid bosses. "${bossName}" isn't on the current Tier 5 list.</div>
+      <div class="submit-note">CT Database submissions are currently accepted for <b>Tier 5</b> and <b>Tier 4 Mega</b> raid bosses. "${bossName}" isn't on either list.</div>
     </div>` : ""}
   `;
 
