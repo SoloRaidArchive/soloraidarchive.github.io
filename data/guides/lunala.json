@@ -73,6 +73,122 @@
         }
       ],
       "submittedAt": "2026-08-13T00:01:19.653Z"
+    },
+    {
+      "strategyName": "Non-NDW (Blade Boost)",
+      "weather": "Extreme",
+      "adventureEffect": "Blade Boost",
+      "difficulty": "4★",
+      "text": "<h2>Overview</h2><p>Lunala's movesets can be some problematic with access to powerful psychic  and ghost type movesets. Gengar Routes are ideally used against Moonblast and or dodging the super effective shadow ball/future sight/psychic.</p><p><strong>Estimated TTW: 280.0s-295.0s</strong></p><p><br></p><h2>Main Strategies:</h2><p>Simply DPS with Gengars, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">swapping</a> to the next gengar once the active gengar is unable to continue. After all gengar's are too low to continue, heal and <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">rejoin</a> the raid. </p><p>Vs: Shadow ball, Psychic, Future Sight: </p><p>It is entirely possible that Lunala will release a charge move after a rejoin is performed. If using the gengar strategy it is recommended to run a <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-substitute\" target=\"_blank\">subsitute</a> in the first slot to intercept this move if it occurs. A substitute is run in the first slot of each battle party from the first rejoin onwards. </p><p><br></p><p>Some Substitute Options: </p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Shadow Darkrai (any but moonblast)</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Shadow Chandelure (Any but shadow ball)</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Shadow Tyranitar (Any but moonblast) </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Mega Mewtwo Y (Any)</li></ol><p><br></p><p>More Videos coming soon: </p>",
+      "vods": [
+        {
+          "url": "https://www.youtube.com/watch?v=FcStS1065d0",
+          "label": "TTW: 290.5 [Full-Size, 5 Sh-Gengar, AS/MB, Mistakes]",
+          "creditName": "Spiritedbloom",
+          "creditUrl": "youtube.com/@spiritedbloom"
+        }
+      ],
+      "submittedBy": "Spiritedbloom",
+      "battleParties": [
+        {
+          "label": "Gengar Route",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Mega Gengar",
+              "level": "40-45",
+              "fm": "Lick",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Gengar",
+              "level": "40-45",
+              "fm": "Any",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Gengar",
+              "level": "40-45",
+              "fm": "Any",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Gengar",
+              "level": "40-45",
+              "fm": "Any",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Gengar",
+              "level": "40-45",
+              "fm": "Any",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Tyranitar",
+              "level": "40-45",
+              "fm": "Bite",
+              "cm": "Brutal Swing",
+              "cm2": "",
+              "roles": [],
+              "optional": true
+            },
+            {
+              "name": "Shadow Chandelure",
+              "level": "40-45",
+              "fm": "Hex",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [],
+              "optional": true
+            },
+            {
+              "name": "Shadow Darkrai",
+              "level": "40-45",
+              "fm": "Snarl",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [],
+              "optional": true
+            },
+            {
+              "name": "Mega Mewtwo Y",
+              "level": "40-45",
+              "fm": "Psychic",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-18T20:19:24.003Z"
     }
   ]
 }
