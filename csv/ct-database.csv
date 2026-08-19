@@ -30,7 +30,7 @@ Timestamp,Pokemon,Level,IVs,Player Moveset,Zacian Blade boost,Boss,Weather,Boss 
 7/21/2026 12:42:06,Shadow Rhyperior,50,15/15/15,Smack Down / Rock Wrecker,No,Articuno,partlycloudy,Frost Breath / Blizzard,No,None,None,2,1,59.4,56.7,No,10,20
 7/21/2026 19:00:38,Regieleki,50,15/15/15,Lock On / Thunder Cage,Yes,Kyogre,rain,Waterfall / Blizzard,No,None,None,1,1,60,55,No,5,10
 7/22/2026 20:41:05,Shadow Salamence,50,15/10/15,Dragon Tail / Draco Meteor,Yes,Reshiram,windy,Fire Fang / Stone Edge,No,None,None,1,1,57.7,53.9,No,6.5,13
-7/22/2026 20:43:10,Keldeo Resolute,50,15/15/15,Low Kick / Secret Sword,Yes,Dialga,cloudy,Dragon Breath / Draco Meteor,No,None,None,1,0,68.7,58.9,No,2.5,5
+7/22/2026 20:43:10,Keldeo Resolute,50,15/15/15,Low Kick / Secret Sword,Yes,Dialga,cloudy,Dragon Breath / Draco Meteor,Yes,None,None,1,0,68.7,58.9,No,2.5,5
 7/22/2026 21:52:39,Shadow Darmanitan,50,15/15/15,Fire Fang / Overheat,Yes,Solgaleo,sunny,Fire Spin / Solar Beam,No,None,None,1,1,62.8,58.3,No,6,12
 7/23/2026 14:38:54,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Kyurem,extreme,Dragon Breath / Draco Meteor,No,None,None,1,1,68.7,58.9,No,2.5,5
 7/23/2026 14:39:21,Eternatus,50,15/15/15,Dragon Tail / Dynamax Cannon,No,Kyurem,extreme,Dragon Breath / Draco Meteor,No,None,None,1,0,98.5,87.6,No,3.5,7
@@ -60,7 +60,7 @@ Timestamp,Pokemon,Level,IVs,Player Moveset,Zacian Blade boost,Boss,Weather,Boss 
 8/2/2026 13:36:59,Shadow Vikavolt,40,15/15/15,Bug Bite / X-Scissor,Yes,Azelf,rain,Extrasensory / Future Sight,No,None,None,2,0,58.8,52.2,No,3.5,7
 8/2/2026 14:46:54,necrozma Dawn Wings,50,15/15/15,Psycho Cut / Moongeist Beam,No,Azelf,rain,Extrasensory / Fire Blast,No,None,None,1,0,N/A (Double CT),60.9,No,7,14
 8/3/2026 19:34:58,Giratina Origin,50,15/15/15,Shadow Claw / Shadow Force,No,Lunala,extreme,Confusion / Moonblast,No,None,None,1,1,58.5,54,No,5.5,11
-8/4/2026 16:48:59,Shadow Regigigas,50,15/15/15,Hidden Power Bug / Crush Grip,No,Azelf,sunny,Confusion / Fire Blast,No,None,None,1,1,63.5,58.2,No,5,10
+8/4/2026 16:48:59,Shadow Regigigas,50,15/15/15,Hidden Power Bug / Crush Grip,No,azelf,sunny,Confusion / Fire Blast,No,None,None,1,1,63.5,58.2,No,5,10
 8/13/2026 20:35:45,Shadow Regigigas,50,15/15/15,Zen Headbutt / Crush Grip,Yes,Regigigas,cloudy,Hidden Power Steel / Giga Impact,No,None,None,1,0,71.1,62.3,No,3,6
 8/13/2026 21:05:29,Shadow Regigigas,50,15/15/15,Hidden Power Rock / Crush Grip,Yes,Yveltal,partlycloudy,Snarl / Focus Blast,No,None,None,1,0,69.6,63.8,No,5,10
 8/13/2026 21:06:34,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Landorus Incarnate,extreme,Mud Shot / Focus Blast,No,None,None,1,0,82,75.7,No,5.5,11
@@ -166,3 +166,27 @@ Timestamp,Pokemon,Level,IVs,Player Moveset,Zacian Blade boost,Boss,Weather,Boss 
 8/17/2026 11:23:59,Shadow Salamence,50,15/15/15,Dragon Tail / Draco Meteor,No,Kyurem Black,windy,Shadow Claw / Fusion Bolt,No,None,None,1,2,57.9,54.3,No,7,14
 8/17/2026 11:26:41,Shadow Garchomp,50,15/15/15,Mud Shot / Earthquake,Yes,Zekrom,sunny,Dragon Breath / Outrage,No,None,None,1,1,58.6,53.3,No,4.5,9
 8/17/2026 11:28:47,Shadow Regigigas,50,15/15/15,Hidden Power Rock / Crush Grip,Yes,Kyurem White,extreme,Dragon Breath / Focus Blast,No,None,None,1,0,74,65.8,No,3.5,7
+8/17/2026 12:28:30,Eternatus,51,15/15/15,Dragon Tail / Dynamax Cannon,No,Palkia,windy,Dragon Breath / Draco Meteor,No,FM,None,1,0,90,80,No,3.5,7
+8/17/2026 12:39:41,Shadow Rampardos,50,15/15/15,Smack Down / Rock Slide,No,Moltres,sunny,Wing Attack / Overheat,No,FM,None,2,0,64.5,60.9,No,8,16
+8/18/2026 14:21:11,Landorus Therian,50,15/15/15,Mud Shot / Sandsear Storm,Yes,Xurkitree,extreme,Thunder Shock / Power Whip,No,None,None,1,0,N/A (Double CT),55.2,No,6.5,13
+8/18/2026 14:24:29,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Mega Garchomp,extreme,Mud Shot / Outrage,No,None,None,1,1,126.3,108.3,No,2.5,5
+8/18/2026 14:24:38,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Mega Garchomp,extreme,Mud Shot / Earthquake,No,None,None,1,1,73.2,67.5,No,5.5,11
+8/18/2026 14:24:52,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Mega Garchomp,extreme,Mud Shot / Fire Blast,No,None,None,1,0,59.9,56.4,No,7.5,15
+8/18/2026 14:26:22,Eternatus,50,15/15/15,Dragon Tail / Dynamax Cannon,No,Mega Salamence,extreme,Bite / Draco Meteor,No,None,None,1,0,86,73.7,No,2.5,5
+8/18/2026 14:38:59,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Mega Salamence,extreme,Bite / Fire Blast,No,None,None,1,0,N/A (Double CT),64.7,No,5.5,11
+8/18/2026 14:39:26,Shadow Dialga,50,15/15/15,Dragon Breath / Draco Meteor,No,Mega Salamence,extreme,Bite / Draco Meteor,No,None,None,1,1,36.4,34,No,6.5,13
+8/18/2026 14:40:19,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Mega Salamence,extreme,Bite / Draco Meteor,Yes,None,None,1,0,112.7,96.6,No,2.5,5
+8/18/2026 14:42:32,Shadow Reshiram,50,15/15/15,Fire Fang / Fusion Flare,No,Mega steelix,sunny,Iron Tail / Earthquake,Yes,None,None,1,0,46.4,41.8,No,4,8
+8/18/2026 14:46:38,Shadow Reshiram,50,15/15/15,Fire Fang / Fusion Flare,Yes,Mega Aggron,sunny,Iron Tail / Meteor Beam,No,None,None,1,0,44.4,40.7,No,5,10
+8/18/2026 14:55:44,Shadow Rampardos,50,15/15/15,Smack Down / Rock Slide,No,Mega Charizard Y,extreme,Fire Spin / Fire Blast,No,None,None,2,1,59.6,56.3,No,8,16
+8/18/2026 14:56:31,Shadow Dialga,50,15/15/15,Dragon Breath / Draco Meteor,No,Mega Charizard X,sunny,Air Slash / Overheat,No,None,None,1,1,45.7,42.2,No,5.5,11
+8/18/2026 14:57:11,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Mega Charizard X,sunny,Dragon Breath / Overheat,No,None,None,1,0,41.8,38,No,4.5,9
+8/18/2026 14:59:33,Kyurem Black,50,15/15/15,Dragon Tail / Freeze Shock,No,Mega Charizard Y,sunny,Air Slash / Overheat,No,None,None,1,0,53.3,45.7,No,2.5,5
+8/18/2026 20:25:05,Regieleki,50,15/15/15,Lock On / Thunder Cage,No,Mega Blastoise,extreme,Bite / Skull Bash,No,None,None,1,0,40.8,37.7,No,5.5,11
+8/18/2026 20:25:36,Mega Sceptile,50,15/15/15,Fury Cutter / Frenzy Plant,No,Mega Slowbro,extreme,Water Gun / Ice Beam,No,None,None,2,0,36,33.8,No,7,14
+8/18/2026 20:39:34,Shadow Gengar,50,15/15/15,Lick / Sludge Bomb,Yes,Tapu Bulu,extreme,Rock Smash / Solar Beam,No,None,None,2,1,56,52.9,No,8,16
+8/18/2026 20:39:51,Shadow Gengar,50,15/15/15,Lick / Sludge Bomb,No,Tapu Bulu,cloudy,Rock Smash / Dazzling Gleam,No,None,None,1,0,62.5,55.6,No,3.5,7
+8/18/2026 20:41:56,Shadow Blaziken,50,15/15/15,Counter / Aura Sphere,Yes,Darkrai,cloudy,Snarl / Shadow Ball,No,None,None,1,0,62.9,55,No,3,6
+8/18/2026 20:43:43,Shadow Blaziken,50,15/15/15,Counter / Aura Sphere,No,kyurem Black,cloudy,Dragon Tail / Stone Edge,No,None,None,2,1,56.5,53.3,No,8,16
+8/18/2026 20:44:17,Shadow Blaziken,50,15/15/15,Counter / Aura Sphere,No,kyurem White,cloudy,Steel Wing / Dragon Pulse,No,None,None,2,0,56.5,53.3,No,8,16
+8/18/2026 20:46:11,Shadow Blaziken,50,15/15/15,Counter / Aura Sphere,No,Terrakion,cloudy,Zen Headbutt / Close Combat,No,None,None,2,1,63.4,58.9,No,6,12
