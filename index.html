@@ -249,18 +249,19 @@
   .live-boss-row{
     display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap;
   }
-  /* The item was pinned to 40px while its meta line (star + weather icon + adventure-effect icon)
-     needs ~52px, so those icons spilled past the sprite and collided with the next entry. The
-     track and the item are now both sized from the meta row rather than from the 40px sprite, and
-     the column gap carries real separation instead of relying on the track being wider than the
-     item. */
+  /* The item was pinned to 40px while its meta line needed more, so the chips spilled past the
+     sprite and collided with the next entry. Track and item are now sized from the meta row, and
+     the column gap carries real separation instead of relying on the track being wider. */
   .live-boss-row-grid{
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(64px, max-content));
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(70px, max-content));
     justify-content:flex-start; justify-items:center; gap:14px 16px;
   }
-  .live-boss-row-grid .live-boss-item{ width:60px; }
-  /* Wrap rather than overflow if a future entry adds a fourth chip. */
-  .live-boss-row-grid .live-boss-meta{ flex-wrap:wrap; justify-content:center; gap:2px 4px; }
+  .live-boss-row-grid .live-boss-item{ width:66px; }
+  /* nowrap, not wrap. Letting it wrap meant the one entry with a two-character star label
+     ("5.5 ⭐", 60px against a 60px item) dropped its weather icon onto a second line, which made
+     that tile taller than its neighbours. The item is sized to the widest real meta row instead,
+     so the star and weather icon always sit together. */
+  .live-boss-row-grid .live-boss-meta{ flex-wrap:nowrap; justify-content:center; gap:2px 4px; }
   .live-boss-row-grid .live-boss-date{ white-space:normal; text-align:center; line-height:1.3; }
   @media (max-width:600px){
     .live-boss-row-grid{ grid-template-columns: repeat(3, 1fr); }
@@ -293,7 +294,6 @@
     }
   }
   .new-entries-panel{ padding-top:14px; }
-  .new-entry-ae-icon{ width:17px; height:17px; object-fit:contain; flex-shrink:0; }
   .weather-icon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
   }
@@ -390,7 +390,7 @@
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
-    <a href="index.html"><img loading="lazy" src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+    <a href="index.html"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
@@ -421,9 +421,9 @@
 </div>
 
 <h1 class="site-title">
-  <img loading="lazy" src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
+  <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
   Solo Raid Archive
-  <img loading="lazy" src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
+  <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
 </h1>
 
 <header>
@@ -474,17 +474,17 @@
   <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Raids</h2>
     <div class="archive-pill-row">
       <a class="archive-pill" href="tier4-raids.html">
-        <div class="archive-pill-icon"><img loading="lazy" src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🥚'"></div>
+        <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Mega</span>
         <span class="archive-pill-pct" id="pct-tier4-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier5-raids.html">
-        <div class="archive-pill-icon"><img loading="lazy" src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
+        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Legendary</span>
         <span class="archive-pill-pct" id="pct-tier5-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier6-elite-raids.html">
-        <div class="archive-pill-icon"><img loading="lazy" src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
+        <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Mega Legendary &amp; Elite</span>
         <span class="archive-pill-pct" id="pct-tier6-elite-raids.html">…</span>
       </a>
@@ -681,7 +681,7 @@ function renderBossSearchResults(query){
 
   resultsEl.innerHTML = matches.map(m =>
     `<a class="boss-search-item" href="${m.isGuide ? m.archive : `${m.archive}#boss-${m.slug}`}">
-      <span class="boss-search-item-name">${m.isGuide ? `<img loading="lazy" class="boss-search-sprite ${needsShadowMist(m.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(m.boss)}" alt="" onerror="if(!trySpriteShadowFallback(this, '${m.boss}')) { this.style.display='none'; }">` : ""}${escapeHtml(m.boss)}</span>
+      <span class="boss-search-item-name">${m.isGuide ? `<img class="boss-search-sprite ${needsShadowMist(m.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(m.boss)}" alt="" onerror="if(!trySpriteShadowFallback(this, '${m.boss}')) { this.style.display='none'; }">` : ""}${escapeHtml(m.boss)}</span>
       <span class="boss-search-item-archive${m.isGuide ? " boss-search-item-guide" : ""}">${escapeHtml(m.label)}</span>
     </a>`
   ).join("");
@@ -1077,8 +1077,6 @@ async function loadMonthlyGuides(){
 // If the file is missing/empty, the panel just stays hidden - no broken UI either way.
 // The two AE icon URLs the archive pages already distinguish between - "sword" (Blade
 // Boost, +10% damage dealt) vs "shield" (Adventure Effect, +10% damage reduction).
-const NEW_ENTRY_AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
-const NEW_ENTRY_SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
 
 async function loadNewEntries(){
   try{
@@ -1108,11 +1106,6 @@ async function loadNewEntries(){
       return `collections/${slug}.html`;
     }
 
-    function aeTag(entry){
-      if(entry.ae === "sword") return `<img class="new-entry-ae-icon" src="${NEW_ENTRY_AE_ICON}" alt="Blade Boost AE" title="Blade Boost (+10% damage dealt)" loading="lazy" onerror="this.style.display='none'">`;
-      if(entry.ae === "shield") return `<img class="new-entry-ae-icon" src="${NEW_ENTRY_SHIELD_ICON}" alt="Adventure Effect" title="Adventure Effect (+10% damage reduction)" loading="lazy" onerror="this.style.display='none'">`;
-      return "";
-    }
 
     // flatten every event's entries into one list - events are already newest-first in the
     // JSON, and each event's own entries stay in the order they were logged. Each entry
@@ -1133,7 +1126,6 @@ async function loadNewEntries(){
         <div class="live-boss-meta">
           <span class="live-boss-star">${entry.star}</span>
           ${entry.weather ? weatherIcon(entry.weather) : ""}
-          ${aeTag(entry)}
         </div>
         <div class="live-boss-date">${formatPushDate(entry.pushDate)}</div>
       </a>`).join("")}</div>`;
