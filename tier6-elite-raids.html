@@ -514,6 +514,17 @@ body{ background:#20263a; color: var(--text-muted); }
   }
 
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+
+  /* Cross-tier switcher. The three archives only linked to each other from inside the hamburger,
+     so moving from Legendary to Mega meant opening a menu - even though they are siblings and the
+     most likely next step from any one of them. Rendered as tabs above the grid, with the current
+     archive marked and non-interactive. */
+  .tier-switch{max-width:1080px;margin:14px auto 0;padding:0 14px;display:flex;gap:8px;flex-wrap:wrap}
+  .tier-switch a, .tier-switch span{font-size:12.5px;font-weight:800;text-decoration:none;
+    border-radius:99px;padding:7px 14px;border:1px solid var(--border);white-space:nowrap}
+  .tier-switch a{color:var(--text-muted);background:var(--card)}
+  .tier-switch a:hover{border-color:var(--blue);color:var(--blue)}
+  .tier-switch .current{background:var(--blue);border-color:var(--blue);color:#fff;cursor:default}
 </style>
 </head>
 <body>
@@ -600,6 +611,12 @@ body{ background:#20263a; color: var(--text-muted); }
 <!-- Closes the sticky header wrapper. Its closing tag was removed along with the
      gear/filter panel during the index conversion, which left the hamburger panel
      positioned against the page instead of the header - it opened ~1500px down. -->
+<nav class="tier-switch" aria-label="Raid archives">
+  <a href="tier4-raids.html">Mega</a>
+  <a href="tier5-raids.html">Legendary</a>
+  <span class="current" aria-current="page">Mega Legendary &amp; Elite</span>
+</nav>
+
 <div class="index-controls">
   <label for="sortSelect">Sort</label>
   <select id="sortSelect">
