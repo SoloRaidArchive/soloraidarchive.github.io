@@ -116,6 +116,13 @@
   .clip-video{
     display:block; margin-top:0; width:100%; max-width:220px;
     border-radius:12px; background:#000; border:2px solid var(--border);
+    /* Reserve the slot before the source loads. Deferring the clips left each <video> at zero
+       height until it was scrolled to, so the page grew ~950px as they filled in - that shifted
+       content under the reader and pushed #strategy- anchors off target by a few hundred pixels.
+       A fixed ratio holds the space from first paint, which also removes the layout shift that
+       Core Web Vitals penalises. 9/16 matches the portrait capture these clips use. */
+    aspect-ratio: 9 / 16;
+    object-fit: cover;
   }
   .clip-attribution{
     font-family:'Inter', sans-serif; font-size:10.5px; font-style:italic; color: var(--ink-dim);
@@ -197,6 +204,16 @@
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
   }
+
+  .entry-link-btn{
+    background:none; border:none; cursor:pointer; padding:2px 4px; margin-left:2px;
+    font-size:12px; line-height:1; opacity:.45; color: var(--text-dim);
+    transition: opacity .12s;
+  }
+  .entry-link-btn:hover, .entry-link-btn:focus-visible{ opacity:1; }
+  .entry-link-btn.copied{ opacity:1; color: var(--blue-dark); }
+  /* Always visible rather than hover-only: hover does not exist on touch, and this is the one
+     control on the page a phone reader is most likely to want. */
 </style>
 <script type="application/ld+json">
 {
@@ -412,6 +429,10 @@ function entryHtml(e, sectionIdx, entryIdx){
         <div class="entry-head">
           <span class="entry-name">${e.name}</span>
           <span class="entry-abbrev">${e.abbr}</span>
+          <!-- The page already scrolls to and flashes #strategy-<slug>, but there was no way to
+               obtain such a link short of reading the DOM. This copies one for this entry. -->
+          <button type="button" class="entry-link-btn" data-anchor="strategy-${slug}"
+                  title="Copy a link to this mechanic" aria-label="Copy a link to ${e.name}">&#128279;</button>
         </div>
         <div class="entry-desc">${e.desc}</div>
       </div>
@@ -475,6 +496,42 @@ async function loadMechanics(){
 // content exists in the DOM yet, and silently does nothing. Handling it explicitly after
 // render, with a highlight flash so a reader landing from a guide link can actually spot which
 // entry they were sent to.
+
+// ---- Copy-link buttons ----
+// Delegated so it survives the async render without rebinding. Writes the absolute URL including
+// the hash, then confirms in place - a silent clipboard write leaves the reader unsure it worked.
+function initEntryLinkButtons(){
+  document.addEventListener("click", async (ev) => {
+    const btn = ev.target.closest(".entry-link-btn");
+    if(!btn) return;
+    ev.preventDefault();
+    const url = `${location.origin}${location.pathname}#${btn.dataset.anchor}`;
+    let ok = false;
+    try{
+      await navigator.clipboard.writeText(url);
+      ok = true;
+    }catch(e){
+      // Clipboard API needs a secure context and permission; fall back to a temporary selection
+      // so the button still works over plain http or in a locked-down browser.
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = url; ta.setAttribute("readonly", "");
+        ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+      }catch(e2){ ok = false; }
+    }
+    // Update the address bar either way, so a failed copy still leaves a shareable URL on screen.
+    history.replaceState(null, "", `#${btn.dataset.anchor}`);
+    const original = btn.innerHTML;
+    btn.innerHTML = ok ? "&#10003;" : "&#9888;";
+    btn.classList.add("copied");
+    setTimeout(() => { btn.innerHTML = original; btn.classList.remove("copied"); }, 1400);
+  });
+}
+initEntryLinkButtons();
+
 function scrollToHashTarget(){
   const hash = window.location.hash;
   if(!hash) return;
