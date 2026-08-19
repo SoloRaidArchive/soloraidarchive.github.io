@@ -249,10 +249,18 @@
   .live-boss-row{
     display:flex; gap:10px; justify-content:flex-start; flex-wrap:wrap;
   }
+  /* The item was pinned to 40px while its meta line (star + weather icon + adventure-effect icon)
+     needs ~52px, so those icons spilled past the sprite and collided with the next entry. The
+     track and the item are now both sized from the meta row rather than from the 40px sprite, and
+     the column gap carries real separation instead of relying on the track being wider than the
+     item. */
   .live-boss-row-grid{
-    display:grid; grid-template-columns: repeat(auto-fill, minmax(52px, max-content)); justify-content:flex-start; justify-items:center;
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(64px, max-content));
+    justify-content:flex-start; justify-items:center; gap:14px 16px;
   }
-  .live-boss-row-grid .live-boss-item{ width:40px; }
+  .live-boss-row-grid .live-boss-item{ width:60px; }
+  /* Wrap rather than overflow if a future entry adds a fourth chip. */
+  .live-boss-row-grid .live-boss-meta{ flex-wrap:wrap; justify-content:center; gap:2px 4px; }
   .live-boss-row-grid .live-boss-date{ white-space:normal; text-align:center; line-height:1.3; }
   @media (max-width:600px){
     .live-boss-row-grid{ grid-template-columns: repeat(3, 1fr); }
