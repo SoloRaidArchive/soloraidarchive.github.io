@@ -10,13 +10,19 @@
       "weather": "Extreme",
       "adventureEffect": "None",
       "difficulty": "3★",
-      "text": "<p>On each Necrozma Dawn Wings (NDW) cast shadow claw and aim for 2-3 Moongeist Beams. If the active NDW is too low hp to build another Moongeist Beam, switch to the next one. If Lunala is casting Shadow Ball, dodge each shadow ball. Moongeist Beam and Shadow Ball both share identical animation durations (3.0s). If you're at risk of Shadow Ball occurring at the same time, pre-dodging can help protect the Moongeist beam cast.</p><p><br></p><p><em>Note: The VOD provided uses level 50 NDW however the TTW above is scaled to Level 40 appropriately.</em> <em>Strategy remains the same. </em></p>",
+      "text": "<h2>Overview: </h2><p>Lunala is a valuable addition to raid teams after fusing with Necrozma into the valuable Necrozoma Dawn Wings. Lunala solo is straight forward, hit it hard with ghost moves and land your Moongeist beams. </p><h2>Main Strategy</h2><p>On each Necrozma Dawn Wings (NDW) cast shadow claw and aim for 2-3 Moongeist Beams. If the active NDW is too low hp to build another Moongeist Beam, switch to the next one. If Lunala is casting Shadow Ball, dodge each shadow ball. Moongeist Beam and Shadow Ball both share identical animation durations (3.0s). If you're at risk of Shadow Ball occurring at the same time, pre-dodging can help protect the Moongeist beam cast.</p><p><br></p><p><em>Note: The VOD provided uses level 50 NDW however the TTW above is scaled to Level 40 appropriately.</em> <em>Strategy remains the same. </em></p>",
       "vods": [
         {
           "url": "https://www.youtube.com/watch?v=ssD-yUQGrLg",
-          "label": "Lv 50 | TTW: ~260s",
-          "creditName": "",
-          "creditUrl": ""
+          "label": "Lv 50 | TTW: ~260.0s",
+          "creditName": "Spiritedbloom",
+          "creditUrl": "youtube.com/@spiritedbloom"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=p9WD6K9O89c&source_ve_path=MjM4NTE&embeds_referring_euri=https%3A%2F%2Fwww.reddit.com%2F&embeds_referring_origin=https%3A%2F%2Fwww.reddit.com",
+          "label": "TTW: 285.0s-295.5s Side by Side Full Size No Mechanics vs Budget",
+          "creditName": "SpiritedBloom",
+          "creditUrl": "youtube.com/@spiritedbloom"
         }
       ],
       "submittedBy": "Spiritedbloom",
@@ -27,8 +33,8 @@
           "mons": [
             {
               "name": "Necrozma Dawn Wings",
-              "level": "~40",
-              "fm": "Shadow Claw",
+              "level": "40-50",
+              "fm": "Any",
               "cm": "Moongeist Beam",
               "cm2": "",
               "roles": [
@@ -38,7 +44,18 @@
             },
             {
               "name": "Necrozma Dawn Wings",
-              "level": "~40",
+              "level": "40-50",
+              "fm": "Any",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "40-50",
               "fm": "Shadow Claw",
               "cm": "Moongeist Beam",
               "cm2": "",
@@ -49,30 +66,53 @@
             },
             {
               "name": "Necrozma Dawn Wings",
-              "level": "~40",
+              "level": "40-50",
               "fm": "Shadow Claw",
               "cm": "Moongeist Beam",
               "cm2": "",
               "roles": [
                 "Support DPS"
               ],
-              "optional": false
+              "optional": true
             },
             {
               "name": "Necrozma Dawn Wings",
-              "level": "~40",
+              "level": "40-50",
               "fm": "Shadow Claw",
               "cm": "Moongeist Beam",
               "cm2": "",
               "roles": [
                 "Support DPS"
               ],
-              "optional": false
+              "optional": true
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "40-50",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Mega Gengar",
+              "level": "40-50",
+              "fm": "Varies",
+              "cm": "Shadow Ball",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Executor"
+              ],
+              "optional": true
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-13T00:01:19.653Z"
+      "submittedAt": "2026-08-19T02:20:48.665Z"
     },
     {
       "strategyName": "Non-NDW (Blade Boost)",
