@@ -600,6 +600,18 @@
         &#9998; Editing an existing article - saving will update it in place, not create a new one.
         <button type="button" class="cancel-edit-btn" id="cancelArticleEditBtn">Cancel</button>
       </div>
+      <!-- Guide mode opens on a boss dropdown that loads whatever already exists for that boss, so
+           editing is reachable from inside the editor. Article mode had no equivalent: the only
+           route in was the "Edit this article" button on a published article page, which meant
+           switching Guide -> Research Article showed a blank form with no sign that articles
+           existed at all. This is the same affordance as the boss dropdown. -->
+      <div class="field-group">
+        <label class="field-label" for="a-existing">Article</label>
+        <select id="a-existing">
+          <option value="__new__">+ Write a new article</option>
+        </select>
+      </div>
+
       <div class="field-group">
         <label class="field-label">Article title</label>
         <input type="text" id="a-title" placeholder="e.g. Best Counters for Legendary Birds">
@@ -2102,6 +2114,39 @@ function setMode(mode){
 modeGuideBtn.addEventListener('click', () => setMode('guide'));
 modeArticleBtn.addEventListener('click', () => setMode('article'));
 
+
+// ---- Existing-article picker ----
+// Reads articles/index.json, the same index the articles listing page uses, so a new article shows
+// up here as soon as it is published without a second list to maintain.
+async function populateArticlePicker(){
+  const sel = document.getElementById('a-existing');
+  if(!sel) return;
+  try{
+    const res = await fetch('articles/index.json', { cache: "no-store" });
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const articles = (data.articles || []).slice()
+      .sort((a, b) => (a.title || "").localeCompare(b.title || ""));
+    articles.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.slug;
+      opt.textContent = a.category ? `${a.title} — ${a.category}` : a.title;
+      sel.appendChild(opt);
+    });
+  }catch(e){
+    // Leave the "new article" option in place: not being able to list existing articles must not
+    // block writing a new one.
+    console.error('Could not load the article list for the editor picker:', e);
+  }
+}
+
+async function onArticlePickerChange(){
+  const sel = document.getElementById('a-existing');
+  if(!sel) return;
+  if(sel.value === "__new__"){ cancelArticleEdit(); return; }
+  await loadArticleForEditing(sel.value);
+}
+
 // ============ ARTICLE EDITING ============
 // Mirrors the guide-strategy edit/cancel pattern: loads an existing article's real content by
 // slug (rather than just switching to a blank article-mode form), tracks which slug is being
@@ -2117,6 +2162,8 @@ async function loadArticleForEditing(slug){
     const data = await res.json();
 
     editingArticleSlug = slug;
+    const picker = document.getElementById('a-existing');
+    if(picker && picker.value !== slug) picker.value = slug;   // deep link -> reflect in the picker
     document.getElementById('a-title').value = data.title || "";
     document.getElementById('a-category').value = data.category || document.getElementById('a-category').value;
     document.getElementById('a-submitted-by').value = data.submittedBy || "";
@@ -2137,6 +2184,8 @@ async function loadArticleForEditing(slug){
 
 function cancelArticleEdit(){
   editingArticleSlug = null;
+  const picker = document.getElementById('a-existing');
+  if(picker) picker.value = '__new__';
   document.getElementById('articleEditingBanner').style.display = 'none';
   document.getElementById('a-title').value = "";
   document.getElementById('a-submitted-by').value = "";
@@ -2148,6 +2197,8 @@ function cancelArticleEdit(){
   syncArticlePreview();
 }
 document.getElementById('cancelArticleEditBtn').addEventListener('click', cancelArticleEdit);
+document.getElementById('a-existing').addEventListener('change', onArticlePickerChange);
+populateArticlePicker();
 
 // support ?mode=article (land in article-writing mode) and, additionally, ?article={slug} to
 // load that article's real content for editing rather than starting from a blank form - a link
