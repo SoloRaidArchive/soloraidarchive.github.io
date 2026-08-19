@@ -2226,7 +2226,13 @@ function renderBest(list){
 function entryDetailRowHtml(e, cols){
   const bits = [];
   if(e.seconds) bits.push(["Duration", `${escapeHtml(e.seconds)}s`]);
-  if(e.fmsTanked && e.fmsTanked !== "0") bits.push(["FMs tanked", escapeHtml(e.fmsTanked)]);
+  // How many charge moves were cast. Shown unconditionally rather than only when it differs from
+  // 1: it is a defining part of the rotation - the same tank against the same boss behaves very
+  // differently at 1 cast versus 3 - and leaving it out made two entries with identical headline
+  // numbers look like duplicates when they were different routes. The field feeds the maths
+  // (numCM) but was never surfaced anywhere in the UI.
+  const casts = parseInt(e.chargeCasts, 10);
+  if(isFinite(casts) && casts > 0) bits.push(["Charge moves", String(casts)]);
   const d = (e.dodges || "").trim();
   if(d && d.toLowerCase() !== "none") bits.push(["Dodges", escapeHtml(d)]);
   const t = (e.timingMods || "").trim();
