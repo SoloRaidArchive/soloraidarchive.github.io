@@ -382,7 +382,7 @@
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
-    <a href="index.html"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+    <a href="index.html"><img loading="lazy" src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
@@ -413,9 +413,9 @@
 </div>
 
 <h1 class="site-title">
-  <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
+  <img loading="lazy" src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
   Solo Raid Archive
-  <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
+  <img loading="lazy" src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
 </h1>
 
 <header>
@@ -466,17 +466,17 @@
   <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Raids</h2>
     <div class="archive-pill-row">
       <a class="archive-pill" href="tier4-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🥚'"></div>
+        <div class="archive-pill-icon"><img loading="lazy" src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Mega</span>
         <span class="archive-pill-pct" id="pct-tier4-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier5-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
+        <div class="archive-pill-icon"><img loading="lazy" src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Legendary</span>
         <span class="archive-pill-pct" id="pct-tier5-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier6-elite-raids.html">
-        <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
+        <div class="archive-pill-icon"><img loading="lazy" src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Mega Legendary &amp; Elite</span>
         <span class="archive-pill-pct" id="pct-tier6-elite-raids.html">…</span>
       </a>
@@ -673,7 +673,7 @@ function renderBossSearchResults(query){
 
   resultsEl.innerHTML = matches.map(m =>
     `<a class="boss-search-item" href="${m.isGuide ? m.archive : `${m.archive}#boss-${m.slug}`}">
-      <span class="boss-search-item-name">${m.isGuide ? `<img class="boss-search-sprite ${needsShadowMist(m.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(m.boss)}" alt="" onerror="if(!trySpriteShadowFallback(this, '${m.boss}')) { this.style.display='none'; }">` : ""}${escapeHtml(m.boss)}</span>
+      <span class="boss-search-item-name">${m.isGuide ? `<img loading="lazy" class="boss-search-sprite ${needsShadowMist(m.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(m.boss)}" alt="" onerror="if(!trySpriteShadowFallback(this, '${m.boss}')) { this.style.display='none'; }">` : ""}${escapeHtml(m.boss)}</span>
       <span class="boss-search-item-archive${m.isGuide ? " boss-search-item-guide" : ""}">${escapeHtml(m.label)}</span>
     </a>`
   ).join("");

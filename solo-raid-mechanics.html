@@ -325,14 +325,58 @@ function parseEmbed(url){
   return {type:"iframe", src:`https://www.youtube.com/embed/${idMatch[1]}${start}`};
 }
 
+
+// ---- Deferred clip loading ----
+// Attaches a clip's <source> elements the first time it comes near the viewport, then plays it.
+// rootMargin starts the fetch slightly before the clip is actually visible, so scrolling feels the
+// same as it did when everything was preloaded. Falls back to loading everything if the browser
+// has no IntersectionObserver, which keeps the page usable rather than silently blank.
+function initClipLazyLoad(){
+  const vids = [...document.querySelectorAll("video.clip-video[data-mp4]")];
+  if(!vids.length) return;
+
+  const attach = (v) => {
+    if(v.dataset.loaded) return;
+    v.dataset.loaded = "1";
+    const mp4 = document.createElement("source");
+    mp4.src = v.dataset.mp4; mp4.type = "video/mp4";
+    const webm = document.createElement("source");
+    webm.src = v.dataset.webm; webm.type = "video/webm";
+    v.append(mp4, webm);
+    v.load();
+    v.play().catch(() => {});   // autoplay can be refused; the clip is still there to press play on
+  };
+
+  if(!("IntersectionObserver" in window)){ vids.forEach(attach); return; }
+
+  // 300px of margin pulled in five clips at once on a tall desktop viewport; 120px loads the
+  // ones actually being looked at and leaves the rest until they are scrolled towards.
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        attach(e.target);
+        e.target.play().catch(() => {});
+      }else if(e.target.dataset.loaded){
+        // Offscreen clips keep decoding otherwise - a dozen looping videos is real CPU and
+        // battery on a phone, for something nobody is watching.
+        e.target.pause();
+      }
+    });
+  }, { rootMargin: "120px 0px" });
+  vids.forEach(v => io.observe(v));
+}
+
 function clipHtml(clipUrl, uid, attribution){
   if(!clipUrl) return "";
   const embed = parseEmbed(clipUrl);
   if(embed.type === "video"){
+    // Sources are held in data- attributes and only attached when the clip scrolls into view.
+    // With autoplay set, preload="metadata" is ignored - the browser fetches each clip in full
+    // immediately - so all 11 mp4s (~44 MB) downloaded on page load whether or not they were ever
+    // seen. Deferring turns that into a few hundred KB up front and loads the rest on demand.
     return `
-    <video class="clip-video" autoplay loop muted playsinline preload="metadata">
-      <source src="${embed.srcMp4}" type="video/mp4">
-      <source src="${embed.srcWebm}" type="video/webm">
+    <video class="clip-video" loop muted playsinline preload="none"
+           data-mp4="${embed.srcMp4}" data-webm="${embed.srcWebm}">
     </video>
     ${attribution ? `<div class="clip-attribution">Clip courtesy of ${attribution}</div>` : ""}`;
   }
@@ -422,6 +466,7 @@ async function loadMechanics(){
   </div>
 `).join("");
 
+  initClipLazyLoad();   // must run after the sections exist in the DOM
   scrollToHashTarget();
 }
 
