@@ -148,8 +148,13 @@ header{ padding: 12px 24px 10px; text-align:center; }
   /* Stacked, not side-by-side: the sort belongs to the column it controls, and sitting inline with
      the heading it read as part of the page chrome. Underneath, left-aligned with the title, the
      association is obvious and long option labels no longer squeeze the heading. */
+  /* Title and its sort on one row. They were stacked when the top controls bar was busy and the
+     heading needed the width; with the mode filter and info button gone there is room, and the
+     sort sits with the column it controls rather than below it. Wraps rather than squeezing the
+     heading if a long option label needs the space. */
   .view-col-head{
-    display:flex; flex-direction:column; align-items:flex-start; gap:6px; margin-bottom:12px;
+    display:flex; flex-direction:row; align-items:center; justify-content:space-between;
+    gap:10px; flex-wrap:wrap; margin-bottom:12px;
   }
   .view-col-title{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:0;
@@ -162,7 +167,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   /* narrow: tabbed, one at a time (column headings redundant next to the active tab) */
   .view-col-title{ display:none; }
   /* heading hides when tabbed (the active tab already names the view) but the sort stays */
-  .view-col-head{ align-items:flex-end; }   /* tabbed: heading hidden, so the sort sits right */
+  .view-col-head{ justify-content:flex-end; }   /* tabbed: heading hidden, so the sort sits right */
   body:not(.view-byboss) #col-byboss{ display:none; }
   body:not(.view-best) #col-best{ display:none; }
 
@@ -170,7 +175,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     .views-grid{ grid-template-columns: 1fr 1fr; align-items:start; }
     .view-tabs, .view-intro{ display:none; }
     .view-col-title{ display:block; }
-    .view-col-head{ align-items:flex-start; }
+    .view-col-head{ justify-content:space-between; }
     /* both columns visible regardless of which tab was last active */
     body:not(.view-byboss) #col-byboss,
     body:not(.view-best) #col-best{ display:block; }
@@ -430,15 +435,21 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .controls input{ flex:1; min-width:200px; max-width:340px; }
   .controls input:focus, .controls select:focus{ border-color: var(--accent); }
 
-  /* --- glossary: slide-in from the right, dismissible --- */
   .glossary-btn{
     font-family:'Inter', sans-serif; font-size:11.5px; font-weight:700; color: var(--ink-muted);
     padding:7px 12px; border-radius:999px; border:1.5px solid var(--border);
     background: var(--card); cursor:pointer; white-space:nowrap;
   }
   .glossary-btn:hover{ border-color: var(--accent); color: var(--accent-dark); }
-  /* Matches the info button so the pair reads as one control group, but styled as the link it is. */
-  .calc-link{ text-decoration:none; display:inline-flex; align-items:center; }
+  /* Matches the boss-mode buttons rather than the old pill: same rectangular shape, border and
+     weight, so the two read as the same class of control. */
+  .calc-link{
+    text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
+    font-family:'Manrope', sans-serif; font-size:12.5px; font-weight:800;
+    padding:8px 14px; border-radius:8px;
+    border:1.5px solid var(--border); background: var(--card); color: var(--text);
+  }
+  .calc-link:hover{ border-color: var(--accent); color: var(--accent-dark); }
   .glossary-overlay{
     position:fixed; inset:0; background:rgba(20,24,38,0.35); z-index:60;
   }
@@ -759,6 +770,49 @@ header{ padding: 12px 24px 10px; text-align:center; }
 .ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
 [data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
 .ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
+  /* ---- Type filter ---- */
+  /* A GRID, not a scrolling strip. The strip fitted on one line but pushed 13 of the 18 types
+     off-screen on a phone, so anything past Electric was invisible unless you thought to swipe
+     sideways - types you cannot see are types you cannot filter by. A grid shows every type at
+     once at every width; only the column count changes. */
+  /* Sized to match .container - same max-width and horizontal padding - so the grid lines up
+     with the rows below it. It cannot live INSIDE the container, because render() replaces that
+     element's innerHTML on every keystroke and would delete it. It also sits outside
+     .sticky-header, whose own padding used to stack with this one and threw the alignment out by
+     16px at any width where the max-width centring did not absorb the difference. */
+  .type-filter{
+    display:grid; gap:6px; box-sizing:border-box;
+    max-width:1300px; margin:0 auto; padding:0 20px 14px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .type-chip{
+    display:inline-flex; align-items:center; justify-content:center; gap:5px;
+    border:1.5px solid transparent; border-radius:8px; padding:6px 8px;
+    font-family:'Manrope', sans-serif; font-size:11.5px; font-weight:800;
+    color:#fff; cursor:pointer; opacity:.45; transition: opacity .12s, transform .12s;
+    text-transform:capitalize; min-width:0; overflow:hidden;
+  }
+  .type-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .type-chip img{ width:13px; height:13px; filter: brightness(0) invert(1); flex:none; }
+  .type-chip:hover{ opacity:.8; }
+  /* Selected gets a ring AND full opacity - opacity alone would not separate the states for
+     anyone who cannot tell the colours apart. */
+  .type-chip.on{ opacity:1; border-color: var(--text); transform: translateY(-1px); }
+  /* "All types" spans the full width above the grid, so it reads as a reset rather than a
+     nineteenth type competing with the others. */
+  .type-chip.all{
+    grid-column: 1 / -1; background: var(--card); color: var(--text);
+    border-color: var(--border); opacity:1;
+  }
+  .type-chip.all.on{ background: var(--text); color: var(--bg1); border-color: var(--text); }
+
+  @media (max-width:900px){ .type-filter{ grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  @media (max-width:700px){ .type-filter{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width:480px){
+    /* Three across keeps the label readable at ~11px; four would start truncating "Fighting". */
+    .type-filter{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap:5px; }
+    .type-chip{ font-size:11px; padding:6px 6px; }
+  }
 </style>
 </head>
 <body>
@@ -824,18 +878,12 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <div class="view-intro" id="viewIntro"></div>
 
 <div class="controls">
-  <button type="button" class="glossary-btn" id="glossaryOpen" aria-label="What the numbers mean">Info: Trailing vs CT DPS</button>
   <!-- Every row here came out of the calculator, so a reader wanting to reproduce or extend a
        result has somewhere to go without hunting through the nav. -->
-  <a class="glossary-btn calc-link" href="ct-calculator.html">Catch Tank Calculator &rarr;</a>
+  <a class="calc-link" href="ct-calculator.html">Catch Tank Calculator &rarr;</a>
   <select id="tierFilter">
     <option value="legendary">Bosses: Legendary</option>
     <option value="mega">Bosses: Tier 4 Mega</option>
-  </select>
-  <select id="modeFilter">
-    <option value="all">Mode: All</option>
-    <option value="single">Mode: Single CT</option>
-    <option value="double">Mode: Double CT</option>
   </select>
   <select id="sortSelect">
     <option value="ctdps">Sort: CT DPS (High–Low)</option>
@@ -846,28 +894,13 @@ header{ padding: 12px 24px 10px; text-align:center; }
 
 <!-- Definitions moved out of the reading flow into an on-demand panel: they're reference
      material you need once, not something worth re-reading above every visit to the data. -->
-<div class="glossary-overlay" id="glossaryOverlay" hidden></div>
-<aside class="glossary-panel" id="glossaryPanel" hidden aria-label="What the numbers mean">
-  <div class="glossary-head">
-    <h2 class="glossary-title">What the numbers mean</h2>
-    <button type="button" class="glossary-close" id="glossaryClose" aria-label="Close">&times;</button>
-  </div>
-  <div class="glossary-body">
-    <div class="glossary-item">
-      <span class="role-chip catchtank">Catch Tank DPS</span>
-      <p>Standard Catch Tank rotation &mdash; It calculates fast move(s) and charge move damage used over total time; including forward and backward swap time</p>
-    </div>
-    <div class="glossary-item">
-      <span class="role-chip support">Trailing DPS</span>
-      <p>Unique Exit Rotation. It calculates fast move(s) and charge move damage used over total time; only including forward swap time</p>
-    </div>
-    <div class="glossary-item">
-      <span class="role-chip">Entries</span>
-      <p>The same Pok&eacute;mon can appear several times against the same boss at different levels, IVs, weather, or adventure effects &mdash; each counts separately.</p>
-    </div>
-  </div>
-</aside>
+<!-- The Trailing vs CT DPS glossary panel lived here. Its only trigger was the info button
+     that has been removed, so the markup and its open/close wiring were unreachable. -->
 
+<!-- A sibling of .container, not a child: render() replaces container.innerHTML on every
+     keystroke, which would destroy this element. Sized to match .container so the grid still
+     lines up with the rows below. -->
+<div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
 <div class="container">
   <div class="views-grid">
     <section class="view-col" id="col-byboss">
@@ -1646,6 +1679,7 @@ async function loadSubmissionsFromCSV(){
     const text = await res.text();
     await loadTier4Bosses();      // needed before anything is grouped or averaged
     SUBMISSIONS = rowsToSubmissions(parseCSV(text));
+    renderTypeFilter();
     render();
   }catch(e){
     console.error("Failed to load CT database:", e);
@@ -1758,7 +1792,6 @@ const cardGridMobile = document.getElementById("cardGridMobile");
 const countEl = document.getElementById("count");
 const searchInput = document.getElementById("searchInput");
 const sortSelect = document.getElementById("sortSelect");
-const modeFilter = document.getElementById("modeFilter");
 
 const TYPE_COLORS = {
   normal:"#A8A77A", fire:"#EE8130", water:"#6390F0", electric:"#F7D02C", grass:"#7AC74C",
@@ -2455,19 +2488,77 @@ function toggleLeaderGroup(i){
 
 const VIEW_INTROS = { byboss: "", best: "" };
 
+// ============ TYPE FILTER ============
+// Types come from csv/pokemon-stats.csv (type1/type2), the same source ct-database and the
+// calculator use, so there is no second hand-maintained list to drift.
+// TYPE_ICON_BASE and TYPE_COLORS are already declared higher up on this page for the move-type
+// chips - redeclaring them with const threw and killed every script below, so this reuses them.
+const TYPE_ORDER = ["normal","fire","water","electric","grass","ice","fighting","poison","ground",
+                    "flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
+// This page already builds POKEMON_TYPES in loadTypeData(); only the filter state is new.
+let activeTypes = new Set();   // empty = no filter
+
+
+// A Shadow form shares its base form's typing, and the stats CSV lists both - but a name the CSV
+// does not carry at all (a newly added raider, say) must not silently vanish from the list, so an
+// unknown name is treated as matching every filter rather than none.
+// POKEMON_TYPES here is an array of {n, t1, t2} rather than a name->types map, so this reshapes
+// it rather than duplicating the load.
+function typesOf(name){
+  const key = (name || "").trim().toLowerCase();
+  const rec = POKEMON_TYPES.find(r => r.n.toLowerCase() === key)
+           || POKEMON_TYPES.find(r => r.n.toLowerCase() === key.replace(/^shadow\s+/, ""));
+  if(!rec) return null;
+  return [rec.t1, rec.t2].filter(Boolean).map(t => t.toLowerCase());
+}
+function matchesTypeFilter(name){
+  if(!activeTypes.size) return true;
+  const ts = typesOf(name);
+  if(!ts) return true;
+  return ts.some(t => activeTypes.has(t));
+}
+
+function renderTypeFilter(){
+  const el = document.getElementById("typeFilter");
+  if(!el) return;
+  // Only offer types that actually appear in the current results - an empty Fairy filter is a
+  // dead end, not a feature.
+  const present = new Set();
+  SUBMISSIONS.forEach(r => (typesOf(r.pokemon) || []).forEach(t => present.add(t)));
+  const types = TYPE_ORDER.filter(t => present.has(t));
+  if(!types.length){ el.style.display = "none"; return; }
+  // Clear the inline value rather than setting one: this was "flex" from the earlier scrolling
+  // strip, and an inline style beats the stylesheet - so the grid rules were being applied and
+  // then silently overridden, leaving all 18 chips on one line at every width.
+  el.style.display = "";
+
+  el.innerHTML =
+    `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type=""
+             aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All types</span></button>` +
+    types.map(t => `
+      <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
+              style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown};"
+              aria-pressed="${activeTypes.has(t) ? "true" : "false"}">
+        <img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"><span>${t}</span>
+      </button>`).join("");
+
+  el.querySelectorAll(".type-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.type;
+      if(!t) activeTypes.clear();                                   // "All types" resets
+      else activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
+      renderTypeFilter();
+      render();
+    });
+  });
+}
+
 function render(){
   const q = searchInput.value.trim().toLowerCase();
   // Pool first: the two boss tiers have different DPS bars and are never shown together.
   let list = SUBMISSIONS.filter(inCurrentPool)
+    .filter(s => matchesTypeFilter(s.pokemon))
     .filter(s => !q || s.pokemon.toLowerCase().includes(q) || s.boss.toLowerCase().includes(q));
-
-  const mode = modeFilter.value;
-  if(mode !== "all"){
-    list = list.filter(s => {
-      const isDouble = /N\/A/i.test(s.trailingDPS);
-      return mode === "double" ? isDouble : !isDouble;
-    });
-  }
 
   const sort = sortSelect.value;
   if(sort === "ctdps") list.sort((a,b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS));
@@ -2514,21 +2605,14 @@ searchInput.addEventListener("input", () => {
   searchDebounceTimer = setTimeout(render, 140);
 });
 sortSelect.addEventListener("change", render);
-modeFilter.addEventListener("change", render);
 const tierFilter = document.getElementById("tierFilter");
 // render() already rebuilds every view from the filtered list, so calling the sub-renderers
 // here as well passed them no list and threw.
 if(tierFilter) tierFilter.addEventListener("change", render);
 document.querySelectorAll('input[name="dbView"]').forEach(el => el.addEventListener("change", render));
-(function(){
-  const panel = document.getElementById("glossaryPanel");
-  const overlay = document.getElementById("glossaryOverlay");
-  const show = on => { panel.hidden = !on; overlay.hidden = !on; };
-  document.getElementById("glossaryOpen").addEventListener("click", () => show(true));
-  document.getElementById("glossaryClose").addEventListener("click", () => show(false));
-  overlay.addEventListener("click", () => show(false));
-  document.addEventListener("keydown", e => { if(e.key === "Escape") show(false); });
-})();
+// The glossary's open/close wiring lived here. Its `panel` and `overlay` consts were removed
+// with the panel itself, leaving this IIFE referencing two undefined names - it threw on load and
+// took every script after it down with it, which is why the type grid never rendered.
 
 document.getElementById("sortByBoss").addEventListener("change", render);
 document.getElementById("sortBest").addEventListener("change", render);
