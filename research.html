@@ -179,6 +179,12 @@
   .lb-row{
     display:flex; align-items:center; gap:14px;
     padding: 12px 16px; cursor:pointer; user-select:none; list-style:none;
+    /* This element became a <button> so it could open the usage modal. A <summary> inherits its
+       background, font, colour, alignment and full width; a <button> does not - it takes UA
+       defaults and shrinks to fit, which is why the rows turned pale, centred and short. These
+       reset it to render exactly as the summary did. */
+    width:100%; background:none; border:none; margin:0;
+    font:inherit; color:inherit; text-align:left; appearance:none;
   }
   .lb-row::-webkit-details-marker{ display:none; }
   .lb-row::marker{ display:none; content:""; }
@@ -365,15 +371,20 @@
     display:inline-flex; align-items:center; justify-content:center; gap:5px;
     border:1.5px solid transparent; border-radius:8px; padding:6px 8px;
     font-family:'Manrope', sans-serif; font-size:11.5px; font-weight:800;
-    color:#fff; cursor:pointer; opacity:.45; transition: opacity .12s, transform .12s;
+    /* Full colour. opacity:.45 was compositing every badge against the dark page - fire's
+       #F19855 rendered as #7C7B84, a flat grey - so the palette looked muddy no matter how much
+       the source colours were brightened. Unselected state is now carried by the ring being
+       absent (see .type-chip.on) rather than by dimming the fill. */
+    color:#fff; cursor:pointer; transition: filter .12s, transform .12s;
     text-transform:capitalize; min-width:0; overflow:hidden;
   }
   .type-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .type-chip img{ width:13px; height:13px; filter: brightness(0) invert(1); flex:none; }
-  .type-chip:hover{ opacity:.8; }
+  .type-chip:hover{ filter:brightness(1.12); }
   /* Selected gets a ring AND full opacity - opacity alone would not separate the states for
      anyone who cannot tell the colours apart. */
-  .type-chip.on{ opacity:1; border-color: var(--text); transform: translateY(-1px); }
+  .type-chip.on{ border-color: var(--text); transform: translateY(-1px);
+                 box-shadow: 0 0 0 2px var(--bg1), 0 0 0 3px var(--text); }
   /* "All types" spans the full width above the grid, so it reads as a reset rather than a
      nineteenth type competing with the others. */
   .type-chip.all{
@@ -1192,11 +1203,13 @@ const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons
 
 // Standard type palette, shared with ct-database and the collection pages. The previous set
 // here was noticeably darker, which made both the move chips and the filter grid muddy.
+// Standard type palette lifted ~18% toward white - the source colours read muddy as solid
+// badge fills against a dark page.
 const TYPE_COLORS = {
-  normal:"#A8A77A", fire:"#EE8130", water:"#6390F0", electric:"#F7D02C", grass:"#7AC74C",
-  ice:"#96D9D6", fighting:"#C22E28", poison:"#A33EA1", ground:"#E2BF65", flying:"#A98FF3",
-  psychic:"#F95587", bug:"#A6B91A", rock:"#B6A136", ghost:"#735797", dragon:"#6F35FC",
-  dark:"#705746", steel:"#B7B7CE", fairy:"#D685AD", unknown:"#c7c7c7",
+  normal:"#B8B792", fire:"#F19855", water:"#7FA4F3", electric:"#F8D852", grass:"#92D16C",
+  ice:"#A9E0DD", fighting:"#CD544F", poison:"#B461B2", ground:"#E7CB81", flying:"#B8A3F5",
+  psychic:"#FA749D", bug:"#B6C643", rock:"#C3B25A", ghost:"#8C75AA", dragon:"#8959FD",
+  dark:"#8A7567", steel:"#C4C4D7", fairy:"#DD9BBC", unknown:"#c7c7c7",
 };
 const MOVE_TYPES = {
   "smack down":"rock", "dragon breath":"dragon", "shadow claw":"ghost", "astonish":"ghost",

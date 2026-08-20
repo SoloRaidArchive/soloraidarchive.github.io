@@ -447,7 +447,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
     font-family:'Manrope', sans-serif; font-size:12.5px; font-weight:800;
     padding:8px 14px; border-radius:8px;
-    border:1.5px solid var(--border); background: var(--card); color: var(--text);
+    border:1.5px solid var(--border); background: var(--card); color: var(--ink);
   }
   .calc-link:hover{ border-color: var(--accent); color: var(--accent-dark); }
   .glossary-overlay{
@@ -789,22 +789,30 @@ header{ padding: 12px 24px 10px; text-align:center; }
     display:inline-flex; align-items:center; justify-content:center; gap:5px;
     border:1.5px solid transparent; border-radius:8px; padding:6px 8px;
     font-family:'Manrope', sans-serif; font-size:11.5px; font-weight:800;
-    color:#fff; cursor:pointer; opacity:.45; transition: opacity .12s, transform .12s;
+    /* Full colour. opacity:.45 was compositing every badge against the dark page - fire's
+       #F19855 rendered as #7C7B84, a flat grey - so the palette looked muddy no matter how much
+       the source colours were brightened. Unselected state is now carried by the ring being
+       absent (see .type-chip.on) rather than by dimming the fill. */
+    color:#fff; cursor:pointer; transition: filter .12s, transform .12s;
     text-transform:capitalize; min-width:0; overflow:hidden;
   }
   .type-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .type-chip img{ width:13px; height:13px; filter: brightness(0) invert(1); flex:none; }
-  .type-chip:hover{ opacity:.8; }
+  .type-chip:hover{ filter:brightness(1.12); }
   /* Selected gets a ring AND full opacity - opacity alone would not separate the states for
      anyone who cannot tell the colours apart. */
-  .type-chip.on{ opacity:1; border-color: var(--text); transform: translateY(-1px); }
+  /* --ink, not --text: this page's tokens are named differently from research.html, and an
+     undefined custom property invalidates the whole declaration rather than falling back - which
+     is why the selection ring silently did not render here. */
+  .type-chip.on{ border-color: var(--ink); transform: translateY(-1px);
+                 box-shadow: 0 0 0 2px var(--bg1), 0 0 0 3px var(--ink); }
   /* "All types" spans the full width above the grid, so it reads as a reset rather than a
      nineteenth type competing with the others. */
   .type-chip.all{
-    grid-column: 1 / -1; background: var(--card); color: var(--text);
+    grid-column: 1 / -1; background: var(--card); color: var(--ink);
     border-color: var(--border); opacity:1;
   }
-  .type-chip.all.on{ background: var(--text); color: var(--bg1); border-color: var(--text); }
+  .type-chip.all.on{ background: var(--ink); color: var(--bg1); border-color: var(--ink); }
 
   @media (max-width:900px){ .type-filter{ grid-template-columns: repeat(5, minmax(0, 1fr)); } }
   @media (max-width:700px){ .type-filter{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -1793,11 +1801,13 @@ const countEl = document.getElementById("count");
 const searchInput = document.getElementById("searchInput");
 const sortSelect = document.getElementById("sortSelect");
 
+// Standard type palette lifted ~18% toward white - the source colours read muddy as solid
+// badge fills against a dark page.
 const TYPE_COLORS = {
-  normal:"#A8A77A", fire:"#EE8130", water:"#6390F0", electric:"#F7D02C", grass:"#7AC74C",
-  ice:"#96D9D6", fighting:"#C22E28", poison:"#A33EA1", ground:"#E2BF65", flying:"#A98FF3",
-  psychic:"#F95587", bug:"#A6B91A", rock:"#B6A136", ghost:"#735797", dragon:"#6F35FC",
-  dark:"#705746", steel:"#B7B7CE", fairy:"#D685AD", "":"#c7c7c7",
+  normal:"#B8B792", fire:"#F19855", water:"#7FA4F3", electric:"#F8D852", grass:"#92D16C",
+  ice:"#A9E0DD", fighting:"#CD544F", poison:"#B461B2", ground:"#E7CB81", flying:"#B8A3F5",
+  psychic:"#FA749D", bug:"#B6C643", rock:"#C3B25A", ghost:"#8C75AA", dragon:"#8959FD",
+  dark:"#8A7567", steel:"#C4C4D7", fairy:"#DD9BBC", "":"#c7c7c7",
 };
 function typeDot(typeName){
   const color = TYPE_COLORS[(typeName || "").toLowerCase()] || "#c7c7c7";
