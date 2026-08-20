@@ -3,13 +3,38 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Boss Collection — Solo Raid Archive</title>
-<!--
-  PROTOTYPE - Layer 2 boss collection page.
+<title>Mega Audino Solo Raid Strategies — Solo Raid Archive</title>
+<meta name="description" content="Every documented solo strategy for Mega Audino in Pokémon GO — Tier 4 Mega raid. Catch tanks, movesets, weather, difficulty and VODs from the community archive.">
+<link rel="canonical" href="https://soloraidarchive.github.io/collections/mega-audino.html">
+<!-- Favicons. collections/ is one level deep, so ../ - the same depth as articles/. These were
+     missing from all 109 pages: the template predates the head being fleshed out, and because
+     every page is generated from it, the omission was uniform rather than obvious. -->
+<link rel="icon" href="../assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="../assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/favicon-180.png">
 
-  One page per boss, holding every strategy for that boss. Which boss is decided by the
-  page's own filename (collections/<slug>.html), so a single template serves all of them
-  and there is no per-page boss constant to drift out of sync with the CSV.
+<meta property="og:type" content="article">
+<meta property="og:title" content="Mega Audino Solo Raid Strategies">
+<meta property="og:description" content="Documented solo strategies for Mega Audino — catch tanks, movesets, weather and VODs.">
+<meta property="og:url" content="https://soloraidarchive.github.io/collections/mega-audino.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Mega Audino Solo Raid Strategies">
+<!--
+  Layer 2 boss collection page.
+
+  One page per boss, holding every strategy for that boss.
+
+  The BODY is still boss-agnostic: which boss to render is read at runtime from the page's own
+  filename (collections/<slug>.html), so no strategy data is baked in and a CSV edit shows up
+  without regenerating anything.
+
+  The HEAD is not. Mega Audino, mega-audino and Tier 4 Mega are substituted when the page
+  is written, because a crawler that does not run JavaScript sees only the initial HTML - and 109
+  pages sharing one <title> with no description or canonical is duplicate content. Those three
+  tokens are deliberately the only ones: they change when a boss is renamed or retiered, which is
+  rare, and NOT with strategy counts, which change constantly and would force a rewrite of every
+  page on every CSV edit.
 
   The slug rule is the SAME one the worker already uses for guide pages:
       boss.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")
@@ -1082,7 +1107,12 @@ async function load(){
   // - "nosuchboss" read as a bug, "Nosuchboss" reads as an empty page.
   const boss = ROWS.length ? ROWS[0].boss
     : PAGE_SLUG.replace(/-/g," ").replace(/\b[a-z]/g, c => c.toUpperCase());
-  document.title = `${boss} — Solo Raid Archive`;
+  // No document.title assignment here on purpose. The static <title> is written per boss at
+  // generation time and is already richer than anything set at runtime, so overwriting it only
+  // made the tab title disagree with the indexed one. Referencing the substitution token to
+  // detect "not yet substituted" does not work either: the token would then live in the BODY,
+  // which must stay identical across all pages, and it would be replaced with the boss name
+  // anyway - so the guard would match itself.
   document.getElementById("bossName").textContent = boss;
   document.getElementById("crumbBoss").textContent = boss;
   const bossImg = document.getElementById("bossSprite");
