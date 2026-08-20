@@ -1141,10 +1141,8 @@ async function loadTypeData(){
   try{
     // csv/pokemon-types.csv has been retired - pokemon-stats.csv carries type1/type2 for every
     // name these pages can display, so fetching the second file only produced a 404 per load.
-    const statsRes = await fetch("csv/pokemon-stats.csv");
-    if(!statsRes.ok) throw new Error("pokemon-stats.csv HTTP " + statsRes.status);
     const byName = new Map();
-    parse(await statsRes.text()).forEach(r => byName.set(r.n.toLowerCase(), r));
+    parse(await fetchPokemonStatsCsv()).forEach(r => byName.set(r.n.toLowerCase(), r));
     TYPE_ROWS = [...byName.values()];
     POKEMON_TYPES = TYPE_ROWS.map(r => ({ n: r.n, t1: r.t1, t2: r.t2 || "" }));
     BOSS_TYPES = {};
@@ -1198,13 +1196,30 @@ const WEATHER_BOOST_TYPES = {
   fog:      ["dark", "ghost"],
 };
 
+
+// Both loadTypeData() and loadPokemonDb() need csv/pokemon-stats.csv, and each used to fetch it
+// separately - the same 79KB pulled and parsed twice on every page load. Memoised on the promise
+// rather than the text, so two callers starting at the same time share one request instead of
+// racing to start a second.
+let _pokemonStatsText = null;
+function fetchPokemonStatsCsv(){
+  if(!_pokemonStatsText){
+    _pokemonStatsText = fetch("csv/pokemon-stats.csv").then(res => {
+      if(!res.ok) throw new Error("pokemon-stats.csv HTTP " + res.status);
+      return res.text();
+    }).catch(e => {
+      _pokemonStatsText = null;   // let a later caller retry rather than caching the failure
+      throw e;
+    });
+  }
+  return _pokemonStatsText;
+}
+
 // Stats are loaded from csv/pokemon-stats.csv rather than inlined - see loadPokemonDb().
 let POKEMON_DB = [];
 async function loadPokemonDb(){
   try{
-    const res = await fetch("csv/pokemon-stats.csv");
-    if(!res.ok) throw new Error("HTTP " + res.status);
-    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
+    const lines = (await fetchPokemonStatsCsv()).split(/\r?\n/).filter(l => l.trim());
     const header = lines.shift().split(",").map(h => h.trim());
     const iN = header.indexOf("name"), iH = header.indexOf("hp"), iA = header.indexOf("atk"), iD = header.indexOf("def");
     if(iN < 0 || iA < 0 || iD < 0) throw new Error("unexpected header: " + header.join(","));
@@ -1998,31 +2013,14 @@ function renderByBoss(list){
         </div>
         <span class="boss-caret">${g.scenarios.reduce((n,s)=>n+s.entries.length,0) >= ENTRY_TABLE_THRESHOLD ? "&#9974;" : "&#9654;"}</span>
       </button>
-      <div class="boss-body">
-        ${g.scenarios.map(sc => `
-          <div class="scenario">
-            <div class="scenario-head">
-              <span class="scenario-moveset">${movesetHtml(sc.moveset)}</span>
-              <span class="ct-pick-conds">${weatherIcon(sc.weather || "")}</span>
-            </div>
-            ${sc.entries.map((s, i) => `
-              <div class="ct-pick">
-                <div class="ct-pick-rank">${i + 1}</div>
-                <div class="ct-pick-icon"><img class="${needsShadowMist(s.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(s.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
-                <div class="ct-pick-body">
-                  <div class="ct-pick-name">${escapeHtml(s.pokemon)}</div>
-                  <div class="ct-pick-sub">Lv ${escapeHtml(s.level)} &middot; ${movesetHtml(s.playerMoveset)}<span class="ct-pick-conds">${boostIconsHtml(s)}${doubleCTBadgeHtml(s)}</span></div>
-                  ${detailLineHtml(s)}
-                </div>
-                <div class="ct-pick-dps">
-                  <div class="ct-pick-dps-val">${parseFloat(s.ctDPS).toFixed(1)}</div>
-                  <div class="ct-pick-dps-label" data-tooltip="Full Catch Tank output - the number that determines how strong a submission is.">CT DPS</div>
-                </div>
-              </div>
-            `).join("")}
-          </div>
-        `).join("")}
-      </div>
+      <!-- The inline expandable body used to live here. It is unreachable now:
+           ENTRY_TABLE_THRESHOLD is 1, so toggleBossGroup() always returns into the modal before
+           it can add .boss-group.open, and .boss-body is display:none with no other route to
+           being shown. Rendering it anyway put ~1500 unreachable <img> tags into the DOM, of
+           which the browser eagerly fetched ~250 - a zero-size image gives loading="lazy"
+           nothing to work with, so the attribute cannot defer them.
+           To restore the split view, restore this block AND raise the threshold; the modal
+           markup is built on demand in openBossEntriesTable(). -->
     </div>
   `).join("");
 }
