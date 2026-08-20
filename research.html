@@ -345,6 +345,44 @@
 .ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
 [data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
 .ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
+
+  /* ---- Type filter ---- */
+  /* A GRID, not a scrolling strip. The strip fitted on one line but pushed 13 of the 18 types
+     off-screen on a phone, so anything past Electric was invisible unless you thought to swipe
+     sideways - types you cannot see are types you cannot filter by. A grid shows every type at
+     once at every width; only the column count changes. */
+  .type-filter{
+    display:grid; gap:6px; padding:8px 14px 10px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+  .type-chip{
+    display:inline-flex; align-items:center; justify-content:center; gap:5px;
+    border:1.5px solid transparent; border-radius:8px; padding:6px 8px;
+    font-family:'Manrope', sans-serif; font-size:11.5px; font-weight:800;
+    color:#fff; cursor:pointer; opacity:.45; transition: opacity .12s, transform .12s;
+    text-transform:capitalize; min-width:0; overflow:hidden;
+  }
+  .type-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .type-chip img{ width:13px; height:13px; filter: brightness(0) invert(1); flex:none; }
+  .type-chip:hover{ opacity:.8; }
+  /* Selected gets a ring AND full opacity - opacity alone would not separate the states for
+     anyone who cannot tell the colours apart. */
+  .type-chip.on{ opacity:1; border-color: var(--text); transform: translateY(-1px); }
+  /* "All types" spans the full width above the grid, so it reads as a reset rather than a
+     nineteenth type competing with the others. */
+  .type-chip.all{
+    grid-column: 1 / -1; background: var(--card); color: var(--text);
+    border-color: var(--border); opacity:1;
+  }
+  .type-chip.all.on{ background: var(--text); color: var(--bg1); border-color: var(--text); }
+
+  @media (max-width:900px){ .type-filter{ grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+  @media (max-width:700px){ .type-filter{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width:480px){
+    /* Three across keeps the label readable at ~11px; four would start truncating "Fighting". */
+    .type-filter{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap:5px; padding:6px 10px 8px; }
+    .type-chip{ font-size:11px; padding:6px 6px; }
+  }
 </style>
 </head>
 <body>
@@ -368,6 +406,9 @@
       </button>
     </div>
   </div>
+
+  <!-- Sits directly under the search so it reads as a filter on the list below, not page chrome. -->
+  <div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
 
 
   <div class="hamburger-panel" id="hamburgerPanel">
@@ -979,6 +1020,8 @@ async function loadAllData(){
 
   const { results, qualifyingEntries, totalDistinctBosses } = computeUsageData(allRaids);
   ALL_RESULTS = results;
+  await loadPokemonTypes();
+  renderTypeFilter();
   renderLeaderboard();
 }
 
@@ -1126,9 +1169,91 @@ function rankChangeBadge(bossName, currentRank){
   return `<div class="lb-rank-change down">&#9660;${Math.abs(delta)}</div>`;
 }
 
+
+// ============ TYPE FILTER ============
+// Types come from csv/pokemon-stats.csv (type1/type2), the same source ct-database and the
+// calculator use, so there is no second hand-maintained list to drift.
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
+const TYPE_ORDER = ["normal","fire","water","electric","grass","ice","fighting","poison","ground",
+                    "flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
+let POKEMON_TYPES = {};        // lowercased name -> [type1, type2?]
+let activeTypes = new Set();   // empty = no filter
+
+async function loadPokemonTypes(){
+  try{
+    const res = await fetch("csv/pokemon-stats.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim().toLowerCase());
+    const iN = header.indexOf("name"), i1 = header.indexOf("type1"), i2 = header.indexOf("type2");
+    if(iN < 0 || i1 < 0) throw new Error("unexpected header: " + header.join(","));
+    lines.forEach(l => {
+      const c = l.split(",");
+      const n = (c[iN] || "").trim();
+      if(!n) return;
+      const ts = [(c[i1] || "").trim().toLowerCase(), i2 >= 0 ? (c[i2] || "").trim().toLowerCase() : ""].filter(Boolean);
+      if(ts.length) POKEMON_TYPES[n.toLowerCase()] = ts;
+    });
+  }catch(e){
+    // Non-fatal: without types the strip stays hidden and the leaderboard behaves as before.
+    console.error("Could not load types for the type filter:", e);
+  }
+}
+
+// A Shadow form shares its base form's typing, and the stats CSV lists both - but a name the CSV
+// does not carry at all (a newly added raider, say) must not silently vanish from the list, so an
+// unknown name is treated as matching every filter rather than none.
+function typesOf(name){
+  const key = (name || "").trim().toLowerCase();
+  return POKEMON_TYPES[key] || POKEMON_TYPES[key.replace(/^shadow\s+/, "")] || null;
+}
+function matchesTypeFilter(name){
+  if(!activeTypes.size) return true;
+  const ts = typesOf(name);
+  if(!ts) return true;
+  return ts.some(t => activeTypes.has(t));
+}
+
+function renderTypeFilter(){
+  const el = document.getElementById("typeFilter");
+  if(!el) return;
+  // Only offer types that actually appear in the current results - an empty Fairy filter is a
+  // dead end, not a feature.
+  const present = new Set();
+  ALL_RESULTS.forEach(r => (typesOf(r.name) || []).forEach(t => present.add(t)));
+  const types = TYPE_ORDER.filter(t => present.has(t));
+  if(!types.length){ el.style.display = "none"; return; }
+  // Clear the inline value rather than setting one: this was "flex" from the earlier scrolling
+  // strip, and an inline style beats the stylesheet - so the grid rules were being applied and
+  // then silently overridden, leaving all 18 chips on one line at every width.
+  el.style.display = "";
+
+  el.innerHTML =
+    `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type=""
+             aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All types</span></button>` +
+    types.map(t => `
+      <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
+              style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown};"
+              aria-pressed="${activeTypes.has(t) ? "true" : "false"}">
+        <img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"><span>${t}</span>
+      </button>`).join("");
+
+  el.querySelectorAll(".type-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.type;
+      if(!t) activeTypes.clear();                                   // "All types" resets
+      else activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
+      renderTypeFilter();
+      renderLeaderboard();
+    });
+  });
+}
+
 function renderLeaderboard(){
   const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
-  let filtered = ALL_RESULTS.filter(r => !query || r.name.toLowerCase().includes(query));
+  let filtered = ALL_RESULTS
+    .filter(r => !query || r.name.toLowerCase().includes(query))
+    .filter(r => matchesTypeFilter(r.name));
 
   // When a role filter is active, each Pokemon's relevant count reflects ONLY how many times
   // it was used in that specific role for that entry — not its total usage across all roles.
