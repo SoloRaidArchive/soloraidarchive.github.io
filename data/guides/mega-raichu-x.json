@@ -1,0 +1,79 @@
+{
+  "boss": "Mega Raichu X",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "3★",
+      "text": "<h2>Overview</h2><p>Mega Raichu X, is the slightly tankier counterpart to Mega Raichu Y. It doesn't have as strong raid value however there is hope with how volt tackle+ is adjusted. Because the moveset is the exact same as Mega Raichu Y, the meta strategy for this guide is virtually identical.</p><h4>Est Time to Win: 200.5s - 240.5s</h4><h2>Main Strategy</h2><p>Utilizing Primal Groudon, comfortably DPS Mega Raichu per cycle until Primal Groudon requires healing. Be mindful to <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-clean-exit\" target=\"_blank\">exit the fight </a>without having leftover energy as this would lower DPS significantly if repeated too often.</p><p><br></p><p>Mega Raichu X has 1 counter point to Primal Groudon in learning Surf. As a result if it learns Surf, it is recommended to add additional ground attackers. Lots of damage &amp; energy will be absorbed from surf so it is wise to not over extend using each attacker. A recommended strategy is <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">swapping</a> to the next attacker when below 25-30% health.</p>",
+      "vods": [],
+      "submittedBy": "Anonymous",
+      "battleParties": [
+        {
+          "label": "Main Battle Party",
+          "secondaryLabel": "If against Surf",
+          "mons": [
+            {
+              "name": "Primal Groudon",
+              "level": "40-50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Groudon",
+              "level": "35-50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Landorus Therian",
+              "level": "35-50",
+              "fm": "Mud Shot",
+              "cm": "Sandsear Storm",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Shadow Mamoswine",
+              "level": "35-50",
+              "fm": "Mud-Slap",
+              "cm": "High Horsepower",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Shadow Garchomp",
+              "level": "35-50",
+              "fm": "Mud Shot",
+              "cm": "Earth Power",
+              "cm2": "Earthquake (optional)",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-21T19:37:14.773Z"
+    }
+  ]
+}
