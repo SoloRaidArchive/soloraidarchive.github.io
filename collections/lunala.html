@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>%%BOSS_NAME%% Solo Raid Strategies — Solo Raid Archive</title>
-<meta name="description" content="Every documented solo strategy for %%BOSS_NAME%% in Pokémon GO — %%TIER_LABEL%% raid. Catch tanks, movesets, weather, difficulty and VODs from the community archive.">
-<link rel="canonical" href="https://soloraidarchive.github.io/collections/%%BOSS_SLUG%%.html">
+<title>Lunala Solo Raid Strategies — Solo Raid Archive</title>
+<meta name="description" content="Every documented solo strategy for Lunala in Pokémon GO — Tier 5 Legendary raid. Catch tanks, movesets, weather, difficulty and VODs from the community archive.">
+<link rel="canonical" href="https://soloraidarchive.github.io/collections/lunala.html">
 <!-- Favicons. collections/ is one level deep, so ../ - the same depth as articles/. These were
      missing from all 109 pages: the template predates the head being fleshed out, and because
      every page is generated from it, the omission was uniform rather than obvious. -->
@@ -15,11 +15,11 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/favicon-180.png">
 
 <meta property="og:type" content="article">
-<meta property="og:title" content="%%BOSS_NAME%% Solo Raid Strategies">
-<meta property="og:description" content="Documented solo strategies for %%BOSS_NAME%% — catch tanks, movesets, weather and VODs.">
-<meta property="og:url" content="https://soloraidarchive.github.io/collections/%%BOSS_SLUG%%.html">
+<meta property="og:title" content="Lunala Solo Raid Strategies">
+<meta property="og:description" content="Documented solo strategies for Lunala — catch tanks, movesets, weather and VODs.">
+<meta property="og:url" content="https://soloraidarchive.github.io/collections/lunala.html">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="%%BOSS_NAME%% Solo Raid Strategies">
+<meta name="twitter:title" content="Lunala Solo Raid Strategies">
 <!--
   Layer 2 boss collection page.
 
@@ -29,7 +29,7 @@
   filename (collections/<slug>.html), so no strategy data is baked in and a CSV edit shows up
   without regenerating anything.
 
-  The HEAD is not. %%BOSS_NAME%%, %%BOSS_SLUG%% and %%TIER_LABEL%% are substituted when the page
+  The HEAD is not. Lunala, lunala and Tier 5 Legendary are substituted when the page
   is written, because a crawler that does not run JavaScript sees only the initial HTML - and 109
   pages sharing one <title> with no description or canonical is duplicate content. Those three
   tokens are deliberately the only ones: they change when a boss is renamed or retiered, which is
@@ -788,7 +788,7 @@ body{ background:#20263a; color: var(--text-muted); }
     <a href="../guides.html" class="hamburger-featured">Boss Guides</a>
     <a href="../articles.html" class="hamburger-featured">Research Articles</a>
       <a href="../meta-battle-parties.html">Meta Battle Parties</a>
-      <a href="../ct-calculator.html">Catch Tank Calculator</a>
+      <a href="../dps-calculator.html">DPS Calculator</a>
       <a href="../move-data.html">Move Data</a>
       <a href="../pokemon-stats.html">Pokémon Stats</a>
         <a href="../reference.html">Difficulty &amp; Role Reference</a>
@@ -895,6 +895,20 @@ const PAGE_SLUG = location.pathname.split("/").pop().replace(/\.html$/, "");
 // then the mgrann03 formula, then pokemongohub as a runtime fallback, matching the live pages;
 // mgrann03 has no artwork for the newest Legends Z-A megas.
 const ANI_OVERRIDES = {
+  // Regional forms whose CDN filename does not follow the "<name>-<region>" rule the generic
+  // regional branch produces. Each of these 404s without an entry here; the names were confirmed
+  // against the sprite CDN rather than guessed.
+  "galarian farfetch'd": "farfetchd-galarian",
+  "galarian mr. mime": "mrmime-galarian",
+  "hisuian basculin": "basculin-whitestriped",
+  "hisuian zoroark": "zoroark-hisuian",
+  "paldean wooper": "wooper-paldea",
+  // Galarian Darmanitan's two forms. Without these the regional rule produces
+  // "darmanitan-galarian" and "darmanitan-zen-galarian", both 404 on the sprite CDN - the real
+  // names are "-galarianstandard" and "-galarianzen". The Shadow variants resolve through here
+  // too, since the lookup strips a leading "shadow ".
+  "galarian darmanitan": "darmanitan-galarianstandard",
+  "galarian darmanitan zen": "darmanitan-galarianzen",
   "zacian crown": "zacian-crownedsword",
   "zamazenta crown": "zamazenta-crownedshield",
   "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
