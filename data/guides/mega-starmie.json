@@ -1,0 +1,90 @@
+{
+  "boss": "Mega Starmie",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Necrozma Dawn Wings Angle",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "3★",
+      "text": "<h2>Overview</h2><p>Mega Starmie is a hilariously looking new Mega with alleged access to the powerful, unreleased, Liquidation+ move. Mega Starmie's move pool is heavily diverse with access to typical water moves alongside psychic and rock type moves (power gem)</p><p>This guide is centered on maximizing Necrozma Dawn Wings' energy gain and spamming Moongeist Beam.</p><h4>Est Time to Win: 200.0s-240.0s</h4><h2>Main Strategy</h2><p>No real advanced mechanics beyond <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">swapping</a> are required here. None of Mega Starmie's move pool pose a great threat to Necrozma Dawn Wings. </p><p>Something to note is Necrozma Dawn Wings can only sponge up to 1 Hydro-pump freely before needing to actively swap or dodge the next one. </p><p><br></p><h2>Advanced Strategy: </h2><p>If engaging in <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-tick-perfect-cast\" target=\"_blank\">TPC, Tick Perfect Cast,</a> Psycho Cut is the preferred fast move of choice. This redistributes damage from Shadow Claw into Moongeist beam by increasing EPS at the cost of fast move DPS. The trade off is generally positive toward Moongeist Beam. </p>",
+      "vods": [],
+      "submittedBy": "SpiritedBloom",
+      "battleParties": [
+        {
+          "label": "Main Battle Party",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "40-50",
+              "fm": "Any",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "40-50",
+              "fm": "Any",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "40-50",
+              "fm": "Any",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "40-50",
+              "fm": "Any",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "40-50",
+              "fm": "Any",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "40-50",
+              "fm": "Any",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-21T04:02:36.607Z"
+    }
+  ]
+}
