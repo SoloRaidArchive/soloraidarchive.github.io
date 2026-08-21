@@ -217,6 +217,36 @@
   .lb-sprite img{ width:100%; height:100%; object-fit:contain; padding:1px; }
   .lb-main{ flex:1; min-width:0; }
   .lb-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14.5px; }
+  /* Recorded movesets, one line per fast/charge pair. Wraps rather than truncating - a raider
+     with three sets should show three, not two and a silent cut. */
+  .lb-sets{ display:flex; flex-direction:column; gap:3px; margin-top:5px; }
+  .lb-set{ display:inline-flex; align-items:center; gap:3px; flex-wrap:wrap; }
+  .lb-set-sep{ color: var(--text-dim); font-size:9.5px; }
+  .lb-set-count{ font-size:9px; font-weight:800; color: var(--text-dim); margin-left:2px; }
+  /* Slightly tighter than the modal's chips: these sit inside a list row, not a table cell. */
+  .lb-set .bd-move-chip{ font-size:9.5px; padding:2px 8px; }
+  @media (max-width:600px){
+    .lb-set .bd-move-chip{ font-size:9px; padding:2px 7px; }
+  }
+  /* ---- Recorded movesets (Option A) ----
+     One line per recorded fast/charge pair, most-used first. Stacked rather than side by side so
+     the pairing stays legible: Air Slash goes with Dragon Ascent, not with Breaking Swipe. Most
+     raiders have one or two sets, so rows typically grow by a single line. */
+  .lb-sets{ display:flex; flex-direction:column; gap:3px; margin-top:5px; }
+  .lb-set{ display:flex; align-items:center; gap:3px; flex-wrap:wrap; }
+  .lb-mv{
+    display:inline-flex; align-items:center; gap:4px; font-size:9.5px; font-weight:800;
+    color:#fff; border-radius:99px; padding:2px 8px; white-space:nowrap; line-height:1.5;
+  }
+  /* Label colour follows the pill's luminance - white is unreadable on electric, ice and ground. */
+  .lb-mv.on-light{ color:#1b1f2a; }
+  .lb-mv img{ width:10px; height:10px; flex:none; filter:brightness(0) invert(1); }
+  .lb-mv.on-light img{ filter:none; }
+  .lb-mv-sep{ color: var(--text-dim); font-size:9px; }
+  .lb-set-count{ font-size:9px; font-weight:800; color: var(--text-dim); margin-left:2px; }
+  @media (max-width:600px){
+    .lb-mv{ font-size:9px; padding:2px 6px; }
+  }
   .lb-roles{ font-size:11.5px; color: var(--blue-dark); font-weight:700; margin-top:2px; }
   .lb-bar-wrap{
     height:8px; background: var(--bg1); border-radius:99px; margin-top:6px; overflow:hidden;
@@ -1137,7 +1167,11 @@ function computeUsageData(allRaids){
       if(!countedThisEntry.has(nameKey)){
         countedThisEntry.add(nameKey);
         u.count++;
-        u.instances.push({ boss: r.boss, file: r.file, weather: r.weather, tier: r.tier, fast: r.fast, charge: r.charge, ae: r.ae });
+        // fast/charge here are the BOSS's moves. pfast/pcharge are this raider's own, which the
+        // party parser already reads but nothing downstream was keeping.
+        u.instances.push({ boss: r.boss, file: r.file, weather: r.weather, tier: r.tier,
+                           fast: r.fast, charge: r.charge, ae: r.ae,
+                           pfast: (member.fast || "").trim(), pcharge: (member.charge || "").trim() });
       }
       const bossKey = r.boss.toLowerCase();
       if(!u.bossMap.has(bossKey)) u.bossMap.set(bossKey, { name: r.boss, file: r.file });
@@ -1184,6 +1218,7 @@ async function loadAllData(){
 
   const { results, qualifyingEntries, totalDistinctBosses } = computeUsageData(allRaids);
   ALL_RESULTS = results;
+  await loadMoveTypesFromCsv();   // before the first render, so chips get their colours
   await loadPokemonTypes();
   renderTypeFilter();
   renderLeaderboard();
@@ -1233,6 +1268,28 @@ const MOVE_TYPES = {
   "crunch":"dark", "skull bash":"normal", "charm":"fairy", "megahorn":"bug",
   "fury cutter":"bug", "poison jab":"poison", "confusion":"psychic", "force palm":"fighting",
 };
+// csv/moves.csv is merged over the inline map at load: the inline MOVE_TYPES holds only 75 moves,
+// so most recorded movesets fell through to the "unknown" grey with no icon. The CSV carries all
+// 344 and is already the single source every other page uses; the inline map stays as a fallback
+// for the few keys it defines that the CSV spells differently (e.g. "hidden power (gh)").
+async function loadMoveTypesFromCsv(){
+  try{
+    const res = await fetch("csv/moves.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim().toLowerCase());
+    const iN = header.indexOf("name"), iT = header.indexOf("type");
+    if(iN < 0 || iT < 0) throw new Error("unexpected header");
+    lines.forEach(l => {
+      const c = l.split(",");
+      const n = (c[iN] || "").trim().toLowerCase(), t = (c[iT] || "").trim().toLowerCase();
+      if(n && t && !(n in MOVE_TYPES)) MOVE_TYPES[n] = t;
+    });
+  }catch(e){
+    console.error("Could not load csv/moves.csv - move chips fall back to the inline map:", e);
+  }
+}
+
 function getMoveType(move){
   if(!move) return null;
   const key = move.trim().toLowerCase();
@@ -1521,6 +1578,67 @@ document.addEventListener("click", e => {
   if(btn) openUsageTable(parseInt(btn.dataset.idx, 10));
 });
 
+
+// Distinct movesets this raider has actually been recorded with, most-used first.
+//
+// Matched case-insensitively: the sheets contain "Dragon tail", "Dragon Tail" and "Breaking swipe"
+// for what is one moveset, and matching literally split Mega Rayquaza's two sets into four. The
+// display form is whichever spelling appears most often, so the list follows the data rather than
+// a hardcoded canonical name.
+//
+// "Any" and blanks are dropped - they record that the moveset did not matter for that entry, not
+// that a move called "Any" was used, and the brief was to show only moves that appear in a record.
+function movesetsFor(instances){
+  const byKey = new Map();
+  instances.forEach(i => {
+    const f = (i.pfast || "").trim(), c = (i.pcharge || "").trim();
+    // "Any" and "None" are both placeholders meaning the moveset did not matter for that entry,
+    // not moves that were used - and the brief was to show only moves that appear in a record.
+    const placeholder = t => !t || /^(any|none|n\/a|varies)$/i.test(t);
+    if(placeholder(f) || placeholder(c)) return;
+    const key = f.toLowerCase() + "|" + c.toLowerCase();
+    if(!byKey.has(key)) byKey.set(key, { spellings: new Map(), count: 0 });
+    const e = byKey.get(key);
+    e.count++;
+    const disp = f + "|" + c;
+    e.spellings.set(disp, (e.spellings.get(disp) || 0) + 1);
+  });
+  // Title-cased for display rather than taking the most common spelling: the sheets' majority
+  // casing is not reliable ("shadow claw" outnumbers "Shadow Claw" 38 to 12), and picking the
+  // popular one would render a lowercase move name.
+  const titleCase = t => t.replace(/\S+/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+  return [...byKey.values()].map(e => {
+    const [disp] = [...e.spellings.entries()].sort((a, b) => b[1] - a[1])[0];
+    const [fast, charge] = disp.split("|");
+    return { fast: titleCase(fast), charge: titleCase(charge), count: e.count };
+  }).sort((a, b) => b.count - a.count);
+}
+
+
+// Option A: one line per recorded fast/charge pair, most-used first. The pairing is the point -
+// Air Slash goes with Dragon Ascent, not with Breaking Swipe - so the two moves stay on one line
+// joined by a slash rather than being split into separate fast/charge groups.
+
+
+// One pill per move, type-coloured with its type icon - the same treatment as the collection pages
+// and the usage modal, so a move looks the same wherever it appears.
+function lbMoveChipHtml(move){
+  const clean = (move || "").trim();
+  if(!clean) return "";
+  const type = getMoveType(clean);
+  const color = type ? TYPE_COLORS[type] : TYPE_COLORS.unknown;
+  const icon = type ? `<img src="${TYPE_ICON_BASE}${type}.svg" alt="" loading="lazy" onerror="this.remove();">` : "";
+  const light = isLightHex(color) ? " on-light" : "";
+  return `<span class="lb-mv${light}" style="background:${color};">${icon}${clean}</span>`;
+}
+
+function lbMovesetsHtml(instances){
+  const sets = movesetsFor(instances);
+  if(!sets.length) return "";
+  return `<div class="lb-sets">${sets.map(m => `
+    <span class="lb-set">${lbMoveChipHtml(m.fast)}<span class="lb-mv-sep">/</span>${lbMoveChipHtml(m.charge)}<span class="lb-set-count">&times;${m.count}</span></span>`).join("")}</div>`;
+}
+
 function renderLeaderboard(){
   const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
   let filtered = ALL_RESULTS
@@ -1568,6 +1686,7 @@ function renderLeaderboard(){
         <div class="lb-main">
           <div class="lb-name">${displayName(r.name)}</div>
           ${roleText ? `<div class="lb-roles">${roleText}</div>` : ""}
+          ${lbMovesetsHtml(r.instances)}
           <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(displayCount/maxCount*100).toFixed(1)}"></div></div>
         </div>
         <div class="lb-bosses">
