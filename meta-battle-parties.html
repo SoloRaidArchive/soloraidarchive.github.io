@@ -1149,11 +1149,12 @@ async function initPage(){
   el.innerHTML = `<div class="empty">Loading battle parties from the archives…</div>`;
   try{
     PARTIES = await buildPartiesFromCSVs();
-    const [sixStarEntries, tier55Entries] = await Promise.all([
-      fetchIvSpreadsheet('6_star_raids.csv', 2, 6),
-      fetchIvSpreadsheet('/csv/5dot5_converted.csv', 1, 7),
-    ]);
-    const matched = applyRealIvMatching(PARTIES, [...sixStarEntries, ...tier55Entries]);
+    // 6_star_raids.csv no longer exists anywhere in the repo - it was dropped during the CSV
+    // consolidation and this fetch has been 404ing on every page load since. The call is removed
+    // rather than repointed because there is no replacement file; if that data comes back, add it
+    // to the array below in the same shape.
+    const tier55Entries = await fetchIvSpreadsheet('/csv/5dot5_converted.csv', 1, 7);
+    const matched = applyRealIvMatching(PARTIES, tier55Entries);
     console.log('Real IVs matched from spreadsheets:', matched);
   }catch(e){
     console.error("Failed to build battle parties:", e);
