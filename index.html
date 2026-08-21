@@ -1050,9 +1050,6 @@ async function loadMonthlyGuides(){
     const heading = document.getElementById("monthlyGuidesHeading");
     if(!panel || !wrap) return;
 
-    const monthName = new Date().toLocaleDateString("en-US", { month: "long" });
-    if(heading) heading.textContent = `${monthName} Guides`;
-
     const [liveData, guidesData] = await Promise.all([LIVE_BOSSES_PROMISE, GUIDES_INDEX_PROMISE]);
     if(!liveData || !guidesData) return;
 
@@ -1061,11 +1058,20 @@ async function loadMonthlyGuides(){
 
     function bossSlug(name){ return name.toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
 
-    // flatten every active boss across all date groups, keep only ones with a guide,
-    // de-duping by slug (a boss could appear in multiple rotation windows)
+    // Panel is scoped to THIS calendar month only. The date lives on the GROUP, not the
+    // individual boss (a live-bosses.json boss entry has no date field of its own -
+    // {name, archivePage, difficulty, weather}), so a boss's group start date is checked before
+    // it is allowed in, rather than flattening every active boss across every date group the way
+    // this used to. A boss whose only appearance is in a future month's group is left out
+    // entirely and picked up automatically once that month arrives - no listing every month by
+    // name, no guide silently attributed to the wrong month.
+    const now = new Date();
+    const currentMonth = now.getMonth(), currentYear = now.getFullYear();
     const seen = new Set();
     const matched = [];
     (liveData.dateGroups || []).forEach(group => {
+      const d = group.startDate ? new Date(group.startDate) : null;
+      if(!d || isNaN(d) || d.getMonth() !== currentMonth || d.getFullYear() !== currentYear) return;
       (group.bosses || []).forEach(boss => {
         const slug = bossSlug(boss.name);
         if(guideSlugs.has(slug) && !seen.has(slug)){
@@ -1075,6 +1081,8 @@ async function loadMonthlyGuides(){
       });
     });
     if(matched.length === 0) return;
+
+    if(heading) heading.textContent = `${now.toLocaleString("en-US", { month: "long" })} Guides`;
 
     wrap.innerHTML = `<div class="guide-pill-row">${matched.map(boss => `
       <a class="guide-pill" href="data/guides/${bossSlug(boss.name)}.html" title="${boss.name}">

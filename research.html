@@ -537,19 +537,28 @@
   .entries-head-sprite{ width:44px; height:44px; object-fit:contain; flex:none; }
   .entries-table td .bd-move-chip{ display:inline-flex; width:auto; }
   .entries-table td{ vertical-align:middle; }
-  .usage-moves{ display:flex; flex-wrap:wrap; gap:4px; }
-  /* Usage table: headers left-aligned to match their data (they were centred while every cell
-     was left-indented), and each column given a width so the weather icon stops colliding with
-     the boss name. Fast sits above Charge - side by side they forced the moveset column wide
-     enough to squeeze everything else on a phone. */
+  /* .entries-body carried no CSS at all - it grew to the full height of its content instead of
+     clipping to the modal, so the modal's own overflow:hidden just hid the excess and the
+     PAGE scrolled to reach it instead of the panel scrolling internally. min-height:0 is needed
+     alongside overflow:auto because a flex child otherwise refuses to shrink below its content
+     size, which would defeat the scroll before it starts. */
+  .entries-body{ overflow-y:auto; overflow-x:hidden; flex:1; min-height:0; }
+  /* Side by side on wide viewports, matching the request; the mobile behaviour below is
+     untouched. Previously this was column (stacked) at every width above 600px and row only
+     below it - backwards from the comment's own stated intent, and from what was actually shown
+     in every wide-viewport preview in this thread. */
+  .usage-moves{ display:flex; flex-wrap:wrap; gap:4px; align-items:flex-start; }
   .entries-table th{ text-align:left; }
   .entries-table th, .entries-table td{ padding:8px 10px; vertical-align:middle; }
-  .entries-table col.c-boss{ width:38%; }
-  .entries-table col.c-weather{ width:20%; }
-  .entries-table col.c-tier{ width:14%; }
-  .entries-table col.c-moves{ width:28%; }
+  /* Five columns now: Boss | Boss Moveset | Weather | Difficulty | Pokemon moveset. Rebalanced
+     from the old four-column split rather than just adding a fifth slice, so no column gets
+     uncomfortably narrow. */
+  .entries-table col.c-boss{ width:24%; }
+  .entries-table col.c-moves{ width:22%; }
+  .entries-table col.c-weather{ width:15%; }
+  .entries-table col.c-tier{ width:11%; }
+  .entries-table col.c-player-moves{ width:28%; }
   .usage-weather{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
-  .usage-moves{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
   .bd-move-icon{ width:11px; height:11px; flex:none; filter:brightness(0) invert(1); }
   .bd-move-chip.on-light{ color:#1b1f2a; }
   .bd-move-chip.on-light .bd-move-icon{ filter:none; }
@@ -558,18 +567,30 @@
        390px - the headers ran into each other and every chip wrapped onto two lines. Each row
        becomes a stacked block instead: name, then weather and difficulty on one line, then the
        moves. Same data, no truncation, no horizontal scrolling. */
-    .entries-table, .entries-table tbody, .entries-table tr, .entries-table td{ display:block; width:auto; }
+    .entries-table, .entries-table tbody{ display:block; width:auto; }
     .entries-table thead, .entries-table colgroup{ display:none; }
+    /* tr is a flex container (not the plain block it was) so CSS order can decouple mobile's
+       visual sequence from the desktop DOM order added above - the two now genuinely disagree
+       (Boss Moveset moved to 2nd place in the DOM for desktop), and per-cell order is what lets
+       mobile keep its original layout without a second copy of the row markup. */
     .entries-table tr{
+      display:flex; flex-direction:row; flex-wrap:wrap; width:auto;
       border:1px solid var(--border); border-radius:10px;
       padding:9px 11px; margin-bottom:8px; background:var(--card);
     }
     .entries-table td{ padding:0; border:none; }
-    .entries-table td + td{ margin-top:6px; }
+    .entries-table td.td-boss{ order:1; width:100%; }
     /* Weather and difficulty share a line - both are short, and apart they wasted a row each. */
-    .entries-table td.td-weather{ display:inline-block; margin-right:14px; }
-    .entries-table td.td-tier{ display:inline-block; margin-top:6px; }
-    .usage-moves{ flex-direction:row; flex-wrap:wrap; }
+    .entries-table td.td-weather{ order:2; display:inline-block; margin-right:14px; margin-top:6px; }
+    .entries-table td.td-tier{ order:2; display:inline-block; margin-top:6px; }
+    .entries-table td.td-moves{ order:3; width:100%; margin-top:6px; }
+    /* The new column is desktop-only per the request - there is no room for a fifth data group
+       in the mobile card without it turning back into the cramped layout this fix replaced. */
+    .entries-table td.td-player-moves{ display:none; }
+    /* Mobile is deliberately left alone per request - this duplicates the (now row-based) base
+       rule rather than overriding it, so a future change to the desktop layout does not silently
+       change mobile as a side effect. */
+    .usage-moves{ display:flex; flex-direction:row; flex-wrap:wrap; gap:4px; }
     .entries-table td .bd-move-chip{ font-size:10.5px; }
   }
   .usage-boss-link{ display:inline-flex; align-items:center; gap:7px; text-decoration:none; color:inherit; font-weight:700; }
@@ -1518,12 +1539,16 @@ function openUsageTable(idx){
   function rowsHtml(){
     return sortedRows().map(({inst, count}) => `
             <tr>
-              <td><a class="usage-boss-link" href="collections/${bossSlug(inst.boss)}.html">
+              <td class="td-boss"><a class="usage-boss-link" href="collections/${bossSlug(inst.boss)}.html">
                 <img class="${needsShadowMist(inst.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(inst.boss)}" alt="" loading="lazy"
                      onerror="this.style.visibility='hidden'">${inst.boss}${count > 1 ? ` <span class="bd-dupe-badge">&times;${count}</span>` : ""}</a></td>
+              <td class="td-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.fast)}${bdMoveChipHtml("Charge", inst.charge)}</span></td>
               <td class="td-weather"><span class="usage-weather">${smallWeatherIconHtml(inst.weather)}<span>${inst.weather || "&mdash;"}</span></span></td>
               <td class="td-tier">${tierLabel(inst.tier)}</td>
-              <td class="td-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.fast)}${bdMoveChipHtml("Charge", inst.charge)}</span></td>
+              <!-- inst.pfast/pcharge are THIS raider's own moves for the instance, captured
+                   alongside the boss's - desktop has the width to show both sides of the
+                   matchup, so this surfaces data that was already collected but never shown. -->
+              <td class="td-player-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.pfast)}${bdMoveChipHtml("Charge", inst.pcharge)}</span></td>
             </tr>`).join("");
   }
 
@@ -1551,8 +1576,12 @@ function openUsageTable(idx){
       </div>
       <div class="entries-body">
         <table class="entries-table">
-          <colgroup><col class="c-boss"><col class="c-weather"><col class="c-tier"><col class="c-moves"></colgroup>
-          <thead><tr><th>Boss</th><th>Weather</th><th>Difficulty</th><th>Boss moveset</th></tr></thead>
+          <colgroup><col class="c-boss"><col class="c-moves"><col class="c-weather"><col class="c-tier"><col class="c-player-moves"></colgroup>
+          <!-- displayName(r.name) rather than a generic "Pokemon moveset" - the table is scoped to
+               one raider already (it opened from that raider's row), so naming the column after
+               them reads less like a placeholder and matches how the Boss column is already
+               boss-specific rather than saying "Raid boss". -->
+          <thead><tr><th>Boss</th><th>Boss Moveset</th><th>Weather</th><th>Difficulty</th><th>${displayName(r.name)} Moveset</th></tr></thead>
           <tbody>${rowsHtml()}
           </tbody>
         </table>
