@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mega Dragonite Solo Raid Strategies — Solo Raid Archive</title>
-<meta name="description" content="Every documented solo strategy for Mega Dragonite in Pokémon GO — Tier 4 Mega raid. Catch tanks, movesets, weather, difficulty and VODs from the community archive.">
-<link rel="canonical" href="https://soloraidarchive.github.io/collections/mega-dragonite.html">
+<title>%%BOSS_NAME%% Solo Raid Strategies — Solo Raid Archive</title>
+<meta name="description" content="Every documented solo strategy for %%BOSS_NAME%% in Pokémon GO — %%TIER_LABEL%% raid. Catch tanks, movesets, weather, difficulty and VODs from the community archive.">
+<link rel="canonical" href="https://soloraidarchive.github.io/collections/%%BOSS_SLUG%%.html">
 <!-- Favicons. collections/ is one level deep, so ../ - the same depth as articles/. These were
      missing from all 109 pages: the template predates the head being fleshed out, and because
      every page is generated from it, the omission was uniform rather than obvious. -->
@@ -15,11 +15,11 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/favicon-180.png">
 
 <meta property="og:type" content="article">
-<meta property="og:title" content="Mega Dragonite Solo Raid Strategies">
-<meta property="og:description" content="Documented solo strategies for Mega Dragonite — catch tanks, movesets, weather and VODs.">
-<meta property="og:url" content="https://soloraidarchive.github.io/collections/mega-dragonite.html">
+<meta property="og:title" content="%%BOSS_NAME%% Solo Raid Strategies">
+<meta property="og:description" content="Documented solo strategies for %%BOSS_NAME%% — catch tanks, movesets, weather and VODs.">
+<meta property="og:url" content="https://soloraidarchive.github.io/collections/%%BOSS_SLUG%%.html">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Mega Dragonite Solo Raid Strategies">
+<meta name="twitter:title" content="%%BOSS_NAME%% Solo Raid Strategies">
 <!--
   Layer 2 boss collection page.
 
@@ -29,7 +29,7 @@
   filename (collections/<slug>.html), so no strategy data is baked in and a CSV edit shows up
   without regenerating anything.
 
-  The HEAD is not. Mega Dragonite, mega-dragonite and Tier 4 Mega are substituted when the page
+  The HEAD is not. %%BOSS_NAME%%, %%BOSS_SLUG%% and %%TIER_LABEL%% are substituted when the page
   is written, because a crawler that does not run JavaScript sees only the initial HTML - and 109
   pages sharing one <title> with no description or canonical is duplicate content. Those three
   tokens are deliberately the only ones: they change when a boss is renamed or retiered, which is

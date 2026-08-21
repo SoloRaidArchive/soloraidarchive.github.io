@@ -1,0 +1,106 @@
+{
+  "boss": "Mega Dragonite",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Kyurem Black/White",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "3★",
+      "text": "<h2>Overview</h2><p>Mega Dragonite is valuable addition to a conventional raid battle parties with its ability to provide lv 4 boosted XL candy chances from successful catches. It also has the potential to gain a +move possibly pushing increasing its value in PVE for the future.</p><h4>Est Time to Win: 150.0s - 230.0s </h4><h2>Main Strategy</h2><p>Mega Dragonite has a double weakness to ice although can be defeated using dragon roster. This strategy revolves around using Kyurem Fusions and adapting their roles / battle party sizes to different movesets. </p><h3>#1 <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\"><strong>Hot-Swap</strong></a><strong> Route: </strong></h3><p><strong>Against: Dragon Claw, Hurricane, Thunder Punch </strong>it is recommended to simply DPS through the charge moves. Make sure to manage your health accordingly and don't get caught losing energy due to fainting. </p><h3>#2 <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">Hot-swap</a> + <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">Catch Tank</a> Route: </h3><p><strong>Against: Outrage, Hyper Beam, Superpower: </strong>It is recommended to DPS however adapt in to <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">catch tanking</a> in the appropriate situation. </p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Kyurem Blacks enormous bulk means itcan sponge lots of energy from Outrage, Hyperbeam and Superpower allowing it to cast Freeze shock very quickly. <a href=\"https://soloraidarchive.github.io/ct-calculator.html?s=eyJuIjoiS3l1cmVtIEJsYWNrIiwibCI6IjUwIiwiaWEiOiIxNSIsImlkIjoiMTUiLCJpaCI6IjE1IiwicGMiOiJGcmVlemUgU2hvY2siLCJwZiI6IkRyYWdvbiBUYWlsIiwiZWMiOiIyLjU2IiwiZWYiOiIxLjYiLCJzYyI6dHJ1ZSwic2YiOnRydWUsImZyIjoiMSIsInBtIjoiMSIsIm5jIjoiMSIsInciOiJleHRyZW1lIiwiZGMiOmZhbHNlLCJkZiI6ZmFsc2UsInQ3IjpmYWxzZSwic2EiOmZhbHNlLCJ6YiI6ZmFsc2UsImNiIjpmYWxzZSwicHAiOmZhbHNlLCJybiI6ZmFsc2UsImJuIjoiTWVnYSBEcmFnb25pdGUiLCJidCI6IjAuNzkiLCJiYyI6Ik91dHJhZ2UiLCJiZiI6IkRyYWdvbiBUYWlsIiwiZWJjIjoiMS42IiwiZWJmIjoiMS42IiwiYnNjIjp0cnVlLCJic2YiOnRydWUsInNkIjpmYWxzZSwibSI6InNpbmdsZSJ9\" target=\"_blank\">Outrage Catch Tank DPS</a> </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>The more Kyurem blacks invested, the faster the challenge ends. Although high rejoin counts can be expected, the damage is so high it far exceeds the setback of relobby time. </li></ol><p><br></p><h2><br></h2><p><br></p>",
+      "vods": [],
+      "submittedBy": "SpiritedBloom",
+      "battleParties": [
+        {
+          "label": "Main Party",
+          "secondaryLabel": "KW or KB can be main DPS",
+          "mons": [
+            {
+              "name": "Kyurem White",
+              "level": "40-50",
+              "fm": "Ice Fang",
+              "cm": "Ice Burn",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-21T03:25:32.439Z"
+    }
+  ]
+}
