@@ -553,11 +553,16 @@
   /* Five columns now: Boss | Boss Moveset | Weather | Difficulty | Pokemon moveset. Rebalanced
      from the old four-column split rather than just adding a fifth slice, so no column gets
      uncomfortably narrow. */
-  .entries-table col.c-boss{ width:24%; }
-  .entries-table col.c-moves{ width:22%; }
-  .entries-table col.c-weather{ width:15%; }
-  .entries-table col.c-tier{ width:11%; }
-  .entries-table col.c-player-moves{ width:28%; }
+  /* Six columns now: Boss | Boss Moveset | Weather | Difficulty | Adventure Effect | <Raider>
+     Moveset. AE gets a narrow fixed column of its own rather than a slice of a percentage - it is
+     one 18px icon or nothing, never wrapping text, so it does not need to scale with the table. */
+  .entries-table col.c-boss{ width:22%; }
+  .entries-table col.c-moves{ width:20%; }
+  .entries-table col.c-weather{ width:14%; }
+  .entries-table col.c-tier{ width:10%; }
+  .entries-table col.c-ae{ width:48px; }
+  .entries-table col.c-player-moves{ width:26%; }
+  .usage-ae-icon{ width:18px; height:18px; object-fit:contain; display:block; }
   .usage-weather{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
   .bd-move-icon{ width:11px; height:11px; flex:none; filter:brightness(0) invert(1); }
   .bd-move-chip.on-light{ color:#1b1f2a; }
@@ -587,6 +592,7 @@
     /* The new column is desktop-only per the request - there is no room for a fifth data group
        in the mobile card without it turning back into the cramped layout this fix replaced. */
     .entries-table td.td-player-moves{ display:none; }
+    .entries-table td.td-ae{ display:none; }
     /* Mobile is deliberately left alone per request - this duplicates the (now row-based) base
        rule rather than overriding it, so a future change to the desktop layout does not silently
        change mobile as a side effect. */
@@ -1431,6 +1437,18 @@ function rankChangeBadge(bossName, currentRank){
 // ============ TYPE FILTER ============
 // Types come from csv/pokemon-stats.csv (type1/type2), the same source ct-database and the
 // calculator use, so there is no second hand-maintained list to drift.
+// Same URLs and sword/shield distinction the collection pages already use for this - one icon
+// pair, not a second copy that could drift from theirs.
+const AE_ICON_SWORD  = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
+const AE_ICON_SHIELD = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
+function aeIconCellHtml(kind){
+  if(kind === "sword")  return `<img class="usage-ae-icon" src="${AE_ICON_SWORD}" alt="Blade Boost" title="Blade Boost — +10% damage dealt from your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
+  if(kind === "shield") return `<img class="usage-ae-icon" src="${AE_ICON_SHIELD}" alt="Adventure Effect" title="Adventure Effect — +10% damage reduction for your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
+  // No AE on this entry: the cell (and the column) stays, but empty - a blank cell in a real
+  // column is what was asked for, not a placeholder icon or a dash standing in for "none".
+  return "";
+}
+
 const TYPE_ORDER = ["normal","fire","water","electric","grass","ice","fighting","poison","ground",
                     "flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
 let POKEMON_TYPES = {};        // lowercased name -> [type1, type2?]
@@ -1545,6 +1563,9 @@ function openUsageTable(idx){
               <td class="td-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.fast)}${bdMoveChipHtml("Charge", inst.charge)}</span></td>
               <td class="td-weather"><span class="usage-weather">${smallWeatherIconHtml(inst.weather)}<span>${inst.weather || "&mdash;"}</span></span></td>
               <td class="td-tier">${tierLabel(inst.tier)}</td>
+              <!-- inst.ae is already captured per-instance (sword/shield/blank), same field the
+                   collection pages read - nothing new to derive, just never surfaced here. -->
+              <td class="td-ae">${aeIconCellHtml(inst.ae)}</td>
               <!-- inst.pfast/pcharge are THIS raider's own moves for the instance, captured
                    alongside the boss's - desktop has the width to show both sides of the
                    matchup, so this surfaces data that was already collected but never shown. -->
@@ -1576,12 +1597,12 @@ function openUsageTable(idx){
       </div>
       <div class="entries-body">
         <table class="entries-table">
-          <colgroup><col class="c-boss"><col class="c-moves"><col class="c-weather"><col class="c-tier"><col class="c-player-moves"></colgroup>
+          <colgroup><col class="c-boss"><col class="c-moves"><col class="c-weather"><col class="c-tier"><col class="c-ae"><col class="c-player-moves"></colgroup>
           <!-- displayName(r.name) rather than a generic "Pokemon moveset" - the table is scoped to
                one raider already (it opened from that raider's row), so naming the column after
                them reads less like a placeholder and matches how the Boss column is already
                boss-specific rather than saying "Raid boss". -->
-          <thead><tr><th>Boss</th><th>Boss Moveset</th><th>Weather</th><th>Difficulty</th><th>${displayName(r.name)} Moveset</th></tr></thead>
+          <thead><tr><th>Boss</th><th>Boss Moveset</th><th>Weather</th><th>Difficulty</th><th>AE</th><th>${displayName(r.name)} Moveset</th></tr></thead>
           <tbody>${rowsHtml()}
           </tbody>
         </table>
