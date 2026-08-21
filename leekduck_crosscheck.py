@@ -261,7 +261,7 @@ def main():
     ap.add_argument("--live-bosses", default="live-bosses.json", type=Path)
     ap.add_argument("--offline", action="store_true")
     ap.add_argument("--repo", default=Path("."), type=Path,
-                    help="repo root, for tier5-bosses.csv and ct-calculator.html")
+                    help="repo root, for tier5-bosses.csv and dps-calculator.html")
     args = ap.parse_args()
 
     live = json.loads(args.live_bosses.read_text(encoding="utf-8"))
@@ -284,7 +284,7 @@ def main():
                       f"{type(exc).__name__}: {exc}", file=sys.stderr)
                 return None
     legendary = load_legendary_species(args.repo / "csv/tier5-bosses.csv")
-    base_form_map = load_base_form_map(args.repo / "ct-calculator.html")
+    base_form_map = load_base_form_map(args.repo / "dps-calculator.html")
     print(f"  {len(legendary)} legendary species, {len(base_form_map)} BASE_FORM_MAP entries")
     index = build_leekduck_index(events, sections_for, legendary, base_form_map)
 

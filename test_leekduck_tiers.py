@@ -135,11 +135,11 @@ from leekduck_tiers import (
 
 REPO = Path("../soloraidarchive.github.io")
 LEG = load_legendary_species(REPO / "csv/tier5-bosses.csv")
-BFM = load_base_form_map(REPO / "ct-calculator.html")
+BFM = load_base_form_map(REPO / "dps-calculator.html")
 
 print("\nMega Legendary tier")
 check("legendary list loaded from tier5-bosses.csv", len(LEG) > 70, True)
-check("BASE_FORM_MAP loaded from ct-calculator.html", len(BFM) > 90, True)
+check("BASE_FORM_MAP loaded from dps-calculator.html", len(BFM) > 90, True)
 
 asc = classify_sections([
     Section(["Raids", "Throughout Mega Ascension"], ["Mega Latias", "Mega Latios"]),

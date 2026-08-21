@@ -87,7 +87,7 @@ def load_legendary_species(path) -> set[str]:
 
 
 def load_base_form_map(ct_calculator_html) -> dict[str, str]:
-    """Extract BASE_FORM_MAP from ct-calculator.html's own source.
+    """Extract BASE_FORM_MAP from dps-calculator.html's own source.
 
     Same approach the submission worker uses - the calculator stays the single definition.
     Name-stripping is deliberately NOT used: it is what broke on 'Mega Complete Zygarde'

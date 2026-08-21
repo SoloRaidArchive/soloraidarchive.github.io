@@ -854,7 +854,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     <a href="guides.html" class="hamburger-featured">Boss Guides</a>
     <a href="articles.html" class="hamburger-featured">Research Articles</a>
       <a href="meta-battle-parties.html">Meta Battle Parties</a>
-      <a href="ct-calculator.html">Catch Tank Calculator</a>
+      <a href="dps-calculator.html">DPS Calculator</a>
       <a href="move-data.html">Move Data</a>
       <a href="pokemon-stats.html">Pokémon Stats</a>
         <a href="reference.html">Difficulty &amp; Role Reference</a>
@@ -892,7 +892,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   <span id="allTypesSlot"></span>
   <!-- Every row here came out of the calculator, so a reader wanting to reproduce or extend a
        result has somewhere to go without hunting through the nav. -->
-  <a class="calc-link" href="ct-calculator.html">DPS Calculator &rarr;</a>
+  <a class="calc-link" href="dps-calculator.html">DPS Calculator &rarr;</a>
   <select id="tierFilter">
     <option value="legendary">Legendary</option>
     <option value="mega">Tier 4 Mega</option>
@@ -1159,7 +1159,7 @@ function weatherIcon(w){
   return `<span class="weather-label"${tooltipAttr}>${w}</span>`;
 }
 
-// ============ DURATION / SURVIVAL CALCULATION (ported + verified against ct-calculator.html) ============
+// ============ DURATION / SURVIVAL CALCULATION (ported + verified against dps-calculator.html) ============
 // All values (effectiveness, STAB, shadow debuff) are derived from species/move data below -
 // no manual fields needed. Boss CPM is fixed at 0.79 since all current bosses are non-Elite tier.
 // POKEMON_TYPES is built by loadTypeData() below.
@@ -1457,10 +1457,10 @@ function computeDuration(params){
 
   if(params.doubleCT){
     // ============ DOUBLE CATCH TANK MODEL ============
-    // Mirrors ct-calculator.html's double-swap formula exactly: the boss's charge move is
+    // Mirrors dps-calculator.html's double-swap formula exactly: the boss's charge move is
     // absorbed TWICE across two separate swaps, with a mandatory fast move on swap 1 (whose
     // energy AND tick cost both carry forward) and top-off fast moves on swap 2. No CM Buffer
-    // or Dodge CM here - those don't apply to this technique (see ct-calculator.html for the
+    // or Dodge CM here - those don't apply to this technique (see dps-calculator.html for the
     // full reasoning). The two-swap overhead (2.0s / 4 ticks) is included directly below.
     const totalCostAllCasts = numCM * cmEnergyCost;
     const tankBonusForBuildup = (2 * energyFromCM) + fm.energy + (n * energyFromBossFM);
@@ -1559,7 +1559,7 @@ function computeDuration(params){
 
   // every entry in the CT Database is a Catch Tank role specifically (never Main/Trailing), so
   // the 1.0s single-swap overhead is added directly into the displayed duration here - matching
-  // the same transparency principle applied to ct-calculator.html, where CT DPS's swap time is
+  // the same transparency principle applied to dps-calculator.html, where CT DPS's swap time is
   // now shown directly rather than only folded into the DPS math.
   return { ticks: ticks + 2, seconds: seconds + 1.0, fainted: impact.fainted, energyFromCM };
 }
@@ -2673,7 +2673,7 @@ document.addEventListener("click", (e) => {
 
 <script>
 
-// ---- Search autocomplete (ported from ct-calculator.html) ----------------------------
+// ---- Search autocomplete (ported from dps-calculator.html) ----------------------------
 // Capped at 8 so the list can never run past the field into neighbouring content, which
 // is the same reason the calculator caps it. Names come from this page's own dataset via
 // a getter, because that dataset is filled by an async CSV load that has not run yet when

@@ -1,0 +1,3402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DPS Calculator</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+<meta name="description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, Catch Tank, and Double Catch Tank roles in Pokémon GO solo raids.">
+<link rel="canonical" href="https://soloraidarchive.github.io/dps-calculator.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Catch Tank Calculator | Solo Raid Archive">
+<meta property="og:description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, Catch Tank, and Double Catch Tank roles in Pokémon GO solo raids.">
+<meta property="og:url" content="https://soloraidarchive.github.io/dps-calculator.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Catch Tank Calculator | Solo Raid Archive">
+<meta name="twitter:description" content="Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, Catch Tank, and Double Catch Tank roles in Pokémon GO solo raids.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
+    --blue: #3d9dff; --blue-dark: #2b7fd6;
+    --red: #ff5b5b; --yellow: #ffc94a; --green: #4cd08a; --purple: #9b7bf0;
+  }
+  [data-theme="dark"]{
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024;
+    --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff;
+  }
+  [data-theme="dark"] body{
+    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
+  }
+  *{ box-sizing:border-box; }
+  html{ max-width:100vw; }
+
+  body{
+    margin:0; overflow-x:hidden; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+
+  [data-theme="dark"] body{ background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 80%, var(--bg4) 100%); }
+    color: var(--text); font-family: 'Manrope', sans-serif; min-height:100vh;
+  }
+    
+  header{ padding: 12px 24px 10px; text-align:center; }
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  h1{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--text); text-align:center; }
+  .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
+
+  .container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 45px; }
+
+  .ct-mode-toggle{
+    display:flex; gap:0; background: var(--bg1); border:2px solid var(--border); border-radius:12px;
+    padding:4px; margin-bottom:16px; max-width:560px; flex-wrap:wrap;
+  }
+  [data-theme="dark"] .ct-mode-toggle{ background:#161a28; }
+  .ct-mode-toggle input{ display:none; }
+  .ct-mode-toggle label{
+    flex:1; min-width:110px; text-align:center; padding:10px 10px; border-radius:9px; cursor:pointer;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--text-dim);
+    transition: background .15s ease, color .15s ease;
+  }
+  .ct-mode-toggle input:checked + label{ background: var(--blue); color:#fff; }
+  /* Compact dropdown beside the Raid Boss name (Main DPS mode only) picking which of the two
+     cadences to calculate, rather than always rendering both at once. Fixed-basis like
+     .tier-field so a long boss name shrinks its own field instead of squeezing this one. */
+  .cadence-field{ flex:0 0 128px; }
+  body:not(.ct-mode-maindps) .cadence-field{ display:none; }
+  @media (max-width: 600px){
+    .cadence-field{ flex:1 1 140px; }
+  }
+  .ct-mode-desc{
+    font-size:11.5px; color: var(--text-dim); font-weight:600; line-height:1.5; margin: -10px 0 16px;
+    max-width:600px;
+  }
+  .single-ct-only{ }
+  body.ct-mode-double .single-ct-only{ display:none; }
+  body.ct-mode-maindps .single-ct-only{ display:none; }
+  /* Boss charge-move inputs used to be hidden in Main DPS mode, back when that mode modelled
+     fast moves only. Its second column now models absorbing the boss's charge move, so those
+     inputs are needed in every mode and are no longer hidden here. */
+  .catch-tank-only{ }
+  /* Boss charge-move inputs are irrelevant to the fast-moves-only cadence, so hide them there */
+  body.cadence-fm-only .catch-tank-only{ display:none; }
+
+  .duration-unit-toggle{
+    display:flex; align-items:center; gap:8px; margin:10px 0 4px;
+  }
+  .duration-unit-label{ font-size:11.5px; font-weight:700; color: var(--text-dim); }
+  .duration-unit-toggle input{ display:none; }
+  .duration-unit-toggle label{
+    padding:6px 12px; border-radius:8px; cursor:pointer; border:2px solid var(--border);
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; color: var(--text-dim);
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .duration-unit-toggle input:checked + label{ background: var(--blue); color:#fff; border-color: var(--blue); }
+  .cell-duration{ display:block; font-size:11.5px; font-weight:bold; color: var(--text-dim); margin-top:1px; }
+  .results-card-row-time-inline{ display:block; font-size:9.5px; font-weight:700; color: var(--text-dim); }
+
+  .step-card{
+    background: var(--card); border:2px solid var(--border); border-radius:20px;
+    padding: 16px 20px; margin-bottom: 16px;
+  }
+  .step-head{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .step-num{
+    flex-shrink:0; width:34px; height:34px; border-radius:50%;
+    background: var(--blue); color:#fff; font-family:'Manrope', sans-serif; font-weight:800;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .step-title{ font-family:'Manrope', sans-serif; font-weight:700; font-size:19px; }
+  .step-sub{ font-size:12.5px; color: var(--text-dim); font-weight:600; margin-top:2px; }
+
+  .field-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:14px; }
+  .field-grid.compact{ grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap:10px; }
+  .field{ display:flex; flex-direction:column; gap:5px; }
+  .field label{ font-size:11.5px; font-weight:800; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.03em; }
+  .field input, .field select{
+    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
+    padding: 7px 9px; font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
+    color: var(--text); outline:none; width:100%;
+  }
+  .name-iv-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .name-field{ flex:1 1 140px; min-width:120px; position:relative; }
+  /* Width is locked to the name field itself (not the input's natural content width, not a fixed
+     px value) specifically so this can never spill into the IV fields sitting right next to it in
+     the same row, or into the other side's vs-column on desktop - that visual collision is the
+     reason an autocomplete wasn't added here before. */
+  .ac-list{
+    display:none; position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:40;
+    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
+    max-height:260px; overflow-y:auto; box-shadow:0 8px 24px rgba(20,24,38,0.18);
+  }
+  .ac-list.open{ display:block; }
+  .ac-item{
+    padding:8px 10px; font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px;
+    color: var(--text); cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .ac-item:hover, .ac-item.hi{ background: var(--accent-soft); }
+  [data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
+  .ac-item mark{ background:none; color: var(--blue); font-weight:800; }
+  .iv-field{ flex:0 0 62px; }
+  .iv-field input{ text-align:center; padding-left:4px; padding-right:4px; }
+  .tier-field{ flex:0 0 120px; }
+  .custom-move-select{ margin-top:6px; }
+  [data-theme="dark"] .field input, [data-theme="dark"] .field select{ background:#161a28; }
+  .field input:focus, .field select:focus{ border-color: var(--blue); }
+  .field-error{
+    font-size:10.5px; font-weight:700; color: var(--red); min-height:0; display:none;
+  }
+  .field-error.show{ display:block; }
+  .field input.invalid{ border-color: var(--red); }
+
+  .check-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:10px; margin-top:14px; }
+  .check-grid.compact{ grid-template-columns: repeat(auto-fit, minmax(105px, 1fr)); gap:8px; }
+  .check-item{
+    display:flex; align-items:center; gap:6px; background: var(--bg1); border:2px solid var(--border);
+    border-radius:9px; padding:6px 9px; font-size:11.5px; font-weight:700; cursor:pointer;
+  }
+  [data-theme="dark"] .check-item{ background:#161a28; }
+  .check-item input{ width:14px; height:14px; flex-shrink:0; accent-color: var(--blue); cursor:pointer; }
+
+  .subhead{ font-size:11.5px; font-weight:800; color: var(--text-dim); text-transform:uppercase; letter-spacing:0.05em; margin: 18px 0 8px; }
+  .vs-columns{ display:grid; grid-template-columns: 1fr 1fr; gap:24px; }
+  .vs-col{ min-width:0; }
+  .vs-col-title{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:15px;
+    margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--border);
+  }
+  @media (max-width:760px){
+    .vs-columns{ grid-template-columns: 1fr; }
+    .vs-col + .vs-col{ margin-top:8px; padding-top:20px; border-top:2px solid var(--border); }
+  }
+  .auto-badge{
+    display:inline-block; background: var(--accent-soft, #eef6ff); color: var(--blue-dark);
+    font-size:9.5px; font-weight:800; text-transform:none; letter-spacing:0;
+    padding:2px 7px; border-radius:999px; margin-left:6px; vertical-align:middle;
+  }
+  .subhead:first-child{ margin-top:0; }
+
+  .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+  @media (max-width:600px){ .two-col{ grid-template-columns:1fr; } }
+  .col-title{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14px; margin-bottom:10px; color: var(--blue-dark); }
+
+  .history-panel-wrap{ max-width: 460px; margin: 28px auto 0; }
+  .history-panel{ margin-top:0; }
+  .history-summary{
+    cursor:pointer; list-style:none; display:flex; align-items:center; gap:6px;
+  }
+  .history-summary::-webkit-details-marker{ display:none; }
+  .history-summary::before{
+    content:"▸"; font-size:11px; color: var(--text-dim); transition: transform .12s ease;
+  }
+  .history-panel[open] .history-summary::before{ transform: rotate(90deg); }
+  #setupHistory{ margin-top:8px; }
+  .history-empty{
+    font-size:12.5px; color: var(--text-dim); font-weight:600; padding:14px;
+    text-align:center; background: var(--bg1); border:2px dashed var(--border); border-radius:12px;
+  }
+  .history-list{ display:grid; grid-template-columns: repeat(1, 1fr); gap:6px; }
+  .history-item{
+    display:flex; flex-direction:column; align-items:flex-start; gap:1px; width:100%; position:relative;
+    background: var(--card); border:2px solid var(--border); border-radius:9px;
+    padding:7px 20px 7px 9px; cursor:pointer; text-align:left; font-family:'Manrope', sans-serif;
+    transition: border-color .12s, transform .12s;
+  }
+  .history-item:hover{ border-color: var(--blue); transform: translateY(-2px); }
+  .history-label{
+    font-weight:700; font-size:11.5px; color: var(--text); width:100%;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .history-time{ font-size:9px; color: var(--text-dim); font-weight:600; }
+  .history-remove{
+    position:absolute; top:4px; right:4px; background:none; border:none;
+    color: var(--text-dim); font-size:11px; cursor:pointer; padding:2px; line-height:1;
+  }
+  .history-remove:hover{ color:#ff5b5b; }
+  .calc-btn{
+    display:block; width:100%; margin-top:10px;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:17px;
+    color:#fff; background: var(--blue); border:none; border-radius:14px;
+    padding: 16px; cursor:pointer; box-shadow: 0 4px 0 var(--blue-dark);
+    transition: transform .1s;
+  }
+  .calc-btn:active{ transform: translateY(3px); box-shadow:none; }
+
+  .share-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; margin-top:10px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:14px;
+    color: var(--text); background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding: 12px; cursor:pointer; transition: border-color .12s ease;
+  }
+  .share-btn:hover{ border-color: var(--blue); }
+  .share-btn.copied{ border-color:#1f9d5c; color:#1f9d5c; }
+
+  .results-wrap{ margin-top: 24px; }
+  .results-table{ width:100%; border-collapse:separate; border-spacing:0 8px; }
+
+  .results-card-grid{ display:none; flex-direction:column; gap:10px; margin-top:8px; }
+  .results-card{
+    background: var(--card); border:2px solid var(--border); border-radius:14px; padding:14px 16px;
+    transition: border-color .15s ease;
+  }
+  .results-card.open{ border-color: var(--blue); }
+  .results-card-vs{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  .results-card-mon{ display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
+  .results-card-mon.right{ justify-content:flex-end; text-align:right; }
+  .results-card-icon{ width:34px; height:34px; border-radius:8px; background: var(--bg1); flex-shrink:0; overflow:hidden; }
+  .results-card-icon img{ width:100%; height:100%; object-fit:contain; }
+  .results-card-name{ font-weight:800; font-size:11.5px; color: var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .results-card-moves{ font-size:11.5px; color: var(--text-muted); font-weight:600; line-height:1.4; }
+  .results-card-vs-label{ font-size:11.5px; font-weight:800; color: var(--text-dim); flex-shrink:0; }
+  .results-card-meta{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:10px 0 10px; font-size:11.5px; color: var(--text-muted); font-weight:600;
+  }
+  .results-card-rows{ display:flex; flex-direction:column; gap:10px; padding-top:10px; border-top:1px solid var(--border); }
+  .results-card-row{
+    display:grid; grid-template-columns: 18px 1fr 78px auto; align-items:center; gap:8px;
+  }
+  .results-card-row-radio{ display:flex; align-items:center; justify-content:center; }
+  .results-card-row-radio .submit-checkbox{ margin:0; }
+  .results-card-row-label{ font-size:11.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-time{ font-size:11.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-fainted{ font-size:11.5px; color: var(--text-muted); font-weight:700; grid-column: span 2; }
+  .results-card-row-dps{ text-align:right; }
+  .results-card-row-dps > div:first-child{ font-size:11.5px; color: var(--text-muted); font-weight:700; }
+  .results-card-row-sub{
+    display:none; font-size:11.5px; color: var(--text-dim); font-weight:600; margin-top:1px;
+  }
+  .results-card.open .results-card-row-sub{ display:block; }
+  .results-card-ct{ color: var(--blue-dark); }
+  [data-theme="dark"] .results-card-ct{ color: var(--blue); }
+  .results-card-risky{ cursor:help; }
+  .results-card-toggle-row{ display:flex; justify-content:flex-end; padding-top:10px; margin-top:8px; border-top:1px dashed var(--border); }
+  .results-card-toggle{
+    width:22px; height:22px; border-radius:50%; background: var(--bg1); color: var(--blue-dark);
+    display:inline-flex; align-items:center; justify-content:center; font-size:11px;
+    border:none; cursor:pointer; padding:0; transition: transform .15s ease, background .15s ease, color .15s ease;
+  }
+  .results-card.open .results-card-toggle{ background: var(--blue); color:#fff; transform:rotate(180deg); }
+
+  @media (max-width:700px){
+    .results-table{ display:none; }
+    .results-card-grid{ display:flex; }
+  }
+  .results-table th{
+    font-size:11px; font-weight:800; color: var(--text-dim); text-transform:uppercase;
+    letter-spacing:0.03em; text-align:left; padding: 0 12px 4px;
+  }
+  .results-table td{
+    background: var(--bg1); padding: 12px; font-weight:700; font-size:14px;
+    border-top:2px solid var(--border); border-bottom:2px solid var(--border);
+  }
+  [data-theme="dark"] .results-table td{ background:#161a28; }
+  .results-table td:first-child{ border-left:2px solid var(--border); border-radius:10px 0 0 10px; }
+  .results-table td:last-child{ border-right:2px solid var(--border); border-radius:0 10px 10px 0; }
+  .row-label{ font-family:'Manrope', sans-serif; font-weight:700; color: var(--blue-dark); }
+  .dps-val{ font-family:'IBM Plex Mono', monospace; font-weight:700; }
+  .fainted-row td{ background:#fff0f0 !important; }
+  [data-theme="dark"] .fainted-row td{ background:#3a1f24 !important; }
+  .fainted-msg{ font-weight:700; color:#c0392b; text-align:center; }
+  [data-theme="dark"] .fainted-msg{ color:#ff8a80; }
+  .rejoin-badge{
+    display:inline-block; font-family:'Manrope', sans-serif; font-weight:800; font-size:9.5px;
+    padding:1px 6px; border-radius:999px; white-space:nowrap; vertical-align:1px;
+    background:#e7f5ec; color:#1c7a43;
+  }
+  [data-theme="dark"] .rejoin-badge{ background:rgba(28,122,67,0.28); color:#6ee7a0; }
+  .rejoin-badge.tier-0{ background: var(--bg1); color: var(--text-dim); }
+  .risky-badge{
+    display:inline-block; font-size:10px; font-weight:800; color:#a05a00;
+    background:#fff1cf; border:1px solid #f0c96b; border-radius:999px;
+    padding:2px 7px; margin-left:6px; cursor:help; vertical-align:middle;
+  }
+  [data-theme="dark"] .risky-badge{ color:#ffd680; background:#3a2e10; border-color:#7a5f1f; }
+
+  .submit-col{ width:32px; text-align:center; }
+  .submit-checkbox{ width:16px; height:16px; accent-color: var(--blue); cursor:pointer; }
+  .submit-panel{
+    margin-top:14px; padding:14px 16px; background: var(--card); border:2px solid var(--blue);
+    border-radius:12px; display:flex; flex-direction:column; gap:10px;
+  }
+  .submit-panel-disabled{ border-color: var(--border); }
+  .submit-note{ font-size:12.5px; color: var(--text-muted); font-weight:600; line-height:1.5; }
+  .submit-btn{
+    align-self:flex-start; background: var(--blue); color:#fff; border:none; border-radius:10px;
+    padding:10px 18px; font-family:'Manrope', sans-serif; font-weight:700; font-size:14px;
+    cursor:pointer; transition: transform .12s ease, background .12s ease;
+  }
+  .submit-btn:hover{ background: var(--blue-dark); transform: translateY(-1px); }
+
+  .empty-result{ text-align:center; color: var(--text-dim); font-weight:700; padding: 30px; font-size:13px; }
+
+  .dps-result-card{
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    padding: 24px 22px; text-align:center;
+  }
+  .dps-result-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;
+  }
+  .dps-result-value{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:44px; color: var(--blue-dark);
+    line-height:1.1;
+  }
+  [data-theme="dark"] .dps-result-value{ color: var(--blue); }
+  .dps-result-breakdown{
+    display:flex; justify-content:center; gap:24px; flex-wrap:wrap;
+    margin-top:18px; padding-top:16px; border-top:1px solid var(--border);
+  }
+  .dps-result-stat{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .dps-result-stat-label{
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:10.5px; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:0.03em;
+  }
+  .dps-result-stat-value{
+    font-family:'Inter', sans-serif; font-weight:700; font-size:13px; color: var(--text);
+  }
+
+  .loadout-card{
+    display:flex; align-items:center; justify-content:center; gap:20px;
+    background: var(--card); border:2px solid var(--border); border-radius:18px;
+    padding: 18px 22px; margin-bottom:18px; flex-wrap:wrap;
+  }
+  .loadout-pokemon{ display:flex; align-items:center; gap:16px; flex:1; min-width:220px; }
+  .loadout-sprite{
+    width:88px; height:88px; border-radius:16px; flex-shrink:0;
+    background: linear-gradient(160deg, #f7f7f9, #eeeef1); border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  [data-theme="dark"] .loadout-sprite{ background: linear-gradient(160deg, #eaeaec, #dedee2); }
+  .loadout-sprite img{ width:100%; height:100%; object-fit:contain; padding:2px; }
+  .loadout-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:19px; }
+  .loadout-role{ font-size:12px; color: var(--text-dim); font-weight:700; margin:2px 0 6px; }
+  .loadout-stats{ display:flex; gap:14px; font-family:'IBM Plex Mono', monospace; font-size:14px; color: var(--text-muted); }
+  .loadout-stats b{ color: var(--text); font-size:15px; }
+  .loadout-dmg-line{
+    margin-top:6px; font-size:12px; font-weight:700; color: var(--text-dim);
+  }
+  .loadout-dmg-line b{ color:#ff5b5b; font-family:'IBM Plex Mono', monospace; }
+  .loadout-vs{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; color: var(--text-dim);
+    flex-shrink:0;
+  }
+
+  .mod-row{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; }
+  .mod-row.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:10px; }
+  @media (max-width:560px){ .mod-row.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
+  .mp-buffs-row{ align-items:start; }
+  .mp-buffs-check{ align-self:end; box-sizing:border-box; }
+  .mod-consolidated-grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; align-items:stretch; }
+  @media (max-width:560px){ .mod-consolidated-grid{ grid-template-columns: repeat(2, 1fr); } }
+  .mod-consolidated-grid .check-item{ height:100%; box-sizing:border-box; }
+  .mod-consolidated-grid .mod-cell{
+    background: var(--bg1); border:2px solid var(--border); border-radius:9px;
+    padding:6px 9px; gap:2px; height:100%; box-sizing:border-box; justify-content:center;
+  }
+  [data-theme="dark"] .mod-consolidated-grid .mod-cell{ background:#161a28; }
+  .mod-consolidated-grid .mod-cell select{
+    margin:0; background:none; border:none; padding:0; width:100%;
+  }
+  .check-grid.fixed-4{ grid-template-columns: repeat(4, 1fr); gap:8px; }
+  @media (max-width:560px){ .check-grid.fixed-4{ grid-template-columns: repeat(2, 1fr); } }
+  .mod-details{ margin-top:14px; }
+  .mod-summary{
+    cursor:pointer; list-style:none; display:flex; align-items:center; gap:8px;
+    font-size:11.5px; font-weight:800; color: var(--text-dim); text-transform:uppercase;
+    letter-spacing:0.05em; padding:8px 10px; background: var(--bg1); border-radius:8px;
+    border:1.5px solid var(--border);
+  }
+  .mod-summary::-webkit-details-marker{ display:none; }
+  .mod-summary::before{ content:"▸"; font-size:12px; transition: transform .12s ease; }
+  .mod-details[open] .mod-summary::before{ transform: rotate(90deg); }
+  summary.step-head::-webkit-details-marker{ display:none; }
+  summary.step-head::before{
+    content:"▸"; font-size:16px; color: var(--text-dim); margin-right:2px;
+    transition: transform .12s ease; align-self:center;
+  }
+  details[open] > summary.step-head::before{ transform: rotate(90deg); }
+  .mod-summary-text{ font-weight:700; text-transform:none; letter-spacing:normal; color: var(--text-muted); flex:1; }
+  .mod-details-body{ padding:12px 2px 0; }
+  .mod-row.compact{ grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap:10px; }
+  .mod-row.narrow{ grid-template-columns: repeat(auto-fit, minmax(140px, 200px)); gap:12px; }
+  .mod-cell{ display:flex; flex-direction:column; gap:5px; }
+  .mod-cell label{ font-size:11.5px; font-weight:800; color: var(--text-dim); }
+  .mod-cell select{
+    background: var(--bg1); border:2px solid var(--border); border-radius:10px;
+    padding: 8px 10px; font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px;
+    color: var(--text); outline:none; width:100%;
+  }
+  [data-theme="dark"] .mod-cell select{ background:#161a28; }
+
+  .mini-preview{
+    display:flex; align-items:center; gap:14px; margin-top:14px;
+    background: var(--bg1); border:2px solid var(--border); border-radius:14px; padding:12px 16px;
+  }
+  [data-theme="dark"] .mini-preview{ background:#161a28; }
+  .mini-preview-sprite{
+    width:64px; height:64px; border-radius:12px; flex-shrink:0;
+    background: linear-gradient(160deg, #f7f7f9, #eeeef1); border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  [data-theme="dark"] .mini-preview-sprite{ background: linear-gradient(160deg, #eaeaec, #dedee2); }
+  .mini-preview-sprite img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .mini-preview-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:16px; }
+  .mini-preview-stats{ display:flex; gap:12px; font-family:'IBM Plex Mono', monospace; font-size:13px; color: var(--text-muted); margin-top:3px; }
+  .mini-preview-stats b{ color: var(--text); font-size:13.5px; }
+  .boss-dmg-preview{
+    margin-top:10px; background: var(--bg1); border:2px solid var(--border); border-radius:12px;
+    padding:10px 14px;
+  }
+  [data-theme="dark"] .boss-dmg-preview{ background:#161a28; }
+  .boss-dmg-row{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    font-size:13px; font-weight:700; color: var(--text-muted); padding:6px 0;
+  }
+  .boss-dmg-row-info{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  @media (min-width:700px){
+    .boss-dmg-row-info{ flex-direction:row; align-items:baseline; gap:8px; }
+    .boss-dmg-row-name{ flex-shrink:0; }
+    .boss-dmg-row-stats::before{ content:"\2014"; margin-right:8px; color: var(--text-dim); }
+  }
+  .boss-dmg-row-name{ font-size:13px; font-weight:700; color: var(--text); }
+  .boss-dmg-row-stats{ font-size:11px; font-weight:600; color: var(--text-dim); }
+  .boss-dmg-row b{ flex-shrink:0; color:#ff5b5b; font-family:'IBM Plex Mono', monospace; font-size:14px; }
+  .boss-dmg-row-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  @media (max-width:420px){
+    .boss-dmg-row-stats{ font-size:10px; }
+    .boss-dmg-row b{ font-size:13px; }
+  }
+  .energy-row b{ color:#e0a800; }
+  [data-theme="dark"] .energy-row b{ color:#ffc94a; }
+  datalist{ display:none; }
+.hamburger-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:38px; height:38px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .hamburger-btn:hover{ transform: translateY(-2px); } }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:fixed; top:60px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 76px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text, var(--ink)); background: var(--card, var(--ink-soft)); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--blue); color: var(--blue-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim, var(--ink-dim)); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text, var(--ink)); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1, var(--ink-soft)); color: var(--blue-dark); }
+  .hamburger-section a.current{ background: var(--blue); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  .hamburger-section a.hamburger-featured.current{
+    background-image:
+      linear-gradient(var(--blue), var(--blue)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Pokémon GO Solo Raid Catch Tank Calculator",
+  "url": "https://soloraidarchive.github.io/dps-calculator.html",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "description": "Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, Catch Tank, and Double Catch Tank roles in Pokémon GO solo raids."
+}
+</script>
+</head>
+<body>
+
+<div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="index.html"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Research</div>
+    <a href="research.html" class="hamburger-featured">Most Used Raiders</a>
+    <a href="ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+    <a href="solo-raid-mechanics.html" class="hamburger-featured">Solo Raid Mechanics</a>
+    <a href="guides.html" class="hamburger-featured">Boss Guides</a>
+    <a href="articles.html" class="hamburger-featured">Research Articles</a>
+    <a href="meta-battle-parties.html">Meta Battle Parties</a>
+    <a href="dps-calculator.html" class="current">DPS Calculator</a>
+    <a href="move-data.html">Move Data</a>
+    <a href="pokemon-stats.html">Pokémon Stats</a>
+    <a href="reference.html">Difficulty &amp; Role Reference</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Raid Archives</div>
+    <a href="tier4-raids.html">Mega</a>
+    <a href="tier5-raids.html">Legendary</a>
+    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Resources</div>
+    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+  </div>
+</div>
+
+<div class="sticky-header">
+  <div class="sticky-header-row">
+    <h1 class="page-title-sm">DPS Calculator</h1>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ct-mode-toggle">
+    <input type="radio" name="ctMode" id="ctModeMainDPS" value="maindps">
+    <label for="ctModeMainDPS">Main DPS</label>
+    <input type="radio" name="ctMode" id="ctModeSingle" value="single" checked>
+    <label for="ctModeSingle">Single Catch Tank</label>
+    <input type="radio" name="ctMode" id="ctModeDouble" value="double">
+    <label for="ctModeDouble">Double Catch Tank</label>
+  </div>
+  
+  <!-- STEP 1: SIDE BY SIDE -->
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">1</div>
+      <div>
+        <div class="step-title">Your Pokémon vs. The Raid Boss</div>
+      </div>
+    </div>
+
+    <div id="movepoolLoadError" style="display:none; margin:0 0 14px; padding:10px 14px; border-radius:10px; background:#fdecec; color:#b23c3c; font-weight:700; font-size:12.5px; border:2px solid #f3c9c9;">
+      Couldn't load the Pok&eacute;mon data files (data/*.csv). Stats, moves and dropdowns will be unavailable &mdash; reload the page to try again.
+    </div>
+    <div class="vs-columns">
+      <!-- PLAYER COLUMN -->
+      <div class="vs-col">
+        <div class="vs-col-title">Your Pokémon</div>
+        <div class="name-iv-row">
+          <div class="field name-field">
+            <label for="pokemonName">Pokémon</label>
+            <input id="pokemonName" placeholder="e.g. Shadow Honchkrow" autocomplete="off">
+            <div class="ac-list" id="pokemonName_ac"></div>
+          </div>
+          <div class="field iv-field">
+            <label for="pokemonLevel" title="Valid range: 20–51">Level</label>
+            <input id="pokemonLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50" list="pokemonLevelOptions">
+            <datalist id="pokemonLevelOptions"></datalist>
+            <div class="field-error" id="pokemonLevelError"></div>
+          </div>
+          <div class="field iv-field">
+            <label for="ivAtk">Atk IV</label>
+            <input id="ivAtk" type="text" inputmode="numeric" value="15" placeholder="0–15">
+            <div class="field-error" id="ivAtkError"></div>
+          </div>
+          <div class="field iv-field">
+            <label for="ivDef">Def IV</label>
+            <input id="ivDef" type="text" inputmode="numeric" value="15" placeholder="0–15">
+            <div class="field-error" id="ivDefError"></div>
+          </div>
+          <div class="field iv-field">
+            <label for="ivHp">HP IV</label>
+            <input id="ivHp" type="text" inputmode="numeric" value="15" placeholder="0–15">
+            <div class="field-error" id="ivHpError"></div>
+          </div>
+        </div>
+        <div id="playerPreview"></div>
+
+        <div class="subhead">Moves</div>
+        <div class="field-grid compact">
+          <div class="field">
+            <label for="playerFM_select">Fast Move</label>
+            <select id="playerFM_select" onchange="onMoveSelectChange('playerFM')"></select>
+            <input type="text" id="playerFM_custom" class="custom-move-select" list="playerFM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('playerFM')"><datalist id="playerFM_customList"></datalist>
+            <input type="hidden" id="playerFM" value="">
+          </div>
+          <div class="field">
+            <label for="playerCM_select">Charge Move</label>
+            <select id="playerCM_select" onchange="onMoveSelectChange('playerCM')"></select>
+            <input type="text" id="playerCM_custom" class="custom-move-select" list="playerCM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('playerCM')"><datalist id="playerCM_customList"></datalist>
+            <input type="hidden" id="playerCM" value="">
+          </div>
+        </div>
+        <div id="playerMovePreview"></div>
+
+        <details class="mod-details" id="playerModDetails">
+          <summary class="mod-summary">Type matchup</summary>
+          <div class="mod-details-body">
+            <div class="mod-row narrow">
+              <div class="mod-cell">
+                <label for="effCM">Charge Move Eff.</label>
+                <select id="effCM">
+                  <option value="0.39">Very Not Effective — 0.39x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+              <div class="mod-cell">
+                <label for="effFM">Fast Move Eff.</label>
+                <select id="effFM">
+                  <option value="0.39">Very Not Effective — 0.39x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
+              <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
+              <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <!-- BOSS COLUMN -->
+      <div class="vs-col">
+        <div class="vs-col-title">Raid Boss</div>
+        <div class="name-iv-row">
+          <div class="field name-field">
+            <label for="bossName">Raid Boss</label>
+            <input id="bossName" placeholder="e.g. Great Tusk" autocomplete="off">
+            <div class="ac-list" id="bossName_ac"></div>
+          </div>
+          <div class="field tier-field">
+            <label for="bossTier">Tier</label>
+            <select id="bossTier">
+              <option value="0.79">T4/T5/T6/T7</option>
+              <option value="1">Elite</option>
+            </select>
+          </div>
+          <div class="field cadence-field">
+            <label for="cadenceMode">Calculating</label>
+            <select id="cadenceMode">
+              <option value="fmonly" selected>Fast Only</option>
+              <option value="fmcm">Fast &amp; Charge</option>
+            </select>
+          </div>
+        </div>
+        <div id="bossPreview"></div>
+
+        <div class="subhead">Moves</div>
+        <div class="field-grid compact">
+          <div class="field">
+            <label for="bossFM_select">Boss Fast Move</label>
+            <select id="bossFM_select" onchange="onMoveSelectChange('bossFM')"></select>
+            <input type="text" id="bossFM_custom" class="custom-move-select" list="bossFM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('bossFM')"><datalist id="bossFM_customList"></datalist>
+            <input type="hidden" id="bossFM" value="">
+          </div>
+          <div class="field catch-tank-only">
+            <label for="bossCM_select">Boss Charge Move</label>
+            <select id="bossCM_select" onchange="onMoveSelectChange('bossCM')"></select>
+            <input type="text" id="bossCM_custom" class="custom-move-select" list="bossCM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('bossCM')"><datalist id="bossCM_customList"></datalist>
+            <input type="hidden" id="bossCM" value="">
+          </div>
+        </div>
+        <div id="bossMovePreview"></div>
+
+        <details class="mod-details" id="bossModDetails">
+          <summary class="mod-summary">Type matchup</summary>
+          <div class="mod-details-body">
+            <div class="mod-row narrow">
+              <div class="mod-cell catch-tank-only">
+                <label for="effBossCM">Charge Move → You</label>
+                <select id="effBossCM">
+                  <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.390625">Very Not Effective — 0.390625x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+              <div class="mod-cell">
+                <label for="effBossFM">Fast Move → You</label>
+                <select id="effBossFM">
+                  <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.390625">Very Not Effective — 0.390625x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-grid" style="grid-template-columns:repeat(3,1fr);">
+              <label class="check-item catch-tank-only"><input type="checkbox" id="bossStabCM">Stab CM</label>
+              <label class="check-item"><input type="checkbox" id="bossStabFM">Stab FM</label>
+              <label class="check-item"><input type="checkbox" id="shadowDebuff">Shadow Debuff</label>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: ADDITIONAL MODIFIERS -->
+  <div class="step-card">
+    <div class="step-head">
+      <div class="step-num">2</div>
+      <div>
+        <div class="step-title">Additional Modifiers</div>
+      </div>
+    </div>
+
+    <div class="mod-consolidated-grid">
+      <div class="mod-cell">
+        <label for="numCM"># of Charge Moves</label>
+        <select id="numCM">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+      <div class="mod-cell">
+        <label for="weatherSelect">Weather</label>
+        <select id="weatherSelect">
+          <option value="extreme">Extreme</option>
+          <option value="sunny">Sunny / Clear</option>
+          <option value="partlycloudy">Partly Cloudy</option>
+          <option value="cloudy">Cloudy</option>
+          <option value="windy">Windy</option>
+          <option value="rain">Rain</option>
+          <option value="snow">Snow</option>
+          <option value="fog">Fog</option>
+        </select>
+      </div>
+      <label class="check-item single-ct-only"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
+      <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
+      <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
+      <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
+      <label class="check-item single-ct-only" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
+      <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
+    </div>
+  </div>
+
+  <!-- STEP 3: MULTI-PLAYER BUFFS -->
+  <div class="step-card">
+    <details id="multiplayerDetails">
+      <summary class="step-head" style="cursor:pointer; list-style:none;">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">Multi-player Buffs</div>
+        </div>
+      </summary>
+
+      <div class="mod-row fixed-4 mp-buffs-row" style="margin-top:16px;">
+        <div class="mod-cell">
+          <label for="friendship">Friendship</label>
+          <select id="friendship">
+            <option value="1">None</option>
+            <option value="1.03">Good (1.03x)</option>
+            <option value="1.05">Great (1.05x)</option>
+            <option value="1.07">Ultra (1.07x)</option>
+            <option value="1.10">Best (1.10x)</option>
+            <option value="1.12">Forever (1.12x)</option>
+          </select>
+        </div>
+        <div class="mod-cell">
+          <label for="primalMega">Primal/Mega Support</label>
+          <select id="primalMega">
+            <option value="1">Inactive</option>
+            <option value="1.1">Support (1.1x)</option>
+            <option value="1.3">Stab (1.3x)</option>
+          </select>
+        </div>
+        <label class="check-item mp-buffs-check"><input type="checkbox" id="partyPower"> Party Power</label>
+        <label class="check-item mp-buffs-check"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
+      </div>
+    </details>
+  </div>
+
+  <button class="calc-btn" id="calcBtn">Calculate</button>
+  <button class="share-btn" id="shareBtn" type="button">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
+    <span id="shareBtnLabel">Copy Shareable Link</span>
+  </button>
+
+  <div class="duration-unit-toggle" id="durationUnitToggle">
+    <span class="duration-unit-label">Show time as</span>
+    <input type="radio" name="durationUnit" id="durationUnitSeconds" value="seconds" checked>
+    <label for="durationUnitSeconds">Seconds</label>
+    <input type="radio" name="durationUnit" id="durationUnitTicks" value="ticks">
+    <label for="durationUnitTicks">Ticks</label>
+  </div>
+
+  <div class="results-wrap" id="resultsWrap"></div>
+
+  <div class="history-panel-wrap">
+    <details class="history-panel">
+      <summary class="subhead history-summary" style="margin-top:0;">Recent Setups <span class="auto-badge">saved on this device</span></summary>
+      <div id="setupHistory"></div>
+    </details>
+  </div>
+
+</div>
+
+<script>
+// ============ SPRITE LOOKUP (same approach as the raid archives) ============
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
+  "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zamazenta hero":"zamazenta", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane",
+  "ndm":"necrozma-dusk-mane", "ndw":"necrozma-dawn-wings",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, ""); // fall back to base species if no shadow-specific sprite exists
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
+}
+// National dex numbers for species with a known Shadow-form sprite on PokemonGoHub
+const DEX_MAP = {
+  "dialga":483, "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "groudon":383, "mamoswine":473, "salamence":373, "gengar":94,
+  "tyrantrum":697, "rhyperior":464, "kyogre":382, "mewtwo":150,
+};
+// Very recent Legends: Z-A Mega Evolutions - use PokemonGoHub direct artwork instead of guessing PokemonDB slugs
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+// Filenames in the animated GIF repo don't always match PokemonDB's own slug convention -
+// e.g. Crowned formes append "sword"/"shield" with no hyphen, Necrozma fusions drop the
+// internal hyphen in the form suffix, and the Tapu deities have no hyphen at all.
+const ANI_OVERRIDES = {
+  // Regional forms whose CDN filename does not follow the "<name>-<region>" rule the generic
+  // regional branch produces. Each of these 404s without an entry here; the names were confirmed
+  // against the sprite CDN rather than guessed.
+  "galarian farfetch'd": "farfetchd-galarian",
+  "galarian mr. mime": "mrmime-galarian",
+  "hisuian basculin": "basculin-whitestriped",
+  "hisuian zoroark": "zoroark-hisuian",
+  "paldean wooper": "wooper-paldea",
+  // Galarian Darmanitan's two forms. Without these the regional rule produces
+  // "darmanitan-galarian" and "darmanitan-zen-galarian", both 404 on the sprite CDN - the real
+  // names are "-galarianstandard" and "-galarianzen". The Shadow variants resolve through here
+  // too, since the lookup strips a leading "shadow ".
+  "galarian darmanitan": "darmanitan-galarianstandard",
+  "galarian darmanitan zen": "darmanitan-galarianzen",
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
+  // Shorthand names used elsewhere on the site (e.g. the CT calculator's Pokemon list) for the
+  // same Incarnate/Therian formes already covered above by their full names - same Pokemon, same GIF.
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+// A few Origin formes aren't in the animated "ani" set at all - they live as static
+// PNGs in a differently-named directory with no per-Pokemon slug pattern to guess from.
+const ANI_URL_OVERRIDES = {
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+
+// ---- Sprite source priority: local -> mgrann03 -> pokemongohub (fallback) ----
+// GOHUB_OVERRIDES is no longer consulted up front. mgrann03 only carries 8 of the 35
+// override names, so the rest still need pokemongohub - but only after the preferred
+// source actually fails, not instead of it. spriteUrl() registers the fallback here and
+// this listener applies it. Capture phase runs before each element's inline onerror, so
+// stopPropagation() keeps the page's own "hide the image" handler from winning first.
+const SPRITE_FALLBACK = Object.create(null);
+document.addEventListener("error", function (e) {
+  const img = e.target;
+  if (!img || img.tagName !== "IMG" || img.dataset.spriteFallbackUsed) return;
+  const fb = SPRITE_FALLBACK[img.getAttribute("src")];
+  if (!fb) return;
+  img.dataset.spriteFallbackUsed = "1";
+  img.src = fb;
+  e.stopPropagation();
+  e.preventDefault();
+}, true);
+
+function spriteUrl(name){
+  const key = name.trim().toLowerCase();
+  // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
+  const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+  if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
+  return url;
+}
+
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+// No longer swaps to a fallback sprite on error - spriteUrl() already resolves shadow names
+// to their base sprite directly now, so there's nothing left to fall back to. Kept as a
+// pass-through rather than touching every onerror call site that still references it.
+function trySpriteShadowFallback(img, name){
+  return false;
+}
+
+// Applies to every shadow Pokemon unconditionally, regardless of whether a dedicated
+// shadow-tinted sprite exists and loads successfully - simpler than checking DEX_MAP, and
+// matches the intent that shadow status should always be visually obvious.
+function needsShadowMist(name){
+  return /^shadow\s+/i.test(name.trim());
+}
+
+let POKEMON_TYPES = [];
+// ============ TYPE EFFECTIVENESS (PoGo-specific tiers: 1.6 / 1 / 0.625 / 0.390625) ============
+const TYPE_CHART = {
+  normal:   { rock:0.625, steel:0.625, ghost:0.39 },
+  fire:     { grass:1.6, ice:1.6, bug:1.6, steel:1.6, fire:0.625, water:0.625, rock:0.625, dragon:0.625 },
+  water:    { fire:1.6, ground:1.6, rock:1.6, water:0.625, grass:0.625, dragon:0.625 },
+  electric: { water:1.6, flying:1.6, electric:0.625, grass:0.625, dragon:0.625, ground:0.39 },
+  grass:    { water:1.6, ground:1.6, rock:1.6, fire:0.625, grass:0.625, poison:0.625, flying:0.625, bug:0.625, dragon:0.625, steel:0.625 },
+  ice:      { grass:1.6, ground:1.6, flying:1.6, dragon:1.6, fire:0.625, water:0.625, ice:0.625, steel:0.625 },
+  fighting: { normal:1.6, ice:1.6, rock:1.6, dark:1.6, steel:1.6, poison:0.625, flying:0.625, psychic:0.625, bug:0.625, fairy:0.625, ghost:0.39 },
+  poison:   { grass:1.6, fairy:1.6, poison:0.625, ground:0.625, rock:0.625, ghost:0.625, steel:0.39 },
+  ground:   { fire:1.6, electric:1.6, poison:1.6, rock:1.6, steel:1.6, grass:0.625, bug:0.625, flying:0.39 },
+  flying:   { grass:1.6, fighting:1.6, bug:1.6, electric:0.625, rock:0.625, steel:0.625 },
+  psychic:  { fighting:1.6, poison:1.6, psychic:0.625, steel:0.625, dark:0.39 },
+  bug:      { grass:1.6, psychic:1.6, dark:1.6, fire:0.625, fighting:0.625, poison:0.625, flying:0.625, ghost:0.625, steel:0.625, fairy:0.625 },
+  rock:     { fire:1.6, ice:1.6, flying:1.6, bug:1.6, fighting:0.625, ground:0.625, steel:0.625 },
+  ghost:    { ghost:1.6, psychic:1.6, dark:0.625, normal:0.39 },
+  dragon:   { dragon:1.6, steel:0.625, fairy:0.39 },
+  dark:     { ghost:1.6, psychic:1.6, fighting:0.625, dark:0.625, fairy:0.625 },
+  steel:    { ice:1.6, rock:1.6, fairy:1.6, fire:0.625, water:0.625, electric:0.625, steel:0.625 },
+  fairy:    { fighting:1.6, dragon:1.6, dark:1.6, fire:0.625, poison:0.625, steel:0.625 },
+};
+
+// Variant forms whose typing differs from their base species (Shadow/regional-without-override fall back to base)
+// TYPE_OVERRIDES is gone. Every one of its entries is now stated directly in
+// csv/pokemon-stats.csv's type1/type2 columns, so the hand-maintained exception list was a
+// second copy of the same facts - and it had drifted: it still had Thundurus Therian as
+// plain Electric and Enamorus Therian as plain Fairy, both missing their Flying type, while
+// the CSV has them right. Typing now comes from one place.
+
+// Explicit base-species mapping for every Mega/Primal Pokemon on the site - hand-verified
+// against Serebii/Bulbapedia rather than derived by stripping "Mega "/"Primal " off the name.
+// String-stripping alone gets most of these right by coincidence, but breaks on anything where
+// the mega form's own name doesn't literally contain its base species' name - e.g. "Mega
+// Complete Zygarde" naively strips to "Complete Zygarde", which doesn't exist; the real base
+// it inherits from is "Zygarde 50%". This map is the single place that relationship is defined,
+// and both type lookup and movepool lookup below read from it.
+const BASE_FORM_MAP = {
+  "mega abomasnow": "abomasnow",
+  "mega absol": "absol",
+  "mega absol z": "absol",
+  "mega aerodactyl": "aerodactyl",
+  "mega aggron": "aggron",
+  "mega alakazam": "alakazam",
+  "mega altaria": "altaria",
+  "mega ampharos": "ampharos",
+  "mega audino": "audino",
+  "mega banette": "banette",
+  "mega barbaracle": "barbaracle",
+  "mega baxcalibur": "baxcalibur",
+  "mega beedrill": "beedrill",
+  "mega blastoise": "blastoise",
+  "mega blaziken": "blaziken",
+  "mega camerupt": "camerupt",
+  "mega chandelure": "chandelure",
+  "mega charizard x": "charizard",
+  "mega charizard y": "charizard",
+  "mega chesnaught": "chesnaught",
+  "mega chimecho": "chimecho",
+  "mega clefable": "clefable",
+  "mega complete zygarde": "zygarde 50%",
+  "mega crabominable": "crabominable",
+  "mega darkrai": "darkrai",
+  "mega delphox": "delphox",
+  "mega diancie": "diancie",
+  "mega dragalge": "dragalge",
+  "mega dragonite": "dragonite",
+  "mega drampa": "drampa",
+  "mega eelektross": "eelektross",
+  "mega emboar": "emboar",
+  "mega eternal floette": "floette",
+  "mega excadrill": "excadrill",
+  "mega falinks": "falinks",
+  "mega feraligatr": "feraligatr",
+  "mega froslass": "froslass",
+  "mega gallade": "gallade",
+  "mega garchomp": "garchomp",
+  "mega garchomp z": "garchomp",
+  "mega gardevoir": "gardevoir",
+  "mega gengar": "gengar",
+  "mega glalie": "glalie",
+  "mega glimmora": "glimmora",
+  "mega golisopod": "golisopod",
+  "mega golurk": "golurk",
+  "mega greninja": "greninja",
+  "mega gyarados": "gyarados",
+  "mega hawlucha": "hawlucha",
+  "mega heatran": "heatran",
+  "mega heracross": "heracross",
+  "mega houndoom": "houndoom",
+  "mega kangaskhan": "kangaskhan",
+  "mega latias": "latias",
+  "mega latios": "latios",
+  "mega lopunny": "lopunny",
+  "mega lucario": "lucario",
+  "mega lucario z": "lucario",
+  "mega magearna": "magearna",
+  "mega malamar": "malamar",
+  "mega manectric": "manectric",
+  "mega mawile": "mawile",
+  "mega medicham": "medicham",
+  "mega meganium": "meganium",
+  "mega meowstic": "meowstic",
+  "mega metagross": "metagross",
+  "mega mewtwo x": "mewtwo",
+  "mega mewtwo y": "mewtwo",
+  "mega pidgeot": "pidgeot",
+  "mega pinsir": "pinsir",
+  "mega pyroar": "pyroar",
+  "mega raichu x": "raichu",
+  "mega raichu y": "raichu",
+  "mega rayquaza": "rayquaza",
+  "mega sableye": "sableye",
+  "mega salamence": "salamence",
+  "mega sceptile": "sceptile",
+  "mega scizor": "scizor",
+  "mega scolipede": "scolipede",
+  "mega scovillain": "scovillain",
+  "mega scrafty": "scrafty",
+  "mega sharpedo": "sharpedo",
+  "mega skarmory": "skarmory",
+  "mega slowbro": "slowbro",
+  "mega staraptor": "staraptor",
+  "mega starmie": "starmie",
+  "mega steelix": "steelix",
+  "mega swampert": "swampert",
+  "mega tatsugiri": "tatsugiri",
+  "mega tyranitar": "tyranitar",
+  "mega venusaur": "venusaur",
+  "mega victreebel": "victreebel",
+  "mega zeraora": "zeraora",
+  "primal groudon": "groudon",
+  "primal kyogre": "kyogre",
+};
+
+function findPokemonTypes(name){
+  const key = name.trim().toLowerCase();
+  // Explicit typing from csv/pokemon-stats.csv (merged with pokemon-types.csv) comes
+  // FIRST. Anything stated in that file is authoritative - it is the whole point of
+  // having typing as data rather than as inheritance plus a list of exceptions.
+  const exact = POKEMON_TYPES.find(p => p.n.toLowerCase() === key);
+  if (exact && exact.t1) return { t1: exact.t1.toLowerCase(), t2: (exact.t2 || "").toLowerCase() };
+  // Explicit base-form lookup (BASE_FORM_MAP) replaces name-stripping entirely - a mega/primal
+  // form's typing is inherited from its real base species, looked up directly, not guessed from
+  // whatever's left after removing "Mega "/"Primal " from the string.
+  const mappedBase = BASE_FORM_MAP[key];
+  if (mappedBase) {
+    const baseEntry = POKEMON_TYPES.find(p => p.n.toLowerCase() === mappedBase);
+    if (baseEntry) return { t1: baseEntry.t1.toLowerCase(), t2: baseEntry.t2.toLowerCase() };
+  }
+  // strip common forme suffixes (Origin/Altered/Incarnate/Therian/Resolute/Hero) and retry against the base species -
+  // most formes don't change typing; the ones that do (e.g. Thundurus/Enamorus Therian) are already caught by the
+  // explicit overrides above, which are checked first
+  const suffixStripped = key.replace(/\s+(origin|altered|incarnate|therian|resolute|hero)$/, "");
+  if (suffixStripped !== key) {
+    const baseBySuffix = POKEMON_TYPES.find(p => p.n.toLowerCase() === suffixStripped);
+    if (baseBySuffix) return { t1: baseBySuffix.t1.toLowerCase(), t2: baseBySuffix.t2.toLowerCase() };
+  }
+  return null;
+}
+function typeMultiplier(attackType, defType){
+  if(!attackType || !defType) return 1;
+  const chart = TYPE_CHART[attackType.toLowerCase()];
+  if(!chart) return 1;
+  return chart[defType.toLowerCase()] ?? 1;
+}
+// ============ WEATHER BOOST (per PoGo, not mainline weather rules) ============
+const WEATHER_BOOST_TYPES = {
+  sunny:    ["fire", "grass", "ground"],
+  partlycloudy: ["normal", "rock"],
+  cloudy:   ["fairy", "fighting", "poison"],
+  windy:    ["dragon", "flying", "psychic"],
+  rain:     ["water", "electric", "bug"],
+  snow:     ["ice", "steel"],
+  fog:      ["dark", "ghost"],
+};
+function isWeatherBoosted(elem){
+  const weather = document.getElementById("weatherSelect").value;
+  if(!weather || !elem) return false;
+  const boosted = WEATHER_BOOST_TYPES[weather];
+  return boosted ? boosted.includes(elem.toLowerCase()) : false;
+}
+
+function computeEffectiveness(attackType, defTypes){
+  if(!defTypes) return null;
+  let mult = typeMultiplier(attackType, defTypes.t1);
+  if(defTypes.t2) mult *= typeMultiplier(attackType, defTypes.t2);
+  return mult;
+}
+function snapToOption(raw, options){
+  let best = options[0], bestDiff = Infinity;
+  for(const v of options){
+    const diff = Math.abs(v - raw);
+    if(diff < bestDiff){ bestDiff = diff; best = v; }
+  }
+  return best;
+}
+const PLAYER_EFF_OPTIONS = [0.39, 0.625, 1, 1.6, 2.56];
+const BOSS_EFF_OPTIONS = [0.24375, 0.39, 0.390625, 0.625, 1, 1.6, 2.56];
+
+// Master list for CT Database submission eligibility - pilot is Tier 5 solo Catch Tank only.
+// Loaded live from tier5-bosses.csv in the repo - update that file to change the list, no HTML/JS editing needed.
+let TIER5_BOSSES = [];
+const TIER5_BOSSES_CSV_URL = "/csv/tier5-bosses.csv";
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ","){ row.push(field); field = ""; }
+      else if(c === "\r"){ /* skip, handled by \n */ }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+// ---- CSV conventions used in this file ----
+// parseCSV(text)        -> raw rows (string[][]), header row INCLUDED. The primitive.
+// parseCSVObjects(text) -> array of header-keyed objects, header consumed.
+// Both share one parser. The site-wide csv/csv-utils.js exposes a same-named parseCSV() with
+// the header-keyed contract; it is deliberately NOT loaded into this file, because silently
+// swapping the return shape under the two existing raw-row consumers below (tier5-bosses.csv
+// and elite-moves.csv) would break them in ways that look like working software. Anything new
+// in this file should use parseCSVObjects().
+function parseCSVObjects(text){
+  const rows = parseCSV(text);
+  if(!rows.length) return [];
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1)
+    .filter(r => r.length && r.some(c => c !== ""))
+    .map(r => {
+      const o = {};
+      headers.forEach((h, i) => { o[h] = (r[i] || "").trim(); });
+      return o;
+    });
+}
+
+async function loadTier5BossesFromCSV(){
+  try{
+    const res = await fetch(TIER5_BOSSES_CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    TIER5_BOSSES = rows.slice(1).map(r => (r[0] || "").trim()).filter(Boolean);
+  }catch(e){
+    console.error("Failed to load Tier 5 boss list:", e);
+  }
+}
+loadTier5BossesFromCSV();
+
+function isTier5Boss(name){
+  const key = (name || "").trim().toLowerCase();
+  return TIER5_BOSSES.some(b => b.toLowerCase() === key);
+}
+
+// ---- Tier 4 Mega bosses ----
+// Read from this site's own Tier 4 archive, so the list stays in step with the archive rather
+// than being a second hand-maintained copy. Mega Rayquaza and Regidrago live in tier6-data.csv,
+// so they are not in here - a Mega LEGENDARY is not a Tier 4 Mega and keeps the Tier 5 bar.
+let TIER4_BOSSES = [];
+const TIER4_CSV_URL = "/csv/tier4-data.csv";
+async function loadTier4BossesFromCSV(){
+  try{
+    const res = await fetch(TIER4_CSV_URL);
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const rows = parseCSV(await res.text());
+    const header = (rows.shift() || []).map(h => String(h).trim());
+    const iName = header.indexOf("Boss Name");
+    if(iName < 0) throw new Error("no Boss Name column");
+    TIER4_BOSSES = [...new Set(rows.map(r => (r[iName] || "").trim()).filter(Boolean))];
+  }catch(e){
+    console.error("Failed to load Tier 4 boss list:", e);
+  }
+}
+loadTier4BossesFromCSV();
+
+function isTier4MegaBoss(name){
+  const key = (name || "").trim().toLowerCase();
+  return TIER4_BOSSES.some(b => b.toLowerCase() === key);
+}
+
+// A Tier 4 Mega is a much shorter fight, so a catch tank clears far less damage before the raid
+// ends - holding it to the Tier 5 bar would reject every legitimate Mega entry. The two pools are
+// kept apart in the CT Database for the same reason: averaging a 30-DPS Mega entry against a
+// 50-DPS Legendary one would drag the Legendary averages down and misrepresent both.
+const CT_SUBMIT_THRESHOLD = 50;          // Tier 5 Legendary (and Mega Legendary)
+// 30 is not a tuning knob - it is the soloability floor, derived from the raid itself: a Tier 4
+// Mega has 9000 HP and a 300-second timer, so 9000 / 300 = 30 DPS is the minimum sustained output
+// that finishes the raid before time expires. Anything below it did not solo, which is exactly why
+// it must not be submittable. Most tank/boss pairings sit well under this (Mega Gengar tops out
+// near 13, Mega Aggron near 20) and are correctly rejected; Mega Garchomp clears it comfortably.
+const CT_SUBMIT_THRESHOLD_MEGA = 30;     // Tier 4 Mega: 9000 HP / 300s timer
+
+// The bar this particular boss has to clear.
+function submitThresholdFor(name){
+  return isTier4MegaBoss(name) ? CT_SUBMIT_THRESHOLD_MEGA : CT_SUBMIT_THRESHOLD;
+}
+function bossAcceptsSubmissions(name){
+  return isTier5Boss(name) || isTier4MegaBoss(name);
+}
+// ============ SOLO REJOIN DPS THRESHOLDS (Tier 5 Legendary) ============
+// Minimum Catch Tank DPS needed for a boss to be soloable, before factoring rejoins. Each extra
+// rejoin costs time, so it raises the DPS bar. A CT interaction that clears a given threshold can
+// be used in battle parties designed to rejoin that many times.
+const REJOIN_THRESHOLDS = [
+  { rejoins: 0, dps: 50.00 },
+  { rejoins: 1, dps: 51.19 },
+  { rejoins: 2, dps: 52.44 },
+  { rejoins: 3, dps: 53.76 },
+  { rejoins: 4, dps: 55.14 },
+];
+// Highest rejoin count this DPS can sustain, or null if it doesn't even clear the 0-rejoin bar.
+function maxRejoinsFor(dps){
+  let best = null;
+  for(const t of REJOIN_THRESHOLDS){ if(dps >= t.dps) best = t.rejoins; }
+  return best;
+}
+// Inline badge showing the most demanding rejoin plan this result supports, so a reader can see
+// at a glance which battle parties the interaction is actually good enough for.
+function rejoinBadgeHtml(dps){
+  if(!isFinite(dps)) return "";
+  const max = maxRejoinsFor(dps);
+  if(max === null) return "";
+  if(max === 0) return `<span class="rejoin-badge tier-0" title="Meets the ${REJOIN_THRESHOLDS[0].dps.toFixed(2)} DPS Tier 5 solo threshold, but not the higher bar a rejoin party needs.">solo</span>`;
+  return `<span class="rejoin-badge" title="Clears ${REJOIN_THRESHOLDS[max].dps.toFixed(2)} DPS - usable in battle parties designed to rejoin up to ${max} time${max>1?"s":""}.">${max} rejoin${max>1?"s":""}</span>`;
+}
+
+let lastCalcContext = null; // populated by runCalculation(), read by submitSelectedRows()
+
+let POKEMON_DB = [];
+
+// ============ POKEMON NAME AUTOCOMPLETE ============
+// Capped at 8 matches deliberately - this page's fields sit tightly packed next to IV inputs and,
+// on desktop, a second identical column right beside them (Player | Boss). An uncapped list (this
+// site tracks 1192 Pokemon) got long enough to visually spill past its own field into that
+// neighboring content, which is why this was left out before. Width is locked to the field itself
+// via CSS (.name-field{position:relative}) rather than the input's content width, so the dropdown
+// can never be wider than the space it's meant to occupy.
+// Rebuilt after the stats CSV loads (was derived at parse time from the embedded POKEMON_DB).
+let POKEMON_NAME_LIST = [];
+
+function pokemonNameMatches(query){
+  const q = query.trim().toLowerCase();
+  if(!q) return [];
+  const startsWith = [];
+  const contains = [];
+  for(const name of POKEMON_NAME_LIST){
+    const lower = name.toLowerCase();
+    if(lower.startsWith(q)) startsWith.push(name);
+    else if(lower.includes(q)) contains.push(name);
+    if(startsWith.length >= 8) break;
+  }
+  return [...startsWith, ...contains].slice(0, 8);
+}
+
+function highlightMatch(name, query){
+  const idx = name.toLowerCase().indexOf(query.trim().toLowerCase());
+  if(idx === -1) return name;
+  return name.slice(0, idx) + "<mark>" + name.slice(idx, idx + query.trim().length) + "</mark>" + name.slice(idx + query.trim().length);
+}
+
+function initPokemonAutocomplete(inputId, listId){
+  const input = document.getElementById(inputId);
+  const list = document.getElementById(listId);
+  let highlighted = -1;
+
+  function render(){
+    const matches = pokemonNameMatches(input.value);
+    if(matches.length === 0){ close(); return; }
+    list.innerHTML = matches.map((name, i) =>
+      `<div class="ac-item${i === highlighted ? ' hi' : ''}" data-name="${name.replace(/"/g, "&quot;")}">${highlightMatch(name, input.value)}</div>`
+    ).join("");
+    list.classList.add("open");
+    list.querySelectorAll(".ac-item").forEach(el => {
+      el.addEventListener("mousedown", (e) => {
+        // mousedown (not click) fires before the input's own blur, so selecting an item doesn't
+        // first close the dropdown out from under the click
+        e.preventDefault();
+        select(el.dataset.name);
+      });
+    });
+  }
+  function select(name){
+    input.value = name;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+  }
+  function close(){
+    list.classList.remove("open");
+    list.innerHTML = "";
+    highlighted = -1;
+  }
+
+  input.addEventListener("input", () => { highlighted = -1; render(); });
+  input.addEventListener("focus", () => { if(input.value.trim()) render(); });
+  input.addEventListener("keydown", (e) => {
+    const items = list.querySelectorAll(".ac-item");
+    if(!items.length) return;
+    if(e.key === "ArrowDown"){
+      e.preventDefault();
+      highlighted = Math.min(highlighted + 1, items.length - 1);
+      items.forEach((el, i) => el.classList.toggle("hi", i === highlighted));
+      items[highlighted]?.scrollIntoView({ block: "nearest" });
+    }else if(e.key === "ArrowUp"){
+      e.preventDefault();
+      highlighted = Math.max(highlighted - 1, 0);
+      items.forEach((el, i) => el.classList.toggle("hi", i === highlighted));
+      items[highlighted]?.scrollIntoView({ block: "nearest" });
+    }else if(e.key === "Enter" && highlighted >= 0){
+      e.preventDefault();
+      select(items[highlighted].dataset.name);
+    }else if(e.key === "Escape"){
+      close();
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if(e.target !== input && !list.contains(e.target)) close();
+  });
+}
+initPokemonAutocomplete("pokemonName", "pokemonName_ac");
+initPokemonAutocomplete("bossName", "bossName_ac");
+
+// ============ MOVEPOOL (loaded from csv/pokemon-movepool.csv) ============
+// Was ~202 KB of inline object literal - 43% of this entire file - shipped to every visitor.
+// Now fetched once and browser-cached, and shared with every other page that needs it, so a
+// movepool correction is made in one file instead of being copied into several.
+//
+// This is async, which the rest of the file has to tolerate: move dropdowns are populated from
+// it, and applySetup() (shared links / recent setups) populates those dropdowns during init,
+// potentially BEFORE the fetch resolves. Any selection applied while the data is still loading
+// is recorded in PENDING_MOVE_SELECTION and replayed by refreshMoveDropdowns() once it lands,
+// so a shared link opened on a slow connection ends up in exactly the same state as a fast one.
+let POKEMON_MOVEPOOL = {};
+let movepoolReady = false;
+let movepoolLoadFailed = false;
+let PENDING_MOVE_SELECTION = null;
+
+async function fetchCSVRows(path){
+  // Default caching (not "force-cache"): the browser still caches these across pages, but it
+  // revalidates instead of serving a stale copy indefinitely. force-cache would keep handing back
+  // whatever it first received - including a bad response captured during a partial deploy - with
+  // no way for a user to recover short of a hard refresh.
+  const res = await fetch(path);
+  if(!res.ok) throw new Error(`${path} HTTP ${res.status}`);
+  return parseCSVObjects(await res.text());
+}
+
+// All four datasets load together. They're fetched in parallel (not sequentially) so the total
+// wait is one round trip, and the whole set is treated as one unit: a partial load would leave
+// the calculator able to name a Pokemon it has no stats for, which is worse than a clean failure.
+async function loadCoreDataFromCSV(){
+  try{
+    const [statsRows, moveRows, movepoolRows] = await Promise.all([
+      fetchCSVRows("/csv/pokemon-stats.csv"),
+      fetchCSVRows("/csv/moves.csv"),
+      fetchCSVRows("/csv/pokemon-movepool.csv"),
+    ]);
+
+    POKEMON_DB = statsRows.map(r => ({ n: r.name, hp: parseFloat(r.hp), atk: parseFloat(r.atk), def: parseFloat(r.def) }));
+    // Typing now lives in csv/pokemon-stats.csv alongside the stats, as type1/type2. That
+    // file is the authority: it states a Pokemon's typing explicitly instead of the site
+    // deriving it from a base species and patching the exceptions by hand, which is how
+    // Mega Pinsir, Mega Audino and Mega Lopunny ended up resolving to their base species'
+    // typing with nothing flagging it.
+    //
+    // csv/pokemon-types.csv is no longer fetched. It only added names that pokemon-stats.csv
+    // does not list, and POKEMON_NAME_LIST is built from POKEMON_DB - so those names were
+    // never selectable here and their typings were unreachable. Verified: every one of the
+    // 2286 selectable names still resolves a type with that file gone.
+    const typesByName = new Map();
+    statsRows.forEach(r => {
+      if(r.name && r.type1) typesByName.set(r.name.trim().toLowerCase(), { n: r.name, t1: r.type1, t2: r.type2 || "" });
+    });
+    POKEMON_TYPES = [...typesByName.values()];
+    MOVE_DB = moveRows.map(r => ({
+      n: r.name, dmg: parseFloat(r.damage), energy: parseFloat(r.energy),
+      ad: parseFloat(r.turns), type: r.category, elem: r.type,
+    }));
+
+    const map = {};
+    for(const r of movepoolRows){
+      const key = r.pokemon;
+      if(!key) continue;
+      if(!map[key]) map[key] = { fast: [], charged: [] };
+      map[key][r.category === "charge" ? "charged" : "fast"].push(r.move);
+    }
+    POKEMON_MOVEPOOL = map;
+
+    applyEliteFlags(movepoolRows);
+    POKEMON_NAME_LIST = POKEMON_DB.map(p => p.n);
+    movepoolReady = true;
+  }catch(e){
+    movepoolLoadFailed = true;
+    console.error("Failed to load core calculator data:", e);
+  }
+  refreshMoveDropdowns();
+}
+
+// Re-populate both move dropdowns now that real data exists, then replay whatever the user (or a
+// shared link) had already selected. Without this, anything chosen during the load window would
+// silently vanish, which looks exactly like a broken page.
+function refreshMoveDropdowns(){
+  if(movepoolLoadFailed){
+    const warn = document.getElementById("movepoolLoadError");
+    if(warn) warn.style.display = "";
+    return;
+  }
+  const pending = PENDING_MOVE_SELECTION;
+  if(document.getElementById("pokemonName").value.trim()) updateMoveOptionsFor("pokemonName","playerCM","playerFM");
+  if(document.getElementById("bossName").value.trim()) updateMoveOptionsFor("bossName","bossCM","bossFM");
+  if(pending){
+    restoreMoveSelection("playerCM", pending.playerCM);
+    restoreMoveSelection("playerFM", pending.playerFM);
+    restoreMoveSelection("bossCM", pending.bossCM);
+    restoreMoveSelection("bossFM", pending.bossFM);
+    PENDING_MOVE_SELECTION = null;
+  }
+  // Always re-render previews and re-run type detection, not just for shared links: a user who
+  // typed a Pokemon name while the CSVs were still in flight would otherwise be left with no
+  // stat preview and effectiveness stuck at 1x, with nothing on screen indicating why.
+  updatePlayerPreview(); updateBossPreview(); updatePlayerMovePreview();
+  autoSetEffectiveness();
+}
+let MOVE_DB = [];
+// ============ CPM TABLE (levels 40-51, half-level increments) ============
+const CPM = {
+  "20":0.59740001, "21":0.61215729, "22":0.62656713, "23":0.64065295, "24":0.65443563,
+  "25":0.66793400, "26":0.68116492, "27":0.69414365, "28":0.70688421, "29":0.71939909,
+  "30":0.73170000, "30.5":0.73474101, "31":0.73776948, "31.5":0.74078557, "32":0.74378943,
+  "32.5":0.74678120, "33":0.74976104, "33.5":0.75272910, "34":0.75568551, "34.5":0.75863037,
+  "35":0.76156384, "35.5":0.76448607, "36":0.76739717, "36.5":0.77029727, "37":0.77318650,
+  "37.5":0.77606494, "38":0.77893275, "38.5":0.78179006, "39":0.78463697, "39.5":0.78747358,
+  "40":0.79030001, "40.5":0.792803968, "41":0.79530001, "41.5":0.797800015, "42":0.8003,
+  "42.5":0.802799995, "43":0.8053, "43.5":0.8078, "44":0.81029999, "44.5":0.812799985,
+  "45":0.8153, "45.5":0.81779999, "46":0.820299990, "46.5":0.822799990, "47":0.825299990,
+  "47.5":0.827799990, "48":0.830299990, "48.5":0.832799990, "49":0.835299990,
+  "49.5":0.837799990, "50":0.840299990, "50.5":0.842799990, "51":0.845300000,
+  "51.5":0.847803686002838, "52":0.85030, "52.5":0.852803664391751, "53":0.85530,
+};
+const ELITE_CPM = 1.0;
+document.getElementById("pokemonLevelOptions").innerHTML = Object.keys(CPM)
+  .map(Number).sort((a,b) => a-b)
+  .map(lvl => `<option value="${lvl}">`).join("");
+const BOSS_CPM_T4T7 = 0.7903;
+
+// ============ LOOKUPS ============
+function findPokemon(name){
+  const key = (name||"").trim().toLowerCase();
+  const exact = POKEMON_DB.find(p => p.n.toLowerCase() === key);
+  if (exact) return exact;
+  // Shadow Pokemon share identical base stats with their non-shadow form (only the
+  // shadow ATK/DEF multiplier, applied separately via the Shadow Debuff toggle, differs).
+  // Fall back to the base species if no exact "Shadow X" entry exists.
+  if (key.startsWith("shadow ")){
+    const base = key.replace(/^shadow\s+/, "");
+    const baseMatch = POKEMON_DB.find(p => p.n.toLowerCase() === base);
+    if (baseMatch) return baseMatch;
+  }
+  return null;
+}
+function findMove(name){
+  const key = (name||"").trim().toLowerCase();
+  return MOVE_DB.find(m => m.n.toLowerCase() === key) || null;
+}
+function isShadow(name){
+  return /shadow/i.test(name||"");
+}
+
+// ============ STAT CALC ============
+function calcStat(baseStat, iv, level){
+  return (baseStat + iv) * CPM[String(level)];
+}
+
+// ============ PLAYER DAMAGE ============
+function playerMoveDamage(move, attackerName, playerAtk, bossDef, mods){
+  // mods: {eff, weather, stab, partyPower, zacian, primalMega, friendship}
+  const shadowMult = isShadow(attackerName) ? 1.2 : 1;
+  const partyMult = mods.partyPower ? 2 : 1;
+  const weatherMult = mods.weather ? 1.2 : 1;
+  const zacianMult = mods.zacian ? 1.1 : 1;
+  const stabMult = mods.stab ? 1.2 : 1;
+  const raw = move.dmg * shadowMult * mods.eff * partyMult * weatherMult * zacianMult
+              * stabMult * mods.primalMega * mods.friendship * (playerAtk / bossDef);
+  return Math.floor(0.5 * raw) + 1;
+}
+
+// ============ BOSS DAMAGE (to player) ============
+function bossMoveDamage(move, bossAtk, playerDef, mods){
+  // mods: {eff, weather, shadowDebuff, stab, shieldAE}
+  const weatherMult = mods.weather ? 1.2 : 1;
+  const shadowMult = mods.shadowDebuff ? 1.2 : 1;
+  const stabMult = mods.stab ? 1.2 : 1;
+  const shieldMult = mods.shieldAE ? 0.9 : 1;
+  const raw = move.dmg * mods.eff * weatherMult * shadowMult * stabMult * shieldMult
+              * (bossAtk / playerDef);
+  return Math.floor(0.5 * raw) + 1;
+}
+
+// ============ ENERGY FROM TANKING ============
+function energyFromDamage(dmg){
+  return Math.ceil(0.5 * dmg);
+}
+
+// ============ BOSS ATTACK TIMING MODEL (deterministic) ============
+// After a boss charge move lands, the boss chains fast moves back-to-back.
+// First chained FM lands: chargeLandTime + 1 tick (fixed post-CM delay) + FM animation ticks.
+// Every FM after that lands: (previous FM landing tick) + 4 ticks (2.0s) + FM animation ticks.
+// Landing ticks are relative to the boss charge move landing at tick 0.
+// Verified against a real Xerneas Giga Impact + Zen Headbutt sample (6th-tick landing).
+function bossFMLandingTicks(bossFMAnimTicks, count){
+  const landings = [];
+  let t = 0;
+  for(let i = 1; i <= count; i++){
+    t = (i === 1) ? (1 + bossFMAnimTicks) : (t + 4 + bossFMAnimTicks);
+    landings.push(t);
+  }
+  return landings;
+}
+
+// ============ BOSS CONTINUOUS FAST-MOVE CADENCE (standalone, not post-charge-move) ============
+// Used when the boss is just attacking on its own normal cadence with no charge-move landing to
+// anchor against (e.g. Main DPS mode, where the boss never casts a charge move at all). 0-indexed:
+// the first hit lands at tick 0, then every (3 + fm_ad) ticks after that. This is a distinct model
+// from bossFMLandingTicks() above, which is specifically the boss's post-charge-move recovery and
+// chained-fast-move cadence - the two are not interchangeable.
+function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
+  const landings = [];
+  let t = 0;
+  for(let i = 0; i < count; i++){
+    landings.push(t);
+    t += (3 + bossFMAnimTicks);
+  }
+  return landings;
+}
+
+// ============ MAIN CALCULATION ============
+function runCalculation(){
+  const resultsWrap = document.getElementById("resultsWrap");
+
+  // --- gather inputs ---
+  const pkmnName = document.getElementById("pokemonName").value.trim();
+  const level = document.getElementById("pokemonLevel").value.trim();
+  const ivAtkRaw = document.getElementById("ivAtk").value.trim();
+  const ivDefRaw = document.getElementById("ivDef").value.trim();
+  const ivHpRaw = document.getElementById("ivHp").value.trim();
+
+  if(!validateLevel(level) || !validateIV(ivAtkRaw) || !validateIV(ivDefRaw) || !validateIV(ivHpRaw)){
+    resultsWrap.innerHTML = `<div class="empty-result">Fix the highlighted Level/IV fields before calculating (Level 40–51 in 0.5 steps, IVs 0–15).</div>`;
+    return;
+  }
+  const ivAtk = parseInt(ivAtkRaw);
+  const ivDef = parseInt(ivDefRaw);
+  const ivHp = parseInt(ivHpRaw);
+
+  const pkmn = findPokemon(pkmnName);
+  if(!pkmn){
+    resultsWrap.innerHTML = `<div class="empty-result">Enter a valid Pokémon name to calculate.</div>`;
+    return;
+  }
+
+  const playerAtk = calcStat(pkmn.atk, ivAtk, level);
+  const playerDef = calcStat(pkmn.def, ivDef, level);
+  const playerHp = Math.floor(calcStat(pkmn.hp, ivHp, level)); // HP is floored to a whole number in-game
+
+  const cmName = document.getElementById("playerCM").value.trim();
+  const fmName = document.getElementById("playerFM").value.trim();
+  const cm = findMove(cmName);
+  const fm = findMove(fmName);
+  if(!cm || !fm){
+    resultsWrap.innerHTML = `<div class="empty-result">Enter valid Charge and Fast moves to calculate.</div>`;
+    return;
+  }
+
+  const ctMode = document.querySelector('input[name="ctMode"]:checked').value;
+  const doubleCT = ctMode === "double";
+  const mainDPSMode = ctMode === "maindps";
+  // Which cadence Main DPS mode is calculating: the player's own fast moves only, or the
+  // rotation where the boss's charge move (plus trailing fast moves) is absorbed. Only one is
+  // computed and shown at a time - showing both at once made the output hard to read.
+  const cadenceFMOnly = document.getElementById("cadenceMode").value === "fmonly";
+  const cmBuffer = !doubleCT && !mainDPSMode && document.getElementById("cmBuffer").checked;
+  // Resolve Nerf is a player-rotation mechanic (a 1-tick fast move's charge button only appears
+  // at the very end of its animation, so a queued tap buffers into another fast move instead of
+  // resolving the charge move). That's true regardless of what the boss is doing, so it applies
+  // in Main DPS mode too - to BOTH of its cadences - not just the catch-tank modes.
+  const resolveNerf = document.getElementById("resolveNerf").checked;
+  const numCM = parseInt(document.getElementById("numCM").value);
+
+  const playerMods = {
+    eff: 1, // set per-move below
+    weather: false,
+    stab: false,
+    partyPower: document.getElementById("partyPower").checked,
+    zacian: document.getElementById("zacianBlade").checked,
+    primalMega: parseFloat(document.getElementById("primalMega").value),
+    friendship: parseFloat(document.getElementById("friendship").value),
+  };
+
+  const bossName = document.getElementById("bossName").value.trim();
+  const boss = findPokemon(bossName);
+  if(!boss){
+    resultsWrap.innerHTML = `<div class="empty-result">Enter a valid Raid Boss name to calculate.</div>`;
+    return;
+  }
+  const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
+  const t7Enraged = document.getElementById("t7Enraged").checked;
+  let bossAtk = (boss.atk + 15) * bossCPMVal;
+  let bossDef = (boss.def + 15) * bossCPMVal;
+  let bossHp = (boss.hp + 15) * bossCPMVal;
+  if(t7Enraged){ bossDef *= 4; bossAtk *= 1.5; }
+
+  const bossCMName = document.getElementById("bossCM").value.trim();
+  const bossFMName = document.getElementById("bossFM").value.trim();
+  // The boss's charge move is needed everywhere EXCEPT Main DPS mode's fast-moves-only cadence,
+  // which by definition never involves one (its inputs are hidden in that case too, so requiring
+  // it would block calculation on a field the user can't even see).
+  const bossCMOptional = mainDPSMode && cadenceFMOnly;
+  const bossCMMove = findMove(bossCMName);
+  const bossFMMove = findMove(bossFMName);
+  if((!bossCMMove && !bossCMOptional) || !bossFMMove){
+    resultsWrap.innerHTML = bossCMOptional
+      ? `<div class="empty-result">Enter a valid Boss Fast Move to calculate.</div>`
+      : `<div class="empty-result">Enter valid Boss Charge and Fast moves to calculate.</div>`;
+    return;
+  }
+
+  const bossCMMods = !bossCMMove ? null : {
+    eff: parseFloat(document.getElementById("effBossCM").value),
+    weather: isWeatherBoosted(bossCMMove.elem),
+    shadowDebuff: document.getElementById("shadowDebuff").checked,
+    stab: document.getElementById("bossStabCM").checked,
+    shieldAE: document.getElementById("shieldAE").checked,
+  };
+  const bossFMMods = {
+    eff: parseFloat(document.getElementById("effBossFM").value),
+    weather: isWeatherBoosted(bossFMMove.elem),
+    shadowDebuff: document.getElementById("shadowDebuff").checked,
+    stab: document.getElementById("bossStabFM").checked,
+    shieldAE: document.getElementById("shieldAE").checked,
+  };
+
+  const dodgeCM = !doubleCT && document.getElementById("dodgeCM").checked;
+  const dodgeFM = document.getElementById("dodgeFM").checked;
+
+  // --- player move damage (attacking the boss) ---
+  const cmModsPlayer = Object.assign({}, playerMods, {
+    eff: parseFloat(document.getElementById("effCM").value),
+    weather: isWeatherBoosted(cm.elem),
+    stab: document.getElementById("stabCM").checked,
+  });
+  const fmModsPlayer = Object.assign({}, playerMods, {
+    eff: parseFloat(document.getElementById("effFM").value),
+    weather: isWeatherBoosted(fm.elem),
+    stab: document.getElementById("stabFM").checked,
+    partyPower: false, // party power is charge-move only
+  });
+  const chargeDamage = playerMoveDamage(cm, pkmnName, playerAtk, bossDef, cmModsPlayer);
+  const fastDamage = playerMoveDamage(fm, pkmnName, playerAtk, bossDef, fmModsPlayer);
+
+  // --- boss move damage (hitting the player) ---
+  let bossCMDamage = bossCMMove ? bossMoveDamage(bossCMMove, bossAtk, playerDef, bossCMMods) : 0;
+  let bossFMDamage = bossMoveDamage(bossFMMove, bossAtk, playerDef, bossFMMods);
+  if(dodgeCM) bossCMDamage = Math.floor(bossCMDamage * 0.25);
+  if(dodgeFM) bossFMDamage = Math.floor(bossFMDamage * 0.25);
+
+  if(mainDPSMode){
+    // ============ MAIN DPS MODE ============
+    // Pure player rotation math: the boss only ever uses its fast move here (no charge move, no
+    // catch-tanking, no swapping). But the player's Pokemon is still the active target, so every
+    // time the boss's fast move actually lands, the player gains bonus energy from the damage
+    // taken (the same 50%-of-damage-taken mechanic used for absorbing a charge move) - that energy
+    // counts toward the charge move just like the player's own fast-move energy does, and reduces
+    // how many of the player's own fast moves are actually needed to reach the threshold.
+    //
+    // The boss's fast-move landing schedule is 0-indexed here: its first hit lands at tick 0 (the
+    // very start of the encounter), then repeats every bossFMMove.ad ticks - simulated as an
+    // ongoing, independent timeline that keeps landing through charge-move cast animations too,
+    // not just during the player's own fast-move taps.
+    //
+    // For long-term behavior (numCM > 1), each cast's fast-move count is rounded up to the
+    // nearest whole fast move, which almost always overshoots the exact energy needed - that
+    // leftover energy (from both sources) carries into the next cast instead of being wasted, so
+    // simulating several casts in sequence (rather than just multiplying one cycle by N) gives a
+    // more accurate picture of sustained DPS.
+    const mdCmEnergyCost = Math.abs(cm.energy);
+    const bossFMEnergyPerHit = energyFromDamage(bossFMDamage);
+    // reuse the same boss fast-move cadence already established for catch-tank timing elsewhere
+    // in this calculator (first landing at 1+ad, then +4+ad between subsequent landings) - pull a
+    // generous batch upfront, indexed from the start of the encounter.
+    const mdBossLandings = bossFMContinuousLandingTicks(bossFMMove.ad, 200);
+    let mdBossLandingIdx = 0;
+    let mdGlobalTick = 0;
+    let mdEnergyBanked = 0;
+    let mdTotalDamage = 0;
+    let mdBossHitsAbsorbed = 0;
+    const mdCastBreakdown = [];
+    for(let cast = 0; cast < numCM; cast++){
+      let playerTapsThisCast = 0;
+      // absorb any boss FM landings that already happened by the current tick (catches landings
+      // that occurred during the previous cast's charge-move animation)
+      while(mdBossLandingIdx < mdBossLandings.length && mdBossLandings[mdBossLandingIdx] <= mdGlobalTick){
+        mdEnergyBanked += bossFMEnergyPerHit;
+        mdBossHitsAbsorbed++;
+        mdBossLandingIdx++;
+      }
+      while(mdEnergyBanked < mdCmEnergyCost){
+        mdGlobalTick += fm.ad;
+        playerTapsThisCast++;
+        mdEnergyBanked += fm.energy;
+        while(mdBossLandingIdx < mdBossLandings.length && mdBossLandings[mdBossLandingIdx] <= mdGlobalTick){
+          mdEnergyBanked += bossFMEnergyPerHit;
+          mdBossHitsAbsorbed++;
+          mdBossLandingIdx++;
+        }
+      }
+      // Resolve Nerf: on a 1-tick fast move the charge button only appears at the very end of
+      // the animation, so the queued tap buffers into an extra fast move instead of resolving
+      // the charge move - costing 1 tick of dead time, and landing that extra move's damage.
+      // 1-bar charge moves pay it on every cast; 2-bar/3-bar only on the last, since energy
+      // overflow covers the earlier ones for free.
+      const mdNerfsThisCast = (resolveNerf && fm.ad === 1 && (mdCmEnergyCost === 100 || cast === numCM - 1)) ? 1 : 0;
+      mdGlobalTick += mdNerfsThisCast;
+      mdTotalDamage += mdNerfsThisCast * fastDamage;
+
+      mdGlobalTick += cm.ad;
+      mdEnergyBanked -= mdCmEnergyCost; // leftover (from either source) carries into the next cast
+      mdTotalDamage += (playerTapsThisCast * fastDamage) + chargeDamage;
+      mdCastBreakdown.push(playerTapsThisCast);
+    }
+    const mdTotalTicks = mdGlobalTick;
+    const mdSeconds = mdTotalTicks / 2;
+    const mainDPS = mdTotalDamage / Math.max(mdSeconds, 0.1);
+    const mdRotationLabel = numCM === 1
+      ? `${mdCastBreakdown[0]} &times; ${fm.n} &rarr; ${cm.n}`
+      : `${mdCastBreakdown.join("+")} &times; ${fm.n} &rarr; ${cm.n} &nbsp;(${numCM} casts)`;
+
+    // ============ COLUMN 2: ABSORBING THE BOSS'S CHARGE MOVE ============
+    // Moved here from the Single Catch Tank mode, where this was previously its "Main DPS"
+    // column (the no-swap case). It's the same rotation math, using the same boss cadence:
+    //   n=0 -> charge move only                 [no floor beyond the CM animation]
+    //   n=1 -> CM + 1 trailing boss fast move    [bossFM_ad]
+    //   n=2 -> CM + 2 trailing boss fast moves   [bossFM_ad * 2 + 5]
+    // The player banks energy from the damage absorbed (50% of damage taken), which is what
+    // makes this cadence outperform tapping fast moves alone.
+    const mdEnergyFromCM = energyFromDamage(bossCMDamage);
+    const mdEnergyFromBossFM = energyFromDamage(bossFMDamage);
+    const mdCmCost = Math.abs(cm.energy);
+    const mdBossFMAD_ticks = bossFMMove.ad;
+
+    const mdAbsorbRows = [0, 1, 2].map(n => {
+      const totalCostAllCasts = numCM * mdCmCost;
+      const tankBonusForBuildup = mdEnergyFromCM + (n * mdEnergyFromBossFM);
+      const energyNeeded = Math.max(totalCostAllCasts - tankBonusForBuildup, 0);
+      const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad;
+
+      // one mandatory tap still resolves the charge button when banked tank energy alone
+      // already covers the cost - the button doesn't auto-appear without a tap
+      const mandatoryCovers = (totalCostAllCasts > 0 && tankBonusForBuildup >= totalCostAllCasts) ? 1 : 0;
+      const mandatoryFMBonus = mandatoryCovers ? fm.ad : 0;
+
+      // Resolve Nerf (same player-rotation mechanic as the fast-only cadence above): only bites
+      // on 1-tick fast moves. 1-bar charge moves pay it every cast, 2-bar/3-bar only on the last.
+      // De-duped against mandatoryFMBonus, which is the same single forced tap event.
+      const is1TickFM = fm.ad === 1;
+      const is1BarCM = mdCmCost === 100;
+      let resolveNerfExtraCasts = 0;
+      if(resolveNerf && is1TickFM && numCM > 0){
+        resolveNerfExtraCasts = is1BarCM ? numCM : 1;
+      }
+      const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
+
+      // Boss and player rotations run independently: the boss's chained fast moves land while the
+      // player is mid-rotation, charge-move animations included. So the "was there time for n hits
+      // to land" floor is checked against the WHOLE rotation, not against the fast-move phase.
+      // Folding it into innerMax added the boss's fast-move time ON TOP of the charge animations
+      // instead of overlapping with them, and inflated fastPhaseTicks so the numerator credited
+      // fast moves the player never taps.
+      // Only the Fast & Charge cadence reaches this code - Fast Only has no boss charge move to
+      // chain from and models the boss with bossFMContinuousLandingTicks instead.
+      const innerMax = buildupTicks;
+
+      let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+      // n=2 is the player deliberately staying in to take the second hit after their own rotation
+      // has finished - waiting, not acting, so the duration grows but the fast-move count does not.
+      const bossFMFloor = n === 0 ? 0 : n === 1 ? mdBossFMAD_ticks : mdBossFMAD_ticks * 2 + 5;
+      const outerFloor = mdBossFMAD_ticks + 1;
+      ticks = Math.max(outerFloor, bossFMFloor, ticks);
+      ticks += netResolveNerfCasts; // 1 tick of dead time per nerfed cast
+
+      const seconds = ticks / 2;
+      const fastPhaseTicks = Math.max(0, innerMax + mandatoryFMBonus);
+      const fastMoveCountForDPS = fastPhaseTicks / fm.ad;
+      const numerator = (chargeDamage * numCM) + (fastMoveCountForDPS * fastDamage) + (netResolveNerfCasts * fastDamage);
+
+      const cumulativeDamage = bossCMDamage + (n * bossFMDamage);
+      const fainted = cumulativeDamage >= playerHp;
+      const dps = fainted ? 0 : numerator / Math.max(seconds, 0.1);
+
+      // does the boss actually have time to land all n trailing fast moves inside this rotation?
+      let risky = false;
+      let riskyNote = "";
+      if(!fainted && n > 0){
+        const landings = bossFMLandingTicks(mdBossFMAD_ticks, n);
+        const nthLandingTick = landings[n - 1];
+        if(nthLandingTick > ticks){
+          risky = true;
+          riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+        }
+      }
+      return { n, seconds, ticks, dps, fainted, cumulativeDamage, risky, riskyNote };
+    });
+
+    const loadoutHtml = `
+      <div class="loadout-card">
+        <div class="loadout-pokemon">
+          <div class="loadout-sprite">
+            <img class="${needsShadowMist(pkmnName) ? 'shadow-mist' : ''}" src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${pkmnName}')) { this.style.display='none'; }">
+          </div>
+          <div class="loadout-info">
+            <div class="loadout-name">${pkmnName}</div>
+            <div class="loadout-role">Your Pokémon · Lv ${level}</div>
+            <div class="loadout-stats">
+              <span>ATK <b>${playerAtk.toFixed(1)}</b></span>
+              <span>DEF <b>${playerDef.toFixed(1)}</b></span>
+              <span>HP <b>${playerHp}</b></span>
+            </div>
+            <div class="loadout-dmg-line">${cm.n} <b>${chargeDamage}</b> &nbsp;·&nbsp; ${fm.n} <b>${fastDamage}</b></div>
+          </div>
+        </div>
+        <div class="loadout-vs">VS</div>
+        <div class="loadout-pokemon">
+          <div class="loadout-sprite">
+            <img class="${needsShadowMist(bossName) ? 'shadow-mist' : ''}" src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${bossName}')) { this.style.display='none'; }">
+          </div>
+          <div class="loadout-info">
+            <div class="loadout-name">${bossName}</div>
+            <div class="loadout-role">Raid Boss${t7Enraged ? " · T7 Enraged" : ""}</div>
+            <div class="loadout-stats">
+              <span>ATK <b>${bossAtk.toFixed(1)}</b></span>
+              <span>DEF <b>${bossDef.toFixed(1)}</b></span>
+              <span>HP <b>${bossHp.toFixed(1)}</b></span>
+            </div>
+            <div class="loadout-dmg-line">${bossFMMove.n} <b>${bossFMDamage}</b> per hit taken</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const fmOnlyCardHtml = `
+      <div class="dps-result-card">
+        <div class="dps-result-main">
+          <div class="dps-result-label">Fast Moves Only${numCM > 1 ? ` &middot; ${numCM} casts` : ""}</div>
+          <div class="dps-result-value">${mainDPS.toFixed(1)}</div>
+        </div>
+        <div class="dps-result-breakdown">
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Rotation</span>
+            <span class="dps-result-stat-value">${mdRotationLabel}</span>
+          </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Duration</span>
+            <span class="dps-result-stat-value">${mdSeconds.toFixed(2)}s (${mdTotalTicks.toFixed(1)}t)</span>
+          </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Total Damage</span>
+            <span class="dps-result-stat-value">${mdTotalDamage.toFixed(0)}</span>
+          </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Boss FM Energy</span>
+            <span class="dps-result-stat-value">${mdBossHitsAbsorbed} hits &middot; +${mdBossHitsAbsorbed * bossFMEnergyPerHit}</span>
+          </div>
+        </div>
+      </div>`;
+
+    const fmCmTableHtml = `
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Boss FMs Tanked</th>
+            <th>Fast &amp; Charge DPS</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${mdAbsorbRows.map(r => `
+            <tr class="${r.fainted ? "fainted-row" : ""}">
+              <td class="row-label">${r.n}</td>
+              ${r.fainted
+                ? `<td class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
+                : `<td class="dps-val">${r.dps.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}<span class="cell-duration">${formatTime(r.seconds, r.ticks)}</span></td>`}
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+    resultsWrap.innerHTML = loadoutHtml + (cadenceFMOnly ? fmOnlyCardHtml : fmCmTableHtml);
+
+    addToHistory(captureSetup());
+    return;
+  }
+
+  const energyFromCM = energyFromDamage(bossCMDamage);
+  const energyFromBossFM = energyFromDamage(bossFMDamage);
+
+  const fastMoveAD_s = fm.ad / 2;
+  const chargeMoveAD_s = cm.ad / 2;
+  const bossFMAD_s = bossFMMove.ad / 2;
+
+  // --- for each row: 0, 1, 2 boss fast moves tanked ---
+  const cmEnergyCost = Math.abs(cm.energy);
+  const bossFMAD_ticks = bossFMMove.ad;
+
+  // Dodging is a player action just like tapping a fast move - it resolves the charge button
+  // the normal way, so it fully cancels CM Buffer's "immediate, no-tap" premise for this rotation.
+  const effectiveBuffer = cmBuffer && !dodgeCM && !dodgeFM;
+
+  // Build-up ticks for an arbitrary number of tanked hits - lets the single-CT branch ask
+  // whether hit n's energy actually shortened anything, or was surplus.
+  function buildupTicksFor(k){
+    const totalCost = numCM * cmEnergyCost;
+    const bonus = energyFromCM + (k * energyFromBossFM);
+    return Math.ceil(Math.max(totalCost - bonus, 0) / fm.energy) * fm.ad;
+  }
+
+  const rows = doubleCT ? [0, 1, 2].map(n => {
+    // ============ DOUBLE CATCH TANK MODEL ============
+    // The boss's charge move is absorbed TWICE, across two separate swaps. Swap 1 (tank CM #1,
+    // cast exactly one mandatory fast move, swap back out) happens entirely before this rotation's
+    // own timer starts - mirroring how a single absorption isn't counted as elapsed time in the
+    // single-swap model either. But swap 1's energy AND its one mandatory fast move's tick cost
+    // both carry forward into swap 2's buildup below. There's no CM Buffer branch here: swap 1
+    // always includes a real tap by design, so buffer's "zero taps before the first charge-eligible
+    // moment" premise is already broken from the very start. Dodge CM is forced off above too -
+    // the technique requires tanking both charge moves.
+    const totalCostAllCasts = numCM * cmEnergyCost;
+    const tankBonusForBuildup = (2 * energyFromCM) + fm.energy + (n * energyFromBossFM);
+
+    const energyNeeded = Math.max(totalCostAllCasts - tankBonusForBuildup, 0);
+    const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad; // swap-2 top-off taps
+
+    const is1TickFM = fm.ad === 1;
+    const is1BarCM = cmEnergyCost === 100;
+    let resolveNerfExtraCasts = 0;
+    if(resolveNerf && is1TickFM && numCM > 0){
+      resolveNerfExtraCasts = is1BarCM ? numCM : 1;
+    }
+    const mandatoryCovers = (totalCostAllCasts > 0 && tankBonusForBuildup >= totalCostAllCasts) ? 1 : 0;
+    const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
+
+    const innerMax = buildupTicks;
+    const mandatoryFMBonus = mandatoryCovers ? fm.ad : 0;
+    const swap1FMTicks = fm.ad; // always cast, unconditionally, every rotation
+
+    // The tanked fast moves chain off the SECOND absorbed charge move, not the first. Swap 1 is
+    // over before this rotation's timer starts (see the model note above); the boss's post-charge
+    // fast-move chain that gets tanked here follows swap 2's absorption. So the floor is measured
+    // against the swap-2 window alone - swap1FMTicks is carried-forward cost from an earlier
+    // window and would falsely satisfy the floor if it were included.
+    //
+    // As in the other modes, the floor applies to the whole swap-2 rotation rather than to its
+    // fast-move phase, because the boss's hits land during charge animations too. n=2 is the
+    // player waiting out the second hit after their own rotation is done: duration grows, but
+    // fastPhaseTicks does not, so no extra fast moves are credited for standing still.
+    const swap2Ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+    const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
+    let ticks = swap1FMTicks + Math.max(swap2Ticks, bossFMFloor);
+    const outerFloor = bossFMAD_ticks + 1;
+    ticks = Math.max(outerFloor, ticks);
+
+    const dodgeFMTicks = dodgeFM ? (n === 2 ? 4 : 2) : 0;
+    ticks += dodgeFMTicks;
+    ticks += netResolveNerfCasts;
+
+    // the risky timing check below is about the boss's actual in-battle attack cadence, so it
+    // needs the ticks value BEFORE swap time is added - swap time is real-world menu time, not
+    // battle time, and shouldn't give the boss's fast moves false extra room to land within.
+    const battleTicks = ticks;
+
+    // swap time: 1.0s (2 ticks) per swap, and this technique requires two separate swaps
+    // (in to tank CM #1, out, back in to tank CM #2) - added directly into the displayed
+    // duration itself, not just folded into the DPS denominator, so Seconds/Ticks reflect
+    // the real total time this technique takes end to end.
+    const swapTimeTicks = 4; // 2 swaps x 1.0s (2 ticks) each
+    ticks += swapTimeTicks;
+
+    const seconds = ticks / 2;
+    const fastPhaseTicks = Math.max(0, innerMax + mandatoryFMBonus);
+    const fastMoveCountForDPS = (fastPhaseTicks / fm.ad) + 1; // +1 for swap 1's own fast move
+
+    const numerator = (chargeDamage * numCM) + (fastMoveCountForDPS * fastDamage) + (netResolveNerfCasts * fastDamage);
+
+    // TWO charge-move absorptions now count toward cumulative damage taken
+    const cumulativeDamage = (2 * bossCMDamage) + n * bossFMDamage;
+    const fainted = cumulativeDamage >= playerHp;
+
+    // double catch tank only ever reports Catch Tank DPS - the two-swap overhead is already
+    // included in seconds above, so no additional time gets added here
+    const ctDPS = fainted ? 0 : numerator / Math.max(seconds, 0.1);
+
+    let risky = false;
+    let riskyNote = "";
+    if(!fainted && n > 0){
+      const landings = bossFMLandingTicks(bossFMAD_ticks, n);
+      const nthLandingTick = landings[n - 1];
+      if(nthLandingTick > battleTicks){
+        risky = true;
+        riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${battleTicks.toFixed(1)}t of battle time) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+      }
+    }
+
+    return {
+      n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
+      trailingDPS: null, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
+    };
+  }) : [0, 1, 2].map(n => {
+    const totalCostAllCasts = numCM * cmEnergyCost;
+
+    // Casts chainable purely off the INITIAL CM burst (energyFromCM alone), with zero taps.
+    // Floor division: overshoot beyond one cast's cost carries into the next free cast, but
+    // leftover under a full cast's cost doesn't grant an extra one. Later boss-FM tank energy
+    // (the n multiplier) is deliberately excluded here - by the time those hits land, the player
+    // would already have had to start tapping fast moves for any cast the initial burst didn't
+    // cover, so it can only reduce buildup for the remaining casts below, never grant a fresh
+    // free cast of its own.
+    const freeCasts = effectiveBuffer ? Math.min(numCM, Math.floor(energyFromCM / cmEnergyCost)) : 0;
+    const consumedByFreeCasts = freeCasts * cmEnergyCost;
+    const leftoverBurstEnergy = energyFromCM - consumedByFreeCasts;
+    const remainingCasts = numCM - freeCasts;
+    const remainingCost = remainingCasts * cmEnergyCost;
+
+    // energy available toward the remaining (non-buffered) casts: leftover credit from the
+    // initial burst, plus energy from any boss fast moves tanked afterward.
+    const tankBonusForBuildup = leftoverBurstEnergy + n * energyFromBossFM;
+
+    const energyNeeded = Math.max(remainingCost - tankBonusForBuildup, 0);
+    const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad;
+
+    // energy resolve nerf: only exists for 0.5s/1-tick fast moves - on a 2t+ fast move the charge
+    // button loads within the animation itself, so there's no missed-tap window. On a 1-tick move
+    // the button only appears at the very end of the cycle, so the player's queued tap buffers into
+    // another fast move instead - that's the bug. This only applies to the remaining (non-buffered)
+    // casts - free casts never involve a tap to resolve, so they can't be nerfed.
+    const is1TickFM = fm.ad === 1;
+    const is1BarCM = cmEnergyCost === 100; // 100 energy = 1-bar, 50/33 = 2-bar/3-bar
+    let resolveNerfExtraCasts = 0;
+    if(resolveNerf && is1TickFM && remainingCasts > 0){
+      // 1-bar: every remaining cast pays it. 2-bar/3-bar: only the final cast (energy overflow covers earlier casts for free).
+      resolveNerfExtraCasts = is1BarCM ? remainingCasts : 1;
+    }
+    // de-dupe against mandatoryFMBonus below: when tank damage alone covers the remaining energy
+    // cost, that's the same forced post-swap fast move resolve nerf would otherwise also charge
+    // for once - confirmed this is a single real event, not two, so don't double-charge it
+    const mandatoryCovers = (remainingCost > 0 && tankBonusForBuildup >= remainingCost) ? 1 : 0;
+    const netResolveNerfCasts = Math.max(0, resolveNerfExtraCasts - mandatoryCovers);
+
+    // The player's rotation and the boss's are independent: the boss's fast moves land while the
+    // player is mid-rotation, including during charge-move animations. So the "is there time for
+    // the boss to land n fast moves" floor is checked against the WHOLE rotation below, not
+    // against the fast-move phase alone.
+    //
+    // It used to be folded in here as Math.max(buildupTicks, floorTerm), which added the boss's
+    // fast-move time ON TOP of the charge-move animations rather than overlapping with them.
+    // That made an identical rotation report two different durations: Shadow Garchomp (Dragon
+    // Tail / Breaking Swipe) casting 1 fast + 2 charge against Regidrago came out 3.0s with no
+    // fast move tanked and 3.5s with one tanked, despite the player doing exactly the same thing
+    // both times. It only showed up when the tank's energy burst covered the casts outright
+    // (buildupTicks = 0), so the floor had nothing else to hide behind.
+    let innerMax = buildupTicks;
+
+    // one mandatory tap is still needed to resolve the button on the first non-buffered cast if
+    // tank energy alone (banked, no buildup) already covers its cost - even with no buffer, the
+    // button doesn't auto-appear without at least one tap. Free casts never need this either.
+    const mandatoryFMBonus = mandatoryCovers ? fm.ad : 0;
+
+    let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
+
+    // Boss fast-move floors, now against the full rotation. These only bind when the player's
+    // own rotation is genuinely too short for the boss to have landed n hits - which is the real
+    // constraint - rather than every time a hit is tanked.
+    // A tanked fast move's energy cannot be spent before that fast move lands. The boss's
+    // chained hits land on a fixed schedule (bossFMLandingTicks): the 1st at 1+animTicks, the
+    // 2nd at 2*animTicks+5. If the player leans on hit n's energy to shorten their build-up,
+    // they must still be standing there at that tick - so the FAST PHASE cannot end sooner.
+    //
+    // This was wrong before, and visibly so. Necrozma Dawn Wings (Psycho Cut / Moongeist Beam)
+    // against Blacephalon (Incinerate / Overheat): Incinerate has 5 animation ticks, so its
+    // chained hit lands at tick 6 - exactly 3.0s, exactly when Moongeist Beam is cast. Tanking
+    // it cut build-up from 6 ticks to 4, moving the cast to tick 4 and crediting energy from a
+    // hit that had not arrived. Flooring the fast phase at the landing tick makes 0 and 1 hits
+    // tanked come out identical here, which is correct: the hit lands as the cast happens, so
+    // it buys nothing.
+    //
+    // A tanked hit's energy cannot be spent before the hit lands.
+    //
+    // Build-up was reduced by the tank bonus outright, which let the charge move be cast EARLIER
+    // than the hit that paid for it. Necrozma Dawn Wings (Psycho Cut / Moongeist Beam) vs
+    // Blacephalon (Incinerate / Overheat) needs 6 fast ticks unaided; Incinerate lands at tick 6.
+    // With 1 hit tanked the model dropped build-up to 4 and cast at tick 4 - two ticks before the
+    // energy existed. Flooring only the total duration hid that in the timing but not in the
+    // damage: the rotation still credited 4 fast moves instead of 6, so DPS differed for what is
+    // physically the identical rotation.
+    //
+    // castTick is when the charge move actually goes off:
+    //   * never before the last relied-on hit lands (its energy does not exist yet), and
+    //   * never later than the player would have managed unaided - a hit landing after the
+    //     unaided cast time simply buys nothing and the player casts on schedule.
+    // The unaided time is recomputed the same way as this row's, mandatory tap included, so a
+    // floored build-up cannot double-count that tap on top of the wait.
+    const landings = bossFMLandingTicks(bossFMAD_ticks, Math.max(n, 1));
+    const lastLanding = n > 0 ? landings[n - 1] : 0;
+
+    function castTickFor(k){
+      const bonus = leftoverBurstEnergy + k * energyFromBossFM;
+      const need = Math.max(remainingCost - bonus, 0);
+      const build = Math.ceil(need / fm.energy) * fm.ad;
+      const mand = (remainingCost > 0 && bonus >= remainingCost) ? fm.ad : 0;
+      return build + mand;
+    }
+    const naturalCast = buildupTicks + mandatoryFMBonus;
+    const castTick = n > 0
+      ? Math.min(castTickFor(0), Math.max(naturalCast, lastLanding))
+      : naturalCast;
+
+    // Rebuild both phases from castTick so damage and duration always agree.
+    innerMax = Math.max(0, castTick - mandatoryFMBonus);
+    ticks = castTick + (cm.ad * numCM);
+
+    // Staying in for hit n extends the rotation only when the player's own rotation ends first;
+    // that extra time is spent waiting, so it adds no fast moves.
+    const outerFloor = bossFMAD_ticks + 1;
+    ticks = Math.max(outerFloor, ticks, n > 0 ? lastLanding : 0);
+
+    // dodge terms (in ticks); FM dodge is asymmetric per confirmed sheet behavior
+    const dodgeCMTicks = dodgeCM ? 2 : 0;
+    const dodgeFMTicks = dodgeFM ? (n === 2 ? 4 : 2) : 0;
+    ticks += dodgeCMTicks + dodgeFMTicks;
+
+    // energy resolve nerf: 1 tick of dead time per nerfed cast, plus that cast's wasted fast move
+    // still lands its damage (credited in the numerator below)
+    ticks += netResolveNerfCasts;
+
+    const seconds = ticks / 2;
+
+    // fast move count for DPS numerator: based on actual fast-move-phase ticks
+    // (can exceed the energy-minimum when the boss-timing floor binds), not the energy-only count
+    const fastPhaseTicks = Math.max(0, innerMax + mandatoryFMBonus);
+    const fastMoveCountForDPS = fastPhaseTicks / fm.ad;
+
+    let numerator = (chargeDamage * numCM) + (fastMoveCountForDPS * fastDamage) + (netResolveNerfCasts * fastDamage);
+
+    // faint check: if the boss's charge move hit plus any tanked fast moves would exceed the player's HP,
+    // the Pokemon doesn't survive to complete the rotation - DPS is 0, not a misleadingly high number
+    const cumulativeDamage = bossCMDamage + n * bossFMDamage;
+    const fainted = cumulativeDamage >= playerHp;
+
+    const trailingDPS = fainted ? 0 : numerator / Math.max(seconds + 0.5, 0.1);
+    const ctDPS = fainted ? 0 : numerator / Math.max(seconds + 1.0, 0.1);
+
+    // timing-based risk check: does the boss actually have time to land all n tanked fast moves
+    // within this row's own rotation duration, per the deterministic landing-time model?
+    // This doesn't replace the fainted check above - it flags rows where the static damage sum
+    // and the real attack-timing schedule disagree, so the "n FMs tanked" premise itself may not
+    // hold up in an actual raid.
+    let risky = false;
+    let riskyNote = "";
+    if(!fainted && n > 0){
+      const landings = bossFMLandingTicks(bossFMAD_ticks, n);
+      const nthLandingTick = landings[n - 1];
+      if(nthLandingTick > ticks){
+        risky = true;
+        riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+      }
+    }
+
+    return {
+      n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
+      trailingDPS, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
+      trailingSeconds: Math.max(seconds+0.5,0), trailingTicks: Math.max(ticks+1,0),
+      ctSeconds: Math.max(seconds+1.0,0), ctTicks: Math.max(ticks+2,0),
+    };
+  });
+
+  // stash everything the CSV export needs, keyed by row index (n), so submitSelectedRows()
+  // can read it after the fact without recomputing anything
+  const bossQualifies = bossAcceptsSubmissions(bossName);
+  const submitThreshold = submitThresholdFor(bossName);
+  lastCalcContext = {
+    bossQualifies,
+    bossName,
+    fields: {
+      pokemonName: pkmnName, level, ivAtk, ivDef, ivHp,
+      playerFM: fm.n, playerCM: cm.n,
+      zacianBlade: document.getElementById("zacianBlade").checked,
+      weather: document.getElementById("weatherSelect").value,
+      bossFM: bossFMMove.n, bossCM: bossCMMove.n,
+      shieldAE: document.getElementById("shieldAE").checked,
+      dodgeCM, dodgeFM,
+      cmBuffer, resolveNerf,
+      numCM, doubleCT,
+    },
+    rowsByN: {},
+  };
+  rows.forEach(r => { lastCalcContext.rowsByN[r.n] = r; });
+
+  // --- render results ---
+  const loadoutHtml = `
+    <div class="loadout-card">
+      <div class="loadout-pokemon">
+        <div class="loadout-sprite">
+          <img class="${needsShadowMist(pkmnName) ? 'shadow-mist' : ''}" src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${pkmnName}')) { this.style.display='none'; }">
+        </div>
+        <div class="loadout-info">
+          <div class="loadout-name">${pkmnName}</div>
+          <div class="loadout-role">Your Pokémon · Lv ${level}</div>
+          <div class="loadout-stats">
+            <span>ATK <b>${playerAtk.toFixed(1)}</b></span>
+            <span>DEF <b>${playerDef.toFixed(1)}</b></span>
+            <span>HP <b>${playerHp}</b></span>
+          </div>
+          <div class="loadout-dmg-line">${cm.n} <b>${chargeDamage}</b> &nbsp;·&nbsp; ${fm.n} <b>${fastDamage}</b></div>
+        </div>
+      </div>
+      <div class="loadout-vs">VS</div>
+      <div class="loadout-pokemon">
+        <div class="loadout-sprite">
+          <img class="${needsShadowMist(bossName) ? 'shadow-mist' : ''}" src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${bossName}')) { this.style.display='none'; }">
+        </div>
+        <div class="loadout-info">
+          <div class="loadout-name">${bossName}</div>
+          <div class="loadout-role">Raid Boss${t7Enraged ? " · T7 Enraged" : ""}</div>
+          <div class="loadout-stats">
+            <span>ATK <b>${bossAtk.toFixed(1)}</b></span>
+            <span>DEF <b>${bossDef.toFixed(1)}</b></span>
+            <span>HP <b>${bossHp.toFixed(1)}</b></span>
+          </div>
+          <div class="loadout-dmg-line">${bossCMMove.n} <b>${bossCMDamage}</b> &nbsp;·&nbsp; ${bossFMMove.n} <b>${bossFMDamage}</b></div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const anyQualifies = bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= submitThreshold);
+
+  resultsWrap.innerHTML = loadoutHtml + `
+    <table class="results-table">
+      <thead>
+        <tr>
+          ${anyQualifies ? `<th class="submit-col"></th>` : ""}
+          <th>Boss FMs Tanked</th>
+          ${doubleCT ? `
+          <th>Duration</th>
+          <th>Catch Tank DPS</th>` : `
+          <th>Trailing DPS</th>
+          <th>Catch Tank DPS</th>`}
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => {
+          const qualifies = anyQualifies && !r.fainted && r.ctDPS >= submitThreshold;
+          return `
+          <tr class="${r.fainted ? "fainted-row" : ""}">
+            ${anyQualifies ? `<td class="submit-col">${qualifies ? `<input type="radio" name="submitRow" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</td>` : ""}
+            <td class="row-label">${r.n}</td>
+            ${r.fainted
+              ? `<td colspan="2" class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
+              : doubleCT
+              ? `
+            <td>${formatTime(r.seconds, r.ticks)}</td>
+            <td class="dps-val">${r.ctDPS.toFixed(1)} dps ${rejoinBadgeHtml(r.ctDPS)}${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}</td>`
+              : `
+            <td class="dps-val">${r.trailingDPS.toFixed(1)} dps<span class="cell-duration">${formatTime(r.trailingSeconds, r.trailingTicks)}</span></td>
+            <td class="dps-val">${r.ctDPS.toFixed(1)} dps ${rejoinBadgeHtml(r.ctDPS)}${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}<span class="cell-duration">${formatTime(r.ctSeconds, r.ctTicks)}</span></td>`}
+          </tr>
+        `;
+        }).join("")}
+      </tbody>
+    </table>
+    <div class="results-card-grid">
+      <div class="results-card" id="resultsCard">
+        <div class="results-card-vs">
+          <div class="results-card-mon">
+            <div class="results-card-icon"><img class="${needsShadowMist(pkmnName) ? 'shadow-mist' : ''}" src="${spriteUrl(pkmnName)}" alt="${pkmnName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${pkmnName}')) { this.style.display='none'; }"></div>
+            <div style="min-width:0;">
+              <div class="results-card-name">${pkmnName}</div>
+              <div class="results-card-moves">${fm.n}<br>${cm.n}</div>
+            </div>
+          </div>
+          <div class="results-card-vs-label">vs</div>
+          <div class="results-card-mon right">
+            <div style="min-width:0;">
+              <div class="results-card-name">${bossName}</div>
+              <div class="results-card-moves">${bossFMMove.n}<br>${bossCMMove.n}</div>
+            </div>
+            <div class="results-card-icon"><img class="${needsShadowMist(bossName) ? 'shadow-mist' : ''}" src="${spriteUrl(bossName)}" alt="${bossName}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${bossName}')) { this.style.display='none'; }"></div>
+          </div>
+        </div>
+        <div class="results-card-meta">
+          <span>Lv ${level}</span>
+          <span>${document.getElementById("weatherSelect").value}</span>
+          <span></span>
+        </div>
+        <div class="results-card-rows">
+          ${rows.map(r => {
+            const qualifies = anyQualifies && !r.fainted && r.ctDPS >= submitThreshold;
+            return `
+          <div class="results-card-row">
+            <span class="results-card-row-radio">${anyQualifies && qualifies ? `<input type="radio" name="submitRowCard" class="submit-checkbox" data-n="${r.n}" title="Select this row to submit to the CT Database">` : ""}</span>
+            <span class="results-card-row-label">${r.n} FM${r.n === 1 ? "" : "s"} tanked</span>
+            ${r.fainted
+              ? `<span class="results-card-row-fainted">💀 Fainted — ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</span>`
+              : doubleCT
+              ? `
+            <span class="results-card-row-time">${formatTime(r.seconds, r.ticks)}</span>
+            <div class="results-card-row-dps">
+              <div>CT DPS: <b class="results-card-ct">${r.ctDPS.toFixed(1)}</b>${r.risky ? ` <span class="results-card-risky" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️</span>` : ""}</div>
+            </div>`
+              : `
+            <div class="results-card-row-dps">
+              <div>CT DPS: <b class="results-card-ct">${r.ctDPS.toFixed(1)}</b>${r.risky ? ` <span class="results-card-risky" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️</span>` : ""}<span class="results-card-row-time-inline">${formatTime(r.ctSeconds, r.ctTicks)}</span></div>
+              <div class="results-card-row-sub">Trailing ${r.trailingDPS.toFixed(1)} (${formatTime(r.trailingSeconds, r.trailingTicks)})</div>
+            </div>`}
+          </div>`;
+          }).join("")}
+        </div>
+        ${doubleCT ? "" : `
+        <div class="results-card-toggle-row">
+          <button type="button" class="results-card-toggle" onclick="document.getElementById('resultsCard').classList.toggle('open')" aria-label="Show Main and Trailing DPS">&#9662;</button>
+        </div>`}
+      </div>
+    </div>
+    ${anyQualifies ? `
+    <div class="submit-panel">
+      <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> and <b>Tier 4 Mega</b> raids. ${isTier4MegaBoss(bossName) ? `"${bossName}" is a Tier 4 Mega, so rows scoring ${CT_SUBMIT_THRESHOLD_MEGA}+` : `Rows scoring ${CT_SUBMIT_THRESHOLD}+`} Catch Tank DPS are eligible — check <b>one row</b> to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
+      <button type="button" class="submit-btn" onclick="submitSelectedRows()">Submit Selected to CT Database</button>
+    </div>` : (!doubleCT && bossName && !bossQualifies) ? `
+    <div class="submit-panel submit-panel-disabled">
+      <div class="submit-note">CT Database submissions are currently accepted for <b>Tier 5</b> and <b>Tier 4 Mega</b> raid bosses. "${bossName}" isn't on either list.</div>
+    </div>` : ""}
+  `;
+
+  addToHistory(captureSetup());
+}
+
+// ============ CT DATABASE SUBMISSION (opens a pre-filled Google Form, no backend) ============
+const CT_FORM_BASE = "https://docs.google.com/forms/d/e/1FAIpQLSdNhodTO-dLmto3mI09IMgA4UmjSNtFcpaZFLViQIrd5yaOhw/viewform";
+const CT_FORM_ENTRIES = {
+  pokemon: "884894955", level: "391332725", ivs: "1087192",
+  playerMoveset: "2082089241", zacianBlade: "2099362724",
+  boss: "40267820", weather: "1173901629", bossMoveset: "1438052943",
+  shieldAE: "1864788093", dodges: "2043854718", timingMods: "247891686",
+  chargeCasts: "1550834516", fmsTanked: "490095272",
+  ticks: "2008929913", seconds: "930703322",
+  trailingDPS: "376297052", ctDPS: "37575726", risky: "1742382831",
+};
+
+// ============ DUPLICATE CHECKS (pre-submission) ============
+// There was no duplicate check at all before this: submitSelectedRows() built the prefilled form
+// URL and opened it, so the same entry could be sent repeatedly and equivalent-but-differently-
+// stated entries piled up in the sheet.
+//
+// Three things are checked, and none of them blocks - each one asks for confirmation, because
+// only the submitter knows whether an apparent duplicate is actually a distinct run.
+
+// Re-runs the calculation with some inputs temporarily overridden and returns the resulting rows.
+// runCalculation() reads straight from the DOM and has no override parameter, so the inputs are
+// swapped, it is called, and everything is put back - including a final re-run so the visible
+// results and lastCalcContext match what the user actually entered.
+function calcWithOverrides(overrides){
+  const ids = Object.keys(overrides);
+  const saved = {};
+  ids.forEach(id => { const el = document.getElementById(id); if(el) saved[id] = el.value; });
+  ids.forEach(id => { const el = document.getElementById(id); if(el) el.value = overrides[id]; });
+
+  let variantRows = null;
+  try{
+    runCalculation();
+    if(lastCalcContext) variantRows = lastCalcContext.rowsByN;
+  }catch(e){
+    console.error("Duplicate check: variant calculation failed", e);
+  }
+
+  ids.forEach(id => { const el = document.getElementById(id); if(el && saved[id] !== undefined) el.value = saved[id]; });
+  runCalculation();          // restore the real numbers and lastCalcContext
+  return variantRows;
+}
+
+// Two rows are "the same result" when the numbers a reader would compare are identical. DPS is
+// compared at one decimal because that is the precision the sheet stores and the site displays -
+// a difference below that is not visible anywhere and does not make the entry distinct.
+function sameOutcome(a, b){
+  if(!a || !b) return false;
+  const dps = (x) => (x.ctDPS != null ? x.ctDPS : x.dps);
+  const near = (x, y) => x != null && y != null && Math.abs(x - y) < 0.05;
+  return near(dps(a), dps(b)) && near(a.seconds, b.seconds) && !!a.fainted === !!b.fainted;
+}
+
+// Exact match against what is already in the sheet. Compares the fields that define a run; the
+// computed outputs are deliberately NOT compared, since two identical setups must produce
+// identical outputs anyway and comparing them would only mask a genuine duplicate.
+async function findExistingSubmission(f, bossName, n, trailingDPSText){
+  try{
+    const res = await fetch("/csv/ct-database.csv", { cache: "no-store" });
+    if(!res.ok) return null;
+    const rows = parseCSV(await res.text());
+    const header = (rows.shift() || []).map(h => String(h).trim());
+    const col = (name) => header.indexOf(name);
+    const iP = col("Pokemon"), iL = col("Level"), iIV = col("IVs"), iPM = col("Player Moveset");
+    const iB = col("Boss"), iW = col("Weather"), iBM = col("Boss Moveset"), iFM = col("Boss FM Tanked");
+    const iBlade = col("Zacian Blade boost"), iShield = col("Zamazenta Shield Boost");
+    const iCM = col("# of Charge moves cast");
+    if(iP < 0 || iB < 0) return null;
+
+    const norm = (x) => String(x == null ? "" : x).trim().toLowerCase();
+    const want = {
+      p: norm(f.pokemonName), l: norm(f.level), iv: norm(`${f.ivAtk}/${f.ivDef}/${f.ivHp}`),
+      pm: norm(`${f.playerFM} / ${f.playerCM}`), b: norm(bossName), w: norm(f.weather),
+      bm: norm(`${f.bossFM} / ${f.bossCM}`), fm: norm(n),
+      blade: f.zacianBlade ? "yes" : "no", shield: f.shieldAE ? "yes" : "no", cm: norm(f.numCM),
+    };
+    return rows.find(r =>
+      norm(r[iP]) === want.p && norm(r[iB]) === want.b &&
+      (iL < 0 || norm(r[iL]) === want.l) && (iIV < 0 || norm(r[iIV]) === want.iv) &&
+      (iPM < 0 || norm(r[iPM]) === want.pm) && (iW < 0 || norm(r[iW]) === want.w) &&
+      (iBM < 0 || norm(r[iBM]) === want.bm) && (iFM < 0 || norm(r[iFM]) === want.fm) &&
+      (iBlade < 0 || norm(r[iBlade]) === want.blade) &&
+      (iShield < 0 || norm(r[iShield]) === want.shield) &&
+      (iCM < 0 || norm(r[iCM]) === want.cm)
+    ) || null;
+  }catch(e){
+    // Never block a submission because the check itself failed.
+    console.error("Duplicate check: could not read csv/ct-database.csv", e);
+    return null;
+  }
+}
+
+// Returns the warnings that apply, as plain sentences.
+async function duplicateWarnings(f, bossName, n, row, trailingDPSText){
+  const warnings = [];
+
+  const existing = await findExistingSubmission(f, bossName, n, trailingDPSText);
+  if(existing) warnings.push("This exact setup is already in the CT Database - same Pokemon, level, IVs, movesets, boss, weather and toggles.");
+
+  // IVs that change nothing. Stats are quantised, so a spread below 15/15/15 very often lands on
+  // the same attack/defence values after the CPM multiplier, producing an identical result.
+  if(!(f.ivAtk === 15 && f.ivDef === 15 && f.ivHp === 15)){
+    const variant = calcWithOverrides({ ivAtk: "15", ivDef: "15", ivHp: "15" });
+    if(variant && sameOutcome(row, variant[n])){
+      warnings.push(`These IVs (${f.ivAtk}/${f.ivDef}/${f.ivHp}) give exactly the same DPS and duration as 15/15/15, so the entry adds nothing a 15/15/15 entry would not.`);
+    }
+  }
+
+  // Weather that changes nothing - no boosted move on either side, so the entry duplicates the
+  // neutral-weather one.
+  if(String(f.weather).toLowerCase() !== "extreme"){
+    const variant = calcWithOverrides({ weatherSelect: "extreme" });
+    if(variant && sameOutcome(row, variant[n])){
+      warnings.push(`${f.weather} weather gives exactly the same DPS and duration as Extreme (no boost) here - nothing in this matchup is weather-boosted.`);
+    }
+  }
+  return warnings;
+}
+
+async function submitSelectedRows(){
+  if(!lastCalcContext) return;
+  const checked = [...document.querySelectorAll(".submit-checkbox:checked")];
+  if(checked.length === 0){
+    alert("Check a row before submitting.");
+    return;
+  }
+  if(checked.length > 1){
+    alert("Submit one row at a time - check just the single row you want to send.");
+    return;
+  }
+  const f = lastCalcContext.fields;
+  const n = parseInt(checked[0].dataset.n);
+  const r = lastCalcContext.rowsByN[n];
+  const dodges = (f.dodgeCM && f.dodgeFM) ? "Both" : f.dodgeCM ? "CM" : f.dodgeFM ? "FM" : "None";
+  const timingMods = (f.cmBuffer && f.resolveNerf) ? "Both" : f.cmBuffer ? "CM Buffer" : f.resolveNerf ? "Resolve Nerf" : "None";
+  // Trailing DPS genuinely doesn't apply to double catch tank - it's a single-role technique
+  // (there's only ever a Catch Tank swap-in, never a "trailing swap" scenario for it).
+  // Submitting "N/A" here is what lets the CT Database tell single-CT and double-CT entries
+  // apart later. This used to be detectable from EITHER Main DPS or Trailing DPS being "N/A";
+  // now that Main DPS has been removed from the form and sheet entirely, Trailing DPS is the
+  // only remaining signal, so it carries that job alone.
+  const trailingDPSText = f.doubleCT ? "N/A (Double CT)" : r.trailingDPS.toFixed(1);
+
+  // Warn, never block: only the submitter knows whether an apparent duplicate is a distinct run,
+  // so each warning is a confirmation the user can override.
+  const warnings = await duplicateWarnings(f, lastCalcContext.bossName, n, r, trailingDPSText);
+  if(warnings.length){
+    const msg = (warnings.length === 1 ? "This looks like a duplicate:\n\n" : "This looks like a duplicate:\n\n")
+      + warnings.map(w => "\u2022 " + w).join("\n\n")
+      + "\n\nSubmit anyway?";
+    if(!confirm(msg)) return;
+  }
+
+  const params = new URLSearchParams();
+  params.set(`entry.${CT_FORM_ENTRIES.pokemon}`, f.pokemonName);
+  params.set(`entry.${CT_FORM_ENTRIES.level}`, f.level);
+  params.set(`entry.${CT_FORM_ENTRIES.ivs}`, `${f.ivAtk}/${f.ivDef}/${f.ivHp}`);
+  params.set(`entry.${CT_FORM_ENTRIES.playerMoveset}`, `${f.playerFM} / ${f.playerCM}`);
+  params.set(`entry.${CT_FORM_ENTRIES.zacianBlade}`, f.zacianBlade ? "Yes" : "No");
+  params.set(`entry.${CT_FORM_ENTRIES.boss}`, lastCalcContext.bossName);
+  params.set(`entry.${CT_FORM_ENTRIES.weather}`, f.weather);
+  params.set(`entry.${CT_FORM_ENTRIES.bossMoveset}`, `${f.bossFM} / ${f.bossCM}`);
+  params.set(`entry.${CT_FORM_ENTRIES.shieldAE}`, f.shieldAE ? "Yes" : "No");
+  params.set(`entry.${CT_FORM_ENTRIES.dodges}`, dodges);
+  params.set(`entry.${CT_FORM_ENTRIES.timingMods}`, timingMods);
+  params.set(`entry.${CT_FORM_ENTRIES.chargeCasts}`, String(f.numCM));
+  params.set(`entry.${CT_FORM_ENTRIES.fmsTanked}`, String(n));
+  params.set(`entry.${CT_FORM_ENTRIES.ticks}`, r.ticks.toFixed(1));
+  params.set(`entry.${CT_FORM_ENTRIES.seconds}`, r.seconds.toFixed(2));
+  params.set(`entry.${CT_FORM_ENTRIES.trailingDPS}`, trailingDPSText);
+  params.set(`entry.${CT_FORM_ENTRIES.ctDPS}`, r.ctDPS.toFixed(1));
+  params.set(`entry.${CT_FORM_ENTRIES.risky}`, r.risky ? "Yes" : "No");
+
+  window.open(`${CT_FORM_BASE}?${params.toString()}`, "_blank");
+}
+
+// ============ SETUP HISTORY (saved via localStorage on this device/browser) ============
+const SETUP_FIELD_IDS = [
+  "pokemonName","pokemonLevel","ivAtk","ivDef","ivHp",
+  "playerCM","playerFM","effCM","effFM","stabCM","stabFM",
+  "friendship","primalMega","numCM",
+  "weatherSelect","dodgeCM","dodgeFM","t7Enraged","shieldAE","zacianBlade","cmBuffer","partyPower","resolveNerf",
+  "bossName","bossTier","bossCM","bossFM",
+  "effBossCM","effBossFM","bossStabCM","bossStabFM","shadowDebuff",
+];
+function captureSetup(){
+  const setup = {};
+  SETUP_FIELD_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    setup[id] = el.type === "checkbox" ? el.checked : el.value;
+  });
+  setup.ctMode = document.querySelector('input[name="ctMode"]:checked').value;
+  return setup;
+}
+function restoreMoveSelection(baseId, savedMove){
+  if(!savedMove) return;
+  const sel = document.getElementById(baseId + "_select");
+  const customInput = document.getElementById(baseId + "_custom");
+  const datalist = document.getElementById(baseId + "_customList");
+  const hasOption = [...sel.options].some(o => o.value === savedMove);
+  if(hasOption){
+    sel.value = savedMove;
+    customInput.style.display = "none";
+  } else {
+    sel.value = "__custom__";
+    if(!datalist.dataset.populated){
+      const isCharge = baseId.toUpperCase().endsWith("CM");
+      const list = isCharge ? ALL_CHARGE_MOVES : ALL_FAST_MOVES;
+      datalist.innerHTML = list.map(m => `<option value="${m}">`).join("");
+      datalist.dataset.populated = "1";
+    }
+    customInput.value = savedMove;
+    customInput.style.display = "";
+  }
+  document.getElementById(baseId).value = savedMove;
+}
+
+function applySetup(setup){
+  SETUP_FIELD_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if(!(id in setup)) return;
+    if(el.type === "checkbox") el.checked = !!setup[id];
+    else el.value = setup[id];
+  });
+  const modeToId = { maindps: "ctModeMainDPS", single: "ctModeSingle", double: "ctModeDouble" };
+  document.getElementById(modeToId[setup.ctMode] || "ctModeSingle").checked = true;
+  updateCTMode();
+  ["pokemonLevel","ivAtk","ivDef","ivHp"].forEach(id => {
+    const el = document.getElementById(id);
+    el.dispatchEvent(new Event("input"));
+  });
+  updateMoveOptionsFor("pokemonName","playerCM","playerFM");
+  updateMoveOptionsFor("bossName","bossCM","bossFM");
+  // If the movepool CSV hasn't landed yet the dropdowns are still empty, so these restores would
+  // no-op. Record them and let refreshMoveDropdowns() replay once the data arrives.
+  if(!movepoolReady){
+    PENDING_MOVE_SELECTION = {
+      playerCM: setup.playerCM, playerFM: setup.playerFM,
+      bossCM: setup.bossCM, bossFM: setup.bossFM,
+    };
+  }
+  restoreMoveSelection("playerCM", setup.playerCM);
+  restoreMoveSelection("playerFM", setup.playerFM);
+  restoreMoveSelection("bossCM", setup.bossCM);
+  restoreMoveSelection("bossFM", setup.bossFM);
+  updatePlayerPreview();
+  updateBossPreview();
+  updatePlayerMovePreview();
+  autoSetEffectiveness();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem("ctCalcHistory") || "[]"); }
+  catch(e){ return []; }
+}
+function saveHistoryList(history){
+  try{ localStorage.setItem("ctCalcHistory", JSON.stringify(history)); }catch(e){}
+}
+function addToHistory(setup){
+  let history = loadHistory();
+  const setupStr = JSON.stringify(setup);
+  history = history.filter(h => JSON.stringify(h.setup) !== setupStr);
+  const label = `${setup.pokemonName || "?"} vs ${setup.bossName || "?"}`;
+  history.unshift({ setup, label, time: Date.now() });
+  history = history.slice(0, 10);
+  saveHistoryList(history);
+  renderHistory();
+}
+function removeHistoryItem(i, evt){
+  evt.stopPropagation();
+  const history = loadHistory();
+  history.splice(i, 1);
+  saveHistoryList(history);
+  renderHistory();
+}
+function restoreSetup(i){
+  const history = loadHistory();
+  if(history[i]) applySetup(history[i].setup);
+}
+function renderHistory(){
+  const el = document.getElementById("setupHistory");
+  if(!el) return;
+  const history = loadHistory();
+  if(history.length === 0){
+    el.innerHTML = `<div class="history-empty">No previous setups yet — run a calculation to save one here.</div>`;
+    return;
+  }
+  el.innerHTML = `<div class="history-list">${history.map((h,i) => `
+    <div class="history-item" onclick="restoreSetup(${i})" title="${h.label}" role="button" tabindex="0" onkeydown="if(event.key==='Enter') restoreSetup(${i})">
+      <button type="button" class="history-remove" onclick="removeHistoryItem(${i}, event)" aria-label="Remove">✕</button>
+      <span class="history-label">${h.label}</span>
+      <span class="history-time">${new Date(h.time).toLocaleString([], {month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"})}</span>
+    </div>
+  `).join("")}</div>`;
+}
+renderHistory();
+
+// ============ UI SETUP ============
+function populateSelect(id, values, formatFn){
+  const el = document.getElementById(id);
+  el.innerHTML = values.map(v => `<option value="${v}">${formatFn ? formatFn(v) : v}</option>`).join("");
+}
+
+// ============ LEVEL / IV VALIDATION ============
+function validateLevel(val){
+  const n = parseFloat(val);
+  if(isNaN(n)) return false;
+  return CPM.hasOwnProperty(String(n));
+}
+function validateIV(val){
+  const n = parseFloat(val);
+  if(isNaN(n) || !Number.isInteger(n)) return false;
+  return n >= 0 && n <= 15;
+}
+function wireValidation(inputId, errorId, validateFn, errorMsg){
+  const input = document.getElementById(inputId);
+  const errEl = document.getElementById(errorId);
+  function check(){
+    const ok = input.value.trim() === "" || validateFn(input.value.trim());
+    input.classList.toggle("invalid", !ok);
+    errEl.textContent = ok ? "" : errorMsg;
+    errEl.classList.toggle("show", !ok);
+    return ok;
+  }
+  input.addEventListener("input", check);
+  input.addEventListener("blur", check);
+  return check;
+}
+wireValidation("pokemonLevel", "pokemonLevelError", validateLevel, "Level must be 20–51 (whole numbers 20–29, 0.5 steps 30–51, e.g. 47.5)");
+wireValidation("ivAtk", "ivAtkError", validateIV, "Must be a whole number 0–15");
+wireValidation("ivDef", "ivDefError", validateIV, "Must be a whole number 0–15");
+wireValidation("ivHp", "ivHpError", validateIV, "Must be a whole number 0–15");
+
+
+
+// ============ LIVE PREVIEW ============
+function renderMiniPreview(name, stats){
+  if(!stats) return `<div style="font-size:12px; color:var(--text-dim); font-weight:700; margin-top:10px;">Pokémon not found.</div>`;
+  return `
+    <div class="mini-preview">
+      <div class="mini-preview-sprite">
+        <img class="${needsShadowMist(name) ? 'shadow-mist' : ''}" src="${spriteUrl(name)}" alt="${name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${name}')) { this.style.display='none'; }">
+      </div>
+      <div>
+        <div class="mini-preview-name">${name}</div>
+        <div class="mini-preview-stats">
+          <span>ATK <b>${stats.atk.toFixed(1)}</b></span>
+          <span>DEF <b>${stats.def.toFixed(1)}</b></span>
+          <span>HP <b>${Number.isInteger(stats.hp) ? stats.hp : stats.hp.toFixed(1)}</b></span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function updatePlayerPreview(){
+  const name = document.getElementById("pokemonName").value.trim();
+  const pkmn = findPokemon(name);
+  const el = document.getElementById("playerPreview");
+  if(!name){ el.innerHTML = ""; return; }
+  if(!pkmn){ el.innerHTML = renderMiniPreview(name, null); return; }
+  const level = document.getElementById("pokemonLevel").value.trim();
+  const ivAtkRaw = document.getElementById("ivAtk").value.trim();
+  const ivDefRaw = document.getElementById("ivDef").value.trim();
+  const ivHpRaw = document.getElementById("ivHp").value.trim();
+  if(!validateLevel(level) || !validateIV(ivAtkRaw) || !validateIV(ivDefRaw) || !validateIV(ivHpRaw)){
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML = renderMiniPreview(name, {
+    atk: calcStat(pkmn.atk, parseInt(ivAtkRaw), level),
+    def: calcStat(pkmn.def, parseInt(ivDefRaw), level),
+    hp: Math.floor(calcStat(pkmn.hp, parseInt(ivHpRaw), level)),
+  });
+}
+
+function playerMoveDamagePreviewHtml(){
+  const level = document.getElementById("pokemonLevel").value.trim();
+  const ivAtkRaw = document.getElementById("ivAtk").value.trim();
+  if(!validateLevel(level) || !validateIV(ivAtkRaw)) return "";
+  const pkmnName = document.getElementById("pokemonName").value.trim();
+  const pkmn = findPokemon(pkmnName);
+  if(!pkmn) return "";
+  const playerAtk = calcStat(pkmn.atk, parseInt(ivAtkRaw), level);
+
+  const bossName = document.getElementById("bossName").value.trim();
+  const boss = findPokemon(bossName);
+  if(!boss) return "";
+  const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
+  const t7Enraged = document.getElementById("t7Enraged").checked;
+  let bossDef = (boss.def + 15) * bossCPMVal;
+  if(t7Enraged) bossDef *= 4;
+
+  const cmName = document.getElementById("playerCM").value.trim();
+  const fmName = document.getElementById("playerFM").value.trim();
+  const cm = findMove(cmName);
+  const fm = findMove(fmName);
+  if(!cm || !fm) return "";
+
+  const playerMods = {
+    partyPower: document.getElementById("partyPower").checked,
+    zacian: document.getElementById("zacianBlade").checked,
+    primalMega: parseFloat(document.getElementById("primalMega").value),
+    friendship: parseFloat(document.getElementById("friendship").value),
+  };
+  const cmDmg = playerMoveDamage(cm, pkmnName, playerAtk, bossDef, Object.assign({}, playerMods, {
+    eff: parseFloat(document.getElementById("effCM").value),
+    weather: isWeatherBoosted(cm.elem),
+    stab: document.getElementById("stabCM").checked,
+  }));
+  const fmDmg = playerMoveDamage(fm, pkmnName, playerAtk, bossDef, Object.assign({}, playerMods, {
+    eff: parseFloat(document.getElementById("effFM").value),
+    weather: isWeatherBoosted(fm.elem),
+    stab: document.getElementById("stabFM").checked,
+    partyPower: false,
+  }));
+
+  // energy gained from tanking (sponging) the boss's charge move: 50% of damage received, rounded up
+  let energyLine = "";
+  const ivDefRaw = document.getElementById("ivDef").value.trim();
+  if(validateIV(ivDefRaw)){
+    const playerDef = calcStat(pkmn.def, parseInt(ivDefRaw), level);
+    let bossAtk = (boss.atk + 15) * bossCPMVal;
+    if(t7Enraged) bossAtk *= 1.5;
+    const bossCMMove = findMove(document.getElementById("bossCM").value.trim());
+    if(bossCMMove){
+      const bossCMDmg = bossMoveDamage(bossCMMove, bossAtk, playerDef, {
+        eff: parseFloat(document.getElementById("effBossCM").value),
+        weather: isWeatherBoosted(bossCMMove.elem),
+        shadowDebuff: document.getElementById("shadowDebuff").checked,
+        stab: document.getElementById("bossStabCM").checked,
+        shieldAE: document.getElementById("shieldAE").checked,
+      });
+      const energyGained = Math.ceil(0.5 * bossCMDmg);
+      energyLine = `<div class="boss-dmg-row player-dmg energy-row"><span>Energy from Tanking Boss CM</span><b>+${energyGained} energy</b></div>`;
+    }
+  }
+
+  return `
+    <div class="boss-dmg-preview">
+      <div class="boss-dmg-row player-dmg">
+        <div class="boss-dmg-row-info">
+          <div class="boss-dmg-row-name">${fm.n}</div>
+          <div class="boss-dmg-row-stats">${fm.dmg} dmg &nbsp;|&nbsp; ${Math.abs(fm.energy)} energy &nbsp;|&nbsp; ${(fm.ad/2).toFixed(1)}s</div>
+        </div>
+        <b>${fmDmg} dmg</b>
+      </div>
+      <div class="boss-dmg-row player-dmg">
+        <div class="boss-dmg-row-info">
+          <div class="boss-dmg-row-name">${cm.n}</div>
+          <div class="boss-dmg-row-stats">${cm.dmg} dmg &nbsp;|&nbsp; ${Math.abs(cm.energy)} energy &nbsp;|&nbsp; ${(cm.ad/2).toFixed(1)}s</div>
+        </div>
+        <b>${cmDmg} dmg</b>
+      </div>
+      ${energyLine}
+    </div>`;
+}
+function updatePlayerMovePreview(){
+  document.getElementById("playerMovePreview").innerHTML = playerMoveDamagePreviewHtml();
+}
+
+function bossMoveDamagePreviewHtml(bAtk){
+  const level = document.getElementById("pokemonLevel").value.trim();
+  const ivDefRaw = document.getElementById("ivDef").value.trim();
+  if(!validateLevel(level) || !validateIV(ivDefRaw)) return "";
+  const pkmnName = document.getElementById("pokemonName").value.trim();
+  const pkmn = findPokemon(pkmnName);
+  if(!pkmn) return "";
+  const playerDef = calcStat(pkmn.def, parseInt(ivDefRaw), level);
+
+  const bossCMName = document.getElementById("bossCM").value.trim();
+  const bossFMName = document.getElementById("bossFM").value.trim();
+  const bossCMMove = findMove(bossCMName);
+  const bossFMMove = findMove(bossFMName);
+  // In Main DPS mode's fast-moves-only cadence the boss never casts a charge move, so its rows
+  // are omitted from this preview entirely rather than showing damage that can't occur.
+  const fmOnlyCadence = document.body.classList.contains("cadence-fm-only");
+  if(!bossFMMove) return "";
+  if(!bossCMMove && !fmOnlyCadence) return "";
+
+  const shadowDebuffOn = document.getElementById("shadowDebuff").checked;
+  const shieldAEOn = document.getElementById("shieldAE").checked;
+
+  const cmDmg = !bossCMMove ? 0 : bossMoveDamage(bossCMMove, bAtk, playerDef, {
+    eff: parseFloat(document.getElementById("effBossCM").value),
+    weather: isWeatherBoosted(bossCMMove.elem),
+    shadowDebuff: shadowDebuffOn,
+    stab: document.getElementById("bossStabCM").checked,
+    shieldAE: shieldAEOn,
+  });
+  const fmDmg = bossMoveDamage(bossFMMove, bAtk, playerDef, {
+    eff: parseFloat(document.getElementById("effBossFM").value),
+    weather: isWeatherBoosted(bossFMMove.elem),
+    shadowDebuff: shadowDebuffOn,
+    stab: document.getElementById("bossStabFM").checked,
+    shieldAE: shieldAEOn,
+  });
+
+  const cmDurationSeconds = bossCMMove ? bossCMMove.ad / 2 : 0;
+
+  return `
+    <div class="boss-dmg-preview">
+      <div class="boss-dmg-row">
+        <div class="boss-dmg-row-info">
+          <div class="boss-dmg-row-name">${bossFMMove.n}</div>
+          <div class="boss-dmg-row-stats">${bossFMMove.dmg} dmg &nbsp;|&nbsp; ${Math.abs(bossFMMove.energy)} energy &nbsp;|&nbsp; ${(bossFMMove.ad/2).toFixed(1)}s</div>
+        </div>
+        <b>${fmDmg} dmg</b>
+      </div>
+      ${(fmOnlyCadence || !bossCMMove) ? "" : `
+      <div class="boss-dmg-row">
+        <div class="boss-dmg-row-info">
+          <div class="boss-dmg-row-name">${bossCMMove.n}</div>
+          <div class="boss-dmg-row-stats">${bossCMMove.dmg} dmg &nbsp;|&nbsp; ${Math.abs(bossCMMove.energy)} energy &nbsp;|&nbsp; ${(bossCMMove.ad/2).toFixed(1)}s</div>
+        </div>
+        <b>${cmDmg} dmg</b>
+      </div>
+      <div class="boss-dmg-row energy-row"><span>Charge Move Animation</span><b>${cmDurationSeconds.toFixed(1)}s</b></div>`}
+    </div>`;
+}
+
+function updateBossPreview(){
+  const name = document.getElementById("bossName").value.trim();
+  const boss = findPokemon(name);
+  const el = document.getElementById("bossPreview");
+  const dmgEl = document.getElementById("bossMovePreview");
+  if(!name){ el.innerHTML = ""; if(dmgEl) dmgEl.innerHTML = ""; return; }
+  if(!boss){ el.innerHTML = renderMiniPreview(name, null); if(dmgEl) dmgEl.innerHTML = ""; return; }
+  const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
+  const t7Enraged = document.getElementById("t7Enraged").checked;
+  let bAtk = (boss.atk + 15) * bossCPMVal;
+  let bDef = (boss.def + 15) * bossCPMVal;
+  let bHp = (boss.hp + 15) * bossCPMVal;
+  if(t7Enraged){ bDef *= 4; bAtk *= 1.5; }
+  el.innerHTML = renderMiniPreview(name, { atk: bAtk, def: bDef, hp: bHp });
+  if(dmgEl) dmgEl.innerHTML = bossMoveDamagePreviewHtml(bAtk);
+}
+
+// ============ MOVE DROPDOWNS (populated from each Pokemon's actual movepool) ============
+const ALL_FAST_MOVES = MOVE_DB.filter(m => m.type === "Fast").map(m => m.n).sort();
+const ALL_CHARGE_MOVES = MOVE_DB.filter(m => m.type === "Charge").map(m => m.n).sort();
+
+function populateMoveSelect(baseId, moveList){
+  const sel = document.getElementById(baseId + "_select");
+  const prevValue = sel.value;
+  const options = moveList.map(m => `<option value="${m}">${m}</option>`).join("");
+  sel.innerHTML = options + `<option value="__custom__">Custom Move…</option>`;
+  sel.value = moveList.includes(prevValue) ? prevValue : (moveList[0] || "__custom__");
+  onMoveSelectChange(baseId);
+}
+
+let ELITE_MOVES_BY_POKEMON = {};
+function applyEliteFlags(movepoolRows){
+  // Elite-TM status is the `elite` column on csv/pokemon-movepool.csv. This used to fetch
+  // that file a second time - 361 KB downloaded twice per page load - even though
+  // loadCoreDataFromCSV() had already parsed the same rows. It now reads the rows it is
+  // handed, so the file is fetched once.
+  try{
+    movepoolRows.forEach(r => {
+      if(!r.pokemon || String(r.elite || "").trim() !== "1") return;
+      (ELITE_MOVES_BY_POKEMON[r.pokemon] = ELITE_MOVES_BY_POKEMON[r.pokemon] || []).push(r.move);
+    });
+  }catch(e){ /* boss dropdown just won't filter Elite moves if this fails */ }
+}
+loadCoreDataFromCSV();
+
+function updateMoveOptionsFor(nameFieldId, cmBaseId, fmBaseId){
+  const name = document.getElementById(nameFieldId).value.trim().toLowerCase();
+  // Legends Z-A Mega Evolutions inherit their moveset from their base species until Niantic
+  // documents exclusive moves for them specifically (tracked by hand later, same as any other
+  // Elite/Community Day move). Rather than duplicating each base form's move list into a second
+  // entry under the mega's own name - which is exactly the kind of copy that drifts out of sync
+  // the moment the base form's real entry gets edited - a mega with no movepool entry of its own
+  // falls back to BASE_FORM_MAP's real base species, read live off that species' own entry.
+  const entry = POKEMON_MOVEPOOL[name] || POKEMON_MOVEPOOL[BASE_FORM_MAP[name]];
+  // Real raid bosses can never have an Elite-TM-exclusive move - only filter this out for the
+  // boss dropdown specifically; a player's own caught Pokemon (the "pokemonName" field) can
+  // legitimately have one, so that field's move list is untouched. Elite moves are recorded
+  // against the base species (e.g. "salamence"), not every mega/primal form built on top of it,
+  // so this reads through the same BASE_FORM_MAP used for movepool inheritance just above -
+  // without it, "Mega Salamence" would never match its own "salamence" elite-move entry and
+  // Outrage would wrongly stay in the boss dropdown.
+  const isBoss = nameFieldId === "bossName";
+  const elite = isBoss ? new Set(ELITE_MOVES_BY_POKEMON[name] || ELITE_MOVES_BY_POKEMON[BASE_FORM_MAP[name]] || []) : null;
+  const fastList = entry ? (elite ? entry.fast.filter(m => !elite.has(m)) : entry.fast) : [];
+  const chargeList = entry ? (elite ? entry.charged.filter(m => !elite.has(m)) : entry.charged) : [];
+  populateMoveSelect(fmBaseId, fastList);
+  populateMoveSelect(cmBaseId, chargeList);
+}
+
+function onMoveSelectChange(baseId){
+  const sel = document.getElementById(baseId + "_select");
+  const customInput = document.getElementById(baseId + "_custom");
+  const datalist = document.getElementById(baseId + "_customList");
+  const hidden = document.getElementById(baseId);
+  if(sel.value === "__custom__"){
+    customInput.style.display = "";
+    if(!datalist.dataset.populated){
+      const isCharge = baseId.toUpperCase().endsWith("CM");
+      const list = isCharge ? ALL_CHARGE_MOVES : ALL_FAST_MOVES;
+      datalist.innerHTML = list.map(m => `<option value="${m}">`).join("");
+      datalist.dataset.populated = "1";
+    }
+    hidden.value = customInput.value;
+  } else {
+    customInput.style.display = "none";
+    hidden.value = sel.value;
+  }
+  autoSetEffectiveness();
+}
+function onCustomMoveChange(baseId){
+  document.getElementById(baseId).value = document.getElementById(baseId + "_custom").value;
+  autoSetEffectiveness();
+}
+
+["pokemonName","pokemonLevel","ivAtk","ivDef","ivHp"].forEach(id => {
+  document.getElementById(id).addEventListener("input", updatePlayerPreview);
+  document.getElementById(id).addEventListener("change", updatePlayerPreview);
+  document.getElementById(id).addEventListener("input", updateBossPreview);
+  document.getElementById(id).addEventListener("change", updateBossPreview);
+  document.getElementById(id).addEventListener("input", updatePlayerMovePreview);
+  document.getElementById(id).addEventListener("change", updatePlayerMovePreview);
+});
+document.getElementById("pokemonName").addEventListener("input", () => { updateMoveOptionsFor("pokemonName","playerCM","playerFM"); autoSetEffectiveness(); });
+document.getElementById("pokemonName").addEventListener("change", () => { updateMoveOptionsFor("pokemonName","playerCM","playerFM"); autoSetEffectiveness(); });
+[
+  "playerCM","playerFM","effCM","effFM","stabCM","stabFM",
+  "partyPower","zacianBlade","primalMega","friendship",
+].forEach(id => {
+  document.getElementById(id).addEventListener("input", updatePlayerMovePreview);
+  document.getElementById(id).addEventListener("change", updatePlayerMovePreview);
+});
+[
+  "bossName","bossTier","t7Enraged","bossCM","bossFM",
+  "effBossCM","effBossFM",
+  "bossStabCM","bossStabFM","shadowDebuff","shieldAE",
+].forEach(id => {
+  document.getElementById(id).addEventListener("input", updateBossPreview);
+  document.getElementById(id).addEventListener("change", updateBossPreview);
+  document.getElementById(id).addEventListener("input", updatePlayerMovePreview);
+  document.getElementById(id).addEventListener("change", updatePlayerMovePreview);
+});
+document.getElementById("weatherSelect").addEventListener("change", () => {
+  updatePlayerMovePreview();
+  updateBossPreview();
+});
+document.getElementById("bossName").addEventListener("input", () => { updateMoveOptionsFor("bossName","bossCM","bossFM"); autoSetEffectiveness(); });
+document.getElementById("bossName").addEventListener("change", () => { updateMoveOptionsFor("bossName","bossCM","bossFM"); autoSetEffectiveness(); });
+
+// ============ AUTO-EFFECTIVENESS (based on typing) ============
+function isStabMatch(elem, types){
+  if(!elem || !types) return false;
+  const t = elem.toLowerCase();
+  return t === types.t1 || (types.t2 && t === types.t2);
+}
+
+const EFF_LABELS = {
+  "0.24375": "Imm/NE x2", "0.39": "Immune", "0.390625": "Not Eff. x2",
+  "0.625": "Not Effective", "1": "Effective", "1.6": "Super Effective", "2.56": "V. Super Effective",
+};
+
+function updateModSummaries(){
+  const effCM = document.getElementById("effCM").value;
+  const effFM = document.getElementById("effFM").value;
+  const stabCM = document.getElementById("stabCM").checked;
+  const stabFM = document.getElementById("stabFM").checked;
+  const playerStabText = (stabCM || stabFM) ? `STAB: ${[stabCM && "CM", stabFM && "FM"].filter(Boolean).join(" + ")}` : "No STAB";
+  const playerModSummaryEl = document.getElementById("playerModSummary");
+  if(playerModSummaryEl){
+    playerModSummaryEl.textContent =
+      `${EFF_LABELS[effCM] || effCM}x CM · ${EFF_LABELS[effFM] || effFM}x FM · ${playerStabText}`;
+  }
+  const playerNonDefault = effCM !== "1" || effFM !== "1" || stabCM || stabFM;
+  if(playerNonDefault) document.getElementById("playerModDetails").open = true;
+
+  const effBossCM = document.getElementById("effBossCM").value;
+  const effBossFM = document.getElementById("effBossFM").value;
+  const bossModSummaryEl = document.getElementById("bossModSummary");
+  if(bossModSummaryEl){
+    bossModSummaryEl.textContent =
+      `${EFF_LABELS[effBossCM] || effBossCM}x CM · ${EFF_LABELS[effBossFM] || effBossFM}x FM`;
+  }
+  const bossNonDefault = effBossCM !== "1" || effBossFM !== "1" ||
+    document.getElementById("bossStabCM").checked || document.getElementById("bossStabFM").checked;
+  if(bossNonDefault) document.getElementById("bossModDetails").open = true;
+}
+["effCM","effFM","stabCM","stabFM","effBossCM","effBossFM","bossStabCM","bossStabFM"].forEach(id => {
+  document.getElementById(id).addEventListener("change", updateModSummaries);
+});
+
+
+function autoSetEffectiveness(){
+  const pkmnName = document.getElementById("pokemonName").value.trim();
+  const bossName = document.getElementById("bossName").value.trim();
+  const playerTypes = pkmnName ? findPokemonTypes(pkmnName) : null;
+  const bossTypes = bossName ? findPokemonTypes(bossName) : null;
+
+  // Shadow debuff: auto-toggle when the player's own Pokemon is Shadow
+  if(pkmnName){
+    document.getElementById("shadowDebuff").checked = /shadow/i.test(pkmnName);
+  }
+
+  const cm = findMove(document.getElementById("playerCM").value.trim());
+  const fm = findMove(document.getElementById("playerFM").value.trim());
+  const bcm = findMove(document.getElementById("bossCM").value.trim());
+  const bfm = findMove(document.getElementById("bossFM").value.trim());
+
+  // Player-side: effectiveness needs boss typing, STAB only needs the player's own typing
+  if(cm){
+    if(bossTypes){
+      const raw = computeEffectiveness(cm.elem, bossTypes);
+      if(raw !== null) document.getElementById("effCM").value = snapToOption(raw, PLAYER_EFF_OPTIONS);
+    }
+    if(playerTypes) document.getElementById("stabCM").checked = isStabMatch(cm.elem, playerTypes);
+  }
+  if(fm){
+    if(bossTypes){
+      const raw = computeEffectiveness(fm.elem, bossTypes);
+      if(raw !== null) document.getElementById("effFM").value = snapToOption(raw, PLAYER_EFF_OPTIONS);
+    }
+    if(playerTypes) document.getElementById("stabFM").checked = isStabMatch(fm.elem, playerTypes);
+  }
+
+  // Boss-side: effectiveness needs player typing, STAB only needs the boss's own typing
+  if(bcm){
+    if(playerTypes){
+      const raw = computeEffectiveness(bcm.elem, playerTypes);
+      if(raw !== null) document.getElementById("effBossCM").value = snapToOption(raw, BOSS_EFF_OPTIONS);
+    }
+    if(bossTypes) document.getElementById("bossStabCM").checked = isStabMatch(bcm.elem, bossTypes);
+  }
+  if(bfm){
+    if(playerTypes){
+      const raw = computeEffectiveness(bfm.elem, playerTypes);
+      if(raw !== null) document.getElementById("effBossFM").value = snapToOption(raw, BOSS_EFF_OPTIONS);
+    }
+    if(bossTypes) document.getElementById("bossStabFM").checked = isStabMatch(bfm.elem, bossTypes);
+  }
+
+  updatePlayerMovePreview();
+  updateBossPreview();
+  updateModSummaries();
+}
+["pokemonName","bossName","playerCM","playerFM","bossCM","bossFM"].forEach(id => {
+  document.getElementById(id).addEventListener("input", autoSetEffectiveness);
+  document.getElementById(id).addEventListener("change", autoSetEffectiveness);
+});
+
+document.getElementById("calcBtn").addEventListener("click", runCalculation);
+
+// ============ SHAREABLE SETUP URLS ============
+// Reuses the exact same captureSetup()/applySetup() machinery already used for the local
+// "Recent Setups" history feature - the only difference is where the setup object is stored
+// (a URL query param instead of localStorage). Field names are remapped to short keys before
+// encoding specifically to keep the shared URL as compact as possible; the mapping is only used
+// at the encode/decode boundary, so nothing else in the app needs to know about it.
+const SETUP_SHORT_KEYS = {
+  pokemonName:"n", pokemonLevel:"l", ivAtk:"ia", ivDef:"id", ivHp:"ih",
+  playerCM:"pc", playerFM:"pf", effCM:"ec", effFM:"ef", stabCM:"sc", stabFM:"sf",
+  friendship:"fr", primalMega:"pm", numCM:"nc",
+  weatherSelect:"w", dodgeCM:"dc", dodgeFM:"df", t7Enraged:"t7", shieldAE:"sa",
+  zacianBlade:"zb", cmBuffer:"cb", partyPower:"pp", resolveNerf:"rn",
+  bossName:"bn", bossTier:"bt", bossCM:"bc", bossFM:"bf",
+  effBossCM:"ebc", effBossFM:"ebf", bossStabCM:"bsc", bossStabFM:"bsf", shadowDebuff:"sd",
+  ctMode:"m",
+};
+const SETUP_LONG_KEYS = Object.fromEntries(Object.entries(SETUP_SHORT_KEYS).map(([k,v]) => [v,k]));
+function encodeSetupForUrl(setup){
+  const short = {};
+  Object.entries(setup).forEach(([k,v]) => { short[SETUP_SHORT_KEYS[k] || k] = v; });
+  const json = JSON.stringify(short);
+  return btoa(unescape(encodeURIComponent(json)));
+}
+function decodeSetupFromUrl(encoded){
+  const json = decodeURIComponent(escape(atob(encoded)));
+  const short = JSON.parse(json);
+  const setup = {};
+  Object.entries(short).forEach(([k,v]) => { setup[SETUP_LONG_KEYS[k] || k] = v; });
+  return setup;
+}
+function buildShareUrl(){
+  const setup = captureSetup();
+  const encoded = encodeSetupForUrl(setup);
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.searchParams.set("s", encoded);
+  return url.toString();
+}
+document.getElementById("shareBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("shareBtn");
+  const label = document.getElementById("shareBtnLabel");
+  const url = buildShareUrl();
+  try{
+    await navigator.clipboard.writeText(url);
+  }catch(e){
+    // clipboard API unavailable/blocked - fall back to a manual prompt so the link is still usable
+    window.prompt("Copy this link:", url);
+  }
+  const originalText = label.textContent;
+  btn.classList.add("copied");
+  label.textContent = "Link Copied!";
+  setTimeout(() => {
+    btn.classList.remove("copied");
+    label.textContent = originalText;
+  }, 2000);
+});
+
+// on load, check for a shared setup in the URL and apply it automatically
+(function applySharedSetupFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get("s");
+  if(!encoded) return;
+  try{
+    const setup = decodeSetupFromUrl(encoded);
+    applySetup(setup);
+    setTimeout(runCalculation, 50);
+  }catch(e){
+    console.error("Failed to apply shared setup from URL:", e);
+  }
+})();
+
+function updateCTMode(){
+  const mode = document.querySelector('input[name="ctMode"]:checked').value;
+  document.body.classList.toggle("ct-mode-double", mode === "double");
+  document.body.classList.toggle("ct-mode-maindps", mode === "maindps");
+  updateCadenceMode();
+}
+// In Main DPS mode the boss's charge move only matters for the "Fast & Charge" cadence, so its
+// inputs are hidden when "Fast Only" is selected. Every other mode always needs them.
+function updateCadenceMode(){
+  const isMainDPS = document.querySelector('input[name="ctMode"]:checked').value === "maindps";
+  const fmOnly = document.getElementById("cadenceMode").value === "fmonly";
+  document.body.classList.toggle("cadence-fm-only", isMainDPS && fmOnly);
+  // the boss damage preview hides its charge-move rows in the fast-only cadence, so it has to
+  // re-render when the toggle flips (not just when a move/boss changes)
+  if(typeof updateBossPreview === "function") updateBossPreview();
+}
+document.getElementById("ctModeMainDPS").addEventListener("change", updateCTMode);
+document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
+document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);
+document.getElementById("cadenceMode").addEventListener("change", updateCadenceMode);
+updateCadenceMode();
+
+function getDurationUnit(){
+  return document.getElementById("durationUnitTicks").checked ? "ticks" : "seconds";
+}
+function formatTime(seconds, ticks){
+  return getDurationUnit() === "ticks" ? `${ticks.toFixed(1)}t` : `${seconds.toFixed(2)}s`;
+}
+document.getElementById("durationUnitSeconds").addEventListener("change", runCalculation);
+document.getElementById("durationUnitTicks").addEventListener("change", runCalculation);
+
+// theme toggle
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+hamburgerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = hamburgerPanel.classList.contains("open");
+  hamburgerPanel.classList.toggle("open", !isOpen);
+  hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+document.addEventListener("click", (e) => {
+  if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
+    hamburgerPanel.classList.remove("open");
+    hamburgerBtn.setAttribute("aria-expanded", "false");
+  }
+});
+</script>
+</body>
+</html>

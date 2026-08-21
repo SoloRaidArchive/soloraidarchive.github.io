@@ -556,12 +556,17 @@
   /* Six columns now: Boss | Boss Moveset | Weather | Difficulty | Adventure Effect | <Raider>
      Moveset. AE gets a narrow fixed column of its own rather than a slice of a percentage - it is
      one 18px icon or nothing, never wrapping text, so it does not need to scale with the table. */
-  .entries-table col.c-boss{ width:22%; }
-  .entries-table col.c-moves{ width:20%; }
-  .entries-table col.c-weather{ width:14%; }
-  .entries-table col.c-tier{ width:10%; }
-  .entries-table col.c-ae{ width:48px; }
-  .entries-table col.c-player-moves{ width:26%; }
+  /* Seven columns now: Boss | Boss Moveset | Weather | Difficulty | Role | AE | <Raider>
+     Moveset. Role grouped next to AE and the player moveset - all three describe what THIS
+     raider did in THIS strategy, as opposed to the boss/weather/difficulty columns which
+     describe the fight itself. */
+  .entries-table col.c-boss{ width:20%; }
+  .entries-table col.c-moves{ width:18%; }
+  .entries-table col.c-weather{ width:12%; }
+  .entries-table col.c-tier{ width:9%; }
+  .entries-table col.c-role{ width:14%; }
+  .entries-table col.c-ae{ width:44px; }
+  .entries-table col.c-player-moves{ width:27%; }
   .usage-ae-icon{ width:18px; height:18px; object-fit:contain; display:block; }
   .usage-weather{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
   .bd-move-icon{ width:11px; height:11px; flex:none; filter:brightness(0) invert(1); }
@@ -593,6 +598,7 @@
        in the mobile card without it turning back into the cramped layout this fix replaced. */
     .entries-table td.td-player-moves{ display:none; }
     .entries-table td.td-ae{ display:none; }
+    .entries-table td.td-role{ display:none; }
     /* Mobile is deliberately left alone per request - this duplicates the (now row-based) base
        rule rather than overriding it, so a future change to the desktop layout does not silently
        change mobile as a side effect. */
@@ -641,7 +647,7 @@
     <a href="guides.html" class="hamburger-featured">Boss Guides</a>
     <a href="articles.html" class="hamburger-featured">Research Articles</a>
       <a href="meta-battle-parties.html">Meta Battle Parties</a>
-      <a href="ct-calculator.html">Catch Tank Calculator</a>
+      <a href="dps-calculator.html">DPS Calculator</a>
       <a href="move-data.html">Move Data</a>
       <a href="pokemon-stats.html">Pokémon Stats</a>
         <a href="reference.html">Difficulty &amp; Role Reference</a>
@@ -1164,6 +1170,16 @@ function parseRoleTags(roleStr){
   return { primary, hasExecutor };
 }
 
+// Same count-tag/"varies" filter as parseRoleTags above, but keeps every remaining role tag
+// rather than collapsing to one - the usage table shows one raider's actual role(s) for one
+// specific strategy, so "Support DPS, Executor" should read as both, not just the primary.
+function cleanRoleText(roleStr){
+  if(!roleStr) return "";
+  return roleStr.split(",").map(s => s.trim())
+    .filter(s => s && !/^\d+x$/i.test(s) && s.toLowerCase() !== "varies")
+    .join(", ");
+}
+
 function computeUsageData(allRaids){
   const usage = {};
   let qualifyingEntries = 0;
@@ -1198,7 +1214,12 @@ function computeUsageData(allRaids){
         // party parser already reads but nothing downstream was keeping.
         u.instances.push({ boss: r.boss, file: r.file, weather: r.weather, tier: r.tier,
                            fast: r.fast, charge: r.charge, ae: r.ae,
-                           pfast: (member.fast || "").trim(), pcharge: (member.charge || "").trim() });
+                           pfast: (member.fast || "").trim(), pcharge: (member.charge || "").trim(),
+                           // The role this raider actually served in THIS strategy - member.r was
+                           // already read (parseRoleTags below consumes it for the leaderboard's
+                           // aggregate role summary) but never kept on the instance itself, so it
+                           // had nowhere to go per-row until now.
+                           prole: (member.r || "").trim() });
       }
       const bossKey = r.boss.toLowerCase();
       if(!u.bossMap.has(bossKey)) u.bossMap.set(bossKey, { name: r.boss, file: r.file });
@@ -1563,6 +1584,10 @@ function openUsageTable(idx){
               <td class="td-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.fast)}${bdMoveChipHtml("Charge", inst.charge)}</span></td>
               <td class="td-weather"><span class="usage-weather">${smallWeatherIconHtml(inst.weather)}<span>${inst.weather || "&mdash;"}</span></span></td>
               <td class="td-tier">${tierLabel(inst.tier)}</td>
+              <!-- inst.prole is this raider's own role for THIS strategy - can differ from the
+                   leaderboard row's aggregate role list, since the same raider may be Main DPS in
+                   one route and Catch Tank in another. -->
+              <td class="td-role">${cleanRoleText(inst.prole) || "&mdash;"}</td>
               <!-- inst.ae is already captured per-instance (sword/shield/blank), same field the
                    collection pages read - nothing new to derive, just never surfaced here. -->
               <td class="td-ae">${aeIconCellHtml(inst.ae)}</td>
@@ -1597,12 +1622,12 @@ function openUsageTable(idx){
       </div>
       <div class="entries-body">
         <table class="entries-table">
-          <colgroup><col class="c-boss"><col class="c-moves"><col class="c-weather"><col class="c-tier"><col class="c-ae"><col class="c-player-moves"></colgroup>
+          <colgroup><col class="c-boss"><col class="c-moves"><col class="c-weather"><col class="c-tier"><col class="c-role"><col class="c-ae"><col class="c-player-moves"></colgroup>
           <!-- displayName(r.name) rather than a generic "Pokemon moveset" - the table is scoped to
                one raider already (it opened from that raider's row), so naming the column after
                them reads less like a placeholder and matches how the Boss column is already
                boss-specific rather than saying "Raid boss". -->
-          <thead><tr><th>Boss</th><th>Boss Moveset</th><th>Weather</th><th>Difficulty</th><th>AE</th><th>${displayName(r.name)} Moveset</th></tr></thead>
+          <thead><tr><th>Boss</th><th>Boss Moveset</th><th>Weather</th><th>Difficulty</th><th>Role</th><th>AE</th><th>${displayName(r.name)} Moveset</th></tr></thead>
           <tbody>${rowsHtml()}
           </tbody>
         </table>
@@ -1836,7 +1861,7 @@ document.addEventListener("click", (e) => {
 </script>
 <script>
 
-// ---- Search autocomplete (ported from ct-calculator.html) ----------------------------
+// ---- Search autocomplete (ported from dps-calculator.html) ----------------------------
 // Capped at 8 so the list can never run past the field into neighbouring content, which
 // is the same reason the calculator caps it. Names come from this page's own dataset via
 // a getter, because that dataset is filled by an async CSV load that has not run yet when
