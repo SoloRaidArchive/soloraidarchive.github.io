@@ -379,10 +379,21 @@
 
   <h2 class="section-title">Boss Info</h2>
   <div class="info-box">
-    <div class="boss-sprite-row">
-      <img class="boss-sprite" id="boss-sprite-img" alt="Mega Starmie" onerror="this.style.display='none'">
+    <div class="boss-info-top">
+      <img class="boss-sprite-sm" id="boss-sprite-img" alt="Mega Starmie" onerror="this.style.display='none'">
+      <div class="boss-info-top-right">
+        <div class="type-icon-row-sm"><span class="type-icon-wrap" style="background:#3E8DE0;">Water</span><span class="type-icon-wrap" style="background:#E0426E;">Psychic</span></div>
+        <dl class="stat-row-sm">
+          <div class="stat-cell-sm"><dt class="stat-label-sm">ATK</dt><dd class="stat-value-sm">251.3</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">DEF</dt><dd class="stat-value-sm">192.8</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">HP</dt><dd class="stat-value-sm">15,000</dd></div>
+        </dl>
+      </div>
     </div>
-    <p class="boss-info-placeholder">Type, stats, and movepool haven't been added for this boss yet - edit this page to fill them in with THIS boss's own data (do not paste in another boss's Boss Info or moveset - see the site's other guide pages only for the HTML structure to match, never for the actual values).</p>
+    <div class="movepool-label">Fast Moves</div>
+    <div class="movepool-row" id="fast-move-row"></div>
+    <div class="movepool-label">Charge Moves</div>
+    <div class="movepool-row" id="charge-move-row"></div>
   </div>
 
   <h2 class="section-title">Routes</h2>
@@ -403,7 +414,51 @@
 <footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
 
 <script>
-// Boss Info movepool not populated - no fast/charge-move-row elements exist for a boss without documented stats yet (see the placeholder note above)
+const MOVE_TYPES = {
+  "Hidden Power Bug": {type:"Bug", color:"#7B9A1E"},
+  "Hidden Power Dark": {type:"Dark", color:"#4A4238"},
+  "Hidden Power Dragon": {type:"Dragon", color:"#5B3FE0"},
+  "Hidden Power Electric": {type:"Electric", color:"#E0B316"},
+  "Hidden Power Fighting": {type:"Fighting", color:"#A2402A"},
+  "Hidden Power Fire": {type:"Fire", color:"#E2661C"},
+  "Hidden Power Flying": {type:"Flying", color:"#8B93E0"},
+  "Hidden Power Ghost": {type:"Ghost", color:"#5B4B8A"},
+  "Hidden Power Grass": {type:"Grass", color:"#4E9A3A"},
+  "Hidden Power Ground": {type:"Ground", color:"#6B4423"},
+  "Hidden Power Ice": {type:"Ice", color:"#5AC9C9"},
+  "Hidden Power Poison": {type:"Poison", color:"#8A3F94"},
+  "Hidden Power Psychic": {type:"Psychic", color:"#E0426E"},
+  "Hidden Power Rock": {type:"Rock", color:"#B5651D"},
+  "Hidden Power Steel": {type:"Steel", color:"#7A8A9A"},
+  "Hidden Power Water": {type:"Water", color:"#3E8DE0"},
+  "Quick Attack": {type:"Normal", color:"#9199A1"},
+  "Tackle": {type:"Normal", color:"#9199A1"},
+  "Water Gun": {type:"Water", color:"#3E8DE0"},
+  "Psywave": {type:"Psychic", color:"#E0426E"},
+  "Hydro Pump": {type:"Water", color:"#3E8DE0"},
+  "Ice Beam": {type:"Ice", color:"#5AC9C9"},
+  "Power Gem": {type:"Rock", color:"#B5651D"},
+  "Psybeam": {type:"Psychic", color:"#E0426E"},
+  "Psychic": {type:"Psychic", color:"#E0426E"},
+  "Thunder": {type:"Electric", color:"#E0B316"},
+  "Surf": {type:"Water", color:"#3E8DE0"},
+  "Aqua Jet": {type:"Water", color:"#3E8DE0"},
+  "Liquidation+": {type:"Water", color:"#3E8DE0"},
+};
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
+function moveChipHtml(name, isCharge){
+  // Same solid-color pill already used for the Boss Info type badges (typeChipsHtml) - a move's
+  // chip IS its type color, full stop, rather than a separate accent-border layered on top of a
+  // generic chip. The small type icon rides on top of that same colored pill (forced to solid
+  // white via CSS filter so it reads clearly against any type's color, rather than needing a
+  // separate icon variant per type).
+  const info = MOVE_TYPES[name];
+  const bg = info ? info.color : "#9199A1";
+  const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" onerror="this.remove();">` : "";
+  return `<span class="move-chip" style="background:${bg};" title="${info ? info.type : ""}">${icon}${name}</span>`;
+}
+document.getElementById('fast-move-row').innerHTML = ["Hidden Power Bug","Hidden Power Dark","Hidden Power Dragon","Hidden Power Electric","Hidden Power Fighting","Hidden Power Fire","Hidden Power Flying","Hidden Power Ghost","Hidden Power Grass","Hidden Power Ground","Hidden Power Ice","Hidden Power Poison","Hidden Power Psychic","Hidden Power Rock","Hidden Power Steel","Hidden Power Water","Quick Attack","Tackle","Water Gun","Psywave"].map(m => moveChipHtml(m, false)).join('');
+document.getElementById('charge-move-row').innerHTML = ["Hydro Pump","Ice Beam","Power Gem","Psybeam","Psychic","Thunder","Surf","Aqua Jet","Liquidation+"].map(m => moveChipHtml(m, true)).join('');
 
 // ============ SPRITE RESOLUTION (full system - was regressed to a naive version during
 // an earlier rebuild of this page; restored here to match editor.html and the rest of the site) ============
@@ -444,6 +499,16 @@ const GOHUB_OVERRIDES = {
   "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
 };
 const ANI_OVERRIDES = {
+  // Regional forms whose CDN filename does not follow the "<name>-<region>" rule the generic
+  // regional branch produces. Each of these 404s without an entry here; the names were confirmed
+  // against the sprite CDN rather than guessed.
+  "galarian farfetch'd": "farfetchd-galarian",
+  "galarian mr. mime": "mrmime-galarian",
+  "hisuian basculin": "basculin-whitestriped",
+  "hisuian zoroark": "zoroark-hisuian",
+  "paldean wooper": "wooper-paldea",
+  "galarian darmanitan": "darmanitan-galarianstandard",
+  "galarian darmanitan zen": "darmanitan-galarianzen",
   "zacian crown": "zacian-crownedsword",
   "zamazenta crown": "zamazenta-crownedshield",
   "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
