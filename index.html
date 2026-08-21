@@ -923,6 +923,9 @@ async function loadLiveBosses(){
     const data = await LIVE_BOSSES_PROMISE;
     if(!data) return;
     const groups = data.dateGroups || [];
+    // Set the heading from the loaded groups, before the early return: with no groups the
+    // fallback still needs to run, or the placeholder text "Raids" is left on the page.
+    setLiveBossHeading(groups);
     if(!groups.length) return;
     const wrap = document.getElementById("liveBossWrap");
     if(!wrap) return;
@@ -1149,13 +1152,30 @@ async function loadNewEntries(){
     console.error("Could not load new raid entries:", e);
   }
 }
-function setLiveBossHeading(){
+// The heading used to be `new Date()` month + " Raids", which is only right while every listed
+// boss falls inside the current month. The feed runs ahead - on 21 Aug it already held Sep 3-6
+// entries - so Mega Starmie and Mega Raichu Y sat under "August Raids" with September dates
+// beside them. It now names the months actually present in the data.
+function setLiveBossHeading(groups){
   const heading = document.getElementById("liveBossHeading");
   if(!heading) return;
-  const monthName = new Date().toLocaleString("en-US", { month: "long" });
-  heading.textContent = `${monthName} Raids`;
+  const months = [];
+  (groups || []).forEach(g => {
+    const d = new Date(g.startDate);
+    if(isNaN(d)) return;
+    const m = d.toLocaleString("en-US", { month: "long" });
+    if(!months.includes(m)) months.push(m);
+  });
+  if(!months.length){
+    heading.textContent = `${new Date().toLocaleString("en-US", { month: "long" })} Raids`;
+    return;
+  }
+  // Two months reads fine ("August & September Raids"); more than that is a spanning range, so
+  // fall back to a plain label rather than listing four month names in a heading.
+  heading.textContent = months.length === 1 ? `${months[0]} Raids`
+                      : months.length === 2 ? `${months[0]} & ${months[1]} Raids`
+                      : "Upcoming Raids";
 }
-setLiveBossHeading();
 loadLiveBosses();
 loadMonthlyGuides();
 loadNewEntries();

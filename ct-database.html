@@ -886,12 +886,16 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <div class="view-intro" id="viewIntro"></div>
 
 <div class="controls">
+  <!-- "All Types" is rendered into this slot rather than into the grid below. As a full-width
+       row inside the grid it cost a whole line of vertical space to hold one control; here it
+       sits with the other page-level controls, which is what it is. -->
+  <span id="allTypesSlot"></span>
   <!-- Every row here came out of the calculator, so a reader wanting to reproduce or extend a
        result has somewhere to go without hunting through the nav. -->
-  <a class="calc-link" href="ct-calculator.html">Catch Tank Calculator &rarr;</a>
+  <a class="calc-link" href="ct-calculator.html">DPS Calculator &rarr;</a>
   <select id="tierFilter">
-    <option value="legendary">Bosses: Legendary</option>
-    <option value="mega">Bosses: Tier 4 Mega</option>
+    <option value="legendary">Legendary</option>
+    <option value="mega">Tier 4 Mega</option>
   </select>
   <select id="sortSelect">
     <option value="ctdps">Sort: CT DPS (High–Low)</option>
@@ -2542,9 +2546,12 @@ function renderTypeFilter(){
   // then silently overridden, leaving all 18 chips on one line at every width.
   el.style.display = "";
 
+  const allSlot = document.getElementById("allTypesSlot");
+  if(allSlot){
+    allSlot.innerHTML = `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type=""
+             aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All Types</span></button>`;
+  }
   el.innerHTML =
-    `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type=""
-             aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All types</span></button>` +
     types.map(t => `
       <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
               style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown};"
@@ -2552,7 +2559,9 @@ function renderTypeFilter(){
         <img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"><span>${t}</span>
       </button>`).join("");
 
-  el.querySelectorAll(".type-chip").forEach(btn => {
+  const chips = [...el.querySelectorAll(".type-chip")];
+  if(allSlot) chips.push(...allSlot.querySelectorAll(".type-chip"));
+  chips.forEach(btn => {
     btn.addEventListener("click", () => {
       const t = btn.dataset.type;
       if(!t) activeTypes.clear();                                   // "All types" resets
