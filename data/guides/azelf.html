@@ -237,6 +237,10 @@
   }
   .optional-note{ font-weight:600; color:#b8791a; font-size:10px; }
   [data-theme="dark"] .optional-note{ color:#e0b060; }
+  // Level+role and the moveset are always stacked as two rows (level/role on top, moves
+  // underneath) - this used to force them onto one flex row with a middle-dot separator at
+  // >=601px, cramming everything onto one crowded line on desktop. Removed so the layout is the
+  // same clean two-row block at every width, matching what mobile already did by default.
   @media (min-width: 601px){
     .battle-mon{ padding:4px 0; }
   }
@@ -334,7 +338,7 @@
     <a href="../../guides.html" class="hamburger-featured">Boss Guides</a>
     <a href="../../articles.html" class="hamburger-featured">Research Articles</a>
     <a href="../../meta-battle-parties.html">Meta Battle Parties</a>
-    <a href="../../ct-calculator.html">Catch Tank Calculator</a>
+    <a href="../../dps-calculator.html">DPS Calculator</a>
     <a href="../../move-data.html">Move Data</a>
     <a href="../../pokemon-stats.html">Pokémon Stats</a>
     <a href="../../reference.html">Difficulty &amp; Role Reference</a>
@@ -369,20 +373,15 @@
   <div class="edit-guide-row">
     <a class="edit-guide-btn" href="../../guides.html">&#8592; All Guides</a>
     <a class="edit-guide-btn" href="../../editor.html?boss=azelf">&#9998; Edit this guide</a>
-    <!-- Reciprocal of the collection page's "See guide" button. The link only ran one way,
-     so a reader arriving at a guide had no route to that boss's other strategies. -->
     <a class="edit-guide-btn collection-link" href="../../collections/azelf.html">&#9776; All strategies for this boss</a>
     <button type="button" class="edit-guide-btn share-guide-btn" id="shareGuideBtn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg> Share</button>
   </div>
 
   <h2 class="section-title">Boss Info</h2>
-  <div class="info-box">
-    <div class="boss-info-top">
+  <div class="boss-info-top">
       <img class="boss-sprite-sm" id="boss-sprite-img" alt="Azelf" onerror="this.style.display='none'">
       <div class="boss-info-top-right">
-        <div class="type-icon-row-sm">
-          <span class="type-icon-wrap" style="background:#E0426E;">Psychic</span>
-        </div>
+        <div class="type-icon-row-sm"><span class="type-icon-wrap" style="background:#E0426E;">Psychic</span></div>
         <dl class="stat-row-sm">
           <div class="stat-cell-sm"><dt class="stat-label-sm">ATK</dt><dd class="stat-value-sm">225.2</dd></div>
           <div class="stat-cell-sm"><dt class="stat-label-sm">DEF</dt><dd class="stat-value-sm">131.1</dd></div>
@@ -394,9 +393,7 @@
     <div class="movepool-row" id="fast-move-row"></div>
     <div class="movepool-label">Charge Moves</div>
     <div class="movepool-row" id="charge-move-row"></div>
-  </div>
-
-  <h2 class="section-title">Routes</h2>
+    <h2 class="section-title">Routes</h2>
   <div class="route-row" id="route-row">
     <div class="load-state">Loading...</div>
   </div>
@@ -423,9 +420,6 @@ const MOVE_TYPES = {
 };
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
-  // Same solid-color pill already used for the Boss Info type badges - a move's chip IS its
-  // type color. The small type icon rides on top of that same colored pill, forced to solid
-  // white via CSS filter so it reads clearly against any type's color.
   const info = MOVE_TYPES[name];
   const bg = info ? info.color : "#9199A1";
   const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" onerror="this.remove();">` : "";
@@ -481,10 +475,6 @@ const ANI_OVERRIDES = {
   "hisuian basculin": "basculin-whitestriped",
   "hisuian zoroark": "zoroark-hisuian",
   "paldean wooper": "wooper-paldea",
-  // Galarian Darmanitan's two forms. Without these the regional rule produces
-  // "darmanitan-galarian" and "darmanitan-zen-galarian", both 404 on the sprite CDN - the real
-  // names are "-galarianstandard" and "-galarianzen". The Shadow variants resolve through here
-  // too, since the lookup strips a leading "shadow ".
   "galarian darmanitan": "darmanitan-galarianstandard",
   "galarian darmanitan zen": "darmanitan-galarianzen",
   "zacian crown": "zacian-crownedsword",
@@ -503,47 +493,29 @@ const ANI_URL_OVERRIDES = {
   "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
   "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
 };
+// NOTE: no azelf placeholder in here. It used to sit between "audino-mega" and
+// "banette-mega" - azelf's slot - and because the token replace is global it substituted
+// there too, injecting the PAGE slug ("mega-garchomp") where a SPRITE slug
+// ("garchomp-mega") belongs. Every regenerated guide then claimed a local sprite that does
+// not exist, and lost the real "azelf" entry. A new boss's sprite is not local until
+// someone adds the file, so no per-boss entry belongs here.
 const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
-
-// ---- Sprite source priority: local -> mgrann03 -> pokemongohub (fallback) ----
-// GOHUB_OVERRIDES is no longer consulted up front. mgrann03 only carries 8 of the 35
-// override names, so the rest still need pokemongohub - but only after the preferred
-// source actually fails, not instead of it. spriteUrl() registers the fallback here and
-// this listener applies it. Capture phase runs before each element's inline onerror, so
-// stopPropagation() keeps the page's own "hide the image" handler from winning first.
-const SPRITE_FALLBACK = Object.create(null);
-document.addEventListener("error", function (e) {
-  const img = e.target;
-  if (!img || img.tagName !== "IMG" || img.dataset.spriteFallbackUsed) return;
-  const fb = SPRITE_FALLBACK[img.getAttribute("src")];
-  if (!fb) return;
-  img.dataset.spriteFallbackUsed = "1";
-  img.src = fb;
-  e.stopPropagation();
-  e.preventDefault();
-}, true);
-
 function monSpriteUrl(name){
   const key = name.trim().toLowerCase();
-  // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
+  if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
-  if (LOCAL_SPRITES.has(slug)) return `/assets/sprites/${slug}.gif`;  // root-relative:
-  // guide pages live at data/guides/, where a bare "assets/..." resolves to
-  // data/guides/assets/... and 404s. Every other asset on those pages already uses an
-  // absolute or ../../ path. This site is served from the domain root, so a leading slash
-  // is correct at any depth and keeps root-level pages working unchanged.
-  const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
-  if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
-  return url;
+  if (LOCAL_SPRITES.has(slug)) return `../../assets/sprites/${slug}.gif`;
+  return `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
 }
 
 function battleMonIconHtml(name){
   const isShadow = /^shadow\s+/i.test(name.trim());
   const src = monSpriteUrl(name);
   if(isShadow){
-    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
+    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
   }
-  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
+  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
 }
 function roleBadgeClass(role){
   return `role-badge role-${role.toLowerCase().replace(/\s+/g, '-')}`;

@@ -338,7 +338,7 @@
     <a href="../../guides.html" class="hamburger-featured">Boss Guides</a>
     <a href="../../articles.html" class="hamburger-featured">Research Articles</a>
     <a href="../../meta-battle-parties.html">Meta Battle Parties</a>
-    <a href="../../ct-calculator.html">Catch Tank Calculator</a>
+    <a href="../../dps-calculator.html">DPS Calculator</a>
     <a href="../../move-data.html">Move Data</a>
     <a href="../../pokemon-stats.html">Pokémon Stats</a>
     <a href="../../reference.html">Difficulty &amp; Role Reference</a>
@@ -378,8 +378,7 @@
   </div>
 
   <h2 class="section-title">Boss Info</h2>
-  <div class="info-box">
-    <div class="boss-info-top">
+  <div class="boss-info-top">
       <img class="boss-sprite-sm" id="boss-sprite-img" alt="Mega Raichu X" onerror="this.style.display='none'">
       <div class="boss-info-top-right">
         <div class="type-icon-row-sm"><span class="type-icon-wrap" style="background:#E0B316;">Electric</span></div>
@@ -394,9 +393,7 @@
     <div class="movepool-row" id="fast-move-row"></div>
     <div class="movepool-label">Charge Moves</div>
     <div class="movepool-row" id="charge-move-row"></div>
-  </div>
-
-  <h2 class="section-title">Routes</h2>
+    <h2 class="section-title">Routes</h2>
   <div class="route-row" id="route-row">
     <div class="load-state">Loading...</div>
   </div>
@@ -430,11 +427,6 @@ const MOVE_TYPES = {
 };
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
-  // Same solid-color pill already used for the Boss Info type badges (typeChipsHtml) - a move's
-  // chip IS its type color, full stop, rather than a separate accent-border layered on top of a
-  // generic chip. The small type icon rides on top of that same colored pill (forced to solid
-  // white via CSS filter so it reads clearly against any type's color, rather than needing a
-  // separate icon variant per type).
   const info = MOVE_TYPES[name];
   const bg = info ? info.color : "#9199A1";
   const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" onerror="this.remove();">` : "";
@@ -528,9 +520,9 @@ function battleMonIconHtml(name){
   const isShadow = /^shadow\s+/i.test(name.trim());
   const src = monSpriteUrl(name);
   if(isShadow){
-    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
+    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
   }
-  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
+  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
 }
 function roleBadgeClass(role){
   return `role-badge role-${role.toLowerCase().replace(/\s+/g, '-')}`;

@@ -338,7 +338,7 @@
     <a href="../../guides.html" class="hamburger-featured">Boss Guides</a>
     <a href="../../articles.html" class="hamburger-featured">Research Articles</a>
     <a href="../../meta-battle-parties.html">Meta Battle Parties</a>
-    <a href="../../ct-calculator.html">Catch Tank Calculator</a>
+    <a href="../../dps-calculator.html">DPS Calculator</a>
     <a href="../../move-data.html">Move Data</a>
     <a href="../../pokemon-stats.html">Pokémon Stats</a>
     <a href="../../reference.html">Difficulty &amp; Role Reference</a>
@@ -378,15 +378,14 @@
   </div>
 
   <h2 class="section-title">Boss Info</h2>
-  <div class="info-box">
-    <div class="boss-info-top">
+  <div class="boss-info-top">
       <img class="boss-sprite-sm" id="boss-sprite-img" alt="Mega Starmie" onerror="this.style.display='none'">
       <div class="boss-info-top-right">
         <div class="type-icon-row-sm"><span class="type-icon-wrap" style="background:#3E8DE0;">Water</span><span class="type-icon-wrap" style="background:#E0426E;">Psychic</span></div>
         <dl class="stat-row-sm">
           <div class="stat-cell-sm"><dt class="stat-label-sm">ATK</dt><dd class="stat-value-sm">251.3</dd></div>
           <div class="stat-cell-sm"><dt class="stat-label-sm">DEF</dt><dd class="stat-value-sm">192.8</dd></div>
-          <div class="stat-cell-sm"><dt class="stat-label-sm">HP</dt><dd class="stat-value-sm">15,000</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">HP</dt><dd class="stat-value-sm">9,000</dd></div>
         </dl>
       </div>
     </div>
@@ -394,9 +393,7 @@
     <div class="movepool-row" id="fast-move-row"></div>
     <div class="movepool-label">Charge Moves</div>
     <div class="movepool-row" id="charge-move-row"></div>
-  </div>
-
-  <h2 class="section-title">Routes</h2>
+    <h2 class="section-title">Routes</h2>
   <div class="route-row" id="route-row">
     <div class="load-state">Loading...</div>
   </div>
@@ -443,22 +440,16 @@ const MOVE_TYPES = {
   "Thunder": {type:"Electric", color:"#E0B316"},
   "Surf": {type:"Water", color:"#3E8DE0"},
   "Aqua Jet": {type:"Water", color:"#3E8DE0"},
-  "Liquidation+": {type:"Water", color:"#3E8DE0"},
 };
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
-  // Same solid-color pill already used for the Boss Info type badges (typeChipsHtml) - a move's
-  // chip IS its type color, full stop, rather than a separate accent-border layered on top of a
-  // generic chip. The small type icon rides on top of that same colored pill (forced to solid
-  // white via CSS filter so it reads clearly against any type's color, rather than needing a
-  // separate icon variant per type).
   const info = MOVE_TYPES[name];
   const bg = info ? info.color : "#9199A1";
   const icon = info ? `<img class="move-type-icon" src="${TYPE_ICON_BASE}${info.type.toLowerCase()}.svg" alt="${info.type}" onerror="this.remove();">` : "";
   return `<span class="move-chip" style="background:${bg};" title="${info ? info.type : ""}">${icon}${name}</span>`;
 }
 document.getElementById('fast-move-row').innerHTML = ["Hidden Power Bug","Hidden Power Dark","Hidden Power Dragon","Hidden Power Electric","Hidden Power Fighting","Hidden Power Fire","Hidden Power Flying","Hidden Power Ghost","Hidden Power Grass","Hidden Power Ground","Hidden Power Ice","Hidden Power Poison","Hidden Power Psychic","Hidden Power Rock","Hidden Power Steel","Hidden Power Water","Quick Attack","Tackle","Water Gun","Psywave"].map(m => moveChipHtml(m, false)).join('');
-document.getElementById('charge-move-row').innerHTML = ["Hydro Pump","Ice Beam","Power Gem","Psybeam","Psychic","Thunder","Surf","Aqua Jet","Liquidation+"].map(m => moveChipHtml(m, true)).join('');
+document.getElementById('charge-move-row').innerHTML = ["Hydro Pump","Ice Beam","Power Gem","Psybeam","Psychic","Thunder","Surf","Aqua Jet"].map(m => moveChipHtml(m, true)).join('');
 
 // ============ SPRITE RESOLUTION (full system - was regressed to a naive version during
 // an earlier rebuild of this page; restored here to match editor.html and the rest of the site) ============
@@ -545,9 +536,9 @@ function battleMonIconHtml(name){
   const isShadow = /^shadow\s+/i.test(name.trim());
   const src = monSpriteUrl(name);
   if(isShadow){
-    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
+    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
   }
-  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
+  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
 }
 function roleBadgeClass(role){
   return `role-badge role-${role.toLowerCase().replace(/\s+/g, '-')}`;
