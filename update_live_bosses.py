@@ -233,6 +233,7 @@ def fetch_current_bosses():
     data = resp.json()
 
     names = []
+    enhanced_names = set()
     for tier_entry in data.get("tiers", []):
         tier_key = tier_entry.get("tier", "")
         raids = tier_entry.get("raids", [])
@@ -244,8 +245,18 @@ def fetch_current_bosses():
         # excluded here at the source rather than being pulled in and filtered out later
         # by matching names against an external schedule.
         if "_MEGA_ENHANCED" in tier_key:
-            active = sum(1 for r in raids if r.get("cp", 0) == 0)
-            print(f"[{tier_key}] skipping {active} boss(es) - Super Mega tier, not Tier 4 Mega")
+            # GATE 1 SOURCE (authoritative). These names are RECORDED, not just skipped - a
+            # boss can also reach the publish list via the website-scrape pass, which carries
+            # no tier data at all, and that pass needs to be able to ask "did the API call
+            # this Super Mega?" Discarding the names here is what made Gate 1 unverifiable
+            # for anything that did not come from this function.
+            for r in raids:
+                if r.get("cp", 0) != 0:
+                    continue
+                pid = r.get("pokemonId") or r.get("pokemon")
+                if pid:
+                    enhanced_names.add(pokemon_id_to_name(pid).strip().lower())
+            print(f"[{tier_key}] skipping {len(enhanced_names)} boss(es) - Super Mega tier, not Tier 4 Mega")
             continue
         current_in_tier = 0
         for raid in raids:
@@ -258,7 +269,7 @@ def fetch_current_bosses():
             current_in_tier += 1
         print(f"[{tier_key}] {current_in_tier} currently-active boss(es) (of {len(raids)} total entries)")
 
-    return names
+    return names, enhanced_names
 
 
 def fetch_boss_dates_from_website():
@@ -310,6 +321,167 @@ def fetch_boss_dates_from_website():
           f"({len(web_occurrences)} boss/window occurrence(s))")
     return dates_by_name, web_occurrences
 
+
+
+
+# ============================================================================
+# THE TWO GATES
+# ----------------------------------------------------------------------------
+# A boss is published ONLY if it passes both. Each returns (passed, reason) so a
+# rejection always says which gate stopped it and why - a boss silently vanishing
+# is as much a bug as a wrong boss appearing.
+#
+# These exist as two named functions, called from one place, specifically because
+# the checks used to be scattered: the tier check lived inside the API fetch, the
+# date check inside build_result, and the Super Mega backstop inside a separate
+# cross-check that only inspected one category. A boss reaching the site through a
+# path that skipped one of them is exactly how a Super Mega raid was published
+# under Monthly Rotation.
+# ============================================================================
+
+def gate_1_not_enhanced(name, key, enhanced_names, leekduck_verdict):
+    """GATE 1: the boss must be verified NOT to be an enhanced (Super Mega) raid.
+
+    Two independent authorities, checked in order of trust:
+
+      1. Pokebattler's own tier string (RAID_LEVEL_*_MEGA_ENHANCED). Authoritative
+         when the boss came from the API - the tier names it outright.
+      2. LeekDuck/ScrapedDuck Super Mega Raid Day events. The only authority for a
+         boss found by the website scrape, which carries no tier data at all.
+
+    Returns (False, reason) if either says enhanced.
+    """
+    if key in enhanced_names or name.strip().lower() in enhanced_names:
+        return False, "Pokebattler tier is _MEGA_ENHANCED (Super Mega)"
+    if leekduck_verdict == "super_mega":
+        return False, "LeekDuck lists this window as a Super Mega Raid Day"
+    return True, None
+
+
+def gate_2_date_valid(name, start_date, end_date, now, date_only, parse_pokebattler_datetime):
+    """GATE 2: the boss must have a window that places it in the current monthly
+    rotation, OR be a single-day event (which is published under the event category).
+
+    Returns (passed, category, reason).
+
+    A START DATE IS REQUIRED. Without one there is no window, so the entry can be
+    neither placed in a rotation nor confirmed as a one-day event - and the old
+    classifier's `start_date and ...` guard silently defaulted those to "rotation",
+    which is how a dateless Super Mega entry landed in Monthly Rotation.
+    """
+    if not start_date and not end_date:
+        return False, None, "no start/end date"
+    if not start_date:
+        return False, None, f"end date ({end_date}) but no start date - window undefined"
+
+    # Single calendar day -> event. Anything longer -> monthly rotation.
+    category = "event" if date_only(start_date) == date_only(end_date) else "rotation"
+
+    end_dt = parse_pokebattler_datetime(end_date) if end_date else None
+    if end_dt is not None:
+        if category == "rotation":
+            # A rotation stays visible for the whole month its window falls in, and is
+            # dropped only once the calendar month itself has passed.
+            if (end_dt.year, end_dt.month) < (now.year, now.month):
+                return False, category, f"rotation window's month ({end_date}) has passed"
+        else:
+            # A one-day event is dropped as soon as it is over.
+            if end_dt < now:
+                return False, category, f"event window ({end_date}) has passed"
+    return True, category, None
+
+
+
+
+# Shared by build_leekduck_verdicts() and the legacy apply_leekduck_crosscheck(). Module-level
+# rather than defined inside one of them, so there is a single definition to keep correct.
+SUPER_MEGA_RE = re.compile(r"super[-\s]?mega[-\s]?raid", re.IGNORECASE)
+DATE_HEAD_RE = re.compile(r"^([A-Za-z]+ \d+, \d+)")
+
+
+def parse_day(date_str):
+    """'Aug 22, 2026 10:00 AM' -> datetime. The time suffix is dropped before parsing.
+
+    LOAD-BEARING: dates arrive straight from the Pokebattler website scrape formatted WITH a
+    time. A strict "%b %d, %Y" parse returns None on every one of those, every entry then
+    looks undated, and any check built on it silently no-ops while reporting success.
+    """
+    if not date_str:
+        return None
+    m = DATE_HEAD_RE.match(date_str.strip())
+    if not m:
+        return None
+    try:
+        return datetime.strptime(m.group(1), "%b %d, %Y")
+    except ValueError:
+        return None
+
+
+def build_leekduck_verdicts(candidates):
+    """Pre-computes a Super Mega verdict for each (boss key, start day) candidate window.
+
+    This replaces the old after-the-fact apply_leekduck_crosscheck() filter. Same data and
+    same 1-to-1 (boss, window) matching rule, but the answer is now available DURING the
+    publish decision, so Gate 1 can consult it for every source path rather than a filter
+    running afterwards over only one category.
+
+    Returns {(key, start_day): "super_mega"} - keys absent mean "not Super Mega, or not
+    determinable". Removal still requires positive evidence: a Super Mega Raid Day event
+    that covers the window and does not list the boss as an ordinary Mega Raid boss. A
+    fetch failure yields an empty dict, which means Gate 1 falls back to the Pokebattler
+    tier string alone.
+    """
+    verdicts = {}
+    try:
+        import leekduck_crosscheck as lc
+    except ImportError as exc:
+        print(f"  LeekDuck cross-check unavailable ({exc}) - Gate 1 will rely on tier data alone")
+        return verdicts
+    try:
+        events = lc.discover_events()
+    except Exception as exc:
+        print(f"  LeekDuck cross-check FAILED ({type(exc).__name__}: {exc}) - Gate 1 will rely on tier data alone")
+        return verdicts
+
+    index = []
+    for e in events:
+        start = lc.parse_iso(e.get("start"))
+        end = lc.parse_iso(e.get("end"))
+        if not start or not end:
+            continue
+        bosses = {b.get("name") for b in
+                  (e.get("extraData") or {}).get("raidbattles", {}).get("bosses", [])
+                  if b.get("name")}
+        eid = e.get("eventID") or ""
+        index.append({
+            "eventID": eid, "start": start, "end": end, "bosses": bosses,
+            "isSuperMega": bool(SUPER_MEGA_RE.search(eid) or SUPER_MEGA_RE.search(e.get("name") or "")),
+        })
+
+    smd = [c["eventID"] for c in index if c["isSuperMega"]]
+    print(f"  LeekDuck: {len(index)} dated event(s) from ScrapedDuck, "
+          f"{len(smd)} Super Mega Raid Day(s): {', '.join(smd) or 'none'}")
+    if not index:
+        return verdicts
+
+    def contains(event, start, end):
+        return event["start"].date() <= start.date() and event["end"].date() >= end.date()
+
+    for key, name, start_day, start_date, end_date in candidates:
+        start = parse_day(start_date)
+        end = parse_day(end_date)
+        if not start or not end:
+            continue
+        matches = [c for c in index if contains(c, start, end)]
+        if not matches:
+            continue
+        # Tightest covering event is the one this entry actually belongs to.
+        event = min(matches, key=lambda c: (c["end"] - c["start"]).total_seconds())
+        if event["isSuperMega"] and name not in event["bosses"]:
+            verdicts[(key, start_day)] = "super_mega"
+            print(f"  LeekDuck: {name} [{start_day}] -> Super Mega "
+                  f"({event['eventID']} covers it and does not list it as a Mega Raid boss)")
+    return verdicts
 
 
 def apply_leekduck_crosscheck(results):
@@ -418,7 +590,15 @@ def apply_leekduck_crosscheck(results):
 
     kept = []
     for r in results:
-        if r.get("category") != "event" or r.get("archivePage") != lc.TIER4_ARCHIVE_PAGE:
+        # Gate on the ARCHIVE PAGE only, not on category. Gating on category == "event" meant
+        # any mega raid that reached here labelled "rotation" was exempt from the Super Mega
+        # test entirely - which is precisely how a misclassified Super Mega boss got published
+        # under Monthly Rotation. Tier is a property of the boss in its window; it has nothing
+        # to do with whether that window happens to be one day or several, so a category was
+        # never the right thing to branch on here. Removal still requires positive evidence
+        # (see the docstring): a Super Mega Raid Day event that covers the window and does not
+        # list the boss as an ordinary Mega Raid boss.
+        if r.get("archivePage") != lc.TIER4_ARCHIVE_PAGE:
             kept.append(r)
             continue
 
@@ -446,7 +626,7 @@ def apply_leekduck_crosscheck(results):
         kept.append(r)
 
     dropped = len(results) - len(kept)
-    print(f"  LeekDuck cross-check: {dropped} event mega raid(s) dropped as Super Mega")
+    print(f"  LeekDuck cross-check: {dropped} mega raid(s) dropped as Super Mega")
     return kept
 
 
@@ -454,7 +634,7 @@ def main():
     known_bosses = load_known_bosses()
     print(f"Loaded {len(known_bosses)} known boss names from this site's own archives")
 
-    current_names = fetch_current_bosses()
+    current_names, enhanced_names = fetch_current_bosses()
     print(f"Fetched {len(current_names)} total current boss entries from Pokebattler's API")
 
     dates_by_name, web_occurrences = fetch_boss_dates_from_website()
@@ -467,6 +647,24 @@ def main():
             return None
         m = re.match(r"^([A-Za-z]+ \d+, \d+)", date_str)
         return m.group(1) if m else date_str
+
+    # Every (boss, window) that could possibly be published, gathered before any publish
+    # decision so Gate 1's LeekDuck authority is available to all of them. Covers all three
+    # source paths: the live API roster, the website scrape, and the confirmed-rotation table.
+    candidates = []
+    for key in set(list(dates_by_name.keys()) + list(CONFIRMED_ROTATION_DATES.keys())
+                   + [k for k, _s, _e in web_occurrences]):
+        if key not in known_bosses:
+            continue
+        nm = known_bosses[key].get("name") or key.title()
+        sd, ed = CONFIRMED_ROTATION_DATES.get(key) or dates_by_name.get(key, (None, None))
+        if sd:
+            candidates.append((key, nm, date_only(sd), sd, ed))
+    for k, sd, ed in web_occurrences:
+        if k in known_bosses and sd:
+            nm = known_bosses[k].get("name") or k.title()
+            candidates.append((k, nm, date_only(sd), sd, ed))
+    leekduck_verdicts = build_leekduck_verdicts(candidates)
 
     results = []
     seen = set()
@@ -487,46 +685,23 @@ def main():
         # month's rotation before it's been manually confirmed and added).
         start_date, end_date = override_dates or CONFIRMED_ROTATION_DATES.get(key) or dates_by_name.get(key, (None, None))
 
-        # NULL-DATE RULE: an entry with neither a start nor an end date is never published.
-        # Every expiry check below is skipped when end_dt is None, so an undated boss used
-        # to persist forever - which is how Mega Raichu X/Y stayed on the site from July
-        # onward. Rotation data is only trustworthy when the window is defined, so drop it
-        # rather than show it under "Currently active".
-        # This rule is local and needs no network, so it still applies when the LeekDuck
-        # cross-check below is unavailable.
-        if not start_date and not end_date:
-            print(f"  skipping {name}: no start/end date - undated entries are not published")
+        # ---- GATE 2: date/window validity and category ----
+        passed, category, reason = gate_2_date_valid(
+            name, start_date, end_date, now, date_only, parse_pokebattler_datetime)
+        if not passed:
+            print(f"  GATE 2 REJECT {name}: {reason}")
             return None
 
-        end_dt = parse_pokebattler_datetime(end_date)
-
-        # Classify BEFORE filtering: a single calendar day (start == end) is an Event -
-        # GO Fest makeup days, Community Day raids, etc, always short one-day windows.
-        # Anything spanning multiple days, or with no matched date, is the standard
-        # Monthly Rotation (usually 1-2 weeks).
-        category = "event" if (start_date and date_only(start_date) == date_only(end_date)) else "rotation"
-
-        # Expiry rule differs by category:
-        #  - ROTATION bosses stay visible for the WHOLE month their window falls in, even
-        #    after the ~1-2 week window itself has passed, and only drop once the calendar
-        #    month actually flips. People still want retroactive monthly boss guides (e.g.
-        #    Azelf mid-to-late August after its early-August window ended). A rotation boss
-        #    is dropped only when its end date is in an EARLIER month than today.
-        #  - EVENTS (one-day windows) keep the old behavior: dropped the moment they're over,
-        #    since a finished one-day event isn't a "this month's rotation" people revisit.
-        # No "hasn't started yet" exclusion (future-dated bosses show with a dated header);
-        # that was removed earlier after it silently emptied the Event row for a distant event.
-        if end_dt:
-            if category == "event":
-                if now > end_dt:
-                    print(f"  skipping {name}: event window ended {end_date}, already over")
-                    return None
-            else:  # rotation
-                # dropped only once we're past the month the window ended in
-                month_over = (now.year, now.month) > (end_dt.year, end_dt.month)
-                if month_over:
-                    print(f"  skipping {name}: rotation window's month ({end_date}) has passed")
-                    return None
+        # ---- GATE 1: must be verified NOT an enhanced (Super Mega) raid ----
+        # Checked here, at the single point where a boss becomes publishable, so it applies
+        # identically to every source path - the API pass, the website-scrape pass, and the
+        # this-month retention pass. Previously the tier check only ran inside the API fetch,
+        # leaving the website path (which has no tier data) unguarded.
+        leekduck_verdict = leekduck_verdicts.get((key, date_only(start_date)))
+        passed, reason = gate_1_not_enhanced(name, key, enhanced_names, leekduck_verdict)
+        if not passed:
+            print(f"  GATE 1 REJECT {name}: {reason}")
+            return None
 
         return {
             "name": name,
@@ -631,7 +806,10 @@ def main():
     # loudly. Silence from a cross-check must never be read as "delete everything" - that
     # would empty the page on any upstream outage. Rotations are never touched here at
     # all; neither are non-mega entries.
-    results = apply_leekduck_crosscheck(results)
+    # apply_leekduck_crosscheck() is no longer called here. Its job moved into Gate 1, which
+    # runs at the single publish decision point and therefore covers every source path and
+    # every category - the old filter only inspected category == "event", which is exactly how
+    # a misclassified Super Mega boss slipped past it.
 
     grouped = {}
     order = []
