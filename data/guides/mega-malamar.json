@@ -1,0 +1,68 @@
+{
+  "boss": "Mega Malamar",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Mega Heracross Recycle",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "3★",
+      "text": "<h2>Overview</h2><p>Mega Malamar was one of the original Super Mega Raid bosses debutted during Kalos Tour. It does not serve any PVE value currently. Mega Malamar learns a various set of problematic moves for bug counters. These are peck, psybeam, psywave; all powerful to the typical counters Mega Beedrill or Mega Heracross. Nonetheless with a low attack stat, Mega Heracross can brute force these moves. </p><h4>Est Time to Win: 210.0s - 270.0s</h4><h2>Main Strategy</h2><p>Simply DPS with Mega Heracross, dodging problematic moves like Hyper Beam or Psybeam. You may need to rejoin between 3 to 5 time depending on the boss cadence. It is recommended, although not required to <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-tick-perfect-cast\" target=\"_blank\">Tick Perfect Cast</a> as Fury Cutter is a very EPS centric move.</p><p>Additional bug options which do not subtract DPS include Genesect, Kartana and Shadow Vikavolt.</p>",
+      "vods": [],
+      "submittedBy": "Spiritedbloom",
+      "battleParties": [
+        {
+          "label": "Mega Heracross",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Mega Heracross",
+              "level": "40-50",
+              "fm": "Fury Cutter",
+              "cm": "Megahorn",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Vikavolt",
+              "level": "30-50",
+              "fm": "Bug Bite",
+              "cm": "X-Scissor",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Genesect",
+              "level": "30-50",
+              "fm": "Fury Cutter",
+              "cm": "X-Scissor",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Kartana",
+              "level": "30-50",
+              "fm": "Fury Cutter",
+              "cm": "X-Scissor",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-23T05:01:38.993Z"
+    }
+  ]
+}
