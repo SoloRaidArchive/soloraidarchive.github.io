@@ -644,17 +644,17 @@
     <div class="hamburger-section-label">PVE Meta</div>
     <a href="research.html" class="current hamburger-featured">Top Raiders</a>
     <a href="ct-database.html" class="hamburger-featured">Top Catch Tanks</a>
-    <a href="meta-battle-parties.html">Battle Parties</a>
+    <a href="meta-battle-parties.html">Used Battle Parties</a>
   </div>
     <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
-    <a href="dps-calculator.html" class="hamburger-featured">DPS Calculator</a>
-    <a href="solo-raid-mechanics.html" class="hamburger-featured">Solo Mechanics</a>
-    <a href="guides.html" class="hamburger-featured">Raid Guides</a>
-    <a href="articles.html">Articles</a>
+    <a href="solo-raid-mechanics.html" class="hamburger-featured">Player Mechanics</a>
+    <a href="guides.html" class="hamburger-featured">Guides</a>
+    <a href="articles.html" class="hamburger-featured">Articles</a>
+    <a href="dps-calculator.html">DPS Calculator</a>
     <a href="move-data.html">Move Stats</a>
     <a href="pokemon-stats.html">Pokémon Stats</a>
-    <a href="reference.html">Difficulty &amp; Roles</a>
+    <a href="reference.html">Difficulty &amp; Role Reference</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Archives</div>
@@ -1508,11 +1508,39 @@ function typesOf(name){
   const key = (name || "").trim().toLowerCase();
   return POKEMON_TYPES[key] || POKEMON_TYPES[key.replace(/^shadow\s+/, "")] || null;
 }
-function matchesTypeFilter(name){
+// A selected type must match BOTH the raider's own typing AND one of the charge moves it was
+// actually recorded using - a Steel/Fighting raider that only ever fired a Steel charge move is
+// not a Fighting pick. Kept as two independent lookups because each has its own unknown-data
+// escape hatch: an unrecognised NAME already matched every filter (see typesOf above), and an
+// unrecognised MOVE gets the same benefit of the doubt rather than silently vanishing.
+function chargeTypesOf(r){
+  const out = new Set();
+  let sawAny = false;
+  (r.instances || []).forEach(i => {
+    // One cell can hold two moves that were both used in the same run, e.g. Mega Blaziken's
+    // "Blast Burn & Blaze Kick". Any one of them matching is enough.
+    (i.pcharge || "").split(/\s*&\s*/).forEach(part => {
+      const m = part.trim().toLowerCase();
+      // Same placeholders movesetsFor() skips: these mean "moveset did not matter", not a move.
+      if(!m || /^(any|none|n\/a|varies)$/i.test(m)) return;
+      sawAny = true;
+      const ty = MOVE_TYPES[m];
+      if(ty) out.add(typeof ty === "string" ? ty : ty.type);
+    });
+  });
+  // No usable move data at all -> unknown, so don't filter it out.
+  return sawAny && out.size ? out : null;
+}
+function matchesTypeFilter(nameOrRow){
   if(!activeTypes.size) return true;
+  const r = typeof nameOrRow === "string" ? null : nameOrRow;
+  const name = r ? r.name : nameOrRow;
   const ts = typesOf(name);
-  if(!ts) return true;
-  return ts.some(t => activeTypes.has(t));
+  if(ts && !ts.some(t => activeTypes.has(t))) return false;
+  if(!r) return true;
+  const cs = chargeTypesOf(r);
+  if(!cs) return true;
+  return [...cs].some(t => activeTypes.has(t));
 }
 
 function renderTypeFilter(){
@@ -1520,9 +1548,16 @@ function renderTypeFilter(){
   if(!el) return;
   // Only offer types that actually appear in the current results - an empty Fairy filter is a
   // dead end, not a feature.
-  const present = new Set();
-  ALL_RESULTS.forEach(r => (typesOf(r.name) || []).forEach(t => present.add(t)));
-  const types = TYPE_ORDER.filter(t => present.has(t));
+  // Presence is tested with the real predicate, not typing alone. Now that a chip also requires a
+  // matching charge move, typing-only presence would re-create the dead-end chip this guards
+  // against: Fighting would appear for a Steel/Fighting raider that never fired a Fighting move,
+  // then return nothing when clicked.
+  const saved = activeTypes;
+  const types = TYPE_ORDER.filter(t => {
+    activeTypes = new Set([t]);
+    try { return ALL_RESULTS.some(r => matchesTypeFilter(r)); }
+    finally { activeTypes = saved; }
+  });
   if(!types.length){ el.style.display = "none"; return; }
   // Clear the inline value rather than setting one: this was "flex" from the earlier scrolling
   // strip, and an inline style beats the stylesheet - so the grid rules were being applied and
@@ -1723,7 +1758,7 @@ function renderLeaderboard(){
   const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
   let filtered = ALL_RESULTS
     .filter(r => !query || r.name.toLowerCase().includes(query))
-    .filter(r => matchesTypeFilter(r.name));
+    .filter(r => matchesTypeFilter(r));
 
   // When a role filter is active, each Pokemon's relevant count reflects ONLY how many times
   // it was used in that specific role for that entry — not its total usage across all roles.

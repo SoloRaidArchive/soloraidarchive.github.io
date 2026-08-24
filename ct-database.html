@@ -851,17 +851,17 @@ header{ padding: 12px 24px 10px; text-align:center; }
     <div class="hamburger-section-label">PVE Meta</div>
     <a href="research.html" class="hamburger-featured">Top Raiders</a>
     <a href="ct-database.html" class="current hamburger-featured">Top Catch Tanks</a>
-    <a href="meta-battle-parties.html">Battle Parties</a>
+    <a href="meta-battle-parties.html">Used Battle Parties</a>
   </div>
     <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
-    <a href="dps-calculator.html" class="hamburger-featured">DPS Calculator</a>
-    <a href="solo-raid-mechanics.html" class="hamburger-featured">Solo Mechanics</a>
-    <a href="guides.html" class="hamburger-featured">Raid Guides</a>
-    <a href="articles.html">Articles</a>
+    <a href="solo-raid-mechanics.html" class="hamburger-featured">Player Mechanics</a>
+    <a href="guides.html" class="hamburger-featured">Guides</a>
+    <a href="articles.html" class="hamburger-featured">Articles</a>
+    <a href="dps-calculator.html">DPS Calculator</a>
     <a href="move-data.html">Move Stats</a>
     <a href="pokemon-stats.html">Pokémon Stats</a>
-    <a href="reference.html">Difficulty &amp; Roles</a>
+    <a href="reference.html">Difficulty &amp; Role Reference</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Archives</div>
@@ -2530,11 +2530,38 @@ function typesOf(name){
   if(!rec) return null;
   return [rec.t1, rec.t2].filter(Boolean).map(t => t.toLowerCase());
 }
-function matchesTypeFilter(name){
+// A selected type must match BOTH the Pokemon's own typing AND its charge move - a Steel/Fighting
+// catch tank running a Steel charge move is not a Fighting pick. Unknown data on either side keeps
+// the row visible rather than silently dropping it, matching typesOf()'s existing behaviour.
+function chargeTypeOf(row){
+  // "Player Moveset" is stored as "Fast / Charge"; every one of the 275 rows has exactly two
+  // parts, so the charge move is the segment after the slash.
+  const ms = (row && row.playerMoveset || "").trim();
+  if(!ms.includes("/")) return null;
+  const out = new Set();
+  let sawAny = false;
+  ms.split("/").slice(1).join("/").split(/\s*&\s*/).forEach(part => {
+    const m = part.trim().toLowerCase();
+    if(!m || /^(any|none|n\/a|varies)$/i.test(m)) return;
+    sawAny = true;
+    // This page has no MOVE_TYPES map - referencing one here is what previously threw a
+    // ReferenceError and silently aborted loadMoveDb (see the comment there). MOVE_DB is the
+    // structure that exists, and `elem` is the element type; `type` is the Fast/Charge category.
+    const rec = MOVE_DB.find(x => (x.n || "").trim().toLowerCase() === m);
+    if(rec && rec.elem) out.add(rec.elem.trim().toLowerCase());
+  });
+  return sawAny && out.size ? out : null;
+}
+function matchesTypeFilter(nameOrRow){
   if(!activeTypes.size) return true;
+  const row = typeof nameOrRow === "string" ? null : nameOrRow;
+  const name = row ? row.pokemon : nameOrRow;
   const ts = typesOf(name);
-  if(!ts) return true;
-  return ts.some(t => activeTypes.has(t));
+  if(ts && !ts.some(t => activeTypes.has(t))) return false;
+  if(!row) return true;
+  const cs = chargeTypeOf(row);
+  if(!cs) return true;
+  return [...cs].some(t => activeTypes.has(t));
 }
 
 function renderTypeFilter(){
@@ -2542,9 +2569,14 @@ function renderTypeFilter(){
   if(!el) return;
   // Only offer types that actually appear in the current results - an empty Fairy filter is a
   // dead end, not a feature.
-  const present = new Set();
-  SUBMISSIONS.forEach(r => (typesOf(r.pokemon) || []).forEach(t => present.add(t)));
-  const types = TYPE_ORDER.filter(t => present.has(t));
+  // Tested with the real predicate, not typing alone - otherwise a chip can appear for a type
+  // whose only candidates fail the charge-move half, and clicking it returns nothing.
+  const saved = activeTypes;
+  const types = TYPE_ORDER.filter(t => {
+    activeTypes = new Set([t]);
+    try { return SUBMISSIONS.some(r => matchesTypeFilter(r)); }
+    finally { activeTypes = saved; }
+  });
   if(!types.length){ el.style.display = "none"; return; }
   // Clear the inline value rather than setting one: this was "flex" from the earlier scrolling
   // strip, and an inline style beats the stylesheet - so the grid rules were being applied and
@@ -2581,7 +2613,7 @@ function render(){
   const q = searchInput.value.trim().toLowerCase();
   // Pool first: the two boss tiers have different DPS bars and are never shown together.
   let list = SUBMISSIONS.filter(inCurrentPool)
-    .filter(s => matchesTypeFilter(s.pokemon))
+    .filter(s => matchesTypeFilter(s))
     .filter(s => !q || s.pokemon.toLowerCase().includes(q) || s.boss.toLowerCase().includes(q));
 
   const sort = sortSelect.value;
