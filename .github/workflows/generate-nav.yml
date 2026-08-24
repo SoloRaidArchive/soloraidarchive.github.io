@@ -1,0 +1,62 @@
+name: Generate nav
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # Only the source of truth triggers this. generate_nav.py never writes
+      # nav-partial.html (it is in the script's SKIP_FILES), so the commit this
+      # workflow makes cannot match this path filter and re-trigger itself.
+      - "data/nav-partial.html"
+      - "generate_nav.py"
+  workflow_dispatch: {}
+    # ^ lets you run it from the Actions tab without pushing anything, e.g. after
+    # editing the partial in the web editor, or to re-sync if a commit slipped through.
+
+permissions:
+  contents: write
+
+concurrency:
+  # The live-bosses bot pushes to main every 3 hours. Without this, two jobs can
+  # race and one push is rejected as non-fast-forward.
+  group: commit-to-main
+  cancel-in-progress: false
+
+jobs:
+  generate-nav:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+        # generate_nav.py is stdlib-only, so there is no pip install step.
+
+      - name: Wrap any unmarked panels
+        run: |
+          # Idempotent: only touches files that have a hamburger panel and no
+          # markers yet. On the first run that is the whole site; afterwards it is
+          # a no-op, except for any newly hand-authored page, which it picks up
+          # automatically. This is why no local Python is ever needed.
+          python insert_nav_markers.py
+
+      - name: Regenerate nav
+        run: python generate_nav.py
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "Nav already up to date, nothing to commit."
+          else
+            git add -A
+            git commit -m "Regenerate nav from data/nav-partial.html"
+            # Rebase before pushing in case the live-bosses bot landed a commit
+            # while this job was running.
+            git pull --rebase
+            git push
+          fi
