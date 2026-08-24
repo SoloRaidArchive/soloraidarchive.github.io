@@ -3,15 +3,55 @@
   "types": [],
   "strategies": [
     {
-      "strategyName": "",
+      "strategyName": "Mega Rayquaza/Mewtwo Recycle",
       "weather": "Extreme",
       "adventureEffect": "None",
       "difficulty": "3★",
-      "text": "<h2>Overview</h2><p><br></p><h4>Est Time to Win</h4><p><br></p><h2>Main Strategy</h2><p><br></p><h2>Video Credits</h2><p><br></p>",
+      "text": "<h2>Overview</h2><p>Mega Falinks is another goofy looking mega debut. The new mega form is a little bit tanky but ultimately a cruise solo with the right counters. </p><h4>Est Time to Win: 180.0s - 230.0s</h4><p><br></p><h2>Main Strategy</h2><p>Use a single Mega Rayquaza or Mega Mewtwo Y to DPS Mega Falinks. Mega Mewtwo Y is comfortable running psycho cut or confusion, either is fine. It is advised to be careful with mega Mewtwo Y because Mega Falinks does learn the super effective Megahorn which can outspeed Psystrike. Pre-dodging may be recommended at certain times. Make sure to <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-clean-exit\" target=\"_blank\">cleanly exit the raid</a> without wasting energy and <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">rejoin</a> the fight after healing. </p><p><br></p><p>A shadow mewtwo may be added if Megahorn forces too many rejoins.</p>",
       "vods": [],
-      "submittedBy": "Spiritedbloom",
-      "battleParties": [],
-      "submittedAt": "2026-08-24T04:49:13.278Z"
+      "submittedBy": "Anonymous",
+      "battleParties": [
+        {
+          "label": "Mega Rayquaza or Mega Mewtwo Y",
+          "secondaryLabel": "Be careful vs megahorn",
+          "mons": [
+            {
+              "name": "Mega Rayquaza",
+              "level": "30-50",
+              "fm": "Air Slash",
+              "cm": "Dragon Ascent",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Mega Mewtwo Y",
+              "level": "30-50",
+              "fm": "Psycho Cut or Confusion",
+              "cm": "Psystrike",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Shadow Mewtwo",
+              "level": "30-50",
+              "fm": "Psycho Cut",
+              "cm": "Psystrike",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-24T04:51:17.293Z"
     }
   ]
 }
