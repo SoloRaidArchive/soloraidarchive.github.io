@@ -1,0 +1,103 @@
+{
+  "boss": "Mega Skarmory",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Fire/Electric DPS",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "4★",
+      "text": "<h2>Overview</h2><p>Mega Skarmory is a challenging raid due to its increased attack stat and access to several high damaging moves e.g: Brave Bird. Various Megas can be used depending on its moveset. </p><h4>Est Time to Win: 270.0s - 290.0s</h4><p><br></p><h2>Main Strategy</h2><p>Simply DPS with Shadow Reshiram and opt to <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">catch tank</a> the high damaging brave bird with either Regieleki or another Shadow Reshiram. Mega Charizard Y, Mega Raichu Y or Mega Blaziken are all DPS positive Megas to use in the main DPS slot. There are certain caveats. </p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>It is recommended to have Mega Raichu Y at level 51.5 or higher. This is because it gets a fast move breakpoint with thundershock given 15 attack. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>It is recommended to run Mega Blaziken vs Flash Cannon</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>If neither option is available, Mega Charizard Y is a decent fall back option. </li></ol><p><br></p><p>Blacephalon can be used although due to the high damaging charge moves, it must use with extra caution. Especially against the lethal brave bird. </p>",
+      "vods": [],
+      "submittedBy": "Spiritedbloom",
+      "battleParties": [
+        {
+          "label": "Fire / Electric Meta DPS",
+          "secondaryLabel": "Flash Cannon Route / No Mega Raichu Y",
+          "mons": [
+            {
+              "name": "Shadow Reshiram",
+              "level": "40-50",
+              "fm": "Fire Fang",
+              "cm": "Fusion Flare",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Reshiram",
+              "level": "40-50",
+              "fm": "Fire Fang",
+              "cm": "Fusion Flare",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Reshiram",
+              "level": "40-50",
+              "fm": "Fire Fang",
+              "cm": "Fusion Flare",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Mega Raichu Y",
+              "level": "52",
+              "fm": "Thunder Shock",
+              "cm": "Wild Charge",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Mega Blaziken",
+              "level": "40-50",
+              "fm": "Fire Spin",
+              "cm": "Blast Burn",
+              "cm2": "Blaze Kick",
+              "roles": [
+                "Support DPS",
+                "Executor"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Mega Charizard Y",
+              "level": "40-50",
+              "fm": "Fire Spin",
+              "cm": "Blast Burn",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Executor"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Blacephalon",
+              "level": "40-50",
+              "fm": "Incinerate",
+              "cm": "Mind Blown",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-24T04:39:15.192Z"
+    }
+  ]
+}
