@@ -234,7 +234,14 @@ function buildRaidDb(repoRoot){
       if(/^(y|yes|true|1)$/i.test(r.elite || "")) continue;
       if(!movepoolMap.has(key)) movepoolMap.set(key, { fast: [], charged: [] });
       const e = movepoolMap.get(key);
-      ((r.category || "").trim().toLowerCase() === "fast" ? e.fast : e.charged).push(move);
+      const bucket = (r.category || "").trim().toLowerCase() === "fast" ? e.fast : e.charged;
+      // The movepool CSV lists Hidden Power once per element - 16 rows for Starmie alone, which
+      // rendered as 16 chips and 314px of movepool. In game it is a single move whose type is
+      // fixed per Pokemon, so one chip is the accurate representation. csv/moves.csv already
+      // carries a plain "Hidden Power" row (Normal, Fast, 15.0/15.0/3.0, identical to every
+      // variant), so the collapsed name still resolves for typing and stats.
+      const collapsed = /^hidden power\b/i.test(move) ? "Hidden Power" : move;
+      if(!bucket.includes(collapsed)) bucket.push(collapsed);
     }
   }
 
