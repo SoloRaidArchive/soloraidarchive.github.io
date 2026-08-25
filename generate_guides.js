@@ -103,6 +103,33 @@ function typeChipsHtml(types){
   return types.map(t => `<span class="type-icon-wrap" style="background:${TYPE_COLORS[t] || "#9199A1"};">${escapeHtmlForTemplate(t)}</span>`).join("");
 }
 
+// Both movepool rows are empty in the HTML and filled by script once the page runs, so without a
+// reserved height they grow from 0 and shove everything below them down - measured at 0.48 CLS on
+// a phone before this. A flat CSS constant cannot work: Mega Raichu X needs 90px and Mega Starmie
+// 282px (its movepool lists all 16 Hidden Power variants separately) while most bosses need 26px,
+// so any single value is dead space for some pages and a shift for others. The generator knows the
+// exact move count, so it emits the exact height instead of guessing.
+//
+// Chips are a fixed 26px tall with a 6px gap, wrapping at CHIPS_PER_ROW on a 390px screen. Wider
+// screens fit more per row, so this over-reserves slightly there - harmless, since reserved space
+// costs nothing while a shift costs ranking.
+const CHIP_H = 26, CHIP_GAP = 6;
+// Row width and chip metrics fitted against the 13 rendered guides at a 390px viewport, then
+// checked back: 12 of 13 rows matched exactly. A plain chips-per-row constant does not work
+// because chip width tracks the label - Mega Starmie's "Hidden Power Fighting" chips are roughly
+// twice the width of "Water Gun", so counting chips under-reserved that page by 64px.
+const ROW_W = 330, CHIP_FIXED = 34, CHIP_PER_CHAR = 5.5;
+function reserveRowPx(moveNames){
+  if(!moveNames || !moveNames.length) return 0;
+  let rows = 1, x = 0;
+  for(const n of moveNames){
+    const w = CHIP_FIXED + String(n).length * CHIP_PER_CHAR;
+    if(x > 0 && x + CHIP_GAP + w > ROW_W){ rows++; x = w; }
+    else x += (x ? CHIP_GAP : 0) + w;
+  }
+  return rows * CHIP_H + (rows - 1) * CHIP_GAP;
+}
+
 function moveChipTypesObjectLiteral(moveNames, moveTypeMap){
   const lines = [];
   for(const name of moveNames){
@@ -144,9 +171,9 @@ function autoBossInfoInnerHtml(bossNameEscaped, bossName, raidDb){
     return {
       html: `${statsBlock}
     <div class="movepool-label">Fast Moves</div>
-    <div class="movepool-row" id="fast-move-row"></div>
+    <div class="movepool-row" id="fast-move-row" style="min-height:${reserveRowPx(movepool.fast)}px"></div>
     <div class="movepool-label">Charge Moves</div>
-    <div class="movepool-row" id="charge-move-row"></div>`,
+    <div class="movepool-row" id="charge-move-row" style="min-height:${reserveRowPx(movepool.charged)}px"></div>`,
       moveScript: `${moveChipTypesObjectLiteral([...movepool.fast, ...movepool.charged], raidDb.moveTypeMap)}
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 function moveChipHtml(name, isCharge){
