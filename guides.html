@@ -75,7 +75,7 @@
   }
   .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
   .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
-  .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--text); text-align:center; }
+  .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:clamp(20px, 4.2vw, 26px); margin:0; color: var(--text); text-align:center; }
 
   .hamburger-btn{
     flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
@@ -177,7 +177,7 @@
 
 <div class="sticky-header">
   <div class="sticky-header-row">
-    <h1 class="page-title-sm">Guide</h1>
+    <h1 class="page-title-sm">Raid Guides</h1>
     <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>

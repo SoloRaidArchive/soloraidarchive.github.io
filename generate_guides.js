@@ -197,6 +197,35 @@ document.getElementById('charge-move-row').innerHTML = ${JSON.stringify(movepool
 
 // ============ Local-disk raidDb builder (same shape as worker3.js's getPokemonRaidDb) ============
 
+const BASE_URL = "https://soloraidarchive.github.io/";
+
+// Nothing was keeping guide URLs in the sitemap: 5 of 13 guides were listed, the rest were not,
+// and neither the Worker nor this script touched sitemap.xml. The 5 were added by hand once and
+// then drifted. generate_collections.py already does exactly this for collections/, so guides now
+// follow the same rule - the generator that creates the page also registers it.
+function syncSitemap(repoRoot, bosses, check){
+  const sitemapPath = path.join(repoRoot, "sitemap.xml");
+  if(!fs.existsSync(sitemapPath)){ console.log("  no sitemap.xml, skipping"); return false; }
+  let xml = fs.readFileSync(sitemapPath, "utf8");
+
+  const wanted = new Set(bosses.map(b => `${BASE_URL}data/guides/${b.slug}.html`));
+  const present = new Set((xml.match(/<loc>([^<]+)<\/loc>/g) || []).map(m => m.replace(/<\/?loc>/g, "")));
+  const presentGuides = new Set([...present].filter(u => u.includes("/data/guides/")));
+
+  const stale = [...presentGuides].filter(u => !wanted.has(u)).sort();
+  for(const url of stale){
+    xml = xml.replace(new RegExp(`\\s*<url>\\s*<loc>${url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}</loc>[\\s\\S]*?</url>`), "");
+  }
+  const additions = [...wanted].filter(u => !presentGuides.has(u)).sort()
+    .map(u => `  <url>\n    <loc>${u}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.7</priority>\n  </url>`);
+  if(additions.length) xml = xml.replace("</urlset>", additions.join("\n") + "\n</urlset>");
+
+  if(!additions.length && !stale.length){ console.log("  sitemap: already in step"); return false; }
+  console.log(`  sitemap: +${additions.length} / -${stale.length} guide URL(s)`);
+  if(!check) fs.writeFileSync(sitemapPath, xml, "utf8");
+  return true;
+}
+
 function buildRaidDb(repoRoot){
   const statsMap = new Map();
   const typesMap = new Map();
@@ -348,7 +377,8 @@ function main(){
   }
 
   console.log(`  ${bosses.length} guide(s); ${written} page(s) ${check ? "would change" : "written"}, ${unchanged} already current`);
-  if(check && written > 0) process.exit(1);
+  const sitemapChanged = syncSitemap(repoRoot, bosses, check);
+  if(check && (written > 0 || sitemapChanged)) process.exit(1);
 }
 
 main();
