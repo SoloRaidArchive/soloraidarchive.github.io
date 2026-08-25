@@ -54,9 +54,14 @@ def render(partial, depth, self_href):
         return out
 
     target = base + self_href
+    # The Home link is the site root "/" rather than "index.html", so that every internal link,
+    # the canonical tag and the sitemap all name the same homepage URL. Without this the homepage
+    # would silently lose its current-page highlight, because base+"index.html" no longer matches
+    # any href in the nav.
+    home_target = "/" if self_href == "index.html" else None
 
     def mark(m):
-        if m.group("href") != target:
+        if m.group("href") != target and m.group("href") != home_target:
             return m.group(0)
         cls = m.group("cls")
         if cls is None:
