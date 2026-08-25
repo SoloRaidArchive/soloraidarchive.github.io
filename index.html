@@ -294,6 +294,13 @@
     }
   }
   .new-entries-panel{ padding-top:14px; }
+  /* #liveBossWrap is empty in the initial HTML and filled once live-bosses.json resolves,
+     growing ~57px -> ~861px on a phone and displacing everything below it. That single reveal
+     was this page's entire 0.464 CLS. Reserving the slot up front means the content lands in
+     space already allocated. Heights are the measured rendered values, applied as a floor
+     because the list is data-driven and its exact length changes with the rotation. */
+  #liveBossWrap{ min-height: 804px; }
+  @media (min-width:701px){ #liveBossWrap{ min-height: 300px; } }
   .weather-icon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
   }

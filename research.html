@@ -392,10 +392,24 @@
      element's innerHTML on every keystroke and would delete it. It also sits outside
      .sticky-header, whose own padding used to stack with this one and threw the alignment out by
      16px at any width where the max-width centring did not absorb the difference. */
+  .container:has(.loading-msg){
+    /* While the archives are still downloading the container is only ~200px tall, so the footer
+       sits at y~550 on a phone - on screen. When the rows land the container jumps to ~3600px
+       and everything below it is displaced, which the browser scores as a large shift. Holding
+       the loading state at viewport height keeps the footer off screen from the start, so the
+       growth happens entirely below the fold where it costs nothing. */
+    min-height: 80vh;
+  }
   .type-filter{
     display:grid; gap:6px; box-sizing:border-box;
     max-width:900px; margin:0 auto; padding:0 20px 14px;
     grid-template-columns: repeat(6, minmax(0, 1fr));
+    /* This grid is empty in the initial HTML and only filled once the CSVs land, roughly a
+       second later on a phone. Without a reserved height it grew 14px -> 226px and shoved
+       #container down 218px, which was 0.856 of this page's 0.910 CLS on its own. The values
+       below are the measured rendered heights at each column count (19 chips: 18 types + All),
+       so the reservation matches what actually appears and collapses to nothing afterwards. */
+    min-height: 136px;
   }
   .type-chip{
     display:inline-flex; align-items:center; justify-content:center; gap:5px;
@@ -423,11 +437,11 @@
   }
   .type-chip.all.on{ background: var(--text); color: var(--bg1); border-color: var(--text); }
 
-  @media (max-width:900px){ .type-filter{ grid-template-columns: repeat(5, minmax(0, 1fr)); } }
-  @media (max-width:700px){ .type-filter{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  @media (max-width:900px){ .type-filter{ grid-template-columns: repeat(5, minmax(0, 1fr)); min-height:168px; } }
+  @media (max-width:700px){ .type-filter{ grid-template-columns: repeat(4, minmax(0, 1fr)); min-height:200px; } }
   @media (max-width:480px){
     /* Three across keeps the label readable at ~11px; four would start truncating "Fighting". */
-    .type-filter{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap:5px; }
+    .type-filter{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap:5px; min-height:226px; }
     .type-chip{ font-size:11px; padding:6px 6px; }
   }
   /* ---- Usage breakdown modal ----
