@@ -62,6 +62,14 @@
   .article-body{
     background: var(--card); border-radius:16px; padding:24px 26px; font-size:15px; line-height:1.4;
   }
+  /* These regions hold text typed or pasted by contributors through the Quill editor, so their
+     content is unbounded by definition. A single unbreakable token - a pasted YouTube URL in one
+     guide - pushed the page 20px wider than a 320px viewport and gave the whole document a
+     horizontal scrollbar. `anywhere` lets the browser break inside such a token as a last resort;
+     normal words are unaffected because it only applies when a line cannot otherwise fit. This is
+     a property of user-generated content, so it belongs in the template rather than being patched
+     per guide as future submissions reintroduce it. */
+  .article-body{ overflow-wrap:anywhere; }
   .article-body p{ margin:0 0 14px; }
   .article-body p:last-child{ margin-bottom:0; }
   .article-body strong{ font-weight:800; }
@@ -170,13 +178,21 @@
     position:sticky; top:0; z-index:15; background: var(--bg1);
     padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
-  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  /* min-height matches the hamburger's 44px hit area plus its 3px shadow on each side, so the
+     button sits inside the bar instead of spilling past its top and bottom edges. Pages that
+     already reserve this on .sticky-header-title-row render a 65px bar; this brings the rest to
+     the same height with the same mechanism rather than a second one. Any future control added
+     to this row inherits the clearance instead of needing its own fix. */
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; min-height:44px; }
   .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
   .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--text); text-align:center; }
 
+  /* 44px, not 38: this is the only always-available navigation control on mobile and 38px is
+     below every touch-target guideline. It renders 44x44 on 12 other pages - the 38px value
+     lived in a second, independent .hamburger-btn rule that these pages happened to inherit. */
   .hamburger-btn{
     flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
-    width:38px; height:38px; border-radius:50%;
+    width:44px; height:44px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
