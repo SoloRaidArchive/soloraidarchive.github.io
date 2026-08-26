@@ -42,12 +42,19 @@ header{ padding: 12px 24px 10px; text-align:center; }
     position:sticky; top:0; z-index:15; background: var(--bg1);
     padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
-  .sticky-header-title-row{ text-align:center; margin-bottom:8px; }
+.sticky-header-title-row{ position:relative; text-align:center; margin-bottom:0; min-height:44px;
+    display:flex; align-items:center; justify-content:center; }
+  .sticky-header-title-row .header-buttons{ position:absolute; right:0; top:50%; transform:translateY(-50%); }
   .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
   .header-buttons{ display:flex; gap:8px; flex-shrink:0; }
   @media (min-width:700px){
     .sticky-header-row{ display:grid; grid-template-columns: 1fr auto 1fr; gap:8px; }
-    #searchInput{ grid-column:2; width:100%; max-width:400px; margin:0 auto; }
+    /* Search now sits in the controls row rather than the sticky header, so it is sized to match the
+     controls beside it instead of spanning the page. grid-column is gone with the header grid. */
+  #searchInput{
+    flex: 1 1 260px; min-width:0; max-width:340px; margin:0;
+    font-size:13px; padding:7px 11px; border-radius:10px; box-sizing:border-box;
+  }
     .header-buttons{ grid-column:3; justify-self:end; }
   }
   .sticky-header input{
@@ -61,9 +68,11 @@ header{ padding: 12px 24px 10px; text-align:center; }
     margin:0;
   }
 
+  /* Widened to 1300px and left-aligned so this row starts on the same vertical line as the
+     column headings below it; at 1100px centred it sat inset from left-indexed content. */
   .controls{
-    max-width: 1100px; margin: 16px auto 0; padding: 0 20px;
-    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
+    max-width: 1300px; margin: 16px auto 0; padding: 0 20px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:flex-start;
   }
 
   /* ============ REDESIGN: TWO PURPOSE-BUILT VIEWS ============
@@ -842,9 +851,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <div class="sticky-header">
   <div class="sticky-header-title-row">
     <h1 class="page-title-sm">Top Catch Tanks</h1>
-  </div>
-  <div class="sticky-header-row">
-    <input id="searchInput" type="text" placeholder="Search by Pokémon or Boss…" autocomplete="off">
     <div class="header-buttons">
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -902,6 +908,17 @@ header{ padding: 12px 24px 10px; text-align:center; }
 </div>
 <div class="view-intro" id="viewIntro"></div>
 
+
+<!-- Definitions moved out of the reading flow into an on-demand panel: they're reference
+     material you need once, not something worth re-reading above every visit to the data. -->
+<!-- The Trailing vs CT DPS glossary panel lived here. Its only trigger was the info button
+     that has been removed, so the markup and its open/close wiring were unreachable. -->
+
+<!-- A sibling of .container, not a child: render() replaces container.innerHTML on every
+     keystroke, which would destroy this element. Sized to match .container so the grid still
+     lines up with the rows below. -->
+<div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
+
 <div class="controls">
   <!-- "All Types" is rendered into this slot rather than into the grid below. As a full-width
        row inside the grid it cost a whole line of vertical space to hold one control; here it
@@ -914,22 +931,13 @@ header{ padding: 12px 24px 10px; text-align:center; }
     <option value="legendary">Legendary</option>
     <option value="mega">Tier 4 Mega</option>
   </select>
+  <input id="searchInput" type="text" placeholder="Search by Pokémon or Boss…" autocomplete="off">
   <select id="sortSelect">
     <option value="ctdps">Sort: CT DPS (High–Low)</option>
     <option value="boss">Sort: Boss (A–Z)</option>
     <option value="pokemon">Sort: Your Pokémon (A–Z)</option>
   </select>
 </div>
-
-<!-- Definitions moved out of the reading flow into an on-demand panel: they're reference
-     material you need once, not something worth re-reading above every visit to the data. -->
-<!-- The Trailing vs CT DPS glossary panel lived here. Its only trigger was the info button
-     that has been removed, so the markup and its open/close wiring were unreachable. -->
-
-<!-- A sibling of .container, not a child: render() replaces container.innerHTML on every
-     keystroke, which would destroy this element. Sized to match .container so the grid still
-     lines up with the rows below. -->
-<div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
 <div class="container">
   <div class="views-grid">
     <section class="view-col" id="col-byboss">
