@@ -926,6 +926,32 @@ function weatherIcon(w){
   return "";
 }
 
+// ---- current-month window --------------------------------------------------------------
+// A group belongs to this month if its [startDate, endDate] span overlaps ANY day of the
+// current calendar month. Checked as a real date-range overlap, not by comparing month
+// numbers: rotation windows straddle month boundaries ("Jul 29 - Aug 4", "Aug 26 - Sep 8"),
+// and a boss rotating on August 1st belongs in August even though its group starts in July.
+//
+// This predicate was written for the Monthly Guides panel and is now shared with the live
+// boss list, which previously rendered every group Pokebattler published. Gate 2 in
+// update_live_bosses.py only bounds the data backwards (it drops rotations once their month
+// has passed), so on 26 Aug the page was showing seven September event days and five
+// September rotations alongside August. The feed legitimately runs ahead; the filtering
+// belongs here, at the point of display, so live-bosses.json stays a full roster for the
+// other consumers that read it.
+function groupInCurrentMonth(group){
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  const start = group.startDate ? new Date(group.startDate) : null;
+  if(!start || isNaN(start)) return false;
+  // endDate missing/invalid degrades to a single-day window at startDate rather than being
+  // dropped outright - a group with real bosses should not vanish over one bad field.
+  const endRaw = group.endDate ? new Date(group.endDate) : null;
+  const end = (endRaw && !isNaN(endRaw)) ? endRaw : start;
+  return !(start > monthEnd || end < monthStart);
+}
+
 function formatGroupHeader(startDate, endDate){
   if(!startDate && !endDate) return "Currently active";
   const shortDate = (s) => {
@@ -954,7 +980,7 @@ async function loadLiveBosses(){
   try{
     const data = await LIVE_BOSSES_PROMISE;
     if(!data) return;
-    const groups = data.dateGroups || [];
+    const groups = (data.dateGroups || []).filter(groupInCurrentMonth);
     // Set the heading from the loaded groups, before the early return: with no groups the
     // fallback still needs to run, or the placeholder text "Raids" is left on the page.
     setLiveBossHeading(groups);
@@ -1201,29 +1227,18 @@ async function loadNewEntries(){
     console.error("Could not load new raid entries:", e);
   }
 }
-// The heading used to be `new Date()` month + " Raids", which is only right while every listed
-// boss falls inside the current month. The feed runs ahead - on 21 Aug it already held Sep 3-6
-// entries - so Mega Starmie and Mega Raichu Y sat under "August Raids" with September dates
-// beside them. It now names the months actually present in the data.
+// Heading names the current calendar month, full stop.
+//
+// It briefly derived the month names from the data instead, because the feed runs ahead: on
+// 21 Aug live-bosses.json already held Sep 3-6 entries, so a hardcoded `new Date()` month put
+// September dates under "August Raids". Now that the list is filtered to groups overlapping the
+// current month, the data can no longer disagree with the calendar, and deriving from the data
+// actively misreports - a rotation running "Jul 29 - Aug 4" starts in July, which produced the
+// heading "August & July Raids" on 26 August.
 function setLiveBossHeading(groups){
   const heading = document.getElementById("liveBossHeading");
   if(!heading) return;
-  const months = [];
-  (groups || []).forEach(g => {
-    const d = new Date(g.startDate);
-    if(isNaN(d)) return;
-    const m = d.toLocaleString("en-US", { month: "long" });
-    if(!months.includes(m)) months.push(m);
-  });
-  if(!months.length){
-    heading.textContent = `${new Date().toLocaleString("en-US", { month: "long" })} Raids`;
-    return;
-  }
-  // Two months reads fine ("August & September Raids"); more than that is a spanning range, so
-  // fall back to a plain label rather than listing four month names in a heading.
-  heading.textContent = months.length === 1 ? `${months[0]} Raids`
-                      : months.length === 2 ? `${months[0]} & ${months[1]} Raids`
-                      : "Upcoming Raids";
+  heading.textContent = `${new Date().toLocaleString("en-US", { month: "long" })} Raids`;
 }
 loadLiveBosses();
 loadMonthlyGuides();
