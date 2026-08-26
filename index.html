@@ -40,13 +40,15 @@
     display:flex; flex-direction:column;
   }
 
-  header{ padding: 8px 24px 8px; text-align:center; }
+  /* The tagline under this used to carry the "what is this site" job, so the title itself
+     stayed small. With the tagline gone the title is the only thing introducing the page and
+     is sized accordingly; the favicons scale with it so the trio stays balanced. */
   .site-title{
-    font-family:'Manrope', sans-serif; font-weight:800; font-size:22px;
-    color: var(--blue-dark); margin:24px 0 14px; display:flex; align-items:center;
-    justify-content:center; gap:10px; text-align:center;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:clamp(26px, 3.6vw, 34px);
+    color: var(--blue-dark); margin:26px 0 16px; display:flex; align-items:center;
+    justify-content:center; gap:12px; text-align:center;
   }
-  .site-title-icon{ width:28px; height:28px; object-fit:contain; }
+  .site-title-icon{ width:38px; height:38px; object-fit:contain; }
   .footer-credit{
     font-family:'Inter', sans-serif; font-weight:800; font-size:19px;
     color: var(--text); margin-bottom: 10px;
@@ -54,10 +56,7 @@
   .special-appreciation{
     font-weight:700; font-size:13px; color: var(--text-muted); margin:10px 0;
   }
-  .intro{
-    color: var(--text-muted); font-size: 13px; line-height:1.6; font-weight:600;
-    max-width: 620px; margin: 0 auto;
-  }
+
 
   .page-layout{
     flex:1; width:100%; max-width: 1180px; margin: 0 auto;
@@ -172,7 +171,21 @@
 
 
   @media (max-width:600px){
-    .site-title{ font-size:clamp(22px, 4.6vw, 28px); gap:8px; margin:18px 0 12px; }
+    /* Mobile keeps the original 22px. The hamburger is position:fixed in the top-right, so it
+       is outside normal flow and the centred <h1> box spans the full viewport underneath it -
+       the title's TEXT was running under the button. That already happened at 360px and below
+       before the desktop title was enlarged; enlarging it pushed the collision up to 430px.
+       Reserving the button's footprint on both sides keeps the text centred and clear of it,
+       and flex-wrap lets the title use a second line on very narrow screens rather than
+       colliding. */
+    .site-title{
+      font-size:clamp(18px, 5.6vw, 22px); gap:8px; margin:18px 0 12px;
+      /* Padding on the right only: that is the side the fixed hamburger occupies (44px button
+         + 18px inset = 62px). Symmetric padding forced a wrap on narrow screens that dropped a
+         favicon onto its own line. nowrap keeps the icon-title-icon trio intact, and the clamp
+         eases the type down just enough on the narrowest phones to stay clear of the button. */
+      padding:0 64px 0 0; flex-wrap:nowrap; white-space:nowrap;
+    }
     .site-title-icon{ width:22px; height:22px; }
     .live-boss-icon{ width:44px; height:44px; }
     .live-boss-row{ gap:12px; }
@@ -367,17 +380,17 @@
   }
 
   .boss-search-wrap{
-    max-width: 640px; margin: 0 auto 18px; padding: 0 24px; position:relative;
+    max-width: 520px; margin: 0 auto 18px; padding: 0 24px; position:relative;
   }
   .boss-search-box{
     position:relative; display:flex; align-items:center;
     background: var(--card); border:2px solid var(--border); border-radius:999px;
-    padding: 12px 18px; gap:10px; color: var(--text-dim);
+    padding: 9px 16px; gap:9px; color: var(--text-dim);
   }
   .boss-search-box svg{ flex-shrink:0; }
   #bossSearch{
     flex:1; border:none; background:none; outline:none;
-    font-family:'Inter', sans-serif; font-weight:700; font-size:16px; color: var(--text);
+    font-family:'Inter', sans-serif; font-weight:700; font-size:14px; color: var(--text);
   }
   #bossSearch::placeholder{ color: var(--text-dim); }
   .boss-search-results{
@@ -457,10 +470,6 @@
   Solo Raid Archive
   <img src="assets/icons/favicon-32.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
 </h1>
-
-<header>
-  <p class="intro">Research & Reference for Solo Raiding</p>
-</header>
 
 <div class="boss-search-wrap">
   <div class="boss-search-box">
