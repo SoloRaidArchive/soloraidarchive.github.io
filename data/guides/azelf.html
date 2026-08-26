@@ -162,6 +162,23 @@
   .move-type-icon{ width:13px; height:13px; flex-shrink:0; object-fit:contain; filter:brightness(0) invert(1); }
 
   .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  /* ---- layout reservations (CLS) ----------------------------------------------------------
+     Everything below is filled by loadGuide() after the guide JSON resolves. Measured on a
+     throttled phone, the un-reserved page scored 0.480 CLS: #strategy-display grew 75 -> 2211px,
+     the two movepool rows 0 -> 26px each, and #route-row shrank 75 -> 40px as its "Loading..."
+     placeholder was replaced. Reserving each slot means the content lands in space already
+     allocated instead of displacing the footer.
+     min-height on #strategy-display only bites while it is near-empty; once the routes render
+     it is far taller, so this costs nothing after load. */
+  #strategy-display{ min-height: 80vh; }
+  #fast-move-row, #charge-move-row{ min-height: 26px; }
+  /* Charge rows wrap to two lines on a phone for 10 of 13 bosses, so 58px is the common case
+     rather than the minimum. Mega Starmie is a deliberate outlier - its movepool lists all 16
+     Hidden Power variants as separate fast moves, so no sane reservation covers it; over-
+     reserving for that one page would leave visible dead space on the other twelve. */
+  @media (max-width:700px){ #charge-move-row{ min-height: 58px; } }
+  .route-row{ min-height: 40px; align-content: flex-start; }
+  .route-row .load-state{ line-height: 40px; padding: 0; margin: 0; }
   .route-btn{
     font-family:'Manrope', sans-serif; font-weight:700; font-size:12px;
     background: var(--card); color: var(--text-dim); border:1.5px solid var(--border);
@@ -383,7 +400,8 @@
   </div>
 
   <h2 class="section-title">Boss Info</h2>
-  <div class="boss-info-top">
+  <div class="info-box">
+    <div class="boss-info-top">
       <img class="boss-sprite-sm" id="boss-sprite-img" alt="Azelf" onerror="this.style.display='none'">
       <div class="boss-info-top-right">
         <div class="type-icon-row-sm"><span class="type-icon-wrap" style="background:#E0426E;">Psychic</span></div>
@@ -398,7 +416,9 @@
     <div class="movepool-row" id="fast-move-row"></div>
     <div class="movepool-label">Charge Moves</div>
     <div class="movepool-row" id="charge-move-row"></div>
-    <h2 class="section-title">Routes</h2>
+  </div>
+
+  <h2 class="section-title">Routes</h2>
   <div class="route-row" id="route-row">
     <div class="load-state">Loading...</div>
   </div>
