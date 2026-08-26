@@ -73,13 +73,21 @@
     position:sticky; top:0; z-index:15; background: var(--bg1);
     padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
-  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  /* min-height matches the hamburger's 44px hit area plus its 3px shadow on each side, so the
+     button sits inside the bar instead of spilling past its top and bottom edges. Pages that
+     already reserve this on .sticky-header-title-row render a 65px bar; this brings the rest to
+     the same height with the same mechanism rather than a second one. Any future control added
+     to this row inherits the clearance instead of needing its own fix. */
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; min-height:44px; }
   .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
   .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:clamp(20px, 4.2vw, 26px); margin:0; color: var(--text); text-align:center; }
 
+  /* 44px, not 38: this is the only always-available navigation control on mobile and 38px is
+     below every touch-target guideline. It renders 44x44 on 12 other pages - the 38px value
+     lived in a second, independent .hamburger-btn rule that these pages happened to inherit. */
   .hamburger-btn{
     flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
-    width:38px; height:38px; border-radius:50%;
+    width:44px; height:44px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
