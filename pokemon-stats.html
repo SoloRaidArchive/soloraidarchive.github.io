@@ -46,7 +46,19 @@
     position:sticky; top:0; z-index:15; background: var(--bg1);
     padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
-  .sticky-header-title-row{ text-align:center; margin-bottom:8px; }
+  .sticky-header-title-row{ position:relative; text-align:center; margin-bottom:0; min-height:44px;
+    display:flex; align-items:center; justify-content:center; }
+  .sticky-header-title-row .header-buttons{ position:absolute; right:0; top:50%; transform:translateY(-50%); }
+  /* Search moved out of the sticky header so the title is not competing with it for space in a
+     bar that stays on screen. Aligned left to the content container (1100px/20px) because the
+     data below is left-indexed - a centred control over left-aligned rows reads as misaligned. */
+  .page-search-row{ max-width:1100px; margin:12px auto 10px; padding:0 20px;
+    display:flex; justify-content:flex-start; }
+  /* These inputs carried `margin: 0 auto` from their old life centred in the sticky header, which
+     re-centres them inside the flex row and defeats justify-content. Reset explicitly. */
+  .page-search-row > *, .page-search-row input{ margin-left:0 !important; margin-right:auto !important; }
+  .page-search-row > *{ flex:0 1 340px; min-width:0; }
+  .page-search-row input{ width:100%; font-size:13px; padding:7px 11px; border-radius:10px; box-sizing:border-box; }
   .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
   .header-buttons{ display:flex; gap:8px; flex-shrink:0; }
   @media (min-width:700px){
@@ -55,7 +67,7 @@
     .header-buttons{ grid-column:3; justify-self:end; }
   }
   h1{
-    font-family:'Manrope', sans-serif; font-weight:700; font-size:17px; color: var(--ink);
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:clamp(20px, 4.2vw, 26px); color: var(--ink);
     margin:0;
   }
 
@@ -213,6 +225,29 @@
     flex-direction:column; gap:12px; max-height:calc(100vh - 99px); overflow-y:auto; overflow-x:hidden;
   }
   .gear-panel.open{ display:flex; }
+  /* The CPM note used to sit permanently between the search box and the grid, pushing the data
+     down on every visit to say something a reader needs once. It is now behind an info button,
+     using the same slide-out geometry as .gear-panel so the two panels feel like one mechanism. */
+  .info-btn{
+    display:flex; align-items:center; justify-content:center;
+    width:44px; height:44px; flex-shrink:0; padding:0;
+    background: var(--card); border:2px solid var(--border); border-radius:12px;
+    color: var(--text); cursor:pointer; box-sizing:border-box;
+  }
+  .info-btn[aria-expanded="true"]{ border-color: var(--blue, #3d9dff); }
+  .info-panel{
+    display:none; position:absolute; top:calc(100% + 1px); right:16px; z-index:19;
+    width:min(360px, calc(100vw - 48px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:6px; text-align:left;
+  }
+  .info-panel.open{ display:flex; }
+  .info-panel-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; color: var(--text);
+  }
+  /* Inside the panel the note is left-aligned body copy, not a centred page banner. */
+  .info-panel .stats-blurb{ max-width:none; margin:0; padding:0; text-align:left; }
   .hamburger-theme-toggle{
     display:flex; align-items:center; justify-content:center; gap:6px;
     width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
@@ -277,12 +312,14 @@
 <div class="sticky-header">
   <div class="sticky-header-title-row">
     <h1 class="page-title-sm">Pokémon Stats</h1>
-  </div>
-  <div class="sticky-header-row">
-    <input id="searchInput" type="text" placeholder="Search Pokémon name…" autocomplete="off">
     <div class="header-buttons">
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
+      </button>
+      <button class="info-btn" id="infoBtn" aria-label="About these stats" aria-expanded="false" aria-controls="infoPanel">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6h.01"/>
+        </svg>
       </button>
       <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
         <span class="filter-line filter-line-1"></span>
@@ -330,10 +367,16 @@
 </div>
 <!-- NAV:END -->
 
+  <div class="info-panel" id="infoPanel" role="dialog" aria-label="About these stats">
+    <div class="info-panel-title">About these stats</div>
+    <div class="stats-blurb" id="statsBlurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
+  </div>
   <div class="gear-panel" id="gearPanel">
   <div class="controls">
   <div class="hamburger-section">
     <div class="hamburger-section-label">Sort</div>
+
+
     <div class="vertical-toggle" id="sortList">
       <button class="hamburger-item active" data-sort="name">Name (A–Z)</button>
       <button class="hamburger-item" data-sort="atk">Attack (High–Low)</button>
@@ -361,10 +404,14 @@
     </label>
   </div>
 </div>
-</div>
+  </div>
 </div>
 
-<div class="stats-blurb" id="statsBlurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
+<div class="page-search-row">
+  <input id="searchInput" type="text" placeholder="Search Pokémon name…" autocomplete="off">
+</div>
+
+
 
 <div class="container">
   <div class="count" id="count"></div>
@@ -813,18 +860,33 @@ function closeGear(){
   gearPanel.classList.remove("open");
   gearBtn.setAttribute("aria-expanded", "false");
 }
+const infoBtn = document.getElementById("infoBtn");
+const infoPanel = document.getElementById("infoPanel");
+function closeInfo(){
+  infoPanel.classList.remove("open");
+  infoBtn.setAttribute("aria-expanded", "false");
+}
+infoBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = infoPanel.classList.contains("open");
+  closeHamburger(); closeGear();
+  infoPanel.classList.toggle("open", !isOpen);
+  infoBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+// Esc closes it, matching what a reader expects from a dialog-ish popover.
+document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeInfo(); });
 
 gearBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = gearPanel.classList.contains("open");
-  closeHamburger();
+  closeHamburger(); closeInfo();
   gearPanel.classList.toggle("open", !isOpen);
   gearBtn.setAttribute("aria-expanded", String(!isOpen));
 });
 hamburgerBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = hamburgerPanel.classList.contains("open");
-  closeGear();
+  closeGear(); closeInfo();
   hamburgerPanel.classList.toggle("open", !isOpen);
   hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
 });
@@ -834,6 +896,9 @@ document.addEventListener("click", (e) => {
   }
   if(!gearPanel.contains(e.target) && e.target !== gearBtn){
     closeGear();
+  }
+  if(!infoPanel.contains(e.target) && !infoBtn.contains(e.target)){
+    closeInfo();
   }
 });
 </script>
