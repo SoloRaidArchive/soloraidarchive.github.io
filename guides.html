@@ -43,6 +43,38 @@
   }
   .container{ max-width:800px; margin:0 auto; padding:24px 20px 60px; }
   .page-eyebrow{ font-family:'Manrope', sans-serif; font-weight:800; font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color: var(--blue-dark); text-align:center; margin-bottom:6px; }
+  /* Same autocomplete idiom as the boss search on the landing page, so the two behave and look
+     alike rather than being two inventions. Kept local to this page because the CSS across the
+     site has diverged too far for a shared stylesheet to be safe. */
+  .boss-search-wrap{ max-width:520px; margin:0 auto 22px; position:relative; }
+  .boss-search-box{
+    position:relative; display:flex; align-items:center;
+    background: var(--card); border:2px solid var(--border); border-radius:999px;
+    padding:9px 16px; gap:9px; color: var(--text-dim);
+  }
+  .boss-search-box svg{ flex-shrink:0; }
+  #guideSearch{
+    flex:1; min-width:0; border:none; background:none; outline:none;
+    font-family:'Inter', sans-serif; font-weight:700; font-size:14px; color: var(--text);
+  }
+  #guideSearch::placeholder{ color: var(--text-dim); }
+  .boss-search-results{
+    position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:50;
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding:6px; max-height:340px; overflow-y:auto;
+    box-shadow:0 12px 30px rgba(0,0,0,0.2); display:none;
+  }
+  .boss-search-results.open{ display:block; }
+  .boss-search-item{
+    display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px;
+    text-decoration:none; font-family:'Inter', sans-serif; font-weight:700; font-size:13px;
+    color: var(--text); min-height:40px; box-sizing:border-box;
+  }
+  .boss-search-item:hover, .boss-search-item.active{ background: var(--bg1); }
+  .boss-search-sprite{ width:22px; height:22px; object-fit:contain; flex-shrink:0; }
+  .boss-search-empty{
+    font-size:12px; font-weight:600; color: var(--text-dim); text-align:center; padding:10px 0;
+  }
   .page-title{ font-family:'Manrope', sans-serif; font-weight:800; font-size:26px; margin:0 0 24px; text-align:center; }
 
   .guide-grid{ display:grid; grid-template-columns: 1fr; gap:12px; }
@@ -194,7 +226,16 @@
 
 <div class="container">
   <div class="page-eyebrow">Boss Guides</div>
-  <h2 class="page-title">Solo Strategies by Boss</h2>
+  <div class="boss-search-wrap">
+    <div class="boss-search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.2-3.2"></path>
+      </svg>
+      <input id="guideSearch" type="text" placeholder="Search a boss guide…" autocomplete="off"
+             role="combobox" aria-expanded="false" aria-controls="guideSearchResults" aria-autocomplete="list">
+    </div>
+    <div class="boss-search-results" id="guideSearchResults" role="listbox"></div>
+  </div>
   <h3 class="page-title" style="font-size: 1.17em;">For questions about guides, see our <a href="https://soloraidarchive.github.io/articles/faq-s.html">FAQ's</a> page</h3>
   <div class="guide-grid" id="guideGrid"></div>
 </div>
@@ -296,6 +337,79 @@ function escapeAttr(str){
   return String(str).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// ---- boss guide autocomplete ------------------------------------------------------------
+// Capped at 8 suggestions: the list is 13 guides today and grows with every submission, so an
+// uncapped dropdown would eventually cover the page. 8 fills the 340px max-height without
+// scrolling, which keeps every option reachable by thumb.
+const GUIDE_SEARCH_LIMIT = 8;
+
+function initGuideSearch(bosses){
+  const input = document.getElementById("guideSearch");
+  const results = document.getElementById("guideSearchResults");
+  if(!input || !results) return;
+  let active = -1;
+
+  const close = () => {
+    results.classList.remove("open");
+    input.setAttribute("aria-expanded", "false");
+    active = -1;
+  };
+
+  function render(query){
+    const q = query.trim().toLowerCase();
+    if(!q){ close(); results.innerHTML = ""; return; }
+    // Rank prefix matches above substring matches, so typing "mega" surfaces the Mega bosses
+    // before something that merely contains the letters later in its name.
+    const matched = bosses
+      .map(b => ({ b, i: b.name.toLowerCase().indexOf(q) }))
+      .filter(x => x.i !== -1)
+      .sort((x, y) => x.i - y.i || x.b.name.localeCompare(y.b.name))
+      .slice(0, GUIDE_SEARCH_LIMIT);
+
+    if(!matched.length){
+      results.innerHTML = `<div class="boss-search-empty">No guide matches "${escapeHtml(query)}"</div>`;
+    }else{
+      results.innerHTML = matched.map(({ b }) => `
+        <a class="boss-search-item" role="option" href="data/guides/${escapeAttr(b.slug)}.html">
+          <img class="boss-search-sprite" src="${monSpriteUrl(b.name)}" alt="" loading="lazy" onerror="this.remove();">
+          <span>${escapeHtml(b.name)}</span>
+        </a>`).join("");
+    }
+    results.classList.add("open");
+    input.setAttribute("aria-expanded", "true");
+    active = -1;
+  }
+
+  function move(step){
+    const items = [...results.querySelectorAll(".boss-search-item")];
+    if(!items.length) return;
+    if(active >= 0) items[active].classList.remove("active");
+    active = (active + step + items.length) % items.length;
+    items[active].classList.add("active");
+    items[active].scrollIntoView({ block: "nearest" });
+  }
+
+  input.addEventListener("input", () => render(input.value));
+  input.addEventListener("focus", () => { if(input.value.trim()) render(input.value); });
+  // Arrow keys and Enter, so the dropdown is usable without a pointer.
+  input.addEventListener("keydown", (e) => {
+    if(e.key === "ArrowDown"){ e.preventDefault(); move(1); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); move(-1); }
+    else if(e.key === "Enter"){
+      const items = [...results.querySelectorAll(".boss-search-item")];
+      if(items.length){ e.preventDefault(); (items[active] || items[0]).click(); }
+    }
+    else if(e.key === "Escape"){ close(); }
+  });
+  document.addEventListener("click", (e) => { if(!e.target.closest(".boss-search-wrap")) close(); });
+}
+
+function escapeHtml(s){
+  const div = document.createElement("div");
+  div.textContent = s;
+  return div.innerHTML;
+}
+
 const guideGrid = document.getElementById("guideGrid");
 loadGuideList();
 
@@ -316,6 +430,10 @@ async function loadGuideList(){
     guideGrid.innerHTML = `<div class="empty-state">No guides published yet - check back soon.</div>`;
     return;
   }
+
+  // The dropdown reads the same list the grid renders, so a newly submitted guide is searchable
+  // the moment it appears in data/guides/index.json - no second source to keep in step.
+  initGuideSearch(bosses);
 
   guideGrid.innerHTML = bosses.map(b => `
     <a class="guide-card" href="data/guides/${escapeAttr(b.slug)}.html">
