@@ -1,0 +1,114 @@
+{
+  "boss": "Xurkitree",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "NWB/AE (Shadow Groudon TPC Route)",
+      "weather": "Extreme",
+      "adventureEffect": "Blade Boost",
+      "difficulty": "6★",
+      "text": "<h2>Overview</h2><p>Xurkitree solo without weather boost while using Zacian Crown's blade boost has only been completed against Power Whip. Maximizing energy gained from power-whip and strong tick perfect cast with <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">quick switch timings</a> are required to defeat this boss.</p><p><strong><em>Est Time to Win [299.5s - 305s]</em></strong></p><h2>Main Strategy</h2><p>Lead with Primal Groudon and DPS with Mud Shot, Precipice Blades. </p><h3>1) When to face-tank Power Whip:</h3><p>During the DPS period, Primal Groudon must tank and absorb maximum energy from power-whip which deals ~52 damage and grants ~26 energy. This means to absorb the full 26 energy, Groudon must be holding around: </p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>0-50 energy (0-50% of the orb)</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>76-100 energy (76-100% of the orb)</li></ol><p>If Primal Groudon is holding around 76-81 energy at the time of power-whip cast, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-tick-perfect-cast\" target=\"_blank\">TPC</a> is <strong>required </strong>to gain the full 26 energy or else the power whip will land 1t before Precipice blades cast thus nulling any energy gain from it) </p><h3>2) When to catch Tank Power Whip:</h3><p> When Primal Groudon is holding between 50-76 energy, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">catch tank</a> with a Shadow Groudon and combo with about 7 Mud Shots &amp; 1 Precipice Blades before returning to Primal Groudon. <em>Shadow Mamoswine is an alternative and preferred catch tank if it is available.</em></p><h3>3) If it double Power Whips</h3><p>If another power whip occurs, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">switch</a> to another shadow Groudon to intercept and repeat. <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-hot-swap\" target=\"_blank\">Back track your way</a> to Primal Groudon afterwards as Power Whip can no longer be casted until the first precipice blades comes out. Be early that each Precipice blades is fueling Xurktree with 100. This means it is able to double powerwhip the moment a single precipice blades is cast.</p><h3>4) Overall Bulk of Party, rejoin estimates, win rate estimate.</h3><p>Each Shadow Groudon can tank up to 1 Power Whip. Primal Groudon can tank up to 3. This is a total of 9 power whips per party. Expect a comfortable 2 rejoins, however if there is unexpected aggression from Xurkitree, a 3rd rejoin may occur. </p><p>A successful run is about 1/10 chance with strong, 70%, <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-tick-perfect-cast\" target=\"_blank\">TPC.</a> (this means tick perfect casting 70% of your precipice blades)</p><h2>Run Ending Mistakes: </h2><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Dropping a Powerwhip </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Fainting and losing a precipice blades </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Excessive dodging (2-3 dodges in the run) </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Phantom rejoin bug or 2 rejoin delays.</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Failing to TPC at 70% rate. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>Slow Rejoins</li></ol><p><br></p>",
+      "vods": [
+        {
+          "url": "https://www.youtube.com/watch?v=WEy7uUXCz-U",
+          "label": "TTW: 300s (2.99 rejoins, 70-75% TPC, 1 10 atk & 4 15 atk Sh-Groudons)",
+          "creditName": "SpiritedBloom",
+          "creditUrl": "youtube.com/@spiritedbloom"
+        }
+      ],
+      "submittedBy": "Anonymous",
+      "battleParties": [
+        {
+          "label": "Battle Party",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Primal Groudon",
+              "level": "50-51",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Groudon",
+              "level": "50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Groudon",
+              "level": "50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Groudon",
+              "level": "50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Groudon",
+              "level": "50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Groudon",
+              "level": "50",
+              "fm": "Mud Shot",
+              "cm": "Precipice Blades",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Mamoswine",
+              "level": "50",
+              "fm": "Mud Slap",
+              "cm": "High Horsepower",
+              "cm2": "",
+              "roles": [
+                "Catch Tank",
+                "Executor"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-08-27T04:06:56.011Z"
+    }
+  ]
+}
