@@ -596,6 +596,12 @@ body{ background:#20263a; color: var(--text-muted); }
   /* Layer 1 boss index - see convert_tier_index.py for why cards carry only these four fields. */
   .boss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:11px;
              max-width:1080px;margin:18px auto;padding:0 14px}
+  /* The grid ships empty and is filled once the archive CSV resolves, growing 0 -> ~3500px and
+     displacing the footer and home link below it - 0.154 CLS on a phone, the worst remaining on
+     the site. :empty applies the reservation only while there is nothing in it, so it releases
+     automatically the moment the first card is inserted. Sized in vh because the point is to push
+     what follows below the fold, not to predict the grid's final height. */
+  .boss-grid:empty{ min-height: 85vh; }
   .boss-card{background:var(--card,#fff);border:1px solid var(--border,#d8dbe6);border-radius:12px;
              padding:12px 9px 10px;text-align:center;text-decoration:none;color:inherit;display:block}
   .boss-card:hover{border-color:var(--blue,#3e6ae0)}
