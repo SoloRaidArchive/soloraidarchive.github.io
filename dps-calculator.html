@@ -108,6 +108,11 @@
   }
   .duration-unit-toggle input:checked + label{ background: var(--blue); color:#fff; border-color: var(--blue); }
   .cell-duration{ display:block; font-size:11.5px; font-weight:bold; color: var(--text-dim); margin-top:1px; }
+  /* Uptime is only below 100% where the player waits for a boss fast move to land, so this line
+     is the quickest read of whether a row is acting or standing still. */
+  .cell-uptime{ display:block; font-size:10.5px; color: var(--text-dim); margin-top:1px; }
+  .dps-hp-low{ color:#c9761f; }
+  .dps-hp-dead{ color:#c0392b; font-weight:800; }
   .results-card-row-time-inline{ display:block; font-size:9.5px; font-weight:700; color: var(--text-dim); }
 
   .step-card{
@@ -1914,6 +1919,18 @@ function runCalculation(){
     }
     const mdTotalTicks = mdGlobalTick;
     const mdSeconds = mdTotalTicks / 2;
+    // Damage the main DPSer takes over this rotation: every boss fast move it absorbed, at the
+    // per-hit figure shown on the loadout card. Same count that feeds Boss FM Energy, so the two
+    // stats can never disagree.
+    const mdDamageTaken = mdBossHitsAbsorbed * bossFMDamage;
+    const mdHpLeft = playerHp - mdDamageTaken;
+    const mdHpLeftPct = playerHp > 0 ? (mdHpLeft / playerHp) * 100 : 0;
+    // Uptime = ticks spent acting / total ticks. In this cadence the player never idles - every
+    // tick is a fast move, a charge animation, or the resolve-nerf tap (which still lands damage)
+    // - so this reads 100% by construction. It is computed rather than hardcoded so it starts
+    // reporting real downtime if waiting is ever added here.
+    const mdActingTicks = mdTotalTicks;
+    const mdUptimePct = mdTotalTicks > 0 ? (mdActingTicks / mdTotalTicks) * 100 : 0;
     const mainDPS = mdTotalDamage / Math.max(mdSeconds, 0.1);
     const mdRotationLabel = numCM === 1
       ? `${mdCastBreakdown[0]} &times; ${fm.n} &rarr; ${cm.n}`
@@ -1973,6 +1990,11 @@ function runCalculation(){
       ticks += netResolveNerfCasts; // 1 tick of dead time per nerfed cast
 
       const seconds = ticks / 2;
+      // Here uptime IS meaningful: the bossFMFloor/outerFloor above can push the rotation longer
+      // than the player's own actions, and that gap is the player standing still waiting for the
+      // boss's fast move to land.
+      const actingTicks = innerMax + (cm.ad * numCM) + mandatoryFMBonus + netResolveNerfCasts;
+      const uptimePct = ticks > 0 ? Math.min(100, (actingTicks / ticks) * 100) : 0;
       const fastPhaseTicks = Math.max(0, innerMax + mandatoryFMBonus);
       const fastMoveCountForDPS = fastPhaseTicks / fm.ad;
       const numerator = (chargeDamage * numCM) + (fastMoveCountForDPS * fastDamage) + (netResolveNerfCasts * fastDamage);
@@ -1992,7 +2014,9 @@ function runCalculation(){
           riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
         }
       }
-      return { n, seconds, ticks, dps, fainted, cumulativeDamage, risky, riskyNote };
+      return { n, seconds, ticks, dps, fainted, cumulativeDamage, risky, riskyNote,
+               uptimePct, damageTaken: cumulativeDamage,
+               hpLeftPct: playerHp > 0 ? Math.max(0, (playerHp - cumulativeDamage) / playerHp * 100) : 0 };
     });
 
     const loadoutHtml = `
@@ -2054,6 +2078,18 @@ function runCalculation(){
             <span class="dps-result-stat-label">Boss FM Energy</span>
             <span class="dps-result-stat-value">${mdBossHitsAbsorbed} hits &middot; +${mdBossHitsAbsorbed * bossFMEnergyPerHit}</span>
           </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Damage Taken</span>
+            <span class="dps-result-stat-value">${mdBossHitsAbsorbed} &times; ${bossFMDamage} = ${mdDamageTaken}</span>
+          </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">HP Left</span>
+            <span class="dps-result-stat-value${mdHpLeft <= 0 ? " dps-hp-dead" : mdHpLeftPct < 25 ? " dps-hp-low" : ""}">${Math.max(0, mdHpLeft)} / ${playerHp} &middot; ${mdHpLeftPct.toFixed(0)}%</span>
+          </div>
+          <div class="dps-result-stat">
+            <span class="dps-result-stat-label">Uptime</span>
+            <span class="dps-result-stat-value">${mdUptimePct.toFixed(0)}% &middot; ${(mdActingTicks/2).toFixed(2)}s acting</span>
+          </div>
         </div>
       </div>`;
 
@@ -2071,7 +2107,7 @@ function runCalculation(){
               <td class="row-label">${r.n}</td>
               ${r.fainted
                 ? `<td class="fainted-msg">💀 Fainted — took ${r.cumulativeDamage.toFixed(0)} dmg vs ${playerHp} HP</td>`
-                : `<td class="dps-val">${r.dps.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}<span class="cell-duration">${formatTime(r.seconds, r.ticks)}</span></td>`}
+                : `<td class="dps-val">${r.dps.toFixed(1)} dps${r.risky ? ` <span class="risky-badge" title="${r.riskyNote.replace(/"/g,'&quot;')}">⚠️ risky</span>` : ""}<span class="cell-duration">${formatTime(r.seconds, r.ticks)}</span><span class="cell-uptime">${r.uptimePct.toFixed(0)}% uptime &middot; took ${r.damageTaken} &middot; ${r.hpLeftPct.toFixed(0)}% HP left</span></td>`}
             </tr>
           `).join("")}
         </tbody>
