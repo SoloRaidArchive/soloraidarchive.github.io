@@ -1748,16 +1748,22 @@ function bossFMLandingTicks(bossFMAnimTicks, count){
 
 // ============ BOSS CONTINUOUS FAST-MOVE CADENCE (standalone, not post-charge-move) ============
 // Used when the boss is just attacking on its own normal cadence with no charge-move landing to
-// anchor against (e.g. Main DPS mode, where the boss never casts a charge move at all). 0-indexed:
-// the first hit lands at tick 0, then every (3 + fm_ad) ticks after that. This is a distinct model
-// from bossFMLandingTicks() above, which is specifically the boss's post-charge-move recovery and
-// chained-fast-move cadence - the two are not interchangeable.
+// anchor against (e.g. Main DPS mode, where the boss never casts a charge move at all).
+//
+// Cadence is (fm_ad + 4t), first landing at 1 + fm_ad - the same rhythm the rest of this
+// calculator uses, and the one that reproduces a real combat log.
+//
+// This previously ran on its own model: a free landing at tick 0, then every (3 + fm_ad) ticks.
+// Against Terrakion's Double Kick that is a hit every 5 ticks instead of 6, plus one free hit
+// before the player has acted at all - six absorbed hits across three casts where the real
+// cadence gives five. The extra 8 energy let a Psycho Boost fire after a single Zen Headbutt
+// (sequence 3+1+2); on the corrected cadence that cast needs two taps (3+2+2).
 function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
   const landings = [];
   let t = 0;
-  for(let i = 0; i < count; i++){
+  for(let i = 1; i <= count; i++){
+    t = (i === 1) ? (1 + bossFMAnimTicks) : (t + 4 + bossFMAnimTicks);
     landings.push(t);
-    t += (3 + bossFMAnimTicks);
   }
   return landings;
 }
