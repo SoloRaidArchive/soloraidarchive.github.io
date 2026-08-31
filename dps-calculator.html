@@ -95,9 +95,13 @@
   body.ct-mode-maindps .maindps-fmcm-only{ display:inline-flex; }
   /* Aggression only applies where the boss is otherwise modelled as fast-moves-only. The other
      cadences already place a real charge move, so there is nothing for it to decide. */
-  .maindps-fmonly-only{ display:none; }
-  body.ct-mode-maindps.cadence-fm-only .maindps-fmonly-only{ display:inline-flex; }
-  body.ct-mode-maindps.cadence-fm-only .aggro-cell{ display:flex; flex-direction:column; min-width:190px; }
+  /* Aggression is a Main DPS feature, and only on the Fast & Charge cadence - "Fast Only" means
+     the boss uses fast moves only, so letting it cast there contradicts the setting. A bare
+     class selector lost to .check-item/.mod-cell on source order and leaked into both catch-tank
+     modes, hence the body-scoped hide. */
+  body .maindps-fmcm-aggro{ display:none; }
+  body.ct-mode-maindps:not(.cadence-fm-only) label.maindps-fmcm-aggro{ display:inline-flex; }
+  body.ct-mode-maindps:not(.cadence-fm-only) .aggro-cell{ display:flex; flex-direction:column; min-width:190px; }
   .aggro-cell input[type=range]{ width:100%; accent-color: var(--blue); margin:2px 0 0; }
   .aggro-hint{ font-size:10.5px; color: var(--text-dim); margin-top:2px; }
   /* Boss cadence strip. Marks sit at their real tick, so the spacing between them IS the
@@ -144,6 +148,9 @@
     .bseq{ height:20px; }
   }
   body:not(.aggro-on) .aggro-cell{ opacity:.42; pointer-events:none; }
+  /* an adventure effect that cannot apply to the selected boss - still clickable, so the user can
+     see what it would do, but visibly inert */
+  .check-item.ae-inactive{ opacity:.45; }
   body.ct-mode-maindps.cadence-fm-only .maindps-fmcm-only{ display:none; }
   /* Boss charge-move inputs used to be hidden in Main DPS mode, back when that mode modelled
      fast moves only. Its second column now models absorbing the boss's charge move, so those
@@ -941,8 +948,8 @@
           <option value="fog">Fog</option>
         </select>
       </div>
-      <label class="check-item maindps-fmonly-only" title="Model the boss casting charge moves at a chosen aggression, instead of fast moves only."><input type="checkbox" id="bossAggroOn"> Boss aggression</label>
-      <div class="mod-cell maindps-fmonly-only aggro-cell">
+      <label class="check-item maindps-fmcm-aggro" title="How often the boss takes its charge move when it can afford one."><input type="checkbox" id="bossAggroOn"> Boss aggression</label>
+      <div class="mod-cell maindps-fmcm-aggro aggro-cell">
         <label for="bossAggro">Aggression <span id="bossAggroOut">30%</span></label>
         <input type="range" id="bossAggro" min="10" max="60" step="5" value="30">
         <div class="aggro-hint" id="bossAggroHint">~1 charge per 2.3 fast moves</div>
@@ -951,6 +958,7 @@
       <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
       <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
       <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
+      <label class="check-item" id="dynPunchItem" title="Mega Mewtwo X's Dynamic Punch+: +15% damage in Mega raids only."><input type="checkbox" id="dynamicPunch"> Dynamic Punch+</label>
       <label class="check-item single-ct-only" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
       <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
     </div>
@@ -1767,15 +1775,27 @@ function calcStat(baseStat, iv, level){
 
 // ============ PLAYER DAMAGE ============
 function playerMoveDamage(move, attackerName, playerAtk, bossDef, mods){
-  // mods: {eff, weather, stab, partyPower, zacian, primalMega, friendship}
+  // mods: {eff, weather, stab, partyPower, zacian, dynamicPunch, primalMega, friendship}
   const shadowMult = isShadow(attackerName) ? 1.2 : 1;
   const partyMult = mods.partyPower ? 2 : 1;
   const weatherMult = mods.weather ? 1.2 : 1;
   const zacianMult = mods.zacian ? 1.1 : 1;
+  // Mega Mewtwo X's Dynamic Punch+ : +15% damage, Mega raids only (including Mega Legendary).
+  // Gated on the boss actually being a Mega - see isMegaBoss() - so ticking it against a plain
+  // Legendary changes nothing rather than silently inflating the result.
+  const dynamicPunchMult = mods.dynamicPunch ? 1.15 : 1;
   const stabMult = mods.stab ? 1.2 : 1;
   const raw = move.dmg * shadowMult * mods.eff * partyMult * weatherMult * zacianMult
-              * stabMult * mods.primalMega * mods.friendship * (playerAtk / bossDef);
+              * dynamicPunchMult * stabMult * mods.primalMega * mods.friendship
+              * (playerAtk / bossDef);
   return Math.floor(0.5 * raw) + 1;
+}
+
+// Mega raids, for adventure effects that only apply to them. Covers Mega Legendary bosses too
+// (Mega Latios and friends are still Mega raids), and Primal, which shares the raid category.
+// A plain Legendary such as Terrakion is not a Mega raid and gets no boost.
+function isMegaBoss(name){
+  return /^\s*(mega|primal)\b/i.test(name || "");
 }
 
 // ============ BOSS DAMAGE (to player) ============
@@ -1897,6 +1917,8 @@ function runCalculation(){
   };
 
   const bossName = document.getElementById("bossName").value.trim();
+  // playerMods is built above, before bossName is known, so the Mega gate is applied here.
+  playerMods.dynamicPunch = document.getElementById("dynamicPunch").checked && isMegaBoss(bossName);
   const boss = findPokemon(bossName);
   if(!boss){
     resultsWrap.innerHTML = `<div class="empty-result">Enter a valid Raid Boss name to calculate.</div>`;
@@ -2002,7 +2024,8 @@ function runCalculation(){
     // Placement is deterministic rather than random (Bresenham-style accumulator), so the same
     // inputs always give the same rotation - a calculator that returned a different answer each
     // press would be useless for comparing loadouts.
-    const bossAggroOn = mainDPSMode && cadenceFMOnly
+    // Never on the Fast Only cadence: that setting means the boss uses fast moves only.
+    const bossAggroOn = mainDPSMode && !cadenceFMOnly
                         && document.getElementById("bossAggroOn").checked;
     const bossAggroP = parseInt(document.getElementById("bossAggro").value, 10) / 100;
     const bossCMCost = 100;
@@ -2236,6 +2259,7 @@ function runCalculation(){
               <span>HP <b>${bossHp.toFixed(1)}</b></span>
             </div>
             <div class="loadout-dmg-line">${bossFMMove.n} <b>${bossFMDamage}</b> per hit taken</div>
+            ${cadenceFMOnly ? "" : `<div class="loadout-dmg-line">${bossCMMove.n} <b>${bossCMDamage}</b>${dodgeCM ? " dodged" : ""} per charge taken</div>`}
           </div>
         </div>
       </div>
@@ -2244,7 +2268,9 @@ function runCalculation(){
     const fmOnlyCardHtml = `
       <div class="dps-result-card">
         <div class="dps-result-main">
-          <div class="dps-result-label">Fast Moves Only${numCM > 1 ? ` &middot; ${numCM} casts` : ""}</div>
+          <div class="dps-result-label">${bossAggroOn
+              ? `Fast &amp; Charge &middot; ${(bossAggroP*100).toFixed(0)}% aggression`
+              : "Fast Moves Only"}${numCM > 1 ? ` &middot; ${numCM} casts` : ""}</div>
           <div class="dps-result-value">${mainDPS.toFixed(1)}</div>
         </div>
         <table class="dps-stat-table">
@@ -2343,7 +2369,15 @@ function runCalculation(){
       </table>
     `;
 
-    resultsWrap.innerHTML = loadoutHtml + (cadenceFMOnly ? fmOnlyCardHtml : (fmCmStatTableHtml + fmCmTableHtml));
+    // Fast Only  -> the fast-move-only rotation, unchanged.
+    // Fast & Charge, aggression off -> the existing "boss FMs tanked" scenario table, unchanged.
+    // Fast & Charge, aggression on  -> the same tick-by-tick rotation, but with the boss's charge
+    //   moves scheduled by the aggression roll. The scenario table cannot express a variable
+    //   number of boss charge moves, so the rotation card replaces it rather than sitting beside it.
+    resultsWrap.innerHTML = loadoutHtml + (
+      cadenceFMOnly ? fmOnlyCardHtml
+      : bossAggroOn ? fmOnlyCardHtml
+      : (fmCmStatTableHtml + fmCmTableHtml));
 
     addToHistory(captureSetup());
     return;
@@ -3192,6 +3226,7 @@ function playerMoveDamagePreviewHtml(){
   const playerMods = {
     partyPower: document.getElementById("partyPower").checked,
     zacian: document.getElementById("zacianBlade").checked,
+    dynamicPunch: document.getElementById("dynamicPunch").checked && isMegaBoss(bossName),
     primalMega: parseFloat(document.getElementById("primalMega").value),
     friendship: parseFloat(document.getElementById("friendship").value),
   };
@@ -3617,9 +3652,27 @@ function updateCTMode(){
   document.body.classList.toggle("ct-mode-maindps", mode === "maindps");
   updateCadenceMode();
   updateBossAggro();
+  updateDynPunch();
 }
 // In Main DPS mode the boss's charge move only matters for the "Fast & Charge" cadence, so its
 // inputs are hidden when "Fast Only" is selected. Every other mode always needs them.
+// Dynamic Punch+ only does anything in a Mega raid, so the control says so rather than sitting
+// there looking active while contributing nothing.
+function updateDynPunch(){
+  const item = document.getElementById("dynPunchItem");
+  const box = document.getElementById("dynamicPunch");
+  if(!item || !box) return;
+  const mega = isMegaBoss(document.getElementById("bossName").value);
+  item.classList.toggle("ae-inactive", !mega);
+  item.title = mega
+    ? "Mega Mewtwo X's Dynamic Punch+: +15% damage against this Mega boss."
+    : "Dynamic Punch+ applies in Mega raids only — this boss is not a Mega, so it has no effect.";
+}
+["bossName", "dynamicPunch"].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener("input", updateDynPunch);
+});
+
 function updateBossAggro(){
   const on = document.getElementById("bossAggroOn").checked;
   document.body.classList.toggle("aggro-on", on);
