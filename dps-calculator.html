@@ -93,6 +93,57 @@
      Charge cadence absorbs one, so the option belongs there too - it stays hidden on the
      Fast Only cadence, where the boss never casts. */
   body.ct-mode-maindps .maindps-fmcm-only{ display:inline-flex; }
+  /* Aggression only applies where the boss is otherwise modelled as fast-moves-only. The other
+     cadences already place a real charge move, so there is nothing for it to decide. */
+  .maindps-fmonly-only{ display:none; }
+  body.ct-mode-maindps.cadence-fm-only .maindps-fmonly-only{ display:inline-flex; }
+  body.ct-mode-maindps.cadence-fm-only .aggro-cell{ display:flex; flex-direction:column; min-width:190px; }
+  .aggro-cell input[type=range]{ width:100%; accent-color: var(--blue); margin:2px 0 0; }
+  .aggro-hint{ font-size:10.5px; color: var(--text-dim); margin-top:2px; }
+  /* Boss cadence strip. Marks sit at their real tick, so the spacing between them IS the
+     cadence: normal rhythm is 6 ticks and reads wide, a chained move lands 1 tick after its
+     charge and reads as a tight pair. Shape encodes the move type, colour encodes chained -
+     fast and chained-fast are the same hollow circle so they stay one visual family. */
+  /* Given its own full-width cell (colspan=2) rather than sharing the label/value split: a
+     timeline needs horizontal room, and a block-level <td> still resolves width:100% against the
+     table's column, so it could never fill on a phone. */
+  .bseq-row td{ padding-top:8px; padding-bottom:10px; }
+  .bseq-head{
+    display:block; text-align:left; font-size:13px; color: var(--text-dim); margin-bottom:9px;
+  }
+  .bseq{ position:relative; display:block; width:100%; height:30px; }
+  .bseq-rail{ position:absolute; left:0; right:0; top:9px; height:2px; background: var(--border); border-radius:2px; }
+  .bseq i{
+    position:absolute; top:9px; transform:translate(-50%,-50%);
+    box-sizing:border-box; display:block;
+  }
+  .bseq-fm{ width:10px; height:10px; border-radius:50%; border:2px solid #aab4c2; background: var(--card); }
+  .bseq-cm{ width:13px; height:13px; border-radius:3px; background:#d94a6a; }
+  /* chained = cast 1 tick after a charge move. Colour only, so the shapes stay consistent. */
+  .bseq-fm.is-chained{ border-color:#e8963a; }
+  .bseq-cm.is-chained{ background:#e8963a; }
+  .bseq u{
+    position:absolute; top:19px; transform:translateX(-50%);
+    font-style:normal; font-size:9.5px; font-weight:600; color: var(--text-dim); white-space:nowrap;
+  }
+  [data-theme="dark"] .bseq-fm{ border-color:#5b6577; }
+  [data-theme="dark"] .bseq-cm{ background: var(--red); }
+
+  /* Mobile: the value column is far too narrow for a timeline, so this row goes full width with
+     the strip on its own line under the label. Gap labels are dropped below 380px - the marks
+     still carry the cadence, and colliding 9px numbers help nobody. */
+  @media (max-width: 620px){
+    /* A 1-tick chain is ~3% of the strip. At phone widths that is under 10px between centres,
+       so the marks are trimmed to keep a chained pair readable as two marks rather than a blob. */
+    .bseq-fm{ width:8px; height:8px; border-width:2px; }
+    .bseq-cm{ width:10px; height:10px; border-radius:2px; }
+  }
+  @media (max-width: 380px){
+    /* 9px gap labels collide before the marks do - drop them and let the spacing speak. */
+    .bseq u{ display:none; }
+    .bseq{ height:20px; }
+  }
+  body:not(.aggro-on) .aggro-cell{ opacity:.42; pointer-events:none; }
   body.ct-mode-maindps.cadence-fm-only .maindps-fmcm-only{ display:none; }
   /* Boss charge-move inputs used to be hidden in Main DPS mode, back when that mode modelled
      fast moves only. Its second column now models absorbing the boss's charge move, so those
@@ -889,6 +940,12 @@
           <option value="snow">Snow</option>
           <option value="fog">Fog</option>
         </select>
+      </div>
+      <label class="check-item maindps-fmonly-only" title="Model the boss casting charge moves at a chosen aggression, instead of fast moves only."><input type="checkbox" id="bossAggroOn"> Boss aggression</label>
+      <div class="mod-cell maindps-fmonly-only aggro-cell">
+        <label for="bossAggro">Aggression <span id="bossAggroOut">30%</span></label>
+        <input type="range" id="bossAggro" min="10" max="60" step="5" value="30">
+        <div class="aggro-hint" id="bossAggroHint">~1 charge per 2.3 fast moves</div>
       </div>
       <label class="check-item single-ct-only maindps-fmcm-only"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
       <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
@@ -1931,6 +1988,78 @@ function runCalculation(){
     // in this calculator (first landing at 1+ad, then +4+ad between subsequent landings) - pull a
     // generous batch upfront, indexed from the start of the encounter.
     const mdBossLandings = bossFMContinuousLandingTicks(bossFMMove.ad, 200);
+
+    // ============ BOSS AGGRESSION (optional) ============
+    // Off by default: the boss uses fast moves only, exactly as before. When on, each decision
+    // point is a chance for the boss to spend 100 energy on its charge move instead.
+    //
+    // "% aggression" is the chance it takes that option WHEN IT CAN AFFORD IT, so the setting is
+    // a cap on behaviour rather than a fixed rate - a boss that never banks 100 energy never
+    // casts, however aggressive the slider. Energy comes the way it does everywhere else: its own
+    // fast moves, plus 50% of the damage the player deals it. That means a harder-hitting player
+    // faces more charge moves, which is the feedback loop a fixed rate would destroy.
+    //
+    // Placement is deterministic rather than random (Bresenham-style accumulator), so the same
+    // inputs always give the same rotation - a calculator that returned a different answer each
+    // press would be useless for comparing loadouts.
+    const bossAggroOn = mainDPSMode && cadenceFMOnly
+                        && document.getElementById("bossAggroOn").checked;
+    const bossAggroP = parseInt(document.getElementById("bossAggro").value, 10) / 100;
+    const bossCMCost = 100;
+    const bossFMEnergyGain = bossFMMove.energy || 0;
+    let bossEnergy = 0, aggroAcc = 0, bossDamageDealtSeen = 0, mdDamageTakenTotal = 0;
+    const mdBossMoveLog = [];   // what the boss actually did, in order
+
+    // Energy flows are asymmetric, and the timing matters:
+    //   the boss banks energy when the PLAYER CASTS a move (not when it lands)
+    //   the player banks energy when the BOSS'S MOVE LANDS on them (not when the boss casts)
+    // so mdDamageCast is tracked separately from mdTotalDamage, which accrues on landing.
+    let mdDamageCast = 0;
+
+    // The boss's next decision is scheduled, not precomputed: a charge move chains, with the
+    // next move cast 1 tick after it, and that chained move can itself be a charge move on the
+    // same aggression roll. A fixed array cannot express that.
+    let bossNextTick = 1 + bossFMMove.ad;
+
+    // Decide the boss's move at one decision point. Returns the damage it lands.
+    function bossActAt(tickNow, chained){
+      bossEnergy += (mdDamageCast - bossDamageDealtSeen) * 0.5;
+      bossDamageDealtSeen = mdDamageCast;
+      aggroAcc += bossAggroP;
+      if(bossEnergy >= bossCMCost && aggroAcc >= 1){
+        aggroAcc -= 1;
+        bossEnergy -= bossCMCost;
+        mdBossMoveLog.push({ tick: tickNow, type: "cm", chained: !!chained });
+        return { dmg: bossCMDamage, isCM: true };
+      }
+      bossEnergy += bossFMEnergyGain;
+      mdBossMoveLog.push({ tick: tickNow, type: "fm", chained: !!chained });
+      return { dmg: bossFMDamage, isCM: false };
+    }
+
+    // Resolve every boss move that has landed on or before `tick`. The player banks energy from
+    // the damage as it LANDS, which is what this loop models.
+    let bossLastWasCM = false;
+    function absorbBossUpTo(tick){
+      if(!bossAggroOn){
+        while(mdBossLandingIdx < mdBossLandings.length && mdBossLandings[mdBossLandingIdx] <= tick){
+          mdEnergyBanked += energyFromDamage(bossFMDamage);
+          mdDamageTakenTotal += bossFMDamage;
+          mdBossHitsAbsorbed++;
+          mdBossLandingIdx++;
+        }
+        return;
+      }
+      while(bossNextTick <= tick){
+        const act = bossActAt(bossNextTick, bossLastWasCM);
+        mdEnergyBanked += energyFromDamage(act.dmg);
+        mdDamageTakenTotal += act.dmg;
+        mdBossHitsAbsorbed++;
+        // a charge move chains: the next move is cast 1 tick later, and rolls again
+        bossNextTick += act.isCM ? 1 : (4 + bossFMMove.ad);
+        bossLastWasCM = act.isCM;
+      }
+    }
     let mdBossLandingIdx = 0;
     let mdGlobalTick = 0;
     let mdEnergyBanked = 0;
@@ -1941,20 +2070,13 @@ function runCalculation(){
       let playerTapsThisCast = 0;
       // absorb any boss FM landings that already happened by the current tick (catches landings
       // that occurred during the previous cast's charge-move animation)
-      while(mdBossLandingIdx < mdBossLandings.length && mdBossLandings[mdBossLandingIdx] <= mdGlobalTick){
-        mdEnergyBanked += bossFMEnergyPerHit;
-        mdBossHitsAbsorbed++;
-        mdBossLandingIdx++;
-      }
+      absorbBossUpTo(mdGlobalTick);
       while(mdEnergyBanked < mdCmEnergyCost){
         mdGlobalTick += fm.ad;
         playerTapsThisCast++;
         mdEnergyBanked += fm.energy;
-        while(mdBossLandingIdx < mdBossLandings.length && mdBossLandings[mdBossLandingIdx] <= mdGlobalTick){
-          mdEnergyBanked += bossFMEnergyPerHit;
-          mdBossHitsAbsorbed++;
-          mdBossLandingIdx++;
-        }
+        mdDamageCast += fastDamage;          // the boss banks off this immediately
+        absorbBossUpTo(mdGlobalTick);
       }
       // Resolve Nerf: on a 1-tick fast move the charge button only appears at the very end of
       // the animation, so the queued tap buffers into an extra fast move instead of resolving
@@ -1964,7 +2086,9 @@ function runCalculation(){
       const mdNerfsThisCast = (resolveNerf && fm.ad === 1 && (mdCmEnergyCost === 100 || cast === numCM - 1)) ? 1 : 0;
       mdGlobalTick += mdNerfsThisCast;
       mdTotalDamage += mdNerfsThisCast * fastDamage;
+      mdDamageCast += mdNerfsThisCast * fastDamage;
 
+      mdDamageCast += chargeDamage;          // charge move is cast now; it lands cm.ad later
       mdGlobalTick += cm.ad;
       mdEnergyBanked -= mdCmEnergyCost; // leftover (from either source) carries into the next cast
       mdTotalDamage += (playerTapsThisCast * fastDamage) + chargeDamage;
@@ -1975,9 +2099,14 @@ function runCalculation(){
     // Damage the main DPSer takes over this rotation: every boss fast move it absorbed, at the
     // per-hit figure shown on the loadout card. Same count that feeds Boss FM Energy, so the two
     // stats can never disagree.
-    const mdDamageTaken = mdBossHitsAbsorbed * bossFMDamage;
+    // With aggression on the hits are not all the same size, so the running total is authoritative;
+    // without it every hit is the boss's fast move and the two agree exactly.
+    const mdDamageTaken = bossAggroOn ? mdDamageTakenTotal : (mdBossHitsAbsorbed * bossFMDamage);
+    const mdBossCMCount = mdBossMoveLog.filter(m => m.type === "cm").length;
+    const mdBossFMCount = mdBossMoveLog.length - mdBossCMCount;
     const mdHpLeft = playerHp - mdDamageTaken;
-    const mdHpLeftPct = playerHp > 0 ? (mdHpLeft / playerHp) * 100 : 0;
+    // floored at 0: overkill is not negative HP, and -184% reads as a bug
+    const mdHpLeftPct = playerHp > 0 ? Math.max(0, (mdHpLeft / playerHp) * 100) : 0;
     // Uptime = ticks spent acting / total ticks. In this cadence the player never idles - every
     // tick is a fast move, a charge animation, or the resolve-nerf tap (which still lands damage)
     // - so this reads 100% by construction. It is computed rather than hardcoded so it starts
@@ -2129,7 +2258,40 @@ function runCalculation(){
 
             <tr class="dps-stat-group dps-group-survive"><th colspan="2">Survivability / TDO</th></tr>
             <tr><td>Boss FM energy</td><td>${mdBossHitsAbsorbed} hits <span class="dps-stat-sub">+${mdBossHitsAbsorbed * bossFMEnergyPerHit} energy</span></td></tr>
+            ${bossAggroOn ? `
+            <tr class="bseq-row"><td colspan="2">${(() => {
+                // Proportional cadence strip: every mark sits at its real tick, so the gaps ARE
+                // the cadence - a chained move lands 1 tick after its charge and reads as a tight
+                // pair, while the normal rhythm is 6 ticks and reads wide.
+                //   shape  = move type   (circle = fast, square = charge)
+                //   colour = chained or not (amber = cast 1t after a charge)
+                // Fast and chained-fast are the same hollow circle so they read as one family.
+                const span = Math.max(mdTotalTicks, 1);
+                const marks = mdBossMoveLog.map(m => {
+                  const cls = (m.type === "cm" ? "bseq-cm" : "bseq-fm") + (m.chained ? " is-chained" : "");
+                  const label = `${m.chained ? "chained " : ""}${m.type === "cm" ? bossCMMove.n : bossFMMove.n} at ${(m.tick/2).toFixed(1)}s`;
+                  return `<i class="${cls}" style="left:${(m.tick/span*100).toFixed(2)}%" title="${label}"></i>`;
+                }).join("");
+                // A gap label is only drawn when there is room for it; sub-second chain gaps get a
+                // compact form so they do not collide with the marks either side.
+                const gaps = mdBossMoveLog.map((m, i) => {
+                  if(i === 0) return "";
+                  const prev = mdBossMoveLog[i-1];
+                  const dTicks = m.tick - prev.tick;
+                  const widthPct = dTicks / span * 100;
+                  if(widthPct < 4) return "";
+                  const mid = ((prev.tick + m.tick) / 2 / span * 100).toFixed(2);
+                  const secs = dTicks / 2;
+                  return `<u style="left:${mid}%">${secs < 1 ? secs.toFixed(1).replace("0.", ".") : secs.toFixed(1) + "s"}</u>`;
+                }).join("");
+                return `<span class="bseq-head">Boss rotation</span>`
+                     + `<span class="bseq"><span class="bseq-rail"></span>${marks}${gaps}</span>`;
+              })()}
+                            <span class="dps-stat-sub">${mdBossFMCount} fast &middot; ${mdBossCMCount} charge &middot; ${(100*bossAggroP).toFixed(0)}% aggression</span></td></tr>
+            <tr><td>Damage taken</td><td><span class="dps-stat-math">${mdBossFMCount}&times;${bossFMDamage}${mdBossCMCount ? ` + ${mdBossCMCount}&times;${bossCMDamage}` : ""}</span> = ${mdDamageTaken}</td></tr>
+            ` : `
             <tr><td>Damage taken</td><td><span class="dps-stat-math">${mdBossHitsAbsorbed} &times; ${bossFMDamage}</span> = ${mdDamageTaken}</td></tr>
+            `}
             <tr><td>HP left</td><td class="${mdHpLeft <= 0 ? "dps-hp-dead" : mdHpLeftPct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mdHpLeft)} / ${playerHp} <span class="dps-stat-sub">${mdHpLeftPct.toFixed(0)}%</span></td></tr>
           </tbody>
         </table>
@@ -3454,9 +3616,28 @@ function updateCTMode(){
   document.body.classList.toggle("ct-mode-double", mode === "double");
   document.body.classList.toggle("ct-mode-maindps", mode === "maindps");
   updateCadenceMode();
+  updateBossAggro();
 }
 // In Main DPS mode the boss's charge move only matters for the "Fast & Charge" cadence, so its
 // inputs are hidden when "Fast Only" is selected. Every other mode always needs them.
+function updateBossAggro(){
+  const on = document.getElementById("bossAggroOn").checked;
+  document.body.classList.toggle("aggro-on", on);
+  const pct = parseInt(document.getElementById("bossAggro").value, 10);
+  document.getElementById("bossAggroOut").textContent = pct + "%";
+  // The "1 charge per N fast moves" phrasing was the original mental model, so it is kept as a
+  // hint: at p aggression the boss casts once per p of its decisions, i.e. (1-p)/p fast moves
+  // between charge moves.
+  const perFm = (100 - pct) / pct;
+  document.getElementById("bossAggroHint").textContent =
+    `~1 charge per ${perFm.toFixed(1)} fast moves`;
+}
+
+["bossAggroOn", "bossAggro"].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener("input", updateBossAggro);
+});
+
 function updateCadenceMode(){
   const isMainDPS = document.querySelector('input[name="ctMode"]:checked').value === "maindps";
   const fmOnly = document.getElementById("cadenceMode").value === "fmonly";
