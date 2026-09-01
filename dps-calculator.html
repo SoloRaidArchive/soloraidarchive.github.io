@@ -1681,7 +1681,13 @@ async function loadCoreDataFromCSV(){
 
     const map = {};
     for(const r of movepoolRows){
-      const key = r.pokemon;
+      // Lowercased to match the lookup, which does .trim().toLowerCase() on the field value.
+      // Four rows were committed with a capital M - "Mega delphox", "Mega emboar",
+      // "Mega feraligatr", "Mega meganium" - so their entries were keyed "Mega delphox" while
+      // every lookup asked for "mega delphox". They silently fell through to BASE_FORM_MAP and
+      // showed the base species' moves instead, which is why Mega Delphox was missing Mystical
+      // Fire. Normalising here means a stray capital in the CSV can never do this again.
+      const key = (r.pokemon || "").trim().toLowerCase();
       if(!key) continue;
       if(!map[key]) map[key] = { fast: [], charged: [] };
       map[key][r.category === "charge" ? "charged" : "fast"].push(r.move);
@@ -2030,7 +2036,18 @@ function runCalculation(){
     const bossAggroP = parseInt(document.getElementById("bossAggro").value, 10) / 100;
     const bossCMCost = 100;
     const bossFMEnergyGain = bossFMMove.energy || 0;
-    let bossEnergy = 0, aggroAcc = 0, bossDamageDealtSeen = 0, mdDamageTakenTotal = 0;
+    // Seeded to a full bar. "Fast & Charge" states as a premise that the boss uses its charge
+    // move - the non-aggression model on this cadence is built entirely around absorbing one -
+    // so the boss must not have to earn its first 100 energy from scratch. Starting at zero meant
+    // a short rotation ended before it could ever cast, and the cadence silently produced zero
+    // charge moves. Aggression governs HOW OFTEN it casts, not WHETHER it can.
+    let bossEnergy = bossAggroOn ? 100 : 0;
+    // Accumulator starts half-full rather than empty. Starting at 0 means the first charge move
+    // cannot arrive until 1/p decisions have passed - at 30% that is the 4th boss move, which a
+    // short rotation never reaches, so the cadence reported zero charge moves. Half-phase seeding
+    // is the standard fix for this bias and puts the first cast near the middle of its interval
+    // instead of at the far end, without making low aggression fire immediately.
+    let aggroAcc = 0.5, bossDamageDealtSeen = 0, mdDamageTakenTotal = 0;
     const mdBossMoveLog = [];   // what the boss actually did, in order
 
     // Energy flows are asymmetric, and the timing matters:

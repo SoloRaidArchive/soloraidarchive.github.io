@@ -85,6 +85,14 @@
   .live-boss-panel #liveBossWrap,
   .live-boss-panel #newEntriesWrap,
   .live-boss-panel #monthlyGuidesWrap{ margin-top:10px; }
+  /* Empty state for the live-raid and monthly-guide panels. These sections now always render,
+     so this is what fills them when there is nothing to list - a quiet line rather than a
+     deleted block that makes the rest of the page jump up into the gap. */
+  .panel-empty{
+    padding:14px 4px; text-align:center;
+    font-size:13px; font-weight:600; color: var(--text-dim);
+  }
+  @media (max-width:700px){ .panel-empty{ padding:12px 4px; font-size:12.5px; } }
 
   .favicon-jumping{
     animation: jump 1s infinite
@@ -313,6 +321,7 @@
      space already allocated. Heights are the measured rendered values, applied as a floor
      because the list is data-driven and its exact length changes with the rotation. */
   #liveBossWrap{ min-height: 804px; }
+  #liveBossWrap.is-empty{ min-height:0; }
   @media (min-width:701px){ #liveBossWrap{ min-height: 300px; } }
   .weather-icon-wrap{
     display:inline-flex; align-items:center; justify-content:center;
@@ -993,9 +1002,17 @@ async function loadLiveBosses(){
     // Set the heading from the loaded groups, before the early return: with no groups the
     // fallback still needs to run, or the placeholder text "Raids" is left on the page.
     setLiveBossHeading(groups);
-    if(!groups.length) return;
     const wrap = document.getElementById("liveBossWrap");
     if(!wrap) return;
+    // An empty month left the reserved 804px box completely blank, which reads as a broken
+    // panel rather than an empty one. Same treatment as the guides panel: say so.
+    if(!groups.length){
+      // Drop the CLS reservation too: it exists to hold space for a list that is coming, and
+      // holding 804px open on a phone for a single line of text looks broken.
+      wrap.classList.add("is-empty");
+      wrap.innerHTML = `<div class="panel-empty">No raids listed for this month yet.</div>`;
+      return;
+    }
     // 19 icons/row fits the actual desktop layout (measured against the real CSS: 40px
     // icons, 10px gaps, page padding, panel padding), so 2 rows = 38. Mobile has far less
     // horizontal space, so it's capped to 6 (fits exactly 1 row at that width instead).
@@ -1111,17 +1128,29 @@ async function loadLiveBosses(){
 // data/guides/index.json (which bosses have a documented guide) and shows only the
 // intersection - a boss only appears here if it's both currently raid-able AND has a guide.
 async function loadMonthlyGuides(){
+  // The panel used to ship display:none and only reveal itself once it had something to show,
+  // so a month with no matching guides deleted the whole block and everything below it slid up
+  // into the gap. It now always renders: the heading stays put and the body carries a short
+  // empty state instead. A section that is simply empty is far less alarming than one that
+  // vanishes, and the page no longer reflows depending on the data.
+  const panel = document.getElementById("monthlyGuidesPanel");
+  const wrap = document.getElementById("monthlyGuidesWrap");
+  const heading = document.getElementById("monthlyGuidesHeading");
+  if(!panel || !wrap) return;
+
+  const monthName = new Date().toLocaleString("en-US", { month: "long" });
+  if(heading) heading.textContent = `${monthName} Guides`;
+  panel.style.display = "";
+  const showEmpty = (msg) => { wrap.innerHTML = `<div class="panel-empty">${msg}</div>`; };
+  showEmpty("Loading\u2026");
+
   try{
-    const panel = document.getElementById("monthlyGuidesPanel");
-    const wrap = document.getElementById("monthlyGuidesWrap");
-    const heading = document.getElementById("monthlyGuidesHeading");
-    if(!panel || !wrap) return;
 
     const [liveData, guidesData] = await Promise.all([LIVE_BOSSES_PROMISE, GUIDES_INDEX_PROMISE]);
-    if(!liveData || !guidesData) return;
+    if(!liveData || !guidesData){ showEmpty("Raid data isn\u2019t available right now."); return; }
 
     const guideSlugs = new Set((guidesData.bosses || []).map(b => b.slug));
-    if(guideSlugs.size === 0) return;
+    if(guideSlugs.size === 0){ showEmpty("No guides published yet."); return; }
 
     function bossSlug(name){ return name.toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
 
@@ -1156,18 +1185,19 @@ async function loadMonthlyGuides(){
         }
       });
     });
-    if(matched.length === 0) return;
-
-    if(heading) heading.textContent = `${now.toLocaleString("en-US", { month: "long" })} Guides`;
+    if(matched.length === 0){
+      showEmpty(`No guides yet for this month\u2019s raid bosses.`);
+      return;
+    }
 
     wrap.innerHTML = `<div class="guide-pill-row">${matched.map(boss => `
       <a class="guide-pill" href="data/guides/${bossSlug(boss.name)}.html" title="${boss.name}">
         <div class="guide-pill-icon"><img class="${needsShadowMist(boss.name) ? 'shadow-mist' : ''}" src="${spriteUrl(boss.name)}" alt="" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${boss.name}')) { this.style.display='none'; }"></div>
         <span class="guide-pill-label">${boss.name}</span>
       </a>`).join("")}</div>`;
-    panel.style.display = "";
   }catch(e){
     console.error("Could not load monthly guides:", e);
+    showEmpty("Couldn\u2019t load guides.");
   }
 }
 
