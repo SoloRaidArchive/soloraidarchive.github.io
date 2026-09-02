@@ -7,9 +7,28 @@
       "weather": "Extreme",
       "adventureEffect": "None",
       "difficulty": "4★",
-      "text": "<h2>Overview</h2><p>Mega Skarmory is a challenging raid due to its increased attack stat and access to several high damaging moves e.g: Brave Bird. Various Megas can be used depending on its moveset. </p><h4>Est Time to Win: 270.0s - 290.0s</h4><p><br></p><h2>Main Strategy</h2><p>Simply DPS with Shadow Reshiram and opt to <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">catch tank</a> the high damaging brave bird with either Regieleki or another Shadow Reshiram. Mega Charizard Y, Mega Raichu Y or Mega Blaziken are all DPS positive Megas to use in the main DPS slot. There are certain caveats. </p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>It is recommended to have Mega Raichu Y at level 51.5 or higher. This is because it gets a fast move breakpoint with thundershock given 15 attack. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>It is recommended to run Mega Blaziken vs Flash Cannon</li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>If neither option is available, Mega Charizard Y is a decent fall back option. </li></ol><p><br></p><p>Blacephalon can be used although due to the high damaging charge moves, it must use with extra caution. Especially against the lethal brave bird. </p>",
-      "vods": [],
-      "submittedBy": "Spiritedbloom",
+      "text": "<h2>Overview</h2><p>Mega Skarmory is a challenging raid due to its increased attack stat and access to several high damaging moves e.g: Brave Bird. Various Megas can be used depending on its moveset. </p><h4>Est Time to Win: 270.0s - 290.0s</h4><p><br></p><h2>Main Strategy</h2><p>Simply DPS with Shadow Reshiram and opt to <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">catch tank</a> the high damaging brave bird with either Regieleki or another Shadow Reshiram. Mega Raichu Y or Mega Delphox are ideal DPS positive to use in the main DPS slot. There are certain caveats. </p><ol><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>It is recommended to have Mega Raichu Y at level 51.5 or higher. This is because it gets a fast move breakpoint with thundershock given 15 attack. </li><li data-list=\"bullet\"><span class=\"ql-ui\" contenteditable=\"false\"></span>It is recommended to run Mega Delphox if Mega Raichu Y is not available.</li></ol><p><br></p><p>Blacephalon can be used although due to the high damaging charge moves, it must use with extra caution. Especially against the lethal brave bird. </p>",
+      "vods": [
+        {
+          "url": "https://www.youtube.com/watch?v=Ov5bzQFpWUY",
+          "label": "TTW: 271s [Full Size, AS/FC, Some mistakes]",
+          "creditName": "SpiritedBloom",
+          "creditUrl": "youtube.com/@spiritedbloom"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=tHNhkNDGkbg&t=2s",
+          "label": "TTW: 270.5s [Full Size, AS/BB, Some mistakes]",
+          "creditName": "xRage7243",
+          "creditUrl": "youtube.com/@xRage7243"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=tWYgRE4-IfY&t=2s",
+          "label": "TTW: 280s [Mega Raichu Y Recycle, AS/FC]",
+          "creditName": "Origami777",
+          "creditUrl": "https://www.youtube.com/@Origami777-r1e"
+        }
+      ],
+      "submittedBy": "Anonymous",
       "battleParties": [
         {
           "label": "Fire / Electric Meta DPS",
@@ -22,7 +41,7 @@
               "cm": "Fusion Flare",
               "cm2": "",
               "roles": [
-                "Main DPS"
+                "Support DPS"
               ],
               "optional": false
             },
@@ -52,34 +71,21 @@
               "name": "Mega Raichu Y",
               "level": "52",
               "fm": "Thunder Shock",
-              "cm": "Wild Charge",
-              "cm2": "",
+              "cm": "Zap Cannon+ (Lvl 3-4)",
+              "cm2": "Wild Charge",
               "roles": [
-                "Support DPS"
+                "Main DPS"
               ],
               "optional": false
             },
             {
-              "name": "Mega Blaziken",
+              "name": "Mega Delphox",
               "level": "40-50",
               "fm": "Fire Spin",
-              "cm": "Blast Burn",
-              "cm2": "Blaze Kick",
+              "cm": "Mystical Fire+ (Lvl 3-4)",
+              "cm2": "Blast Burn",
               "roles": [
-                "Support DPS",
-                "Executor"
-              ],
-              "optional": true
-            },
-            {
-              "name": "Mega Charizard Y",
-              "level": "40-50",
-              "fm": "Fire Spin",
-              "cm": "Blast Burn",
-              "cm2": "",
-              "roles": [
-                "Support DPS",
-                "Executor"
+                "Main DPS"
               ],
               "optional": true
             },
@@ -93,11 +99,23 @@
                 "Support DPS"
               ],
               "optional": true
+            },
+            {
+              "name": "Regieleki",
+              "level": "40-50",
+              "fm": "Lock On",
+              "cm": "Thunder Cage",
+              "cm2": "",
+              "roles": [
+                "Support DPS",
+                "Catch Tank"
+              ],
+              "optional": true
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-24T04:39:15.192Z"
+      "submittedAt": "2026-09-02T19:36:34.866Z"
     }
   ]
 }
