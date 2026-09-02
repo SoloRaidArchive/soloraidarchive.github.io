@@ -109,6 +109,85 @@
         }
       ],
       "submittedAt": "2026-09-02T18:50:00.386Z"
+    },
+    {
+      "strategyName": "Mega Raichu Y + Regieleki",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "5★",
+      "text": "<h2>Overview</h2><p>This route uses Mega Raichu Y and Regieleki while absorbing non-lethal moves. Recommended to dodge Hydropumps.</p><h4>Est Time to Win 285.0s-295.0s</h4><p><br></p><h2>Main Strategy</h2><p>Due to the lineup's low defense and low hp it is crucial to manage each attacker's bulk. Each pokemon can comfortably tank 1 charge move (other than hydro-pump) with some room to tank fast moves. Catch Tanking and Hot-Swapping are critical for juggling energy appropriately. </p><p><br></p><p>The main carry is Mega Raichu Y, expect to get out 2-3 Zap Cannon+ (lvl 4). </p><p>Secondary carries are Regieleki's able to pump out 1-2 Thunder Cages depending on if they absorb a charge move or not. </p><p><br></p><p>Aim to TPC both of these moves as best you can (not necessarily required and most importantly do not \"drop\" any charge moves from fainting. Losing a thunder cage or Zap Cannon+ (lvl 4) can greatly hinder your DPS. </p><p><br></p><p>Teaching wild charge on Raichu Y can help with closing the raid in tight situations.</p><p><br></p><h2>Video Credits</h2><p><br></p>",
+      "vods": [
+        {
+          "url": "https://www.youtube.com/watch?v=BTkJ5wCZBQ4",
+          "label": "TTW: 291.5 [Full Size, HP Ground/Ice Beam, Minor Mistakes]",
+          "creditName": "SpiritedBloom",
+          "creditUrl": "youtube.com/@spiritedbloom"
+        }
+      ],
+      "submittedBy": "SpiritedBloom",
+      "battleParties": [
+        {
+          "label": "Electric Line Up",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Mega Raichu Y",
+              "level": "50-53",
+              "fm": "Thunder Shock",
+              "cm": "Zap Cannon+ (4)",
+              "cm2": "Wild Charge",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Regieleki",
+              "level": "40-50",
+              "fm": "Lock On",
+              "cm": "Thunder Cage",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Regieleki",
+              "level": "40-50",
+              "fm": "Lock On",
+              "cm": "Thunder Cage",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Regieleki",
+              "level": "40-50",
+              "fm": "Lock On",
+              "cm": "Thunder Cage",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Regieleki",
+              "level": "40-50",
+              "fm": "Lock On",
+              "cm": "Thunder Cage",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Regieleki",
+              "level": "40-50",
+              "fm": "Lock On",
+              "cm": "Thunder Cage",
+              "cm2": "",
+              "roles": [],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-09-02T19:12:14.415Z"
     }
   ]
 }
