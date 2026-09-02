@@ -8,7 +8,14 @@
       "adventureEffect": "None",
       "difficulty": "2★",
       "text": "<h2>Overview</h2><p>Mega Victreebel is another goofy looking Mega from Legends Z-A debuting as potentially a strong poison main DPSer with potential access to Acid Spray+</p><h4>Est Time to Win: 150.0s </h4><h2>Main Strategy</h2><p>The strategy is quite simple, DPS with Mega Rayquaza or Mega Mewtwo Y. <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">Rejoin</a> when both pokemon are too low health to continue or get a charge move off. </p>",
-      "vods": [],
+      "vods": [
+        {
+          "url": "https://www.youtube.com/watch?v=2yX2td5J4sg",
+          "label": "TTW: (Very Fast) Mega Mewtwo Y Recycle (lvl 50)",
+          "creditName": "SpiritedBloom",
+          "creditUrl": "youtube.com/@spiritedbloom"
+        }
+      ],
       "submittedBy": "Spiritedbloom",
       "battleParties": [
         {
@@ -24,34 +31,23 @@
               "roles": [
                 "Main DPS"
               ],
-              "optional": false
+              "optional": true
             },
             {
               "name": "Mega Mewtwo Y",
               "level": "30-50",
               "fm": "Confusion or Psycho Cut",
-              "cm": "Psystrike",
-              "cm2": "",
+              "cm": "Future Sight+ (lvl 1-4)",
+              "cm2": "Psystrike (optional)",
               "roles": [
                 "Main DPS"
               ],
-              "optional": true
-            },
-            {
-              "name": "Mega Mewtwo X",
-              "level": "30-50",
-              "fm": "Confusion or Psycho Cut",
-              "cm": "Psystrike",
-              "cm2": "",
-              "roles": [
-                "Main DPS"
-              ],
-              "optional": true
+              "optional": false
             }
           ]
         }
       ],
-      "submittedAt": "2026-08-23T06:34:24.924Z"
+      "submittedAt": "2026-09-02T19:27:40.003Z"
     }
   ]
 }
