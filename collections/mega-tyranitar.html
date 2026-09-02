@@ -1027,13 +1027,16 @@ function spriteUrl(name){
 }
 const AE_ICON     = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
 const SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
+const PUNCH_ICON  = "https://lh3.googleusercontent.com/d/12ZtA4r_57Se57YtMrQdvFJYIaRt9IYQz";
 // Matched on the exact URL, never on keywords - the CDN URLs are opaque hashes and contain
 // neither "sword" nor "shield". Anything else non-empty is treated as sword, which is what
 // tier5-ae-raids.html does and keeps an unrecognised future URL visible rather than dropped.
 function aeKind(cell){
   const v = (cell || "").trim();
   if(!v) return "";
-  return v === SHIELD_ICON ? "shield" : "sword";
+  if(v === SHIELD_ICON) return "shield";
+  if(v === PUNCH_ICON)  return "punch";
+  return "sword";
 }
 
 let ROWS = [], STATE = { star:null, weather:null, ae:false, vod:false };
@@ -1291,6 +1294,7 @@ function escapeHtml(str){
 function aeIconHtml(kind){
   if(kind === "sword")  return ` <img class="ae-icon" src="${AE_ICON}" alt="Blade Boost" title="Blade Boost — +10% damage dealt from your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
   if(kind === "shield") return ` <img class="ae-icon" src="${SHIELD_ICON}" alt="Behemoth Bash" title="Behemoth Bash — +10% damage reduction for your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
+  if(kind === "punch")  return ` <img class="ae-icon" src="${PUNCH_ICON}" alt="Dynamic Punch+" title="Dynamic Punch+ — +15% damage dealt against Mega bosses in Mega raids" loading="lazy" onerror="this.style.display='none'">`;
   return "";
 }
 
