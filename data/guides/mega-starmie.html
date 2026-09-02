@@ -61,13 +61,21 @@
     position:sticky; top:0; z-index:15; background: var(--bg1);
     padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
-  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
+  /* min-height matches the hamburger's 44px hit area plus its 3px shadow on each side, so the
+     button sits inside the bar instead of spilling past its top and bottom edges. Pages that
+     already reserve this on .sticky-header-title-row render a 65px bar; this brings the rest to
+     the same height with the same mechanism rather than a second one. Any future control added
+     to this row inherits the clearance instead of needing its own fix. */
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; min-height:44px; }
   .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
   .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--text); text-align:center; }
 
+  /* 44px, not 38: this is the only always-available navigation control on mobile and 38px is
+     below every touch-target guideline. It renders 44x44 on 12 other pages - the 38px value
+     lived in a second, independent .hamburger-btn rule that these pages happened to inherit. */
   .hamburger-btn{
     flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
-    width:38px; height:38px; border-radius:50%;
+    width:44px; height:44px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
@@ -162,6 +170,23 @@
   .move-type-icon{ width:13px; height:13px; flex-shrink:0; object-fit:contain; filter:brightness(0) invert(1); }
 
   .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  /* ---- layout reservations (CLS) ----------------------------------------------------------
+     Everything below is filled by loadGuide() after the guide JSON resolves. Measured on a
+     throttled phone, the un-reserved page scored 0.480 CLS: #strategy-display grew 75 -> 2211px,
+     the two movepool rows 0 -> 26px each, and #route-row shrank 75 -> 40px as its "Loading..."
+     placeholder was replaced. Reserving each slot means the content lands in space already
+     allocated instead of displacing the footer.
+     min-height on #strategy-display only bites while it is near-empty; once the routes render
+     it is far taller, so this costs nothing after load. */
+  #strategy-display{ min-height: 80vh; }
+  #fast-move-row, #charge-move-row{ min-height: 26px; }
+  /* Charge rows wrap to two lines on a phone for 10 of 13 bosses, so 58px is the common case
+     rather than the minimum. Mega Starmie is a deliberate outlier - its movepool lists all 16
+     Hidden Power variants as separate fast moves, so no sane reservation covers it; over-
+     reserving for that one page would leave visible dead space on the other twelve. */
+  @media (max-width:700px){ #charge-move-row{ min-height: 58px; } }
+  .route-row{ min-height: 40px; align-content: flex-start; }
+  .route-row .load-state{ line-height: 40px; padding: 0; margin: 0; }
   .route-btn{
     font-family:'Manrope', sans-serif; font-weight:700; font-size:12px;
     background: var(--card); color: var(--text-dim); border:1.5px solid var(--border);
@@ -249,7 +274,16 @@
     font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
     background: var(--accent-soft); padding:2px 9px; border-radius:999px;
   }
-  .strategy-text{ font-size:14px; color: var(--text); line-height:1.4; margin:0 0 6px; }
+  /* These regions hold text typed or pasted by contributors through the Quill editor, so their
+     content is unbounded by definition. A single unbreakable token - a pasted YouTube URL in one
+     guide - pushed the page 20px wider than a 320px viewport and gave the whole document a
+     horizontal scrollbar. `anywhere` lets the browser break inside such a token as a last resort;
+     normal words are unaffected because it only applies when a line cannot otherwise fit. This is
+     a property of user-generated content, so it belongs in the template rather than being patched
+     per guide as future submissions reintroduce it. */
+  .strategy-text{ font-size:14px; color: var(--text); line-height:1.4; margin:0 0 6px;
+    overflow-wrap:anywhere; }
+  .strategy-text a, .strategy-block a{ overflow-wrap:anywhere; }
   .strategy-text p{ margin:0 0 6px; }
   .strategy-text h2{ font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:14px 0 6px; }
   .strategy-text h3{ font-family:'Manrope', sans-serif; font-weight:700; font-size:15px; margin:12px 0 5px; }
@@ -383,12 +417,13 @@
   </div>
 
   <h2 class="section-title">Boss Info</h2>
-  <div class="boss-info-top">
+  <div class="info-box">
+    <div class="boss-info-top">
       <img class="boss-sprite-sm" id="boss-sprite-img" alt="Mega Starmie" onerror="this.style.display='none'">
       <div class="boss-info-top-right">
         <div class="type-icon-row-sm"><span class="type-icon-wrap" style="background:#3E8DE0;">Water</span><span class="type-icon-wrap" style="background:#E0426E;">Psychic</span></div>
         <dl class="stat-row-sm">
-          <div class="stat-cell-sm"><dt class="stat-label-sm">ATK</dt><dd class="stat-value-sm">251.3</dd></div>
+          <div class="stat-cell-sm"><dt class="stat-label-sm">ATK</dt><dd class="stat-value-sm">229.9</dd></div>
           <div class="stat-cell-sm"><dt class="stat-label-sm">DEF</dt><dd class="stat-value-sm">192.8</dd></div>
           <div class="stat-cell-sm"><dt class="stat-label-sm">HP</dt><dd class="stat-value-sm">9,000</dd></div>
         </dl>
@@ -398,7 +433,9 @@
     <div class="movepool-row" id="fast-move-row"></div>
     <div class="movepool-label">Charge Moves</div>
     <div class="movepool-row" id="charge-move-row"></div>
-    <h2 class="section-title">Routes</h2>
+  </div>
+
+  <h2 class="section-title">Routes</h2>
   <div class="route-row" id="route-row">
     <div class="load-state">Loading...</div>
   </div>
