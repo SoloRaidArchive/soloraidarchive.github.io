@@ -358,6 +358,41 @@
     animation: hamburgerShine 4s linear infinite;
     transition: transform .12s ease;
   }
+  /* Discord invite, under the five-pill row. Shaped as a pill so it belongs to the same family
+     - same 44px min-height, 16px radius and Manrope weight as .popular-link - but filled blurple
+     rather than outlined, because it leaves the site rather than navigating within it. It does
+     not stretch: the five pills share a row, this one sits centred beneath them.
+     The shine reuses the same sweeping-gradient trick and the same hamburgerShine keyframes as
+     the pills above, so the motion on the page stays consistent. */
+  .discord-row{ width:100%; max-width:640px; margin:0 auto 20px; padding:0 24px;
+    display:flex; justify-content:center; }
+  .discord-link{
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    min-height:44px; padding:11px 22px; border-radius:16px; text-decoration:none;
+    color:#fff; font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; line-height:1.3;
+    border:2px solid transparent;
+    background-image:
+      linear-gradient(90deg, #4a57e0, #5865F2, #7f8cff, #5865F2, #4a57e0, #5865F2),
+      linear-gradient(90deg, #7f8cff, #cfd5ff, #7f8cff, #5865F2, #cfd5ff, #7f8cff);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 300% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+    box-shadow:0 2px 10px rgba(88,101,242,.30);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .discord-link:hover{ transform:translateY(-2px); box-shadow:0 5px 16px rgba(88,101,242,.40); }
+  .discord-mark{ width:20px; height:15px; flex:none; }
+  .discord-sub{
+    font-weight:600; font-size:11px; opacity:.85;
+    padding-left:9px; border-left:1px solid rgba(255,255,255,.34);
+  }
+  /* The strapline is the first thing to go on a narrow screen - the mark and label carry it. */
+  @media (max-width:480px){
+    .discord-row{ padding:0 16px; }
+    .discord-sub{ display:none; }
+  }
+
   .popular-link:hover{ transform: translateY(-2px); }
 
   .popular-link.vod-submit{
@@ -494,6 +529,16 @@
   <a class="popular-link" href="solo-raid-mechanics.html">Mechanics</a>
   <a class="popular-link vod-submit" href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" target="_blank" rel="noopener noreferrer">Submit a VOD</a>
   <a class="popular-link vod-submit" href="editor.html" title="Requires a GitHub account">Submit a Guide</a>
+</div>
+
+<div class="discord-row">
+  <a class="discord-link" href="https://discord.gg/mt3EVv6CTP" target="_blank" rel="noopener noreferrer">
+    <svg class="discord-mark" viewBox="0 0 127 96" aria-hidden="true" focusable="false">
+      <path fill="currentColor" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15ZM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69Zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69Z"/>
+    </svg>
+    <span class="discord-text">Join the Discord</span>
+    <span class="discord-sub">Ask questions &middot; share solos</span>
+  </a>
 </div>
 
 <div class="page-layout">
