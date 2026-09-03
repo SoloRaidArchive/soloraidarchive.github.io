@@ -188,6 +188,108 @@
         }
       ],
       "submittedAt": "2026-09-02T19:12:14.415Z"
+    },
+    {
+      "strategyName": "Hot Swapping Your Way to Victory",
+      "weather": "Extreme",
+      "adventureEffect": "None",
+      "difficulty": "4★",
+      "text": "<h2>Overview</h2><p>Mega Starmie is a pretty straightforward solo, especially if using the current premier and bane of Psychic and Ghost types, Dawn Wings Necrozma — which is ironically, a Ghost/Psychic type. With the advent of Mega Raichu Y's Plus move, you can do it without needing a full Ghost team. Additionally, Mega Sceptile in Sunny weather will also work. </p><h4>Estimated Time: 290-300 seconds</h4><h2>Main Strategy</h2><p>Mega Starmie does not have a lot of moves that will deal massive damage, at least not enough to reliably catch tank. <a href=\"https://www.youtube.com/watch?v=7L6khYg2Q4M\" target=\"_blank\">Even Hydro Pump will raise about slightly less than 50% energy in a neutral setting</a>. In this scenario, hot swapping is probably the best way to go.</p><p>The biggest question for Mega Starmie is: <em>Psycho Cut or Shadow Claw? </em>The former generates energy better, the latter provides more consistent damage. For the solo scenario I faced, I encountered Water Gun/Psywave, and used a combination of Shadow Claw and Psycho Cut due to item limitations. I think this is possibly the best mix; use Shadow Claw for your first few Dawn Wings to frontload damage, and Psycho Cut for the last couple to quickly generate energy with the clock ticking down.</p><p>My settings allowed for a no-relobby win, however other VODs demonstrate that even with rejoins, you can push for better times. Speed or survivability? That's a choice only you can decide, with your own scenario.</p><h2>Video Credits</h2><p>Makoto_, Shalashia</p>",
+      "vods": [
+        {
+          "url": "https://youtu.be/_2le9hIpQMQ?si=AWj_-40e1MxXAxeK",
+          "label": "",
+          "creditName": "Shalashia",
+          "creditUrl": "https://www.youtube.com/@PoGoRaidingHighlights"
+        }
+      ],
+      "submittedBy": "Shalashia",
+      "battleParties": [
+        {
+          "label": "No Relobby",
+          "secondaryLabel": "Sceptile with Sunny Weather",
+          "mons": [
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "50",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": "Dark Pulse (Optional)",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "50",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": "Dark Pulse (Optional)",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "50",
+              "fm": "Psycho Cut",
+              "cm": "Moongeist Beam",
+              "cm2": "Dark Pulse (Optional)",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "50",
+              "fm": "Psycho Cut",
+              "cm": "Moongeist Beam",
+              "cm2": "Dark Pulse (Optional)",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "50",
+              "fm": "Psycho Cut",
+              "cm": "Moongeist Beam",
+              "cm2": "Dark Pulse (Optional)",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "50",
+              "fm": "Psycho Cut",
+              "cm": "Moongeist Beam",
+              "cm2": "Dark Pulse (Optional)",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Mega Sceptile",
+              "level": "50",
+              "fm": "Fury Cutter",
+              "cm": "Frenzy Plant",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-09-03T13:14:58.467Z"
     }
   ]
 }
