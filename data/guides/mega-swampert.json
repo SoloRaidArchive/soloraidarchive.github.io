@@ -1,0 +1,64 @@
+{
+  "boss": "Mega Swampert",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Budget Solo",
+      "weather": "Sunny",
+      "adventureEffect": "None",
+      "difficulty": "2★",
+      "text": "<h2>Overview</h2><p>Alright, so picture this. You're a new player and you don't yet have access to heavier hitters such as Megas or Legendaries, this is the team for you. An easy to access team that can let you acquire a mighty Water and Ground type in Swampert and its Mega for future use.</p><h4>Est Time to Win</h4><p>265-275 seconds</p><h2>Main Strategy</h2><p>Recycling is the key. To save time and resources, make sure to switch to the next Pokémon before it faints so that way if you need to relobby, you save a few seconds and only need to Potion up as opposed to wasting time, Potions, and Revives by letting everyone faint.</p><h2>Video Credits</h2><p><br></p>",
+      "vods": [
+        {
+          "url": "http://youtube.com/watch?v=iUMe_cdQm4I",
+          "label": "Mega Swampert Budget Solo",
+          "creditName": "BoltBlades12",
+          "creditUrl": "https://www.youtube.com/@BoltBlades12"
+        }
+      ],
+      "submittedBy": "BoltBlades12",
+      "battleParties": [
+        {
+          "label": "The Three Budgeteers",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Venusaur",
+              "level": "40",
+              "fm": "Vine Whip",
+              "cm": "Frenzy Plant",
+              "cm2": "Petal Blizzard",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Roserade",
+              "level": "35",
+              "fm": "Magical Leaf",
+              "cm": "Grass Knot",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Exeggutor",
+              "level": "34",
+              "fm": "Bullet Seed",
+              "cm": "Seed Bomb",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": false
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-09-04T02:46:19.594Z"
+    }
+  ]
+}
