@@ -1206,7 +1206,41 @@ function escapeHtml(t){
   return String(t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 }
 
+// A cell may hold several moves - "Blast Burn & Blaze Kick", "Move 1 / Move 2", or a plain
+// comma list. Each piece is validated against the real move list (MOVE_TYPES from csv/moves.csv),
+// and anything that is not a known move is re-joined with its neighbour and re-tested, so a name
+// that legitimately contains a separator is not torn in half. Unrecognised text is kept rather
+// than dropped, so a typo shows on the page instead of vanishing.
+const MOVE_SPLIT_RE = /\s*(?:,|;|\/|\||\bor\b|&|\n)\s*/i;
+function isKnownMove(n){ return !!MOVE_TYPES[String(n || "").trim().toLowerCase()]; }
+function splitMoves(cell){
+  const raw = String(cell || "").trim();
+  if(!raw) return [];
+  const parts = raw.split(MOVE_SPLIT_RE).map(s => s.replace(/\s+/g, " ").trim()).filter(Boolean);
+  if(parts.length <= 1) return parts;
+  if(parts.every(isKnownMove)) return parts;
+  const out = [];
+  for(let i = 0; i < parts.length; i++){
+    if(isKnownMove(parts[i])){ out.push(parts[i]); continue; }
+    let joined = parts[i], matched = false;
+    for(let j = i + 1; j < parts.length; j++){
+      joined += ", " + parts[j];
+      if(isKnownMove(joined)){ out.push(joined); i = j; matched = true; break; }
+    }
+    if(!matched) out.push(parts[i]);
+  }
+  return out;
+}
+
 function moveChipHtml(name){
+  // One chip per move: a multi-move cell used to be typed as a single unknown name and rendered
+  // as one long grey pill.
+  const moves = splitMoves(name);
+  if(moves.length > 1) return moves.map(oneMoveChipHtml).join("");
+  return oneMoveChipHtml(name);
+}
+
+function oneMoveChipHtml(name){
   // Coloured pill + white type icon, matching the guide pages. Types come from csv/moves.csv.
   const clean = (name || "").trim();
   if(!clean || /^any$/i.test(clean)) return "";
