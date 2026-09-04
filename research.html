@@ -20,7 +20,155 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
+    /* Top-level view switch: the usage board and the curated tier list are two different answers
+     to "what should I use", so they get equal billing rather than one being a filter of the
+     other. The type chips below apply to whichever view is showing. */
+  .view-switch-row{ max-width:900px; margin:0 auto 10px; padding:0 20px; display:flex; }
+  .view-switch{
+    display:inline-flex; background: var(--card); border:2px solid var(--border);
+    border-radius:999px; padding:3px; gap:2px; max-width:100%;
+  }
+  .view-btn{
+    appearance:none; border:none; background:none; cursor:pointer;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px;
+    color: var(--text-dim); padding:8px 16px; border-radius:999px; min-height:36px;
+    white-space:nowrap; transition: background .12s ease, color .12s ease;
+  }
+  .view-btn:hover{ color: var(--text); }
+  .view-btn.on{ background: var(--blue); color:#fff; }
+
+  /* Info affordance for the tier list, using the same slide-out geometry as the panels on
+     pokemon-stats.html so the two behave like one mechanism. Only shown on the tier view. */
+  .view-switch-row{ position:relative; align-items:center; gap:10px; }
+  .tier-info-btn{
+    appearance:none; cursor:pointer; flex:none;
+    width:30px; height:30px; border-radius:50%; border:2px solid var(--border);
+    background: var(--card); color: var(--text-dim);
+    font-family:'Manrope', sans-serif; font-weight:900; font-size:14px; font-style:italic;
+    line-height:1; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .tier-info-btn:hover{ border-color: var(--blue); color: var(--blue-dark); }
+  .tier-info-btn[aria-expanded="true"]{ border-color: var(--blue); color: var(--blue-dark); }
+  .tier-info-panel{
+    display:none; position:absolute; top:calc(100% + 8px); left:20px; z-index:19;
+    width:min(420px, calc(100vw - 40px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:10px; text-align:left; max-height:70vh; overflow-y:auto;
+  }
+  .tier-info-panel.open{ display:flex; }
+  .tier-info-sec-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--text);
+  }
+  .tier-info-sec-body{ font-size:12px; line-height:1.5; color: var(--text-dim); }
+  /* Each description is tagged with its tier badge in the same colour as the board, so the panel
+     and the list can be read against each other. */
+  .tier-info-row{ display:flex; align-items:flex-start; gap:9px; }
+  .tier-info-badge{
+    flex:none; min-width:34px; padding:2px 7px; border-radius:6px; text-align:center;
+    font-family:'Manrope', sans-serif; font-weight:900; font-size:11.5px; color:#fff;
+  }
+  .tier-info-badge.tier-Splus{ background:#5b2d82; }
+  .tier-info-badge.tier-S{ background:#8f1d2e; }
+  .tier-info-badge.tier-A{ background:#d93a3a; }
+  .tier-info-badge.tier-B{ background:#ef8a2b; }
+  .tier-info-badge.tier-C{ background:#e8b520; color:#3a2f00; }
+  .tier-info-badge.tier-D{ background:#3d8fe0; }
+  @media (max-width:700px){
+    .tier-info-panel{ left:14px; right:14px; width:auto; }
+  }
+
+  /* Tier list. Rows are grouped by tier with the label in a fixed-width rail on the left, so the
+     tiers line up down the page the way a tier list is expected to read. */
+  .tier-band{
+    display:flex; align-items:stretch; gap:0;
+    border:2px solid var(--border); border-radius:14px; overflow:hidden;
+    background: var(--card); margin-bottom:10px;
+  }
+  .tier-label{
+    flex:none; min-width:62px; padding:0 8px; display:flex; align-items:center; justify-content:center;
+    font-family:'Manrope', sans-serif; font-weight:900; font-size:22px; color:#fff;
+    /* S++ and A- are wider than a bare letter, so the rail sizes to its label instead of
+       clipping. Kept at a 62px floor so single-letter tiers still line up down the page. */
+    white-space:nowrap;
+  }
+  /* S+ and above get their own colour: a plus is a real step up, not a shade of S, so it reads
+     as a separate band rather than the same red twice. S- stays with S. */
+  .tier-Splus .tier-label{ background:#5b2d82; }   /* dark purple */
+  .tier-S     .tier-label{ background:#8f1d2e; }   /* dark red */
+  .tier-A     .tier-label{ background:#d93a3a; }   /* red */
+  .tier-B     .tier-label{ background:#ef8a2b; }   /* orange */
+  .tier-C     .tier-label{ background:#e8b520; }   /* yellow */
+  .tier-D     .tier-label{ background:#3d8fe0; }   /* blue */
+  .tier-C .tier-label{ color:#3a2f00; }            /* yellow needs dark text to stay legible */
+  .tier-mons{ flex:1; display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; min-width:0; }
+  /* Collapsed by default: the card carries only who it is, its type and its role, because a
+     tier list is scanned first and read second. The moveset is one click away rather than
+     competing with every other row for attention. */
+  .tier-mon{
+    display:flex; align-items:center; gap:8px; padding:6px 10px 6px 6px;
+    border:1px solid var(--border); border-radius:12px; background: var(--bg1);
+    min-width:0; max-width:100%; text-align:left; cursor:pointer;
+    font-family:'Inter', sans-serif; flex-wrap:wrap;
+    transition: border-color .12s ease, background .12s ease;
+  }
+  .tier-mon:hover{ border-color: var(--blue); }
+  .tier-mon-caret{
+    width:0; height:0; margin-left:2px; flex:none;
+    border-left:4px solid transparent; border-right:4px solid transparent;
+    border-top:5px solid var(--text-dim); transition: transform .15s ease;
+  }
+  .tier-mon.is-open{ background: var(--card); border-color: var(--blue); }
+  .tier-mon.is-open .tier-mon-caret{ transform: rotate(180deg); }
+  .tier-mon-detail{ display:none; width:100%; padding:7px 2px 2px; }
+  .tier-mon.is-open .tier-mon-detail{ display:block; }
+  .tier-detail-row{
+    display:block; font-size:11px; font-weight:600; color: var(--text);
+    line-height:1.45; white-space:normal;
+  }
+  .tier-detail-row:first-child{ color: var(--blue-dark); font-weight:800; }
+  .tier-detail-row b{
+    display:inline-block; min-width:52px; padding-right:8px; font-weight:800;
+    color: var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.04em;
+    vertical-align:baseline;
+  }
+  .tier-detail-note{
+    display:block; margin-top:4px; font-size:10.5px; font-style:italic; color: var(--text-dim);
+    white-space:normal; line-height:1.4;
+  }
+  .tier-mon img{ width:30px; height:30px; object-fit:contain; flex:none; }
+  .tier-mon-body{ min-width:0; }
+  /* Collapsed the card shows only icon + name; role now lives in the expanded detail alongside
+     the moves, which keeps the scan line to one row per Pokemon. */
+  .tier-mon-name{
+    display:flex; align-items:center;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--text);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .tier-mon-moves{ font-size:10.5px; font-weight:600; color: var(--text-dim); white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; }
+  /* The spelled-out type took more width than the Pokemon's own name on longer entries. The
+     icon carries it in a fixed 18px, using the same SVG set as the move chips elsewhere on the
+     page, with the type name kept on the title and the img alt for anyone not seeing it. */
+  .tier-mon-type{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:18px; height:18px; border-radius:5px; margin-right:6px; flex:none; vertical-align:-4px;
+  }
+  .tier-mon-type img{ width:12px; height:12px; filter: brightness(0) invert(1); }
+  .tier-empty{ padding:18px 4px; text-align:center; font-size:13px; font-weight:600; color: var(--text-dim); }
+  @media (max-width:700px){
+    .view-switch-row{ padding:0 14px; }
+    .view-btn{ font-size:11.5px; padding:8px 12px; }
+    .tier-label{ min-width:46px; padding:0 6px; font-size:18px; }
+    .tier-mons{ padding:8px; gap:6px; }
+    .tier-mon{ width:100%; }
+    /* With up to 5 moves the line no longer fits a phone - 9 of 19 entries were being clipped
+       mid-moveset. On mobile the card is full width anyway, so the moves wrap instead of
+       hiding the very information the row exists to show. */
+    .tier-mon-moves{ white-space:normal; overflow:visible; line-height:1.35; }
+  }
+
+:root{
     --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
     --card: #ffffff; --border: #e7edf5;
     --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
@@ -733,6 +881,18 @@
 <div class="page-search-row">
   <input id="pokemonSearch" type="text" placeholder="Search Pokémon…" autocomplete="off">
 </div>
+
+<div class="view-switch-row">
+  <div class="view-switch" role="tablist" aria-label="What to show">
+    <button type="button" class="view-btn on" id="viewUsage" role="tab" aria-selected="true">Most Used Raiders</button>
+    <button type="button" class="view-btn" id="viewTier" role="tab" aria-selected="false">Solo Raid Archive&rsquo;s Tier List</button>
+  </div>
+  <button type="button" class="tier-info-btn" id="tierInfoBtn" aria-expanded="false"
+          aria-controls="tierInfoPanel" title="How the ranks are assigned" hidden>i</button>
+  <div class="tier-info-panel" id="tierInfoPanel" role="dialog" aria-label="How the ranks are assigned"></div>
+</div>
+
+<div class="container" id="tierContainer" hidden></div>
 <div class="container" id="container">
   <div class="loading-msg">Loading raid data from all archives…</div>
 </div>
@@ -1216,6 +1376,9 @@ function cleanRoleText(roleStr){
     .join(", ");
 }
 
+// Only strategies with a VOD link are counted, so every number on the board is backed by
+// footage. (A toggle to count VOD-less strategies was built and removed - the archive should
+// not report usage it cannot show.)
 function computeUsageData(allRaids){
   const usage = {};
   let qualifyingEntries = 0;
@@ -1300,16 +1463,307 @@ async function loadAllData(){
     ...tag(t6, "tier6-elite-raids.html"),
   ];
 
-  const { results, qualifyingEntries, totalDistinctBosses } = computeUsageData(allRaids);
+  await loadTierList();           // curated list, independent of the archive counts
+  renderTierAbout();              // descriptions come from the Tier Description column
+  const { results } = computeUsageData(allRaids);
   ALL_RESULTS = results;
   await loadMoveTypesFromCsv();   // before the first render, so chips get their colours
   await loadPokemonTypes();
   renderTypeFilter();
   renderLeaderboard();
+  if(VIEW === "tier") renderTierList();   // chips drive both views
 }
 
-
 let ALL_RESULTS = [];
+let TIER_ROWS = [];             // the curated tier list, one row per Pokemon per type
+let VIEW = "usage";             // "usage" | "tier"
+
+// One CSV with a Type column rather than 18 separate files: mixing types is a core requirement,
+// so all of them have to be loaded anyway, and a single file is one fetch and one thing to edit.
+// Columns: Type, Tier, Pokemon, Fast Move, Charge Move, Notes
+async function loadTierList(){
+  try{
+    const res = await fetch("csv/tier-list.csv");
+    if(!res.ok) return;
+    const all = parseCSV(await res.text());
+    if(!all.length) return;
+
+    // The file is two blocks separated by a blank line, so the rank definitions live apart from
+    // the entry data instead of being padded down every row:
+    //
+    //   Rank,Description          <- block 1: the ranks, strongest first. Order defines the tiers.
+    //   S+,Defines the matchup...
+    //   S,Best-in-class...
+    //                             <- blank line
+    //   Type,Tier,Pokemon,...     <- block 2: the entries
+    //   Ice,S,Kyurem White,...
+    //
+    // A file with no blank line is treated as entries only, so the tier list still renders if the
+    // rank block has not been written yet.
+    const blank = all.findIndex(r => !r.some(c => (c || "").trim()));
+    const rankRows  = blank === -1 ? [] : all.slice(0, blank);
+    const rows      = blank === -1 ? all : all.slice(blank + 1);
+    if(!rows.length) return;
+
+    RANK_ORDER = [];
+    RANK_DESC = new Map();
+    if(rankRows.length > 1){
+      const rh = rankRows[0].map(h => (h || "").trim().toLowerCase());
+      const iL = rh.indexOf("rank");
+      const iD = rh.findIndex(h => h === "description" || h === "rank description");
+      for(const r of rankRows.slice(1)){
+        const label = (iL === -1 ? "" : (r[iL] || "")).trim();
+        if(!label || RANK_DESC.has(label)) continue;
+        RANK_ORDER.push(label);
+        RANK_DESC.set(label, iD === -1 ? "" : (r[iD] || "").trim());
+      }
+    }
+
+    const head = rows[0].map(h => (h || "").trim().toLowerCase());
+    const col = (n) => head.indexOf(n);
+    // Up to 2 fast and 3 charge moves. Read by header name and collected into arrays, so a
+    // missing or empty column just means "no move" rather than shifting anything.
+    const iType = col("type"), iTier = col("tier"), iMon = col("pokemon"),
+          iRole = col("role"), iNote = col("notes");
+    const fastCols   = ["fast move", "fast move 2"].map(col);
+    const chargeCols = ["charge move", "charge move 2", "charge move 3"].map(col);
+    // Each column may itself hold several comma-separated moves, so the columns are collected
+    // and then split - "Psystrike, Shadow Ball" in one cell and two separate cells both work.
+    const pick = (r, idxs) => idxs
+      .filter(i => i !== -1)
+      .flatMap(i => splitMoves(r[i]));
+    TIER_ROWS = rows.slice(1)
+      .filter(r => (r[iMon] || "").trim())
+      .map(r => ({
+        type:  (r[iType] || "").trim().toLowerCase(),
+        tier:  (r[iTier] || "").trim(),
+        name:  (r[iMon]  || "").trim(),
+        role:  (iRole === -1 ? "" : (r[iRole] || "").trim()),
+        fast:   pick(r, fastCols),
+        charge: pick(r, chargeCols),
+        notes: (r[iNote] || "").trim(),
+      }));
+  }catch(e){ console.error("Could not load the tier list:", e); }
+}
+
+// Tiers order by their label, with anything unrecognised falling to the end rather than being
+// dropped - a future "S+" or "F" should still appear.
+// The description CSV is hand-edited, so its text is escaped before going into the DOM - an
+// apostrophe or angle bracket in the copy should read as itself, not break the panel.
+function escapeHtml(s){
+  const d = document.createElement("div");
+  d.textContent = String(s == null ? "" : s);
+  return d.innerHTML;
+}
+
+// ============ MULTI-MOVE CELLS ============
+// A cell may hold one move or several: "Future Sight++++, Psystrike , Volt Tackle". Splitting on
+// punctuation alone is not enough, because a move name can legitimately contain a separator -
+// "Hidden Power Rock" is fine, but a future "Fire & Ice" style name would be torn in half. So the
+// split is checked against the real move list (MOVE_TYPES, already loaded from csv/moves.csv):
+// tokens that are not known moves are re-joined with their neighbour and re-tested. That turns a
+// guess into a verified read, and anything still unrecognised is kept rather than dropped, so a
+// typo shows up on the page instead of silently vanishing.
+//
+// Trailing +, ++, +++ are part of the name and never treated as punctuation.
+const MOVE_SPLIT_RE = /\s*(?:,|;|\/|\||\bor\b|&|\n)\s*/i;
+
+// Canonical text form of a move cell: whatever separator the sheet used - "&", "/", "or",
+// stray double commas - comes back as a single comma-separated string. Used wherever a cell is
+// shown or keyed as text rather than as chips, so "Move 1 & Move 2" and "Move 1 / Move 2" and
+// "Move 1, Move 2" are one value rather than three.
+function formatMoveCell(cell){
+  const moves = splitMoves(cell);
+  return moves.length ? moves.join(", ") : String(cell || "").trim();
+}
+
+function isKnownMove(name){
+  return !!MOVE_TYPES[String(name || "").trim().toLowerCase()];
+}
+
+function splitMoves(cell){
+  const raw = String(cell || "").trim();
+  if(!raw) return [];
+  const parts = raw.split(MOVE_SPLIT_RE).map(s => s.replace(/\s+/g, " ").trim()).filter(Boolean);
+  if(parts.length <= 1) return parts;
+
+  // If every piece is a known move, the split was clean and we are done.
+  if(parts.every(isKnownMove)) return parts;
+
+  // Otherwise walk the pieces and greedily re-join an unknown one with what follows, longest
+  // match first - this recovers a name that contained a separator without affecting the rest.
+  const out = [];
+  for(let i = 0; i < parts.length; i++){
+    if(isKnownMove(parts[i])){ out.push(parts[i]); continue; }
+    let joined = parts[i], matched = false;
+    for(let j = i + 1; j < parts.length; j++){
+      joined += ", " + parts[j];
+      if(isKnownMove(joined)){ out.push(joined); i = j; matched = true; break; }
+    }
+    if(!matched) out.push(parts[i]);   // unrecognised: keep it, do not silently drop it
+  }
+  return out;
+}
+
+// Filled from the Rank column: the order rows appear in that column is the tier order.
+let RANK_ORDER = [];
+let RANK_DESC = new Map();
+
+// Fallback only, for a file with no Rank column: rank on the letter, then the +/- modifier.
+const TIER_ORDER = ["S", "A", "B", "C", "D", "E", "F"];
+function tierRank(t){
+  const m = String(t || "").trim().toUpperCase().match(/^([A-Z]+)([+-]*)$/);
+  if(!m) return [TIER_ORDER.length + 1, 0];
+  const letter = TIER_ORDER.indexOf(m[1]);
+  const mods = m[2];
+  // plusses rank above the bare tier, minuses below; more of either pushes further
+  const mod = mods.startsWith("+") ? -mods.length
+            : mods.startsWith("-") ?  mods.length
+            : 0;
+  return [letter === -1 ? TIER_ORDER.length + 1 : letter, mod];
+}
+function tierCompare(a, b){
+  if(RANK_ORDER.length){
+    const ia = RANK_ORDER.indexOf(a), ib = RANK_ORDER.indexOf(b);
+    // a tier used by a Pokemon but missing from the Rank column sorts after the listed ones
+    if(ia !== -1 || ib !== -1) return (ia === -1 ? 1e6 : ia) - (ib === -1 ? 1e6 : ib);
+  }
+  const ra = tierRank(a), rb = tierRank(b);
+  return ra[0] - rb[0] || ra[1] - rb[1] || String(a).localeCompare(String(b));
+}
+// Band colour follows the letter, except that S with any plus is its own colour - S+ and above
+// is a genuine step up rather than a shade of S. Everything else (A+, B-, ...) shares its
+// letter's colour, so the modifier reads as a division within the tier.
+function tierLetter(t){
+  const s = String(t || "").trim().toUpperCase();
+  const m = s.match(/^([A-Z]+)([+-]*)$/);
+  if(!m) return "X";
+  if(m[1] === "S" && m[2].startsWith("+")) return "Splus";
+  return m[1];
+}
+
+function renderTierAbout(){
+  const el = document.getElementById("tierInfoPanel");
+  if(!el) return;
+  // Listed in the order given by the Rank column, which is also the order the board is sorted in.
+  el.innerHTML = RANK_ORDER.length
+    ? `<div class="tier-info-sec-title">How the ranks are assigned</div>` + RANK_ORDER.map(rank => `
+        <div class="tier-info-row">
+          <span class="tier-info-badge tier-${tierLetter(rank)}">${escapeHtml(rank)}</span>
+          <span class="tier-info-sec-body">${escapeHtml(RANK_DESC.get(rank) || "")}</span>
+        </div>`).join("")
+    : `<div class="tier-info-sec-body">No ranks have been described yet.</div>`;
+}
+
+function renderTierList(){
+  const el = document.getElementById("tierContainer");
+  if(!el) return;
+  // The existing type chips drive this view too, so several types can be shown side by side.
+  const rows = activeTypes.size
+    ? TIER_ROWS.filter(r => activeTypes.has(r.type))
+    : TIER_ROWS;
+  if(!rows.length){
+    el.innerHTML = `<div class="tier-empty">${TIER_ROWS.length
+      ? "No tier-list entries for the selected types."
+      : "The tier list hasn\u2019t been published yet."}</div>`;
+    return;
+  }
+  const byTier = new Map();
+  for(const r of rows){
+    if(!byTier.has(r.tier)) byTier.set(r.tier, []);
+    byTier.get(r.tier).push(r);
+  }
+  const tiers = [...byTier.keys()].sort(tierCompare);
+  el.innerHTML = tiers.map(tier => `
+    <div class="tier-band tier-${tierLetter(tier)}">
+      <div class="tier-label">${tier}</div>
+      <div class="tier-mons">
+        ${byTier.get(tier).map(m => `
+          <button type="button" class="tier-mon" aria-expanded="false">
+            <img src="${spriteUrl(m.name)}" alt="" loading="lazy" onerror="this.style.display='none'">
+            <span class="tier-mon-body">
+              <span class="tier-mon-name">
+                <span class="tier-mon-type" style="background:${TYPE_COLORS[m.type] || TYPE_COLORS.unknown};"
+                      title="${m.type}"><img src="${TYPE_ICON_BASE}${m.type}.svg" alt="${m.type}"
+                      loading="lazy" onerror="this.remove();"></span>${m.name}</span>
+
+            </span>
+            <span class="tier-mon-caret" aria-hidden="true"></span>
+            <span class="tier-mon-detail">
+              ${[["Role", m.role ? [m.role] : []], ["Fast", m.fast], ["Charge", m.charge]]
+                .filter(([, v]) => v.length).map(([label, v]) =>
+                `<span class="tier-detail-row"><b>${label}</b>${v.join(", ")}</span>`).join("")}
+              ${m.notes ? `<span class="tier-detail-note">${m.notes}</span>` : ""}
+            </span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+}
+
+// Delegated so it survives every re-render (type chips rebuild the list). Only one card is open
+// at a time: with tiers this dense, several expanded at once pushes the rest of the board around.
+document.addEventListener("click", (e) => {
+  const card = e.target.closest(".tier-mon");
+  if(!card || !document.getElementById("tierContainer").contains(card)) return;
+  const wasOpen = card.classList.contains("is-open");
+  document.querySelectorAll(".tier-mon.is-open").forEach(c => {
+    c.classList.remove("is-open");
+    c.setAttribute("aria-expanded", "false");
+  });
+  if(!wasOpen){
+    card.classList.add("is-open");
+    card.setAttribute("aria-expanded", "true");
+  }
+});
+
+function closeTierInfo(){
+  const btn = document.getElementById("tierInfoBtn");
+  const panel = document.getElementById("tierInfoPanel");
+  if(!btn || !panel) return;
+  panel.classList.remove("open");
+  btn.setAttribute("aria-expanded", "false");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("tierInfoBtn");
+  const panel = document.getElementById("tierInfoPanel");
+  if(!btn || !panel) return;
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = panel.classList.toggle("open");
+    btn.setAttribute("aria-expanded", String(open));
+  });
+  // dismiss on an outside click or Escape, same as the other slide-outs on the site
+  document.addEventListener("click", (e) => {
+    if(!panel.contains(e.target) && e.target !== btn) closeTierInfo();
+  });
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeTierInfo(); });
+});
+
+function setView(view){
+  if(VIEW === view) return;
+  VIEW = view;
+  document.getElementById("viewUsage").classList.toggle("on", view === "usage");
+  document.getElementById("viewTier").classList.toggle("on", view === "tier");
+  document.getElementById("viewUsage").setAttribute("aria-selected", String(view === "usage"));
+  document.getElementById("viewTier").setAttribute("aria-selected", String(view === "tier"));
+  const infoBtn = document.getElementById("tierInfoBtn");
+  if(infoBtn){
+    infoBtn.hidden = view !== "tier";
+    if(view !== "tier") closeTierInfo();
+  }
+  document.getElementById("container").hidden = view !== "usage";
+  document.getElementById("tierContainer").hidden = view !== "tier";
+  const foot = document.querySelector(".footer-desc");
+  if(foot) foot.style.display = view === "usage" ? "" : "none";
+  if(view === "tier") renderTierList();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const u = document.getElementById("viewUsage"), tb = document.getElementById("viewTier");
+  if(u)  u.addEventListener("click", () => setView("usage"));
+  if(tb) tb.addEventListener("click", () => setView("tier"));
+});
 let currentLimit = 20;
 let currentRole = "";
 
@@ -1437,7 +1891,8 @@ function isLightHex(hex){
   const n = parseInt(hex.replace("#",""), 16);
   return (0.2126*((n>>16)&255) + 0.7152*((n>>8)&255) + 0.0722*(n&255)) > 165;
 }
-function bdMoveChipHtml(label, move){
+// One chip for one move. Kept separate so the multi-move path below can reuse it unchanged.
+function bdOneMoveChip(move){
   const displayRaw = (move && move.trim()) ? move.trim() : "Any";
   const displayMove = normalizeHiddenPower(displayRaw);
   const type = getMoveType(displayRaw);
@@ -1447,6 +1902,16 @@ function bdMoveChipHtml(label, move){
   // No F/C tag: the pills are stacked fast-above-charge, so the letter only repeated what the
   // position already said and cost width on the narrowest screens.
   return `<span class="bd-move-chip${light}" style="background:${color};">${icon}${displayMove}</span>`;
+}
+
+// An archive cell may hold several moves - "Blast Burn, Psystrike, Blaze Kick" - so it is split
+// and each move gets its own chip and its OWN type colour. Previously the whole cell was typed as
+// a single move, so a multi-move cell fell through to the grey "unknown" colour and read as one
+// long unrecognised name.
+function bdMoveChipHtml(label, move){
+  const moves = splitMoves(move);
+  if(moves.length <= 1) return bdOneMoveChip(move);
+  return moves.map(bdOneMoveChip).join("");
 }
 
 function groupInstances(instances){
@@ -1477,6 +1942,7 @@ async function loadRankHistory(){
     const data = await res.json();
     if(data && typeof data === "object") RANK_HISTORY = data;
     renderLeaderboard();
+    if(VIEW === "tier") renderTierList();   // chips drive both views
   }catch(e){
     // no snapshot yet - badges just won't show, nothing else is affected
   }
@@ -1548,9 +2014,12 @@ function chargeTypesOf(r){
   const out = new Set();
   let sawAny = false;
   (r.instances || []).forEach(i => {
-    // One cell can hold two moves that were both used in the same run, e.g. Mega Blaziken's
-    // "Blast Burn & Blaze Kick". Any one of them matching is enough.
-    (i.pcharge || "").split(/\s*&\s*/).forEach(part => {
+    // One cell can hold several moves used in the same run - "Blast Burn & Blaze Kick" or
+    // "Blast Burn, Psystrike, Blaze Kick". splitMoves() validates each piece against the real
+    // move list, so every one of them contributes its own type to the filter; any one matching
+    // is enough. This previously split on "&" alone, so a comma-separated cell typed as nothing
+    // and the entry became invisible to every type chip.
+    splitMoves(i.pcharge).forEach(part => {
       const m = part.trim().toLowerCase();
       // Same placeholders movesetsFor() skips: these mean "moveset did not matter", not a move.
       if(!m || /^(any|none|n\/a|varies)$/i.test(m)) return;
@@ -1612,6 +2081,7 @@ function renderTypeFilter(){
       else activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
       renderTypeFilter();
       renderLeaderboard();
+      if(VIEW === "tier") renderTierList();   // chips drive both views
     });
   });
 }
@@ -1737,7 +2207,9 @@ document.addEventListener("click", e => {
 function movesetsFor(instances){
   const byKey = new Map();
   instances.forEach(i => {
-    const f = (i.pfast || "").trim(), c = (i.pcharge || "").trim();
+    // Normalised first: "Blast Burn & Blaze Kick" and "Blast Burn, Blaze Kick" are the same
+    // moveset and must group together rather than showing as two separate rows.
+    const f = formatMoveCell(i.pfast), c = formatMoveCell(i.pcharge);
     // "Any" and "None" are both placeholders meaning the moveset did not matter for that entry,
     // not moves that were used - and the brief was to show only moves that appear in a record.
     const placeholder = t => !t || /^(any|none|n\/a|varies)$/i.test(t);
@@ -1859,6 +2331,7 @@ document.querySelectorAll("#viewToggleList .hamburger-item").forEach(btn => {
     btn.classList.add("active");
     currentLimit = parseInt(btn.dataset.n);
     renderLeaderboard();
+    if(VIEW === "tier") renderTierList();   // chips drive both views
   });
 });
 document.querySelectorAll("#roleFilterList .hamburger-item").forEach(btn => {
@@ -1867,12 +2340,14 @@ document.querySelectorAll("#roleFilterList .hamburger-item").forEach(btn => {
     btn.classList.add("active");
     currentRole = btn.dataset.role;
     renderLeaderboard();
+    if(VIEW === "tier") renderTierList();   // chips drive both views
   });
 });
 
 loadAllData();
 loadRankHistory();
 renderLeaderboard();
+if(VIEW === "tier") renderTierList();   // chips drive both views
 
 const themeToggle = document.getElementById("themeToggle");
 function applyTheme(theme){
