@@ -72,6 +72,42 @@
         }
       ],
       "submittedAt": "2026-08-21T08:22:36.460Z"
+    },
+    {
+      "strategyName": "Budget",
+      "weather": "Sunny",
+      "adventureEffect": "None",
+      "difficulty": "2★",
+      "text": "<h2>Overview</h2><p>Mega Raichu Y's frailty makes it much easier to beat compared to its X counterpart. Conveniently so, Mega Raichu Y is better in terms of an Attacker than X. So as expected for an Electric Raid Boss, you'll want a strong Ground attacker.</p><p>And what better Ground attacker than Garchomp? With its Ground/Dragon typing giving strong defense and its really good Attack giving strong offense, it's the perfect counter. You don't even need to Mega Evolve it or XL it.</p><p>Gible Community Day is also coming soon, and with it a perfect opportunity to get a Garchomp and start walloping these recharging rats.</p><h4>Est Time to Win</h4><p>290-300 seconds</p><h2>Main Strategy</h2><p>Recycle, recycle, recycle, and you guessed it; recycle. Also be sure to relobby before your Pokémon faints so you can save time and Revives from the relobby.</p><h2>Video Credits</h2><p><br></p>",
+      "vods": [
+        {
+          "url": "https://youtu.be/xsIARTPbiTY",
+          "label": "Mega Raichu Y Budget Solo",
+          "creditName": "BoltBlades12",
+          "creditUrl": "https://www.youtube.com/@BoltBlades12"
+        }
+      ],
+      "submittedBy": "BoltBlades12",
+      "battleParties": [
+        {
+          "label": "Jumping the Shark",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Garchomp",
+              "level": "40",
+              "fm": "Mud Shot",
+              "cm": "Earth Power",
+              "cm2": "Breaking Swipe",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-09-05T01:09:50.303Z"
     }
   ]
 }
