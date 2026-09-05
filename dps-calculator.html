@@ -2063,7 +2063,9 @@ function runCalculation(){
 
     // Decide the boss's move at one decision point. Returns the damage it lands.
     function bossActAt(tickNow, chained){
-      bossEnergy += (mdDamageCast - bossDamageDealtSeen) * 0.5;
+      // The boss's bar is capped the same way. Uncapped, a burst of player damage could bank
+      // enough for several charge moves at once, which the game does not allow.
+      bossEnergy = Math.min(bossCMCost, bossEnergy + (mdDamageCast - bossDamageDealtSeen) * 0.5);
       bossDamageDealtSeen = mdDamageCast;
       aggroAcc += bossAggroP;
       if(bossEnergy >= bossCMCost && aggroAcc >= 1){
@@ -2072,7 +2074,7 @@ function runCalculation(){
         mdBossMoveLog.push({ tick: tickNow, type: "cm", chained: !!chained });
         return { dmg: bossCMDamage, isCM: true };
       }
-      bossEnergy += bossFMEnergyGain;
+      bossEnergy = Math.min(bossCMCost, bossEnergy + bossFMEnergyGain);
       mdBossMoveLog.push({ tick: tickNow, type: "fm", chained: !!chained });
       return { dmg: bossFMDamage, isCM: false };
     }
@@ -2083,7 +2085,7 @@ function runCalculation(){
     function absorbBossUpTo(tick){
       if(!bossAggroOn){
         while(mdBossLandingIdx < mdBossLandings.length && mdBossLandings[mdBossLandingIdx] <= tick){
-          mdEnergyBanked += energyFromDamage(bossFMDamage);
+          bankEnergy(energyFromDamage(bossFMDamage));
           mdDamageTakenTotal += bossFMDamage;
           mdBossHitsAbsorbed++;
           mdBossLandingIdx++;
@@ -2092,7 +2094,7 @@ function runCalculation(){
       }
       while(bossNextTick <= tick){
         const act = bossActAt(bossNextTick, bossLastWasCM);
-        mdEnergyBanked += energyFromDamage(act.dmg);
+        bankEnergy(energyFromDamage(act.dmg));
         mdDamageTakenTotal += act.dmg;
         mdBossHitsAbsorbed++;
         // a charge move chains: the next move is cast 1 tick later, and rolls again
@@ -2102,7 +2104,18 @@ function runCalculation(){
     }
     let mdBossLandingIdx = 0;
     let mdGlobalTick = 0;
-    let mdEnergyBanked = 0;
+    // Energy is capped at 100 in game. Without this the bar could run to 191 in testing - a
+    // tanked charge move returns 83 energy, and stacked on a nearly full bar the excess was being
+    // banked and spent on a later cast that could not really have happened. The cap is applied at
+    // every point energy is added, and the overflow is counted so it can be reported rather than
+    // silently discarded.
+    const ENERGY_CAP = 100;
+    let mdEnergyBanked = 0, mdEnergyWasted = 0;
+    const bankEnergy = (amount) => {
+      const before = mdEnergyBanked;
+      mdEnergyBanked = Math.min(ENERGY_CAP, mdEnergyBanked + amount);
+      mdEnergyWasted += amount - (mdEnergyBanked - before);
+    };
     let mdTotalDamage = 0;
     let mdBossHitsAbsorbed = 0;
     const mdCastBreakdown = [];
@@ -2114,7 +2127,7 @@ function runCalculation(){
       while(mdEnergyBanked < mdCmEnergyCost){
         mdGlobalTick += fm.ad;
         playerTapsThisCast++;
-        mdEnergyBanked += fm.energy;
+        bankEnergy(fm.energy);
         mdDamageCast += fastDamage;          // the boss banks off this immediately
         absorbBossUpTo(mdGlobalTick);
       }
