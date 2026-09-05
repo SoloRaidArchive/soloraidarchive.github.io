@@ -1,0 +1,2524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Most Used Raiders — Pokémon Usage</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+<meta name="description" content="See which Pokémon are most commonly used to solo Pokémon GO raids, pulled live from every recorded strategy across the archive.">
+<link rel="canonical" href="https://soloraidarchive.github.io/research.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Most Used Raiders — Pokémon Usage Stats | Solo Raid Archive">
+<meta property="og:description" content="See which Pokémon are most commonly used to solo Pokémon GO raids, pulled live from every recorded strategy across the archive.">
+<meta property="og:url" content="https://soloraidarchive.github.io/research.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Most Used Raiders — Pokémon Usage Stats | Solo Raid Archive">
+<meta name="twitter:description" content="See which Pokémon are most commonly used to solo Pokémon GO raids, pulled live from every recorded strategy across the archive.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* Top-level view switch: the usage board and the curated tier list are two different answers
+     to "what should I use", so they get equal billing rather than one being a filter of the
+     other. The type chips below apply to whichever view is showing. */
+  .view-switch-row{ max-width:900px; margin:0 auto 10px; padding:0 20px; display:flex; }
+  .view-switch{
+    display:inline-flex; background: var(--card); border:2px solid var(--border);
+    border-radius:999px; padding:3px; gap:2px; max-width:100%;
+  }
+  .view-btn{
+    appearance:none; border:none; background:none; cursor:pointer;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px;
+    color: var(--text-dim); padding:8px 16px; border-radius:999px; min-height:36px;
+    white-space:nowrap; transition: background .12s ease, color .12s ease;
+  }
+  .view-btn:hover{ color: var(--text); }
+  .view-btn.on{ background: var(--blue); color:#fff; }
+
+  /* Info affordance for the tier list, using the same slide-out geometry as the panels on
+     pokemon-stats.html so the two behave like one mechanism. Only shown on the tier view. */
+  .view-switch-row{ position:relative; align-items:center; gap:10px; }
+  .tier-info-btn{
+    appearance:none; cursor:pointer; flex:none;
+    width:30px; height:30px; border-radius:50%; border:2px solid var(--border);
+    background: var(--card); color: var(--text-dim);
+    font-family:'Manrope', sans-serif; font-weight:900; font-size:14px; font-style:italic;
+    line-height:1; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .tier-info-btn:hover{ border-color: var(--blue); color: var(--blue-dark); }
+  .tier-info-btn[aria-expanded="true"]{ border-color: var(--blue); color: var(--blue-dark); }
+  .tier-info-panel{
+    display:none; position:absolute; top:calc(100% + 8px); left:20px; z-index:19;
+    width:min(420px, calc(100vw - 40px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 16px; box-shadow:0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:10px; text-align:left; max-height:70vh; overflow-y:auto;
+  }
+  .tier-info-panel.open{ display:flex; }
+  .tier-info-sec-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--text);
+  }
+  .tier-info-sec-body{ font-size:12px; line-height:1.5; color: var(--text-dim); }
+  /* Each description is tagged with its tier badge in the same colour as the board, so the panel
+     and the list can be read against each other. */
+  .tier-info-row{ display:flex; align-items:flex-start; gap:9px; }
+  .tier-info-badge{
+    flex:none; min-width:34px; padding:2px 7px; border-radius:6px; text-align:center;
+    font-family:'Manrope', sans-serif; font-weight:900; font-size:11.5px; color:#fff;
+  }
+  .tier-info-badge.tier-MegaRay{ background:#a8d5a2; color:#1e3a1c; }
+  .tier-info-badge.tier-MegaX{ background:#7b1f2b; }
+  .tier-info-badge.tier-MegaY{ background:#c2185b; }
+  .tier-info-badge.tier-Splus{ background:#5b2d82; }
+  .tier-info-badge.tier-S{ background:#8f1d2e; }
+  .tier-info-badge.tier-A{ background:#d93a3a; }
+  .tier-info-badge.tier-B{ background:#ef8a2b; }
+  .tier-info-badge.tier-C{ background:#e8b520; color:#3a2f00; }
+  .tier-info-badge.tier-D{ background:#3d8fe0; }
+  @media (max-width:700px){
+    .tier-info-panel{ left:14px; right:14px; width:auto; }
+  }
+
+  /* Tier list. Rows are grouped by tier with the label in a fixed-width rail on the left, so the
+     tiers line up down the page the way a tier list is expected to read. */
+  .tier-band{
+    display:flex; align-items:stretch; gap:0;
+    border:2px solid var(--border); border-radius:14px; overflow:hidden;
+    background: var(--card); margin-bottom:10px;
+  }
+  .tier-label{
+    flex:none; min-width:62px; padding:0 8px; display:flex; align-items:center; justify-content:center;
+    font-family:'Manrope', sans-serif; font-weight:900; font-size:22px; color:#fff;
+    /* S++ and A- are wider than a bare letter, so the rail sizes to its label instead of
+       clipping. Kept at a 62px floor so single-letter tiers still line up down the page. */
+    white-space:nowrap;
+  }
+  /* S+ and above get their own colour: a plus is a real step up, not a shade of S, so it reads
+     as a separate band rather than the same red twice. S- stays with S. */
+  /* Named tiers above the letters get their own colours, ordered light-to-dark so the ramp keeps
+     reading downward. Falls back to purple for any other name-based rank. */
+  .tier-MegaRay .tier-label{ background:#a8d5a2; color:#1e3a1c; }  /* pale green - needs dark text */
+  .tier-MegaX   .tier-label{ background:#7b1f2b; }                 /* maroon */
+  .tier-MegaY   .tier-label{ background:#c2185b; }                 /* dark pink */
+  .tier-Splus .tier-label{ background:#5b2d82; }   /* dark purple */
+  .tier-S     .tier-label{ background:#8f1d2e; }   /* dark red */
+  .tier-A     .tier-label{ background:#d93a3a; }   /* red */
+  .tier-B     .tier-label{ background:#ef8a2b; }   /* orange */
+  .tier-C     .tier-label{ background:#e8b520; }   /* yellow */
+  .tier-D     .tier-label{ background:#3d8fe0; }   /* blue */
+  .tier-C .tier-label{ color:#3a2f00; }            /* yellow needs dark text to stay legible */
+  .tier-mons{ flex:1; display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; min-width:0; }
+  /* Collapsed by default: the card carries only who it is, its type and its role, because a
+     tier list is scanned first and read second. The moveset is one click away rather than
+     competing with every other row for attention. */
+  .tier-mon{
+    display:flex; align-items:center; gap:8px; padding:6px 10px 6px 6px;
+    border:1px solid var(--border); border-radius:12px; background: var(--bg1);
+    min-width:0; max-width:100%; text-align:left; cursor:pointer;
+    font-family:'Inter', sans-serif; flex-wrap:wrap;
+    transition: border-color .12s ease, background .12s ease;
+  }
+  .tier-mon:hover{ border-color: var(--blue); }
+  .tier-mon-caret{
+    width:0; height:0; margin-left:2px; flex:none;
+    border-left:4px solid transparent; border-right:4px solid transparent;
+    border-top:5px solid var(--text-dim); transition: transform .15s ease;
+  }
+  .tier-mon.is-open{ background: var(--card); border-color: var(--blue); }
+  .tier-mon.is-open .tier-mon-caret{ transform: rotate(180deg); }
+  .tier-mon-detail{ display:none; width:100%; padding:7px 2px 2px; }
+  .tier-mon.is-open .tier-mon-detail{ display:block; }
+  .tier-detail-row{
+    display:block; font-size:11px; font-weight:600; color: var(--text);
+    line-height:1.45; white-space:normal;
+  }
+  .tier-detail-row:first-child{ color: var(--blue-dark); font-weight:800; }
+  .tier-detail-row b{
+    display:inline-block; min-width:52px; padding-right:8px; font-weight:800;
+    color: var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.04em;
+    vertical-align:baseline;
+  }
+  .tier-detail-note{
+    display:block; margin-top:4px; font-size:10.5px; font-style:italic; color: var(--text-dim);
+    white-space:normal; line-height:1.4;
+  }
+  .tier-mon img{ width:30px; height:30px; object-fit:contain; flex:none; }
+  .tier-mon-body{ min-width:0; }
+  /* Collapsed the card shows only icon + name; role now lives in the expanded detail alongside
+     the moves, which keeps the scan line to one row per Pokemon. */
+  .tier-mon-name{
+    display:flex; align-items:center;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--text);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .tier-mon-moves{ font-size:10.5px; font-weight:600; color: var(--text-dim); white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; }
+  /* The spelled-out type took more width than the Pokemon's own name on longer entries. The
+     icon carries it in a fixed 18px, using the same SVG set as the move chips elsewhere on the
+     page, with the type name kept on the title and the img alt for anyone not seeing it. */
+  .tier-mon-type{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:18px; height:18px; border-radius:5px; margin-right:6px; flex:none; vertical-align:-4px;
+  }
+  .tier-mon-type img{ width:12px; height:12px; filter: brightness(0) invert(1); }
+  .tier-empty{ padding:18px 4px; text-align:center; font-size:13px; font-weight:600; color: var(--text-dim); }
+  @media (max-width:700px){
+    .view-switch-row{ padding:0 14px; }
+    .view-btn{ font-size:11.5px; padding:8px 12px; }
+    .tier-label{ min-width:46px; padding:0 6px; font-size:18px; }
+    .tier-mons{ padding:8px; gap:6px; }
+    .tier-mon{ width:100%; }
+    /* With up to 5 moves the line no longer fits a phone - 9 of 19 entries were being clipped
+       mid-moveset. On mobile the card is full width anyway, so the moves wrap instead of
+       hiding the very information the row exists to show. */
+    .tier-mon-moves{ white-space:normal; overflow:visible; line-height:1.35; }
+  }
+
+:root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce;
+    --card: #ffffff; --border: #e7edf5;
+    --text: #2d3142; --text-muted: #6b7280; --text-dim: #5f6675;
+    --blue: #3d9dff; --blue-dark: #2b7fd6;
+    --red: #ff5b5b; --yellow: #ffc94a; --green: #4cd08a; --purple: #9b7bf0;
+  }
+  [data-theme="dark"]{
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024;
+    --card: #1c2030; --border: #323850;
+    --text: #eef1f7; --text-muted: #a7afc0; --text-dim: #767f96;
+    --blue: #5aa9ff; --blue-dark: #8cc7ff;
+  }
+  [data-theme="dark"] body{
+    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
+  }
+  *{ box-sizing:border-box; }
+  html{ max-width:100vw; }
+
+  body{
+    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+
+  [data-theme="dark"] body{ background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 80%, var(--bg4) 100%); }
+    color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh;
+  }
+  .hamburger-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .hamburger-btn:hover{ transform: translateY(-2px); } }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:absolute; top:calc(100% + 1px); right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 101px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
+  .gear-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .gear-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){ .gear-btn:hover{ transform: translateY(-2px); } }
+  .filter-line{ display:block; height:2.5px; border-radius:2px; background: var(--text); }
+  .filter-line-1{ width:16px; } .filter-line-2{ width:11px; } .filter-line-3{ width:6px; }
+  .gear-panel{
+    display:none; position:absolute; top:calc(100% + 1px); right:16px; z-index:19;
+    width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:12px; max-height:calc(100vh - 101px); overflow-y:auto; overflow-x:hidden;
+  }
+  .gear-panel.open{ display:flex; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text); background: var(--card); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--blue); color: var(--blue-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1); color: var(--blue-dark); }
+  .hamburger-section a.current{ background: var(--blue); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  .hamburger-section a.hamburger-featured.current{
+    background-image:
+      linear-gradient(var(--blue), var(--blue)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+
+  header{ padding: 70px 24px 10px; text-align:center; }
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-title-row{ position:relative; text-align:center; margin-bottom:0; min-height:44px;
+    display:flex; align-items:center; justify-content:center; }
+  .sticky-header-title-row .header-buttons{ position:absolute; right:0; top:50%; transform:translateY(-50%); }
+  .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
+  .header-buttons{ display:flex; gap:8px; flex-shrink:0; }
+  @media (min-width:700px){
+    .sticky-header-row{ display:grid; grid-template-columns: 1fr auto 1fr; gap:8px; }
+    /* Search moved out of the sticky header to below the type grid, so the title is no longer
+     competing with it for space in a bar that stays on screen. Sized to sit with the surrounding
+     controls rather than span the page; grid-column went with the old header grid. */
+  .page-search-row{ max-width:900px; margin:2px auto 12px; padding:0 20px; display:flex; justify-content:flex-start; }
+  /* These inputs carried `margin: 0 auto` from their old life centred in the sticky header, which
+     re-centres them inside the flex row and defeats justify-content. Reset explicitly. */
+  .page-search-row > *, .page-search-row input{ margin-left:0 !important; margin-right:auto !important; }
+  #pokemonSearch{
+    flex:0 1 340px; min-width:0; margin:0;
+    font-size:13px; padding:7px 11px; border-radius:10px; box-sizing:border-box;
+  }
+    .header-buttons{ grid-column:3; justify-self:end; }
+  }
+  h1{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:clamp(20px, 4.2vw, 26px); color: var(--text);
+    margin:0;
+  }
+  .footer-desc{
+    color: var(--text-dim); font-size: 13px; max-width: 640px; margin: 30px auto 10px;
+    font-weight:600; line-height:1.6; text-align:center; padding-top:20px; border-top:2px solid var(--border);
+  }
+
+
+  .controls{
+    max-width: 900px; margin: 70px auto 0; padding: 0 20px;
+    display:flex; flex-direction:column; gap:12px; align-items:center;
+  }
+  #pokemonSearch{
+    /* Sized to sit with the type chips above it rather than span the page. It was 16px/42px when
+       it lived in the sticky header and had to be tappable as the only input in that bar; below
+       the grid it reads as one control among several. The earlier #pokemonSearch rule sets the
+       box metrics - keep colour and border here so there is one place for the visual treatment. */
+    flex:0 1 340px; min-width:0;
+    background: var(--card); border: 2px solid var(--border); color: var(--text);
+    font-size:13px; font-weight:700; padding: 7px 11px; border-radius: 10px; outline:none;
+  }
+  #pokemonSearch:focus{ border-color: var(--blue); }
+  .vertical-toggle{ display:flex; flex-direction:column; gap:2px; }
+  .hamburger-item{
+    display:flex; align-items:center; width:100%; padding:10px 8px; font-family:'Manrope', sans-serif;
+    font-weight:700; font-size:13.5px; color: var(--text); background:none; border:none;
+    border-radius:10px; cursor:pointer; text-align:left; min-height:40px; box-sizing:border-box;
+  }
+  .hamburger-item:hover{ background: var(--bg1); color: var(--blue-dark); }
+  .hamburger-item.active{ background: var(--blue); color:#fff; }
+
+  .container{ max-width: 900px; margin: 0 auto; padding: 20px 20px 45px; }
+
+  .loading-msg, .error-msg{
+    text-align:center; padding:60px 20px; color: var(--text-dim); font-weight:700;
+  }
+  .error-msg{ color: var(--red); }
+
+  .leaderboard{ display:flex; flex-direction:column; gap:10px; }
+  .lb-row-wrap{
+    background: var(--card); border:2px solid var(--border); border-radius:14px; overflow:hidden;
+  }
+  .lb-row{
+    display:flex; align-items:center; gap:14px;
+    padding: 12px 16px; cursor:pointer; user-select:none; list-style:none;
+    /* This element became a <button> so it could open the usage modal. A <summary> inherits its
+       background, font, colour, alignment and full width; a <button> does not - it takes UA
+       defaults and shrinks to fit, which is why the rows turned pale, centred and short. These
+       reset it to render exactly as the summary did. */
+    width:100%; background:none; border:none; margin:0;
+    font:inherit; color:inherit; text-align:left; appearance:none;
+  }
+  .lb-row::-webkit-details-marker{ display:none; }
+  .lb-row::marker{ display:none; content:""; }
+  .lb-chevron{ font-size:15px; color: var(--text-dim); font-weight:800; flex-shrink:0; transition: transform .18s ease; }
+  .lb-row-wrap[open] .lb-chevron{ transform: rotate(90deg); }
+  .lb-rank{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; color: var(--text-dim);
+    width:44px; flex-shrink:0;
+    display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:2px;
+  }
+  .lb-rank-change-slot{
+    width:20px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  }
+  .lb-rank-number{ width:20px; flex-shrink:0; text-align:center; }
+  .lb-rank-change{
+    font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:10.5px;
+    display:flex; align-items:center; gap:1px; line-height:1;
+  }
+  .lb-rank-change.up{ color:#1f9d55; }
+  .lb-rank-change.down{ color:#e0483f; }
+  .lb-rank.top1{ color:#ffb300; font-size:18px; }
+  .lb-rank.top2{ color:#9aa3b2; font-size:16px; }
+  .lb-rank.top3{ color:#c97b3d; font-size:16px; }
+  .lb-sprite{
+    width:44px; height:44px; border-radius:10px; flex-shrink:0;
+    background:#f0f0f2; border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  [data-theme="dark"] .lb-sprite{ background:#eaeaec; }
+  .lb-sprite img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .lb-main{ flex:1; min-width:0; }
+  .lb-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:14.5px; }
+  /* Recorded movesets, one line per fast/charge pair. Wraps rather than truncating - a raider
+     with three sets should show three, not two and a silent cut. */
+  .lb-sets{ display:flex; flex-direction:column; gap:3px; margin-top:5px; }
+  .lb-set{ display:inline-flex; align-items:center; gap:3px; flex-wrap:wrap; }
+  .lb-set-sep{ color: var(--text-dim); font-size:9.5px; }
+  .lb-set-count{ font-size:9px; font-weight:800; color: var(--text-dim); margin-left:2px; }
+  /* Slightly tighter than the modal's chips: these sit inside a list row, not a table cell. */
+  .lb-set .bd-move-chip{ font-size:9.5px; padding:2px 8px; }
+  @media (max-width:600px){
+    .lb-set .bd-move-chip{ font-size:9px; padding:2px 7px; }
+  }
+  /* ---- Recorded movesets (Option A) ----
+     One line per recorded fast/charge pair, most-used first. Stacked rather than side by side so
+     the pairing stays legible: Air Slash goes with Dragon Ascent, not with Breaking Swipe. Most
+     raiders have one or two sets, so rows typically grow by a single line. */
+  .lb-sets{ display:flex; flex-direction:column; gap:3px; margin-top:5px; }
+  .lb-set{ display:flex; align-items:center; gap:3px; flex-wrap:wrap; }
+  .lb-mv{
+    display:inline-flex; align-items:center; gap:4px; font-size:9.5px; font-weight:800;
+    color:#fff; border-radius:99px; padding:2px 8px; white-space:nowrap; line-height:1.5;
+  }
+  /* Label colour follows the pill's luminance - white is unreadable on electric, ice and ground. */
+  .lb-mv.on-light{ color:#1b1f2a; }
+  .lb-mv img{ width:10px; height:10px; flex:none; filter:brightness(0) invert(1); }
+  .lb-mv.on-light img{ filter:none; }
+  .lb-mv-sep{ color: var(--text-dim); font-size:9px; }
+  .lb-set-count{ font-size:9px; font-weight:800; color: var(--text-dim); margin-left:2px; }
+  @media (max-width:600px){
+    .lb-mv{ font-size:9px; padding:2px 6px; }
+  }
+  .lb-roles{ font-size:11.5px; color: var(--blue-dark); font-weight:700; margin-top:2px; }
+  .lb-bar-wrap{
+    height:8px; background: var(--bg1); border-radius:99px; margin-top:6px; overflow:hidden;
+  }
+  [data-theme="dark"] .lb-bar-wrap{ background:#161a28; }
+  .lb-bar{
+    height:100%; border-radius:99px; background: linear-gradient(90deg, var(--blue), var(--purple));
+    width:0; transition: width 0.8s cubic-bezier(.2,.8,.3,1);
+  }
+  .lb-count{
+    font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:15px; color: var(--blue-dark);
+    flex-shrink:0; width:70px; text-align:right;
+  }
+  .lb-count span{ font-size:10.5px; color: var(--text-dim); font-weight:700; display:block; }
+  .lb-bosses{ display:flex; gap:4px; flex-shrink:0; }
+  .lb-boss-icon{
+    display:block; width:26px; height:26px; border-radius:7px; overflow:hidden;
+    background:#f0f0f2; border:2px solid var(--card); box-shadow:0 0 0 1px var(--border);
+    margin-left:-8px; transition: transform .12s ease, z-index 0s;
+    position:relative;
+  }
+  [data-theme="dark"] .lb-boss-icon{ background:#eaeaec; }
+  .lb-boss-icon:first-child{ margin-left:0; }
+  .lb-boss-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .lb-boss-more{
+    font-family:'IBM Plex Mono', monospace; font-size:9.5px; font-weight:700; color: var(--text-dim);
+    margin-left:4px; align-self:center;
+  }
+
+  .lb-breakdown{
+    border-top:2px solid var(--border); padding:6px 16px 12px;
+    display:flex; flex-direction:column; overflow-x:hidden;
+  }
+  .bd-heading{
+    display:flex; align-items:center; gap:10px; padding:8px 4px 4px;
+    font-size:10px; font-weight:800; letter-spacing:0.04em; text-transform:uppercase; color: var(--text-dim);
+  }
+  .bd-heading-name{ flex:1; min-width:0; padding-left:40px; }
+  .bd-heading-weather{ min-width:70px; flex-shrink:0; }
+  .bd-heading-tier{ width:38px; flex-shrink:0; text-align:center; }
+  .bd-item{
+    display:block; padding:8px 4px;
+    border-top:1px solid var(--border); text-decoration:none; color: var(--text);
+    transition: background .12s ease;
+  }
+  .bd-item:first-child{ border-top:none; }
+  .bd-item:hover{ background: var(--bg1); border-radius:8px; }
+  .bd-top-row{ display:flex; align-items:center; flex-wrap:nowrap; gap:10px; }
+  .bd-boss-icon{
+    width:30px; height:30px; border-radius:8px; flex-shrink:0; overflow:hidden;
+    background:#f0f0f2; display:flex; align-items:center; justify-content:center;
+  }
+  [data-theme="dark"] .bd-boss-icon{ background:#eaeaec; }
+  .bd-boss-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .bd-name{ font-size:12.5px; font-weight:700; color: var(--text); flex:1; min-width:0; }
+  .bd-tier{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; color: var(--blue-dark);
+    background: rgba(90,169,255,0.12); border-radius:999px; padding:2px 8px; flex-shrink:0;
+  }
+  .bd-weather{ display:flex; align-items:center; gap:5px; font-size:11px; color: var(--text-dim); font-weight:700; flex-shrink:0; min-width:70px; }
+  .bd-moves-row{ display:flex; align-items:center; gap:6px; margin-top:6px; padding-left:40px; flex-wrap:wrap; }
+  .bd-move-chip{
+    display:flex; align-items:center; gap:5px; font-family:'Inter', sans-serif; font-weight:800;
+    font-size:10.5px; padding:4px 9px; border-radius:999px; color:#fff;
+  }
+  .bd-move-tag{ font-size:8px; opacity:0.85; }
+  .bd-ae-icon{
+    display:inline-flex; align-items:center; justify-content:center; align-self:center; flex-shrink:0;
+    position:relative; cursor:help;
+  }
+  .bd-ae-icon img{ width:20px; height:20px; object-fit:contain; }
+  .bd-ae-icon[data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; bottom: calc(100% + 8px); left:50%; transform:translateX(-50%);
+    z-index:40; width:190px; max-width:60vw; background: var(--text); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transition: opacity .15s ease;
+  }
+  .bd-ae-icon[data-tooltip]:hover::after{ opacity:1; pointer-events:auto; }
+  .bd-dupe-badge{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:700;
+    color: var(--text-dim); background: var(--bg1); border-radius:999px; padding:1px 6px;
+    position:relative; cursor:help; vertical-align:middle;
+  }
+  [data-theme="dark"] .bd-dupe-badge{ background:#20263a; }
+  .bd-dupe-badge[data-tooltip]::after{
+    content: attr(data-tooltip);
+    position:absolute; bottom: calc(100% + 8px); left:50%; transform:translateX(-50%);
+    z-index:40; width:220px; max-width:60vw; background: var(--text); color: var(--card);
+    font-size:11px; font-weight:600; line-height:1.4; padding:9px 11px; border-radius:10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    opacity:0; pointer-events:none; transition: opacity .15s ease; text-transform:none; letter-spacing:normal;
+  }
+  .bd-dupe-badge[data-tooltip]:hover::after{ opacity:1; pointer-events:auto; }
+  .bd-note{
+    font-size:11px; color: var(--text-dim); font-weight:600; line-height:1.5;
+    padding:10px 8px 2px; font-style:italic;
+  }
+  .bd-wicon-wrap{
+    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .bd-wicon{ width:22px; height:22px; object-fit:contain; }
+  .bd-wicon-wrap.extreme{ background:none; }
+  .bd-wicon-wrap.extreme .bd-wicon{ filter: invert(1) grayscale(1) brightness(0.3); mix-blend-mode:normal; }
+  [data-theme="dark"] .bd-wicon-wrap.extreme .bd-wicon{ filter:none; }
+
+  @media (max-width:600px){
+    .lb-bosses{ display:none; }
+    .bd-name{ font-size:12px; }
+    .bd-weather{ min-width:20px; gap:0; }
+    .bd-weather-label{ display:none; }
+    .bd-moves-row{ flex-direction:column; align-items:flex-start; flex-wrap:nowrap; gap:5px; }
+  }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+
+/* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator.
+   The dropdown is appended to <body> and positioned with position:fixed from the input's
+   own bounding box. An earlier version wrapped the input in a span to anchor the list,
+   which changed the field's placement: these bars are centred by their parent row on
+   desktop, and the extra element pushed them hard left. Nothing wraps the input now, so
+   layout is byte-identical to before the autocomplete existed. */
+.ac-list{
+  position:fixed; z-index:2000; display:none;
+  background: var(--card, #fff); border:1px solid var(--border, #d8dbe6);
+  border-radius:10px; overflow:hidden;
+  box-shadow:0 8px 22px rgba(0,0,0,.12);
+}
+.ac-list.open{ display:block; }
+.ac-item{ padding:8px 12px; font-size:14px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
+[data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
+.ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
+
+  /* ---- Type filter ---- */
+  /* A GRID, not a scrolling strip. The strip fitted on one line but pushed 13 of the 18 types
+     off-screen on a phone, so anything past Electric was invisible unless you thought to swipe
+     sideways - types you cannot see are types you cannot filter by. A grid shows every type at
+     once at every width; only the column count changes. */
+  /* Sized to match .container - same max-width and horizontal padding - so the grid lines up
+     with the rows below it. It cannot live INSIDE the container, because render() replaces that
+     element's innerHTML on every keystroke and would delete it. It also sits outside
+     .sticky-header, whose own padding used to stack with this one and threw the alignment out by
+     16px at any width where the max-width centring did not absorb the difference. */
+  .container:has(.loading-msg){
+    /* While the archives are still downloading the container is only ~200px tall, so the footer
+       sits at y~550 on a phone - on screen. When the rows land the container jumps to ~3600px
+       and everything below it is displaced, which the browser scores as a large shift. Holding
+       the loading state at viewport height keeps the footer off screen from the start, so the
+       growth happens entirely below the fold where it costs nothing. */
+    min-height: 80vh;
+  }
+  .type-filter{
+    display:grid; gap:6px; box-sizing:border-box;
+    max-width:900px; margin:0 auto; padding:0 20px 14px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    /* This grid is empty in the initial HTML and only filled once the CSVs land, roughly a
+       second later on a phone. Without a reserved height it grew 14px -> 226px and shoved
+       #container down 218px, which was 0.856 of this page's 0.910 CLS on its own. The values
+       below are the measured rendered heights at each column count (19 chips: 18 types + All),
+       so the reservation matches what actually appears and collapses to nothing afterwards. */
+    min-height: 136px;
+  }
+  .type-chip{
+    display:inline-flex; align-items:center; justify-content:center; gap:5px;
+    border:1.5px solid transparent; border-radius:8px; padding:6px 8px;
+    font-family:'Manrope', sans-serif; font-size:11.5px; font-weight:800;
+    /* Full colour. opacity:.45 was compositing every badge against the dark page - fire's
+       #F19855 rendered as #7C7B84, a flat grey - so the palette looked muddy no matter how much
+       the source colours were brightened. Unselected state is now carried by the ring being
+       absent (see .type-chip.on) rather than by dimming the fill. */
+    color:#fff; cursor:pointer; transition: filter .12s, transform .12s;
+    text-transform:capitalize; min-width:0; overflow:hidden;
+  }
+  .type-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .type-chip img{ width:13px; height:13px; filter: brightness(0) invert(1); flex:none; }
+  .type-chip:hover{ filter:brightness(1.12); }
+  /* Selected gets a ring AND full opacity - opacity alone would not separate the states for
+     anyone who cannot tell the colours apart. */
+  .type-chip.on{ border-color: var(--text); transform: translateY(-1px);
+                 box-shadow: 0 0 0 2px var(--bg1), 0 0 0 3px var(--text); }
+  /* "All types" spans the full width above the grid, so it reads as a reset rather than a
+     nineteenth type competing with the others. */
+  .type-chip.all{
+    grid-column: 1 / -1; background: var(--card); color: var(--text);
+    border-color: var(--border); opacity:1;
+  }
+  .type-chip.all.on{ background: var(--text); color: var(--bg1); border-color: var(--text); }
+
+  @media (max-width:900px){ .type-filter{ grid-template-columns: repeat(5, minmax(0, 1fr)); min-height:168px; } }
+  @media (max-width:700px){ .type-filter{ grid-template-columns: repeat(4, minmax(0, 1fr)); min-height:200px; } }
+  @media (max-width:480px){
+    /* Three across keeps the label readable at ~11px; four would start truncating "Fighting". */
+    .type-filter{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap:5px; min-height:226px; }
+    .type-chip{ font-size:11px; padding:6px 6px; }
+  }
+  /* ---- Usage breakdown modal ----
+     Ported from ct-database so both research pages open detail the same way. The row used to be a
+     <details> that expanded inline, which pushed every row below it down the page - fine for two
+     entries, disorienting for twenty-six. */
+  .entries-overlay{
+    position:fixed; inset:0; background:rgba(20,24,38,0.45); z-index:80;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .entries-modal{
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    width:min(860px, 100%); max-height:88vh; display:flex; flex-direction:column;
+    box-shadow:0 12px 40px rgba(20,24,38,0.25); overflow:hidden;
+  }
+  .entries-head{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0;
+  }
+  .entries-title{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .entries-sub{ font-size:11.5px; color: var(--ink-dim); font-weight:600; margin-top:1px; }
+  .entries-icon{
+    width:38px; height:38px; border-radius:50%; background: var(--accent-soft); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .entries-close{ background:none; border:none; font-size:26px; line-height:1; cursor:pointer; color: var(--ink-dim); padding:0 4px; }
+  .entries-scroll{ overflow:auto; flex:1; }
+  .entries-table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  .entries-controls{
+    display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    padding:10px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0;
+  }
+  .entries-sort{
+    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:600; color: var(--ink-muted);
+    padding:5px 8px; border-radius:8px; border:1.5px solid var(--border); background: var(--card); cursor:pointer;
+  }
+  .entries-toggle{
+    display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600;
+    color: var(--ink-muted); cursor:pointer; white-space:nowrap;
+  }
+  .entries-boss-icon{
+    display:inline-flex; width:30px; height:30px; border-radius:50%; background: var(--accent-soft);
+    align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; vertical-align:middle;
+  }
+  .entries-boss-name{ vertical-align:middle; margin-left:6px; }
+  .entries-overlay{ padding:0; }
+  .entries-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; }
+  .entries-modal{ max-height:100dvh; height:100dvh; }
+  .entries-head{ position:sticky; top:0; z-index:2; background:var(--card); }
+  .entries-close{ min-width:44px; min-height:44px; display:flex; align-items:center;
+                    justify-content:center; margin:-8px -8px -8px 0; }
+  .entries-boss-name{ display:none; }
+  .entries-table{ table-layout:fixed; width:100%; }
+  .entries-boss-icon{ width:26px; height:26px; }
+  .entries-controls{ padding:8px 12px; gap:8px; }
+  .entries-head{ padding:10px 12px; }
+  .entries-scroll{ overflow-x:hidden; }
+@media (max-width:600px){
+    .entries-overlay{ padding:0; }
+    /* 100vh is the LAYOUT viewport on mobile - it includes the space under the browser's
+       address/toolbar, so a 100vh sheet is taller than what is actually visible and its top gets
+       pushed off-screen, taking the close button with it. 100dvh tracks the visible area and
+       shrinks as the toolbars appear; the vh line stays first as the fallback for older engines. */
+    .entries-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; }
+    .entries-modal{ max-height:100dvh; height:100dvh; }
+    /* Header pinned so the close button is always reachable, however far the table is scrolled. */
+    .entries-head{ position:sticky; top:0; z-index:2; background:var(--card); }
+    /* 23x26px was below any reasonable touch target. Padding brings it to 44x44 without
+       changing the glyph size. */
+    .entries-close{ min-width:44px; min-height:44px; display:flex; align-items:center;
+                    justify-content:center; margin:-8px -8px -8px 0; }
+    /* Sprite replaces the boss name, which is what actually frees the width - the moveset then
+       fits on one line without shrinking type past legibility. Used/Build stay hidden: for a
+       single Pokemon they're near-identical on every row. */
+    .entries-table th:nth-child(1){ width:44px; }
+    .entries-boss-name{ display:none; }
+    .col-used, .col-build{ display:none; }
+    .entries-table th, .entries-table td{ padding:6px 5px; font-size:10.5px; }
+    .entries-table th{ white-space:normal; }
+    .entries-table{ table-layout:fixed; width:100%; }
+    .entries-table td:nth-child(5), .entries-table th:nth-child(5){ width:52px; }
+    /* Individual move names stay unbroken, but the cell may wrap BETWEEN them. The longest
+       movesets ("Dragon Breath / Draco Meteor" plus type icons) need ~427px of content against
+       ~294px of available width - one line isn't reachable at a legible size, so wrapping is
+       preferable to a horizontal scroll. Most movesets still fit on a single line. */
+    .entries-table .move-inline{ white-space:nowrap; }
+    .entries-table td:nth-child(2){ white-space:normal; }
+    .entries-table .move-sep{ margin:0 2px; }
+    .entries-table .move-type-icon-wrap{ width:13px; height:13px; margin-right:2px; }
+    .entries-boss-icon{ width:26px; height:26px; }
+    .double-ct-badge{ font-size:8px; padding:1px 4px; margin-left:2px; }
+    .entries-controls{ padding:8px 12px; gap:8px; }
+    .entries-head{ padding:10px 12px; }
+    /* Everything already fits within the viewport, but the fixed-layout table still reports a
+       wider intrinsic box, which left a sideways drag the user could trigger by accident on a
+       touch screen. Nothing lives out there, so the axis is locked off. */
+    .entries-scroll{ overflow-x:hidden; }
+    /* The detail row spans all columns, and its content forced the fixed-layout table wider than
+       the viewport - which squeezed the real columns into half the screen. There isn't room for
+       it at this width, so it's dropped entirely on mobile and rows stay non-interactive. */
+    .entry-detail{ display:none !important; }
+    .entries-table tbody tr:not(.entry-detail){ cursor:default; }
+  }
+  /* The modal head sprite and the move chips both needed sizing here: entries-head-sprite is a
+     class this modal introduces (ct-database's head markup differs), and .bd-move-chip is
+     display:flex, so inside a table cell it stretched to the full column width. */
+  .entries-head-sprite{ width:44px; height:44px; object-fit:contain; flex:none; }
+  .entries-table td .bd-move-chip{ display:inline-flex; width:auto; }
+  .entries-table td{ vertical-align:middle; }
+  /* .entries-body carried no CSS at all - it grew to the full height of its content instead of
+     clipping to the modal, so the modal's own overflow:hidden just hid the excess and the
+     PAGE scrolled to reach it instead of the panel scrolling internally. min-height:0 is needed
+     alongside overflow:auto because a flex child otherwise refuses to shrink below its content
+     size, which would defeat the scroll before it starts. */
+  .entries-body{ overflow-y:auto; overflow-x:hidden; flex:1; min-height:0; }
+  /* Side by side on wide viewports, matching the request; the mobile behaviour below is
+     untouched. Previously this was column (stacked) at every width above 600px and row only
+     below it - backwards from the comment's own stated intent, and from what was actually shown
+     in every wide-viewport preview in this thread. */
+  .usage-moves{ display:flex; flex-wrap:wrap; gap:4px; align-items:flex-start; }
+  .entries-table th{ text-align:left; }
+  .entries-table th, .entries-table td{ padding:8px 10px; vertical-align:middle; }
+  /* Five columns now: Boss | Boss Moveset | Weather | Difficulty | Pokemon moveset. Rebalanced
+     from the old four-column split rather than just adding a fifth slice, so no column gets
+     uncomfortably narrow. */
+  /* Six columns now: Boss | Boss Moveset | Weather | Difficulty | Adventure Effect | <Raider>
+     Moveset. AE gets a narrow fixed column of its own rather than a slice of a percentage - it is
+     one 18px icon or nothing, never wrapping text, so it does not need to scale with the table. */
+  /* Seven columns now: Boss | Boss Moveset | Weather | Difficulty | Role | AE | <Raider>
+     Moveset. Role grouped next to AE and the player moveset - all three describe what THIS
+     raider did in THIS strategy, as opposed to the boss/weather/difficulty columns which
+     describe the fight itself. */
+  .entries-table col.c-boss{ width:20%; }
+  .entries-table col.c-moves{ width:18%; }
+  .entries-table col.c-weather{ width:12%; }
+  .entries-table col.c-tier{ width:9%; }
+  .entries-table col.c-role{ width:14%; }
+  .entries-table col.c-ae{ width:44px; }
+  .entries-table col.c-player-moves{ width:27%; }
+  .usage-ae-icon{ width:18px; height:18px; object-fit:contain; display:block; }
+  .usage-weather{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+  .bd-move-icon{ width:11px; height:11px; flex:none; filter:brightness(0) invert(1); }
+  .bd-move-chip.on-light{ color:#1b1f2a; }
+  .bd-move-chip.on-light .bd-move-icon{ filter:none; }
+  @media (max-width:600px){
+    /* Four columns cannot hold a boss name, a weather label, a difficulty and two move pills at
+       390px - the headers ran into each other and every chip wrapped onto two lines. Each row
+       becomes a stacked block instead: name, then weather and difficulty on one line, then the
+       moves. Same data, no truncation, no horizontal scrolling. */
+    .entries-table, .entries-table tbody{ display:block; width:auto; }
+    .entries-table thead, .entries-table colgroup{ display:none; }
+    /* tr is a flex container (not the plain block it was) so CSS order can decouple mobile's
+       visual sequence from the desktop DOM order added above - the two now genuinely disagree
+       (Boss Moveset moved to 2nd place in the DOM for desktop), and per-cell order is what lets
+       mobile keep its original layout without a second copy of the row markup. */
+    .entries-table tr{
+      display:flex; flex-direction:row; flex-wrap:wrap; width:auto;
+      border:1px solid var(--border); border-radius:10px;
+      padding:9px 11px; margin-bottom:8px; background:var(--card);
+    }
+    .entries-table td{ padding:0; border:none; }
+    .entries-table td.td-boss{ order:1; width:100%; }
+    /* Weather and difficulty share a line - both are short, and apart they wasted a row each. */
+    .entries-table td.td-weather{ order:2; display:inline-block; margin-right:14px; margin-top:6px; }
+    .entries-table td.td-tier{ order:2; display:inline-block; margin-top:6px; }
+    .entries-table td.td-moves{ order:3; width:100%; margin-top:6px; }
+    /* The new column is desktop-only per the request - there is no room for a fifth data group
+       in the mobile card without it turning back into the cramped layout this fix replaced. */
+    .entries-table td.td-player-moves{ display:none; }
+    .entries-table td.td-ae{ display:none; }
+    .entries-table td.td-role{ display:none; }
+    /* Mobile is deliberately left alone per request - this duplicates the (now row-based) base
+       rule rather than overriding it, so a future change to the desktop layout does not silently
+       change mobile as a side effect. */
+    .usage-moves{ display:flex; flex-direction:row; flex-wrap:wrap; gap:4px; }
+    .entries-table td .bd-move-chip{ font-size:10.5px; }
+  }
+  .usage-boss-link{ display:inline-flex; align-items:center; gap:7px; text-decoration:none; color:inherit; font-weight:700; }
+  .usage-boss-link img{ width:26px; height:26px; object-fit:contain; }
+  .usage-boss-link:hover{ color: var(--blue); }
+</style>
+</head>
+<body>
+
+
+
+<div class="sticky-header">
+  <div class="sticky-header-title-row">
+    <h1 class="page-title-sm">Top Raiders</h1>
+    <div class="header-buttons">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
+        <span class="filter-line filter-line-1"></span>
+        <span class="filter-line filter-line-2"></span>
+        <span class="filter-line filter-line-3"></span>
+      </button>
+    </div>
+  </div>
+
+
+
+  <!-- NAV:START - generated by generate_nav.py from data/nav-partial.html. Do not edit by hand. -->
+<div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="/"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">PVE Meta</div>
+    <a href="research.html" class="current hamburger-featured">Top Raiders</a>
+    <a href="ct-database.html" class="hamburger-featured">Top Catch Tanks</a>
+    <a href="meta-battle-parties.html">Battle Parties</a>
+  </div>
+    <div class="hamburger-section">
+    <div class="hamburger-section-label">Research</div>
+    <a href="dps-calculator.html" class="hamburger-featured">DPS Calculator</a>
+    <a href="solo-raid-mechanics.html" class="hamburger-featured">Solo Mechanics</a>
+    <a href="guides.html" class="hamburger-featured">Raid Guides</a>
+    <a href="articles.html">Articles</a>
+    <a href="move-data.html">Move Stats</a>
+    <a href="pokemon-stats.html">Pokémon Stats</a>
+    <a href="reference.html">Difficulty &amp; Roles</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Archives</div>
+    <a href="tier4-raids.html">Mega</a>
+    <a href="tier5-raids.html">Legendary</a>
+    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Resources</div>
+    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+  </div>
+</div>
+<!-- NAV:END -->
+
+  <div class="gear-panel" id="gearPanel">
+  <div class="controls">
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Show</div>
+      <div class="vertical-toggle" id="viewToggleList">
+        <button class="hamburger-item active" data-n="20">Top 20</button>
+        <button class="hamburger-item" data-n="50">Top 50</button>
+        <button class="hamburger-item" data-n="0">Show All</button>
+      </div>
+    </div>
+    <div class="hamburger-section">
+      <div class="hamburger-section-label">Role</div>
+      <div class="vertical-toggle" id="roleFilterList">
+        <button class="hamburger-item active" data-role="">All Roles</button>
+        <button class="hamburger-item" data-role="Catch Tank">Catch Tank</button>
+        <button class="hamburger-item" data-role="Main DPS">Main DPS</button>
+        <button class="hamburger-item" data-role="Support DPS">Support DPS</button>
+        <button class="hamburger-item" data-role="Executor">Executor</button>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+
+
+<!-- A sibling of .container, not a child: render() replaces container.innerHTML on every
+     keystroke, which would destroy this element. Sized to match .container so the grid still
+     lines up with the rows below. -->
+<div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
+
+<div class="page-search-row">
+  <input id="pokemonSearch" type="text" placeholder="Search Pokémon…" autocomplete="off">
+</div>
+
+<div class="view-switch-row">
+  <div class="view-switch" role="tablist" aria-label="What to show">
+    <button type="button" class="view-btn on" id="viewUsage" role="tab" aria-selected="true">Most Used Raiders</button>
+    <button type="button" class="view-btn" id="viewTier" role="tab" aria-selected="false">Solo Raid Archive&rsquo;s Tier List</button>
+  </div>
+  <button type="button" class="tier-info-btn" id="tierInfoBtn" aria-expanded="false"
+          aria-controls="tierInfoPanel" title="How the ranks are assigned" hidden>i</button>
+  <div class="tier-info-panel" id="tierInfoPanel" role="dialog" aria-label="How the ranks are assigned"></div>
+</div>
+
+<div class="container" id="tierContainer" hidden></div>
+<div class="container" id="container">
+  <div class="loading-msg">Loading raid data from all archives…</div>
+</div>
+
+<p class="footer-desc">How many recorded raid strategies each Pokémon has appeared in, pulled live from every archive on this site. Each qualifying strategy for a boss counts separately — so a boss with two different recorded strategies (different weather, moveset, etc.) can contribute twice. A Pokémon filling multiple roles within the same strategy (e.g. Main DPS and Support DPS) only counts once for that entry. Strategies without a VOD link aren't included.</p>
+
+<script>
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
+  "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega", "mega aggron":"aggron-mega",
+  "mega sceptile":"sceptile-mega", "mega gyarados":"gyarados-mega", "mega ampharos":"ampharos-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zamazenta hero":"zamazenta", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane",
+  "ndm":"necrozma-dusk-mane", "ndw":"necrozma-dawn-wings",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "palkia origin":"palkia-origin",
+};
+const DEX_MAP = {
+  "dialga":483, "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "groudon":383, "mamoswine":473, "salamence":373, "gengar":94,
+  "tyrantrum":697, "rhyperior":464, "kyogre":382, "mewtwo":150,
+};
+const GOHUB_OVERRIDES = {
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://db.pokemongohub.net/images/official/full/978_mega_with_bg.webp",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
+}
+// Filenames in the animated GIF repo don't always match PokemonDB's own slug convention -
+// e.g. Crowned formes append "sword"/"shield" with no hyphen, Necrozma fusions drop the
+// internal hyphen in the form suffix, and the Tapu deities have no hyphen at all.
+const ANI_OVERRIDES = {
+  // Regional forms whose CDN filename does not follow the "<name>-<region>" rule the generic
+  // regional branch produces. Each of these 404s without an entry here; the names were confirmed
+  // against the sprite CDN rather than guessed.
+  "galarian farfetch'd": "farfetchd-galarian",
+  "galarian mr. mime": "mrmime-galarian",
+  "hisuian basculin": "basculin-whitestriped",
+  "hisuian zoroark": "zoroark-hisuian",
+  "paldean wooper": "wooper-paldea",
+  // Galarian Darmanitan's two forms. Without these the regional rule produces
+  // "darmanitan-galarian" and "darmanitan-zen-galarian", both 404 on the sprite CDN - the real
+  // names are "-galarianstandard" and "-galarianzen". The Shadow variants resolve through here
+  // too, since the lookup strips a leading "shadow ".
+  "galarian darmanitan": "darmanitan-galarianstandard",
+  "galarian darmanitan zen": "darmanitan-galarianzen",
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
+  // Shorthand names used elsewhere on the site (e.g. the CT calculator's Pokemon list) for the
+  // same Incarnate/Therian formes already covered above by their full names - same Pokemon, same GIF.
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+// A few Origin formes aren't in the animated "ani" set at all - they live as static
+// PNGs in a differently-named directory with no per-Pokemon slug pattern to guess from.
+const ANI_URL_OVERRIDES = {
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+
+// ---- Sprite source priority: local -> mgrann03 -> pokemongohub (fallback) ----
+// GOHUB_OVERRIDES is no longer consulted up front. mgrann03 only carries 8 of the 35
+// override names, so the rest still need pokemongohub - but only after the preferred
+// source actually fails, not instead of it. spriteUrl() registers the fallback here and
+// this listener applies it. Capture phase runs before each element's inline onerror, so
+// stopPropagation() keeps the page's own "hide the image" handler from winning first.
+const SPRITE_FALLBACK = Object.create(null);
+document.addEventListener("error", function (e) {
+  const img = e.target;
+  if (!img || img.tagName !== "IMG" || img.dataset.spriteFallbackUsed) return;
+  const fb = SPRITE_FALLBACK[img.getAttribute("src")];
+  if (!fb) return;
+  img.dataset.spriteFallbackUsed = "1";
+  img.src = fb;
+  e.stopPropagation();
+  e.preventDefault();
+}, true);
+
+function spriteUrl(name){
+  const key = name.trim().toLowerCase();
+  // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
+  const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+  if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
+  return url;
+}
+
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+// No longer swaps to a fallback sprite on error - spriteUrl() already resolves shadow names
+// to their base sprite directly now, so there's nothing left to fall back to. Kept as a
+// pass-through rather than touching every onerror call site that still references it.
+function trySpriteShadowFallback(img, name){
+  return false;
+}
+
+// Applies to every shadow Pokemon unconditionally, regardless of whether a dedicated
+// shadow-tinted sprite exists and loads successfully - simpler than checking DEX_MAP, and
+// matches the intent that shadow status should always be visually obvious.
+function needsShadowMist(name){
+  return /^shadow\s+/i.test(name.trim());
+}
+function displayName(name){
+  return name.replace(/\s+Incarnate$/i, "-I").replace(/\s+Therian$/i, "-T");
+}
+
+// Precomputed from all four raid archives (regenerate this block whenever raid data changes)
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ","){ row.push(field); field = ""; }
+      else if(c === "\r"){ /* skip, handled by \n */ }
+      else if(c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+const WEATHER_NAME_MAP = {
+  "clear":"Clear","cloudy":"Cloudy","partly cloudy":"Partly Cloudy","windy":"Windy",
+  "rain":"Rain","rainy":"Rain","snow":"Snow","fog":"Fog","extreme":"Extreme",
+};
+function normalizeWeather(w){
+  w = (w || "").trim();
+  if(!w) return w;
+  const key = WEATHER_NAME_MAP[w.toLowerCase()];
+  return key || (w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+function rowsToRaidsTier4(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 10) continue;
+    const boss = (row[0] || "").trim();
+    const tierRaw = (row[1] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[2] || "").trim();
+    const fast = (row[3] || "").trim();
+    const charge = (row[4] || "").trim();
+    const weather = normalizeWeather(row[5]);
+    const aeCell = (row[6] || "").trim();
+    const ae = /shield|bash/i.test(aeCell) ? "shield" : (aeCell ? "sword" : "");
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 7 + 4*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(31).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+function rowsToRaidsTier5(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 10) continue;
+    const boss = (row[0] || "").trim();
+    const tierRaw = (row[1] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[2] || "").trim();
+    const fast = (row[3] || "").trim();
+    const charge = (row[4] || "").trim();
+    const weather = normalizeWeather(row[5]);
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 6 + 4*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(30).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, tier, strategy, fast, charge, weather, vod, notes, party });
+  }
+  return raids;
+}
+
+function rowsToRaidsTier5AE(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 10) continue;
+    const boss = (row[0] || "").trim();
+    const tierRaw = (row[1] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[2] || "").trim();
+    const fast = (row[3] || "").trim();
+    const charge = (row[4] || "").trim();
+    const weather = normalizeWeather(row[5]);
+    const aeCell = (row[6] || "").trim();
+    const ae = /shield|bash/i.test(aeCell) ? "shield" : (aeCell ? "sword" : "");
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 7 + 4*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(31).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+function rowsToRaidsTier6(rows){
+  const raids = [];
+  for(const row of rows){
+    if(row.length < 11) continue;
+    const categoryRaw = (row[0] || "").trim();
+    if(!categoryRaw) continue;
+    const category = /elite/i.test(categoryRaw) ? "Elite" : "T6";
+    const boss = (row[1] || "").trim();
+    const tierRaw = (row[2] || "").trim();
+    const tierMatch = tierRaw.match(/^([\d.]+)\s*⭐/);
+    if(!boss || !tierMatch) continue;
+    const tier = tierMatch[1];
+    const strategy = (row[3] || "").trim();
+    const fast = (row[4] || "").trim();
+    const charge = (row[5] || "").trim();
+    const weather = normalizeWeather(row[6]);
+    const aeCell = (row[7] || "").trim();
+    const ae = /shield|bash/i.test(aeCell) ? "shield" : (aeCell ? "sword" : "");
+
+    let vodIdx = -1;
+    for(let i = 0; i < row.length; i++){
+      if(row[i].trim() === "VOD" || row[i].trim() === "VOD*"){ vodIdx = i; break; }
+    }
+
+    const party = [];
+    for(let i = 0; i < 6; i++){
+      const base = 8 + 4*i;
+      if(vodIdx !== -1 && base >= vodIdx) break;
+      const name = (row[base] || "").trim();
+      const role = (row[base+1] || "").trim();
+      const pfast = (row[base+2] || "").trim();
+      const pcharge = (row[base+3] || "").trim();
+      if(name && role) party.push({ n: name, r: role, fast: pfast, charge: pcharge });
+    }
+
+    let vod = "", notes = "";
+    if(vodIdx !== -1){
+      vod = (row[vodIdx+1] || "").trim();
+      notes = (row[vodIdx+2] || "").trim();
+    } else {
+      const trail = row.slice(32).map(x => x.trim()).filter(Boolean);
+      if(trail.length) notes = trail[trail.length-1];
+    }
+
+    if(party.length === 0){
+      for(let i = 0; i < row.length; i++){
+        if(row[i].trim() === "Various"){
+          for(let j = i+1; j < Math.min(i+4, row.length); j++){
+            if(row[j].includes("Main DPS")){
+              party.push({ n:"Various", r: row[j].trim(), fast:"", charge:"" });
+              break;
+            }
+          }
+          break;
+        }
+      }
+    }
+
+    raids.push({ boss, category, tier, strategy, fast, charge, weather, ae, vod, notes, party });
+  }
+  return raids;
+}
+
+async function fetchAndParse(url, parseFn){
+  try {
+    const res = await fetch(url);
+    if(!res.ok) return [];
+    const text = await res.text();
+    const rows = parseCSV(text);
+    return parseFn(rows);
+  } catch(e) {
+    console.error("Failed to fetch/parse", url, e);
+    return [];
+  }
+}
+
+// Builds usage stats from every parsed raid entry across all four archives.
+// Each recorded strategy/variant for a boss counts separately (not deduplicated by boss),
+// but only entries that have a VOD link are included.
+// Parses a role string like "Support DPS, Executor, 1x" or "Executor, Catch Tank, 1x" into
+// a primary role (the non-Executor role tag, since Executor is a modifier that can appear
+// in any position and isn't itself a primary role category) and whether Executor was tagged at all.
+function parseRoleTags(roleStr){
+  if(!roleStr) return { primary: "", hasExecutor: false };
+  const segments = roleStr.split(",").map(s => s.trim()).filter(Boolean);
+  const roleTags = segments.filter(s => !/^\d+x$/i.test(s) && s.toLowerCase() !== "varies");
+  const hasExecutor = roleTags.some(t => t.toLowerCase() === "executor");
+  const nonExecutorTags = roleTags.filter(t => t.toLowerCase() !== "executor");
+  const primary = nonExecutorTags.length > 0 ? nonExecutorTags[0] : (roleTags[0] || "");
+  return { primary, hasExecutor };
+}
+
+// Same count-tag/"varies" filter as parseRoleTags above, but keeps every remaining role tag
+// rather than collapsing to one - the usage table shows one raider's actual role(s) for one
+// specific strategy, so "Support DPS, Executor" should read as both, not just the primary.
+function cleanRoleText(roleStr){
+  if(!roleStr) return "";
+  return roleStr.split(",").map(s => s.trim())
+    .filter(s => s && !/^\d+x$/i.test(s) && s.toLowerCase() !== "varies")
+    .join(", ");
+}
+
+// Only strategies with a VOD link are counted, so every number on the board is backed by
+// footage. (A toggle to count VOD-less strategies was built and removed - the archive should
+// not report usage it cannot show.)
+function computeUsageData(allRaids){
+  const usage = {};
+  let qualifyingEntries = 0;
+  const distinctBosses = new Set();
+
+  for(const r of allRaids){
+    if(!r.vod || !r.vod.trim()) continue;
+    qualifyingEntries++;
+    distinctBosses.add(r.boss.toLowerCase());
+
+    // A Pokemon filling multiple role-slots in the SAME entry (e.g. Main DPS + Support DPS)
+    // should only count once toward its total usage for this entry.
+    const countedThisEntry = new Set();
+
+    for(const member of r.party){
+      const name = (member.n || "").trim();
+      if(!name || name.toLowerCase() === "various") continue;
+      const nameKey = name.toLowerCase();
+      if(!usage[nameKey]){
+        usage[nameKey] = { name, count: 0, bossMap: new Map(), roleCounts: {}, primaryRoleCounts: {}, executorCount: 0, instances: [] };
+      }
+      const u = usage[nameKey];
+      // if this occurrence is more properly capitalized (every word starts uppercase) than what's
+      // currently stored, prefer it as the display name
+      const isProperCase = name.split(/\s+/).every(w => !w || w[0] === w[0].toUpperCase());
+      const storedIsProperCase = u.name.split(/\s+/).every(w => !w || w[0] === w[0].toUpperCase());
+      if(isProperCase && !storedIsProperCase) u.name = name;
+      if(!countedThisEntry.has(nameKey)){
+        countedThisEntry.add(nameKey);
+        u.count++;
+        // fast/charge here are the BOSS's moves. pfast/pcharge are this raider's own, which the
+        // party parser already reads but nothing downstream was keeping.
+        u.instances.push({ boss: r.boss, file: r.file, weather: r.weather, tier: r.tier,
+                           fast: r.fast, charge: r.charge, ae: r.ae,
+                           pfast: (member.fast || "").trim(), pcharge: (member.charge || "").trim(),
+                           // The role this raider actually served in THIS strategy - member.r was
+                           // already read (parseRoleTags below consumes it for the leaderboard's
+                           // aggregate role summary) but never kept on the instance itself, so it
+                           // had nowhere to go per-row until now.
+                           prole: (member.r || "").trim() });
+      }
+      const bossKey = r.boss.toLowerCase();
+      if(!u.bossMap.has(bossKey)) u.bossMap.set(bossKey, { name: r.boss, file: r.file });
+
+      const { primary, hasExecutor } = parseRoleTags(member.r);
+      if(primary) u.primaryRoleCounts[primary] = (u.primaryRoleCounts[primary] || 0) + 1;
+      if(hasExecutor) u.executorCount++;
+
+      const roleCategory = (member.r || "").split(",")[0].trim();
+      if(roleCategory) u.roleCounts[roleCategory] = (u.roleCounts[roleCategory] || 0) + 1;
+    }
+  }
+
+  const results = Object.values(usage).map(u => {
+    const roles = Object.entries(u.roleCounts).sort((a,b) => b[1]-a[1]).slice(0,2).map(x => x[0]);
+    const primaryRoleEntries = Object.entries(u.primaryRoleCounts).sort((a,b) => b[1]-a[1]);
+    const primaryRole = primaryRoleEntries.length > 0 ? primaryRoleEntries[0][0] : "";
+    const hasExecutorTag = u.executorCount > 0;
+    return { name: u.name, count: u.count, bosses: [...u.bossMap.values()], roles, primaryRole, hasExecutorTag, roleUsageCounts: u.primaryRoleCounts, executorCount: u.executorCount, instances: u.instances };
+  }).sort((a,b) => b.count - a.count);
+
+  return { results, qualifyingEntries, totalDistinctBosses: distinctBosses.size };
+}
+
+async function loadAllData(){
+  const container = document.getElementById("container");
+  container.innerHTML = `<div class="loading-msg">Loading raid data...</div>`;
+
+  // The two tier-5 sheets are one file now. rowsToRaidsTier5AE is the parser that fits it:
+  // the merged schema carries the Adventure effect column at index 6, so party slots start at 7,
+  // and rowsToRaidsTier5 would read them one column short.
+  const [t4, t5, t6] = await Promise.all([
+    fetchAndParse("/csv/tier4-data.csv", rowsToRaidsTier4),
+    fetchAndParse("/csv/tier5-merged.csv", rowsToRaidsTier5AE),
+    fetchAndParse("/csv/tier6-data.csv", rowsToRaidsTier6),
+  ]);
+
+  const tag = (arr, file) => arr.map(r => Object.assign({}, r, { file }));
+  const allRaids = [
+    ...tag(t4, "tier4-raids.html"),
+    ...tag(t5, "tier5-raids.html"),
+    ...tag(t6, "tier6-elite-raids.html"),
+  ];
+
+  await loadTierList();           // curated list, independent of the archive counts
+  renderTierAbout();              // descriptions come from the Tier Description column
+  const { results } = computeUsageData(allRaids);
+  ALL_RESULTS = results;
+  await loadMoveTypesFromCsv();   // before the first render, so chips get their colours
+  await loadPokemonTypes();
+  renderTypeFilter();
+  renderLeaderboard();
+  if(VIEW === "tier") renderTierList();   // chips drive both views
+}
+
+let ALL_RESULTS = [];
+let TIER_ROWS = [];             // the curated tier list, one row per Pokemon per type
+let VIEW = "usage";             // "usage" | "tier"
+
+// One CSV with a Type column rather than 18 separate files: mixing types is a core requirement,
+// so all of them have to be loaded anyway, and a single file is one fetch and one thing to edit.
+// Columns: Type, Tier, Pokemon, Fast Move, Charge Move, Notes
+async function loadTierList(){
+  try{
+    const res = await fetch("csv/tier-list.csv");
+    if(!res.ok) return;
+    const all = parseCSV(await res.text());
+    if(!all.length) return;
+
+    // The file is two blocks separated by a blank line, so the rank definitions live apart from
+    // the entry data instead of being padded down every row:
+    //
+    //   Rank,Description          <- block 1: the ranks, strongest first. Order defines the tiers.
+    //   S+,Defines the matchup...
+    //   S,Best-in-class...
+    //                             <- blank line
+    //   Type,Tier,Pokemon,...     <- block 2: the entries
+    //   Ice,S,Kyurem White,...
+    //
+    // A file with no blank line is treated as entries only, so the tier list still renders if the
+    // rank block has not been written yet.
+    // The entry block starts at its own header row, found by its first column. Anchoring on that
+    // rather than on a blank separator means the two blocks can sit flush against each other -
+    // a spreadsheet export pads every row to the same width, so there is often no truly empty
+    // line to split on. A blank line still works if one is present.
+    let split = all.findIndex(r => (r[0] || "").trim().toLowerCase() === "type");
+    if(split === -1) split = all.findIndex(r => !r.some(c => (c || "").trim()));
+    const rankRows  = split <= 0 ? [] : all.slice(0, split);
+    const rows      = split <= 0 ? all : all.slice(split);
+    if(!rows.length) return;
+
+    RANK_ORDER = [];
+    RANK_DESC = new Map();
+    if(rankRows.length > 1){
+      const rh = rankRows[0].map(h => (h || "").trim().toLowerCase());
+      const iL = rh.indexOf("rank");
+      const iD = rh.findIndex(h => h === "description" || h === "rank description");
+      for(const r of rankRows.slice(1)){
+        const label = (iL === -1 ? "" : (r[iL] || "")).trim();
+        if(!label || RANK_DESC.has(label)) continue;
+        RANK_ORDER.push(label);
+        RANK_DESC.set(label, iD === -1 ? "" : (r[iD] || "").trim());
+      }
+    }
+
+    const head = rows[0].map(h => (h || "").trim().toLowerCase());
+    const col = (n) => head.indexOf(n);
+    // Up to 2 fast and 3 charge moves. Read by header name and collected into arrays, so a
+    // missing or empty column just means "no move" rather than shifting anything.
+    const iType = col("type"), iTier = col("tier"), iMon = col("pokemon"),
+          iRole = col("role"), iNote = col("notes");
+    const fastCols   = ["fast move", "fast move 2"].map(col);
+    const chargeCols = ["charge move", "charge move 2", "charge move 3"].map(col);
+    // Each column may itself hold several comma-separated moves, so the columns are collected
+    // and then split - "Psystrike, Shadow Ball" in one cell and two separate cells both work.
+    const pick = (r, idxs) => idxs
+      .filter(i => i !== -1)
+      .flatMap(i => splitMoves(r[i]));
+    TIER_ROWS = rows.slice(1)
+      .filter(r => (r[iMon] || "").trim())
+      .map(r => ({
+        type:  (r[iType] || "").trim().toLowerCase(),
+        tier:  (r[iTier] || "").trim(),
+        name:  (r[iMon]  || "").trim(),
+        role:  (iRole === -1 ? "" : (r[iRole] || "").trim()),
+        fast:   pick(r, fastCols),
+        charge: pick(r, chargeCols),
+        notes: (r[iNote] || "").trim(),
+      }));
+  }catch(e){ console.error("Could not load the tier list:", e); }
+}
+
+// Tiers order by their label, with anything unrecognised falling to the end rather than being
+// dropped - a future "S+" or "F" should still appear.
+// The description CSV is hand-edited, so its text is escaped before going into the DOM - an
+// apostrophe or angle bracket in the copy should read as itself, not break the panel.
+function escapeHtml(s){
+  const d = document.createElement("div");
+  d.textContent = String(s == null ? "" : s);
+  return d.innerHTML;
+}
+
+// ============ MULTI-MOVE CELLS ============
+// A cell may hold one move or several: "Future Sight++++, Psystrike , Volt Tackle". Splitting on
+// punctuation alone is not enough, because a move name can legitimately contain a separator -
+// "Hidden Power Rock" is fine, but a future "Fire & Ice" style name would be torn in half. So the
+// split is checked against the real move list (MOVE_TYPES, already loaded from csv/moves.csv):
+// tokens that are not known moves are re-joined with their neighbour and re-tested. That turns a
+// guess into a verified read, and anything still unrecognised is kept rather than dropped, so a
+// typo shows up on the page instead of silently vanishing.
+//
+// Trailing +, ++, +++ are part of the name and never treated as punctuation.
+const MOVE_SPLIT_RE = /\s*(?:,|;|\/|\||\bor\b|&|\n)\s*/i;
+
+// Canonical text form of a move cell: whatever separator the sheet used - "&", "/", "or",
+// stray double commas - comes back as a single comma-separated string. Used wherever a cell is
+// shown or keyed as text rather than as chips, so "Move 1 & Move 2" and "Move 1 / Move 2" and
+// "Move 1, Move 2" are one value rather than three.
+function formatMoveCell(cell){
+  const moves = splitMoves(cell);
+  return moves.length ? moves.join(", ") : String(cell || "").trim();
+}
+
+function isKnownMove(name){
+  return !!MOVE_TYPES[String(name || "").trim().toLowerCase()];
+}
+
+function splitMoves(cell){
+  const raw = String(cell || "").trim();
+  if(!raw) return [];
+  const parts = raw.split(MOVE_SPLIT_RE).map(s => s.replace(/\s+/g, " ").trim()).filter(Boolean);
+  if(parts.length <= 1) return parts;
+
+  // If every piece is a known move, the split was clean and we are done.
+  if(parts.every(isKnownMove)) return parts;
+
+  // Otherwise walk the pieces and greedily re-join an unknown one with what follows, longest
+  // match first - this recovers a name that contained a separator without affecting the rest.
+  const out = [];
+  for(let i = 0; i < parts.length; i++){
+    if(isKnownMove(parts[i])){ out.push(parts[i]); continue; }
+    let joined = parts[i], matched = false;
+    for(let j = i + 1; j < parts.length; j++){
+      joined += ", " + parts[j];
+      if(isKnownMove(joined)){ out.push(joined); i = j; matched = true; break; }
+    }
+    if(!matched) out.push(parts[i]);   // unrecognised: keep it, do not silently drop it
+  }
+  return out;
+}
+
+// Filled from the Rank column: the order rows appear in that column is the tier order.
+let RANK_ORDER = [];
+let RANK_DESC = new Map();
+
+// Fallback only, for a file with no Rank column: rank on the letter, then the +/- modifier.
+const TIER_ORDER = ["S", "A", "B", "C", "D", "E", "F"];
+function tierRank(t){
+  const m = String(t || "").trim().toUpperCase().match(/^([A-Z]+)([+-]*)$/);
+  if(!m) return [TIER_ORDER.length + 1, 0];
+  const letter = TIER_ORDER.indexOf(m[1]);
+  const mods = m[2];
+  // plusses rank above the bare tier, minuses below; more of either pushes further
+  const mod = mods.startsWith("+") ? -mods.length
+            : mods.startsWith("-") ?  mods.length
+            : 0;
+  return [letter === -1 ? TIER_ORDER.length + 1 : letter, mod];
+}
+// Position of a tier label against the Rank block. A label that is listed uses its own place.
+// One that is not - "S-" when only "S" is described - is anchored to the label it modifies, so
+// S- lands directly after S rather than being dumped below D. Plusses pull earlier, minuses push
+// later, by as many steps as there are signs.
+function rankKey(label){
+  const s = String(label || "").trim();
+  const exact = RANK_ORDER.indexOf(s);
+  if(exact !== -1) return [exact, 0];
+  const m = s.match(/^(.*?)([+-]+)$/);
+  if(m){
+    const base = RANK_ORDER.indexOf(m[1]);
+    if(base !== -1) return [base, m[2][0] === "+" ? -m[2].length : m[2].length];
+  }
+  return [RANK_ORDER.length + 1, 0];
+}
+
+function tierCompare(a, b){
+  if(RANK_ORDER.length){
+    const ka = rankKey(a), kb = rankKey(b);
+    if(ka[0] !== kb[0]) return ka[0] - kb[0];
+    if(ka[1] !== kb[1]) return ka[1] - kb[1];
+    return String(a).localeCompare(String(b));
+  }
+  const ra = tierRank(a), rb = tierRank(b);
+  return ra[0] - rb[0] || ra[1] - rb[1] || String(a).localeCompare(String(b));
+}
+// Band colour follows the letter, except that S with any plus is its own colour - S+ and above
+// is a genuine step up rather than a shade of S. Everything else (A+, B-, ...) shares its
+// letter's colour, so the modifier reads as a division within the tier.
+function tierLetter(t){
+  const raw = String(t || "").trim();
+  // named tiers ("Mega Ray") key off the name, letter tiers off the letter
+  const named = raw.replace(/[^A-Za-z]/g, "");
+  if(/^mega/i.test(raw)) return named.replace(/^m/i, "M");
+  const s = raw.toUpperCase();
+  const m = s.match(/^([A-Z]+)([+-]*)$/);
+  if(!m) return "X";
+  if(m[1] === "S" && m[2].startsWith("+")) return "Splus";
+  return m[1];
+}
+
+function renderTierAbout(){
+  const el = document.getElementById("tierInfoPanel");
+  if(!el) return;
+  // Listed in the order given by the Rank column, which is also the order the board is sorted in.
+  el.innerHTML = RANK_ORDER.length
+    ? `<div class="tier-info-sec-title">How the ranks are assigned</div>` + RANK_ORDER.map(rank => `
+        <div class="tier-info-row">
+          <span class="tier-info-badge tier-${tierLetter(rank)}">${escapeHtml(rank)}</span>
+          <span class="tier-info-sec-body">${escapeHtml(RANK_DESC.get(rank) || "\u2014")}</span>
+        </div>`).join("")
+    : `<div class="tier-info-sec-body">No ranks have been described yet.</div>`;
+}
+
+function renderTierList(){
+  const el = document.getElementById("tierContainer");
+  if(!el) return;
+  // The existing type chips drive this view too, so several types can be shown side by side.
+  const rows = activeTypes.size
+    ? TIER_ROWS.filter(r => activeTypes.has(r.type))
+    : TIER_ROWS;
+  if(!rows.length){
+    el.innerHTML = `<div class="tier-empty">${TIER_ROWS.length
+      ? "No tier-list entries for the selected types."
+      : "The tier list hasn\u2019t been published yet."}</div>`;
+    return;
+  }
+  const byTier = new Map();
+  for(const r of rows){
+    if(!byTier.has(r.tier)) byTier.set(r.tier, []);
+    byTier.get(r.tier).push(r);
+  }
+  const tiers = [...byTier.keys()].sort(tierCompare);
+  el.innerHTML = tiers.map(tier => `
+    <div class="tier-band tier-${tierLetter(tier)}">
+      <div class="tier-label">${tier}</div>
+      <div class="tier-mons">
+        ${byTier.get(tier).map(m => `
+          <button type="button" class="tier-mon" aria-expanded="false">
+            <img src="${spriteUrl(m.name)}" alt="" loading="lazy" onerror="this.style.display='none'">
+            <span class="tier-mon-body">
+              <span class="tier-mon-name">
+                <span class="tier-mon-type" style="background:${TYPE_COLORS[m.type] || TYPE_COLORS.unknown};"
+                      title="${m.type}"><img src="${TYPE_ICON_BASE}${m.type}.svg" alt="${m.type}"
+                      loading="lazy" onerror="this.remove();"></span>${m.name}</span>
+
+            </span>
+            <span class="tier-mon-caret" aria-hidden="true"></span>
+            <span class="tier-mon-detail">
+              ${[["Role", m.role ? [m.role] : []], ["Fast", m.fast], ["Charge", m.charge]]
+                .filter(([, v]) => v.length).map(([label, v]) =>
+                `<span class="tier-detail-row"><b>${label}</b>${v.join(", ")}</span>`).join("")}
+              ${m.notes ? `<span class="tier-detail-note">${m.notes}</span>` : ""}
+            </span>
+          </button>`).join("")}
+      </div>
+    </div>`).join("");
+}
+
+// Delegated so it survives every re-render (type chips rebuild the list). Only one card is open
+// at a time: with tiers this dense, several expanded at once pushes the rest of the board around.
+document.addEventListener("click", (e) => {
+  const card = e.target.closest(".tier-mon");
+  if(!card || !document.getElementById("tierContainer").contains(card)) return;
+  const wasOpen = card.classList.contains("is-open");
+  document.querySelectorAll(".tier-mon.is-open").forEach(c => {
+    c.classList.remove("is-open");
+    c.setAttribute("aria-expanded", "false");
+  });
+  if(!wasOpen){
+    card.classList.add("is-open");
+    card.setAttribute("aria-expanded", "true");
+  }
+});
+
+function closeTierInfo(){
+  const btn = document.getElementById("tierInfoBtn");
+  const panel = document.getElementById("tierInfoPanel");
+  if(!btn || !panel) return;
+  panel.classList.remove("open");
+  btn.setAttribute("aria-expanded", "false");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("tierInfoBtn");
+  const panel = document.getElementById("tierInfoPanel");
+  if(!btn || !panel) return;
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = panel.classList.toggle("open");
+    btn.setAttribute("aria-expanded", String(open));
+  });
+  // dismiss on an outside click or Escape, same as the other slide-outs on the site
+  document.addEventListener("click", (e) => {
+    if(!panel.contains(e.target) && e.target !== btn) closeTierInfo();
+  });
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeTierInfo(); });
+});
+
+function setView(view){
+  if(VIEW === view) return;
+  VIEW = view;
+  document.getElementById("viewUsage").classList.toggle("on", view === "usage");
+  document.getElementById("viewTier").classList.toggle("on", view === "tier");
+  document.getElementById("viewUsage").setAttribute("aria-selected", String(view === "usage"));
+  document.getElementById("viewTier").setAttribute("aria-selected", String(view === "tier"));
+  const infoBtn = document.getElementById("tierInfoBtn");
+  if(infoBtn){
+    infoBtn.hidden = view !== "tier";
+    if(view !== "tier") closeTierInfo();
+  }
+  document.getElementById("container").hidden = view !== "usage";
+  document.getElementById("tierContainer").hidden = view !== "tier";
+  const foot = document.querySelector(".footer-desc");
+  if(foot) foot.style.display = view === "usage" ? "" : "none";
+  if(view === "tier") renderTierList();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const u = document.getElementById("viewUsage"), tb = document.getElementById("viewTier");
+  if(u)  u.addEventListener("click", () => setView("usage"));
+  if(tb) tb.addEventListener("click", () => setView("tier"));
+});
+let currentLimit = 20;
+let currentRole = "";
+
+const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
+const SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
+
+// Declared here rather than beside the type filter: bdMoveChipHtml uses it and runs earlier,
+// and a const referenced before its declaration throws rather than reading as undefined.
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
+
+// Standard type palette, shared with ct-database and the collection pages. The previous set
+// here was noticeably darker, which made both the move chips and the filter grid muddy.
+// Standard type palette lifted ~18% toward white - the source colours read muddy as solid
+// badge fills against a dark page.
+const TYPE_COLORS = {
+  normal:"#B8B792", fire:"#F19855", water:"#7FA4F3", electric:"#F8D852", grass:"#92D16C",
+  ice:"#A9E0DD", fighting:"#CD544F", poison:"#B461B2", ground:"#E7CB81", flying:"#B8A3F5",
+  psychic:"#FA749D", bug:"#B6C643", rock:"#C3B25A", ghost:"#8C75AA", dragon:"#8959FD",
+  dark:"#8A7567", steel:"#C4C4D7", fairy:"#DD9BBC", unknown:"#c7c7c7",
+};
+const MOVE_TYPES = {
+  "smack down":"rock", "dragon breath":"dragon", "shadow claw":"ghost", "astonish":"ghost",
+  "air slash":"flying", "metal claw":"steel", "hidden power (gh)":"ghost", "hidden power":"normal",
+  "zen headbutt":"psychic", "fire fang":"fire", "fire spin":"fire", "volt switch":"electric",
+  "gust":"flying", "bullet seed":"grass", "bite":"dark", "charge beam":"electric",
+  "body slam":"normal", "draco meteor":"dragon", "shadow sneak":"ghost", "aqua tail":"water",
+  "focus blast":"fighting", "outrage":"dragon", "aura sphere":"fighting", "solar beam":"grass",
+  "psychic":"psychic", "dark pulse":"dark", "hydro pump":"water", "giga impact":"normal",
+  "overheat":"fire", "psychic fangs":"psychic", "brave bird":"flying", "earthquake":"ground",
+  "close combat":"fighting", "moonblast":"fairy", "zap cannon":"electric", "stone edge":"rock",
+  "hyper beam":"normal", "power whip":"grass", "flash cannon":"steel", "blizzard":"ice",
+  "shadow ball":"ghost", "flamethrower":"fire", "fusion flare":"fire", "rock slide":"rock",
+  "fly":"flying", "ominous wind":"ghost",
+  "steel wing":"steel", "psycho cut":"psychic", "extrasensory":"psychic", "fairy wind":"fairy",
+  "dragon tail":"dragon", "bug bite":"bug", "earth power":"ground", "grass knot":"grass",
+  "rock smash":"fighting", "dazzling gleam":"fairy", "gunk shot":"poison", "lock on":"normal",
+  "thunder":"electric", "incinerate":"fire", "mystical fire":"fire", "ancient power":"rock",
+  "fire blast":"fire",
+  "meteor beam":"rock", "drain punch":"fighting", "water gun":"water", "ice beam":"ice",
+  "crunch":"dark", "skull bash":"normal", "charm":"fairy", "megahorn":"bug",
+  "fury cutter":"bug", "poison jab":"poison", "confusion":"psychic", "force palm":"fighting",
+};
+// csv/moves.csv is merged over the inline map at load: the inline MOVE_TYPES holds only 75 moves,
+// so most recorded movesets fell through to the "unknown" grey with no icon. The CSV carries all
+// 344 and is already the single source every other page uses; the inline map stays as a fallback
+// for the few keys it defines that the CSV spells differently (e.g. "hidden power (gh)").
+async function loadMoveTypesFromCsv(){
+  try{
+    const res = await fetch("csv/moves.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim().toLowerCase());
+    const iN = header.indexOf("name"), iT = header.indexOf("type");
+    if(iN < 0 || iT < 0) throw new Error("unexpected header");
+    lines.forEach(l => {
+      const c = l.split(",");
+      const n = (c[iN] || "").trim().toLowerCase(), t = (c[iT] || "").trim().toLowerCase();
+      if(n && t && !(n in MOVE_TYPES)) MOVE_TYPES[n] = t;
+    });
+  }catch(e){
+    console.error("Could not load csv/moves.csv - move chips fall back to the inline map:", e);
+  }
+}
+
+function getMoveType(move){
+  if(!move) return null;
+  const key = move.trim().toLowerCase();
+  if(key === "any" || key === "varies") return null;
+  return MOVE_TYPES[key] || null;
+}
+
+const HP_TYPE_MAP = {
+  "bug":"Bug", "bu":"Bug",
+  "da":"Dark", "dark":"Dark",
+  "dr":"Dragon", "dragon":"Dragon",
+  "el":"Electric", "electric":"Electric",
+  "fig":"Fighting", "fighting":"Fighting",
+  "fi":"Fire", "fire":"Fire",
+  "fl":"Flying", "flying":"Flying",
+  "gh":"Ghost", "ghost":"Ghost",
+  "gra":"Grass", "gr":"Grass", "grass":"Grass",
+  "gro":"Ground", "ground":"Ground",
+  "i":"Ice", "ice":"Ice",
+  "po":"Poison", "poison":"Poison",
+  "ps":"Psychic", "psychic":"Psychic",
+  "ro":"Rock", "rock":"Rock",
+  "st":"Steel", "steel":"Steel",
+  "wa":"Water", "water":"Water",
+};
+
+function normalizeHiddenPower(moveName){
+  if(!moveName) return moveName;
+  const m = moveName.trim().match(/^(?:HP|Hidden\s*Power)\s*\(?\s*([A-Za-z]+)\s*\)?\s*$/i);
+  if(!m) return moveName;
+  const fullType = HP_TYPE_MAP[m[1].toLowerCase()];
+  return fullType ? `Hidden Power ${fullType}` : moveName;
+}
+
+function tierLabel(t){ return (t === "5.5" ? "5.5" : t) + "★"; }
+const WEATHER_ICON_URLS = {
+  "clear":"assets/icons/weather-clear.png",
+  "sunny":"assets/icons/weather-clear.png",
+  "cloudy":"assets/icons/weather-cloudy.png",
+  "partly cloudy":"assets/icons/weather-partly-cloudy.png",
+  "windy":"assets/icons/weather-windy.png",
+  "wind":"assets/icons/weather-windy.png",
+  "rain":"assets/icons/weather-rain.png",
+  "rainy":"assets/icons/weather-rain.png",
+  "snow":"assets/icons/weather-snow.png",
+  "fog":"assets/icons/weather-fog.png",
+  "extreme":"assets/icons/weather-extreme.png",
+};
+function smallWeatherIconHtml(w){
+  if(!w) return "";
+  const key = w.trim().toLowerCase();
+  const url = WEATHER_ICON_URLS[key];
+  const wrapCls = key === "extreme" ? "bd-wicon-wrap extreme" : "bd-wicon-wrap";
+  if(url) return `<span class="${wrapCls}"><img loading="lazy" class="bd-wicon" src="${url}" alt="${w}" onerror="this.parentElement.remove()"></span>`;
+  return "";
+}
+
+// Matches the collection pages: type colour, white type icon, and a label colour picked from the
+// pill's luminance - white is unreadable on electric, ice and ground.
+function isLightHex(hex){
+  const n = parseInt(hex.replace("#",""), 16);
+  return (0.2126*((n>>16)&255) + 0.7152*((n>>8)&255) + 0.0722*(n&255)) > 165;
+}
+// One chip for one move. Kept separate so the multi-move path below can reuse it unchanged.
+function bdOneMoveChip(move){
+  const displayRaw = (move && move.trim()) ? move.trim() : "Any";
+  const displayMove = normalizeHiddenPower(displayRaw);
+  const type = getMoveType(displayRaw);
+  const color = type ? TYPE_COLORS[type] : TYPE_COLORS.unknown;
+  const icon = type ? `<img class="bd-move-icon" src="${TYPE_ICON_BASE}${type}.svg" alt="" loading="lazy" onerror="this.remove();">` : "";
+  const light = isLightHex(color) ? " on-light" : "";
+  // No F/C tag: the pills are stacked fast-above-charge, so the letter only repeated what the
+  // position already said and cost width on the narrowest screens.
+  return `<span class="bd-move-chip${light}" style="background:${color};">${icon}${displayMove}</span>`;
+}
+
+// An archive cell may hold several moves - "Blast Burn, Psystrike, Blaze Kick" - so it is split
+// and each move gets its own chip and its OWN type colour. Previously the whole cell was typed as
+// a single move, so a multi-move cell fell through to the grey "unknown" colour and read as one
+// long unrecognised name.
+function bdMoveChipHtml(label, move){
+  const moves = splitMoves(move);
+  if(moves.length <= 1) return bdOneMoveChip(move);
+  return moves.map(bdOneMoveChip).join("");
+}
+
+function groupInstances(instances){
+  const groups = new Map();
+  for(const inst of instances){
+    const sig = [inst.boss, inst.weather || "", inst.tier, (inst.fast||"").trim(), (inst.charge||"").trim(), inst.ae || ""].join("|").toLowerCase();
+    if(!groups.has(sig)) groups.set(sig, { inst, count: 0 });
+    groups.get(sig).count++;
+  }
+  return [...groups.values()].sort((a,b) => a.inst.boss.localeCompare(b.inst.boss));
+}
+
+function bossSlug(name){
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+}
+
+// ============ RANK CHANGE TRACKING ============
+// Reads raider-rank-history.json, a snapshot of each Pokemon's Overall rank the last time
+// it was computed. This file doesn't exist yet - it needs a workflow to generate it (same
+// shape as new-raid-entries.json) before badges will actually appear. Until then this fetch
+// just fails silently and rankChangeBadge() always returns "", so the UI stays inert with
+// zero visual difference from before - safe to ship ahead of the backend piece.
+let RANK_HISTORY = {};
+async function loadRankHistory(){
+  try{
+    const res = await fetch("raider-rank-history.json");
+    if(!res.ok) return;
+    const data = await res.json();
+    if(data && typeof data === "object") RANK_HISTORY = data;
+    renderLeaderboard();
+    if(VIEW === "tier") renderTierList();   // chips drive both views
+  }catch(e){
+    // no snapshot yet - badges just won't show, nothing else is affected
+  }
+}
+function rankChangeBadge(bossName, currentRank){
+  const prevRank = RANK_HISTORY[bossName.toLowerCase()];
+  if(prevRank == null) return "";
+  const delta = prevRank - currentRank;
+  if(delta === 0) return "";
+  if(delta > 0) return `<div class="lb-rank-change up">&#9650;${delta}</div>`;
+  return `<div class="lb-rank-change down">&#9660;${Math.abs(delta)}</div>`;
+}
+
+
+// ============ TYPE FILTER ============
+// Types come from csv/pokemon-stats.csv (type1/type2), the same source ct-database and the
+// calculator use, so there is no second hand-maintained list to drift.
+// Same URLs and sword/shield distinction the collection pages already use for this - one icon
+// pair, not a second copy that could drift from theirs.
+const AE_ICON_SWORD  = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
+const AE_ICON_SHIELD = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
+function aeIconCellHtml(kind){
+  if(kind === "sword")  return `<img class="usage-ae-icon" src="${AE_ICON_SWORD}" alt="Blade Boost" title="Blade Boost — +10% damage dealt from your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
+  if(kind === "shield") return `<img class="usage-ae-icon" src="${AE_ICON_SHIELD}" alt="Adventure Effect" title="Adventure Effect — +10% damage reduction for your Pokémon in raids" loading="lazy" onerror="this.style.display='none'">`;
+  // No AE on this entry: the cell (and the column) stays, but empty - a blank cell in a real
+  // column is what was asked for, not a placeholder icon or a dash standing in for "none".
+  return "";
+}
+
+const TYPE_ORDER = ["normal","fire","water","electric","grass","ice","fighting","poison","ground",
+                    "flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
+let POKEMON_TYPES = {};        // lowercased name -> [type1, type2?]
+let activeTypes = new Set();   // empty = no filter
+
+async function loadPokemonTypes(){
+  try{
+    const res = await fetch("csv/pokemon-stats.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim());
+    const header = lines.shift().split(",").map(h => h.trim().toLowerCase());
+    const iN = header.indexOf("name"), i1 = header.indexOf("type1"), i2 = header.indexOf("type2");
+    if(iN < 0 || i1 < 0) throw new Error("unexpected header: " + header.join(","));
+    lines.forEach(l => {
+      const c = l.split(",");
+      const n = (c[iN] || "").trim();
+      if(!n) return;
+      const ts = [(c[i1] || "").trim().toLowerCase(), i2 >= 0 ? (c[i2] || "").trim().toLowerCase() : ""].filter(Boolean);
+      if(ts.length) POKEMON_TYPES[n.toLowerCase()] = ts;
+    });
+  }catch(e){
+    // Non-fatal: without types the strip stays hidden and the leaderboard behaves as before.
+    console.error("Could not load types for the type filter:", e);
+  }
+}
+
+// A Shadow form shares its base form's typing, and the stats CSV lists both - but a name the CSV
+// does not carry at all (a newly added raider, say) must not silently vanish from the list, so an
+// unknown name is treated as matching every filter rather than none.
+function typesOf(name){
+  const key = (name || "").trim().toLowerCase();
+  return POKEMON_TYPES[key] || POKEMON_TYPES[key.replace(/^shadow\s+/, "")] || null;
+}
+// A selected type must match BOTH the raider's own typing AND one of the charge moves it was
+// actually recorded using - a Steel/Fighting raider that only ever fired a Steel charge move is
+// not a Fighting pick. Kept as two independent lookups because each has its own unknown-data
+// escape hatch: an unrecognised NAME already matched every filter (see typesOf above), and an
+// unrecognised MOVE gets the same benefit of the doubt rather than silently vanishing.
+function chargeTypesOf(r){
+  const out = new Set();
+  let sawAny = false;
+  (r.instances || []).forEach(i => {
+    // One cell can hold several moves used in the same run - "Blast Burn & Blaze Kick" or
+    // "Blast Burn, Psystrike, Blaze Kick". splitMoves() validates each piece against the real
+    // move list, so every one of them contributes its own type to the filter; any one matching
+    // is enough. This previously split on "&" alone, so a comma-separated cell typed as nothing
+    // and the entry became invisible to every type chip.
+    splitMoves(i.pcharge).forEach(part => {
+      const m = part.trim().toLowerCase();
+      // Same placeholders movesetsFor() skips: these mean "moveset did not matter", not a move.
+      if(!m || /^(any|none|n\/a|varies)$/i.test(m)) return;
+      sawAny = true;
+      const ty = MOVE_TYPES[m];
+      if(ty) out.add(typeof ty === "string" ? ty : ty.type);
+    });
+  });
+  // No usable move data at all -> unknown, so don't filter it out.
+  return sawAny && out.size ? out : null;
+}
+function matchesTypeFilter(nameOrRow){
+  if(!activeTypes.size) return true;
+  const r = typeof nameOrRow === "string" ? null : nameOrRow;
+  const name = r ? r.name : nameOrRow;
+  const ts = typesOf(name);
+  if(ts && !ts.some(t => activeTypes.has(t))) return false;
+  if(!r) return true;
+  const cs = chargeTypesOf(r);
+  if(!cs) return true;
+  return [...cs].some(t => activeTypes.has(t));
+}
+
+function renderTypeFilter(){
+  const el = document.getElementById("typeFilter");
+  if(!el) return;
+  // Only offer types that actually appear in the current results - an empty Fairy filter is a
+  // dead end, not a feature.
+  // Presence is tested with the real predicate, not typing alone. Now that a chip also requires a
+  // matching charge move, typing-only presence would re-create the dead-end chip this guards
+  // against: Fighting would appear for a Steel/Fighting raider that never fired a Fighting move,
+  // then return nothing when clicked.
+  const saved = activeTypes;
+  const types = TYPE_ORDER.filter(t => {
+    activeTypes = new Set([t]);
+    try { return ALL_RESULTS.some(r => matchesTypeFilter(r)); }
+    finally { activeTypes = saved; }
+  });
+  if(!types.length){ el.style.display = "none"; return; }
+  // Clear the inline value rather than setting one: this was "flex" from the earlier scrolling
+  // strip, and an inline style beats the stylesheet - so the grid rules were being applied and
+  // then silently overridden, leaving all 18 chips on one line at every width.
+  el.style.display = "";
+
+  el.innerHTML =
+    `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type=""
+             aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All types</span></button>` +
+    types.map(t => `
+      <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
+              style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown};"
+              aria-pressed="${activeTypes.has(t) ? "true" : "false"}">
+        <img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"><span>${t}</span>
+      </button>`).join("");
+
+  el.querySelectorAll(".type-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.type;
+      if(!t) activeTypes.clear();                                   // "All types" resets
+      else activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
+      renderTypeFilter();
+      renderLeaderboard();
+      if(VIEW === "tier") renderTierList();   // chips drive both views
+    });
+  });
+}
+
+
+// ============ USAGE BREAKDOWN MODAL ============
+// Same pattern as ct-database's entries table: the row opens a scrollable overlay rather than
+// expanding in place, so opening one entry does not shove the twenty-five below it down the page.
+let LAST_RENDERED = [];
+
+function openUsageTable(idx){
+  const r = LAST_RENDERED[idx];
+  if(!r) return;
+  const grouped = groupInstances(r.instances);
+
+  // Sort state lives with the open modal, so reopening a row starts from the default again.
+  const state = { sort: "boss", extremeFirst: false };
+  const tierNum = t => { const m = String(t || "").match(/[\d.]+/); return m ? parseFloat(m[0]) : -1; };
+
+  function sortedRows(){
+    const rows = grouped.slice();
+    const byBoss = (a, b) => a.inst.boss.localeCompare(b.inst.boss);
+    if(state.sort === "tier-desc")      rows.sort((a, b) => tierNum(b.inst.tier) - tierNum(a.inst.tier) || byBoss(a, b));
+    else if(state.sort === "tier-asc")  rows.sort((a, b) => tierNum(a.inst.tier) - tierNum(b.inst.tier) || byBoss(a, b));
+    else if(state.sort === "weather")   rows.sort((a, b) => (a.inst.weather || "").localeCompare(b.inst.weather || "") || byBoss(a, b));
+    else                                rows.sort(byBoss);
+    // Applied last so it wins over the chosen sort, which is the point of a "first" toggle.
+    if(state.extremeFirst){
+      const isEx = r => /extreme/i.test(r.inst.weather || "");
+      rows.sort((a, b) => (isEx(b) ? 1 : 0) - (isEx(a) ? 1 : 0));
+    }
+    return rows;
+  }
+
+  function rowsHtml(){
+    return sortedRows().map(({inst, count}) => `
+            <tr>
+              <td class="td-boss"><a class="usage-boss-link" href="collections/${bossSlug(inst.boss)}.html">
+                <img class="${needsShadowMist(inst.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(inst.boss)}" alt="" loading="lazy"
+                     onerror="this.style.visibility='hidden'">${inst.boss}${count > 1 ? ` <span class="bd-dupe-badge">&times;${count}</span>` : ""}</a></td>
+              <td class="td-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.fast)}${bdMoveChipHtml("Charge", inst.charge)}</span></td>
+              <td class="td-weather"><span class="usage-weather">${smallWeatherIconHtml(inst.weather)}<span>${inst.weather || "&mdash;"}</span></span></td>
+              <td class="td-tier">${tierLabel(inst.tier)}</td>
+              <!-- inst.prole is this raider's own role for THIS strategy - can differ from the
+                   leaderboard row's aggregate role list, since the same raider may be Main DPS in
+                   one route and Catch Tank in another. -->
+              <td class="td-role">${cleanRoleText(inst.prole) || "&mdash;"}</td>
+              <!-- inst.ae is already captured per-instance (sword/shield/blank), same field the
+                   collection pages read - nothing new to derive, just never surfaced here. -->
+              <td class="td-ae">${aeIconCellHtml(inst.ae)}</td>
+              <!-- inst.pfast/pcharge are THIS raider's own moves for the instance, captured
+                   alongside the boss's - desktop has the width to show both sides of the
+                   matchup, so this surfaces data that was already collected but never shown. -->
+              <td class="td-player-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.pfast)}${bdMoveChipHtml("Charge", inst.pcharge)}</span></td>
+            </tr>`).join("");
+  }
+
+  const overlay = document.createElement("div");
+  overlay.className = "entries-overlay";
+  overlay.innerHTML = `
+    <div class="entries-modal" role="dialog" aria-modal="true" aria-label="${r.name} usage">
+      <div class="entries-head">
+        <img class="entries-head-sprite ${needsShadowMist(r.name) ? 'shadow-mist' : ''}" src="${spriteUrl(r.name)}" alt=""
+             onerror="this.style.visibility='hidden'">
+        <div class="entries-head-text">
+          <div class="entries-title">${displayName(r.name)}</div>
+          <div class="entries-sub">${grouped.length} boss${grouped.length===1?"":"es"} &middot; ${r.instances.length} recorded use${r.instances.length===1?"":"s"}</div>
+        </div>
+        <button type="button" class="entries-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="entries-controls">
+        <select class="entries-sort" aria-label="Sort rows">
+          <option value="boss">Boss A&ndash;Z</option>
+          <option value="tier-desc">Difficulty high&ndash;low</option>
+          <option value="tier-asc">Difficulty low&ndash;high</option>
+          <option value="weather">Weather A&ndash;Z</option>
+        </select>
+        <label class="entries-toggle"><input type="checkbox" class="prio-extreme"> Extreme weather first</label>
+      </div>
+      <div class="entries-body">
+        <table class="entries-table">
+          <colgroup><col class="c-boss"><col class="c-moves"><col class="c-weather"><col class="c-tier"><col class="c-role"><col class="c-ae"><col class="c-player-moves"></colgroup>
+          <!-- displayName(r.name) rather than a generic "Pokemon moveset" - the table is scoped to
+               one raider already (it opened from that raider's row), so naming the column after
+               them reads less like a placeholder and matches how the Boss column is already
+               boss-specific rather than saying "Raid boss". -->
+          <thead><tr><th>Boss</th><th>Boss Moveset</th><th>Weather</th><th>Difficulty</th><th>Role</th><th>AE</th><th>${displayName(r.name)} Moveset</th></tr></thead>
+          <tbody>${rowsHtml()}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  const tbody = overlay.querySelector("tbody");
+  const redraw = () => { tbody.innerHTML = rowsHtml(); };
+  overlay.querySelector(".entries-sort").addEventListener("change", e => { state.sort = e.target.value; redraw(); });
+  overlay.querySelector(".prio-extreme").addEventListener("change", e => { state.extremeFirst = e.target.checked; redraw(); });
+
+  const close = () => overlay.remove();
+  overlay.querySelector(".entries-close").addEventListener("click", close);
+  overlay.addEventListener("click", e => { if(e.target === overlay) close(); });
+  document.addEventListener("keydown", function esc(e){
+    if(e.key === "Escape"){ close(); document.removeEventListener("keydown", esc); }
+  });
+}
+
+// Delegated, so it survives every re-render without rebinding.
+document.addEventListener("click", e => {
+  const btn = e.target.closest(".lb-row[data-idx]");
+  if(btn) openUsageTable(parseInt(btn.dataset.idx, 10));
+});
+
+
+// Distinct movesets this raider has actually been recorded with, most-used first.
+//
+// Matched case-insensitively: the sheets contain "Dragon tail", "Dragon Tail" and "Breaking swipe"
+// for what is one moveset, and matching literally split Mega Rayquaza's two sets into four. The
+// display form is whichever spelling appears most often, so the list follows the data rather than
+// a hardcoded canonical name.
+//
+// "Any" and blanks are dropped - they record that the moveset did not matter for that entry, not
+// that a move called "Any" was used, and the brief was to show only moves that appear in a record.
+function movesetsFor(instances){
+  const byKey = new Map();
+  instances.forEach(i => {
+    // Normalised first: "Blast Burn & Blaze Kick" and "Blast Burn, Blaze Kick" are the same
+    // moveset and must group together rather than showing as two separate rows.
+    const f = formatMoveCell(i.pfast), c = formatMoveCell(i.pcharge);
+    // "Any" and "None" are both placeholders meaning the moveset did not matter for that entry,
+    // not moves that were used - and the brief was to show only moves that appear in a record.
+    const placeholder = t => !t || /^(any|none|n\/a|varies)$/i.test(t);
+    if(placeholder(f) || placeholder(c)) return;
+    const key = f.toLowerCase() + "|" + c.toLowerCase();
+    if(!byKey.has(key)) byKey.set(key, { spellings: new Map(), count: 0 });
+    const e = byKey.get(key);
+    e.count++;
+    const disp = f + "|" + c;
+    e.spellings.set(disp, (e.spellings.get(disp) || 0) + 1);
+  });
+  // Title-cased for display rather than taking the most common spelling: the sheets' majority
+  // casing is not reliable ("shadow claw" outnumbers "Shadow Claw" 38 to 12), and picking the
+  // popular one would render a lowercase move name.
+  const titleCase = t => t.replace(/\S+/g, w => w[0].toUpperCase() + w.slice(1).toLowerCase());
+  return [...byKey.values()].map(e => {
+    const [disp] = [...e.spellings.entries()].sort((a, b) => b[1] - a[1])[0];
+    const [fast, charge] = disp.split("|");
+    return { fast: titleCase(fast), charge: titleCase(charge), count: e.count };
+  }).sort((a, b) => b.count - a.count);
+}
+
+
+// Option A: one line per recorded fast/charge pair, most-used first. The pairing is the point -
+// Air Slash goes with Dragon Ascent, not with Breaking Swipe - so the two moves stay on one line
+// joined by a slash rather than being split into separate fast/charge groups.
+
+
+// One pill per move, type-coloured with its type icon - the same treatment as the collection pages
+// and the usage modal, so a move looks the same wherever it appears.
+function lbMoveChipHtml(move){
+  const clean = (move || "").trim();
+  if(!clean) return "";
+  const type = getMoveType(clean);
+  const color = type ? TYPE_COLORS[type] : TYPE_COLORS.unknown;
+  const icon = type ? `<img src="${TYPE_ICON_BASE}${type}.svg" alt="" loading="lazy" onerror="this.remove();">` : "";
+  const light = isLightHex(color) ? " on-light" : "";
+  return `<span class="lb-mv${light}" style="background:${color};">${icon}${clean}</span>`;
+}
+
+function lbMovesetsHtml(instances){
+  const sets = movesetsFor(instances);
+  if(!sets.length) return "";
+  return `<div class="lb-sets">${sets.map(m => `
+    <span class="lb-set">${lbMoveChipHtml(m.fast)}<span class="lb-mv-sep">/</span>${lbMoveChipHtml(m.charge)}<span class="lb-set-count">&times;${m.count}</span></span>`).join("")}</div>`;
+}
+
+function renderLeaderboard(){
+  const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
+  let filtered = ALL_RESULTS
+    .filter(r => !query || r.name.toLowerCase().includes(query))
+    .filter(r => matchesTypeFilter(r));
+
+  // When a role filter is active, each Pokemon's relevant count reflects ONLY how many times
+  // it was used in that specific role for that entry — not its total usage across all roles.
+  function roleSpecificCount(r){
+    if(currentRole === "Executor") return r.executorCount;
+    if(currentRole) return r.roleUsageCounts[currentRole] || 0;
+    return r.count;
+  }
+
+  if(currentRole === "Executor"){
+    filtered = filtered.filter(r => r.executorCount > 0);
+  } else if(currentRole){
+    filtered = filtered.filter(r => (r.roleUsageCounts[currentRole] || 0) > 0);
+  }
+  if(currentRole){
+    filtered = [...filtered].sort((a,b) => roleSpecificCount(b) - roleSpecificCount(a));
+  }
+
+  const maxCount = filtered.length ? roleSpecificCount(filtered[0]) : 1;
+  if(currentLimit > 0) filtered = filtered.slice(0, currentLimit);
+
+  const container = document.getElementById("container");
+  if(filtered.length === 0){
+    container.innerHTML = `<div class="loading-msg">No Pokémon match your search.</div>`;
+    return;
+  }
+
+  LAST_RENDERED = filtered;   // data-idx indexes into this, so it must match what was rendered
+  container.innerHTML = `<div class="leaderboard">${filtered.map((r, i) => {
+    const rankClass = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
+    const shownBosses = r.bosses.slice(0, 4);
+    const extra = r.bosses.length - shownBosses.length;
+    const roleText = currentRole ? currentRole : (r.roles.length ? r.roles.join(", ") : "");
+    const displayCount = roleSpecificCount(r);
+    return `
+    <div class="lb-row-wrap">
+      <button type="button" class="lb-row" data-idx="${i}" aria-haspopup="dialog">
+        <div class="lb-rank ${rankClass}"><div class="lb-rank-change-slot">${currentRole ? "" : rankChangeBadge(r.name, i+1)}</div><div class="lb-rank-number">${i+1}</div></div>
+        <div class="lb-sprite"><img class="${needsShadowMist(r.name) ? 'shadow-mist' : ''}" src="${spriteUrl(r.name)}" alt="${r.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${r.name}')) { this.style.display='none'; }"></div>
+        <div class="lb-main">
+          <div class="lb-name">${displayName(r.name)}</div>
+          ${roleText ? `<div class="lb-roles">${roleText}</div>` : ""}
+          ${lbMovesetsHtml(r.instances)}
+          <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(displayCount/maxCount*100).toFixed(1)}"></div></div>
+        </div>
+        <div class="lb-bosses">
+          ${shownBosses.map(b => `<span class="lb-boss-icon" title="${b.name}"><img class="${needsShadowMist(b.name) ? 'shadow-mist' : ''}" src="${spriteUrl(b.name)}" alt="${b.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${b.name}')) { this.style.display='none'; }"></span>`).join("")}
+          ${extra > 0 ? `<span class="lb-boss-more">+${extra}</span>` : ""}
+        </div>
+        <div class="lb-count">${displayCount}<span>use${displayCount===1?"":"s"}</span></div>
+        <span class="lb-chevron">&#9974;</span>
+      </button>
+    </div>`;
+  }).join("")}</div>`;
+
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".lb-bar").forEach(bar => {
+      bar.style.width = bar.dataset.w + "%";
+    });
+  });
+}
+
+document.getElementById("pokemonSearch").addEventListener("input", renderLeaderboard);
+document.querySelectorAll("#viewToggleList .hamburger-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#viewToggleList .hamburger-item").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentLimit = parseInt(btn.dataset.n);
+    renderLeaderboard();
+    if(VIEW === "tier") renderTierList();   // chips drive both views
+  });
+});
+document.querySelectorAll("#roleFilterList .hamburger-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#roleFilterList .hamburger-item").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentRole = btn.dataset.role;
+    renderLeaderboard();
+    if(VIEW === "tier") renderTierList();   // chips drive both views
+  });
+});
+
+loadAllData();
+loadRankHistory();
+renderLeaderboard();
+if(VIEW === "tier") renderTierList();   // chips drive both views
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+const gearBtn = document.getElementById("gearBtn");
+const gearPanel = document.getElementById("gearPanel");
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+
+function closeHamburger(){
+  hamburgerPanel.classList.remove("open");
+  hamburgerBtn.setAttribute("aria-expanded", "false");
+}
+function closeGear(){
+  gearPanel.classList.remove("open");
+  gearBtn.setAttribute("aria-expanded", "false");
+}
+
+gearBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = gearPanel.classList.contains("open");
+  closeHamburger();
+  gearPanel.classList.toggle("open", !isOpen);
+  gearBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+hamburgerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = hamburgerPanel.classList.contains("open");
+  closeGear();
+  hamburgerPanel.classList.toggle("open", !isOpen);
+  hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+document.addEventListener("click", (e) => {
+  if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
+    closeHamburger();
+  }
+  if(!gearPanel.contains(e.target) && e.target !== gearBtn){
+    closeGear();
+  }
+});
+
+</script>
+<script>
+
+// ---- Search autocomplete (ported from dps-calculator.html) ----------------------------
+// Capped at 8 so the list can never run past the field into neighbouring content, which
+// is the same reason the calculator caps it. Names come from this page's own dataset via
+// a getter, because that dataset is filled by an async CSV load that has not run yet when
+// this script parses.
+function initSearchAutocomplete(inputId, getNames){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  // Appended to <body>, never wrapped around the input - see the .ac-list CSS note.
+  const list = document.createElement("div");
+  list.className = "ac-list";
+  document.body.appendChild(list);
+  function place(){
+    const b = input.getBoundingClientRect();
+    list.style.left  = b.left + "px";
+    list.style.top   = (b.bottom + 4) + "px";
+    list.style.width = b.width + "px";
+  }
+  let highlighted = -1;
+
+  function matches(query){
+    const q = (query || "").trim().toLowerCase();
+    if(!q) return [];
+    const seen = new Set(), starts = [], contains = [];
+    for(const raw of (getNames() || [])){
+      if(!raw) continue;
+      const name = String(raw);
+      const lower = name.toLowerCase();
+      if(seen.has(lower)) continue;
+      if(lower.startsWith(q)){ seen.add(lower); starts.push(name); }
+      else if(lower.includes(q)){ seen.add(lower); contains.push(name); }
+      if(starts.length >= 8) break;
+    }
+    return [...starts, ...contains].slice(0, 8);
+  }
+  function highlight(name, query){
+    const q = (query || "").trim();
+    const i = name.toLowerCase().indexOf(q.toLowerCase());
+    if(i === -1 || !q) return name;
+    return name.slice(0,i) + "<mark>" + name.slice(i, i+q.length) + "</mark>" + name.slice(i+q.length);
+  }
+  function close(){ list.classList.remove("open"); highlighted = -1; }
+  function select(name){
+    input.value = name;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+  }
+  function render(){
+    const found = matches(input.value);
+    if(!found.length){ close(); return; }
+    list.innerHTML = found.map((n,i) =>
+      `<div class="ac-item${i===highlighted?' hi':''}" data-name="${String(n).replace(/"/g,'&quot;')}">${highlight(String(n), input.value)}</div>`
+    ).join("");
+    place();
+    list.classList.add("open");
+    list.querySelectorAll(".ac-item").forEach(el => {
+      // mousedown, not click: it fires before the input's blur, so picking an item does
+      // not close the dropdown out from under the pointer.
+      el.addEventListener("mousedown", e => { e.preventDefault(); select(el.dataset.name); });
+    });
+  }
+  input.addEventListener("input", () => { highlighted = -1; render(); });
+  input.addEventListener("focus", render);
+  window.addEventListener("scroll", () => { if(list.classList.contains("open")) place(); }, true);
+  window.addEventListener("resize", () => { if(list.classList.contains("open")) place(); });
+  input.addEventListener("blur", () => setTimeout(close, 120));
+  input.addEventListener("keydown", e => {
+    const items = list.querySelectorAll(".ac-item");
+    if(!list.classList.contains("open") || !items.length) return;
+    if(e.key === "ArrowDown"){ e.preventDefault(); highlighted = Math.min(highlighted+1, items.length-1); render(); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); highlighted = Math.max(highlighted-1, 0); render(); }
+    else if(e.key === "Enter" && highlighted >= 0){ e.preventDefault(); select(items[highlighted].dataset.name); }
+    else if(e.key === "Escape"){ close(); }
+  });
+}
+
+initSearchAutocomplete('pokemonSearch', () => (typeof ALL_RESULTS!=='undefined'?ALL_RESULTS.map(r=>r.name):[]));
+</script>
+</body>
+</html>
