@@ -68,6 +68,9 @@
     flex:none; min-width:34px; padding:2px 7px; border-radius:6px; text-align:center;
     font-family:'Manrope', sans-serif; font-weight:900; font-size:11.5px; color:#fff;
   }
+  .tier-info-badge.tier-MegaRay{ background:#a8d5a2; color:#1e3a1c; }
+  .tier-info-badge.tier-MegaX{ background:#7b1f2b; }
+  .tier-info-badge.tier-MegaY{ background:#c2185b; }
   .tier-info-badge.tier-Splus{ background:#5b2d82; }
   .tier-info-badge.tier-S{ background:#8f1d2e; }
   .tier-info-badge.tier-A{ background:#d93a3a; }
@@ -94,6 +97,11 @@
   }
   /* S+ and above get their own colour: a plus is a real step up, not a shade of S, so it reads
      as a separate band rather than the same red twice. S- stays with S. */
+  /* Named tiers above the letters get their own colours, ordered light-to-dark so the ramp keeps
+     reading downward. Falls back to purple for any other name-based rank. */
+  .tier-MegaRay .tier-label{ background:#a8d5a2; color:#1e3a1c; }  /* pale green - needs dark text */
+  .tier-MegaX   .tier-label{ background:#7b1f2b; }                 /* maroon */
+  .tier-MegaY   .tier-label{ background:#c2185b; }                 /* dark pink */
   .tier-Splus .tier-label{ background:#5b2d82; }   /* dark purple */
   .tier-S     .tier-label{ background:#8f1d2e; }   /* dark red */
   .tier-A     .tier-label{ background:#d93a3a; }   /* red */
@@ -1500,9 +1508,14 @@ async function loadTierList(){
     //
     // A file with no blank line is treated as entries only, so the tier list still renders if the
     // rank block has not been written yet.
-    const blank = all.findIndex(r => !r.some(c => (c || "").trim()));
-    const rankRows  = blank === -1 ? [] : all.slice(0, blank);
-    const rows      = blank === -1 ? all : all.slice(blank + 1);
+    // The entry block starts at its own header row, found by its first column. Anchoring on that
+    // rather than on a blank separator means the two blocks can sit flush against each other -
+    // a spreadsheet export pads every row to the same width, so there is often no truly empty
+    // line to split on. A blank line still works if one is present.
+    let split = all.findIndex(r => (r[0] || "").trim().toLowerCase() === "type");
+    if(split === -1) split = all.findIndex(r => !r.some(c => (c || "").trim()));
+    const rankRows  = split <= 0 ? [] : all.slice(0, split);
+    const rows      = split <= 0 ? all : all.slice(split);
     if(!rows.length) return;
 
     RANK_ORDER = [];
@@ -1622,11 +1635,28 @@ function tierRank(t){
             : 0;
   return [letter === -1 ? TIER_ORDER.length + 1 : letter, mod];
 }
+// Position of a tier label against the Rank block. A label that is listed uses its own place.
+// One that is not - "S-" when only "S" is described - is anchored to the label it modifies, so
+// S- lands directly after S rather than being dumped below D. Plusses pull earlier, minuses push
+// later, by as many steps as there are signs.
+function rankKey(label){
+  const s = String(label || "").trim();
+  const exact = RANK_ORDER.indexOf(s);
+  if(exact !== -1) return [exact, 0];
+  const m = s.match(/^(.*?)([+-]+)$/);
+  if(m){
+    const base = RANK_ORDER.indexOf(m[1]);
+    if(base !== -1) return [base, m[2][0] === "+" ? -m[2].length : m[2].length];
+  }
+  return [RANK_ORDER.length + 1, 0];
+}
+
 function tierCompare(a, b){
   if(RANK_ORDER.length){
-    const ia = RANK_ORDER.indexOf(a), ib = RANK_ORDER.indexOf(b);
-    // a tier used by a Pokemon but missing from the Rank column sorts after the listed ones
-    if(ia !== -1 || ib !== -1) return (ia === -1 ? 1e6 : ia) - (ib === -1 ? 1e6 : ib);
+    const ka = rankKey(a), kb = rankKey(b);
+    if(ka[0] !== kb[0]) return ka[0] - kb[0];
+    if(ka[1] !== kb[1]) return ka[1] - kb[1];
+    return String(a).localeCompare(String(b));
   }
   const ra = tierRank(a), rb = tierRank(b);
   return ra[0] - rb[0] || ra[1] - rb[1] || String(a).localeCompare(String(b));
@@ -1635,7 +1665,11 @@ function tierCompare(a, b){
 // is a genuine step up rather than a shade of S. Everything else (A+, B-, ...) shares its
 // letter's colour, so the modifier reads as a division within the tier.
 function tierLetter(t){
-  const s = String(t || "").trim().toUpperCase();
+  const raw = String(t || "").trim();
+  // named tiers ("Mega Ray") key off the name, letter tiers off the letter
+  const named = raw.replace(/[^A-Za-z]/g, "");
+  if(/^mega/i.test(raw)) return named.replace(/^m/i, "M");
+  const s = raw.toUpperCase();
   const m = s.match(/^([A-Z]+)([+-]*)$/);
   if(!m) return "X";
   if(m[1] === "S" && m[2].startsWith("+")) return "Splus";
@@ -1650,7 +1684,7 @@ function renderTierAbout(){
     ? `<div class="tier-info-sec-title">How the ranks are assigned</div>` + RANK_ORDER.map(rank => `
         <div class="tier-info-row">
           <span class="tier-info-badge tier-${tierLetter(rank)}">${escapeHtml(rank)}</span>
-          <span class="tier-info-sec-body">${escapeHtml(RANK_DESC.get(rank) || "")}</span>
+          <span class="tier-info-sec-body">${escapeHtml(RANK_DESC.get(rank) || "\u2014")}</span>
         </div>`).join("")
     : `<div class="tier-info-sec-body">No ranks have been described yet.</div>`;
 }
