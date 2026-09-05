@@ -85,12 +85,12 @@
      tiers line up down the page the way a tier list is expected to read. */
   .tier-band{
     display:flex; align-items:stretch; gap:0;
-    border:2px solid var(--border); border-radius:14px; overflow:hidden;
-    background: var(--card); margin-bottom:10px;
+    border:2px solid var(--border); border-radius:11px; overflow:hidden;
+    background: var(--card); margin-bottom:7px;
   }
   .tier-label{
-    flex:none; min-width:62px; padding:0 8px; display:flex; align-items:center; justify-content:center;
-    font-family:'Manrope', sans-serif; font-weight:900; font-size:22px; color:#fff;
+    flex:none; min-width:42px; padding:0 7px; display:flex; align-items:center; justify-content:center;
+    font-family:'Manrope', sans-serif; font-weight:900; font-size:14px; letter-spacing:.01em; color:#fff;
     /* S++ and A- are wider than a bare letter, so the rail sizes to its label instead of
        clipping. Kept at a 62px floor so single-letter tiers still line up down the page. */
     white-space:nowrap;
@@ -109,7 +109,7 @@
   .tier-C     .tier-label{ background:#e8b520; }   /* yellow */
   .tier-D     .tier-label{ background:#3d8fe0; }   /* blue */
   .tier-C .tier-label{ color:#3a2f00; }            /* yellow needs dark text to stay legible */
-  .tier-mons{ flex:1; display:flex; flex-wrap:wrap; gap:8px; padding:10px 12px; min-width:0; }
+  .tier-mons{ flex:1; display:flex; flex-wrap:wrap; gap:6px; padding:7px 9px; min-width:0; }
   /* Collapsed by default: the card carries only who it is, its type and its role, because a
      tier list is scanned first and read second. The moveset is one click away rather than
      competing with every other row for attention. */
@@ -117,59 +117,67 @@
     display:flex; align-items:center; gap:8px; padding:6px 10px 6px 6px;
     border:1px solid var(--border); border-radius:12px; background: var(--bg1);
     min-width:0; max-width:100%; text-align:left; cursor:pointer;
-    font-family:'Inter', sans-serif; flex-wrap:wrap;
+    font-family:'Inter', sans-serif; flex-wrap:wrap; padding:4px 7px 4px 4px; gap:5px;
     transition: border-color .12s ease, background .12s ease;
   }
   .tier-mon:hover{ border-color: var(--blue); }
   .tier-mon-caret{
-    width:0; height:0; margin-left:2px; flex:none;
-    border-left:4px solid transparent; border-right:4px solid transparent;
-    border-top:5px solid var(--text-dim); transition: transform .15s ease;
+    width:0; height:0; margin-left:1px; flex:none;
+    border-left:3.5px solid transparent; border-right:3.5px solid transparent;
+    border-top:4.5px solid var(--text-dim); transition: transform .15s ease;
   }
-  .tier-mon.is-open{ background: var(--card); border-color: var(--blue); }
-  .tier-mon.is-open .tier-mon-caret{ transform: rotate(180deg); }
-  .tier-mon-detail{ display:none; width:100%; padding:7px 2px 2px; }
-  .tier-mon.is-open .tier-mon-detail{ display:block; }
-  .tier-detail-row{
-    display:block; font-size:11px; font-weight:600; color: var(--text);
-    line-height:1.45; white-space:normal;
+  /* Popup for a tier entry. Same overlay and dismissal as the usage modal, but sized to a single
+     card - it is a detail view, not a table, so a full-width sheet would be mostly empty. */
+  .tier-card-overlay{ align-items:center; justify-content:center; }
+  .tier-card-modal{
+    position:relative; background: var(--card); border-radius:16px;
+    width:min(400px, calc(100vw - 32px)); padding:20px 22px 18px;
+    box-shadow:0 18px 50px rgba(0,0,0,0.28);
   }
-  .tier-detail-row:first-child{ color: var(--blue-dark); font-weight:800; }
-  .tier-detail-row b{
-    display:inline-block; min-width:52px; padding-right:8px; font-weight:800;
-    color: var(--text-dim); font-size:10px; text-transform:uppercase; letter-spacing:.04em;
-    vertical-align:baseline;
+  .tc-close{ position:absolute; top:10px; right:12px; }
+  .tc-head{ display:flex; align-items:center; gap:14px; margin-bottom:14px; }
+  .tc-head img{ width:60px; height:60px; object-fit:contain; flex:none; }
+  .tc-name{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; color: var(--text); }
+  .tc-meta{ display:flex; align-items:center; gap:7px; margin-top:6px; }
+  .tc-tier{
+    font-family:'Manrope', sans-serif; font-weight:900; font-size:11px; color:#fff;
+    padding:2px 8px; border-radius:6px;
   }
-  .tier-detail-note{
-    display:block; margin-top:4px; font-size:10.5px; font-style:italic; color: var(--text-dim);
-    white-space:normal; line-height:1.4;
+  .tc-type{
+    display:inline-flex; align-items:center; gap:4px; color:#fff;
+    font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.04em;
+    padding:2px 8px; border-radius:6px;
   }
-  .tier-mon img{ width:30px; height:30px; object-fit:contain; flex:none; }
-  .tier-mon-body{ min-width:0; }
-  /* Collapsed the card shows only icon + name; role now lives in the expanded detail alongside
-     the moves, which keeps the scan line to one row per Pokemon. */
-  .tier-mon-name{
-    display:flex; align-items:center;
-    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--text);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  .tc-type img{ width:11px; height:11px; filter:brightness(0) invert(1); }
+  .tc-row{ display:flex; gap:10px; padding:7px 0; border-top:1px solid var(--border); font-size:12.5px; }
+  .tc-row b{
+    flex:0 0 62px; font-weight:800; font-size:10px; color: var(--text-dim);
+    text-transform:uppercase; letter-spacing:.04em; padding-top:2px;
   }
-  .tier-mon-moves{ font-size:10.5px; font-weight:600; color: var(--text-dim); white-space:nowrap;
-    overflow:hidden; text-overflow:ellipsis; }
-  /* The spelled-out type took more width than the Pokemon's own name on longer entries. The
-     icon carries it in a fixed 18px, using the same SVG set as the move chips elsewhere on the
-     page, with the type name kept on the title and the img alt for anyone not seeing it. */
-  .tier-mon-type{
-    display:inline-flex; align-items:center; justify-content:center;
-    width:18px; height:18px; border-radius:5px; margin-right:6px; flex:none; vertical-align:-4px;
+  .tc-row span{ color: var(--text); font-weight:600; line-height:1.45; }
+  .tc-note{
+    margin-top:12px; padding-top:11px; border-top:1px dashed var(--border);
+    font-size:11.5px; font-style:italic; color: var(--text-dim); line-height:1.5;
   }
-  .tier-mon-type img{ width:12px; height:12px; filter: brightness(0) invert(1); }
+  /* the tier badge in the popup reuses the board's colours */
+  .tc-tier.tier-MegaRay{ background:#a8d5a2; color:#1e3a1c; }
+  .tc-tier.tier-MegaX{ background:#7b1f2b; }
+  .tc-tier.tier-MegaY{ background:#c2185b; }
+  .tc-tier.tier-Splus{ background:#5b2d82; }
+  .tc-tier.tier-S{ background:#8f1d2e; }
+  .tc-tier.tier-A{ background:#d93a3a; }
+  .tc-tier.tier-B{ background:#ef8a2b; }
+  .tc-tier.tier-C{ background:#e8b520; color:#3a2f00; }
+  .tc-tier.tier-D{ background:#3d8fe0; }
   .tier-empty{ padding:18px 4px; text-align:center; font-size:13px; font-weight:600; color: var(--text-dim); }
   @media (max-width:700px){
     .view-switch-row{ padding:0 14px; }
     .view-btn{ font-size:11.5px; padding:8px 12px; }
-    .tier-label{ min-width:46px; padding:0 6px; font-size:18px; }
+    .tier-label{ min-width:38px; padding:0 5px; font-size:12.5px; }
     .tier-mons{ padding:8px; gap:6px; }
-    .tier-mon{ width:100%; }
+    /* Was full width when the card carried a name. Now that it is sprite + type it tiles,
+       which fits far more per row on a phone. */
+    .tier-mon{ width:auto; }
     /* With up to 5 moves the line no longer fits a phone - 9 of 19 entries were being clipped
        mid-moveset. On mobile the card is full width anyway, so the moves wrap instead of
        hiding the very information the row exists to show. */
@@ -534,7 +542,27 @@
     .bd-moves-row{ flex-direction:column; align-items:flex-start; flex-wrap:nowrap; gap:5px; }
   }
 
-  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+  /* Shadow aura. The gradient is the original static treatment; the animation drifts a second
+     softer plume across it and breathes the outer glow, so the fog reads as moving rather than
+     painted on. Kept subtle - this sits behind 35 sprites at once on the tier list, and anything
+     stronger turns the board into a light show. */
+  img.shadow-mist{
+    border-radius:50%;
+    background:
+      radial-gradient(circle at 35% 40%, rgba(120,60,190,0.45) 0%, rgba(120,60,190,0) 60%),
+      radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%);
+    background-size: 180% 180%, 100% 100%;
+    box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45);
+    animation: shadowFog 7s ease-in-out infinite;
+  }
+  @keyframes shadowFog{
+    0%,100%{ background-position: 20% 30%, 0 0; box-shadow: 0 0 8px rgba(88,28,135,0.70), inset 0 0 8px rgba(0,0,0,0.45); }
+    50%    { background-position: 75% 65%, 0 0; box-shadow: 0 0 13px rgba(120,60,190,0.85), inset 0 0 10px rgba(0,0,0,0.5); }
+  }
+  /* Respect a reduced-motion preference - the aura still reads without the drift. */
+  @media (prefers-reduced-motion: reduce){
+    img.shadow-mist{ animation: none; }
+  }
 
 /* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator.
    The dropdown is appended to <body> and positioned with position:fixed from the input's
@@ -1619,6 +1647,9 @@ function splitMoves(cell){
 }
 
 // Filled from the Rank column: the order rows appear in that column is the tier order.
+// The currently rendered (type-filtered) entries, so a card can point at its own data by index
+// rather than re-deriving it from the DOM.
+let TIER_VISIBLE = [];
 let RANK_ORDER = [];
 let RANK_DESC = new Map();
 
@@ -1696,6 +1727,7 @@ function renderTierList(){
   const rows = activeTypes.size
     ? TIER_ROWS.filter(r => activeTypes.has(r.type))
     : TIER_ROWS;
+  TIER_VISIBLE = rows;
   if(!rows.length){
     el.innerHTML = `<div class="tier-empty">${TIER_ROWS.length
       ? "No tier-list entries for the selected types."
@@ -1713,65 +1745,65 @@ function renderTierList(){
       <div class="tier-label">${tier}</div>
       <div class="tier-mons">
         ${byTier.get(tier).map(m => `
-          <button type="button" class="tier-mon" aria-expanded="false">
-            <img src="${spriteUrl(m.name)}" alt="" loading="lazy" onerror="this.style.display='none'">
-            <span class="tier-mon-body">
-              <span class="tier-mon-name">
-                <span class="tier-mon-type" style="background:${TYPE_COLORS[m.type] || TYPE_COLORS.unknown};"
-                      title="${m.type}"><img src="${TYPE_ICON_BASE}${m.type}.svg" alt="${m.type}"
-                      loading="lazy" onerror="this.remove();"></span>${m.name}</span>
-
-            </span>
+          <button type="button" class="tier-mon" data-idx="${rows.indexOf(m)}"
+                  aria-haspopup="dialog" title="${m.name}">
+            <img class="${needsShadowMist(m.name) ? 'shadow-mist' : ''}" src="${spriteUrl(m.name)}"
+                 alt="" loading="lazy"
+                 onerror="if(!trySpriteShadowFallback(this, '${m.name.replace(/'/g, "\\'")}')) { this.replaceWith(Object.assign(document.createElement('span'), { className: 'tier-mon-fallback', textContent: '${m.name.replace(/'/g, "\\'")}'.slice(0, 12) })); }">
+            <span class="tier-mon-type" style="background:${TYPE_COLORS[m.type] || TYPE_COLORS.unknown};"
+                  title="${m.type}"><img src="${TYPE_ICON_BASE}${m.type}.svg" alt="${m.type}"
+                  loading="lazy" onerror="this.remove();"></span>
             <span class="tier-mon-caret" aria-hidden="true"></span>
-            <span class="tier-mon-detail">
-              ${[["Role", m.role ? [m.role] : []], ["Fast", m.fast], ["Charge", m.charge]]
-                .filter(([, v]) => v.length).map(([label, v]) =>
-                `<span class="tier-detail-row"><b>${label}</b>${v.join(", ")}</span>`).join("")}
-              ${m.notes ? `<span class="tier-detail-note">${m.notes}</span>` : ""}
-            </span>
           </button>`).join("")}
       </div>
     </div>`).join("");
 }
 
-// Delegated so it survives every re-render (type chips rebuild the list). Only one card is open
-// at a time: with tiers this dense, several expanded at once pushes the rest of the board around.
-document.addEventListener("click", (e) => {
-  const card = e.target.closest(".tier-mon");
-  if(!card || !document.getElementById("tierContainer").contains(card)) return;
-  const wasOpen = card.classList.contains("is-open");
-  document.querySelectorAll(".tier-mon.is-open").forEach(c => {
-    c.classList.remove("is-open");
-    c.setAttribute("aria-expanded", "false");
-  });
-  if(!wasOpen){
-    card.classList.add("is-open");
-    card.setAttribute("aria-expanded", "true");
-  }
-});
+// Tier cards open a popup rather than expanding in place. Expanding inline pushed every card
+// below it sideways and down, so reading one entry rearranged the board you were scanning.
+// The overlay reuses the same geometry and dismissal rules as the usage modal.
+function openTierCard(index){
+  const m = TIER_VISIBLE[index];
+  if(!m) return;
+  const rows = [["Role", m.role ? [m.role] : []], ["Fast", m.fast], ["Charge", m.charge]]
+    .filter(([, v]) => v.length)
+    .map(([label, v]) => `<div class="tc-row"><b>${label}</b><span>${escapeHtml(v.join(", "))}</span></div>`)
+    .join("");
 
-function closeTierInfo(){
-  const btn = document.getElementById("tierInfoBtn");
-  const panel = document.getElementById("tierInfoPanel");
-  if(!btn || !panel) return;
-  panel.classList.remove("open");
-  btn.setAttribute("aria-expanded", "false");
+  const overlay = document.createElement("div");
+  overlay.className = "entries-overlay tier-card-overlay";
+  overlay.innerHTML = `
+    <div class="tier-card-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(m.name)}">
+      <button type="button" class="entries-close tc-close" aria-label="Close">&times;</button>
+      <div class="tc-head">
+        <img class="${needsShadowMist(m.name) ? "shadow-mist" : ""}" src="${spriteUrl(m.name)}" alt=""
+             onerror="this.style.visibility='hidden'">
+        <div>
+          <div class="tc-name">${escapeHtml(displayName(m.name))}</div>
+          <div class="tc-meta">
+            <span class="tc-tier tier-${tierLetter(m.tier)}">${escapeHtml(m.tier)}</span>
+            <span class="tc-type" style="background:${TYPE_COLORS[m.type] || TYPE_COLORS.unknown};">
+              <img src="${TYPE_ICON_BASE}${m.type}.svg" alt="" onerror="this.remove();">${escapeHtml(m.type)}</span>
+          </div>
+        </div>
+      </div>
+      <div class="tc-body">${rows}</div>
+      ${m.notes ? `<div class="tc-note">${escapeHtml(m.notes)}</div>` : ""}
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const close = () => overlay.remove();
+  overlay.querySelector(".tc-close").addEventListener("click", close);
+  overlay.addEventListener("click", e => { if(e.target === overlay) close(); });
+  document.addEventListener("keydown", function esc(e){
+    if(e.key === "Escape"){ close(); document.removeEventListener("keydown", esc); }
+  });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("tierInfoBtn");
-  const panel = document.getElementById("tierInfoPanel");
-  if(!btn || !panel) return;
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const open = panel.classList.toggle("open");
-    btn.setAttribute("aria-expanded", String(open));
-  });
-  // dismiss on an outside click or Escape, same as the other slide-outs on the site
-  document.addEventListener("click", (e) => {
-    if(!panel.contains(e.target) && e.target !== btn) closeTierInfo();
-  });
-  document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeTierInfo(); });
+document.addEventListener("click", (e) => {
+  const card = e.target.closest(".tier-mon[data-idx]");
+  if(!card || !document.getElementById("tierContainer").contains(card)) return;
+  openTierCard(parseInt(card.dataset.idx, 10));
 });
 
 function setView(view){
