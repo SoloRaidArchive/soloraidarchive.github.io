@@ -121,6 +121,22 @@
     transition: border-color .12s ease, background .12s ease;
   }
   .tier-mon:hover{ border-color: var(--blue); }
+  /* Sizing for the card's contents. These were lost when the inline-detail styles were removed
+     by position, which took the sprite and type-icon rules with them - the sprites then rendered
+     at their natural size and filled the page. Original sizes, unchanged from before the names
+     were removed. */
+  .tier-mon img{ width:30px; height:30px; object-fit:contain; flex:none; }
+  .tier-mon-type{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:18px; height:18px; border-radius:5px; flex:none;
+  }
+  .tier-mon-type img{ width:12px; height:12px; filter: brightness(0) invert(1); }
+  /* Shown only if a sprite fails to load - without a name on the card there would otherwise be
+     nothing to identify it by. */
+  .tier-mon-fallback{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:10.5px; color: var(--text-dim);
+    max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
   .tier-mon-caret{
     width:0; height:0; margin-left:1px; flex:none;
     border-left:3.5px solid transparent; border-right:3.5px solid transparent;
