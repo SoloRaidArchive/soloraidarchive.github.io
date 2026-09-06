@@ -277,6 +277,9 @@
     font-family:'Manrope',sans-serif; font-weight:800; font-size:12.5px; border:2px solid var(--border);
     background:var(--card); color:var(--text-dim); }
   .mc-btn.mc-save{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .mc-btn.mc-delete{ margin-right:auto; color:#c0392b; border-color:#e8b4ad; }
+  .mc-btn.mc-delete[hidden]{ display:none; }
+  .mc-edit-btn{ margin-left:6px; }
   .mc-new-btn{ appearance:none; cursor:pointer; margin-top:5px; padding:4px 10px; border-radius:999px;
     border:2px dashed var(--border); background:none; color:var(--text-dim);
     font-family:'Manrope',sans-serif; font-weight:800; font-size:10.5px; }
@@ -3598,6 +3601,7 @@ function mcBuildTypeGrid(){
 
 let mcTarget = null;      // the baseId the created move will be selected into
 let mcIsCharge = false;
+let mcEditing = null;     // original name when editing an existing user move, else null
 
 function mcInitOptions(){
   mcBuildTypeGrid();
@@ -3612,18 +3616,32 @@ function mcInitOptions(){
   }
 }
 
-function openMoveCreator(baseId){
+function openMoveCreator(baseId, editName){
   mcTarget = baseId;
   mcIsCharge = baseId.toUpperCase().endsWith("CM");
+  mcEditing = editName ? (findUserMove(editName) ? editName : null) : null;
   mcInitOptions();
   document.getElementById("mcTitle").textContent =
-    "Create a temporary " + (mcIsCharge ? "charge" : "fast") + " move";
+    (mcEditing ? "Edit temporary " : "Create a temporary ") + (mcIsCharge ? "charge" : "fast") + " move";
+  document.getElementById("mcSave").textContent = mcEditing ? "Save changes" : "Create move";
+  document.getElementById("mcDelete").hidden = !mcEditing;
   document.getElementById("mcGainRow").hidden = mcIsCharge;
   document.getElementById("mcCostRow").hidden = !mcIsCharge;
   document.getElementById("mcErr").hidden = true;
   ["mcName","mcDamage","mcGain"].forEach(id => document.getElementById(id).value = "");
   document.getElementById("mcDuration").value = mcIsCharge ? "2.0" : "1.0";
   mcSelectType("Normal");
+
+  // Editing reopens the dialog on the values as saved, so a tweak does not mean retyping.
+  if(mcEditing){
+    const m = findUserMove(mcEditing);
+    document.getElementById("mcName").value = m.n;
+    document.getElementById("mcDamage").value = m.dmg;
+    document.getElementById("mcDuration").value = (m.ad / 2).toFixed(1);
+    mcSelectType(m.elem);
+    if(m.type === "Charge") document.getElementById("mcCost").value = String(Math.abs(m.energy));
+    else document.getElementById("mcGain").value = m.energy;
+  }
   document.getElementById("mcOverlay").hidden = false;
   document.getElementById("mcName").focus();
 }
@@ -3631,6 +3649,46 @@ function openMoveCreator(baseId){
 function closeMoveCreator(){
   document.getElementById("mcOverlay").hidden = true;
   mcTarget = null;
+}
+
+// Point every select and hidden input that referenced `from` at `to`. Called on rename and, with
+// a null `to`, on delete.
+function mcRenameEverywhere(from, to){
+  ["playerFM","playerCM","bossFM","bossCM"].forEach(id => {
+    const sel = document.getElementById(id + "_select");
+    const hidden = document.getElementById(id);
+    if(!sel) return;
+    [...sel.options].forEach(o => {
+      if(o.value.toLowerCase() !== from.toLowerCase()) return;
+      if(to){ o.value = to; o.textContent = to + "  (created)"; }
+      else { o.remove(); }
+    });
+    if(hidden && hidden.value.toLowerCase() === from.toLowerCase()){
+      hidden.value = to || (sel.options[0] ? sel.options[0].value : "");
+      if(!to && sel.options[0]) sel.value = sel.options[0].value;
+      if(to) sel.value = to;
+    }
+    mcRefreshEditButton(id);
+  });
+}
+
+function deleteCreatedMove(){
+  if(!mcEditing) return;
+  USER_MOVES = USER_MOVES.filter(m => m.n.toLowerCase() !== mcEditing.toLowerCase());
+  mcRenameEverywhere(mcEditing, null);
+  closeMoveCreator();
+  if(typeof runCalculation === "function") runCalculation();
+}
+
+// The edit button only makes sense while a created move is the one selected, so it appears and
+// disappears with the selection rather than sitting there permanently.
+function mcRefreshEditButton(baseId){
+  const sel = document.getElementById(baseId + "_select");
+  const btn = document.getElementById("mcEdit_" + baseId);
+  if(!sel || !btn) return;
+  const isUser = !!findUserMove(sel.value);
+  btn.hidden = !isUser;
+  btn.textContent = "Edit \u201c" + sel.value + "\u201d";
 }
 
 function mcFail(msg){
@@ -3650,7 +3708,10 @@ function saveCreatedMove(){
   // for anyone who later picks the real move by the same name.
   if(MOVE_DB.some(m => m.n.toLowerCase() === name.toLowerCase()))
     return mcFail(`"${name}" is already a real move. Pick another name.`);
-  if(findUserMove(name)) return mcFail(`You have already created "${name}".`);
+  // When editing, the move's own current name is obviously allowed; any OTHER user move is not.
+  const clash = findUserMove(name);
+  if(clash && (!mcEditing || clash.n.toLowerCase() !== mcEditing.toLowerCase()))
+    return mcFail(`You have already created "${name}".`);
   if(!(dmg > 0)) return mcFail("Damage must be greater than 0.");
   if(!(seconds > 0)) return mcFail("Pick an animation duration.");
 
@@ -3663,12 +3724,22 @@ function saveCreatedMove(){
     energy = gain;
   }
 
-  USER_MOVES.push({
+  const built = {
     n: name, dmg: dmg, energy: energy,
     ad: Math.round(seconds * 2),          // ticks, matching MOVE_DB's `turns`
     type: mcIsCharge ? "Charge" : "Fast",
     elem: elem,
-  });
+  };
+
+  if(mcEditing){
+    // Replace in place so the move keeps its position, then rename it everywhere it is offered
+    // or currently selected - otherwise a rename would strand selects pointing at a dead name.
+    const i = USER_MOVES.findIndex(m => m.n.toLowerCase() === mcEditing.toLowerCase());
+    if(i !== -1) USER_MOVES[i] = built;
+    mcRenameEverywhere(mcEditing, name);
+  }else{
+    USER_MOVES.push(built);
+  }
 
   // Offer it in every select of the same kind - both the player's and the boss's - so a
   // theorycrafted move can be tested on either side without creating it twice.
@@ -3686,6 +3757,7 @@ function saveCreatedMove(){
     sel.value = name;
     onMoveSelectChange(mcTarget);
   }
+  ["playerFM","playerCM","bossFM","bossCM"].forEach(mcRefreshEditButton);
   closeMoveCreator();
   // Recalculate so the new move takes effect immediately rather than waiting for another click.
   if(typeof runCalculation === "function") runCalculation();
@@ -3711,7 +3783,18 @@ document.addEventListener("DOMContentLoaded", () => {
     b.textContent = "+ Create a " + kind + " move";
     b.addEventListener("click", () => openMoveCreator(id));
     sel.parentNode.insertBefore(b, sel.nextSibling);
+
+    const e = document.createElement("button");
+    e.type = "button"; e.className = "mc-new-btn mc-edit-btn"; e.id = "mcEdit_" + id;
+    e.hidden = true;
+    e.addEventListener("click", () => openMoveCreator(id, document.getElementById(id + "_select").value));
+    b.parentNode.insertBefore(e, b.nextSibling);
+
+    sel.addEventListener("change", () => mcRefreshEditButton(id));
+    mcRefreshEditButton(id);
   });
+
+  document.getElementById("mcDelete").addEventListener("click", deleteCreatedMove);
 });
 
 function onCustomMoveChange(baseId){
@@ -4060,6 +4143,7 @@ document.addEventListener("click", (e) => {
 
     <div class="mc-err" id="mcErr" hidden></div>
     <div class="mc-actions">
+      <button type="button" class="mc-btn mc-delete" id="mcDelete" hidden>Delete</button>
       <button type="button" class="mc-btn mc-cancel" id="mcCancel">Cancel</button>
       <button type="button" class="mc-btn mc-save" id="mcSave">Create move</button>
     </div>
