@@ -215,6 +215,72 @@
   }
   /* the working behind a figure, kept visibly subordinate to the result */
   .dps-stat-math{ font-weight:500; color: var(--text-dim); font-size:12px; }
+
+  /* ---- move creator ---- */
+  .mc-overlay{ position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.45);
+    display:flex; align-items:center; justify-content:center; padding:16px; }
+  .mc-overlay[hidden]{ display:none; }
+  .mc-modal{ position:relative; background:var(--card); border-radius:16px; padding:20px 22px 18px;
+    width:min(380px, 100%); max-height:90vh; overflow-y:auto; box-shadow:0 18px 50px rgba(0,0,0,.3); }
+  .mc-close{ position:absolute; top:9px; right:12px; border:none; background:none; cursor:pointer;
+    font-size:22px; line-height:1; color:var(--text-dim); }
+  .mc-title{ font-family:'Manrope',sans-serif; font-weight:800; font-size:17px; color:var(--text); }
+  .mc-title{ margin-bottom:14px; }
+  .mc-field{ display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+  /* The type picker is a grid rather than a select, because a <select> cannot show the type
+     icons - and the icon is the fastest way to recognise a type. */
+  .mc-field-type{ align-items:flex-start; }
+  /* auto-fit rather than a fixed 6 columns: at 390px six tiles could not fit the label, so the
+     right-hand column clipped "GRASS" and "PSYCHIC". This reflows to 5 or 4 columns instead. */
+  .mc-type-grid{
+    flex:1; display:grid; gap:4px; min-width:0;
+    grid-template-columns:repeat(auto-fit, minmax(52px, 1fr));
+  }
+  .mc-type-btn{
+    appearance:none; cursor:pointer; border:2px solid transparent; border-radius:8px;
+    padding:5px 2px 4px; display:flex; flex-direction:column; align-items:center; gap:2px;
+    font-family:'Manrope',sans-serif; font-weight:800; font-size:8px; letter-spacing:.02em;
+    text-transform:uppercase; opacity:.45; transition:opacity .12s ease, transform .12s ease;
+  }
+  .mc-type-btn img{ width:15px; height:15px; filter:brightness(0) invert(1); }
+  .mc-type-btn.on{ opacity:1; border-color:var(--text); transform:translateY(-1px); }
+  .mc-type-btn:hover{ opacity:.85; }
+  /* Pale types need dark ink and a dark icon or they vanish against their own background. */
+  .mc-type-btn.light{ color:#2d3142; }
+  .mc-type-btn.light img{ filter:none; }
+  /* An explicit display beats the browser's [hidden]{display:none}, so the energy-gain and
+     energy-cost rows have to opt back out or both show at once. */
+  .mc-field[hidden]{ display:none; }
+  /* The type row always stacks. Beside the 104px label the grid only had ~220px, which forced
+     either 4 fat columns or 6 that clipped "FIGHTING" and "PSYCHIC". Full width fits 6 cleanly. */
+  .mc-field-type{ flex-direction:column; align-items:stretch; gap:6px; }
+  @media (max-width:460px){
+    .mc-modal{ padding:18px 16px 16px; }
+    .mc-field > span{ flex:0 0 92px; }
+  }
+  .mc-field > span{ flex:0 0 104px; font-size:12px; font-weight:700; color:var(--text-dim); }
+  /* flex:0 0 104px sets the label's width on a row, but its HEIGHT once the row is a column -
+     which left 104px of blank space above the grid. Reset to auto for this stacked row. */
+  .mc-field-type > span{ flex:0 0 auto; height:auto; }
+  .mc-field input, .mc-field select{ flex:1; min-width:0; padding:7px 9px; border-radius:9px;
+    border:2px solid var(--border); background:var(--card); color:var(--text);
+    font-family:'Inter',sans-serif; font-size:13px; }
+  .mc-type-wrap{ flex:1; display:flex; align-items:center; gap:8px; min-width:0; }
+  /* Some platforms ignore background on a <select>, so the swatch guarantees the colour is
+     visible regardless of how the OS renders the control. */
+  .mc-type-swatch{ flex:none; width:20px; height:20px; border-radius:6px; background:#c7c7c7;
+    border:1px solid rgba(0,0,0,.12); }
+  .mc-type-wrap select{ font-weight:700; }
+  .mc-err{ font-size:11.5px; font-weight:700; color:#c0392b; margin:6px 0 2px; }
+  .mc-actions{ display:flex; gap:9px; justify-content:flex-end; margin-top:14px; }
+  .mc-btn{ appearance:none; cursor:pointer; border-radius:999px; padding:8px 16px; min-height:36px;
+    font-family:'Manrope',sans-serif; font-weight:800; font-size:12.5px; border:2px solid var(--border);
+    background:var(--card); color:var(--text-dim); }
+  .mc-btn.mc-save{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .mc-new-btn{ appearance:none; cursor:pointer; margin-top:5px; padding:4px 10px; border-radius:999px;
+    border:2px dashed var(--border); background:none; color:var(--text-dim);
+    font-family:'Manrope',sans-serif; font-weight:800; font-size:10.5px; }
+  .mc-new-btn:hover{ border-color:var(--blue); color:var(--blue-dark); border-style:solid; }
   .cell-uptime{ display:block; font-size:10.5px; color: var(--text-dim); margin-top:1px; }
   .dps-hp-low{ color:#c9761f; }
   .dps-hp-dead{ color:#c0392b; font-weight:800; }
@@ -1766,9 +1832,23 @@ function findPokemon(name){
   }
   return null;
 }
+// ============ USER-CREATED MOVES (session only) ============
+// Theorycrafting moves for Pokemon that have not been given one yet. These live in memory for
+// the life of the tab and are never written to MOVE_DB, csv/moves.csv, or anywhere persistent -
+// closing the page discards them. Kept in a separate list rather than pushed into MOVE_DB so a
+// created move can never leak into the movepool lists, the archive parsers, or an export.
+let USER_MOVES = [];   // same shape as MOVE_DB entries: {n, dmg, energy, ad, type, elem}
+
+function findUserMove(name){
+  const key = (name||"").trim().toLowerCase();
+  return USER_MOVES.find(m => m.n.toLowerCase() === key) || null;
+}
+
 function findMove(name){
   const key = (name||"").trim().toLowerCase();
-  return MOVE_DB.find(m => m.n.toLowerCase() === key) || null;
+  // User moves are checked first so a created move wins over a same-named real one; that is the
+  // point of creating it. The real move is still reachable by giving the custom one another name.
+  return findUserMove(key) || MOVE_DB.find(m => m.n.toLowerCase() === key) || null;
 }
 function isShadow(name){
   return /shadow/i.test(name||"");
@@ -3465,6 +3545,175 @@ function onMoveSelectChange(baseId){
   }
   autoSetEffectiveness();
 }
+
+// ============ MOVE CREATOR ============
+// Opens for one specific select (playerFM / playerCM / bossFM / bossCM). The three calculator
+// modes share those selects, so a move created here is immediately usable in all of them.
+const MC_TYPES = ["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground",
+                  "Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
+// Same palette research.html uses, so a type reads identically across the site.
+const MC_TYPE_COLORS = {
+  normal:"#B8B792", fire:"#F19855", water:"#7FA4F3", electric:"#F8D852", grass:"#92D16C",
+  ice:"#A9E0DD", fighting:"#CD544F", poison:"#B461B2", ground:"#E7CB81", flying:"#B8A3F5",
+  psychic:"#FA749D", bug:"#B6C643", rock:"#C3B25A", ghost:"#8C75AA", dragon:"#8959FD",
+  dark:"#8A7567", steel:"#C4C4D7", fairy:"#DD9BBC",
+};
+// Several of these are pale enough that white text on them fails to read, so the swatch and the
+// select both switch to dark ink on the light ones rather than using one fixed foreground.
+function mcTypeInk(hex){
+  const c = hex.replace("#","");
+  const r = parseInt(c.slice(0,2),16), g = parseInt(c.slice(2,4),16), b = parseInt(c.slice(4,6),16);
+  return (0.299*r + 0.587*g + 0.114*b) > 150 ? "#2d3142" : "#ffffff";
+}
+// Same icon set the rest of the site uses for move types.
+const MC_TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
+
+function mcSelectType(name){
+  document.getElementById("mcType").value = name;
+  document.querySelectorAll(".mc-type-btn").forEach(b => {
+    const on = b.dataset.type === name;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-checked", String(on));
+  });
+}
+
+function mcBuildTypeGrid(){
+  const grid = document.getElementById("mcTypeGrid");
+  if(!grid || grid.dataset.built) return;
+  grid.innerHTML = MC_TYPES.map(x => {
+    const hex = MC_TYPE_COLORS[x.toLowerCase()];
+    const light = mcTypeInk(hex) !== "#ffffff";
+    return `<button type="button" class="mc-type-btn${light ? " light" : ""}" role="radio"
+              aria-checked="false" data-type="${x}" title="${x}"
+              style="background:${hex};">
+              <img src="${MC_TYPE_ICON_BASE}${x.toLowerCase()}.svg" alt="" loading="lazy"
+                   onerror="this.remove();"><span>${x}</span></button>`;
+  }).join("");
+  grid.addEventListener("click", e => {
+    const b = e.target.closest(".mc-type-btn");
+    if(b) mcSelectType(b.dataset.type);
+  });
+  grid.dataset.built = "1";
+}
+
+let mcTarget = null;      // the baseId the created move will be selected into
+let mcIsCharge = false;
+
+function mcInitOptions(){
+  mcBuildTypeGrid();
+  const dur = document.getElementById("mcDuration");
+  if(!dur.options.length){
+    // Half-second increments only: the engine works in 0.5s ticks, so anything else cannot be
+    // represented. Stored as ticks (ad), which is what the damage and cadence maths expects.
+    const opts = [];
+    for(let s = 0.5; s <= 6.0001; s += 0.5) opts.push(s.toFixed(1));
+    dur.innerHTML = opts.map(s => `<option value="${s}">${s}s</option>`).join("");
+    dur.value = "1.0";
+  }
+}
+
+function openMoveCreator(baseId){
+  mcTarget = baseId;
+  mcIsCharge = baseId.toUpperCase().endsWith("CM");
+  mcInitOptions();
+  document.getElementById("mcTitle").textContent =
+    "Create a temporary " + (mcIsCharge ? "charge" : "fast") + " move";
+  document.getElementById("mcGainRow").hidden = mcIsCharge;
+  document.getElementById("mcCostRow").hidden = !mcIsCharge;
+  document.getElementById("mcErr").hidden = true;
+  ["mcName","mcDamage","mcGain"].forEach(id => document.getElementById(id).value = "");
+  document.getElementById("mcDuration").value = mcIsCharge ? "2.0" : "1.0";
+  mcSelectType("Normal");
+  document.getElementById("mcOverlay").hidden = false;
+  document.getElementById("mcName").focus();
+}
+
+function closeMoveCreator(){
+  document.getElementById("mcOverlay").hidden = true;
+  mcTarget = null;
+}
+
+function mcFail(msg){
+  const e = document.getElementById("mcErr");
+  e.textContent = msg; e.hidden = false;
+  return false;
+}
+
+function saveCreatedMove(){
+  const name = document.getElementById("mcName").value.trim();
+  const elem = document.getElementById("mcType").value;
+  const dmg = parseFloat(document.getElementById("mcDamage").value);
+  const seconds = parseFloat(document.getElementById("mcDuration").value);
+
+  if(!name) return mcFail("Give the move a name.");
+  // A created move must not shadow a real one by accident - that would silently change results
+  // for anyone who later picks the real move by the same name.
+  if(MOVE_DB.some(m => m.n.toLowerCase() === name.toLowerCase()))
+    return mcFail(`"${name}" is already a real move. Pick another name.`);
+  if(findUserMove(name)) return mcFail(`You have already created "${name}".`);
+  if(!(dmg > 0)) return mcFail("Damage must be greater than 0.");
+  if(!(seconds > 0)) return mcFail("Pick an animation duration.");
+
+  let energy;
+  if(mcIsCharge){
+    energy = -Math.abs(parseInt(document.getElementById("mcCost").value, 10));
+  }else{
+    const gain = parseFloat(document.getElementById("mcGain").value);
+    if(!(gain > 0)) return mcFail("Energy gain must be greater than 0.");
+    energy = gain;
+  }
+
+  USER_MOVES.push({
+    n: name, dmg: dmg, energy: energy,
+    ad: Math.round(seconds * 2),          // ticks, matching MOVE_DB's `turns`
+    type: mcIsCharge ? "Charge" : "Fast",
+    elem: elem,
+  });
+
+  // Offer it in every select of the same kind - both the player's and the boss's - so a
+  // theorycrafted move can be tested on either side without creating it twice.
+  const kind = mcIsCharge ? "CM" : "FM";
+  ["player" + kind, "boss" + kind].forEach(id => {
+    const sel = document.getElementById(id + "_select");
+    if(!sel || [...sel.options].some(o => o.value === name)) return;
+    const opt = document.createElement("option");
+    opt.value = name; opt.textContent = name + "  (created)";
+    sel.insertBefore(opt, sel.firstChild);
+  });
+
+  if(mcTarget){
+    const sel = document.getElementById(mcTarget + "_select");
+    sel.value = name;
+    onMoveSelectChange(mcTarget);
+  }
+  closeMoveCreator();
+  // Recalculate so the new move takes effect immediately rather than waiting for another click.
+  if(typeof runCalculation === "function") runCalculation();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const ov = document.getElementById("mcOverlay");
+  if(!ov) return;
+  document.getElementById("mcClose").addEventListener("click", closeMoveCreator);
+  document.getElementById("mcCancel").addEventListener("click", closeMoveCreator);
+  document.getElementById("mcSave").addEventListener("click", saveCreatedMove);
+  ov.addEventListener("click", e => { if(e.target === ov) closeMoveCreator(); });
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape" && !ov.hidden) closeMoveCreator();
+  });
+
+  // One button per move select, inserted after it.
+  [["playerFM","fast"],["playerCM","charge"],["bossFM","fast"],["bossCM","charge"]].forEach(([id,kind]) => {
+    const sel = document.getElementById(id + "_select");
+    if(!sel) return;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "mc-new-btn";
+    b.textContent = "+ Create a " + kind + " move";
+    b.addEventListener("click", () => openMoveCreator(id));
+    sel.parentNode.insertBefore(b, sel.nextSibling);
+  });
+});
+
 function onCustomMoveChange(baseId){
   document.getElementById(baseId).value = document.getElementById(baseId + "_custom").value;
   autoSetEffectiveness();
@@ -3778,5 +4027,44 @@ document.addEventListener("click", (e) => {
   }
 });
 </script>
+
+<!-- Move creator. One dialog serves all four selects (player/boss x fast/charge) and therefore
+     all three calculator modes, since the modes share these selects. -->
+<div class="mc-overlay" id="mcOverlay" hidden>
+  <div class="mc-modal" role="dialog" aria-modal="true" aria-labelledby="mcTitle">
+    <button type="button" class="mc-close" id="mcClose" aria-label="Close">&times;</button>
+    <div class="mc-title" id="mcTitle">Create a temporary fast move</div>
+
+    <label class="mc-field"><span>Name</span>
+      <input type="text" id="mcName" placeholder="e.g. Spectral Rend" autocomplete="off" maxlength="40"></label>
+
+    <div class="mc-field mc-field-type"><span>Type</span>
+      <div class="mc-type-grid" id="mcTypeGrid" role="radiogroup" aria-label="Move type"></div>
+      <input type="hidden" id="mcType" value="Normal"></div>
+
+    <label class="mc-field"><span>Damage</span>
+      <input type="number" id="mcDamage" min="1" max="500" step="1" placeholder="e.g. 90"></label>
+
+    <label class="mc-field" id="mcGainRow"><span>Energy gain</span>
+      <input type="number" id="mcGain" min="1" max="100" step="1" placeholder="e.g. 9"></label>
+
+    <label class="mc-field" id="mcCostRow"><span>Energy cost</span>
+      <select id="mcCost">
+        <option value="33">33 &mdash; 3 bar</option>
+        <option value="50">50 &mdash; 2 bar</option>
+        <option value="100" selected>100 &mdash; 1 bar</option>
+      </select></label>
+
+    <label class="mc-field"><span>Animation</span>
+      <select id="mcDuration"></select></label>
+
+    <div class="mc-err" id="mcErr" hidden></div>
+    <div class="mc-actions">
+      <button type="button" class="mc-btn mc-cancel" id="mcCancel">Cancel</button>
+      <button type="button" class="mc-btn mc-save" id="mcSave">Create move</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
