@@ -132,6 +132,20 @@
     transition: border-color .12s ease, background .12s ease;
   }
   .tier-mon:hover{ border-color: var(--blue); }
+  /* Shadow entries: purple border plus an outer glow echoing the sprite's own aura. At 30px on a
+     dark background the fog alone was hard to pick out, so the cue is moved up to the card.
+     Light mode gets a deeper purple at roughly half the glow - the same values that read as a
+     soft halo on #1c2030 read as a bruise on white. */
+  .tier-mon.is-shadow{
+    border-color:#7b3fb8;
+    box-shadow: 0 0 0 1px rgba(123,63,184,0.16), 0 0 7px rgba(123,63,184,0.26);
+  }
+  .tier-mon.is-shadow:hover{ border-color:#9d5ae0; }
+  [data-theme="dark"] .tier-mon.is-shadow{
+    border-color:#9d5ae0;
+    box-shadow: 0 0 0 1px rgba(157,90,224,0.35), 0 0 10px rgba(139,72,208,0.45);
+  }
+  [data-theme="dark"] .tier-mon.is-shadow:hover{ border-color:#b06ef5; }
   /* Sizing for the card's contents. These were lost when the inline-detail styles were removed
      by position, which took the sprite and type-icon rules with them - the sprites then rendered
      at their natural size and filled the page. Original sizes, unchanged from before the names
@@ -1777,7 +1791,7 @@ function renderTierList(){
       <div class="tier-label">${tier}</div>
       <div class="tier-mons">
         ${byTier.get(tier).map(m => `
-          <button type="button" class="tier-mon" data-idx="${rows.indexOf(m)}"
+          <button type="button" class="tier-mon${needsShadowMist(m.name) ? " is-shadow" : ""}" data-idx="${rows.indexOf(m)}"
                   aria-haspopup="dialog" title="${m.name}">
             <img class="${needsShadowMist(m.name) ? 'shadow-mist' : ''}" src="${spriteUrl(m.name)}"
                  alt="" loading="lazy"
