@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-06T07:21:17.722770+00:00",
+  "generatedAt": "2026-09-06T12:25:29.749833+00:00",
   "dateGroups": [
     {
       "startDate": "Sep 30, 2026",
@@ -45,87 +45,15 @@
       "category": "event",
       "bosses": [
         {
-          "name": "Mega Aerodactyl",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Extreme"
-        },
-        {
           "name": "Mega Audino",
           "archivePage": "tier4-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Extreme"
         },
         {
-          "name": "Mega Camerupt",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "1 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Lopunny",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        },
-        {
           "name": "Mega Sableye",
           "archivePage": "tier4-raids.html",
           "difficulty": "5 \u2b50",
-          "weather": "Cloudy"
-        },
-        {
-          "name": "Mega Sharpedo",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "1 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Steelix",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "Cloudy"
-        },
-        {
-          "name": "Mega Aggron",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "Cloudy"
-        },
-        {
-          "name": "Mega Glalie",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "2 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Skarmory",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Falinks",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "2 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Altaria",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Dragonite",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Gyarados",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
           "weather": "Cloudy"
         },
         {
@@ -169,10 +97,29 @@
       ]
     },
     {
+      "startDate": "Sep 11, 2026",
+      "endDate": "Sep 15, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Mega Houndoom",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        }
+      ]
+    },
+    {
       "startDate": "Sep 23, 2026",
       "endDate": "Sep 29, 2026",
       "category": "rotation",
       "bosses": [
+        {
+          "name": "Mega Malamar",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
         {
           "name": "Buzzwole",
           "archivePage": "tier5-raids.html",
@@ -190,25 +137,6 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "5 \u2b50",
           "weather": "Clear"
-        },
-        {
-          "name": "Mega Malamar",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        }
-      ]
-    },
-    {
-      "startDate": "Sep 11, 2026",
-      "endDate": "Sep 15, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Mega Houndoom",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
         }
       ]
     }
