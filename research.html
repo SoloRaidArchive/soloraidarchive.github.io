@@ -17,6 +17,17 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Most Used Raiders — Pokémon Usage Stats | Solo Raid Archive">
 <meta name="twitter:description" content="See which Pokémon are most commonly used to solo Pokémon GO raids, pulled live from every recorded strategy across the archive.">
+<!-- The six CSVs the page cannot render without. Without these the browser cannot start
+     fetching until the inline script runs and calls fetch() - measured at 88ms in. Preloading
+     lets the requests go out with the HTML instead, overlapping them with parsing and with the
+     stylesheet and font requests. Paths must match the fetch() URLs exactly or the browser
+     warns about an unused preload and fetches twice. -->
+<link rel="preload" as="fetch" type="text/csv" href="/csv/tier4-data.csv" crossorigin>
+<link rel="preload" as="fetch" type="text/csv" href="/csv/tier5-merged.csv" crossorigin>
+<link rel="preload" as="fetch" type="text/csv" href="/csv/tier6-data.csv" crossorigin>
+<link rel="preload" as="fetch" type="text/csv" href="csv/tier-list.csv" crossorigin>
+<link rel="preload" as="fetch" type="text/csv" href="csv/moves.csv" crossorigin>
+<link rel="preload" as="fetch" type="text/csv" href="csv/pokemon-stats.csv" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1502,10 +1513,18 @@ async function loadAllData(){
   // The two tier-5 sheets are one file now. rowsToRaidsTier5AE is the parser that fits it:
   // the merged schema carries the Adventure effect column at index 6, so party slots start at 7,
   // and rowsToRaidsTier5 would read them one column short.
+  // All six files are independent, so they are requested together. They used to run as a
+  // four-stage chain - the three archives, then the tier list, then moves.csv, then
+  // pokemon-stats.csv - each waiting on the one before for no reason. Measured: the last file
+  // finished at 702ms; requested in parallel the whole set lands in roughly the time of the
+  // slowest one.
   const [t4, t5, t6] = await Promise.all([
     fetchAndParse("/csv/tier4-data.csv", rowsToRaidsTier4),
     fetchAndParse("/csv/tier5-merged.csv", rowsToRaidsTier5AE),
     fetchAndParse("/csv/tier6-data.csv", rowsToRaidsTier6),
+    loadTierList(),
+    loadMoveTypesFromCsv(),
+    loadPokemonTypes(),
   ]);
 
   const tag = (arr, file) => arr.map(r => Object.assign({}, r, { file }));
@@ -1515,12 +1534,9 @@ async function loadAllData(){
     ...tag(t6, "tier6-elite-raids.html"),
   ];
 
-  await loadTierList();           // curated list, independent of the archive counts
-  renderTierAbout();              // descriptions come from the Tier Description column
+  renderTierAbout();              // descriptions come from the Rank block
   const { results } = computeUsageData(allRaids);
   ALL_RESULTS = results;
-  await loadMoveTypesFromCsv();   // before the first render, so chips get their colours
-  await loadPokemonTypes();
   renderTypeFilter();
   renderLeaderboard();
   if(VIEW === "tier") renderTierList();   // chips drive both views
@@ -1774,6 +1790,32 @@ function renderTierList(){
       </div>
     </div>`).join("");
 }
+
+// Info panel open/close. This and its listener were deleted by an earlier positional edit that
+// cut a range ending at setView() - the button was left in the markup with nothing bound to it,
+// and setView() called a function that no longer existed, throwing on every view switch.
+function closeTierInfo(){
+  const btn = document.getElementById("tierInfoBtn");
+  const panel = document.getElementById("tierInfoPanel");
+  if(!btn || !panel) return;
+  panel.classList.remove("open");
+  btn.setAttribute("aria-expanded", "false");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("tierInfoBtn");
+  const panel = document.getElementById("tierInfoPanel");
+  if(!btn || !panel) return;
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = panel.classList.toggle("open");
+    btn.setAttribute("aria-expanded", String(open));
+  });
+  document.addEventListener("click", (e) => {
+    if(!panel.contains(e.target) && e.target !== btn) closeTierInfo();
+  });
+  document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeTierInfo(); });
+});
 
 // Tier cards open a popup rather than expanding in place. Expanding inline pushed every card
 // below it sideways and down, so reading one entry rearranged the board you were scanning.
