@@ -27,8 +27,14 @@ import csv
 import json
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
 from pathlib import Path
+
+# The furthest-behind inhabited timezone (American Samoa / Niue, UTC-11). A dated entry is only
+# retired once its day is over there, so nothing is hidden from a player whose local date still
+# matches the listing.
+LAST_TZ_OFFSET = timedelta(hours=11)
 
 try:
     import requests
@@ -385,8 +391,20 @@ def gate_2_date_valid(name, start_date, end_date, now, date_only, parse_pokebatt
             if (end_dt.year, end_dt.month) < (now.year, now.month):
                 return False, category, f"rotation window's month ({end_date}) has passed"
         else:
-            # A one-day event is dropped as soon as it is over.
-            if end_dt < now:
+            # A one-day event stays listed until its date has passed in the LAST timezone on
+            # earth to reach it.
+            #
+            # Source end times are UTC and `now` is UTC in CI, so comparing them directly dropped
+            # the entry the moment the UTC clock passed it: an event ending "Sep 5, 2026 10:00 AM"
+            # disappeared at 03:00 on the 5th for a Pacific player, and even a date-only "Sep 5"
+            # died at 16:59 there. Anyone opening the site on the day of the raid saw nothing,
+            # which reads as the entry being cut a day early.
+            #
+            # The site is global, so the entry is held until the date is over at LAST_TZ_OFFSET -
+            # American Samoa, UTC-11, the furthest-behind inhabited timezone. (UTC-12 exists but
+            # covers only the uninhabited Baker and Howland Islands.) A Sep 5 event therefore
+            # survives until 11:00 UTC on Sep 6, by which point it is Sep 6 everywhere.
+            if end_dt.date() < (now - LAST_TZ_OFFSET).date():
                 return False, category, f"event window ({end_date}) has passed"
     return True, category, None
 
