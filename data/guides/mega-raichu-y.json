@@ -108,6 +108,85 @@
         }
       ],
       "submittedAt": "2026-09-05T01:10:44.229Z"
+    },
+    {
+      "strategyName": "The Hazing of Mega Raichu Y by the Coward Necrozma Dawn Wings",
+      "weather": "Fog",
+      "adventureEffect": "None",
+      "difficulty": "2★",
+      "text": "<h2>Overview</h2><p>Mega Raichu Y is an incredibly strong pick for Electric-type counters, with the introduction of Plus Moves turning it into an absolute powerhouse that, at the time of writing is rivaled only by its lesser alphabetic cousin, Mega Raichu X, for both solo and duo configurations.</p><p>However, what it gains in power, it absolutely does not in bulk—to the extent that strong neutral attackers such as Mega Rayquaza, and for the purposes of this guide, Dawn Wings, can solo it. With a small loan from the weather gods, that is. </p><p>Fun fact: This solo was done in transboundary haze conditions, rather than actual fog (but to the game, they are one and the same, apparently, which presents us with an opportunity).</p><h4>Est Time to Win: 285-295 seconds.</h4><p><br></p><h2>Main Strategy</h2><p>A full team of Necrozma Dawn Wings should ensure you get the job done. There is a balance to be struck between going with Shadow Claw or Psycho Cut; the former frontloads damage into Dawn Wings's fast moves, which help given the 20% weather boost. The latter generates Moongeist Beam faster, but requires a bit more engagement; you should ideally be <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-tick-perfect-cast\" target=\"_blank\">Tick Perfect Casting (TPC)</a>.</p><p>In terms of reactive strategy, Raichu's Surf is less of an issue for Dawn Wings than standard Ground-type counters, but this does not mean it can tank Surf repeatedly. Dawn Wings can tank up to 3, but that leaves it at risk of fainting to chip damage from Raichu Y's fast moves. Therefore, it is recommended that you tank 2, and dodge from the 3rd Surf onwards.</p><p><br></p><h2>Video Credits</h2><p>Shalashia</p>",
+      "vods": [
+        {
+          "url": "https://youtu.be/t9E283MyYEI",
+          "label": "",
+          "creditName": "",
+          "creditUrl": ""
+        }
+      ],
+      "submittedBy": "Shalashia",
+      "battleParties": [
+        {
+          "label": "Foggy Solo Team",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "45-50",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "45-50",
+              "fm": "Shadow Claw",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "45-50",
+              "fm": "Psycho Cut",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "45-50",
+              "fm": "Psycho Cut",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "45-50",
+              "fm": "Psycho Cut",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Necrozma Dawn Wings",
+              "level": "45-50",
+              "fm": "Psycho Cut",
+              "cm": "Moongeist Beam",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-09-06T14:41:31.837Z"
     }
   ]
 }
