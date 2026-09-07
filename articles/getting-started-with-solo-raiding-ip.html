@@ -260,6 +260,54 @@
     <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
   </div>
 </div>
+
+<script>
+/* Keeps the nav panel open across page navigation.
+
+   Every page load builds a fresh DOM, so the panel is closed by default and the old behaviour
+   also closed it on any outside click. Following a link therefore always dismissed the menu,
+   which made it tedious to move between several pages.
+
+   The open/closed state now lives in sessionStorage - per tab, cleared when the tab closes -
+   and is restored on load. Only the hamburger button toggles it, plus Escape as a keyboard
+   escape hatch.
+
+   Each page already ships its own hamburger handler inline, outside the NAV markers this file
+   is injected between, so those handlers cannot be edited from here. Instead the button is
+   replaced with a clone (which drops the page's listener) and the page's closeHamburger() is
+   neutralised, so the page's own outside-click rule can no longer shut the panel. */
+(function(){
+  var KEY = "sra-nav-open";
+  document.addEventListener("DOMContentLoaded", function(){
+    var panel = document.getElementById("hamburgerPanel");
+    var btn = document.getElementById("hamburgerBtn");
+    if(!panel || !btn) return;
+
+    var fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+    btn = fresh;
+
+    if(typeof window.closeHamburger === "function") window.closeHamburger = function(){};
+
+    function setOpen(open){
+      panel.classList.toggle("open", open);
+      btn.setAttribute("aria-expanded", String(open));
+      try { sessionStorage.setItem(KEY, open ? "1" : "0"); } catch(e){ /* private mode */ }
+    }
+
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      setOpen(!panel.classList.contains("open"));
+    });
+
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape" && panel.classList.contains("open")) setOpen(false);
+    });
+
+    try { if(sessionStorage.getItem(KEY) === "1") setOpen(true); } catch(e){}
+  });
+})();
+</script>
 <!-- NAV:END -->
 
 <div class="sticky-header">
