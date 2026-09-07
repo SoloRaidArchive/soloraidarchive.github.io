@@ -1,0 +1,93 @@
+name: Generate collections
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # The archives are the source of truth for which bosses exist. These paths must match
+      # where the CSVs actually live - track-new-raid-entries.yml previously pointed at the old
+      # repo-root locations and silently stopped firing when they moved into csv/, which is
+      # exactly the failure this workflow is here to prevent.
+      - "csv/tier4-data.csv"
+      - "csv/tier5-merged.csv"
+      - "csv/tier6-data.csv"
+      # The template and the generator itself: a change to either should rebuild every page,
+      # otherwise a template fix only reaches pages that happen to be regenerated later.
+      - "data/collection-template.html"
+      - "generate_collections.py"
+  workflow_dispatch: {}
+    # ^ run it from the Actions tab to backfill pages for rows that were pushed before this
+    # workflow existed, or after editing the template in the web editor.
+
+permissions:
+  contents: write
+
+concurrency:
+  # The live-bosses bot pushes to main every 3 hours, and generate-nav.yml commits too. Sharing
+  # this group with them means the pushes queue instead of racing and being rejected as
+  # non-fast-forward.
+  group: commit-to-main
+  cancel-in-progress: false
+
+jobs:
+  generate-collections:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+        # generate_collections.py imports only argparse, csv, json, pathlib, re and sys,
+        # so there is no pip install step.
+
+      - name: Regenerate collection pages
+        run: python generate_collections.py
+
+      - name: Verify every boss has a page
+        # generate_collections.py --check verifies the pages share one identical body; it does
+        # NOT verify coverage, and exits 0 even with a page missing. So coverage is asserted
+        # here directly: every boss in the archives must have a file. This is the exact failure
+        # that left Kyogre, Dialga Origin, Mesprit, Zacian Crown and Deoxys Speed linking to
+        # 404s, so it is worth failing the job over.
+        run: |
+          python generate_collections.py --check
+          python - <<'EOF'
+          import csv, pathlib, re, sys
+
+          def slug(name):
+              return re.sub(r"-+$", "", re.sub(r"[^a-z0-9]+", "-", name.strip().lower()))
+
+          bosses = set()
+          for f in ("csv/tier4-data.csv", "csv/tier5-merged.csv", "csv/tier6-data.csv"):
+              rows = list(csv.reader(open(f, encoding="utf-8-sig")))
+              i = rows[0].index("Boss Name")
+              bosses |= {r[i].strip() for r in rows[1:] if len(r) > i and r[i].strip()}
+
+          missing = sorted(b for b in bosses if not pathlib.Path(f"collections/{slug(b)}.html").exists())
+          if missing:
+              print("Bosses in the archives with no collection page:")
+              for b in missing:
+                  print(f"  {b}  ->  collections/{slug(b)}.html")
+              sys.exit(1)
+          print(f"All {len(bosses)} bosses have a collection page.")
+          EOF
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "Collections already up to date, nothing to commit."
+          else
+            # Show what moved, so the run log says which bosses were added or removed
+            # rather than just "1 file changed".
+            git status --short
+            git add -A
+            git commit -m "Regenerate collection pages from the raid archives"
+            # Rebase first in case the live-bosses bot landed a commit while this job ran.
+            git pull --rebase
+            git push
+          fi
