@@ -106,6 +106,13 @@ CONFIRMED_ROTATION_DATES = {
     "lunala": ("Aug 19, 2026", "Aug 25, 2026"),
     "mega swampert": ("Aug 19, 2026", "Aug 25, 2026"),
     "mega gyarados": ("Aug 26, 2026", "Sep 8, 2026"),
+    # September. Cross-verified against two independent sources, as this table requires:
+    #   - LeekDuck, via ScrapedDuck events.json, event
+    #     "mega-beedrill-in-mega-raids-september-2026": start 2026-09-08, end 2026-09-15
+    #   - Pokebattler's own live-bosses.json snapshot of 2026-09-06, taken before the rotation
+    #     began and so still carrying the "From" date: Sep 8 -> Sep 15
+    # They agree exactly. (The old (end - 6 days) inference would have said Sep 9.)
+    "mega beedrill": ("Sep 8, 2026", "Sep 15, 2026"),
 }
 
 
@@ -370,18 +377,25 @@ def gate_2_date_valid(name, start_date, end_date, now, date_only, parse_pokebatt
 
     Returns (passed, category, reason).
 
-    A START DATE IS REQUIRED. Without one there is no window, so the entry can be
-    neither placed in a rotation nor confirmed as a one-day event - and the old
-    classifier's `start_date and ...` guard silently defaulted those to "rotation",
-    which is how a dateless Super Mega entry landed in Monthly Rotation.
+    A MISSING START DATE IS NOT DISQUALIFYING. Pokebattler omits the "From" date for a
+    rotation that is ALREADY UNDERWAY - DATE_BLOCK_RE's first group is optional - so the
+    boss currently being fought is precisely the one most likely to arrive without a start.
+    Rejecting those dropped Mega Beedrill's Sep 8-15 slot on the very day it went live.
+
+    This previously returned False to stop a dateless Super Mega entry reaching Monthly
+    Rotation. That job belongs to gate 1, which checks two independent authorities for
+    enhanced raids and runs before this gate - so the guard here was redundant and cost a
+    legitimate rotation. An end date alone still places the boss in a month, which is all
+    this gate needs to decide.
     """
     if not start_date and not end_date:
         return False, None, "no start/end date"
-    if not start_date:
-        return False, None, f"end date ({end_date}) but no start date - window undefined"
 
     # Single calendar day -> event. Anything longer -> monthly rotation.
-    category = "event" if date_only(start_date) == date_only(end_date) else "rotation"
+    # With no start date there is no single-day window to detect, and an already-running
+    # rotation is by definition a rotation, so it is classified as one.
+    category = ("event" if (start_date and date_only(start_date) == date_only(end_date))
+                else "rotation")
 
     end_dt = parse_pokebattler_datetime(end_date) if end_date else None
     if end_dt is not None:

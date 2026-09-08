@@ -507,54 +507,6 @@
     <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
   </div>
 </div>
-
-<script>
-/* Keeps the nav panel open across page navigation.
-
-   Every page load builds a fresh DOM, so the panel is closed by default and the old behaviour
-   also closed it on any outside click. Following a link therefore always dismissed the menu,
-   which made it tedious to move between several pages.
-
-   The open/closed state now lives in sessionStorage - per tab, cleared when the tab closes -
-   and is restored on load. Only the hamburger button toggles it, plus Escape as a keyboard
-   escape hatch.
-
-   Each page already ships its own hamburger handler inline, outside the NAV markers this file
-   is injected between, so those handlers cannot be edited from here. Instead the button is
-   replaced with a clone (which drops the page's listener) and the page's closeHamburger() is
-   neutralised, so the page's own outside-click rule can no longer shut the panel. */
-(function(){
-  var KEY = "sra-nav-open";
-  document.addEventListener("DOMContentLoaded", function(){
-    var panel = document.getElementById("hamburgerPanel");
-    var btn = document.getElementById("hamburgerBtn");
-    if(!panel || !btn) return;
-
-    var fresh = btn.cloneNode(true);
-    btn.parentNode.replaceChild(fresh, btn);
-    btn = fresh;
-
-    if(typeof window.closeHamburger === "function") window.closeHamburger = function(){};
-
-    function setOpen(open){
-      panel.classList.toggle("open", open);
-      btn.setAttribute("aria-expanded", String(open));
-      try { sessionStorage.setItem(KEY, open ? "1" : "0"); } catch(e){ /* private mode */ }
-    }
-
-    btn.addEventListener("click", function(e){
-      e.stopPropagation();
-      setOpen(!panel.classList.contains("open"));
-    });
-
-    document.addEventListener("keydown", function(e){
-      if(e.key === "Escape" && panel.classList.contains("open")) setOpen(false);
-    });
-
-    try { if(sessionStorage.getItem(KEY) === "1") setOpen(true); } catch(e){}
-  });
-})();
-</script>
 <!-- NAV:END -->
 
 <h1 class="site-title">
@@ -1053,12 +1005,19 @@ function groupInCurrentMonth(group){
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-  const start = group.startDate ? new Date(group.startDate) : null;
-  if(!start || isNaN(start)) return false;
-  // endDate missing/invalid degrades to a single-day window at startDate rather than being
-  // dropped outright - a group with real bosses should not vanish over one bad field.
+  const startRaw = group.startDate ? new Date(group.startDate) : null;
   const endRaw = group.endDate ? new Date(group.endDate) : null;
-  const end = (endRaw && !isNaN(endRaw)) ? endRaw : start;
+  const startOk = startRaw && !isNaN(startRaw);
+  const endOk = endRaw && !isNaN(endRaw);
+  // A rotation that is ALREADY RUNNING is published without a start date, so the boss being
+  // fought right now is the one most likely to arrive with only an end. Requiring a start here
+  // hid Mega Beedrill's Sep 8-15 slot on the day it went live. Either bound alone is enough to
+  // place the window in a month; only a group with neither is undecidable.
+  if(!startOk && !endOk) return false;
+  // Each missing bound degrades to the other rather than dropping the group - a group with real
+  // bosses should not vanish over one absent field.
+  const start = startOk ? startRaw : endRaw;
+  const end = endOk ? endRaw : startRaw;
   return !(start > monthEnd || end < monthStart);
 }
 
@@ -1069,17 +1028,15 @@ function formatGroupHeader(startDate, endDate){
     return m ? m[1] : s;
   };
   if(!startDate){
-    // No real start date was matched (this raid was already active before our tracking
-    // began), but rotations consistently run exactly 7 days (confirmed against the real
-    // schedule: Jul 15-21, Jul 22-28, Jul 29-Aug 4 are all 7-day spans). Infer the start
-    // as 6 days before the known end, and format it exactly like a real range - "Live
-    // now through Jul 21" reads as a vague, different kind of label than "Jul 22 - Jul
-    // 28"; showing "Jul 15 - Jul 21" the same way keeps every entry consistent.
-    const end = new Date(endDate);
-    const inferredStart = new Date(end);
-    inferredStart.setDate(end.getDate() - 6);
-    const inferredStartStr = inferredStart.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    return `${inferredStartStr} \u2013 ${shortDate(endDate)}`;
+    // No start date: Pokebattler omits it for a rotation that is already running.
+    //
+    // This used to infer one as (end - 6 days), on the assumption that rotations always span
+    // seven calendar days. They do not. In the live data, Aug 26 - Sep 8 spans 13 days and
+    // Sep 11 - Sep 15 spans 4, and the inference put Mega Beedrill's real Sep 8 start at Sep 9.
+    // A fabricated date that looks exactly like a real one is worse than no date: a reader has
+    // no way to tell which is which. So the end date - the part actually known - is shown on
+    // its own.
+    return `Now \u2013 ${shortDate(endDate)}`;
   }
   const s = shortDate(startDate), e = shortDate(endDate);
   if(s === e) return s;
