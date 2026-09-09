@@ -1296,6 +1296,9 @@ const ANI_OVERRIDES = {
 // A few Origin formes aren't in the animated "ani" set at all - they live as static
 // PNGs in a differently-named directory with no per-Pokemon slug pattern to guess from.
 const ANI_URL_OVERRIDES = {
+  // Self-hosted: the external fallback host sends no CORS header, so the canvas export
+  // ("Copy as image") could not draw it. Same-origin removes that constraint.
+  "mega lucario z": "assets/sprites/lucario-megaz.png",
   "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
   "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
 };
@@ -4226,15 +4229,40 @@ function drawContain(ctx, img, bx, by, bw, bh){
   ctx.drawImage(img, bx + (bw - w) / 2, by + (bh - h) / 2, w, h);
 }
 
+// Canvas export requires CORS: an image drawn without it taints the canvas and toBlob() throws,
+// which would break the copy entirely. A host that does not send access-control-allow-origin
+// therefore cannot be used here at all - it loads fine in the page (no crossOrigin attribute)
+// but fails under crossOrigin="anonymous". Mega Lucario Z's fallback host is one of these, which
+// is why it appeared on the card but not in the copied image.
 function shareLoadImage(src){
   return new Promise(res => {
     if(!src) return res(null);
     const img = new Image();
-    img.crossOrigin = "anonymous";      // sprite CDN sends access-control-allow-origin: *
+    img.crossOrigin = "anonymous";
     img.onload = () => res(img);
     img.onerror = () => res(null);      // a missing sprite must not abort the export
     img.src = src;
   });
+}
+
+// Drawn where a sprite could not be loaded, so the slot reads as "art unavailable" rather than
+// as an accidentally blank card.
+function drawSpritePlaceholder(ctx, name, bx, by, bw, bh, C){
+  ctx.save();
+  ctx.beginPath();
+  const r = 10;
+  ctx.moveTo(bx + r, by);
+  ctx.arcTo(bx + bw, by, bx + bw, by + bh, r); ctx.arcTo(bx + bw, by + bh, bx, by + bh, r);
+  ctx.arcTo(bx, by + bh, bx, by, r); ctx.arcTo(bx, by, bx + bw, by, r);
+  ctx.closePath();
+  ctx.fillStyle = C.line; ctx.fill();
+  ctx.fillStyle = C.dim;
+  ctx.font = "800 20px Manrope, sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const initials = (name || "?").replace(/^(mega|shadow|primal)\s+/i, "").trim().slice(0, 2).toUpperCase();
+  ctx.fillText(initials, bx + bw / 2, by + bh / 2);
+  ctx.restore();
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
 
 async function buildResultShareImage(){
@@ -4274,7 +4302,8 @@ async function buildResultShareImage(){
   d.mons.slice(0, 2).forEach((m, i) => {
     const ox = PAD + 18 + i * half;
     const sp = sprites[i];
-    drawContain(x, sp, ox, PAD + 18, 58, 66);
+    if(sp) drawContain(x, sp, ox, PAD + 18, 58, 66);
+    else drawSpritePlaceholder(x, m.name, ox + 8, PAD + 22, 42, 56, C);
     x.fillStyle = C.text; x.font = "800 17px Manrope, sans-serif";
     x.fillText(m.name, ox + 70, PAD + 40);
     x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";

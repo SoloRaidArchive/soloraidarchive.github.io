@@ -1384,6 +1384,9 @@ const ANI_OVERRIDES = {
   "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
 };
 const ANI_URL_OVERRIDES = {
+  // Self-hosted: the external fallback host sends no CORS header, so the canvas export
+  // ("Copy as image") could not draw it. Same-origin removes that constraint.
+  "mega lucario z": "assets/sprites/lucario-megaz.png",
   "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
   "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
 };
