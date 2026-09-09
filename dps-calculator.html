@@ -1267,6 +1267,10 @@ const ANI_OVERRIDES = {
   "zacian crown": "zacian-crownedsword",
   "zamazenta crown": "zamazenta-crownedshield",
   "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  // Aegislash's two forms. Shield is the CDN's base file, so the generic rule's
+  // "aegislash-shield" 404s; Blade does have its own file. Both confirmed against the CDN.
+  "aegislash shield": "aegislash", "aegislash": "aegislash",
+  "aegislash blade": "aegislash-blade",
   "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
@@ -4024,7 +4028,7 @@ document.getElementById("calcBtn").addEventListener("click", runCalculation);
   if(!wrap) return;
   const btn = document.createElement("button");
   btn.type = "button"; btn.className = "share-result-btn"; btn.id = "shareResultBtn";
-  btn.textContent = "Share as image"; btn.hidden = true;
+  btn.textContent = "Copy as image"; btn.hidden = true;
   btn.addEventListener("click", () => shareResultImage(btn));
   wrap.parentNode.insertBefore(btn, wrap.nextSibling);
   const sync = () => { btn.hidden = !wrap.querySelector(".dps-result-card"); };
@@ -4319,33 +4323,46 @@ async function buildResultShareImage(){
 
 async function shareResultImage(btn){
   const old = btn.textContent;
-  btn.disabled = true; btn.textContent = "Rendering\u2026";
+  btn.disabled = true; btn.textContent = "Copying\u2026";
   try{
+    // Copy straight to the clipboard rather than opening the OS share sheet. The share sheet's
+    // own copy button frequently cannot take a file attachment - it copies a link or nothing -
+    // so "share" was the wrong verb for what people actually wanted here.
+    //
+    // Safari drops the clipboard write if the ClipboardItem is built after an await, because the
+    // user-gesture window has closed by then. Passing a PROMISE of the blob keeps the item
+    // constructed synchronously inside the click, which both Safari and Chrome accept.
+    const supported = typeof ClipboardItem !== "undefined"
+                      && navigator.clipboard && navigator.clipboard.write;
+    if(supported){
+      const blobPromise = (async () => {
+        const cv = await buildResultShareImage();
+        if(!cv) throw new Error("no result to copy");
+        return await new Promise(r => cv.toBlob(r, "image/png"));
+      })();
+      await navigator.clipboard.write([ new ClipboardItem({ "image/png": blobPromise }) ]);
+      btn.textContent = "Copied";
+      return;
+    }
+    // Clipboard image writes need a secure context and are unsupported in some browsers
+    // (notably Firefox by default), so fall back to a download rather than failing.
     const cv = await buildResultShareImage();
     if(!cv){ btn.textContent = "Calculate first"; return; }
     const blob = await new Promise(r => cv.toBlob(r, "image/png"));
-    const file = new File([blob], "solo-raid-archive-result.png", { type: "image/png" });
-    if(navigator.canShare && navigator.canShare({ files: [file] })){
-      await navigator.share({ files: [file], title: "Solo Raid Archive \u2014 DPS result" });
-    }else{
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-    }
-    btn.textContent = "Saved";
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "solo-raid-archive-result.png";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    btn.textContent = "Downloaded";
   }catch(e){
-    console.error("Could not build the share image:", e);
-    btn.textContent = "Couldn\u2019t render";
+    console.error("Could not copy the result image:", e);
+    btn.textContent = "Couldn\u2019t copy";
   }finally{
     setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1800);
   }
 }
 
-
-// The loadout card shows what the matchup IS, but the damage figures on it depend on the
-// modifiers set further down the page - weather, adventure effects, party boosts. Reading the
-// card without them is misleading, and a shared screenshot of it loses the context entirely.
-// This renders the ones actually switched on, and nothing when none are.
 // Same icon files and the same keys the rest of the site uses. The weatherSelect option values
 // ("sunny", "partlycloudy", "extreme"...) already match these keys exactly, so no translation
 // is needed - and if a key ever fails to match, the chip still renders with its label.
@@ -4360,6 +4377,10 @@ const CALC_WEATHER_ICONS = {
   extreme: "assets/icons/weather-extreme.png",
 };
 
+// The loadout card shows what the matchup IS, but the damage figures on it depend on the
+// modifiers set further down the page - weather, adventure effects, party boosts. Reading the
+// card without them is misleading, and a shared screenshot of it loses the context entirely.
+// This renders the ones actually switched on, and nothing when none are.
 function activeConditionsHtml(){
   const chips = [];
   const weatherEl = document.getElementById("weatherSelect");
