@@ -526,6 +526,15 @@ function toDbSlug(name){
   return n.replace(/\s+/g, "-");
 }
 const GOHUB_OVERRIDES = {
+  // The Origin formes have no animated sprite on the CDN - "dialga-origin.gif" and
+  // "palkia-origin.gif" both 404 - so they fall back to the static pogo-256 art. Giratina
+  // Origin does have a .gif, which is why it never showed this problem.
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+  // Mega Lucario Z has no sprite on the mgrann03 CDN - the generic mega rule produces
+  // "lucario-z-mega.gif", which 404s - so it falls back to this hosted image. Same entry
+  // pokemon-stats.html already carried; the other pages were simply missing it.
+  "mega lucario z": "https://i.pokebase.app/pokemongo/reXolE7NB52Hq4WOJE5lO.png",
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
   "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
@@ -544,6 +553,10 @@ const ANI_OVERRIDES = {
   "zacian crown": "zacian-crownedsword",
   "zamazenta crown": "zamazenta-crownedshield",
   "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  // Aegislash's two forms. Shield is the CDN's base file, so the generic rule's
+  // "aegislash-shield" 404s; Blade does have its own file. Both confirmed against the CDN.
+  "aegislash shield": "aegislash", "aegislash": "aegislash",
+  "aegislash blade": "aegislash-blade",
   "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
@@ -566,7 +579,10 @@ const ANI_URL_OVERRIDES = {
 const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
 function monSpriteUrl(name){
   const key = name.trim().toLowerCase();
-  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
+  // Shadow-stripped key tried too, matching the ANI_OVERRIDES lookup below - otherwise
+  // "Shadow Mega Lucario Z" misses the override its base form has.
+  const gohub = GOHUB_OVERRIDES[key] || GOHUB_OVERRIDES[key.replace(/^shadow\s+/, "")];
+  if (gohub) return gohub;
   if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `../../assets/sprites/${slug}.gif`;
