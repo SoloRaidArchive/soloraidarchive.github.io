@@ -1210,6 +1210,9 @@ const DEX_MAP = {
 };
 // Very recent Legends: Z-A Mega Evolutions - use PokemonGoHub direct artwork instead of guessing PokemonDB slugs
 const GOHUB_OVERRIDES = {
+  // Mega Lucario Z has no sprite on the mgrann03 CDN - the generic mega rule produces
+  // "lucario-z-mega.gif", which 404s - so it falls back to this hosted image.
+  "mega lucario z": "https://i.pokebase.app/pokemongo/reXolE7NB52Hq4WOJE5lO.png",
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
   "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
@@ -1317,7 +1320,11 @@ function spriteUrl(name){
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
   const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
-  if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
+  // The shadow-stripped key is tried too, matching how ANI_OVERRIDES is resolved above.
+  // Without it "Shadow Mega Lucario Z" registered no fallback and stayed broken even once the
+  // base form was fixed.
+  const gohub = GOHUB_OVERRIDES[key] || GOHUB_OVERRIDES[key.replace(/^shadow\s+/, "")];
+  if (gohub) SPRITE_FALLBACK[url] = gohub;
   return url;
 }
 
@@ -4204,6 +4211,16 @@ function shareCardData(){
   };
 }
 
+// Draw an image scaled to FIT a box while keeping its aspect ratio, centred. Sprites vary
+// wildly - Mega Lucario is 58x101, Regieleki 181x98 - so drawing them into a fixed square
+// stretched every one of them. This is the canvas equivalent of object-fit: contain.
+function drawContain(ctx, img, bx, by, bw, bh){
+  if(!img || !img.naturalWidth) return;
+  const scale = Math.min(bw / img.naturalWidth, bh / img.naturalHeight);
+  const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+  ctx.drawImage(img, bx + (bw - w) / 2, by + (bh - h) / 2, w, h);
+}
+
 function shareLoadImage(src){
   return new Promise(res => {
     if(!src) return res(null);
@@ -4252,7 +4269,7 @@ async function buildResultShareImage(){
   d.mons.slice(0, 2).forEach((m, i) => {
     const ox = PAD + 18 + i * half;
     const sp = sprites[i];
-    if(sp) x.drawImage(sp, ox, PAD + 22, 58, 58);
+    drawContain(x, sp, ox, PAD + 18, 58, 66);
     x.fillStyle = C.text; x.font = "800 17px Manrope, sans-serif";
     x.fillText(m.name, ox + 70, PAD + 40);
     x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";

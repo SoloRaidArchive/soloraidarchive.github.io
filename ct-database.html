@@ -1076,6 +1076,10 @@ const DEX_MAP = {
 };
 
 const GOHUB_OVERRIDES = {
+  // Mega Lucario Z has no sprite on the mgrann03 CDN - the generic mega rule produces
+  // "lucario-z-mega.gif", which 404s - so it falls back to this hosted image. Same entry
+  // pokemon-stats.html already carried; the other pages were simply missing it.
+  "mega lucario z": "https://i.pokebase.app/pokemongo/reXolE7NB52Hq4WOJE5lO.png",
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
   "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
@@ -1143,6 +1147,10 @@ const ANI_OVERRIDES = {
   "zacian crown": "zacian-crownedsword",
   "zamazenta crown": "zamazenta-crownedshield",
   "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  // Aegislash's two forms. Shield is the CDN's base file, so the generic rule's
+  // "aegislash-shield" 404s; Blade does have its own file. Both confirmed against the CDN.
+  "aegislash shield": "aegislash", "aegislash": "aegislash",
+  "aegislash blade": "aegislash-blade",
   "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
@@ -1189,7 +1197,11 @@ function spriteUrl(name){
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
   const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
-  if (GOHUB_OVERRIDES[key]) SPRITE_FALLBACK[url] = GOHUB_OVERRIDES[key];
+  // The shadow-stripped key is tried too, matching how ANI_OVERRIDES is resolved above.
+  // Without it "Shadow Mega Lucario Z" registered no fallback and stayed broken even once the
+  // base form was fixed.
+  const gohub = GOHUB_OVERRIDES[key] || GOHUB_OVERRIDES[key.replace(/^shadow\s+/, "")];
+  if (gohub) SPRITE_FALLBACK[url] = gohub;
   return url;
 }
 
