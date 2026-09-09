@@ -524,6 +524,15 @@
 
   .empty-result{ text-align:center; color: var(--text-dim); font-weight:700; padding: 30px; font-size:13px; }
 
+  .share-result-btn{
+    display:block; margin:14px auto 0; appearance:none; cursor:pointer;
+    padding:9px 20px; min-height:38px; border-radius:999px;
+    border:2px solid var(--border); background: var(--card); color: var(--text-dim);
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px;
+  }
+  .share-result-btn:hover:not(:disabled){ border-color: var(--blue); color: var(--blue-dark); }
+  .share-result-btn:disabled{ opacity:.6; cursor:default; }
+  .share-result-btn[hidden]{ display:none; }
   .dps-result-card{
     background: var(--card); border:2px solid var(--border); border-radius:18px;
     padding: 24px 22px; text-align:center;
@@ -567,6 +576,28 @@
   .loadout-role{ font-size:12px; color: var(--text-dim); font-weight:700; margin:2px 0 6px; }
   .loadout-stats{ display:flex; gap:14px; font-family:'IBM Plex Mono', monospace; font-size:14px; color: var(--text-muted); }
   .loadout-stats b{ color: var(--text); font-size:15px; }
+  /* Conditions the figures above were calculated under, across the foot of the loadout card. */
+  /* .loadout-card is a flex row, so this must claim the full width or it becomes a third
+     column sitting beside the two Pokemon instead of a band underneath them. */
+  .loadout-conds{
+    flex:0 0 100%; width:100%; order:99;
+    display:flex; flex-wrap:wrap; gap:6px; justify-content:center;
+    padding:10px 4px 0; margin-top:10px; border-top:1px solid var(--border);
+  }
+  .loadout-cond{
+    display:inline-flex; align-items:center; gap:5px;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:10.5px;
+    padding:3px 9px; border-radius:999px; white-space:nowrap;
+    background: var(--bg1); color: var(--text-dim); border:1px solid var(--border);
+  }
+  /* The weather icons are full-colour art, so they are not tinted - only sized to the chip. */
+  .loadout-cond-icon{ width:14px; height:14px; object-fit:contain; flex:none; }
+  .loadout-cond.weather{ border-color:#8fbfe8; color:#2b7fd6; }
+  .loadout-cond.ae{ border-color:#e8b45c; color:#b3781a; }
+  .loadout-cond.boost{ border-color:#a8d5a2; color:#2f7a3a; }
+  [data-theme="dark"] .loadout-cond.weather{ color:#8cc7ff; }
+  [data-theme="dark"] .loadout-cond.ae{ color:#ffc94a; }
+  [data-theme="dark"] .loadout-cond.boost{ color:#7fd08f; }
   .loadout-dmg-line{
     margin-top:6px; font-size:12px; font-weight:700; color: var(--text-dim);
   }
@@ -2423,6 +2454,7 @@ function runCalculation(){
             ${cadenceFMOnly ? "" : `<div class="loadout-dmg-line">${bossCMMove.n} <b>${bossCMDamage}</b>${dodgeCM ? " dodged" : ""} per charge taken</div>`}
           </div>
         </div>
+        ${activeConditionsHtml()}
       </div>
     `;
 
@@ -2438,7 +2470,7 @@ function runCalculation(){
           <tbody>
             <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Rotation</th></tr>
             <tr><td>Sequence</td><td>${mdRotationLabel}</td></tr>
-            <tr><td>Duration</td><td>${mdSeconds.toFixed(2)}s <span class="dps-stat-sub">(${mdTotalTicks.toFixed(1)}t)</span></td></tr>
+            <tr><td>Duration</td><td>${formatTime(mdSeconds, mdTotalTicks)}</td></tr>
             <tr><td>Uptime</td><td>${mdUptimePct.toFixed(0)}%</td></tr>
 
             <tr><td>Total damage</td><td>${mdTotalDamage.toFixed(0)}</td></tr>
@@ -2498,7 +2530,7 @@ function runCalculation(){
           <tbody>
             <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Rotation</th></tr>
             <tr><td>Sequence</td><td>${mdBestRow.taps} &times; ${fm.n} &rarr; ${cm.n}${numCM > 1 ? ` <span class="dps-stat-sub">${numCM} casts</span>` : ""}</td></tr>
-            <tr><td>Duration</td><td>${mdBestRow.seconds.toFixed(2)}s <span class="dps-stat-sub">(${mdBestRow.ticks.toFixed(1)}t)</span></td></tr>
+            <tr><td>Duration</td><td>${formatTime(mdBestRow.seconds, mdBestRow.ticks)}</td></tr>
             <tr><td>Uptime</td><td>${mdBestRow.uptimePct.toFixed(0)}%</td></tr>
             <tr><td>Total damage</td><td>${mdBestRow.totalDamage.toFixed(0)}</td></tr>
             <tr class="dps-stat-group dps-group-survive"><th colspan="2">Survivability / TDO</th></tr>
@@ -3985,6 +4017,21 @@ function autoSetEffectiveness(){
 
 document.getElementById("calcBtn").addEventListener("click", runCalculation);
 
+// Share button, appended after the results. Created once; visibility follows whether a result
+// card is currently rendered, so it cannot be clicked when there is nothing to capture.
+(function(){
+  const wrap = document.getElementById("resultsWrap");
+  if(!wrap) return;
+  const btn = document.createElement("button");
+  btn.type = "button"; btn.className = "share-result-btn"; btn.id = "shareResultBtn";
+  btn.textContent = "Share as image"; btn.hidden = true;
+  btn.addEventListener("click", () => shareResultImage(btn));
+  wrap.parentNode.insertBefore(btn, wrap.nextSibling);
+  const sync = () => { btn.hidden = !wrap.querySelector(".dps-result-card"); };
+  new MutationObserver(sync).observe(wrap, { childList: true, subtree: true });
+  sync();
+})();
+
 // ============ SHAREABLE SETUP URLS ============
 // Reuses the exact same captureSetup()/applySetup() machinery already used for the local
 // "Recent Setups" history feature - the only difference is where the setup object is stored
@@ -4114,6 +4161,243 @@ document.getElementById("ctModeSingle").addEventListener("change", updateCTMode)
 document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);
 document.getElementById("cadenceMode").addEventListener("change", updateCadenceMode);
 updateCadenceMode();
+
+
+// ============ SHARE THE RESULT AS AN IMAGE ============
+// Drawn onto a canvas rather than screenshotting the DOM: there is no html2canvas dependency,
+// the output is deterministic, and it can use a layout suited to a shared image (fixed width,
+// no controls) instead of the page's. Values are READ BACK from the rendered card rather than
+// recomputed, so the picture can never disagree with what is on screen.
+function shareCardData(){
+  const wrap = document.getElementById("resultsWrap");
+  const card = wrap && wrap.querySelector(".dps-result-card");
+  if(!card) return null;
+  const txt = el => (el ? el.textContent.replace(/\s+/g, " ").trim() : "");
+  const mons = [...wrap.querySelectorAll(".loadout-pokemon")].map(m => ({
+    name: txt(m.querySelector(".loadout-name")),
+    role: txt(m.querySelector(".loadout-role")),
+    stats: [...m.querySelectorAll(".loadout-stats span, .loadout-stats div")].map(txt).filter(Boolean),
+    moves: [...m.querySelectorAll(".loadout-dmg-line")].map(txt),
+    sprite: (m.querySelector("img") || {}).src || "",
+  }));
+  const rows = [];
+  card.querySelectorAll(".dps-stat-table tr").forEach(tr => {
+    const th = tr.querySelector("th"), td = tr.querySelectorAll("td");
+    if(th) rows.push({ group: txt(th) });
+    else if(td.length === 2) rows.push({ k: txt(td[0]), v: txt(td[1]) });
+  });
+  // Conditions travel with the image: a shared result without its weather and effects is
+  // ambiguous, and the reader has no page to look at.
+  // Icon src travels with the label so the canvas can draw the same weather art the card shows.
+  const conds = [...wrap.querySelectorAll(".loadout-cond")].map(c => {
+    const img = c.querySelector("img");
+    return { label: txt(c), icon: img ? img.src : "" };
+  }).filter(c => c.label);
+  return {
+    label: txt(card.querySelector(".dps-result-label")),
+    dps: txt(card.querySelector(".dps-result-value")),
+    mons, rows, conds,
+  };
+}
+
+function shareLoadImage(src){
+  return new Promise(res => {
+    if(!src) return res(null);
+    const img = new Image();
+    img.crossOrigin = "anonymous";      // sprite CDN sends access-control-allow-origin: *
+    img.onload = () => res(img);
+    img.onerror = () => res(null);      // a missing sprite must not abort the export
+    img.src = src;
+  });
+}
+
+async function buildResultShareImage(){
+  const d = shareCardData();
+  if(!d) return null;
+  const dark = document.documentElement.getAttribute("data-theme") === "dark";
+  const C = dark
+    ? { bg:"#151926", card:"#1c2030", line:"#323850", text:"#eef1f7", dim:"#a7afc0", accent:"#5aa9ff" }
+    : { bg:"#f4f6fa", card:"#ffffff", line:"#e7edf5", text:"#2d3142", dim:"#5f6675", accent:"#2b7fd6" };
+
+  const W = 900, PAD = 30;
+  const rowH = 34;
+  const condH = (d.conds && d.conds.length) ? 30 : 0;
+  const headH = 118 + condH;
+  const bodyH = d.rows.reduce((s, r) => s + (r.group ? 30 : rowH), 0);
+  const H = PAD + headH + 74 + bodyH + PAD + 34;
+
+  const cv = document.createElement("canvas");
+  const dpr = 2;
+  cv.width = W * dpr; cv.height = H * dpr;
+  const x = cv.getContext("2d");
+  x.scale(dpr, dpr);
+  x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
+
+  const rr = (px, py, w, h, r) => {
+    x.beginPath(); x.moveTo(px + r, py);
+    x.arcTo(px + w, py, px + w, py + h, r); x.arcTo(px + w, py + h, px, py + h, r);
+    x.arcTo(px, py + h, px, py, r); x.arcTo(px, py, px + w, py, r); x.closePath();
+  };
+
+  // loadout strip
+  rr(PAD, PAD, W - PAD * 2, headH, 14); x.fillStyle = C.card; x.fill();
+  x.strokeStyle = C.line; x.lineWidth = 1.5; x.stroke();
+
+  const sprites = await Promise.all(d.mons.map(m => shareLoadImage(m.sprite)));
+  const half = (W - PAD * 2) / 2;
+  d.mons.slice(0, 2).forEach((m, i) => {
+    const ox = PAD + 18 + i * half;
+    const sp = sprites[i];
+    if(sp) x.drawImage(sp, ox, PAD + 22, 58, 58);
+    x.fillStyle = C.text; x.font = "800 17px Manrope, sans-serif";
+    x.fillText(m.name, ox + 70, PAD + 40);
+    x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";
+    x.fillText(m.role, ox + 70, PAD + 57);
+    x.fillText(m.stats.join("   ").slice(0, 46), ox + 70, PAD + 74);
+    x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";
+    (m.moves || []).slice(0, 2).forEach((mv, j) => x.fillText(mv.slice(0, 44), ox + 70, PAD + 92 + j * 15));
+  });
+  if(d.mons.length > 1){
+    x.fillStyle = C.dim; x.font = "800 12px Manrope, sans-serif";
+    x.fillText("VS", PAD + half - 10, PAD + (headH - condH) / 2 + 4);
+  }
+
+  if(condH){
+    // Icons are fetched alongside the sprites so they are ready before anything is drawn.
+    const condIcons = await Promise.all(d.conds.map(c => shareLoadImage(c.icon)));
+    let cx = PAD + 18;
+    const cy = PAD + headH - 22;
+    x.font = "800 11px Manrope, sans-serif";
+    d.conds.forEach((c, i) => {
+      const ico = condIcons[i];
+      const iconW = ico ? 18 : 0;
+      const w = x.measureText(c.label).width + 18 + iconW;
+      if(cx + w > W - PAD - 18) return;      // drop any that would overflow rather than clipping
+      rr(cx, cy - 12, w, 20, 10);
+      x.fillStyle = C.line; x.fill();
+      if(ico) x.drawImage(ico, cx + 7, cy - 8, 13, 13);
+      x.fillStyle = C.dim;
+      x.fillText(c.label, cx + 9 + iconW, cy + 3);
+      cx += w + 6;
+    });
+  }
+
+  // headline
+  let y = PAD + headH + 16;
+  x.textAlign = "center";
+  x.fillStyle = C.dim; x.font = "800 12px Manrope, sans-serif";
+  x.fillText(d.label.toUpperCase(), W / 2, y + 12);
+  x.fillStyle = C.accent; x.font = "900 40px Manrope, sans-serif";
+  x.fillText(d.dps, W / 2, y + 54);
+  x.textAlign = "left";
+  y += 74;
+
+  // stat rows
+  const tX = PAD + 60, tW = W - PAD * 2 - 120;
+  d.rows.forEach(r => {
+    if(r.group){
+      x.fillStyle = C.dim; x.font = "800 10px Manrope, sans-serif";
+      x.fillText(r.group.toUpperCase(), tX, y + 20);
+      y += 30;
+      return;
+    }
+    x.strokeStyle = C.line; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(tX, y); x.lineTo(tX + tW, y); x.stroke();
+    x.fillStyle = C.dim; x.font = "600 13px Inter, sans-serif";
+    x.fillText(r.k, tX, y + 22);
+    x.fillStyle = C.text; x.font = "800 13px Manrope, sans-serif";
+    x.textAlign = "right";
+    x.fillText(r.v, tX + tW, y + 22);
+    x.textAlign = "left";
+    y += rowH;
+  });
+
+  x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";
+  x.fillText("soloraidarchive.github.io", PAD, H - 16);
+  return cv;
+}
+
+async function shareResultImage(btn){
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = "Rendering\u2026";
+  try{
+    const cv = await buildResultShareImage();
+    if(!cv){ btn.textContent = "Calculate first"; return; }
+    const blob = await new Promise(r => cv.toBlob(r, "image/png"));
+    const file = new File([blob], "solo-raid-archive-result.png", { type: "image/png" });
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      await navigator.share({ files: [file], title: "Solo Raid Archive \u2014 DPS result" });
+    }else{
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    }
+    btn.textContent = "Saved";
+  }catch(e){
+    console.error("Could not build the share image:", e);
+    btn.textContent = "Couldn\u2019t render";
+  }finally{
+    setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1800);
+  }
+}
+
+
+// The loadout card shows what the matchup IS, but the damage figures on it depend on the
+// modifiers set further down the page - weather, adventure effects, party boosts. Reading the
+// card without them is misleading, and a shared screenshot of it loses the context entirely.
+// This renders the ones actually switched on, and nothing when none are.
+// Same icon files and the same keys the rest of the site uses. The weatherSelect option values
+// ("sunny", "partlycloudy", "extreme"...) already match these keys exactly, so no translation
+// is needed - and if a key ever fails to match, the chip still renders with its label.
+const CALC_WEATHER_ICONS = {
+  clear: "assets/icons/weather-clear.png", sunny: "assets/icons/weather-clear.png",
+  cloudy: "assets/icons/weather-cloudy.png",
+  partlycloudy: "assets/icons/weather-partly-cloudy.png",
+  windy: "assets/icons/weather-windy.png",
+  rain: "assets/icons/weather-rain.png",
+  snow: "assets/icons/weather-snow.png",
+  fog: "assets/icons/weather-fog.png",
+  extreme: "assets/icons/weather-extreme.png",
+};
+
+function activeConditionsHtml(){
+  const chips = [];
+  const weatherEl = document.getElementById("weatherSelect");
+  const weather = weatherEl ? weatherEl.value : "";
+  const wName = weatherEl && weatherEl.selectedOptions[0] ? weatherEl.selectedOptions[0].textContent.trim() : "";
+  // "Extreme"/none is the no-boost case; it is shown too, because "no weather boost" is a real
+  // and load-bearing condition rather than an absent one.
+  if(wName){
+    const icon = CALC_WEATHER_ICONS[(weather || "").trim().toLowerCase()];
+    chips.push({
+      label: wName, kind: "weather",
+      // onerror removes just the image, so a missing file leaves the labelled chip intact.
+      icon: icon ? `<img class="loadout-cond-icon" src="${icon}" alt="" loading="lazy" onerror="this.remove();">` : "",
+    });
+  }
+
+  const on = (id) => { const e = document.getElementById(id); return e && e.checked; };
+  if(on("zacianBlade"))  chips.push({ label: "Blade Boost", kind: "ae" });
+  if(on("shieldAE"))     chips.push({ label: "Shield Boost", kind: "ae" });
+  if(on("dynamicPunch")) chips.push({ label: "Dynamic Punch+", kind: "ae" });
+  if(on("partyPower"))   chips.push({ label: "Party Power", kind: "boost" });
+  if(on("t7Enraged"))    chips.push({ label: "Enraged", kind: "boost" });
+
+  const pm = document.getElementById("primalMega");
+  if(pm && parseFloat(pm.value) !== 1){
+    const txt = pm.selectedOptions[0] ? pm.selectedOptions[0].textContent.trim() : "Mega support";
+    chips.push({ label: txt, kind: "boost" });
+  }
+  const fr = document.getElementById("friendship");
+  if(fr && parseFloat(fr.value) !== 1){
+    const txt = fr.selectedOptions[0] ? fr.selectedOptions[0].textContent.trim() : "Friendship";
+    chips.push({ label: txt, kind: "boost" });
+  }
+  if(!chips.length) return "";
+  return `<div class="loadout-conds">` +
+    chips.map(c => `<span class="loadout-cond ${c.kind}">${c.icon || ""}${c.label}</span>`).join("") +
+    `</div>`;
+}
 
 function getDurationUnit(){
   return document.getElementById("durationUnitTicks").checked ? "ticks" : "seconds";

@@ -278,6 +278,15 @@ header{ padding: 12px 24px 10px; text-align:center; }
     width:min(860px, 100%); max-height:88vh; display:flex; flex-direction:column;
     box-shadow:0 12px 40px rgba(20,24,38,0.25); overflow:hidden;
   }
+  /* On a laptop or desktop there is room to let every row sit on one line. At 860px the moveset
+     cell wrapped - "Hidden Power Ground / Giga Impact" plus the weather and effect icons does not
+     fit - which made the table hard to scan. Tablets and phones keep the original width. */
+  @media (min-width: 1100px){
+    .entries-modal{ width:min(1240px, 94vw); }
+  }
+  @media (min-width: 1500px){
+    .entries-modal{ width:min(1360px, 90vw); }
+  }
   .entries-head{
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:14px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0;
@@ -293,6 +302,11 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .entries-close{ background:none; border:none; font-size:26px; line-height:1; cursor:pointer; color: var(--ink-dim); padding:0 4px; }
   .entries-scroll{ overflow:auto; flex:1; }
   .entries-table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  /* Weather and Effect: narrow icon columns, never wrapped. Splitting them out of the moveset
+     cell is what lets a row sit on one line - previously the icons trailed the moveset text and
+     pushed it onto a second line at the old 860px width. */
+  .entries-table .col-cond{ width:1%; white-space:nowrap; text-align:center; }
+  .cond-none{ color: var(--ink-dim); opacity:.5; }
   .entries-table th{
     position:sticky; top:0; background: var(--card); text-align:left; font-family:'Manrope', sans-serif;
     font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:0.04em;
@@ -361,7 +375,12 @@ header{ padding: 12px 24px 10px; text-align:center; }
     .entries-boss-name{ display:none; }
     .col-used, .col-build{ display:none; }
     .entries-table th, .entries-table td{ padding:6px 5px; font-size:10.5px; }
-    .entries-table th{ white-space:normal; }
+    /* Weather and Effect: narrow icon columns, never wrapped. Splitting them out of the moveset
+     cell is what lets a row sit on one line - previously the icons trailed the moveset text and
+     pushed it onto a second line at the old 860px width. */
+  .entries-table .col-cond{ width:1%; white-space:nowrap; text-align:center; }
+  .cond-none{ color: var(--ink-dim); opacity:.5; }
+  .entries-table th{ white-space:normal; }
     .entries-table{ table-layout:fixed; width:100%; }
     .entries-table td:nth-child(5), .entries-table th:nth-child(5){ width:52px; }
     /* Individual move names stay unbroken, but the cell may wrap BETWEEN them. The longest
@@ -2413,11 +2432,13 @@ function entriesTableRowsHtml(m, sort, priorities){
         <span class="entries-boss-icon"><img class="${needsShadowMist(e.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(e.boss)}" alt="${escapeHtml(e.boss)}" title="${escapeHtml(e.boss)}" loading="lazy" onerror="this.parentElement.classList.add('no-sprite'); this.parentElement.textContent='${escapeHtml(e.boss).slice(0,2)}';"></span>
         <span class="entries-boss-name">${escapeHtml(e.boss)}</span>
       </td>
-      <td class="dim">${movesetHtml(e.bossMoveset || "")} <span class="ct-pick-conds">${weatherIcon(e.weather || "")}${boostIconsHtml(e)}${doubleCTBadgeHtml(e)}</span></td>
+      <td class="dim">${movesetHtml(e.bossMoveset || "")}</td>
+      <td class="dim col-cond"><span class="ct-pick-conds">${weatherIcon(e.weather || "")}</span></td>
+      <td class="dim col-cond"><span class="ct-pick-conds">${boostIconsHtml(e) || '<span class="cond-none">&mdash;</span>'}${doubleCTBadgeHtml(e)}</span></td>
       <td class="dim col-used">${movesetHtml(e.playerMoveset || "")}</td>
       <td class="dim col-build">Lv ${escapeHtml(e.level)} &middot; ${escapeHtml(e.ivs || "")}</td>
       <td class="num"><b>${parseFloat(e.ctDPS).toFixed(1)}</b></td>
-    </tr>${entryDetailRowHtml(e, 5)}`).join("");
+    </tr>${entryDetailRowHtml(e, 7)}`).join("");
 }
 
 // Boss-side equivalent: same shell, but pivoted - the boss is fixed, so the first column is the
@@ -2448,11 +2469,13 @@ function openBossEntriesTable(idx){
           <span class="entries-boss-icon"><img class="${needsShadowMist(e.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(e.pokemon)}" alt="${escapeHtml(e.pokemon)}" title="${escapeHtml(e.pokemon)}" loading="lazy" onerror="this.parentElement.classList.add('no-sprite'); this.parentElement.textContent='${escapeHtml(e.pokemon).slice(0,2)}';"></span>
           <span class="entries-boss-name">${escapeHtml(e.pokemon)}</span>
         </td>
-        <td class="dim">${movesetHtml(e.bossMoveset || "")} <span class="ct-pick-conds">${weatherIcon(e.weather || "")}${boostIconsHtml(e)}${doubleCTBadgeHtml(e)}</span></td>
+        <td class="dim">${movesetHtml(e.bossMoveset || "")}</td>
+        <td class="dim col-cond"><span class="ct-pick-conds">${weatherIcon(e.weather || "")}</span></td>
+        <td class="dim col-cond"><span class="ct-pick-conds">${boostIconsHtml(e) || '<span class="cond-none">&mdash;</span>'}${doubleCTBadgeHtml(e)}</span></td>
         <td class="dim col-used">${movesetHtml(e.playerMoveset || "")}</td>
         <td class="dim col-build">Lv ${escapeHtml(e.level)} &middot; ${escapeHtml(e.ivs || "")}</td>
         <td class="num"><b>${parseFloat(e.ctDPS).toFixed(1)}</b></td>
-      </tr>${entryDetailRowHtml(e, 5)}`).join("");
+      </tr>${entryDetailRowHtml(e, 7)}`).join("");
   };
 
   const overlay = document.createElement("div");
@@ -2480,7 +2503,7 @@ function openBossEntriesTable(idx){
       <div class="entries-scroll">
         <table class="entries-table">
           <thead>
-            <tr><th>Catch tank</th><th>Boss moveset</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
+            <tr><th>Catch tank</th><th>Boss moveset</th><th class="col-cond">Weather</th><th class="col-cond">Effect</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -2532,7 +2555,7 @@ function openEntriesTable(idx){
       <div class="entries-scroll">
         <table class="entries-table">
           <thead>
-            <tr><th>Boss</th><th>Boss moveset</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
+            <tr><th>Boss</th><th>Boss moveset</th><th class="col-cond">Weather</th><th class="col-cond">Effect</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
           </thead>
           <tbody></tbody>
         </table>
