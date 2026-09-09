@@ -1076,6 +1076,11 @@ const DEX_MAP = {
 };
 
 const GOHUB_OVERRIDES = {
+  // The Origin formes have no animated sprite on the CDN - "dialga-origin.gif" and
+  // "palkia-origin.gif" both 404 - so they fall back to the static pogo-256 art. Giratina
+  // Origin does have a .gif, which is why it never showed this problem.
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
   // Mega Lucario Z has no sprite on the mgrann03 CDN - the generic mega rule produces
   // "lucario-z-mega.gif", which 404s - so it falls back to this hosted image. Same entry
   // pokemon-stats.html already carried; the other pages were simply missing it.
