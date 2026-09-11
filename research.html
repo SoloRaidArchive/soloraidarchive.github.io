@@ -117,6 +117,11 @@
      as a separate band rather than the same red twice. S- stays with S. */
   /* Named tiers above the letters get their own colours, ordered light-to-dark so the ramp keeps
      reading downward. Falls back to purple for any other name-based rank. */
+  /* Apex: the tier that replaced the former Mega Ray / Mega X / Mega Y bands. Without an
+     explicit colour it fell through to no background at all - white label text on a white rail,
+     so the band looked empty. */
+  .tier-APEX .tier-label{ background:#1f6feb; }
+  .tier-info-badge.tier-APEX{ background:#1f6feb; }
   .tier-MegaRay .tier-label{ background:#a8d5a2; color:#1e3a1c; }  /* pale green - needs dark text */
   .tier-MegaX   .tier-label{ background:#7b1f2b; }                 /* maroon */
   .tier-MegaY   .tier-label{ background:#c2185b; }                 /* dark pink */
@@ -168,6 +173,34 @@
   .tier-mon-fallback{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:10.5px; color: var(--text-dim);
     max-width:74px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  /* Desktop and laptop only: the board is capped at 900px, which on a wide screen wastes half
+     the window and forces 15 rows of tiny 30px sprites. Widening lets each band pack more per
+     row, and the rows saved pay for larger sprites.
+
+     Measured with the current 92-entry list (13 tiers incl. Apex):
+        900px  / 30px sprite -> 15 rows, 926px tall   (today)
+       1200px  / 40px sprite -> 13 rows, 964px
+       1400px  / 40px sprite -> 12 rows, 908px        <- shorter AND bigger than today
+       1400px  / 44px sprite -> 12 rows, 956px        <- +30px for a 47% larger sprite
+     Past 1400px nothing improves: 12 rows is the floor, since most bands already fit one row.
+     Tablet and phone keep the existing 900px/30px layout untouched. */
+  @media (min-width: 1280px){
+    #tierContainer{ max-width:1200px; }
+    /* Only the sprite grows. Enlarging the type chip or the gaps widens every card, which cost
+       a whole row and more than cancelled the gain - measured at 1038px vs 956px. */
+    .tier-mon img{ width:40px; height:40px; }
+  }
+  /* A 1440px laptop is the most common desktop size and was falling into the 1200px band, so
+     the step is placed at 1440 with the container held 80px inside the viewport. */
+  @media (min-width: 1440px){
+    #tierContainer{ max-width:min(1400px, calc(100vw - 48px)); }
+    /* 44px is a hard ceiling, not a preference. The 13-entry B band is the binding constraint:
+       at 45px it tips onto a second row, which costs more height than the bigger sprite gains
+       (874px -> 945px). Tightening the card padding was tried and moved the cliff by 3px, so it
+       was dropped as complexity for nothing. */
+    .tier-mon img{ width:44px; height:44px; }
+    .tier-label{ min-width:52px; font-size:16px; }
   }
   .tier-mon-caret{
     width:0; height:0; margin-left:1px; flex:none;
