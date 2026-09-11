@@ -189,7 +189,9 @@
     #tierContainer{ max-width:1200px; }
     /* Only the sprite grows. Enlarging the type chip or the gaps widens every card, which cost
        a whole row and more than cancelled the gain - measured at 1038px vs 956px. */
-    .tier-mon img{ width:40px; height:40px; }
+    /* Direct child only: ".tier-mon img" also matches the type icon nested in .tier-mon-type,
+       and since these rules come later in the sheet they silently overrode its 12px size. */
+    .tier-mon > img{ width:42px; height:42px; }
   }
   /* A 1440px laptop is the most common desktop size and was falling into the 1200px band, so
      the step is placed at 1440 with the container held 80px inside the viewport. */
@@ -199,13 +201,30 @@
        at 45px it tips onto a second row, which costs more height than the bigger sprite gains
        (874px -> 945px). Tightening the card padding was tried and moved the cliff by 3px, so it
        was dropped as complexity for nothing. */
-    .tier-mon img{ width:44px; height:44px; }
+    /* 48px: removing the caret freed 12px per card, which lifted the B-band ceiling from 44px
+       to 57px. 48px is chosen rather than the maximum because the board stays at 921px - still
+       under the original 926px - so the larger sprite costs no height at all. 52px and 56px also
+       fit on 11 rows if the extra 39px / 83px is ever worth trading. */
+    .tier-mon > img{ width:48px; height:48px; }
     .tier-label{ min-width:52px; font-size:16px; }
   }
-  .tier-mon-caret{
-    width:0; height:0; margin-left:1px; flex:none;
-    border-left:3.5px solid transparent; border-right:3.5px solid transparent;
-    border-top:4.5px solid var(--text-dim); transition: transform .15s ease;
+  /* No caret. It cost ~14px on every card - which is what kept the 13-entry B band from
+     fitting a larger sprite - and a static arrow on 91 cards is visual noise. Clickability is
+     signalled on hover instead: the card lifts, brightens and glows. */
+  .tier-mon{ transition: border-color .14s ease, box-shadow .14s ease, transform .14s ease; }
+  .tier-mon:hover{
+    border-color: var(--blue);
+    box-shadow: 0 0 0 1px var(--blue), 0 3px 10px rgba(61,157,255,0.30);
+    transform: translateY(-1px);
+  }
+  .tier-mon:focus-visible{
+    outline:none; border-color: var(--blue);
+    box-shadow: 0 0 0 2px var(--blue), 0 3px 10px rgba(61,157,255,0.30);
+  }
+  /* Shadow entries keep their purple identity on hover rather than turning blue. */
+  .tier-mon.is-shadow:hover{
+    border-color:#9d5ae0;
+    box-shadow: 0 0 0 1px #9d5ae0, 0 3px 12px rgba(157,90,224,0.45);
   }
   /* Popup for a tier entry. Same overlay and dismissal as the usage modal, but sized to a single
      card - it is a detail view, not a table, so a full-width sheet would be mostly empty. */
@@ -1915,7 +1934,6 @@ function renderTierList(){
             <span class="tier-mon-type" style="background:${TYPE_COLORS[m.type] || TYPE_COLORS.unknown};"
                   title="${m.type}"><img src="${TYPE_ICON_BASE}${m.type}.svg" alt="${m.type}"
                   loading="lazy" onerror="this.remove();"></span>
-            <span class="tier-mon-caret" aria-hidden="true"></span>
           </button>`).join("")}
       </div>
     </div>`).join("");
