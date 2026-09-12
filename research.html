@@ -1928,8 +1928,10 @@ function renderTierList(){
         ${byTier.get(tier).map(m => `
           <button type="button" class="tier-mon${needsShadowMist(m.name) ? " is-shadow" : ""}" data-idx="${rows.indexOf(m)}"
                   aria-haspopup="dialog" title="${m.name}">
-            <img class="${needsShadowMist(m.name) ? 'shadow-mist' : ''}" src="${spriteUrl(m.name)}"
-                 alt="" loading="lazy"
+            <img class="${needsShadowMist(m.name) ? 'shadow-mist' : ''}"
+                 ${SPRITE_IO ? `src="${SPRITE_BLANK}" data-src="${spriteUrl(m.name)}"`
+                             : `src="${spriteUrl(m.name)}" loading="lazy"`}
+                 alt="" width="48" height="48" decoding="async"
                  onerror="if(!trySpriteShadowFallback(this, '${m.name.replace(/'/g, "\\'")}')) { this.replaceWith(Object.assign(document.createElement('span'), { className: 'tier-mon-fallback', textContent: '${m.name.replace(/'/g, "\\'")}'.slice(0, 12) })); }">
             <span class="tier-mon-type" style="background:${TYPE_COLORS[m.type] || TYPE_COLORS.unknown};"
                   title="${m.type}"><img src="${TYPE_ICON_BASE}${m.type}.svg" alt="${m.type}"
@@ -1937,6 +1939,10 @@ function renderTierList(){
           </button>`).join("")}
       </div>
     </div>`).join("");
+
+  // Same deferred loading as the leaderboard: the board rebuilds on every type-chip click,
+  // so sprites that were never fetched have to be re-observed each time.
+  observeSprites(el);
 }
 
 // Info panel open/close. This and its listener were deleted by an earlier positional edit that
@@ -2529,6 +2535,39 @@ function lbMovesetsHtml(instances){
     <span class="lb-set">${lbMoveChipHtml(m.fast)}<span class="lb-mv-sep">/</span>${lbMoveChipHtml(m.charge)}<span class="lb-set-count">&times;${m.count}</span></span>`).join("")}</div>`;
 }
 
+
+// ============ DEFERRED SPRITE LOADING ============
+// Native loading="lazy" has a very generous threshold - measured on this page it fetched 59 of
+// 98 sprites when only 24 were on screen, which is ~7MB of animated GIFs for a first paint.
+// These are held back behind an IntersectionObserver with a tight margin instead, so a sprite is
+// only requested when it is genuinely about to be seen. The URL lives in data-src until then.
+const SPRITE_IO = ("IntersectionObserver" in window) ? new IntersectionObserver((entries, obs) => {
+  for(const e of entries){
+    if(!e.isIntersecting) continue;
+    const img = e.target;
+    obs.unobserve(img);
+    if(img.dataset.src){ img.src = img.dataset.src; delete img.dataset.src; }
+  }
+}, { rootMargin: "300px 0px" }) : null;
+
+function observeSprites(root){
+  if(!SPRITE_IO) return;
+  (root || document).querySelectorAll("img[data-src]").forEach(img => SPRITE_IO.observe(img));
+}
+
+// A 1x1 transparent GIF, so the element has a resolved src and never shows a broken-image icon
+// while it waits.
+const SPRITE_BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+
+// Builds an <img> that defers its real URL. Falls back to loading immediately where
+// IntersectionObserver is unavailable, so nothing depends on it.
+function lazySpriteImg(cls, url, name, extraAttrs){
+  const esc = String(name).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+  const srcAttr = SPRITE_IO ? `src="${SPRITE_BLANK}" data-src="${url}"` : `src="${url}" loading="lazy"`;
+  return `<img class="${cls}" ${srcAttr} alt="${esc}" decoding="async" ${extraAttrs || ""}
+    onerror="if(!trySpriteShadowFallback(this, '${esc}')) { this.style.display='none'; }">`;
+}
+
 function renderLeaderboard(){
   const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
   let filtered = ALL_RESULTS
@@ -2572,7 +2611,7 @@ function renderLeaderboard(){
     <div class="lb-row-wrap">
       <button type="button" class="lb-row" data-idx="${i}" aria-haspopup="dialog">
         <div class="lb-rank ${rankClass}"><div class="lb-rank-change-slot">${currentRole ? "" : rankChangeBadge(r.name, i+1)}</div><div class="lb-rank-number">${i+1}</div></div>
-        <div class="lb-sprite"><img class="${needsShadowMist(r.name) ? 'shadow-mist' : ''}" src="${spriteUrl(r.name)}" alt="${r.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${r.name}')) { this.style.display='none'; }"></div>
+        <div class="lb-sprite">${lazySpriteImg(needsShadowMist(r.name) ? 'shadow-mist' : '', spriteUrl(r.name), r.name, 'width="44" height="44"')}</div>
         <div class="lb-main">
           <div class="lb-name">${displayName(r.name)}</div>
           ${roleText ? `<div class="lb-roles">${roleText}</div>` : ""}
@@ -2580,7 +2619,7 @@ function renderLeaderboard(){
           <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(displayCount/maxCount*100).toFixed(1)}"></div></div>
         </div>
         <div class="lb-bosses">
-          ${shownBosses.map(b => `<span class="lb-boss-icon" title="${b.name}"><img class="${needsShadowMist(b.name) ? 'shadow-mist' : ''}" src="${spriteUrl(b.name)}" alt="${b.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${b.name}')) { this.style.display='none'; }"></span>`).join("")}
+          ${shownBosses.map(b => `<span class="lb-boss-icon" title="${b.name}">${lazySpriteImg(needsShadowMist(b.name) ? 'shadow-mist' : '', spriteUrl(b.name), b.name, 'width="26" height="26"')}</span>`).join("")}
           ${extra > 0 ? `<span class="lb-boss-more">+${extra}</span>` : ""}
         </div>
         <div class="lb-count">${displayCount}<span>use${displayCount===1?"":"s"}</span></div>
@@ -2588,6 +2627,10 @@ function renderLeaderboard(){
       </button>
     </div>`;
   }).join("")}</div>`;
+
+  // Re-observe after every render: filtering and searching rebuild these rows, so sprites that
+  // were never loaded must be picked up again by the observer.
+  observeSprites(container);
 
   requestAnimationFrame(() => {
     document.querySelectorAll(".lb-bar").forEach(bar => {
