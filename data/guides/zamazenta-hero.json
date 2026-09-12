@@ -1,0 +1,58 @@
+{
+  "boss": "Zamazenta Hero",
+  "types": [],
+  "strategies": [
+    {
+      "strategyName": "Mega Mewtwo Y Recycle",
+      "weather": "Windy",
+      "adventureEffect": "Blade Boost",
+      "difficulty": "4★",
+      "text": "<h2>Overview</h2><p>Zamazenta Hero, originally a 6 star difficulty raid has been brought down to 4 star territory range due to the introduction of Future Sight+ skyrocketting Mega Mewtwo Y in the meta. This strategy revolves primarily recycling Mega Mewtwo Y and using <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-tick-perfect-cast\" target=\"_blank\">TPC</a> with various movesets incurring small adaptations. </p><p><br></p><p><strong><em>Recall, tick perfect cast or </em></strong><a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-tick-perfect-cast\" target=\"_blank\"><strong><em>TPC</em></strong></a><strong><em> is the strategy of casting 1-bar charge moves the moment they are available without over buffering a fast move prior. This means mentally slowing down your taps as the energy nears 100 and precisely tap the charge move button upon reaching 100 energy. </em></strong></p><h4>Est Time to Win: 275.0s - 295.0s</h4><p><br></p><h2>Main Strategy</h2><h3>Any + Close Combat/Moonblast (4-5 rejoins)</h3><p>The easiest moveset is vs Close Combat. Mega Mewtwo Y can tank up to 3 close combats while ideally dodging the rest until it is unable to meaningfully cast another Future Sight+. It's suggested to only dodge close combats where energy gained would overflow. Close combat grants roughly 22 energy, so this translates to dodging around 60-70% of the energy orb as the psycho cuts would cause an overflow. </p><p>In the same spirit Mega Mewtwo Y is able to absorb two Moonblasts before preferring to dodge. Shadow Salamence can alternatively be used to catch Moonblast and return damage with 2 Fly casts. </p><h3>Any + Iron Head (5-6 rejoins)</h3><p>Iron Head is a very aggressive high rejoin angle. To simplify, it is preferred to simply tank iron heads with the grace of being able to dodge 1 or 2. If Zamazenta-Hero learns snarl, this is likely a 6 <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">rejoin</a> territory solo. </p><p><br></p><h3>Any + Crunch (5-6 rejoins)</h3><p>Crunch is the hardest angle due to high aggressiveness and super effective damage. It is recommended to back up Mega Mewtwo Y with a Shadow Mewtwo and play for 5-6 rejoins. Shadow Mewtwo is able to tank 1 crunch, (sometimes 2 if the fast move is not snarl) and is ideally able to pump out 2-3 psystrikes. Sometimes 4. The Shadow Mewtwo is not there to increase DPS but rather lower <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-rejoin\" target=\"_blank\">rejoin</a> count from the originally 8 -&gt; 5-6. Therefore it's worth juicing Mega Mewtwo Y until 5-10% health and Shadow Mewtwo to ~50% health (unless a crunch is coming and it is able to absorb it). </p><p><br></p><p>Psystrike is used to execute the boss at low health if future sight+ cannot be built up in time. </p>",
+      "vods": [],
+      "submittedBy": "SpiritedBloom",
+      "battleParties": [
+        {
+          "label": "Mega Mewtwo Y Recycle (Mega Level 4)",
+          "secondaryLabel": "Only versus crunch, otherwise not recommended unless planned.",
+          "mons": [
+            {
+              "name": "Mega Mewtwo Y",
+              "level": "52-53",
+              "fm": "Psycho Cut",
+              "cm": "Future Sight++++",
+              "cm2": "Psystrike",
+              "roles": [
+                "Main DPS",
+                "Executor"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Shadow Mewtwo",
+              "level": "45-50",
+              "fm": "Psycho Cut",
+              "cm": "Psystrike",
+              "cm2": "",
+              "roles": [
+                "Support DPS"
+              ],
+              "optional": true
+            },
+            {
+              "name": "Shadow Salamence",
+              "level": "50",
+              "fm": "Dragon Tail",
+              "cm": "Fly",
+              "cm2": "",
+              "roles": [
+                "Catch Tank"
+              ],
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-09-12T18:07:11.329Z"
+    }
+  ]
+}
