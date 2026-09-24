@@ -418,8 +418,16 @@ def gate_2_date_valid(name, start_date, end_date, now, date_only, parse_pokebatt
             # American Samoa, UTC-11, the furthest-behind inhabited timezone. (UTC-12 exists but
             # covers only the uninhabited Baker and Howland Islands.) A Sep 5 event therefore
             # survives until 11:00 UTC on Sep 6, by which point it is Sep 6 everywhere.
-            if end_dt.date() < (now - LAST_TZ_OFFSET).date():
-                return False, category, f"event window ({end_date}) has passed"
+            #
+            # An event is dropped only once its MONTH is over, not once its day is. The landing
+            # page shows the whole month's raid information: an event on October 5th is still
+            # part of October on October 22nd. Retiring it the day after left the page showing
+            # only current and upcoming raids, so anything already run vanished from the record.
+            # The LAST_TZ_OFFSET shift is kept so the final day of a month is not cut early for
+            # players behind UTC.
+            local_now = (now - LAST_TZ_OFFSET)
+            if (end_dt.year, end_dt.month) < (local_now.year, local_now.month):
+                return False, category, f"event's month ({end_date}) has passed"
     return True, category, None
 
 
@@ -662,6 +670,82 @@ def apply_leekduck_crosscheck(results):
     return kept
 
 
+
+
+def _status_for(start_date, end_date, now):
+    """active | future | passed, from the window alone.
+
+    Nothing is deleted on a status change - the group stays in live-bosses.json and this field
+    is recomputed on every run. An already-running rotation is published without a start date,
+    so a group with only an end date that has not passed is treated as active.
+    """
+    start = parse_pokebattler_datetime(start_date or "")
+    end = parse_pokebattler_datetime(end_date or "")
+    # Compared in the furthest-behind inhabited timezone so a window is not retired while it is
+    # still that date somewhere.
+    local = (now - LAST_TZ_OFFSET).date()
+    if end and end.date() < local:
+        return "passed"
+    if start and start.date() > local:
+        return "future"
+    return "active"
+
+
+def _carry_forward_month(date_groups, out_path, now):
+    """Accumulate EVERYTHING that belongs to the current month.
+
+    live-bosses.json is the record for the month, not a snapshot of what the source happens to
+    list right now. Pokebattler drops a rotation or event as soon as its window closes, so a
+    boss shown on the 5th disappears by the 22nd unless the file remembers it.
+
+    Both rotations AND events are carried: a raid that happened on October 5th is still part of
+    October's raid information on October 22nd. Anything whose window ended in a PREVIOUS month
+    is let go at passover, so each month starts clean without anyone maintaining a table.
+    """
+    try:
+        previous = json.loads(out_path.read_text(encoding="utf-8")).get("dateGroups", [])
+    except (OSError, ValueError):
+        return date_groups                      # no previous file, or it is unreadable
+
+    # Keyed on the END date, NOT the start. A rotation is published WITH a start date while it is
+    # upcoming and WITHOUT one once it goes live, so keying on the start stored the same rotation
+    # twice - a "future" copy and an "active" copy of Zekrom, Reshiram and Kyurem all at once.
+    # The end date is stable across that transition.
+    def key(g):
+        return (g.get("endDate"), g.get("category"))
+
+    by_key = {key(g): g for g in date_groups}
+
+    # When the source drops the start date on a now-running rotation, restore it from the stored
+    # copy. Otherwise the known window is lost and the page falls back to "Now - <end>".
+    for g in previous:
+        cur = by_key.get(key(g))
+        if cur is not None and not cur.get("startDate") and g.get("startDate"):
+            cur["startDate"] = g["startDate"]
+
+    present = set(by_key)
+
+    carried = []
+    for g in previous:
+        if key(g) in present:
+            continue                          # the source still reports it; nothing to restore
+        # An entry belongs to a month by the window it ended in. A start date is used only when
+        # there is no end date, since an already-running rotation is published without a start.
+        stamp = (parse_pokebattler_datetime(g.get("endDate") or "")
+                 or parse_pokebattler_datetime(g.get("startDate") or ""))
+        if not stamp:
+            continue
+        if (stamp.year, stamp.month) == (now.year, now.month):
+            carried.append(g)
+
+    if carried:
+        rot = sum(1 for g in carried if g.get("category") == "rotation")
+        names = [b.get("name") for g in carried for b in g.get("bosses", [])]
+        print(f"Carried forward {len(carried)} group(s) the source no longer lists "
+              f"({rot} rotation, {len(carried) - rot} event): {names}")
+    return date_groups + carried
+
+
 def main():
     known_bosses = load_known_bosses()
     print(f"Loaded {len(known_bosses)} known boss names from this site's own archives")
@@ -867,12 +951,36 @@ def main():
             "bosses": grouped[key],
         })
 
+    out_path = REPO_ROOT / "live-bosses.json"
+
+    # Carry forward this month's rotations that the SOURCE has already forgotten.
+    #
+    # Pokebattler lists only current and upcoming rotations. The moment a rotation's window
+    # closes it disappears from the feed, so a boss that was on the landing page yesterday
+    # vanishes today - which is how Zamazenta Hero (window ended Sep 22) disappeared while
+    # Mega Gyarados and Mega Beedrill survived: those two happen to be hardcoded in
+    # CONFIRMED_ROTATION_DATES, and Zamazenta was not.
+    #
+    # Hardcoding every rotation by hand is what made this recur. Instead the previous
+    # live-bosses.json is read back and any rotation group from the CURRENT month that the
+    # source no longer reports is preserved. The file becomes the memory, so a rotation that
+    # has been seen once stays for the rest of its month without anyone maintaining a table.
+    # One run time, shared by the carry-forward and the status stamp. Taking it as an argument
+    # rather than reading the clock inside keeps the two consistent and makes the behaviour
+    # testable against any date.
+    _now = datetime.now(timezone.utc)
+    date_groups = _carry_forward_month(date_groups, out_path, _now)
+
+    # Status is refreshed on EVERY run for every group, carried or freshly pulled, so a boss
+    # moves future -> active -> passed in place instead of disappearing from the file.
+    for g in date_groups:
+        g["status"] = _status_for(g.get("startDate"), g.get("endDate"), _now)
+
     output = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "dateGroups": date_groups,
     }
 
-    out_path = REPO_ROOT / "live-bosses.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2)
 
