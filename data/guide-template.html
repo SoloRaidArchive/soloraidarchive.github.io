@@ -294,6 +294,26 @@
   .strategy-text li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
   .strategy-text li[data-list="ordered"]{ counter-increment:list-0; }
   .strategy-text li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
+  /* Nested list levels. Quill marks an indented item with class ql-indent-1 .. ql-indent-8
+     rather than nesting a real <ul>, so without these rules a sub-bullet rendered flush against
+     its parent and looked like an ordinary row. Padding matches the 22px base indent.
+     Ordered lists restart their counter at each level so 1,2,3 does not continue across depths. */
+  .strategy-text li.ql-indent-1{ padding-left:1.6em; counter-reset:list-1; }
+  .strategy-text li.ql-indent-2{ padding-left:3.2em; counter-reset:list-2; }
+  .strategy-text li.ql-indent-3{ padding-left:4.8em; counter-reset:list-3; }
+  .strategy-text li.ql-indent-4{ padding-left:6.4em; counter-reset:list-4; }
+  .strategy-text li.ql-indent-5{ padding-left:8.0em; counter-reset:list-5; }
+  .strategy-text li.ql-indent-6{ padding-left:9.6em; counter-reset:list-6; }
+  .strategy-text li.ql-indent-7{ padding-left:11.2em; counter-reset:list-7; }
+  .strategy-text li.ql-indent-8{ padding-left:12.8em; counter-reset:list-8; }
+  .strategy-text li.ql-indent-1[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-3[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-5[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-7[data-list="bullet"]::before{ content:"\25E6"; }   /* hollow bullet */
+  .strategy-text li.ql-indent-2[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-4[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-6[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-8[data-list="bullet"]::before{ content:"\25AA"; }   /* small square */
   .strategy-text img{ max-width:100%; border-radius:8px; margin:6px 0; }
   .strategy-text strong{ font-weight:800; }
   .strategy-text a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
