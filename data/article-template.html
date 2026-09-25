@@ -92,6 +92,25 @@
   .article-body li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
   .article-body li[data-list="ordered"]{ counter-increment:list-0; }
   .article-body li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
+  /* Nested list levels. Quill marks an indented item with ql-indent-1 .. ql-indent-8
+     instead of nesting a real <ul>, so without these a sub-bullet renders flush
+     against its parent and reads as an ordinary row. */
+  .article-body li.ql-indent-1{ padding-left:1.6em; counter-reset:list-1; }
+  .article-body li.ql-indent-2{ padding-left:3.2em; counter-reset:list-2; }
+  .article-body li.ql-indent-3{ padding-left:4.8em; counter-reset:list-3; }
+  .article-body li.ql-indent-4{ padding-left:6.4em; counter-reset:list-4; }
+  .article-body li.ql-indent-5{ padding-left:8.0em; counter-reset:list-5; }
+  .article-body li.ql-indent-6{ padding-left:9.6em; counter-reset:list-6; }
+  .article-body li.ql-indent-7{ padding-left:11.2em; counter-reset:list-7; }
+  .article-body li.ql-indent-8{ padding-left:12.8em; counter-reset:list-8; }
+  .article-body li.ql-indent-1[data-list="bullet"]::before,
+  .article-body li.ql-indent-3[data-list="bullet"]::before,
+  .article-body li.ql-indent-5[data-list="bullet"]::before,
+  .article-body li.ql-indent-7[data-list="bullet"]::before{ content:"\25E6"; }
+  .article-body li.ql-indent-2[data-list="bullet"]::before,
+  .article-body li.ql-indent-4[data-list="bullet"]::before,
+  .article-body li.ql-indent-6[data-list="bullet"]::before,
+  .article-body li.ql-indent-8[data-list="bullet"]::before{ content:"\25AA"; }
   .article-body img{ max-width:100%; height:auto; border-radius:8px; cursor:zoom-in; }
   @media (max-width: 600px){
     .article-body img[style*="float"]{ float:none !important; width:100% !important; margin:10px 0 !important; display:block; }
