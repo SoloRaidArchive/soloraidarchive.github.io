@@ -1,0 +1,73 @@
+{
+  "name": "Solo Raid Archive",
+  "short_name": "Solo Raids",
+  "description": "Pokémon GO solo raid strategies, battle parties, and calculators.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3d9dff",
+  "icons": [
+    {
+      "src": "/assets/icons/favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mega Raids",
+      "short_name": "Tier 4",
+      "url": "/tier4-raids.html",
+      "icons": [
+        {
+          "src": "/assets/icons/tier4-egg.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Legendary Raids",
+      "short_name": "Tier 5",
+      "url": "/tier5-raids.html",
+      "icons": [
+        {
+          "src": "/assets/icons/tier5-egg.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Mega Legendary & Elite Raids",
+      "short_name": "Mega Elite",
+      "url": "/tier6-elite-raids.html",
+      "icons": [
+        {
+          "src": "/assets/icons/tier6-egg.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "DPS Calculator",
+      "short_name": "DPS",
+      "url": "/dps-calculator.html",
+      "icons": [
+        {
+          "src": "/assets/icons/favicon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}
