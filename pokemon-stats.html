@@ -305,21 +305,42 @@
 .ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
 [data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
 .ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
+
+  /* MOBILE HEADER (#2)
+     The title is centred while three 44px buttons sit absolutely at the right, so on a 390px
+     screen they overlapped it - "Pokémon Stats" rendered as "Pokémon S". On mobile the row
+     becomes a real flex layout: info button on the LEFT, title taking the remaining space, the
+     nav buttons on the right. Nothing can overlap because nothing is absolutely positioned. */
+  @media (max-width: 700px){
+    .sticky-header{ padding:8px 10px; }
+    .sticky-header-title-row{ justify-content:flex-start; gap:6px; }
+    .sticky-header-title-row .header-buttons{
+      position:static; transform:none; margin-left:auto; display:flex; gap:4px;
+    }
+    /* Pulled out of .header-buttons and placed first in the row. */
+    .sticky-header-title-row .info-btn{ order:-1; margin-right:2px; }
+    .sticky-header-title-row .page-title-sm{
+      flex:1 1 auto; min-width:0; text-align:center; font-size:17px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .info-btn, .hamburger-btn, .filter-btn{ width:38px; height:38px; }
+  }
+
 </style>
 </head>
 <body>
 
 <div class="sticky-header">
   <div class="sticky-header-title-row">
-    <h1 class="page-title-sm">Pokémon Stats</h1>
-    <div class="header-buttons">
-      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
       <button class="info-btn" id="infoBtn" aria-label="About these stats" aria-expanded="false" aria-controls="infoPanel">
         <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
           <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6h.01"/>
         </svg>
+      </button>
+    <h1 class="page-title-sm">Pokémon Stats</h1>
+    <div class="header-buttons">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
       </button>
       <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
         <span class="filter-line filter-line-1"></span>

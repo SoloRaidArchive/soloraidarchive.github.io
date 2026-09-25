@@ -301,7 +301,11 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .entries-icon img{ width:100%; height:100%; object-fit:contain; }
   .entries-close{ background:none; border:none; font-size:26px; line-height:1; cursor:pointer; color: var(--ink-dim); padding:0 4px; }
   .entries-scroll{ overflow:auto; flex:1; }
-  .entries-table{ width:100%; border-collapse:collapse; font-size:11.5px; }
+  /* (#1) border-collapse:collapse prevents a sticky <th> from painting its background over the
+     scrolled rows - the header text stayed put but the data showed straight through it. With
+     separate borders the header is opaque and rows pass underneath. Row separators already come
+     from border-bottom on the td, so nothing visual is lost. */
+  .entries-table{ width:100%; border-collapse:separate; border-spacing:0; font-size:11.5px; }
   /* Weather and Effect: narrow icon columns, never wrapped. Splitting them out of the moveset
      cell is what lets a row sit on one line - previously the icons trailed the moveset text and
      pushed it onto a second line at the old 860px width. */
@@ -311,6 +315,11 @@ header{ padding: 12px 24px 10px; text-align:center; }
     position:sticky; top:0; background: var(--card); text-align:left; font-family:'Manrope', sans-serif;
     font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:0.04em;
     color: var(--ink-dim); padding:8px 12px; border-bottom:1.5px solid var(--border); white-space:nowrap;
+    /* (#1) The header was sticky but z-index:auto, so scrolled rows painted straight over it -
+       data visibly ran through the header text. An explicit stacking order fixes it. The
+       separator is a box-shadow because with border-collapse a border on a sticky cell scrolls
+       away with the table rather than sticking. */
+    z-index:3; box-shadow: inset 0 -1px 0 var(--border);
   }
   .entries-table td{ padding:7px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
   .entries-table tr:hover td{ background: var(--accent-soft); }
@@ -861,6 +870,45 @@ header{ padding: 12px 24px 10px; text-align:center; }
      188ms -> 77ms. That cost is paid on every filter or sort, so this is
      an interaction-latency fix (INP), not a page-load one. */
   .leader-group{ content-visibility: auto; contain-intrinsic-size: auto 400px; }
+
+  /* (#5) BEST CATCH TANKS ON NARROW PHONES
+     The row is a flex line of sprite + name + stats at desktop sizes, so at 360-390px it ran
+     wider than the screen (400px of content in a 320px column) and forced sideways scrolling.
+     Type scales down and the fixed paddings tighten so the row fits without a horizontal
+     scrollbar; the name is allowed to wrap rather than forcing the row wide. */
+  @media (max-width: 440px){
+    /* Grid and flex children default to min-width:auto, so they refuse to shrink below their
+       content and the whole column stayed 400px wide inside a 320px grid. Every level of the
+       chain needs min-width:0 before the text can wrap and the row fit the screen. */
+    .views-grid, .views-grid > *, .view-col{ min-width:0; }
+    .leader-group{ min-width:0; }
+    .leader-toggle > *{ min-width:0; }
+    /* .leader-stats is flex-shrink:0, so it held its full 238px of content inside a 61px slot and
+       pushed the row 154px past the screen. Allowed to shrink and wrap on narrow phones. */
+    .leader-stats{ flex-shrink:1; min-width:0; overflow-wrap:anywhere; }
+    /* The hover tooltip is an absolutely positioned ::after fixed at width:220px. Even at
+       opacity:0 it still counts toward its parent's scrollWidth, which is what actually made the
+       row 238px wide and forced sideways scrolling - not the visible text. It is also unreachable
+       on a touch screen, since it only appears on :hover, so it is dropped on phone widths.
+       The data-tooltip attribute stays in the markup for wider screens. */
+    [data-tooltip]::after,
+    .ct-pick-dps-label[data-tooltip]::after,
+    .leader-best-label[data-tooltip]::after,
+    .detail-line span[data-tooltip]::after,
+    .sub-tag.icon-only[data-tooltip]::after{ content:none; }
+    .leader-body{ flex:1 1 auto; min-width:0; }
+    .leader-toggle{ gap:8px; padding:9px 10px; min-width:0; }
+    .leader-name{ font-size:12.5px; min-width:0; overflow-wrap:anywhere; }
+    .leader-toggle img{ width:32px; height:32px; }
+    .leader-toggle .leader-dps, .leader-toggle .leader-meta{ font-size:11px; white-space:nowrap; }
+    .leader-sub, .leader-roles{ font-size:10.5px; }
+  }
+  @media (max-width: 380px){
+    .leader-name{ font-size:11.5px; }
+    .leader-toggle{ gap:6px; padding:8px 8px; }
+    .leader-toggle img{ width:28px; height:28px; }
+  }
+
 </style>
 </head>
 <body>
@@ -965,15 +1013,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <!-- NAV:END -->
 </div>
 
-<div class="view-tabs">
-  <div class="view-tabs-inner">
-    <input type="radio" name="dbView" id="viewByBoss" value="byboss" checked>
-    <label for="viewByBoss">By Raid Boss</label>
-    <input type="radio" name="dbView" id="viewBest" value="best">
-    <label for="viewBest">Best Catch Tanks</label>
-  </div>
-</div>
-<div class="view-intro" id="viewIntro"></div>
 
 
 <!-- Definitions moved out of the reading flow into an on-demand panel: they're reference
@@ -986,11 +1025,23 @@ header{ padding: 12px 24px 10px; text-align:center; }
      lines up with the rows below. -->
 <div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
 
+<!-- (#4) Moved below the type grid and above the controls row. It was the first thing on the
+     page, which put a mode switch ahead of the filters it applies to; here it reads in the order
+     you use it - pick types, pick the view, then sort and search. -->
+<div class="view-tabs">
+  <div class="view-tabs-inner">
+    <input type="radio" name="dbView" id="viewByBoss" value="byboss" checked>
+    <label for="viewByBoss">By Raid Boss</label>
+    <input type="radio" name="dbView" id="viewBest" value="best">
+    <label for="viewBest">Best Catch Tanks</label>
+  </div>
+</div>
+<div class="view-intro" id="viewIntro"></div>
+
 <div class="controls">
-  <!-- "All Types" is rendered into this slot rather than into the grid below. As a full-width
-       row inside the grid it cost a whole line of vertical space to hold one control; here it
-       sits with the other page-level controls, which is what it is. -->
-  <span id="allTypesSlot"></span>
+  <!-- "All Types" was removed: no filter is already the default state, and every chip toggles
+       itself off, so the button only duplicated behaviour the grid already had. Its slot was
+       taking room in this row that the calculator link and tier dropdown now use. -->
   <!-- Every row here came out of the calculator, so a reader wanting to reproduce or extend a
        result has somewhere to go without hunting through the nav. -->
   <a class="calc-link" href="dps-calculator.html">DPS Calculator &rarr;</a>
@@ -1035,7 +1086,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   <table class="sub-table">
     <thead>
       <tr>
-        <th class="col-mon">Catch Tank</th>
+        <th class="col-mon">CT</th>
         <th>Level / IVs</th>
         <th>Weather</th>
         <th>Modifiers</th>
@@ -2523,7 +2574,7 @@ function openBossEntriesTable(idx){
       <div class="entries-scroll">
         <table class="entries-table">
           <thead>
-            <tr><th>Catch tank</th><th>Boss moveset</th><th class="col-cond">Weather</th><th class="col-cond">Effect</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
+            <tr><th>CT</th><th>Boss moveset</th><th class="col-cond">Weather</th><th class="col-cond">Effect</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -2694,11 +2745,6 @@ function renderTypeFilter(){
   // then silently overridden, leaving all 18 chips on one line at every width.
   el.style.display = "";
 
-  const allSlot = document.getElementById("allTypesSlot");
-  if(allSlot){
-    allSlot.innerHTML = `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type=""
-             aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All Types</span></button>`;
-  }
   el.innerHTML =
     types.map(t => `
       <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
@@ -2708,7 +2754,6 @@ function renderTypeFilter(){
       </button>`).join("");
 
   const chips = [...el.querySelectorAll(".type-chip")];
-  if(allSlot) chips.push(...allSlot.querySelectorAll(".type-chip"));
   chips.forEach(btn => {
     btn.addEventListener("click", () => {
       const t = btn.dataset.type;

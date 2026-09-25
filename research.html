@@ -92,7 +92,13 @@
     .tier-info-panel{ left:14px; right:14px; width:auto; }
     /* At 360px the switch row plus the info button overflowed by 12px. Letting the row wrap and
        centre keeps everything inside the viewport on the narrowest phones. */
-    .view-switch-row{ flex-wrap:wrap; justify-content:center; row-gap:8px; }
+    /* (#3) Was centred and wrapping, which pushed the info button onto its own line below the
+       tabs and read as unbalanced. Left-aligned to match the content below, with the info
+       button sitting immediately right of the switch on the SAME row. */
+    .view-switch-row{ flex-wrap:nowrap; justify-content:flex-start; gap:8px; }
+    .view-switch{ flex:0 1 auto; min-width:0; }
+    .view-btn{ font-size:12px; padding:6px 10px; white-space:nowrap; }
+    .tier-info-btn{ flex:none; margin-left:2px; }
     /* Sprite shrinks so the badge and name keep one line on a phone. */
     .tier-card-modal{ padding:18px 18px 16px; }
     .tc-head{ gap:11px; margin-bottom:7px; }
@@ -1112,7 +1118,7 @@
 <div class="view-switch-row">
   <div class="view-switch" role="tablist" aria-label="What to show">
     <button type="button" class="view-btn on" id="viewUsage" role="tab" aria-selected="true">Most Used Raiders</button>
-    <button type="button" class="view-btn" id="viewTier" role="tab" aria-selected="false">Solo Raid Archive&rsquo;s Tier List</button>
+    <button type="button" class="view-btn" id="viewTier" role="tab" aria-selected="false">Meta Tier List</button>
   </div>
   <button type="button" class="tier-info-btn" id="tierInfoBtn" aria-expanded="false"
           aria-controls="tierInfoPanel" title="How the ranks are assigned" hidden>i</button>
