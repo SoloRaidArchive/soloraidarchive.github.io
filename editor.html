@@ -582,6 +582,25 @@
   .hamburger-btn{ position:fixed; top:14px; right:16px; z-index:60; }
   .hamburger-panel{ position:fixed; top:60px; right:16px; max-height:calc(100dvh - 76px);
                     overflow-y:auto; z-index:60; }
+
+  /* Article preview: same contents column the published page gets, so what the writer sees while
+     drafting matches what readers get. Collapses to a single column in a narrow preview pane. */
+  .article-preview-layout{ display:block; }
+  .article-toc{ display:none; }
+  @media (min-width:1080px){
+    .article-preview-layout{ display:grid; grid-template-columns:180px minmax(0,1fr); gap:20px; align-items:start; }
+    .article-toc{ display:block; position:sticky; top:8px; max-height:70vh; overflow-y:auto; padding-right:4px; }
+    .article-toc-label{ font-family:'Manrope',sans-serif; font-weight:800; font-size:9.5px;
+      letter-spacing:.06em; text-transform:uppercase; color:var(--ink-dim,#5f6675); opacity:.75; margin:0 0 6px 8px; }
+    .toc-link{ display:block; padding:4px 8px; border-radius:7px; text-decoration:none;
+      font-family:'Inter',sans-serif; color:var(--ink-dim,#5f6675); border-left:2px solid transparent; line-height:1.3; }
+    .toc-l2{ font-size:11.5px; font-weight:700; margin-top:5px; }
+    .toc-l3{ font-size:10.5px; padding-left:16px; }
+    .toc-link:hover{ background:rgba(61,157,255,.09); color:var(--blue-dark,#2b7fd6); }
+    .toc-link.is-active{ color:var(--blue-dark,#2b7fd6); background:rgba(61,157,255,.13);
+      border-left-color:var(--blue,#3d9dff); font-weight:800; }
+  }
+
 </style>
 </head>
 <body>
@@ -2460,12 +2479,83 @@ function articlePreviewHtml(){
       <span class="article-category">${escapeHtml(category)}</span>
       <span class="article-byline">By ${escapeHtml(submittedBy)}</span>
     </div>
-    <div class="article-body">${body}</div>
+    <div class="article-preview-layout">
+      <aside class="article-toc"><div class="article-toc-label">On this page</div>
+        <nav id="articleToc" aria-label="Table of contents"></nav></aside>
+      <div class="article-body" id="articleBody">${body}</div>
+    </div>
   `;
 }
+// ---- Article table of contents ----
+// Built from the rendered h2/h3 headings, so writers add nothing to the article - the outline is
+// whatever structure they already wrote. Heading ids are generated here rather than stored, which
+// keeps existing articles working untouched.
+function buildArticleToc(root, nav){
+  if(!root || !nav) return;
+  const heads = [...root.querySelectorAll("h2, h3")];
+  if(heads.length < 3){ nav.closest(".article-toc").hidden = true; return; }   // too short to need one
+
+  const used = new Set();
+  const slug = (txt) => {
+    let s = txt.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "section";
+    let out = s, n = 2;
+    while(used.has(out)) out = s + "-" + n++;        // duplicate headings must not collide
+    used.add(out);
+    return out;
+  };
+
+  nav.innerHTML = heads.map(h => {
+    if(!h.id) h.id = slug(h.textContent);
+    const lvl = h.tagName === "H2" ? "toc-l2" : "toc-l3";
+    return `<a class="toc-link ${lvl}" href="#${h.id}" data-target="${h.id}">${h.textContent.trim()}</a>`;
+  }).join("");
+
+  const links = [...nav.querySelectorAll(".toc-link")];
+  const byId = new Map(links.map(a => [a.dataset.target, a]));
+  let current = null;
+  const setActive = (id) => {
+    if(id === current) return;
+    current = id;
+    links.forEach(a => a.classList.toggle("is-active", a.dataset.target === id));
+    const a = byId.get(id);
+    // Keep the active entry visible without dragging the page around.
+    if(a && nav.scrollHeight > nav.clientHeight + 4){
+      nav.scrollTo({ top: a.offsetTop - nav.clientHeight / 2 + a.offsetHeight / 2, behavior: "smooth" });
+    }
+  };
+
+  // The topmost heading past the reading line wins. Using "whichever is intersecting" made the
+  // highlight flicker between two headings inside a long section.
+  const onScroll = () => {
+    const line = window.innerHeight * 0.28;
+    let best = heads[0];
+    for(const h of heads){ if(h.getBoundingClientRect().top <= line) best = h; }
+    setActive(best.id);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  nav.addEventListener("click", (ev) => {
+    const a = ev.target.closest(".toc-link");
+    if(!a) return;
+    ev.preventDefault();
+    const el = document.getElementById(a.dataset.target);
+    if(!el) return;
+    history.replaceState(null, "", "#" + a.dataset.target);
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+// The preview is re-rendered on every keystroke, so the outline is rebuilt with it - a writer
+// sees their structure appear as they add headings, which is the point of having it here.
+function refreshArticleToc(){
+  buildArticleToc(document.getElementById('articleBody'), document.getElementById('articleToc'));
+}
+
 function syncArticlePreview(){
   if(currentMode !== 'article') return;
   document.getElementById('preview-article-display').innerHTML = articlePreviewHtml();
+  refreshArticleToc();   // rebuilt with the preview so headings appear in the outline as typed
 }
 document.getElementById('a-title').addEventListener('input', syncArticlePreview);
 document.getElementById('a-category').addEventListener('change', syncArticlePreview);
