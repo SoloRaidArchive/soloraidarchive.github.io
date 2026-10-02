@@ -113,6 +113,12 @@ CONFIRMED_ROTATION_DATES = {
     #     began and so still carrying the "From" date: Sep 8 -> Sep 15
     # They agree exactly. (The old (end - 6 days) inference would have said Sep 9.)
     "mega beedrill": ("Sep 8, 2026", "Sep 15, 2026"),
+    # October. First Shadow Tier 5 boss in the archive. Cross-verified: pokebattler.com/raids
+    # lists "Shadow Landorus" From Oct 7, 2026 6:00 AM - Until Nov 3, 2026 10:00 PM, and the site
+    # author confirmed the same window independently. Entered here because a boss added to the
+    # archive after its window opens is first seen with no start date, and nothing could
+    # recover it. Shadow Tier 5 runs one boss per month, so expect one entry per month.
+    "shadow landorus incarnate": ("Oct 7, 2026", "Nov 3, 2026"),
 }
 
 
@@ -157,6 +163,13 @@ def load_known_bosses():
                     "starNum": star_num,
                     "weather": weather,
                 }
+    # Every lookup is made with normalize_name(), but these keys were only lower-cased, so an
+    # archive name that normalizes differently could never be found ("Shadow Landorus" in a CSV
+    # vs the "shadow landorus incarnate" a lookup asks for). Each entry is also registered under
+    # its normalized key. Additive only: an existing key is never overwritten, so nothing that
+    # matched before can match differently now.
+    for k, v in list(known.items()):
+        known.setdefault(normalize_name(v["name"]), v)
     return known
 
 
@@ -176,7 +189,21 @@ def pokemon_id_to_name(pokemon_id):
     if "Mega" in words[1:]:
         words.remove("Mega")
         words.insert(0, "Mega")
+    # Shadow raids (Shadow Tier 5 and friends) use the same suffix convention -
+    # 'LANDORUS_SHADOW_FORM', 'THUNDURUS_SHADOW_FORM' - while the archives and Pokebattler's own
+    # website write 'Shadow Landorus'. Same reorder as Mega, for the same reason.
+    if "Shadow" in words[1:]:
+        words.remove("Shadow")
+        words.insert(0, "Shadow")
     return " ".join(words)
+
+
+# Species whose archive name always carries a forme, mapped to the forme Pokebattler means when
+# it leaves one off (see normalize_name).
+SHADOW_DEFAULT_FORMES = {
+    "landorus": "incarnate", "thundurus": "incarnate", "tornadus": "incarnate",
+    "enamorus": "incarnate", "giratina": "altered",
+}
 
 
 def normalize_name(name):
@@ -200,6 +227,14 @@ def normalize_name(name):
     if re.match(r"^(burn|chill|douse|shock)\s+genesect$", cleaned):
         return "genesect"
     cleaned = re.sub(r"\s+of many battles$", "", cleaned)
+    # Shadow raids name the DEFAULT forme only by omission. Pokebattler lists Shadow Landorus as
+    # 'LANDORUS_SHADOW_FORM' / "Shadow Landorus", while the archive spells the forme out
+    # ("Shadow Landorus Incarnate", matching its regular "Landorus Incarnate" row). Both
+    # spellings are folded onto the full one so either can be used in the CSV. Only an exact
+    # "shadow <species>" is touched, so "Shadow Landorus Therian" stays Therian.
+    m = re.match(r"^shadow\s+(\S+)$", cleaned)
+    if m and m.group(1) in SHADOW_DEFAULT_FORMES:
+        cleaned = f"shadow {m.group(1)} {SHADOW_DEFAULT_FORMES[m.group(1)]}"
     return cleaned
 
 
@@ -707,23 +742,16 @@ def _carry_forward_month(date_groups, out_path, now):
     except (OSError, ValueError):
         return date_groups                      # no previous file, or it is unreadable
 
-    # Keyed on the END date, NOT the start. A rotation is published WITH a start date while it is
-    # upcoming and WITHOUT one once it goes live, so keying on the start stored the same rotation
-    # twice - a "future" copy and an "active" copy of Zekrom, Reshiram and Kyurem all at once.
-    # The end date is stable across that transition.
+    # Keyed on the WHOLE window. This used to be (end date, category) alone, because a rotation is
+    # published WITH a start date while upcoming and WITHOUT one once live, and keying on the start
+    # stored it twice. main() now restores each boss's start date from this file before grouping,
+    # so the start is stable across that transition and can be part of the key again. It has to
+    # be: Shadow Tier 5 windows routinely share an end date with a weekly rotation (Oct 7 - Nov 3
+    # and Oct 28 - Nov 3), and an end-date key let one of them overwrite the other.
     def key(g):
-        return (g.get("endDate"), g.get("category"))
+        return (g.get("startDate"), g.get("endDate"), g.get("category"))
 
-    by_key = {key(g): g for g in date_groups}
-
-    # When the source drops the start date on a now-running rotation, restore it from the stored
-    # copy. Otherwise the known window is lost and the page falls back to "Now - <end>".
-    for g in previous:
-        cur = by_key.get(key(g))
-        if cur is not None and not cur.get("startDate") and g.get("startDate"):
-            cur["startDate"] = g["startDate"]
-
-    present = set(by_key)
+    present = {key(g) for g in date_groups}
 
     carried = []
     for g in previous:
@@ -820,7 +848,11 @@ def main():
             return None
 
         return {
-            "name": name,
+            # The ARCHIVE's spelling, not the source's. The landing page builds each boss's link
+            # from this name (collections/<slug>.html), and those pages are generated from the
+            # archive CSVs - so a source spelling like Pokebattler's "Shadow Landorus" linked to
+            # a page that does not exist while the archive's "Shadow Landorus Incarnate" has one.
+            "name": info.get("name") or name,
             "startDate": start_date,
             "endDate": end_date,
             "category": category,
@@ -927,6 +959,30 @@ def main():
     # every category - the old filter only inspected category == "event", which is exactly how
     # a misclassified Super Mega boss slipped past it.
 
+    # Restore start dates per BOSS, before grouping. Pokebattler drops the "From" date once a
+    # window is running, and grouping is by (start, end, category) - so two different windows
+    # that end on the same day collapse into one group as soon as both are underway. That is
+    # the normal case for Shadow Tier 5: its month-long window (Shadow Landorus, Oct 7 - Nov 3)
+    # ends on the same Tuesday as the last weekly rotation (Giratina Origin, Oct 28 - Nov 3), and
+    # from Oct 28 every one of them was published as "Oct 28 - Nov 3". Each boss is matched to
+    # the window it was last stored with (same boss, same end date, same category), so it gets
+    # back its own start rather than whichever start its group happened to inherit.
+    out_path = REPO_ROOT / "live-bosses.json"
+    try:
+        _previous = json.loads(out_path.read_text(encoding="utf-8")).get("dateGroups", [])
+    except (OSError, ValueError):
+        _previous = []
+    stored_start = {}
+    for g in _previous:
+        if g.get("startDate"):
+            for b in g.get("bosses", []):
+                stored_start[(normalize_name(b.get("name", "")), g.get("endDate"), g.get("category"))] = g["startDate"]
+    for r in results:
+        if not r.get("startDate"):
+            s = stored_start.get((normalize_name(r["name"]), date_only(r.get("endDate")), r["category"]))
+            if s:
+                r["startDate"] = s
+
     grouped = {}
     order = []
     for r in results:
@@ -950,8 +1006,6 @@ def main():
             "category": category,
             "bosses": grouped[key],
         })
-
-    out_path = REPO_ROOT / "live-bosses.json"
 
     # Carry forward this month's rotations that the SOURCE has already forgotten.
     #
