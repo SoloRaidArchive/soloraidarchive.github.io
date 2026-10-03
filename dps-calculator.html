@@ -1778,6 +1778,20 @@ function initPokemonAutocomplete(inputId, listId){
   input.addEventListener("focus", () => { if(input.value.trim()) render(); });
   input.addEventListener("keydown", (e) => {
     const items = list.querySelectorAll(".ac-item");
+    // Enter with no suggestion highlighted submits what was typed: the list closes and the name
+    // is applied exactly as if it had been picked (input + change fire, so moves, typing and any
+    // result on screen all update). Typing "kyurem black" + Enter used to do nothing - the list
+    // stayed open over the move fields until the user clicked the match or clicked away. An exact
+    // match is swapped for its canonical spelling ("Kyurem Black"); anything else is submitted
+    // as typed, so a near-miss still gets the usual "Enter a valid Pokemon name" message.
+    if(e.key === "Enter" && highlighted < 0){
+      const typed = input.value.trim();
+      if(!typed) return;
+      e.preventDefault();
+      const exact = POKEMON_NAME_LIST.find(n => n.toLowerCase() === typed.toLowerCase());
+      select(exact || typed);
+      return;
+    }
     if(!items.length) return;
     if(e.key === "ArrowDown"){
       e.preventDefault();
