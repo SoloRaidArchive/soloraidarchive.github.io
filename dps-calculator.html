@@ -2255,14 +2255,22 @@ function runCalculation(){
     // short rotation never reaches, so the cadence reported zero charge moves. Half-phase seeding
     // is the standard fix for this bias and puts the first cast near the middle of its interval
     // instead of at the far end, without making low aggression fire immediately.
-    let aggroAcc = 0.5, bossDamageDealtSeen = 0, mdDamageTakenTotal = 0;
+    let aggroAcc = 0.5, mdDamageTakenTotal = 0;
     const mdBossMoveLog = [];   // what the boss actually did, in order
 
-    // Energy flows are asymmetric, and the timing matters:
-    //   the boss banks energy when the PLAYER CASTS a move (not when it lands)
+    // Energy from damage is banked when the damage is TAKEN, in both directions:
+    //   the boss banks energy when the PLAYER'S MOVE LANDS on it (not when the player casts)
     //   the player banks energy when the BOSS'S MOVE LANDS on them (not when the boss casts)
-    // so mdDamageCast is tracked separately from mdTotalDamage, which accrues on landing.
-    let mdDamageCast = 0;
+    // This used to credit the boss at the player's cast, so a decision made while a player move
+    // was still mid-animation already counted that move's damage, and the boss could afford its
+    // charge move up to one full move earlier than it really can. Each player hit is now queued
+    // with the tick it lands on (cast tick + duration, the same convention the boss's own landings
+    // use: cast at 1, lands at 1 + ad) and only reaches the boss's bar once that tick arrives.
+    const mdPlayerHits = [];   // { tick, dmg } in landing order
+    let mdPlayerHitIdx = 0;
+    const playerHitLands = (castTick, duration, dmg) => {
+      if(dmg > 0) mdPlayerHits.push({ tick: castTick + duration, dmg });
+    };
 
     // The boss's next decision is scheduled, not precomputed: a charge move chains, with the
     // next move cast 1 tick after it, and that chained move can itself be a charge move on the
@@ -2273,8 +2281,16 @@ function runCalculation(){
     function bossActAt(tickNow, chained){
       // The boss's bar is capped the same way. Uncapped, a burst of player damage could bank
       // enough for several charge moves at once, which the game does not allow.
-      bossEnergy = Math.min(bossCMCost, bossEnergy + (mdDamageCast - bossDamageDealtSeen) * 0.5);
-      bossDamageDealtSeen = mdDamageCast;
+      // Only damage that has LANDED by this decision counts. A hit landing on the very tick of
+      // the decision is counted (<=): the boss sees damage it has taken that turn.
+      // Rounded up PER HIT, exactly like the player's side (energyFromDamage): a 15-damage hit
+      // gives 8, not 7.5. Summing raw damage and halving once both skipped the rounding and, over
+      // several hits, rounded differently from the game.
+      let landedEnergy = 0;
+      while(mdPlayerHitIdx < mdPlayerHits.length && mdPlayerHits[mdPlayerHitIdx].tick <= tickNow){
+        landedEnergy += energyFromDamage(mdPlayerHits[mdPlayerHitIdx++].dmg);
+      }
+      bossEnergy = Math.min(bossCMCost, bossEnergy + landedEnergy);
       aggroAcc += bossAggroP;
       if(bossEnergy >= bossCMCost && aggroAcc >= 1){
         aggroAcc -= 1;
@@ -2333,10 +2349,10 @@ function runCalculation(){
       // that occurred during the previous cast's charge-move animation)
       absorbBossUpTo(mdGlobalTick);
       while(mdEnergyBanked < mdCmEnergyCost){
+        playerHitLands(mdGlobalTick, fm.ad, fastDamage);   // boss banks this when it lands
         mdGlobalTick += fm.ad;
         playerTapsThisCast++;
         bankEnergy(fm.energy);
-        mdDamageCast += fastDamage;          // the boss banks off this immediately
         absorbBossUpTo(mdGlobalTick);
       }
       // Resolve Nerf: on a 1-tick fast move the charge button only appears at the very end of
@@ -2345,11 +2361,11 @@ function runCalculation(){
       // 1-bar charge moves pay it on every cast; 2-bar/3-bar only on the last, since energy
       // overflow covers the earlier ones for free.
       const mdNerfsThisCast = (resolveNerf && fm.ad === 1 && (mdCmEnergyCost === 100 || cast === numCM - 1)) ? 1 : 0;
+      if(mdNerfsThisCast) playerHitLands(mdGlobalTick, 1, fastDamage);   // the buffered extra fast move
       mdGlobalTick += mdNerfsThisCast;
       mdTotalDamage += mdNerfsThisCast * fastDamage;
-      mdDamageCast += mdNerfsThisCast * fastDamage;
 
-      mdDamageCast += chargeDamage;          // charge move is cast now; it lands cm.ad later
+      playerHitLands(mdGlobalTick, cm.ad, chargeDamage);   // charge move is cast now; it lands cm.ad later
       mdGlobalTick += cm.ad;
       mdEnergyBanked -= mdCmEnergyCost; // leftover (from either source) carries into the next cast
       mdTotalDamage += (playerTapsThisCast * fastDamage) + chargeDamage;
