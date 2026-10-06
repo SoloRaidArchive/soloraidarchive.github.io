@@ -2318,6 +2318,7 @@ function runCalculation(){
       }
       while(bossNextTick <= tick){
         const act = bossActAt(bossNextTick, bossLastWasCM);
+        if(act.isCM && dodgeCM) mdDodgesOwed++;
         bankEnergy(energyFromDamage(act.dmg));
         mdDamageTakenTotal += act.dmg;
         mdBossHitsAbsorbed++;
@@ -2328,6 +2329,23 @@ function runCalculation(){
     }
     let mdBossLandingIdx = 0;
     let mdGlobalTick = 0;
+    // Dodging a charge move is a player action: 2 ticks (1.0s) in which the player can do nothing
+    // else (mechanics article 1.2.2). It was only ever applied as the 75% damage cut, so a
+    // rotation with two dodged Draco Meteors reported 16.0s instead of 18.0s and 100% uptime.
+    // Each boss charge move found while resolving the boss's timeline owes one dodge, taken at the
+    // player's next free tick; the boss keeps acting during it, so its timeline is resolved again
+    // (which can owe another dodge - a charge move chained 1 tick later).
+    const DODGE_TICKS = 2;
+    let mdDodgesOwed = 0, mdDodgeCount = 0, mdDodgeTicks = 0;
+    function takeOwedDodges(){
+      while(mdDodgesOwed > 0){
+        mdDodgesOwed--;
+        mdGlobalTick += DODGE_TICKS;
+        mdDodgeTicks += DODGE_TICKS;
+        mdDodgeCount++;
+        absorbBossUpTo(mdGlobalTick);
+      }
+    }
     // Energy is capped at 100 in game. Without this the bar could run to 191 in testing - a
     // tanked charge move returns 83 energy, and stacked on a nearly full bar the excess was being
     // banked and spent on a later cast that could not really have happened. The cap is applied at
@@ -2348,12 +2366,14 @@ function runCalculation(){
       // absorb any boss FM landings that already happened by the current tick (catches landings
       // that occurred during the previous cast's charge-move animation)
       absorbBossUpTo(mdGlobalTick);
+      takeOwedDodges();
       while(mdEnergyBanked < mdCmEnergyCost){
         playerHitLands(mdGlobalTick, fm.ad, fastDamage);   // boss banks this when it lands
         mdGlobalTick += fm.ad;
         playerTapsThisCast++;
         bankEnergy(fm.energy);
         absorbBossUpTo(mdGlobalTick);
+        takeOwedDodges();
       }
       // Resolve Nerf: on a 1-tick fast move the charge button only appears at the very end of
       // the animation, so the queued tap buffers into an extra fast move instead of resolving
@@ -2384,11 +2404,10 @@ function runCalculation(){
     const mdHpLeft = playerHp - mdDamageTaken;
     // floored at 0: overkill is not negative HP, and -184% reads as a bug
     const mdHpLeftPct = playerHp > 0 ? Math.max(0, (mdHpLeft / playerHp) * 100) : 0;
-    // Uptime = ticks spent acting / total ticks. In this cadence the player never idles - every
-    // tick is a fast move, a charge animation, or the resolve-nerf tap (which still lands damage)
-    // - so this reads 100% by construction. It is computed rather than hardcoded so it starts
-    // reporting real downtime if waiting is ever added here.
-    const mdActingTicks = mdTotalTicks;
+    // Uptime = ticks spent attacking / total ticks. Every tick is a fast move, a charge animation,
+    // the resolve-nerf tap (which still lands damage) - or a dodge, which deals nothing. So this is
+    // 100% unless charge moves are being dodged.
+    const mdActingTicks = mdTotalTicks - mdDodgeTicks;
     const mdUptimePct = mdTotalTicks > 0 ? (mdActingTicks / mdTotalTicks) * 100 : 0;
     const mainDPS = mdTotalDamage / Math.max(mdSeconds, 0.1);
     const mdRotationLabel = numCM === 1
@@ -2447,6 +2466,10 @@ function runCalculation(){
       const outerFloor = mdBossFMAD_ticks + 1;
       ticks = Math.max(outerFloor, bossFMFloor, ticks);
       ticks += netResolveNerfCasts; // 1 tick of dead time per nerfed cast
+      // Dodging the absorbed charge move costs the player 2 ticks (1.0s), as in Single Catch Tank
+      // mode. It is not attacking time, so it lowers uptime rather than adding to actingTicks.
+      const dodgeTicks = dodgeCM ? 2 : 0;
+      ticks += dodgeTicks;
 
       const seconds = ticks / 2;
       // Here uptime IS meaningful: the bossFMFloor/outerFloor above can push the rotation longer
@@ -2495,7 +2518,7 @@ function runCalculation(){
       const bossHits = 1 + n;                       // the absorbed charge move, plus n fast moves
       const energyGained = mdEnergyFromCM + (n * mdEnergyFromBossFM);
       return { n, seconds, ticks, dps, fainted, cumulativeDamage, risky, riskyNote,
-               uptimePct, damageTaken: cumulativeDamage, taps, totalDamage, bossHits, energyGained,
+               uptimePct, dodgeTicks, damageTaken: cumulativeDamage, taps, totalDamage, bossHits, energyGained,
                hpLeftPct: playerHp > 0 ? Math.max(0, (playerHp - cumulativeDamage) / playerHp * 100) : 0 };
     });
 
@@ -2550,6 +2573,7 @@ function runCalculation(){
             <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Rotation</th></tr>
             <tr><td>Sequence</td><td>${mdRotationLabel}</td></tr>
             <tr><td>Duration</td><td>${formatTime(mdSeconds, mdTotalTicks)}</td></tr>
+            ${mdDodgeCount ? `<tr><td>Dodges</td><td>${mdDodgeCount} &times; ${bossCMMove.n} <span class="dps-stat-sub">+${(mdDodgeTicks / 2).toFixed(1)}s</span></td></tr>` : ""}
             <tr><td>Uptime</td><td>${mdUptimePct.toFixed(0)}%</td></tr>
 
             <tr><td>Total damage</td><td>${mdTotalDamage.toFixed(0)}</td></tr>
@@ -2610,6 +2634,7 @@ function runCalculation(){
             <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Rotation</th></tr>
             <tr><td>Sequence</td><td>${mdBestRow.taps} &times; ${fm.n} &rarr; ${cm.n}${numCM > 1 ? ` <span class="dps-stat-sub">${numCM} casts</span>` : ""}</td></tr>
             <tr><td>Duration</td><td>${formatTime(mdBestRow.seconds, mdBestRow.ticks)}</td></tr>
+            ${mdBestRow.dodgeTicks ? `<tr><td>Dodges</td><td>1 &times; ${bossCMMove.n} <span class="dps-stat-sub">+${(mdBestRow.dodgeTicks / 2).toFixed(1)}s</span></td></tr>` : ""}
             <tr><td>Uptime</td><td>${mdBestRow.uptimePct.toFixed(0)}%</td></tr>
             <tr><td>Total damage</td><td>${mdBestRow.totalDamage.toFixed(0)}</td></tr>
             <tr class="dps-stat-group dps-group-survive"><th colspan="2">Survivability / TDO</th></tr>
