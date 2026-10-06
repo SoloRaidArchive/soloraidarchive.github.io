@@ -1,6 +1,26 @@
 {
-  "generatedAt": "2026-10-06T09:30:54.318408+00:00",
+  "generatedAt": "2026-10-06T17:29:56.185902+00:00",
   "dateGroups": [
+    {
+      "startDate": "Oct 14, 2026",
+      "endDate": "Oct 20, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Dialga",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Mega Dragonite",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "status": "future"
+    },
     {
       "startDate": "Sep 30, 2026",
       "endDate": "Oct 6, 2026",
@@ -36,26 +56,6 @@
           "name": "Mega Blastoise",
           "archivePage": "tier4-raids.html",
           "difficulty": "4 \u2b50",
-          "weather": "Extreme"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Oct 14, 2026",
-      "endDate": "Oct 20, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Dialga",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "Cloudy"
-        },
-        {
-          "name": "Mega Dragonite",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
           "weather": "Extreme"
         }
       ],
