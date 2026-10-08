@@ -85,6 +85,95 @@
         }
       ],
       "submittedAt": "2026-10-04T17:56:24.388Z"
+    },
+    {
+      "strategyName": "",
+      "weather": "Extreme",
+      "adventureEffect": "Blade Boost",
+      "difficulty": "5.5★",
+      "text": "<h2>Overview</h2><p>Originally estimated to be a 6⭐️ difficulty, Yveltal solo without weather boost and blade is still a tricky solo However because Yveltal learns a lot of hard hitting moves like focus blast and hyper beam it can be overcome using Kyurem Black Catch Tanks and Mega Raichu Y</p><p><br></p><h4>Est Time to Win</h4><p>295s-300s</p><h2>Main Strategy</h2><p>Use Mega Raichu Y with thunder shock and Zap Cannon++++ as the main DPS, try and perform <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-tick-perfect-cast\" target=\"_blank\">Tick Perfect Cast</a> when necessary to avoid overlapping fast moves leading to reduced DPS. When Yveltal launches focus blast wait at least 3t before swapping to Kyurem Black to <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-catch-tank\" target=\"_blank\">Catch Tank</a> the focus blast. This is to allow Yveltal’s chained fast move to hit Kyurem Black giving Kyurem Black enough extra energy to reach freeze shock in 1 less dragon tail. Against Hyper Beam <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-double-catch-tank\" target=\"_blank\">Double Catch Tank</a> perform the same strategy of swapping as late as possible (preferably only swap after 7t). It is also recommended to run Kyurem Black as a <a href=\"https://soloraidarchive.github.io/solo-raid-mechanics.html#strategy-substitute\" target=\"_blank\">Substitute</a> upon rejoining to prevent Mega Raichu Y getting sniped and taken out by a charged move upon rejoin. </p><h2>Video Credits</h2><p>https://youtu.be/KEsPHanDGg4?si=0XbQPzqyvxb2zByo</p>",
+      "vods": [
+        {
+          "url": "https://youtu.be/KEsPHanDGg4?si=0XbQPzqyvxb2zByo",
+          "label": "Snarl/Focus Blast, a few mistakes + minor remote lag",
+          "creditName": "",
+          "creditUrl": ""
+        }
+      ],
+      "submittedBy": "Origami777",
+      "battleParties": [
+        {
+          "label": "Main Party",
+          "secondaryLabel": "",
+          "mons": [
+            {
+              "name": "Mega Raichu Y",
+              "level": "52-53",
+              "fm": "Thunder Shock",
+              "cm": "Zap Cannon++++",
+              "cm2": "",
+              "roles": [
+                "Main DPS"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon Tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon Tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Kyurem black",
+              "level": "40-50",
+              "fm": "Dragon Tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [],
+              "optional": false
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon Tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Catch Tank"
+              ],
+              "optional": false
+            },
+            {
+              "name": "Kyurem Black",
+              "level": "40-50",
+              "fm": "Dragon Tail",
+              "cm": "Freeze Shock",
+              "cm2": "",
+              "roles": [
+                "Catch Tank"
+              ],
+              "optional": false
+            }
+          ]
+        }
+      ],
+      "submittedAt": "2026-10-08T10:34:07.525Z"
     }
   ]
 }
