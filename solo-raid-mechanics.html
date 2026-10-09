@@ -559,16 +559,61 @@ function buildMechMenu(){
     }
   };
 
+  // Where a menu jump parks an entry: just below the sticky header, measured at click time rather
+  // than hardcoded, so a header that wraps or changes size can't reopen the bug. A plain
+  // scrollIntoView({block:"start"}) put the card's top edge at y=0, under the 65px header, so the
+  // top of every entry - its name included - was hidden on arrival.
+  const header = document.querySelector(".sticky-header");
+  const PARK_GAP = 14;
+  const parkedAt = () => (header ? header.getBoundingClientRect().height : 0) + PARK_GAP;
+
   // The topmost entry that has passed the reading line wins. Picking whichever entry merely
   // intersects made the highlight flicker between two while scrolling through a tall clip.
+  // The line sits just below where a jump parks an entry. It used to be 30% of the window, which
+  // on arrival already lay below the NEXT entry whenever the clicked one was short, so clicking
+  // Recycle lit Hotswap Chain. Over the last stretch of the page it slides down by exactly as much
+  // as the final entry falls short, so the last few entries (which can never scroll up that far)
+  // each still get their turn.
+  const readingLine = () => {
+    const line = parkedAt() + 12;
+    const maxY = document.documentElement.scrollHeight - window.innerHeight;
+    const lastTop = targets[targets.length - 1].getBoundingClientRect().top + window.scrollY - maxY;
+    const shortfall = lastTop - line + 1;
+    if(shortfall <= 0) return line;
+    const stretch = Math.min(maxY, shortfall * 2);
+    const left = maxY - window.scrollY;
+    return left >= stretch ? line : line + shortfall * (1 - Math.max(left, 0) / stretch);
+  };
+  // A jumped-to entry keeps the highlight until the reader has moved the page themselves (40px)
+  // after the jump settles - otherwise an entry near the bottom, which parks lower than the line,
+  // hands the highlight to the one above it.
+  // "Settles" = the browser's scrollend event, or the reader taking over mid-flight (wheel, touch,
+  // key). Inferring it from a pause in scroll events was not safe: a long smooth scroll can pause
+  // for more than any fixed window, and the pin was dropped part-way through a jump to the bottom.
+  // The timer remains only for browsers without scrollend.
+  let pinned = null, pinY = null, settle = 0;
+  const settled = () => { if(pinned && pinY === null) pinY = window.scrollY; };
+  const hasScrollEnd = "onscrollend" in window;
+  if(hasScrollEnd) window.addEventListener("scrollend", settled);
+  ["wheel", "touchstart", "keydown"].forEach(t => window.addEventListener(t, settled, { passive: true }));
+  const armPin = () => { if(hasScrollEnd) return; clearTimeout(settle); settle = setTimeout(settled, 150); };
   const onScroll = () => {
-    const line = window.innerHeight * 0.3;
+    if(pinned){
+      if(pinY === null){ armPin(); return; }
+      if(Math.abs(window.scrollY - pinY) < 40) return;
+      pinned = pinY = null;
+    }
+    const line = readingLine();
     let best = targets[0];
     for(const t of targets){ if(t.getBoundingClientRect().top <= line) best = t; }
     setActive(best.id);
   };
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
+
+  // Called with block "center" by scrollToHashTarget (a reader arriving from a guide link), so the
+  // highlight follows that jump too instead of whatever crosses the line near it.
+  mechMenuPin = (id) => { if(byId.has(id)){ pinned = id; pinY = null; setActive(id); armPin(); } };
 
   nav.addEventListener("click", ev => {
     const a = ev.target.closest(".mech-nav-link");
@@ -577,9 +622,12 @@ function buildMechMenu(){
     const el = document.getElementById(a.dataset.target);
     if(!el) return;
     history.replaceState(null, "", "#" + a.dataset.target);
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    mechMenuPin(a.dataset.target);
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - parkedAt(), behavior: "smooth" });
+    armPin();
   });
 }
+let mechMenuPin = () => {};   // replaced by buildMechMenu on desktop; a no-op on mobile
 
 function entryHtml(e, sectionIdx, entryIdx){
   const uid = `${sectionIdx}-${entryIdx}`;
@@ -704,6 +752,7 @@ function scrollToHashTarget(){
     const el = document.querySelector(hash);
     if(!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "center" });
+    mechMenuPin(el.id);
     el.classList.add("highlight-flash");
     setTimeout(() => el.classList.remove("highlight-flash"), 2200);
   }, 50);
