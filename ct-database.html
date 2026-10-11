@@ -2464,6 +2464,10 @@ function entryDetailRowHtml(e, cols){
   // (numCM) but was never surfaced anywhere in the UI.
   const casts = parseInt(e.chargeCasts, 10);
   if(isFinite(casts) && casts > 0) bits.push(["Charge moves", String(casts)]);
+  // Boss fast moves absorbed during the interaction (the sheet's "Boss FM Tanked"). Shown even
+  // when 0: whether the tank also eats fast moves is part of what defines the interaction.
+  const fms = parseInt(e.fmsTanked, 10);
+  if(isFinite(fms)) bits.push(["Fast moves absorbed", String(fms)]);
   const d = (e.dodges || "").trim();
   if(d && d.toLowerCase() !== "none") bits.push(["Dodges", escapeHtml(d)]);
   const t = (e.timingMods || "").trim();
