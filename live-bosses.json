@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-13T09:48:34.374826+00:00",
+  "generatedAt": "2026-10-13T18:35:05.808004+00:00",
   "dateGroups": [
     {
       "startDate": "Oct 14, 2026",
@@ -16,6 +16,32 @@
           "name": "Mega Dragonite",
           "archivePage": "tier4-raids.html",
           "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Oct 21, 2026",
+      "endDate": "Oct 27, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Palkia",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Mega Charizard X",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Charizard Y",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
           "weather": "Extreme"
         }
       ],
@@ -57,32 +83,6 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "5 \u2b50",
           "weather": "Cloudy"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Oct 21, 2026",
-      "endDate": "Oct 27, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Palkia",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Mega Charizard X",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Charizard Y",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "2 \u2b50",
-          "weather": "Extreme"
         }
       ],
       "status": "future"
