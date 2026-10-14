@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-14T03:51:29.602202+00:00",
+  "generatedAt": "2026-10-14T10:44:17.968100+00:00",
   "dateGroups": [
     {
       "startDate": "Oct 14, 2026",
@@ -46,26 +46,6 @@
         }
       ],
       "status": "future"
-    },
-    {
-      "startDate": "Oct 7, 2026",
-      "endDate": "Oct 13, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Yveltal",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Snow"
-        },
-        {
-          "name": "Mega Blastoise",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Extreme"
-        }
-      ],
-      "status": "active"
     },
     {
       "startDate": "Oct 28, 2026",
@@ -124,6 +104,26 @@
           "name": "Shadow Landorus Incarnate",
           "archivePage": "tier5-raids.html",
           "difficulty": "5.5 \u2b50",
+          "weather": "Snow"
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "startDate": "Oct 7, 2026",
+      "endDate": "Oct 13, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Mega Blastoise",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Yveltal",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
           "weather": "Snow"
         }
       ],
