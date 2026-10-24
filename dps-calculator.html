@@ -2164,11 +2164,14 @@ function refreshMoveDropdowns(){
   const pending = PENDING_MOVE_SELECTION;
   if(document.getElementById("pokemonName").value.trim()) updateMoveOptionsFor("pokemonName","playerCM","playerFM");
   if(document.getElementById("bossName").value.trim()) updateMoveOptionsFor("bossName","bossCM","bossFM");
+  if(document.getElementById("ctName").value.trim()) updateMoveOptionsFor("ctName","ctCM","ctFM");
   if(pending){
     restoreMoveSelection("playerCM", pending.playerCM);
     restoreMoveSelection("playerFM", pending.playerFM);
     restoreMoveSelection("bossCM", pending.bossCM);
     restoreMoveSelection("bossFM", pending.bossFM);
+    restoreMoveSelection("ctCM", pending.ctCM);
+    restoreMoveSelection("ctFM", pending.ctFM);
     PENDING_MOVE_SELECTION = null;
   }
   // Always re-render previews and re-run type detection, not just for shared links: a user who
@@ -3364,11 +3367,15 @@ function runCalculation(){
   // CT + Main DPS (test): a turn-by-turn simulation with its own result card. The main DPSer and
   // boss are taken from the values worked out above, so they match every other mode exactly.
   if(ctMode === "team"){
+    window.__teamSim = null;
     resultsWrap.innerHTML = runTeamSim({
       pkmnName, playerHp, playerDef, fm, cm, fastDamage, chargeDamage, playerMods,
       bossName, bossAtk, bossDef, bossFMMove, bossCMMove, bossFMMods, bossCMMods,
       aggro: parseInt(document.getElementById("bossAggro").value, 10) / 100,
     });
+    // Saved to Recent Setups like every other mode - only when the simulation actually ran (not
+    // when the catch tank fields still need filling in).
+    if(window.__teamSim) addToHistory(captureSetup());
     return;
   }
 
@@ -4327,6 +4334,11 @@ const SETUP_FIELD_IDS = [
   "weatherSelect","dodgeCM","dodgeFM","t7Enraged","shadowEnraged","shieldAE","zacianBlade","cmBuffer","partyPower","resolveNerf",
   "bossName","bossTier","bossCM","bossFM",
   "effBossCM","effBossFM","bossStabCM","bossStabFM","shadowDebuff",
+  // Boss aggression, the Fast & Charge choice and Dynamic Punch+ (all used by Main DPS and the
+  // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
+  // Setups saved before these were added simply don't have them, and restore as they did.
+  "bossAggro","bossAggroOn","cadenceMode","dynamicPunch",
+  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority",
 ];
 function captureSetup(){
   const setup = {};
@@ -4339,6 +4351,7 @@ function captureSetup(){
 }
 function restoreMoveSelection(baseId, savedMove){
   if(!savedMove) return;
+  if(!document.getElementById(baseId + "_select")) return;
   const sel = document.getElementById(baseId + "_select");
   const customInput = document.getElementById(baseId + "_custom");
   const datalist = document.getElementById(baseId + "_customList");
@@ -4367,31 +4380,39 @@ function applySetup(setup){
     if(el.type === "checkbox") el.checked = !!setup[id];
     else el.value = setup[id];
   });
-  const modeToId = { maindps: "ctModeMainDPS", single: "ctModeSingle", double: "ctModeDouble" };
+  const modeToId = { maindps: "ctModeMainDPS", single: "ctModeSingle", double: "ctModeDouble", team: "ctModeTeam" };
   document.getElementById(modeToId[setup.ctMode] || "ctModeSingle").checked = true;
   updateCTMode();
   ["pokemonLevel","ivAtk","ivDef","ivHp"].forEach(id => {
     const el = document.getElementById(id);
     el.dispatchEvent(new Event("input"));
   });
+  // the aggression slider's own label/hint and the sponge/priority link listen for these events
+  ["bossAggro"].forEach(id => document.getElementById(id).dispatchEvent(new Event("input")));
+  ["bossAggroOn","ctMainAbsorb","ctPriority"].forEach(id => document.getElementById(id).dispatchEvent(new Event("change")));
   updateMoveOptionsFor("pokemonName","playerCM","playerFM");
   updateMoveOptionsFor("bossName","bossCM","bossFM");
+  if(document.getElementById("ctName").value.trim()) updateMoveOptionsFor("ctName","ctCM","ctFM");
   // If the movepool CSV hasn't landed yet the dropdowns are still empty, so these restores would
   // no-op. Record them and let refreshMoveDropdowns() replay once the data arrives.
   if(!movepoolReady){
     PENDING_MOVE_SELECTION = {
       playerCM: setup.playerCM, playerFM: setup.playerFM,
       bossCM: setup.bossCM, bossFM: setup.bossFM,
+      ctCM: setup.ctCM, ctFM: setup.ctFM,
     };
   }
   restoreMoveSelection("playerCM", setup.playerCM);
   restoreMoveSelection("playerFM", setup.playerFM);
   restoreMoveSelection("bossCM", setup.bossCM);
   restoreMoveSelection("bossFM", setup.bossFM);
+  restoreMoveSelection("ctCM", setup.ctCM);
+  restoreMoveSelection("ctFM", setup.ctFM);
   updatePlayerPreview();
   updateBossPreview();
   updatePlayerMovePreview();
   autoSetEffectiveness();
+  updateTeamPreview();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function loadHistory(){
@@ -4405,7 +4426,9 @@ function addToHistory(setup){
   let history = loadHistory();
   const setupStr = JSON.stringify(setup);
   history = history.filter(h => JSON.stringify(h.setup) !== setupStr);
-  const label = `${setup.pokemonName || "?"} vs ${setup.bossName || "?"}`;
+  const label = setup.ctMode === "team"
+    ? `${setup.pokemonName || "?"} + ${setup.ctQty || "?"}× ${setup.ctName || "?"} vs ${setup.bossName || "?"} (sim)`
+    : `${setup.pokemonName || "?"} vs ${setup.bossName || "?"}`;
   history.unshift({ setup, label, time: Date.now() });
   history = history.slice(0, 10);
   saveHistoryList(history);
@@ -5196,6 +5219,9 @@ const SETUP_SHORT_KEYS = {
   bossName:"bn", bossTier:"bt", bossCM:"bc", bossFM:"bf",
   effBossCM:"ebc", effBossFM:"ebf", bossStabCM:"bsc", bossStabFM:"bsf", shadowDebuff:"sd",
   ctMode:"m",
+  bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp",
+  ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
+  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp",
 };
 const SETUP_LONG_KEYS = Object.fromEntries(Object.entries(SETUP_SHORT_KEYS).map(([k,v]) => [v,k]));
 function encodeSetupForUrl(setup){
@@ -5246,7 +5272,14 @@ document.getElementById("shareBtn").addEventListener("click", async () => {
   try{
     const setup = decodeSetupFromUrl(encoded);
     applySetup(setup);
-    setTimeout(runCalculation, 50);
+    // The Pokemon, move and movepool data load asynchronously. Calculating on a fixed 50ms timer
+    // ran before they landed, so a shared link filled in every field and then showed "Enter a
+    // valid Pokemon name". Wait for the data (or its failure), up to 15s, then calculate.
+    const started = Date.now();
+    (function calcWhenReady(){
+      if(movepoolReady || movepoolLoadFailed || Date.now() - started > 15000){ runCalculation(); return; }
+      setTimeout(calcWhenReady, 100);
+    })();
   }catch(e){
     console.error("Failed to apply shared setup from URL:", e);
   }
