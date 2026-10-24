@@ -73,12 +73,14 @@ if ("serviceWorker" in navigator) {
 
   .ct-mode-toggle{
     display:flex; gap:0; background: var(--bg1); border:2px solid var(--border); border-radius:12px;
-    padding:4px; margin-bottom:16px; max-width:560px; flex-wrap:wrap;
+    padding:4px; margin-bottom:16px; max-width:760px; flex-wrap:wrap;
   }
   [data-theme="dark"] .ct-mode-toggle{ background:#161a28; }
   .ct-mode-toggle input{ display:none; }
+  /* Each tab sizes to its own label and never wraps it, so "Beta: Simple Catch Tank Sim" stays on
+     one line. On a narrow phone the tabs themselves still wrap onto a second row of the toggle. */
   .ct-mode-toggle label{
-    flex:1; min-width:110px; text-align:center; padding:10px 10px; border-radius:9px; cursor:pointer;
+    flex:1 1 auto; min-width:110px; white-space:nowrap; text-align:center; padding:10px 12px; border-radius:9px; cursor:pointer;
     font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; color: var(--text-dim);
     transition: background .15s ease, color .15s ease;
   }
@@ -766,6 +768,40 @@ if ("serviceWorker" in navigator) {
   }
 
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+
+  /* ============ CT + MAIN DPS (test mode) ============ */
+  .team-only{ display:none; }
+  body.ct-mode-team .team-only{ display:block; }
+  body.ct-mode-team .team-hide{ display:none !important; }
+  /* Aggression is always on in this mode (the boss has to cast charge moves for there to be
+     anything to catch), so only the slider shows, never its on/off box. */
+  body.ct-mode-team .aggro-cell{ display:flex; flex-direction:column; min-width:190px; opacity:1; pointer-events:auto; }
+  .team-hint{ font-size:11.5px; color:var(--text-dim); font-weight:600; line-height:1.5; margin:2px 0 0; }
+  .team-opts{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:14px 28px; margin-top:16px; }
+  .qty-stepper{ display:inline-flex; align-items:center; border:2px solid var(--border); border-radius:12px; overflow:hidden; background:var(--card); }
+  .qty-stepper button{ width:38px; height:38px; border:0; background:transparent; color:var(--text); font:800 18px 'Manrope',sans-serif; cursor:pointer; }
+  .qty-stepper input{ width:40px; text-align:center; border:0; background:transparent; color:var(--text); font:800 15px 'Manrope',sans-serif; padding:0; -moz-appearance:textfield; }
+  .qty-stepper input::-webkit-outer-spin-button, .qty-stepper input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .team-absorb{ max-width:440px; }
+  .team-tl{ position:relative; height:26px; border-radius:7px; overflow:hidden; background:var(--bg1); margin:10px 0 4px; }
+  .team-tl i{ position:absolute; top:0; bottom:0; }
+  .team-tl .seg-main{ background:#3d9dff; } .team-tl .seg-tank{ background:#f5b94a; }
+  .team-tl .seg-swap{ background:repeating-linear-gradient(45deg,#8890a6 0 3px,transparent 3px 6px); }
+  .team-tl b{ position:absolute; top:0; width:2px; height:26px; background:#ff6b8a; }
+  .team-tl-axis{ display:flex; justify-content:space-between; font:600 10.5px 'Manrope',sans-serif; color:var(--text-dim); }
+  .team-tl-legend{ display:flex; gap:14px; flex-wrap:wrap; font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin:6px 0 4px; }
+  .team-tl-legend em{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  .team-log{ margin-top:14px; }
+  .team-log table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .team-log td{ text-align:left; padding:6px 8px; border-top:1px solid var(--border); color:var(--text); vertical-align:top; }
+  .team-log td:first-child{ width:58px; color:var(--text-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .team-tag{ display:inline-block; font:800 9.5px 'Manrope',sans-serif; letter-spacing:.05em; text-transform:uppercase; padding:2px 6px; border-radius:4px; margin-right:6px; }
+  .team-tag.ct{ background:rgba(245,185,74,.18); color:#b07800; } .team-tag.main{ background:rgba(61,157,255,.16); color:#1f6fd1; } .team-tag.boss{ background:rgba(255,107,138,.16); color:#c2415a; }
+  [data-theme="dark"] .team-tag.ct{ color:#f5b94a; } [data-theme="dark"] .team-tag.main{ color:#7db9ff; } [data-theme="dark"] .team-tag.boss{ color:#ff8fa3; }
+  .team-warn{ margin:0 0 12px; padding:9px 12px; border-radius:10px; font-size:12.5px; font-weight:700; line-height:1.45;
+    background:rgba(255,107,138,.12); color:#c2415a; border:1px solid rgba(255,107,138,.35); }
+  [data-theme="dark"] .team-warn{ color:#ff8fa3; }
+  .team-loadout{ font-size:12px; color:var(--text-dim); font-weight:600; margin-top:4px; }
 </style>
 <script type="application/ld+json">
 {
@@ -886,6 +922,8 @@ if ("serviceWorker" in navigator) {
     <label for="ctModeSingle">Single Catch Tank</label>
     <input type="radio" name="ctMode" id="ctModeDouble" value="double">
     <label for="ctModeDouble">Double Catch Tank</label>
+    <input type="radio" name="ctMode" id="ctModeTeam" value="team">
+    <label for="ctModeTeam" title="A main DPSer plus catch tanks, simulated turn by turn">Beta: Simple Catch Tank Sim</label>
   </div>
   
   <!-- STEP 1: SIDE BY SIDE -->
@@ -1071,6 +1109,79 @@ if ("serviceWorker" in navigator) {
     </div>
   </div>
 
+  <!-- CT + MAIN DPS (test mode only): the catch tank -->
+  <div class="step-card team-only" id="teamCard">
+    <div class="step-head">
+      <div class="step-num">CT</div>
+      <div>
+        <div class="step-title">Catch Tank</div>
+        <p class="team-hint">One is swapped in for each boss charge move it needs to catch, until they run out. The boss never casts two charge moves back to back.</p>
+      </div>
+    </div>
+    <div class="name-iv-row">
+      <div class="field name-field">
+        <label for="ctName">Pokémon</label>
+        <input id="ctName" placeholder="e.g. Kyurem Black" autocomplete="off">
+        <div class="ac-list" id="ctName_ac"></div>
+      </div>
+      <div class="field iv-field">
+        <label for="ctLevel">Level</label>
+        <input id="ctLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50">
+      </div>
+          <div class="field iv-field">
+            <label for="ctIvAtk">Atk IV</label>
+            <input id="ctIvAtk" type="text" inputmode="numeric" value="15" placeholder="0–15">
+          </div>
+          <div class="field iv-field">
+            <label for="ctIvDef">Def IV</label>
+            <input id="ctIvDef" type="text" inputmode="numeric" value="15" placeholder="0–15">
+          </div>
+          <div class="field iv-field">
+            <label for="ctIvHp">HP IV</label>
+            <input id="ctIvHp" type="text" inputmode="numeric" value="15" placeholder="0–15">
+          </div>
+    </div>
+    <div class="subhead">Moves</div>
+    <div class="field-grid compact">
+        <div class="field">
+          <label for="ctFM_select">Fast Move</label>
+          <select id="ctFM_select" onchange="onMoveSelectChange('ctFM')"></select>
+          <input type="text" id="ctFM_custom" class="custom-move-select" list="ctFM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('ctFM')">
+          <datalist id="ctFM_customList"></datalist>
+          <input type="hidden" id="ctFM" value="">
+        </div>
+        <div class="field">
+          <label for="ctCM_select">Charge Move</label>
+          <select id="ctCM_select" onchange="onMoveSelectChange('ctCM')"></select>
+          <input type="text" id="ctCM_custom" class="custom-move-select" list="ctCM_customList" style="display:none;" placeholder="Type a move name…" autocomplete="off" oninput="onCustomMoveChange('ctCM')">
+          <datalist id="ctCM_customList"></datalist>
+          <input type="hidden" id="ctCM" value="">
+        </div>
+    </div>
+    <div class="team-opts">
+      <div class="field" style="margin:0">
+        <label for="ctQty">How many</label>
+        <div class="qty-stepper">
+          <button type="button" id="ctQtyMinus" aria-label="One fewer catch tank">&minus;</button>
+          <input id="ctQty" type="number" min="1" max="10" value="3" inputmode="numeric">
+          <button type="button" id="ctQtyPlus" aria-label="One more catch tank">+</button>
+        </div>
+      </div>
+      <div class="team-absorb">
+        <label class="check-item"><input type="checkbox" id="ctMainAbsorb" checked> Main DPSer absorbs when safe</label>
+        <p class="team-hint">Safe means it keeps at least 90% of the charge move's energy (no more than 10% over 100), survives the hit, and can still fire its own charge move afterwards.</p>
+        <div class="field" style="margin:10px 0 0">
+          <label for="ctPriority">Priority</label>
+          <select id="ctPriority">
+            <option value="main" selected>Main DPSer first, then catch tanks</option>
+            <option value="tanks">Catch tanks first, then main DPSer</option>
+          </select>
+        </div>
+        <p class="team-hint" id="ctPriorityHint"></p>
+      </div>
+    </div>
+  </div>
+
   <!-- STEP 2: ADDITIONAL MODIFIERS -->
   <div class="step-card">
     <div class="step-head">
@@ -1081,7 +1192,7 @@ if ("serviceWorker" in navigator) {
     </div>
 
     <div class="mod-consolidated-grid">
-      <div class="mod-cell">
+      <div class="mod-cell team-hide">
         <label for="numCM"># of Charge Moves</label>
         <select id="numCM">
           <option value="1">1</option>
@@ -1115,13 +1226,13 @@ if ("serviceWorker" in navigator) {
         <input type="range" id="bossAggro" min="10" max="60" step="5" value="30">
         <div class="aggro-hint" id="bossAggroHint">~1 charge per 2.3 fast moves</div>
       </div>
-      <label class="check-item single-ct-only maindps-fmcm-only"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
-      <label class="check-item"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
+      <label class="check-item single-ct-only maindps-fmcm-only team-hide"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
+      <label class="check-item team-hide"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
       <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
       <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
       <label class="check-item" id="dynPunchItem" title="Mega Mewtwo X's Dynamic Punch+: +15% damage in Mega raids only."><input type="checkbox" id="dynamicPunch"> Dynamic Punch+</label>
-      <label class="check-item single-ct-only" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
-      <label class="check-item"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
+      <label class="check-item single-ct-only team-hide" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
+      <label class="check-item team-hide"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
     </div>
   </div>
 
@@ -2068,6 +2179,450 @@ function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
   return landings;
 }
 
+// ============ CT + MAIN DPS SIMULATOR (test mode) ============
+// A main DPSer and N copies of one catch tank against the boss, stepped one tick (0.5s) at a
+// time on a single shared timeline. Built from the same pieces as Main DPS mode: the same boss
+// aggression model (seeded full bar, half-phase accumulator), energy from damage banked when it
+// LANDS and rounded up per hit (energyFromDamage), and the 100-energy cap on both sides.
+//
+// What differs, and why:
+//  * The boss's charge move takes its animation to land (cast at t, lands at t + ad). Main DPS
+//    mode lands it the instant it is chosen; here that animation is the window a catch tank
+//    swaps in during, so it has to exist.
+//  * The boss never casts two charge moves back to back: the move after a charge move is always
+//    a fast move. (Main DPS mode lets a charge move chain straight into another.)
+//  * Fast move cadence is unchanged: cast, land after its animation, next cast 4 ticks later -
+//    the same (ad + 4) rhythm as bossFMContinuousLandingTicks. After a charge move lands the
+//    next cast is 1 tick later, as in Main DPS mode.
+//
+// Order inside one tick: player hits land -> fast-move energy credited -> a swap finishes ->
+// the boss's move lands -> the boss picks its next move -> the active Pokemon acts. A swap that
+// finishes on the landing tick is therefore in time (the tank is in when the hit arrives).
+const TEAM_SWAP_TICKS = 2;      // 1.0s per swap, as everywhere else in this calculator
+const TEAM_MAX_TICKS = 600;     // 300s: the Tier 5 raid timer, a backstop rather than a setting
+
+function simulateTeam(P){
+  const S = {
+    t: 0,
+    // The boss starts the fight with an EMPTY bar here, so its first charge move has to be earned
+    // from its fast moves and the damage it takes. (Main DPS mode seeds it full on purpose - that
+    // rotation is built around absorbing a charge move - and is unchanged.)
+    boss: { energy: 0, acc: 0.5, nextCast: 1, inFlight: null, lastWasCM: false, unseen: 0 },
+    mons: [{ tank: false, hp: P.main.hp, energy: 0, busyUntil: 0, cmCasts: 0 }]
+      .concat(Array.from({ length: P.qty }, () => ({ tank: true, hp: P.tank.hp, energy: 0, busyUntil: 0, cmCasts: 0 }))),
+    active: 0, swap: null, pendingSwap: null,   // pendingSwap: { to, latest }
+    hits: [], gains: [],
+    nextTank: 1, lastTankDoneAt: null,
+    // The last point the rotation was on solid ground: a catch tank's final charge move landing,
+    // or the main DPSer's charge move landing after a sponge. A run that ends because nobody can
+    // take the next charge move is cut back to here, so it never includes a half-built cycle.
+    safePoint: null, awaitMainCM: false,
+    // Finishing: no catch tank is left for the next charge move, so the main DPSer comes back to
+    // spend the energy it is holding/building. The run ends when that charge move lands
+    // (finishAt), provided it lands before the boss's next charge move would hit (finishDeadline).
+    finishing: false, finishDeadline: null, finishAt: null,
+    ended: null, probe: null,
+  };
+  const R = newTeamRecorder();
+  while(!S.ended){
+    const snap = P.mainAbsorbs ? structuredClone(S) : null;   // state at the start of this tick
+    teamStep(S, R, P, snap);
+    R.mainEnergy[S.t] = S.mons[0].energy;
+    if(S.ended) break;
+    S.t++;
+    if(S.t > TEAM_MAX_TICKS) S.ended = { t: TEAM_MAX_TICKS, reason: "timer" };
+  }
+  return { S, R };
+}
+
+function newTeamRecorder(){
+  return { dmg: [], events: [], segs: [{ t: 0, who: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], mainEnergy: [] };
+}
+
+// Bank energy on one Pokemon, capped at 100. Returns how much went over the cap.
+function teamBank(m, amount){
+  const before = m.energy;
+  m.energy = Math.min(100, m.energy + amount);
+  return amount - (m.energy - before);
+}
+
+function teamStep(S, R, P, snap){
+  const t = S.t, B = S.boss;
+  const sideOf = who => S.mons[who].tank ? P.tank : P.main;
+
+  const startSwap = (from, to) => {
+    S.swap = { from, to, until: t + TEAM_SWAP_TICKS };
+    R.segs.push({ t, who: -1 });
+    R.swaps.push({ t, until: t + TEAM_SWAP_TICKS, from, to });
+  };
+  const end = (at, reason) => { S.ended = { t: at, reason }; };
+
+  const faint = (who) => {
+    const m = S.mons[who];
+    if(S.probe){ if(!m.tank) S.probe.done = "fail"; return; }
+    R.events.push({ t, kind: m.tank ? "ct" : "main", text: `${teamLabel(P, who)} faints` });
+    if(m.tank){
+      // A fainted tank's move in progress never lands; the next Pokemon comes in.
+      S.hits = S.hits.filter(h => h.who !== who);
+      S.gains = S.gains.filter(g => g.who !== who);
+      if(S.nextTank > P.qty && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs) S.finishing = true; }
+      const next = S.pendingSwap ? S.pendingSwap.to : 0;
+      S.pendingSwap = null;
+      startSwap(who, next);
+      return;
+    }
+    if(S.finishing){ end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return; }
+    // The main DPSer can't continue. With tanks still unused, the run is cut back to the end of
+    // the last catch tank's turn; otherwise it ends here.
+    const tanksLeft = S.nextTank <= P.qty;
+    if(tanksLeft && S.lastTankDoneAt !== null) end(S.lastTankDoneAt, "main-fainted-cut");
+    else if(S.nextTank === 1) end(t, "main-fainted-early");
+    else end(S.safePoint !== null ? S.safePoint : t, "main-fainted");   // no half-built charge move
+  };
+
+  // Decide who takes a boss charge move cast now, landing at `land`.
+  const onBossCM = (land) => {
+    if(S.probe){ if(t !== S.probe.cast) S.probe.done = "fail"; return; }   // probe: only its own CM
+    const holder = S.swap ? S.swap.to : S.active;   // who will be in when it lands
+    const hm = S.mons[holder];
+    const dec = { cast: t, land, outcome: null, tank: null };
+    R.decisions.push(dec);
+    if(!hm.tank){
+      // Priority: main-first tries the sponge before a tank; tanks-first only falls back to it once
+      // the tanks are gone. Either way the sponge needs the safety checks to pass.
+      const tanksLeft = S.nextTank <= P.qty;
+      let safe = null;
+      const mainSafe = () => (safe === null ? (safe = !!(P.mainAbsorbs && snap && teamMainCanAbsorb(snap, P, t, land))) : safe);
+      if(P.mainAbsorbs && (P.mainFirst || !tanksLeft) && mainSafe()){
+        dec.outcome = "main";
+        S.awaitMainCM = true;
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} sponges it` });
+        return;
+      }
+      if(!tanksLeft){
+        // Nobody can take this one. Before stopping, the main DPSer gets to fire the charge move
+        // it is holding or building - but it has to land before this charge move does.
+        dec.outcome = "end";
+        S.finishing = true;
+        if(S.finishDeadline === null) S.finishDeadline = land;
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → no catch tank left${P.mainAbsorbs ? ` and ${P.main.name} can't sponge it safely` : ""}; ${P.main.name} must fire before it lands` });
+        return;
+      }
+      const freeAt = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0);
+      if(freeAt + TEAM_SWAP_TICKS <= land){
+        S.pendingSwap = { to: S.nextTank++, latest: land - TEAM_SWAP_TICKS };
+        dec.outcome = "tank"; dec.tank = S.pendingSwap.to;
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → swap in ${teamLabel(P, dec.tank)}` });
+      } else {
+        dec.outcome = "late";
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → too late to swap; ${P.main.name} takes it` });
+      }
+      return;
+    }
+    // A catch tank is still in from the last charge move.
+    if(hm.hp > P.tank.bossCmDmg){
+      dec.outcome = "tank-again"; dec.tank = holder;
+      R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${teamLabel(P, holder)} is still in and takes it` });
+    } else if(S.nextTank <= P.qty && Math.max(t, hm.busyUntil) + TEAM_SWAP_TICKS <= land){
+      S.pendingSwap = { to: S.nextTank++, latest: land - TEAM_SWAP_TICKS };
+      dec.outcome = "tank"; dec.tank = S.pendingSwap.to;
+      R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → swap in ${teamLabel(P, dec.tank)}` });
+    } else {
+      dec.outcome = "tank-faint"; dec.tank = holder;
+      R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → lands on ${teamLabel(P, holder)}` });
+    }
+  };
+
+  // 1. player hits land on the boss; the boss banks their energy at its next decision
+  S.hits = S.hits.filter(h => {
+    if(h.tick !== t) return true;
+    R.dmg.push({ t, who: h.who, dmg: h.dmg });
+    B.unseen += energyFromDamage(h.dmg);
+    // Any charge move landing is a safe point: whatever energy built up has just been spent.
+    if(h.cm && !S.probe) S.safePoint = Math.max(S.safePoint === null ? 0 : S.safePoint, t);
+    return false;
+  });
+  if(S.finishAt !== null && t >= S.finishAt){ end(S.finishAt, "finished"); return; }
+  // 2. a finished fast move's energy is credited
+  S.gains = S.gains.filter(g => {
+    if(g.tick !== t) return true;
+    teamBank(S.mons[g.who], g.e);
+    return false;
+  });
+  // 3. a swap finishes
+  if(S.swap && S.swap.until === t){
+    const { from, to } = S.swap;
+    S.swap = null;
+    S.active = to;
+    R.segs.push({ t, who: to });
+    if(to === 0 && S.mons[from].tank) S.lastTankDoneAt = t;
+    R.events.push({ t, kind: S.mons[to].tank ? "ct" : "main", text: `${teamLabel(P, to)} is in` });
+  }
+  // 4. the boss's move lands on whoever is on the field (mid-swap, that is still the outgoing one)
+  if(B.inFlight && B.inFlight.land === t){
+    const mv = B.inFlight;
+    B.inFlight = null;
+    const who = S.swap ? S.swap.from : S.active;
+    if(mv.cm && S.finishing && !S.probe && who === 0 && !(R.decisions.find(d => d.cast === mv.cast) || {}).outcome?.startsWith("main")){
+      end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return;
+    }
+    const m = S.mons[who];
+    const side = sideOf(who);
+    const dmg = mv.cm ? side.bossCmDmg : side.bossFmDmg;
+    m.hp -= dmg;
+    const over = teamBank(m, energyFromDamage(dmg));
+    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over });
+    R.hp.push({ t, who, hp: m.hp });
+    if(mv.cm){
+      R.events.push({ t, kind: m.tank ? "ct" : "main",
+        text: m.hp <= 0
+          ? `${teamLabel(P, who)} takes ${P.bossCM.n}: ${dmg} damage`
+          : `${teamLabel(P, who)} takes ${P.bossCM.n}: ${dmg} damage, +${energyFromDamage(dmg) - over} energy${over ? ` (${over} over the cap)` : ""}` });
+      // Sponging must keep at least 90% of the charge move's energy: no more than 10% may go over
+      // 100. (All-or-nothing was too strict to ever pass; no limit at all let Eternatus waste 67 of
+      // 83 energy on a sponge it didn't need.)
+      if(S.probe && !m.tank){
+        const gain = energyFromDamage(dmg);
+        if(gain - over < 0.9 * gain) S.probe.done = "fail";
+      }
+    }
+    B.nextCast = t + (mv.cm ? 1 : 4);
+    if(m.hp <= 0){ faint(who); if(S.ended || (S.probe && S.probe.done)) return; }
+  }
+  // 5. the boss picks its next move. Never a charge move straight after a charge move.
+  if(!B.inFlight && t === B.nextCast){
+    B.energy = Math.min(100, B.energy + B.unseen);
+    B.unseen = 0;
+    B.acc += P.aggro;
+    const cm = !B.lastWasCM && B.energy >= 100 && B.acc >= 1;
+    if(cm){ B.acc -= 1; B.energy -= 100; }
+    else B.energy = Math.min(100, B.energy + P.bossFM.energyGain);
+    const mv = cm ? P.bossCM : P.bossFM;
+    B.inFlight = { cm, cast: t, land: t + mv.ad };
+    B.lastWasCM = cm;
+    if(cm){ onBossCM(t + mv.ad); if(S.ended || (S.probe && S.probe.done)) return; }
+  }
+  // 6. the active Pokemon acts, if it is free
+  if(!S.swap){
+    const who = S.active, m = S.mons[who];
+    if(m.busyUntil <= t && m.hp > 0){
+      const side = sideOf(who);
+      // A swap is booked for the boss's charge move. It starts as LATE as possible - on the last
+      // tick that still gets the catch tank in before the hit lands - and until then the Pokemon
+      // on the field keeps attacking, as long as its next move finishes by that tick. Starting the
+      // swap the moment the boss began its charge move (as this first did) left the tank standing
+      // in for the whole animation: against Zekrom's 4.0s Outrage that was ~3s per catch of the
+      // tank's Dragon Tails instead of Eternatus's, plus 12 energy lost over the cap each time.
+      const nextDur = m.energy >= side.cmCost ? side.cm.ad : side.fm.ad;
+      if(S.pendingSwap && t + nextDur > S.pendingSwap.latest){
+        const to = S.pendingSwap.to; S.pendingSwap = null;
+        startSwap(who, to);
+      } else if(m.tank && m.cmCasts >= 1 && m.energy < side.cmCost){
+        // Single catch tank: it has fired what it can. If it was the last one, the rotation ends
+        // the moment its final charge move lands (this tick): with no tank left for the boss's
+        // next charge move, the main DPSer can't be relied on past this point.
+        // With "absorbs when safe" on, the main DPSer can still take later charge moves, so the
+        // run goes on until one arrives that nobody can take.
+        S.safePoint = t;
+        // The last tank is done. Rather than ending here - which left Eternatus benched on a full
+        // 100 energy whenever the swap for the last tank had cut its Dynamax Cannon off - the main
+        // DPSer comes back and fires what it has built (see finishing).
+        if(S.nextTank > P.qty && !S.pendingSwap && !P.mainAbsorbs) S.finishing = true;
+        startSwap(who, 0);   // back to the main
+      } else if(m.energy >= side.cmCost){
+        if(S.finishing && !m.tank && !S.probe){
+          if(S.finishDeadline !== null && t + side.cm.ad > S.finishDeadline){
+            end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return;
+          }
+          S.finishAt = t + side.cm.ad;
+          R.events.push({ t, kind: "main", text: `${P.main.name} fires its remaining ${side.cm.n} to finish` });
+        }
+        m.energy -= side.cmCost; m.cmCasts++;
+        m.busyUntil = t + side.cm.ad;
+        S.hits.push({ tick: t + side.cm.ad, dmg: side.cmDmg, who, cm: true });
+        if(m.tank) R.events.push({ t, kind: "ct", text: `${teamLabel(P, who)} casts ${side.cm.n} (${side.cmDmg})` });
+        if(S.probe && !m.tank && t > S.probe.land) S.probe.done = "ok";
+        if(!m.tank && S.awaitMainCM){ S.safePoint = t + side.cm.ad; S.awaitMainCM = false; }
+      } else {
+        m.busyUntil = t + side.fm.ad;
+        S.hits.push({ tick: t + side.fm.ad, dmg: side.fmDmg, who });
+        S.gains.push({ tick: t + side.fm.ad, who, e: side.fm.energy });
+      }
+    }
+  }
+}
+
+// Can the main DPSer take ("sponge") this charge move itself? Plays the fight forward from the
+// start of this tick with the main absorbing it, and accepts only if: it keeps at least 90% of the
+// hit's energy (no more than 10% over 100), survives the hit, and starts its next charge move
+// after it lands without fainting and without another boss charge move arriving first.
+function teamMainCanAbsorb(snap, P, cast, land){
+  const L = structuredClone(snap);
+  L.probe = { cast, land, done: null };
+  const R = newTeamRecorder();
+  for(let k = 0; k < 400 && !L.probe.done && !L.ended; k++){
+    teamStep(L, R, P, null);
+    if(L.probe.done || L.ended) break;
+    L.t++;
+  }
+  return L.probe.done === "ok";
+}
+
+function teamLabel(P, who){
+  return who === 0 ? P.main.name : (P.qty > 1 ? `${P.tank.name} #${who}` : P.tank.name);
+}
+
+// Inputs + rendering for the CT + Main DPS simulator. `c` carries what runCalculation already
+// worked out for the main DPSer and the boss, so both are computed exactly as in every other mode.
+function runTeamSim(c){
+  const $ = id => document.getElementById(id);
+  const tName = $("ctName").value.trim();
+  const tLevel = $("ctLevel").value.trim();
+  const tIvs = ["ctIvAtk", "ctIvDef", "ctIvHp"].map(id => $(id).value.trim());
+  const tank = findPokemon(tName);
+  if(!tank) return `<div class="empty-result">Enter a valid catch tank Pokémon to simulate.</div>`;
+  if(!validateLevel(tLevel) || !tIvs.every(validateIV))
+    return `<div class="empty-result">Fix the catch tank's Level/IV fields (Level 40–51 in 0.5 steps, IVs 0–15).</div>`;
+  const tFM = findMove($("ctFM").value.trim()), tCM = findMove($("ctCM").value.trim());
+  if(!tFM || !tCM) return `<div class="empty-result">Choose the catch tank's fast and charge moves.</div>`;
+  const qty = Math.max(1, Math.min(10, parseInt($("ctQty").value, 10) || 1));
+
+  const [ia, id, ih] = tIvs.map(v => parseInt(v, 10));
+  const tAtk = calcStat(tank.atk, ia, tLevel), tDef = calcStat(tank.def, id, tLevel);
+  const tHp = Math.floor(calcStat(tank.hp, ih, tLevel));
+  // The tank's matchups come from typing - there are no dropdowns for it - snapped to the same
+  // option values the main DPSer's dropdowns use, so both are rounded the same way.
+  const bossTypes = findPokemonTypes(c.bossName), tankTypes = findPokemonTypes(tName);
+  const eff = (elem, defTypes, opts) => {
+    const raw = defTypes ? computeEffectiveness(elem, defTypes) : null;
+    return raw === null ? 1 : snapToOption(raw, opts);
+  };
+  // Party-wide buffs apply to the tank too: friendship, Primal/Mega support, Party Power, and both
+  // adventure effects - Blade Boost (first left off the tank here, so Kyurem Black's Freeze Shock
+  // read 235 instead of 259 in Windy) and Dynamic Punch+, which playerMods already limits to Mega
+  // raids (isMegaBoss), so it still does nothing against a non-Mega boss.
+  const tankMods = m => ({
+    eff: eff(m.elem, bossTypes, PLAYER_EFF_OPTIONS), weather: isWeatherBoosted(m.elem),
+    stab: tankTypes ? isStabMatch(m.elem, tankTypes) : false,
+    partyPower: m === tCM && c.playerMods.partyPower, zacian: c.playerMods.zacian, dynamicPunch: c.playerMods.dynamicPunch,
+    primalMega: c.playerMods.primalMega, friendship: c.playerMods.friendship,
+  });
+  const vsTank = (move, base) => Object.assign({}, base, {
+    eff: eff(move.elem, tankTypes, BOSS_EFF_OPTIONS), shadowDebuff: isShadow(tName),
+  });
+
+  const P = {
+    qty, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
+    mainFirst: $("ctPriority").value === "main",
+    bossFM: { n: c.bossFMMove.n, ad: c.bossFMMove.ad, energyGain: c.bossFMMove.energy || 0 },
+    bossCM: { n: c.bossCMMove.n, ad: c.bossCMMove.ad },
+    main: {
+      name: c.pkmnName, hp: c.playerHp, fm: c.fm, cm: c.cm, cmCost: Math.abs(c.cm.energy),
+      fmDmg: c.fastDamage, cmDmg: c.chargeDamage,
+      // no dodging in this mode, so these are recomputed without it
+      bossFmDmg: bossMoveDamage(c.bossFMMove, c.bossAtk, c.playerDef, c.bossFMMods),
+      bossCmDmg: bossMoveDamage(c.bossCMMove, c.bossAtk, c.playerDef, c.bossCMMods),
+    },
+    tank: {
+      name: tName, hp: tHp, fm: tFM, cm: tCM, cmCost: Math.abs(tCM.energy),
+      fmDmg: playerMoveDamage(tFM, tName, tAtk, c.bossDef, Object.assign(tankMods(tFM), { partyPower: false })),
+      cmDmg: playerMoveDamage(tCM, tName, tAtk, c.bossDef, tankMods(tCM)),
+      bossFmDmg: bossMoveDamage(c.bossFMMove, c.bossAtk, tDef, vsTank(c.bossFMMove, c.bossFMMods)),
+      bossCmDmg: bossMoveDamage(c.bossCMMove, c.bossAtk, tDef, vsTank(c.bossCMMove, c.bossCMMods)),
+    },
+  };
+  const { S, R } = simulateTeam(P);
+  window.__teamSim = { P, S, R };   // for inspection while this mode is in testing
+  return renderTeamSim(P, S, R);
+}
+
+function renderTeamSim(P, S, R){
+  const E = S.ended.t;
+  const upTo = arr => arr.filter(x => x.t <= E);
+  const dmg = upTo(R.dmg);
+  const mainDmg = dmg.filter(d => d.who === 0).reduce((a, d) => a + d.dmg, 0);
+  const tankDmg = dmg.filter(d => d.who !== 0).reduce((a, d) => a + d.dmg, 0);
+  const total = mainDmg + tankDmg;
+  const secs = E / 2;
+  const dps = secs > 0 ? total / secs : 0;
+  const decs = R.decisions.filter(d => d.cast < E || (d.cast === E && d.outcome !== "end"));
+  const n = k => decs.filter(d => d.outcome === k).length;
+  const caught = n("tank") + n("tank-again"), byMain = n("main"), late = n("late") + n("tank-faint");
+  const tanksIn = new Set(upTo(R.segs).filter(s => s.who > 0).map(s => s.who)).size;
+  const swaps = R.swaps.filter(s => s.t < E);
+  const swapSecs = swaps.reduce((a, s) => a + (Math.min(s.until, E) - s.t), 0) / 2;
+  const mainHp = (upTo(R.hp).filter(h => h.who === 0).pop() || { hp: P.main.hp }).hp;
+  const reasons = {
+    "finished": `No catch tanks left; ${P.main.name} fired its remaining ${P.main.cm.n} and the run ends as it lands`,
+    "finish-missed": `No catch tank left for the next ${P.bossCM.n}, and ${P.main.name} couldn't fire again before it landed; results stop when the last charge move landed`,
+    "last-tank": `The last ${P.tank.name} finished its ${P.tank.cm.n}`,
+    "last-tank-fainted": `The last ${P.tank.name} fainted before it could fire`,
+    "tanks": `The boss cast ${P.bossCM.n} with no catch tanks left`,
+    "no-safe-catch": `No catch tanks left and ${P.main.name} couldn't safely sponge the next ${P.bossCM.n}; results stop at the last safe point`,
+    "main-fainted-cut": `${P.main.name} fainted; results stop after the last catch tank's turn`,
+    "main-fainted": `${P.main.name} fainted after the catch tanks were used; results stop when the last charge move landed`,
+    "main-fainted-early": `${P.main.name} fainted before any catch tank was needed`,
+    "timer": "Reached the 300s raid timer",
+  };
+
+  // timeline bar
+  const span = Math.max(E, 1);
+  const segs = upTo(R.segs);
+  const bar = segs.map((s, i) => {
+    const to = i + 1 < segs.length ? segs[i + 1].t : E;
+    if(to <= s.t) return "";
+    const cls = s.who === -1 ? "seg-swap" : s.who === 0 ? "seg-main" : "seg-tank";
+    return `<i class="${cls}" style="left:${(s.t / span * 100).toFixed(2)}%;width:${((to - s.t) / span * 100).toFixed(2)}%"></i>`;
+  }).join("") + decs.map(d =>
+    `<b style="left:${(d.cast / span * 100).toFixed(2)}%" title="${P.bossCM.n} cast at ${(d.cast / 2).toFixed(1)}s"></b>`).join("");
+  const axis = [0, 0.25, 0.5, 0.75, 1].map(f => `<span>${(secs * f).toFixed(0)}s</span>`).join("");
+
+  const events = upTo(R.events);
+  const shown = events.slice(0, 80);
+  const log = shown.map(e => `<tr><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-tag ${e.kind}">${e.kind === "ct" ? "CT" : e.kind}</span>${e.text}</td></tr>`).join("")
+    + (events.length > shown.length ? `<tr><td></td><td>…and ${events.length - shown.length} more</td></tr>` : "");
+
+  const pct = Math.max(0, mainHp) / P.main.hp * 100;
+  // The main DPSer's energy at the end point - a full bar left unspent means a charge move's worth
+  // of damage never made it into the result.
+  let leftover = 0;
+  for(let k = E; k >= 0; k--){ if(R.mainEnergy[k] !== undefined){ leftover = R.mainEnergy[k]; break; } }
+  // A catch tank that cannot survive the charge move it is there to catch never fires its own.
+  const tankDies = P.tank.bossCmDmg >= P.tank.hp;
+  const warn = tankDies
+    ? `<div class="team-warn">${P.tank.name} can't survive ${P.bossCM.n}: ${P.tank.bossCmDmg} damage against ${P.tank.hp} HP. Each one faints on the catch without firing ${P.tank.cm.n}.</div>`
+    : "";
+  return `
+    <div class="dps-result-card">${warn}
+      <div class="dps-result-main">
+        <div class="dps-result-label">Simple Catch Tank Sim &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty} catch tank${P.qty > 1 ? "s" : ""}</div>
+        <div class="dps-result-value">${dps.toFixed(1)}</div>
+        <div class="team-loadout">${P.main.name} (${P.main.fm.n} / ${P.main.cm.n}) + ${P.qty}&times; ${P.tank.name} (${P.tank.fm.n} / ${P.tank.cm.n})</div>
+      </div>
+      <div class="team-tl">${bar}</div>
+      <div class="team-tl-axis">${axis}</div>
+      <div class="team-tl-legend"><span><em style="background:#3d9dff"></em>${P.main.name}</span><span><em style="background:#f5b94a"></em>${P.tank.name}</span><span><em style="background:#8890a6"></em>Swap</span><span><em style="background:#ff6b8a"></em>${P.bossCM.n} cast</span></div>
+      <table class="dps-stat-table">
+        <tbody>
+          <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Rotation</th></tr>
+          <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
+          <tr><td>Total damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub">${P.main.name} ${mainDmg.toLocaleString()} &middot; ${P.tank.name} ${tankDmg.toLocaleString()}</span></td></tr>
+          <tr><td>Boss charge moves</td><td>${decs.length} <span class="dps-stat-sub">${caught} caught by a tank &middot; ${byMain} sponged by ${P.main.name}${late ? ` &middot; ${late} landed before a swap could finish` : ""}</span></td></tr>
+          <tr><td>Catch tanks used</td><td>${tanksIn} / ${P.qty}</td></tr>
+          <tr><td>Swaps</td><td>${swaps.length} <span class="dps-stat-sub">+${swapSecs.toFixed(1)}s</span></td></tr>
+          <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Main DPSer</th></tr>
+          <tr><td>HP left</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${P.main.hp} <span class="dps-stat-sub">${pct.toFixed(0)}%</span></td></tr>
+          <tr><td>Energy left unspent</td><td>${leftover} <span class="dps-stat-sub">of ${P.main.cmCost} for ${P.main.cm.n}</span></td></tr>
+          <tr><td>Ended</td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
+        </tbody>
+      </table>
+      <details class="team-log" open>
+        <summary class="mod-summary">Timeline</summary>
+        <table><tbody>${log}</tbody></table>
+      </details>
+    </div>`;
+}
+
 // ============ MAIN CALCULATION ============
 function runCalculation(){
   const resultsWrap = document.getElementById("resultsWrap");
@@ -2198,6 +2753,17 @@ function runCalculation(){
   let bossFMDamage = bossMoveDamage(bossFMMove, bossAtk, playerDef, bossFMMods);
   if(dodgeCM) bossCMDamage = Math.floor(bossCMDamage * 0.25);
   if(dodgeFM) bossFMDamage = Math.floor(bossFMDamage * 0.25);
+
+  // CT + Main DPS (test): a turn-by-turn simulation with its own result card. The main DPSer and
+  // boss are taken from the values worked out above, so they match every other mode exactly.
+  if(ctMode === "team"){
+    resultsWrap.innerHTML = runTeamSim({
+      pkmnName, playerHp, playerDef, fm, cm, fastDamage, chargeDamage, playerMods,
+      bossName, bossAtk, bossDef, bossFMMove, bossCMMove, bossFMMods, bossCMMods,
+      aggro: parseInt(document.getElementById("bossAggro").value, 10) / 100,
+    });
+    return;
+  }
 
   if(mainDPSMode){
     // ============ MAIN DPS MODE ============
@@ -4259,6 +4825,9 @@ function updateCTMode(){
   const mode = document.querySelector('input[name="ctMode"]:checked').value;
   document.body.classList.toggle("ct-mode-double", mode === "double");
   document.body.classList.toggle("ct-mode-maindps", mode === "maindps");
+  document.body.classList.toggle("ct-mode-team", mode === "team");
+  const firstColTitle = document.querySelector(".vs-col .vs-col-title");
+  if(firstColTitle) firstColTitle.textContent = mode === "team" ? "Main DPSer" : "Your Pokémon";
   updateCadenceMode();
   updateBossAggro();
   updateDynPunch();
@@ -4311,6 +4880,33 @@ function updateCadenceMode(){
 document.getElementById("ctModeMainDPS").addEventListener("change", updateCTMode);
 document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
 document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);
+document.getElementById("ctModeTeam").addEventListener("change", updateCTMode);
+// CT + Main DPS: priority hint
+(function(){
+  const sel = document.getElementById("ctPriority"), hint = document.getElementById("ctPriorityHint");
+  const box = document.getElementById("ctMainAbsorb");
+  const text = {
+    main: "The main DPSer takes each charge move when it's safe; a catch tank comes in only when it isn't.",
+    tanks: "Catch tanks take the charge moves while any are left; after that the main DPSer takes them when it's safe.",
+  };
+  const show = () => {
+    sel.disabled = !box.checked;
+    hint.textContent = box.checked ? text[sel.value]
+      : "A catch tank takes every charge move, and the rotation ends when the last one finishes.";
+  };
+  sel.addEventListener("change", show); box.addEventListener("change", show); show();
+})();
+// CT + Main DPS: the catch tank's own name field, moves and quantity
+initPokemonAutocomplete("ctName", "ctName_ac");
+["input", "change"].forEach(ev => document.getElementById("ctName")
+  .addEventListener(ev, () => updateMoveOptionsFor("ctName", "ctCM", "ctFM")));
+(function(){
+  const q = document.getElementById("ctQty");
+  const clamp = v => Math.max(1, Math.min(10, parseInt(v, 10) || 1));
+  document.getElementById("ctQtyMinus").addEventListener("click", () => { q.value = clamp(q.value) - 1 || 1; });
+  document.getElementById("ctQtyPlus").addEventListener("click", () => { q.value = Math.min(10, clamp(q.value) + 1); });
+  q.addEventListener("change", () => { q.value = clamp(q.value); });
+})();
 document.getElementById("cadenceMode").addEventListener("change", updateCadenceMode);
 updateCadenceMode();
 
