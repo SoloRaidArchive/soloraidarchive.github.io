@@ -785,7 +785,7 @@ if ("serviceWorker" in navigator) {
   body.ct-mode-team .team-hide{ display:none !important; }
   /* Aggression is always on in this mode (the boss has to cast charge moves for there to be
      anything to catch), so only the slider shows, never its on/off box. */
-  body.ct-mode-team .aggro-cell{ display:flex; flex-direction:column; min-width:190px; opacity:1; pointer-events:auto; }
+  body.ct-mode-team .aggro-cell{ display:flex; flex-direction:column; min-width:min(190px, 100%); opacity:1; pointer-events:auto; }
   .team-card .step-head{ margin-bottom:12px; }
   .team-behavior{ margin-top:12px; padding:10px 12px 12px; border:1.5px solid var(--border); border-radius:12px; background:var(--bg1); }
   .team-behavior-title{ font-size:11.5px; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
@@ -871,6 +871,33 @@ if ("serviceWorker" in navigator) {
   .team-card .qty-stepper button{ height:26px; width:32px; font-size:16px; }
   .team-card .qty-stepper input{ height:26px; width:34px; }
   .team-plus{ color:var(--text-dim); margin:0 2px; }
+  .team-log thead th, .team-final thead th{ text-align:left; font-size:10.5px; font-weight:800; color:var(--text-dim);
+    text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; white-space:nowrap; }
+  .team-log thead th .team-ico{ width:20px; height:20px; } .team-log thead th .team-ico img{ width:18px; height:18px; }
+  .team-log thead th:nth-child(n+3){ text-align:right; }
+  .team-hp{ text-align:right !important; white-space:nowrap; font-variant-numeric:tabular-nums; font-weight:700; width:1%; }
+  .team-hp.low{ color:#d08700; } .team-hp.dead{ color:#d6455d; }
+  [data-theme="dark"] .team-hp.low{ color:#f5b94a; } [data-theme="dark"] .team-hp.dead{ color:#ff8fa3; }
+  .team-hp-who{ margin-right:6px; } .team-hp-who .team-ico{ width:20px; height:20px; } .team-hp-who .team-ico img{ width:18px; height:18px; }
+  .team-hp-who .team-ico b{ min-width:12px; height:12px; font-size:8px; line-height:12px; right:-4px; bottom:-3px; }
+  .team-final{ margin-top:16px; text-align:left; }
+  .team-final td, .team-final th{ text-align:left; }
+  .team-final td:nth-child(2), .team-final td:nth-child(3), .team-final th:nth-child(2), .team-final th:nth-child(3){ text-align:right; }
+  .team-final td:last-child{ white-space:nowrap; }
+  @media (max-width:560px){
+    /* narrow screens: drop the "/max" part of HP and energy so the event text keeps its width */
+    .team-log .team-hp .team-dim, .team-final .team-hp .team-dim{ display:none; }
+    .team-log td, .team-final td{ padding:6px 5px; }
+    .team-log thead th, .team-final thead th{ padding:6px 5px; }
+    .team-final-name{ display:none; }          /* icon (with its number badge) only on phones */
+    .team-final td:last-child{ white-space:normal; }
+  }
+  .team-final-title{ font-size:11.5px; font-weight:800; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+  .team-final table{ width:100%; max-width:520px; border-collapse:collapse; font-size:12.5px; }
+  .team-final td{ padding:6px 8px; border-top:1px solid var(--border); color:var(--text); vertical-align:middle; }
+  .team-final td:first-child{ white-space:nowrap; }
+  .team-final-name{ margin-left:4px; font-weight:700; }
+  .team-fainted{ color:#d6455d; font-weight:800; } [data-theme="dark"] .team-fainted{ color:#ff8fa3; }
   .team-log tr.lr-boss td:first-child{ box-shadow:inset 3px 0 0 #ff6b8a; }
   .team-log tr.lr-ct td:first-child{ box-shadow:inset 3px 0 0 #f5b94a; }
   .team-log tr.lr-main td:first-child{ box-shadow:inset 3px 0 0 #3d9dff; }
@@ -1012,8 +1039,8 @@ if ("serviceWorker" in navigator) {
       <p class="beta-h">What it does</p>
       <ul>
         <li>One main DPSer and one kind of catch tank. Each tank is used once: it swaps in as the boss's charge move lands, fires the number of charge moves set under "Charge moves" (using fast moves in between as needed), and swaps back.</li>
-        <li>The boss starts with 0 energy, gains energy from its fast moves and from half the damage it takes, and never casts two charge moves in a row. When it casts is set by the aggression slider, the same way every time.</li>
-        <li>Swaps take 1.0s each way and are made at the last moment before the hit lands.</li>
+        <li>The boss starts with 0 energy and gains energy from its fast moves and from half the damage it takes (the moment that damage lands), never holding more than 100. Its charge move costs 100, and it never casts two in a row. When it casts is set by the aggression slider, the same way every time.</li>
+        <li>Swaps take 0.5s each way and are made at the last moment before the hit lands.</li>
         <li>With "Main can sponge" ticked, the main DPSer takes a boss charge move itself only if it keeps at least 90% of the energy, survives, and can still fire its own charge move. "Main first" or "Tanks first" sets who goes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed.</li>
       </ul>
@@ -2307,7 +2334,11 @@ function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
 // Order inside one tick: player hits land -> fast-move energy credited -> a swap finishes ->
 // the boss's move lands -> the boss picks its next move -> the active Pokemon acts. A swap that
 // finishes on the landing tick is therefore in time (the tank is in when the hit arrives).
-const TEAM_SWAP_TICKS = 2;      // 1.0s per swap, as everywhere else in this calculator
+// One-way swap = 0.5s (1 tick). This was 2 ticks (1.0s each way), which double-counted: the rest
+// of the calculator already uses 0.5s per one-way swap - Single Catch Tank's CT DPS adds 1.0s for
+// the swap in plus the swap out, and Double Catch Tank adds 2.0s for its four one-way swaps.
+// At 1.0s, Mega Mewtwo X + 5 Shadow Regigigas vs Kyurem White ran 72.0s instead of ~67s.
+const TEAM_SWAP_TICKS = 1;
 const TEAM_MAX_TICKS = 600;     // 300s: the Tier 5 raid timer, a backstop rather than a setting
 
 function simulateTeam(P){
@@ -2340,6 +2371,18 @@ function simulateTeam(P){
     teamStep(S, R, P, snap);
     R.mainEnergy[S.t] = S.mons[0].energy;
     R.ticks.push(teamTickRecord(P, S, R, before));
+    // Every Pokemon's HP and energy after this tick, for the final reading at the end point.
+    R.state[S.t] = S.mons.map(m => ({ hp: m.hp, energy: m.energy }));
+    // HP alongside each log entry: the main DPSer's, and the catch tank's - the one the entry is
+    // about, otherwise the one on the field (or mid-swap). Values are after the tick resolves.
+    for(let k = before.events; k < R.events.length; k++){
+      const e = R.events[k], v = e.ev || {};
+      let tw = v.who > 0 ? v.who : (v.to > 0 ? v.to : null);
+      if(tw === null) tw = S.active > 0 ? S.active : (S.swap ? (S.swap.from > 0 ? S.swap.from : (S.swap.to > 0 ? S.swap.to : null)) : null);
+      e.mainHp = S.mons[0].hp;
+      e.tankWho = tw;
+      e.tankHp = tw ? S.mons[tw].hp : null;
+    }
     if(S.ended) break;
     S.t++;
     if(S.t > TEAM_MAX_TICKS) S.ended = { t: TEAM_MAX_TICKS, reason: "timer" };
@@ -2348,7 +2391,7 @@ function simulateTeam(P){
 }
 
 function newTeamRecorder(){
-  return { dmg: [], events: [], segs: [{ t: 0, who: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], mainEnergy: [], ticks: [] };
+  return { dmg: [], events: [], segs: [{ t: 0, who: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], mainEnergy: [], ticks: [], state: [] };
 }
 
 // Bank energy on one Pokemon, capped at 100. Returns how much went over the cap.
@@ -2445,11 +2488,14 @@ function teamStep(S, R, P, snap){
     }
   };
 
-  // 1. player hits land on the boss; the boss banks their energy at its next decision
+  // 1. player hits land on the boss, which banks half the damage as energy straight away - its
+  //    bar never holds more than 100. (This used to be held back and added at the boss's next
+  //    move. The totals were identical - the boss only spends energy when it moves - but the CSV
+  //    showed a "waiting" figure as high as 231 and Focus Blast apparently cast at 50 + 16.)
   S.hits = S.hits.filter(h => {
     if(h.tick !== t) return true;
     R.dmg.push({ t, who: h.who, dmg: h.dmg, mv: h.mv });
-    B.unseen += energyFromDamage(h.dmg);
+    B.energy = Math.min(100, B.energy + energyFromDamage(h.dmg));
     // Any charge move landing is a safe point: whatever energy built up has just been spent.
     if(h.cm && !S.probe) S.safePoint = Math.max(S.safePoint === null ? 0 : S.safePoint, t);
     return false;
@@ -2504,8 +2550,7 @@ function teamStep(S, R, P, snap){
   }
   // 5. the boss picks its next move. Never a charge move straight after a charge move.
   if(!B.inFlight && t === B.nextCast){
-    B.energy = Math.min(100, B.energy + B.unseen);
-    B.unseen = 0;
+    B.energyAtMove = B.energy;   // shown in the CSV: what it had when it chose this move
     B.acc += P.aggro;
     const cm = !B.lastWasCM && B.energy >= 100 && B.acc >= 1;
     if(cm){ B.acc -= 1; B.energy -= 100; }
@@ -2783,7 +2828,7 @@ function teamTickRecord(P, S, R, before){
     .concat(R.swaps.slice(before.swaps).map(w => `Swap ${name(w.from)} → ${name(w.to)} (done ${(w.until / 2).toFixed(1)}s)`));
   const landed = R.dmg.slice(before.dmg).map(d => `${name(d.who)} ${d.mv} ${d.dmg}`);
   const bossCast = (B.inFlight && B.inFlight !== before.flight && B.inFlight.cast === t)
-    ? `${B.inFlight.cm ? P.bossCM.n : P.bossFM.n} (lands ${(B.inFlight.land / 2).toFixed(1)}s)` : "";
+    ? `${B.inFlight.cm ? P.bossCM.n : P.bossFM.n} (energy ${B.energyAtMove} → ${B.energy}, lands ${(B.inFlight.land / 2).toFixed(1)}s)` : "";
   const bossLanded = R.bossMoves.slice(before.boss).map(b => `${b.cm ? P.bossCM.n : P.bossFM.n} → ${name(b.who)} ${b.dmg}`);
   const tankIdx = S.active > 0 ? S.active : (S.swap ? Math.max(S.swap.from, S.swap.to) : 0);
   const tm = tankIdx > 0 ? S.mons[tankIdx] : null;
@@ -2795,7 +2840,7 @@ function teamTickRecord(P, S, R, before){
     bossCast, bossLanded: bossLanded.join("; "),
     mainEnergy: S.mons[0].energy, mainHp: Math.max(0, S.mons[0].hp),
     tank: tm ? name(tankIdx) : "", tankEnergy: tm ? tm.energy : "", tankHp: tm ? Math.max(0, tm.hp) : "",
-    bossEnergy: B.energy, bossWaiting: B.unseen, bossAggro: B.acc.toFixed(2),
+    bossEnergy: B.energy, bossAggro: B.acc.toFixed(2),
     notes: R.events.slice(before.events).map(e => e.text).join("; "),
   };
 }
@@ -2809,11 +2854,11 @@ function downloadTeamCsv(){
   const head = ["Tick", "Time (s)", "On field", "Player move started", "Player damage landed",
     `${main} damage`, `${tank} damage`, "Boss move started", "Boss move landed",
     `${main} energy`, `${main} HP`, `${tank} in play`, `${tank} energy`, `${tank} HP`,
-    `${boss} energy`, `${boss} energy waiting (banked at its next move)`, `${boss} aggression counter`, "Notes"];
+    `${boss} energy (max 100)`, `${boss} aggression counter`, "Notes"];
   const q = v => { const x = String(v === undefined || v === null ? "" : v); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
   const rows = R.ticks.filter(r => r.tick <= E).map(r => [r.tick, (r.tick / 2).toFixed(1), r.onField, r.started, r.landed,
     r.mainDmg, r.tankDmg, r.bossCast, r.bossLanded, r.mainEnergy, r.mainHp, r.tank, r.tankEnergy, r.tankHp,
-    r.bossEnergy, r.bossWaiting, r.bossAggro, r.notes]);
+    r.bossEnergy, r.bossAggro, r.notes]);
   const csv = "\ufeff" + [head].concat(rows).map(r => r.map(q).join(",")).join("\r\n");   // BOM: Excel reads ⭐/→ correctly
   const slug = v => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const a = document.createElement("a");
@@ -2909,9 +2954,33 @@ function renderTeamSim(P, S, R){
 
   const events = upTo(R.events);
   const shown = events.slice(0, 80);
-  const log = shown.map(e => `<tr class="lr-${e.kind}"><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-line">${teamLogLine(P, e)}</span></td></tr>`).join("")
-    + (events.length > shown.length ? `<tr><td></td><td>…and ${events.length - shown.length} more</td></tr>` : "");
   const mainIco = teamIcon(P, 0), tankIco = teamIcon(P, 1, { species: true });
+  // HP cells: low HP (a quarter or less) and fainted are coloured, as in the main result tables.
+  const hpCell = (hp, max, lead = "") => {
+    if(hp === null || hp === undefined) return `<td class="team-hp"><span class="team-dim">&mdash;</span></td>`;
+    const v = Math.max(0, hp), cls = v <= 0 ? "dead" : (v / max <= 0.25 ? "low" : "");
+    return `<td class="team-hp ${cls}">${lead}${v}<span class="team-dim">/${max}</span></td>`;
+  };
+  const log = shown.map(e => `<tr class="lr-${e.kind}"><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-line">${teamLogLine(P, e)}</span></td>`
+      + hpCell(e.mainHp, P.main.hp)
+      + (e.tankWho ? hpCell(e.tankHp, P.tank.hp, `<span class="team-hp-who">${teamIcon(P, e.tankWho)}</span>`) : hpCell(null))
+      + `</tr>`).join("")
+    + (events.length > shown.length ? `<tr><td></td><td colspan="3">…and ${events.length - shown.length} more</td></tr>` : "");
+  const logHead = `<tr class="team-log-head"><th>Time</th><th>Event</th><th>${mainIco} HP</th><th>${tankIco} HP</th></tr>`;
+
+  // Final reading at the end point: every Pokemon's HP and energy, and whether each tank was used.
+  let st = null;
+  for(let k = E; k >= 0; k--){ if(R.state[k]){ st = R.state[k]; break; } }
+  if(!st) st = [{ hp: P.main.hp, energy: 0 }].concat(Array.from({ length: P.qty }, () => ({ hp: P.tank.hp, energy: 0 })));
+  const entered = new Set(upTo(R.segs).filter(x => x.who > 0).map(x => x.who));
+  const finalRows = st.map((m, who) => {
+    const max = who === 0 ? P.main.hp : P.tank.hp;
+    const status = m.hp <= 0 ? `<span class="team-fainted">Fainted</span>`
+      : who === 0 ? "Main DPSer"
+      : entered.has(who) ? "Used" : `<span class="team-dim">Not used</span>`;
+    return `<tr><td>${teamIcon(P, who)} <span class="team-final-name">${teamLabel(P, who)}</span></td>${hpCell(m.hp, max)}`
+      + `<td class="team-hp">${m.energy}<span class="team-dim">/100</span></td><td>${status}</td></tr>`;
+  }).join("");
 
   const pct = Math.max(0, mainHp) / P.main.hp * 100;
   // The main DPSer's energy at the end point - a full bar left unspent means a charge move's worth
@@ -2953,8 +3022,15 @@ function renderTeamSim(P, S, R){
       </div>
       <details class="team-log" open>
         <summary class="mod-summary">Timeline</summary>
-        <table><tbody>${log}</tbody></table>
+        <table><thead>${logHead}</thead><tbody>${log}</tbody></table>
       </details>
+      <div class="team-final">
+        <div class="team-final-title">Final reading &middot; at ${secs.toFixed(1)}s</div>
+        <table>
+          <thead><tr><th>Pokémon</th><th>HP</th><th>Energy</th><th>Status</th></tr></thead>
+          <tbody>${finalRows}</tbody>
+        </table>
+      </div>
     </div>`;
 }
 
