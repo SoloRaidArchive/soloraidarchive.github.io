@@ -878,8 +878,11 @@ if ("serviceWorker" in navigator) {
   .team-hp{ text-align:right !important; white-space:nowrap; font-variant-numeric:tabular-nums; font-weight:700; width:1%; }
   .team-hp.low{ color:#d08700; } .team-hp.dead{ color:#d6455d; }
   [data-theme="dark"] .team-hp.low{ color:#f5b94a; } [data-theme="dark"] .team-hp.dead{ color:#ff8fa3; }
-  .team-hp-who{ margin-right:6px; } .team-hp-who .team-ico{ width:20px; height:20px; } .team-hp-who .team-ico img{ width:18px; height:18px; }
-  .team-hp-who .team-ico b{ min-width:12px; height:12px; font-size:8px; line-height:12px; right:-4px; bottom:-3px; }
+  /* icon columns in the Timeline: narrow, centred, so the icons form straight columns */
+  .team-log .team-ico-col{ width:1%; text-align:center !important; padding-left:10px; padding-right:2px; }
+  .team-log .team-ico-col .team-ico{ width:22px; height:22px; } .team-log .team-ico-col .team-ico img{ width:20px; height:20px; }
+  .team-log .team-ico-col .team-ico b{ min-width:13px; height:13px; font-size:8.5px; line-height:13px; right:-4px; bottom:-3px; }
+  .team-log td.team-hp{ padding-left:2px; }
   .team-final{ margin-top:16px; text-align:left; }
   .team-final td, .team-final th{ text-align:left; }
   .team-final td:nth-child(2), .team-final td:nth-child(3), .team-final th:nth-child(2), .team-final th:nth-child(3){ text-align:right; }
@@ -888,6 +891,9 @@ if ("serviceWorker" in navigator) {
     /* narrow screens: drop the "/max" part of HP and energy so the event text keeps its width */
     .team-log .team-hp .team-dim, .team-final .team-hp .team-dim{ display:none; }
     .team-log td, .team-final td{ padding:6px 5px; }
+    .team-log .team-ico-col{ padding-left:4px; padding-right:1px; }
+    .team-log .team-ico-col .team-ico{ width:19px; height:19px; } .team-log .team-ico-col .team-ico img{ width:17px; height:17px; }
+    .team-log td.team-hp{ padding-left:1px; }
     .team-log thead th, .team-final thead th{ padding:6px 5px; }
     .team-final-name{ display:none; }          /* icon (with its number badge) only on phones */
     .team-final td:last-child{ white-space:normal; }
@@ -2961,12 +2967,17 @@ function renderTeamSim(P, S, R){
     const v = Math.max(0, hp), cls = v <= 0 ? "dead" : (v / max <= 0.25 ? "low" : "");
     return `<td class="team-hp ${cls}">${lead}${v}<span class="team-dim">/${max}</span></td>`;
   };
+  // Each Pokemon's icon sits in its own column so the icons line up down the table:
+  // Time | Event | main icon | main HP | tank icon | tank HP. The main DPSer is on every row;
+  // the tank column is empty when no tank is involved or in.
+  const icoCell = who => `<td class="team-ico-col">${who === null || who === undefined ? "" : teamIcon(P, who)}</td>`;
   const log = shown.map(e => `<tr class="lr-${e.kind}"><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-line">${teamLogLine(P, e)}</span></td>`
-      + hpCell(e.mainHp, P.main.hp)
-      + (e.tankWho ? hpCell(e.tankHp, P.tank.hp, `<span class="team-hp-who">${teamIcon(P, e.tankWho)}</span>`) : hpCell(null))
+      + icoCell(0) + hpCell(e.mainHp, P.main.hp)
+      + icoCell(e.tankWho || null) + (e.tankWho ? hpCell(e.tankHp, P.tank.hp) : hpCell(null))
       + `</tr>`).join("")
-    + (events.length > shown.length ? `<tr><td></td><td colspan="3">…and ${events.length - shown.length} more</td></tr>` : "");
-  const logHead = `<tr class="team-log-head"><th>Time</th><th>Event</th><th>${mainIco} HP</th><th>${tankIco} HP</th></tr>`;
+    + (events.length > shown.length ? `<tr><td></td><td colspan="5">…and ${events.length - shown.length} more</td></tr>` : "");
+  const logHead = `<tr class="team-log-head"><th>Time</th><th>Event</th>`
+    + `<th class="team-ico-col">${mainIco}</th><th>HP</th><th class="team-ico-col">${tankIco}</th><th>HP</th></tr>`;
 
   // Final reading at the end point: every Pokemon's HP and energy, and whether each tank was used.
   let st = null;
