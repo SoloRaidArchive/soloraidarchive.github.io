@@ -44,7 +44,21 @@ except ImportError:
 
 REPO_ROOT = Path(__file__).resolve().parent
 POKEBATTLER_API_URL = "https://fight.pokebattler.com/raids"
-POKEBATTLER_WEB_URL = "https://www.pokebattler.com/raids"
+# Pokebattler raids pages to read dates from, in order; the first that yields any dates is used.
+# Pokebattler moved www.pokebattler.com to a new site built in the browser, which this script's
+# plain-text read can't see into; the previous site stays up at old.pokebattler.com, so it goes
+# first, with www kept as a fallback in case old.* is retired or www goes back to plain HTML.
+POKEBATTLER_PAGE_USED = None   # which of these supplied the dates on this run (recorded in the output)
+POKEBATTLER_WEB_URLS = [
+    "https://old.pokebattler.com/raids",
+    "https://www.pokebattler.com/raids",
+]
+# Second schedule source: LeekDuck's event calendar as JSON, published on GitHub by the ScrapedDuck
+# project (leekduck_crosscheck.py already reads it). Pokebattler's raids page is plain HTML that this
+# script pattern-matches; when Pokebattler serves it as an empty JavaScript shell instead, it yields
+# no dates at all - and since the API only lists bosses that are running NOW, every upcoming
+# rotation silently vanished (Oct 2026: Giratina Origin / Mega Sableye, Oct 28 - Nov 3, missing).
+SCRAPEDDUCK_EVENTS_URL = "https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/events.json"
 
 # Matches a date-range block header on the human-readable page, e.g.:
 #   "From Jul 22, 2026 6:00 AM - Until Jul 28, 2026 10:00 PM"
@@ -325,11 +339,23 @@ def fetch_boss_dates_from_website():
     the JSON API doesn't expose them) and returns a dict mapping normalized boss name ->
     (startDate, endDate). The API remains the authority on WHICH bosses are current and
     soloable; this is purely a supplementary lookup for WHEN, matched by name."""
+    global POKEBATTLER_PAGE_USED
+    POKEBATTLER_PAGE_USED = None
+    for url in POKEBATTLER_WEB_URLS:
+        dates_by_name, web_occurrences = _dates_from_pokebattler_page(url)
+        if dates_by_name:
+            POKEBATTLER_PAGE_USED = url
+            return dates_by_name, web_occurrences
+    return {}, []
+
+
+def _dates_from_pokebattler_page(url):
+    """One Pokebattler raids page -> (dates_by_name, web_occurrences); empty if it can't be read."""
     try:
-        resp = requests.get(POKEBATTLER_WEB_URL, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+        resp = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
         resp.raise_for_status()
     except Exception as e:
-        print(f"Could not fetch website for date info (non-fatal, dates will show as 'Currently active'): {e}")
+        print(f"Could not fetch {url} for date info (non-fatal): {e}")
         return {}, []
 
     try:
@@ -365,9 +391,90 @@ def fetch_boss_dates_from_website():
             occurrence = (key, m.group(1), m.group(2))
             if occurrence not in web_occurrences:
                 web_occurrences.append(occurrence)
-    print(f"Found date info for {len(dates_by_name)} boss(es) on the website "
+    print(f"Found date info for {len(dates_by_name)} boss(es) on {url} "
           f"({len(web_occurrences)} boss/window occurrence(s))")
     return dates_by_name, web_occurrences
+
+
+def _sd_boss_name(raw, event_name):
+    """ScrapedDuck boss name -> the archive's spelling. 'Giratina (Origin)' -> 'Giratina Origin'.
+    Shadow raids list the plain species ('Landorus (Incarnate)'); the event name says it's a
+    Shadow raid ('... in Shadow Raids'), so 'Shadow ' is put back in front."""
+    name = re.sub(r"\s*\(([^)]*)\)", lambda m: " " + re.sub(r"\s*Formes?$", "", m.group(1).strip()), raw).strip()
+    if re.search(r"\bShadow Raids?\b", event_name or "", re.I) and not name.lower().startswith("shadow "):
+        name = "Shadow " + name
+    return name
+
+
+def _sd_date(iso):
+    """'2026-10-28T06:00:00.000' -> 'Oct 28, 2026 6:00 AM', the format the website dates use."""
+    if not iso:
+        return None
+    try:
+        dt = datetime.strptime(iso[:19], "%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+        return None
+    hour12 = dt.hour % 12 or 12
+    return f"{dt:%b} {dt.day}, {dt.year} {hour12}:{dt:%M} {'AM' if dt.hour < 12 else 'PM'}"
+
+
+def fetch_boss_dates_from_scrapedduck():
+    """Raid schedule from LeekDuck via ScrapedDuck: every 'raid-battles' event, each boss with its
+    own window. Same return shape as fetch_boss_dates_from_website() so the two can be merged."""
+    try:
+        resp = requests.get(SCRAPEDDUCK_EVENTS_URL, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+        resp.raise_for_status()
+        events = resp.json()
+    except Exception as e:
+        print(f"Could not fetch the ScrapedDuck (LeekDuck) schedule (non-fatal): {e}")
+        return {}, []
+    dates_by_name, occurrences = {}, []
+    for ev in events if isinstance(events, list) else []:
+        if ev.get("eventType") != "raid-battles":
+            continue
+        start, end = _sd_date(ev.get("start")), _sd_date(ev.get("end"))
+        if not end:
+            continue
+        bosses = (((ev.get("extraData") or {}).get("raidbattles") or {}).get("bosses")) or []
+        for b in bosses:
+            key = normalize_name(_sd_boss_name(b.get("name", ""), ev.get("name", "")))
+            if not key:
+                continue
+            dates_by_name.setdefault(key, (start, end))
+            occ = (key, start, end)
+            if occ not in occurrences:
+                occurrences.append(occ)
+    print(f"Found date info for {len(dates_by_name)} boss(es) in the ScrapedDuck schedule "
+          f"({len(occurrences)} boss/window occurrence(s))")
+    return dates_by_name, occurrences
+
+
+def fetch_all_boss_dates():
+    """Both schedule sources, merged. Pokebattler's page wins wherever it lists a boss (it has been
+    the authority all along); ScrapedDuck fills in every boss it doesn't. Also returns how many
+    bosses each source supplied, so a source that comes back empty is visible rather than silent."""
+    web_dates, web_occ = fetch_boss_dates_from_website()
+    sd_dates, sd_occ = fetch_boss_dates_from_scrapedduck()
+    dates_by_name = dict(sd_dates)
+    dates_by_name.update(web_dates)
+    on_web = {k for k, _s, _e in web_occ}
+    occurrences = list(web_occ) + [o for o in sd_occ if o[0] not in on_web]
+    health = {"pokebattlerWebsite": len(web_dates), "pokebattlerPage": POKEBATTLER_PAGE_USED, "scrapedDuck": len(sd_dates)}
+    # GitHub Actions turns these lines into annotations on the run (and an error fails it - see
+    # the end of main()), so a schedule source going blank shows up instead of quietly emptying
+    # the landing page's upcoming rotations.
+    if not web_dates and sd_dates:
+        print("::warning title=Pokebattler raids page::No raid dates could be read from any Pokebattler "
+              f"raids page ({', '.join(POKEBATTLER_WEB_URLS)}). Upcoming rotations are coming from "
+              "the ScrapedDuck (LeekDuck) schedule instead.")
+    if not sd_dates and web_dates:
+        print("::warning title=ScrapedDuck schedule::The ScrapedDuck (LeekDuck) schedule returned no "
+              "raid dates. Pokebattler's page is still being used.")
+    if not web_dates and not sd_dates:
+        print("::error title=No raid schedule::Neither Pokebattler's raids pages nor the ScrapedDuck "
+              "schedule returned any raid dates. Only bosses running right now can be published, "
+              "so upcoming rotations will be missing from the landing page.")
+    return dates_by_name, occurrences, health
 
 
 
@@ -781,7 +888,7 @@ def main():
     current_names, enhanced_names = fetch_current_bosses()
     print(f"Fetched {len(current_names)} total current boss entries from Pokebattler's API")
 
-    dates_by_name, web_occurrences = fetch_boss_dates_from_website()
+    dates_by_name, web_occurrences, source_health = fetch_all_boss_dates()
     now = datetime.now()
 
     def date_only(date_str):
@@ -1032,6 +1139,9 @@ def main():
 
     output = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
+        # How many bosses each schedule source supplied on this run: the first place to look when
+        # upcoming rotations go missing. (The landing page reads only dateGroups.)
+        "sources": source_health,
         "dateGroups": date_groups,
     }
 
@@ -1042,6 +1152,12 @@ def main():
     for g in date_groups:
         names = ", ".join(b["name"] for b in g["bosses"])
         print(f"  [{g['category']}] [{g['startDate'] or 'no date match'} -> {g['endDate']}]: {names}")
+
+    # Both schedule sources empty: the file is still written (it keeps today's running bosses and
+    # this month's history), but the run ends as FAILED so GitHub flags it, instead of passing
+    # quietly with every upcoming rotation missing. The workflow commits the file regardless.
+    if not source_health["pokebattlerWebsite"] and not source_health["scrapedDuck"]:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
