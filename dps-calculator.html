@@ -1047,6 +1047,7 @@ if ("serviceWorker" in navigator) {
         <li>One main DPSer and one kind of catch tank. Each tank is used once: it swaps in as the boss's charge move lands, fires the number of charge moves set under "Charge moves" (using fast moves in between as needed), and swaps back.</li>
         <li>The boss starts with 0 energy and gains energy from its fast moves and from half the damage it takes (the moment that damage lands), never holding more than 100. Its charge move costs 100, and it never casts two in a row. When it casts is set by the aggression slider, the same way every time.</li>
         <li>Swaps take 0.5s each way and are made at the last moment before the hit lands.</li>
+        <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
         <li>With "Main can sponge" ticked, the main DPSer takes a boss charge move itself only if it keeps at least 90% of the energy, survives, and can still fire its own charge move. "Main first" or "Tanks first" sets who goes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed.</li>
       </ul>
@@ -1292,6 +1293,10 @@ if ("serviceWorker" in navigator) {
                 <option value="2">2</option>
                 <option value="3">3</option>
               </select>
+            </div>
+            <div class="field">
+              <label for="ctCmBuffer">CM Buffer</label>
+              <label class="check-item" title="Buffer the charge move from the Pokémon you swap out of, so the catch tank can fire its charge move as soon as the caught energy allows - without a fast move first. Same as CM Buffer in Single Catch Tank mode."><input type="checkbox" id="ctCmBuffer"> Buffer</label>
             </div>
             <div class="field qty-field">
               <label for="ctQty"># of catch tanks</label>
@@ -2521,6 +2526,12 @@ function teamStep(S, R, P, snap){
     const { from, to } = S.swap;
     S.swap = null;
     S.active = to;
+    // Without CM Buffer the charge-move button only appears after one fast move, so a catch tank
+    // that caught enough energy still taps once before its first charge move - the same mandatory
+    // tap singleCtRow charges in Single Catch Tank mode. With CM Buffer it can fire straight away.
+    // (Until this was added the simulator always behaved as if buffered, while the CT DPS block
+    // never did, so the two disagreed - e.g. Shadow Tapu Lele read 4.0s there either way.)
+    if(S.mons[to].tank) S.mons[to].owesTap = !P.cmBuffer;
     R.segs.push({ t, who: to });
     if(to === 0 && S.mons[from].tank) S.lastTankDoneAt = t;
     R.events.push({ t, kind: S.mons[to].tank ? "ct" : "main", text: `${teamLabel(P, to)} is in`, ev: { type: "swap", who: to, from } });
@@ -2597,7 +2608,7 @@ function teamStep(S, R, P, snap){
         // DPSer comes back and fires what it has built (see finishing).
         if(S.nextTank > P.qty && !S.pendingSwap && !P.mainAbsorbs) S.finishing = true;
         startSwap(who, 0);   // back to the main
-      } else if(m.energy >= side.cmCost){
+      } else if(m.energy >= side.cmCost && !(m.tank && m.owesTap)){
         if(S.finishing && !m.tank && !S.probe){
           if(S.finishDeadline !== null && t + side.cm.ad > S.finishDeadline){
             end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return;
@@ -2612,6 +2623,7 @@ function teamStep(S, R, P, snap){
         if(S.probe && !m.tank && t > S.probe.land) S.probe.done = "ok";
         if(!m.tank && S.awaitMainCM){ S.safePoint = t + side.cm.ad; S.awaitMainCM = false; }
       } else {
+        m.owesTap = false;
         m.busyUntil = t + side.fm.ad;
         S.hits.push({ tick: t + side.fm.ad, dmg: side.fmDmg, who, mv: side.fm.n });
         S.gains.push({ tick: t + side.fm.ad, who, e: side.fm.energy });
@@ -2718,6 +2730,7 @@ function runTeamSim(c){
   const P = {
     qty: T.qty, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
     tankCasts: Math.max(1, Math.min(3, parseInt($("ctCasts").value, 10) || 1)),
+    cmBuffer: $("ctCmBuffer").checked,
     mainFirst: $("ctPriority").value === "main",
     bossName: c.bossName,
     bossFM: { n: c.bossFMMove.n, ad: c.bossFMMove.ad, energyGain: c.bossFMMove.energy || 0 },
@@ -2772,13 +2785,13 @@ function updateTeamPreview(){
     return;
   }
   // Catch tank DPS for each outcome - 0, 1 or 2 of the boss's fast moves also tanked - from the
-  // Single Catch Tank mode's own calculation (singleCtRow), with no dodges, CM Buffer or Resolve
-  // Nerf, as in this simulator. Charge moves per catch come from the "Charge moves" setting -
+  // Single Catch Tank mode's own calculation (singleCtRow), with no dodges or Resolve Nerf (as in
+  // this simulator) and CM Buffer as set in the Catch tank behavior block. Charge moves per catch come from the "Charge moves" setting -
   // the same number the simulator's tanks fire before swapping back.
   if(outcomes && T.fm && T.cm && T.fmDmg !== undefined){
     const eCM = energyFromDamage(T.bossCmDmg);
     const rows = [0, 1, 2].map(n => singleCtRow(n, {
-      numCM: casts, cmEnergyCost: T.cmCost, effectiveBuffer: false, energyFromCM: eCM,
+      numCM: casts, cmEnergyCost: T.cmCost, effectiveBuffer: document.getElementById("ctCmBuffer").checked, energyFromCM: eCM,
       energyFromBossFM: energyFromDamage(T.bossFmDmg), fm: T.fm, cm: T.cm, resolveNerf: false,
       bossFMAD_ticks: c.bossFMMove.ad, dodgeCM: false, dodgeFM: false,
       chargeDamage: T.cmDmg, fastDamage: T.fmDmg, bossCMDamage: T.bossCmDmg, bossFMDamage: T.bossFmDmg, playerHp: T.hp,
@@ -4338,7 +4351,7 @@ const SETUP_FIELD_IDS = [
   // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch",
-  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority",
+  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer",
 ];
 function captureSetup(){
   const setup = {};
@@ -4738,7 +4751,13 @@ function updateMoveOptionsFor(nameFieldId, cmBaseId, fmBaseId){
   // entry under the mega's own name - which is exactly the kind of copy that drifts out of sync
   // the moment the base form's real entry gets edited - a mega with no movepool entry of its own
   // falls back to BASE_FORM_MAP's real base species, read live off that species' own entry.
-  const entry = POKEMON_MOVEPOOL[name] || POKEMON_MOVEPOOL[BASE_FORM_MAP[name]];
+  // A Shadow Pokemon has the same moves as its regular form, but the movepool data mostly lists
+  // the regular form only (694 of 1,139 Shadow entries have no list of their own), so e.g.
+  // "Shadow Tapu Lele" offered no moves at all and had to be entered by hand. Fall back to the
+  // regular form's list (and, for a Shadow Mega-style name, its base species) when needed.
+  const plain = name.replace(/^shadow\s+/, "");
+  const entry = POKEMON_MOVEPOOL[name] || POKEMON_MOVEPOOL[BASE_FORM_MAP[name]]
+             || POKEMON_MOVEPOOL[plain] || POKEMON_MOVEPOOL[BASE_FORM_MAP[plain]];
   // Real raid bosses can never have an Elite-TM-exclusive move - only filter this out for the
   // boss dropdown specifically; a player's own caught Pokemon (the "pokemonName" field) can
   // legitimately have one, so that field's move list is untouched. Elite moves are recorded
@@ -5221,7 +5240,7 @@ const SETUP_SHORT_KEYS = {
   ctMode:"m",
   bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp",
   ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
-  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp",
+  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb",
 };
 const SETUP_LONG_KEYS = Object.fromEntries(Object.entries(SETUP_SHORT_KEYS).map(([k,v]) => [v,k]));
 function encodeSetupForUrl(setup){
