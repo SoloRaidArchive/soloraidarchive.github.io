@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-25T17:55:33.211037+00:00",
+  "generatedAt": "2026-10-25T20:05:56.812974+00:00",
   "sources": {
-    "pokebattlerWebsite": 0,
-    "pokebattlerPage": null,
+    "pokebattlerWebsite": 23,
+    "pokebattlerPage": "https://old.pokebattler.com/raids",
     "scrapedDuck": 16
   },
   "dateGroups": [
@@ -88,6 +88,12 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Clear"
+        },
+        {
+          "name": "Deoxys",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
         }
       ],
       "status": "future"
@@ -102,6 +108,34 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "6 \u2b50",
           "weather": "Fog"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 15, 2026",
+      "endDate": "Nov 15, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Reshiram",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5.5 \u2b50",
+          "weather": "Windy"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 14, 2026",
+      "endDate": "Nov 14, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zekrom",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
         }
       ],
       "status": "future"
