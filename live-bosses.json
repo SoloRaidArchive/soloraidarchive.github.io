@@ -1,6 +1,159 @@
 {
-  "generatedAt": "2026-10-25T01:59:16.299942+00:00",
+  "generatedAt": "2026-10-25T04:26:42.743329+00:00",
+  "sources": {
+    "pokebattlerWebsite": 23,
+    "pokebattlerPage": "https://old.pokebattler.com/raids",
+    "scrapedDuck": 16
+  },
   "dateGroups": [
+    {
+      "startDate": "Oct 28, 2026",
+      "endDate": "Nov 3, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Giratina Origin",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Oct 21, 2026",
+      "endDate": "Oct 27, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Palkia",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Mega Charizard X",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Charizard Y",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "startDate": "Nov 16, 2026",
+      "endDate": "Nov 24, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Darkrai",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Partly Cloudy"
+        },
+        {
+          "name": "Mega Banette",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 25, 2026",
+      "endDate": "Dec 1, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Deoxys Attack",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Deoxys Speed",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5.5 \u2b50",
+          "weather": "Fog"
+        },
+        {
+          "name": "Mega Metagross",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        },
+        {
+          "name": "Deoxys",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 4, 2026",
+      "endDate": "Nov 8, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Giratina Altered",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Fog"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 15, 2026",
+      "endDate": "Nov 15, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Reshiram",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5.5 \u2b50",
+          "weather": "Windy"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 14, 2026",
+      "endDate": "Nov 14, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zekrom",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Oct 28, 2026",
+      "endDate": "Nov 8, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Mega Sableye",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "Cloudy"
+        }
+      ],
+      "status": "future"
+    },
     {
       "startDate": "Oct 7, 2026",
       "endDate": "Nov 3, 2026",
@@ -34,32 +187,6 @@
         }
       ],
       "status": "passed"
-    },
-    {
-      "startDate": "Oct 21, 2026",
-      "endDate": "Oct 27, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Palkia",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Mega Charizard X",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Charizard Y",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "2 \u2b50",
-          "weather": "Extreme"
-        }
-      ],
-      "status": "active"
     },
     {
       "startDate": "Oct 7, 2026",
