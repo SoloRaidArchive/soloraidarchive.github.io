@@ -31,6 +31,10 @@ jobs:
         run: python update_live_bosses.py
 
       - name: Commit changes if the boss list actually changed
+        # Runs even when the scraper step failed: the scraper still writes a usable file (today's
+        # running bosses and this month's history) and fails only to flag that both raid schedule
+        # sources came back empty.
+        if: ${{ !cancelled() }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
