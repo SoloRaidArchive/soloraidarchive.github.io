@@ -112,7 +112,7 @@ if ("serviceWorker" in navigator) {
      modes, hence the body-scoped hide. */
   body .maindps-fmcm-aggro{ display:none; }
   body.ct-mode-maindps:not(.cadence-fm-only) label.maindps-fmcm-aggro{ display:inline-flex; }
-  body.ct-mode-maindps:not(.cadence-fm-only) .aggro-cell{ display:flex; flex-direction:column; min-width:190px; }
+  body.ct-mode-maindps:not(.cadence-fm-only) .aggro-cell{ display:flex; flex-direction:column; min-width:min(190px, 100%); }
   .aggro-cell input[type=range]{ width:100%; accent-color: var(--blue); margin:2px 0 0; }
   .aggro-hint{ font-size:10.5px; color: var(--text-dim); margin-top:2px; }
   /* Boss cadence strip. Marks sit at their real tick, so the spacing between them IS the
@@ -458,6 +458,18 @@ if ("serviceWorker" in navigator) {
     padding:10px 0 10px; font-size:11.5px; color: var(--text-muted); font-weight:600;
   }
   .results-card-rows{ display:flex; flex-direction:column; gap:10px; padding-top:10px; border-top:1px solid var(--border); }
+  /* Phones: names may wrap instead of being cut off, with smaller icons and move text so the
+     card stays compact. Both Pokemon share one line, so each name only has ~90px - "Necrozma
+     Dawn Wings" was cut to "Necrozma Daw..." even at 390px, "Shadow Tapu ..." at 375px. */
+  @media (max-width:560px){
+    .results-card{ padding:12px 12px; }
+    .results-card-vs{ gap:6px; }
+    .results-card-icon{ width:28px; height:28px; border-radius:7px; }
+    .results-card-mon{ gap:6px; }
+    .results-card-name{ white-space:normal; overflow:visible; text-overflow:clip; font-size:11.5px; line-height:1.2; }
+    .results-card-moves{ font-size:10.5px; line-height:1.3; }
+    .results-card-vs-label{ font-size:10px; }
+  }
   .results-card-row{
     display:grid; grid-template-columns: 18px 1fr 78px auto; align-items:center; gap:8px;
   }
@@ -616,6 +628,19 @@ if ("serviceWorker" in navigator) {
   .loadout-vs{
     font-family:'Manrope', sans-serif; font-weight:800; font-size:15px; color: var(--text-dim);
     flex-shrink:0;
+  }
+  /* Narrow phones: keep the two Pokemon stacked full-width (as before) but let their insides
+     shrink and wrap. The stats row could not wrap and the sprite was 88px, so at 320px the
+     boss's "HP 124.0" ran past the card and, in Main DPS mode, the whole page scrolled sideways. */
+  @media (max-width:420px){
+    .loadout-card{ padding:14px 16px; gap:10px; }
+    .loadout-pokemon{ flex:1 1 100%; min-width:0; gap:12px; }
+    .loadout-vs{ flex:1 1 100%; text-align:center; }
+    .loadout-sprite{ width:68px; height:68px; border-radius:12px; }
+    .loadout-info{ min-width:0; flex:1; }
+    .loadout-stats{ gap:2px 10px; flex-wrap:wrap; font-size:13px; }
+    .loadout-stats b{ font-size:14px; }
+    .loadout-dmg-line{ overflow-wrap:anywhere; }
   }
 
   .mod-row{ display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:12px; }
@@ -2332,7 +2357,7 @@ function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
 // ============ CT + MAIN DPS SIMULATOR (test mode) ============
 // A main DPSer and N copies of one catch tank against the boss, stepped one tick (0.5s) at a
 // time on a single shared timeline. Built from the same pieces as Main DPS mode: the same boss
-// aggression model (seeded full bar, half-phase accumulator), energy from damage banked when it
+// aggression model (empty starting bar, half-phase accumulator), energy from damage banked when it
 // LANDS and rounded up per hit (energyFromDamage), and the 100-energy cap on both sides.
 //
 // What differs, and why:
@@ -2358,9 +2383,8 @@ const TEAM_MAX_TICKS = 600;     // 300s: the Tier 5 raid timer, a backstop rathe
 function simulateTeam(P){
   const S = {
     t: 0,
-    // The boss starts the fight with an EMPTY bar here, so its first charge move has to be earned
-    // from its fast moves and the damage it takes. (Main DPS mode seeds it full on purpose - that
-    // rotation is built around absorbing a charge move - and is unchanged.)
+    // The boss starts the fight with an EMPTY bar (as Main DPS mode now does too), so its first
+    // charge move has to be earned from its fast moves and the damage it takes.
     boss: { energy: 0, acc: 0.5, nextCast: 1, inFlight: null, lastWasCM: false, unseen: 0 },
     mons: [{ tank: false, hp: P.main.hp, energy: 0, busyUntil: 0, cmCasts: 0 }]
       .concat(Array.from({ length: P.qty }, () => ({ tank: true, hp: P.tank.hp, energy: 0, busyUntil: 0, cmCasts: 0 }))),
@@ -3437,12 +3461,12 @@ function runCalculation(){
     const bossAggroP = parseInt(document.getElementById("bossAggro").value, 10) / 100;
     const bossCMCost = 100;
     const bossFMEnergyGain = bossFMMove.energy || 0;
-    // Seeded to a full bar. "Fast & Charge" states as a premise that the boss uses its charge
-    // move - the non-aggression model on this cadence is built entirely around absorbing one -
-    // so the boss must not have to earn its first 100 energy from scratch. Starting at zero meant
-    // a short rotation ended before it could ever cast, and the cadence silently produced zero
-    // charge moves. Aggression governs HOW OFTEN it casts, not WHETHER it can.
-    let bossEnergy = bossAggroOn ? 100 : 0;
+    // The boss starts the fight with an EMPTY bar, as in the real raid (and the Beta catch tank
+    // simulator): its first charge move has to be earned from its fast moves and the damage it
+    // takes. It used to be seeded full so a short rotation would always see a charge move; that
+    // made the first one arrive unrealistically early. A short rotation can now end before the
+    // boss casts at all - which is what would happen in the raid too.
+    let bossEnergy = 0;
     // Accumulator starts half-full rather than empty. Starting at 0 means the first charge move
     // cannot arrive until 1/p decisions have passed - at 30% that is the 4th boss move, which a
     // short rotation never reaches, so the cadence reported zero charge moves. Half-phase seeding
