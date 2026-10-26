@@ -126,10 +126,18 @@ if ("serviceWorker" in navigator) {
   .bseq-head{
     display:block; text-align:left; font-size:13px; color: var(--text-dim); margin-bottom:9px;
   }
-  .bseq{ position:relative; display:block; width:100%; height:30px; }
-  .bseq-rail{ position:absolute; left:0; right:0; top:9px; height:2px; background: var(--border); border-radius:2px; }
+  /* Room above the rail for the energy absorbed from each charge move (two lanes, so a close
+     pair doesn't overlap), the move marks on the rail, and the gap times below it. */
+  .bseq{ position:relative; display:block; width:100%; height:52px; }
+  .bseq-rail{ position:absolute; left:0; right:0; top:31px; height:2px; background: var(--border); border-radius:2px; }
+  .bseq-e{ position:absolute; transform:translateX(-50%); font-size:10px; font-weight:800; line-height:1;
+    color:#c2415a; white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .bseq-e.lane0{ top:13px; } .bseq-e.lane1{ top:1px; }
+  .bseq-e.is-over{ color:#b07800; }   /* some of that charge move's energy went over 100 */
+  .bseq-e.is-fainted{ color:var(--text-dim) !important; font-weight:700; opacity:.8; }   /* attacker already down */
+  [data-theme="dark"] .bseq-e{ color:#ff8fa3; } [data-theme="dark"] .bseq-e.is-over{ color:#f5b94a; }
   .bseq i{
-    position:absolute; top:9px; transform:translate(-50%,-50%);
+    position:absolute; top:31px; transform:translate(-50%,-50%);
     box-sizing:border-box; display:block;
   }
   .bseq-fm{ width:10px; height:10px; border-radius:50%; border:2px solid #aab4c2; background: var(--card); }
@@ -138,7 +146,7 @@ if ("serviceWorker" in navigator) {
   .bseq-fm.is-chained{ border-color:#e8963a; }
   .bseq-cm.is-chained{ background:#e8963a; }
   .bseq u{
-    position:absolute; top:19px; transform:translateX(-50%);
+    position:absolute; top:41px; transform:translateX(-50%);
     font-style:normal; font-size:9.5px; font-weight:600; color: var(--text-dim); white-space:nowrap;
   }
   [data-theme="dark"] .bseq-fm{ border-color:#5b6577; }
@@ -156,9 +164,12 @@ if ("serviceWorker" in navigator) {
   @media (max-width: 380px){
     /* 9px gap labels collide before the marks do - drop them and let the spacing speak. */
     .bseq u{ display:none; }
-    .bseq{ height:20px; }
+    .bseq{ height:42px; }
+    .bseq-e{ font-size:9px; letter-spacing:-.02em; }
   }
   body:not(.aggro-on) .aggro-cell{ opacity:.42; pointer-events:none; }
+  /* Optimal DPS sets the boss's timing itself, so the aggression slider doesn't apply */
+  body.optimal-dps .aggro-cell{ opacity:.42; pointer-events:none; }
   /* an adventure effect that cannot apply to the selected boss - still clickable, so the user can
      see what it would do, but visibly inert */
   .check-item.ae-inactive{ opacity:.45; }
@@ -1398,6 +1409,7 @@ if ("serviceWorker" in navigator) {
         <input type="range" id="bossAggro" min="10" max="60" step="5" value="30">
         <div class="aggro-hint" id="bossAggroHint">~1 charge per 2.3 fast moves</div>
       </div>
+      <label class="check-item maindps-fmcm-aggro optimal-item" title="Optimal DPS: the boss times its charge moves for you - it casts one only when it has the energy AND your Pokémon can sponge at least 85% of the energy that hit gives (no more than 15% lost over 100). Replaces the aggression setting."><input type="checkbox" id="optimalDps"> Optimal DPS</label>
       <label class="check-item single-ct-only maindps-fmcm-only team-hide"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
       <label class="check-item team-hide"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
       <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
@@ -3465,8 +3477,13 @@ function runCalculation(){
     // inputs always give the same rotation - a calculator that returned a different answer each
     // press would be useless for comparing loadouts.
     // Never on the Fast Only cadence: that setting means the boss uses fast moves only.
+    // Optimal DPS (Fast & Charge only): the boss casts its charge move only when the attacker can
+    // sponge at least OPTIMAL_SPONGE of its energy - the most energy-efficient timing the boss could
+    // choose. It runs on the same boss simulation as aggression, so it switches that on too.
+    const optimalDps = mainDPSMode && !cadenceFMOnly && document.getElementById("optimalDps").checked;
+    const OPTIMAL_SPONGE = 0.85;
     const bossAggroOn = mainDPSMode && !cadenceFMOnly
-                        && document.getElementById("bossAggroOn").checked;
+                        && (document.getElementById("bossAggroOn").checked || optimalDps);
     const bossAggroP = parseInt(document.getElementById("bossAggro").value, 10) / 100;
     const bossCMCost = 100;
     const bossFMEnergyGain = bossFMMove.energy || 0;
@@ -3518,10 +3535,22 @@ function runCalculation(){
       }
       bossEnergy = Math.min(bossCMCost, bossEnergy + landedEnergy);
       aggroAcc += bossAggroP;
-      if(bossEnergy >= bossCMCost && aggroAcc >= 1){
-        aggroAcc -= 1;
+      // Share of this charge move's energy the attacker would keep (the rest goes over 100).
+      const cmGain = energyFromDamage(bossCMDamage);
+      const spongeShare = cmGain > 0 ? Math.min(cmGain, ENERGY_CAP - mdEnergyBanked) / cmGain : 1;
+      const takeCM = bossEnergy >= bossCMCost && (optimalDps ? spongeShare >= OPTIMAL_SPONGE : aggroAcc >= 1);
+      if(takeCM){
+        if(!optimalDps) aggroAcc -= 1;
         bossEnergy -= bossCMCost;
-        mdBossMoveLog.push({ tick: tickNow, type: "cm", chained: !!chained });
+        // Whether the attacker is still standing for this hit: HP before it (all damage taken so
+        // far, fast and charge moves) and after it. A charge move that lands on an already-fainted
+        // attacker - or is the one that knocks it out - gives it no usable energy, so the graph
+        // shows +0 there. (Display only: Main DPS has always reported HP left rather than ending
+        // the rotation at a faint, and the DPS figure is unchanged.)
+        const hpBefore = playerHp - mdDamageTakenTotal;
+        const faint = hpBefore <= 0 ? "before" : (hpBefore - bossCMDamage <= 0 ? "this" : null);
+        mdBossMoveLog.push({ tick: tickNow, type: "cm", chained: !!chained, sponge: spongeShare,
+                             gain: cmGain, absorbed: Math.min(cmGain, ENERGY_CAP - mdEnergyBanked), faint });
         return { dmg: bossCMDamage, isCM: true };
       }
       bossEnergy = Math.min(bossCMCost, bossEnergy + bossFMEnergyGain);
@@ -3790,7 +3819,7 @@ function runCalculation(){
       <div class="dps-result-card">
         <div class="dps-result-main">
           <div class="dps-result-label">${bossAggroOn
-              ? `Fast &amp; Charge &middot; ${(bossAggroP*100).toFixed(0)}% aggression`
+              ? `Fast &amp; Charge &middot; ${optimalDps ? "Optimal DPS" : `${(bossAggroP*100).toFixed(0)}% aggression`}`
               : "Fast Moves Only"}${numCM > 1 ? ` &middot; ${numCM} casts` : ""}</div>
           <div class="dps-result-value">${mainDPS.toFixed(1)}</div>
         </div>
@@ -3815,10 +3844,29 @@ function runCalculation(){
                 //   colour = chained or not (amber = cast 1t after a charge)
                 // Fast and chained-fast are the same hollow circle so they read as one family.
                 const span = Math.max(mdTotalTicks, 1);
+                // Over each charge move: the energy the attacker actually absorbed from it (after the
+                // 100 cap). A charge move close behind another gets its label one step higher so the
+                // two numbers don't overlap.
+                let lastCmPct = -100, lastLane = 1;
                 const marks = mdBossMoveLog.map(m => {
                   const cls = (m.type === "cm" ? "bseq-cm" : "bseq-fm") + (m.chained ? " is-chained" : "");
-                  const label = `${m.chained ? "chained " : ""}${m.type === "cm" ? bossCMMove.n : bossFMMove.n} at ${(m.tick/2).toFixed(1)}s`;
-                  return `<i class="${cls}" style="left:${(m.tick/span*100).toFixed(2)}%" title="${label}"></i>`;
+                  const pct = m.tick / span * 100;
+                  let label = `${m.chained ? "chained " : ""}${m.type === "cm" ? bossCMMove.n : bossFMMove.n} at ${(m.tick/2).toFixed(1)}s`;
+                  let energy = "";
+                  if(m.type === "cm" && m.absorbed !== undefined){
+                    const over = m.gain - m.absorbed;
+                    const lane = (pct - lastCmPct < 10) ? 1 - lastLane : 0;   // ~10% = a label's width on a small phone
+                    lastCmPct = pct; lastLane = lane;
+                    if(m.faint){
+                      label += m.faint === "this" ? ` - ${pkmnName} faints on this hit, so it absorbs no energy`
+                                                  : ` - ${pkmnName} had already fainted, so it absorbs no energy`;
+                      energy = `<b class="bseq-e lane${lane} is-fainted" style="left:${pct.toFixed(2)}%" title="${label}">+0</b>`;
+                    } else {
+                      label += ` - absorbed ${m.absorbed} of ${m.gain} energy${over > 0 ? ` (${over} over 100)` : ""}`;
+                      energy = `<b class="bseq-e lane${lane}${over > 0 ? " is-over" : ""}" style="left:${pct.toFixed(2)}%" title="${label}">+${m.absorbed}</b>`;
+                    }
+                  }
+                  return `<i class="${cls}" style="left:${pct.toFixed(2)}%" title="${label}"></i>${energy}`;
                 }).join("");
                 // A gap label is only drawn when there is room for it; sub-second chain gaps get a
                 // compact form so they do not collide with the marks either side.
@@ -3835,8 +3883,20 @@ function runCalculation(){
                 return `<span class="bseq-head">Boss rotation</span>`
                      + `<span class="bseq"><span class="bseq-rail"></span>${marks}${gaps}</span>`;
               })()}
-                            <span class="dps-stat-sub">${mdBossFMCount} fast &middot; ${mdBossCMCount} charge &middot; ${(100*bossAggroP).toFixed(0)}% aggression</span></td></tr>
+                            <span class="dps-stat-sub">${mdBossFMCount} fast &middot; ${mdBossCMCount} charge &middot; ${optimalDps ? "optimal timing" : `${(100*bossAggroP).toFixed(0)}% aggression`}</span></td></tr>
             <tr><td>Damage taken</td><td><span class="dps-stat-math">${mdBossFMCount}&times;${bossFMDamage}${mdBossCMCount ? ` + ${mdBossCMCount}&times;${bossCMDamage}` : ""}</span> = ${mdDamageTaken}</td></tr>
+            ${(() => {
+              const cms = mdBossMoveLog.filter(m => m.type === "cm" && m.sponge !== undefined);
+              if(!cms.length) return "";
+              // only charge moves taken while still standing; ones that land after (or cause) a
+              // faint give no energy and are counted separately
+              const sp = cms.filter(m => !m.faint).map(m => m.sponge);
+              const lost = cms.length - sp.length;
+              const lostNote = lost ? ` &middot; ${lost} after fainting not counted` : "";
+              if(!sp.length) return `<tr><td>CM energy sponged</td><td>&mdash; <span class="dps-stat-sub">${pkmnName} fainted before sponging any${lostNote}</span></td></tr>`;
+              const avg = sp.reduce((a, v) => a + v, 0) / sp.length, low = Math.min(...sp);
+              return `<tr><td>CM energy sponged</td><td>${(avg * 100).toFixed(0)}% avg <span class="dps-stat-sub">lowest ${(low * 100).toFixed(0)}% &middot; ${energyFromDamage(bossCMDamage)} energy per charge move${lostNote}</span></td></tr>`;
+            })()}
             ` : `
             <tr><td>Damage taken</td><td><span class="dps-stat-math">${mdBossHitsAbsorbed} &times; ${bossFMDamage}</span> = ${mdDamageTaken}</td></tr>
             `}
@@ -4383,7 +4443,7 @@ const SETUP_FIELD_IDS = [
   // Boss aggression, the Fast & Charge choice and Dynamic Punch+ (all used by Main DPS and the
   // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
-  "bossAggro","bossAggroOn","cadenceMode","dynamicPunch",
+  "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
   "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer",
 ];
 function captureSetup(){
@@ -4435,7 +4495,7 @@ function applySetup(setup){
   });
   // the aggression slider's own label/hint and the sponge/priority link listen for these events
   ["bossAggro"].forEach(id => document.getElementById(id).dispatchEvent(new Event("input")));
-  ["bossAggroOn","ctMainAbsorb","ctPriority"].forEach(id => document.getElementById(id).dispatchEvent(new Event("change")));
+  ["bossAggroOn","ctMainAbsorb","ctPriority","optimalDps"].forEach(id => document.getElementById(id).dispatchEvent(new Event("change")));
   updateMoveOptionsFor("pokemonName","playerCM","playerFM");
   updateMoveOptionsFor("bossName","bossCM","bossFM");
   if(document.getElementById("ctName").value.trim()) updateMoveOptionsFor("ctName","ctCM","ctFM");
@@ -5271,7 +5331,7 @@ const SETUP_SHORT_KEYS = {
   bossName:"bn", bossTier:"bt", bossCM:"bc", bossFM:"bf",
   effBossCM:"ebc", effBossFM:"ebf", bossStabCM:"bsc", bossStabFM:"bsf", shadowDebuff:"sd",
   ctMode:"m",
-  bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp",
+  bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp", optimalDps:"od",
   ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
   ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb",
 };
@@ -5397,6 +5457,11 @@ document.getElementById("ctModeMainDPS").addEventListener("change", updateCTMode
 document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
 document.getElementById("ctModeDouble").addEventListener("change", updateCTMode);
 document.getElementById("ctModeTeam").addEventListener("change", updateCTMode);
+(function(){
+  const box = document.getElementById("optimalDps");
+  const sync = () => document.body.classList.toggle("optimal-dps", box.checked);
+  box.addEventListener("change", sync); sync();
+})();
 // CT + Main DPS: priority hint
 (function(){
   const sel = document.getElementById("ctPriority");
