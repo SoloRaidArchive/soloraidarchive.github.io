@@ -2316,6 +2316,15 @@ function energyFromDamage(dmg){
   return Math.ceil(0.5 * dmg);
 }
 
+// How many of the boss's fast moves a catch tank (or the main DPSer absorbing a charge move) is
+// shown taking, in Single / Double Catch Tank and Main DPS: 0 to 3. Was 0 to 2.
+const FM_TANKED_OUTCOMES = [0, 1, 2, 3];
+// "1st", "2nd", "3rd", "4th"... for the risky-timing notes (they used to print "3nd").
+const ordinal = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? "th" : (["th", "st", "nd", "rd"][n % 10] || "th"));
+// Ticks of dodging for n tanked fast moves: 2 per fast move, at least 2. Matches the previous
+// 0 -> 2, 1 -> 2, 2 -> 4 exactly, and gives 6 for 3.
+const dodgeFMTicksFor = n => 2 * Math.max(1, n);
+
 // ============ BOSS ATTACK TIMING MODEL (deterministic) ============
 // After a boss charge move lands, the boss chains fast moves back-to-back.
 // First chained FM lands: chargeLandTime + 1 tick (fixed post-CM delay) + FM animation ticks.
@@ -3210,7 +3219,7 @@ function singleCtRow(n, x){
 
     // dodge terms (in ticks); FM dodge is asymmetric per confirmed sheet behavior
     const dodgeCMTicks = dodgeCM ? 2 : 0;
-    const dodgeFMTicks = dodgeFM ? (n === 2 ? 4 : 2) : 0;
+    const dodgeFMTicks = dodgeFM ? dodgeFMTicksFor(n) : 0;
     ticks += dodgeCMTicks + dodgeFMTicks;
 
     // energy resolve nerf: 1 tick of dead time per nerfed cast, plus that cast's wasted fast move
@@ -3246,7 +3255,7 @@ function singleCtRow(n, x){
       const nthLandingTick = landings[n - 1];
       if(nthLandingTick > ticks){
         risky = true;
-        riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+        riskyNote = `Boss's ${n === 1 ? "fast move" : ordinal(n) + " fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
       }
     }
 
@@ -3644,7 +3653,7 @@ function runCalculation(){
     const mdCmCost = Math.abs(cm.energy);
     const mdBossFMAD_ticks = bossFMMove.ad;
 
-    const mdAbsorbRows = [0, 1, 2].map(n => {
+    const mdAbsorbRows = FM_TANKED_OUTCOMES.map(n => {
       const totalCostAllCasts = numCM * mdCmCost;
       const tankBonusForBuildup = mdEnergyFromCM + (n * mdEnergyFromBossFM);
       const energyNeeded = Math.max(totalCostAllCasts - tankBonusForBuildup, 0);
@@ -3679,7 +3688,7 @@ function runCalculation(){
       let ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
       // n=2 is the player deliberately staying in to take the second hit after their own rotation
       // has finished - waiting, not acting, so the duration grows but the fast-move count does not.
-      const bossFMFloor = n === 0 ? 0 : n === 1 ? mdBossFMAD_ticks : mdBossFMAD_ticks * 2 + 5;
+      const bossFMFloor = n === 0 ? 0 : n === 1 ? mdBossFMAD_ticks : bossFMLandingTicks(mdBossFMAD_ticks, n)[n - 1];
       const outerFloor = mdBossFMAD_ticks + 1;
       ticks = Math.max(outerFloor, bossFMFloor, ticks);
       ticks += netResolveNerfCasts; // 1 tick of dead time per nerfed cast
@@ -3713,7 +3722,7 @@ function runCalculation(){
         const nthLandingTick = landings[n - 1];
         if(nthLandingTick > ticks){
           risky = true;
-          riskyNotes.push(`Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done \u2014 you may not actually take all ${n} hit${n > 1 ? "s" : ""} in practice.`);
+          riskyNotes.push(`Boss's ${n === 1 ? "fast move" : ordinal(n) + " fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${ticks.toFixed(1)}t) would already be done \u2014 you may not actually take all ${n} hit${n > 1 ? "s" : ""} in practice.`);
         }
       }
 
@@ -3920,7 +3929,7 @@ function runCalculation(){
     return Math.ceil(Math.max(totalCost - bonus, 0) / fm.energy) * fm.ad;
   }
 
-  const rows = doubleCT ? [0, 1, 2].map(n => {
+  const rows = doubleCT ? FM_TANKED_OUTCOMES.map(n => {
     // ============ DOUBLE CATCH TANK MODEL ============
     // The boss's charge move is absorbed TWICE, across two separate swaps. Swap 1 (tank CM #1,
     // cast exactly one mandatory fast move, swap back out) happens entirely before this rotation's
@@ -3960,12 +3969,12 @@ function runCalculation(){
     // player waiting out the second hit after their own rotation is done: duration grows, but
     // fastPhaseTicks does not, so no extra fast moves are credited for standing still.
     const swap2Ticks = innerMax + (cm.ad * numCM) + mandatoryFMBonus;
-    const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMAD_ticks * 2 + 5;
+    const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMLandingTicks(bossFMAD_ticks, n)[n - 1];
     let ticks = swap1FMTicks + Math.max(swap2Ticks, bossFMFloor);
     const outerFloor = bossFMAD_ticks + 1;
     ticks = Math.max(outerFloor, ticks);
 
-    const dodgeFMTicks = dodgeFM ? (n === 2 ? 4 : 2) : 0;
+    const dodgeFMTicks = dodgeFM ? dodgeFMTicksFor(n) : 0;
     ticks += dodgeFMTicks;
     ticks += netResolveNerfCasts;
 
@@ -4002,7 +4011,7 @@ function runCalculation(){
       const nthLandingTick = landings[n - 1];
       if(nthLandingTick > battleTicks){
         risky = true;
-        riskyNote = `Boss's ${n === 1 ? "fast move" : n + "nd fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${battleTicks.toFixed(1)}t of battle time) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
+        riskyNote = `Boss's ${n === 1 ? "fast move" : ordinal(n) + " fast move"} lands at tick ${nthLandingTick.toFixed(1)}, after this rotation (${battleTicks.toFixed(1)}t of battle time) would already be done — you may not actually take all ${n} hit${n>1?"s":""} in practice.`;
       }
     }
 
@@ -4022,7 +4031,7 @@ function runCalculation(){
       n, seconds: Math.max(seconds,0), ticks: Math.max(ticks,0),
       trailingDPS: null, ctDPS, fainted, cumulativeDamage, risky, riskyNote,
     };
-  }) : [0, 1, 2].map(n => singleCtRow(n, {
+  }) : FM_TANKED_OUTCOMES.map(n => singleCtRow(n, {
     numCM, cmEnergyCost, effectiveBuffer, energyFromCM, energyFromBossFM, fm, cm, resolveNerf, bossFMAD_ticks, dodgeCM, dodgeFM, chargeDamage, fastDamage, bossCMDamage, bossFMDamage, playerHp,
   }));
 
