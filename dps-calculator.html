@@ -5506,11 +5506,41 @@ function shareCardData(){
     moves: [...m.querySelectorAll(".loadout-dmg-line")].map(txt),
     sprite: (m.querySelector("img") || {}).src || "",
   }));
+  // Each row as the card shows it: the value, the working in front of it ("6x5 + 2x54"), and the
+  // smaller line under it ("+24 energy") kept apart - previously all three ran together as one
+  // string - plus the Boss rotation graph, which was skipped entirely (its cell spans both
+  // columns). Colours come from the card's own computed styles, so either theme matches.
+  const pct = el => parseFloat(el.style.left) || 0;
   const rows = [];
   card.querySelectorAll(".dps-stat-table tr").forEach(tr => {
     const th = tr.querySelector("th"), td = tr.querySelectorAll("td");
-    if(th) rows.push({ group: txt(th) });
-    else if(td.length === 2) rows.push({ k: txt(td[0]), v: txt(td[1]) });
+    if(th){
+      const cs = getComputedStyle(th);
+      rows.push({ group: txt(th), color: cs.color, bar: cs.borderLeftColor,
+                  tint: tr.classList.contains("dps-group-survive") ? 0.16 : 0.09 });
+      return;
+    }
+    const strip = tr.querySelector(".bseq");
+    if(strip){
+      rows.push({ graph: {
+        head: txt(tr.querySelector(".bseq-head")),
+        caption: txt(tr.querySelector(":scope > td > .dps-stat-sub")),
+        marks: [...strip.querySelectorAll("i")].map(i => {
+          const cs = getComputedStyle(i);
+          return { pct: pct(i), cm: i.classList.contains("bseq-cm"), fill: cs.backgroundColor, ring: cs.borderTopColor };
+        }),
+        labels: [...strip.querySelectorAll(".bseq-e")].map(b => ({
+          pct: pct(b), text: txt(b), lane: b.classList.contains("lane1") ? 1 : 0, color: getComputedStyle(b).color })),
+        gaps: [...strip.querySelectorAll("u")].map(u => ({ pct: pct(u), text: txt(u) })),
+      }});
+      return;
+    }
+    if(td.length === 2){
+      const valueOnly = td[1].cloneNode(true);
+      valueOnly.querySelectorAll(".dps-stat-sub, .dps-stat-math").forEach(e => e.remove());
+      rows.push({ k: txt(td[0]), v: txt(valueOnly), math: txt(td[1].querySelector(".dps-stat-math")),
+                  sub: txt(td[1].querySelector(".dps-stat-sub")), vColor: getComputedStyle(td[1]).color });
+    }
   });
   // Conditions travel with the image: a shared result without its weather and effects is
   // ambiguous, and the reader has no page to look at.
@@ -5572,6 +5602,38 @@ function drawSpritePlaceholder(ctx, name, bx, by, bw, bh, C){
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
 
+// The Boss rotation graph, redrawn from the markers on the card: the rail, fast moves (rings) and
+// charge moves (squares) at their positions, the energy each charge move gave (two label lanes,
+// as on the card), the gap times under the rail, and the caption.
+function drawShareGraph(x, g, gx, y, gw, C){
+  x.fillStyle = C.dim; x.font = "600 13px Inter, sans-serif";
+  x.fillText(g.head || "Boss rotation", gx, y + 20);
+  const sy = y + 26, railY = sy + 31;
+  const px = p => gx + gw * p / 100;   // same positions as on the card
+  x.fillStyle = C.line; x.fillRect(gx, railY - 1, gw, 2);
+  g.marks.forEach(m => {
+    const cx = px(m.pct);
+    if(m.cm){
+      x.fillStyle = m.fill; x.beginPath();
+      if(x.roundRect) x.roundRect(cx - 6.5, railY - 6.5, 13, 13, 3); else x.rect(cx - 6.5, railY - 6.5, 13, 13);
+      x.fill();
+    } else {
+      x.beginPath(); x.arc(cx, railY, 4, 0, Math.PI * 2);
+      x.fillStyle = C.card; x.fill(); x.lineWidth = 2; x.strokeStyle = m.ring; x.stroke();
+    }
+  });
+  x.textAlign = "center";
+  g.labels.forEach(l => {
+    x.fillStyle = l.color; x.font = "800 10px Manrope, sans-serif";
+    x.fillText(l.text, px(l.pct), sy + (l.lane ? 1 : 13) + 9);
+  });
+  x.fillStyle = C.dim; x.font = "600 9.5px Inter, sans-serif";
+  g.gaps.forEach(gp => x.fillText(gp.text, px(gp.pct), sy + 41 + 9));
+  x.textAlign = "right"; x.font = "600 11px Inter, sans-serif";
+  if(g.caption) x.fillText(g.caption, gx + gw, sy + 52 + 16);
+  x.textAlign = "left";
+}
+
 async function buildResultShareImage(){
   const d = shareCardData();
   if(!d) return null;
@@ -5581,10 +5643,10 @@ async function buildResultShareImage(){
     : { bg:"#f4f6fa", card:"#ffffff", line:"#e7edf5", text:"#2d3142", dim:"#5f6675", accent:"#2b7fd6" };
 
   const W = 900, PAD = 30;
-  const rowH = 34;
+  const rowH = 34, subH = 16, graphH = 104;
   const condH = (d.conds && d.conds.length) ? 30 : 0;
   const headH = 118 + condH;
-  const bodyH = d.rows.reduce((s, r) => s + (r.group ? 30 : rowH), 0);
+  const bodyH = d.rows.reduce((s, r) => s + (r.group ? 32 : r.graph ? graphH : rowH + (r.sub ? subH : 0)), 0);
   const H = PAD + headH + 74 + bodyH + PAD + 34;
 
   const cv = document.createElement("canvas");
@@ -5658,20 +5720,34 @@ async function buildResultShareImage(){
   const tX = PAD + 60, tW = W - PAD * 2 - 120;
   d.rows.forEach(r => {
     if(r.group){
-      x.fillStyle = C.dim; x.font = "800 10px Manrope, sans-serif";
-      x.fillText(r.group.toUpperCase(), tX, y + 20);
-      y += 30;
+      // tinted band with a coloured left rule, as on the card
+      x.save(); x.globalAlpha = r.tint; x.fillStyle = r.bar; x.fillRect(tX, y + 4, tW, 24); x.restore();
+      x.fillStyle = r.bar; x.fillRect(tX, y + 4, 3, 24);
+      x.fillStyle = r.color; x.font = "800 10.5px Manrope, sans-serif";
+      x.fillText(r.group.toUpperCase(), tX + 12, y + 20);
+      y += 32;
       return;
     }
     x.strokeStyle = C.line; x.lineWidth = 1;
     x.beginPath(); x.moveTo(tX, y); x.lineTo(tX + tW, y); x.stroke();
+    if(r.graph){ drawShareGraph(x, r.graph, tX, y, tW, C); y += graphH; return; }
     x.fillStyle = C.dim; x.font = "600 13px Inter, sans-serif";
     x.fillText(r.k, tX, y + 22);
-    x.fillStyle = C.text; x.font = "800 13px Manrope, sans-serif";
+    // value right-aligned, its working (if any) just before it in dimmer type
     x.textAlign = "right";
+    x.fillStyle = C.text; x.font = "800 13px Manrope, sans-serif";
     x.fillText(r.v, tX + tW, y + 22);
+    if(r.math){
+      const vw = x.measureText(r.v).width;
+      x.fillStyle = C.dim; x.font = "500 12px Manrope, sans-serif";
+      x.fillText(r.math, tX + tW - vw - 6, y + 22);
+    }
+    if(r.sub){
+      x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";
+      x.fillText(r.sub, tX + tW, y + 22 + subH);
+    }
     x.textAlign = "left";
-    y += rowH;
+    y += rowH + (r.sub ? subH : 0);
   });
 
   x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";
