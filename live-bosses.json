@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-10-28T09:03:32.977935+00:00",
+  "generatedAt": "2026-10-28T17:30:34.403014+00:00",
   "sources": {
-    "pokebattlerWebsite": 24,
+    "pokebattlerWebsite": 21,
     "pokebattlerPage": "https://old.pokebattler.com/raids",
     "scrapedDuck": 16
   },
@@ -30,32 +30,6 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Windy"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Oct 21, 2026",
-      "endDate": "Oct 27, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Palkia",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Mega Charizard X",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Charizard Y",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "2 \u2b50",
-          "weather": "Extreme"
         }
       ],
       "status": "active"
@@ -152,7 +126,7 @@
           "weather": "Cloudy"
         }
       ],
-      "status": "future"
+      "status": "active"
     },
     {
       "startDate": "Oct 7, 2026",
@@ -167,6 +141,32 @@
         }
       ],
       "status": "active"
+    },
+    {
+      "startDate": "Oct 21, 2026",
+      "endDate": "Oct 27, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Palkia",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Mega Charizard X",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Charizard Y",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "status": "passed"
     },
     {
       "startDate": "Oct 14, 2026",
