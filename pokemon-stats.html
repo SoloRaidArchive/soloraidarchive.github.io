@@ -332,20 +332,28 @@ if ("serviceWorker" in navigator) {
       flex:1 1 auto; min-width:0; text-align:center; font-size:17px;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
     }
-    .info-btn, .hamburger-btn, .filter-btn{ width:38px; height:38px; }
+    .info-btn, .hamburger-btn, .filter-btn, .gear-btn{ width:38px; height:38px; }
+    /* The info button has moved down beside the search box, so nothing on the left balances the
+       two 38px buttons on the right (38 + 4 + 38 = 80px): an invisible spacer of that width keeps
+       the title centred without anything being absolutely positioned. */
+    .sticky-header-title-row::before{ content:""; flex:0 0 80px; order:-1; }
+  }
+  /* the narrowest phones: a touch smaller so "Pokémon Stats" fits between spacer and buttons */
+  @media (max-width: 360px){
+    body .sticky-header .sticky-header-title-row .page-title-sm{ font-size:16px; }
   }
 
+  /* info button beside the search box, its panel opening just below it */
+  .page-search-row{ position:relative; align-items:center; gap:8px; }
+  .page-search-row .info-btn{ flex:none; width:34px; height:34px; border-radius:10px; margin:0 !important; }
+  .page-search-row .info-btn svg{ width:16px; height:16px; }
+  .page-search-row .info-panel{ top:calc(100% + 6px); left:20px; right:auto; }
 </style>
 </head>
 <body>
 
 <div class="sticky-header">
   <div class="sticky-header-title-row">
-      <button class="info-btn" id="infoBtn" aria-label="About these stats" aria-expanded="false" aria-controls="infoPanel">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6h.01"/>
-        </svg>
-      </button>
     <h1 class="page-title-sm">Pokémon Stats</h1>
     <div class="header-buttons">
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
@@ -518,10 +526,7 @@ if ("serviceWorker" in navigator) {
 </script>
 <!-- NAV:END -->
 
-  <div class="info-panel" id="infoPanel" role="dialog" aria-label="About these stats">
-    <div class="info-panel-title">About these stats</div>
-    <div class="stats-blurb" id="statsBlurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
-  </div>
+
   <div class="gear-panel" id="gearPanel">
   <div class="controls">
   <div class="hamburger-section">
@@ -560,6 +565,17 @@ if ("serviceWorker" in navigator) {
 
 <div class="page-search-row">
   <input id="searchInput" type="text" placeholder="Search Pokémon name…" autocomplete="off">
+  <!-- "About these stats" sits beside the search box (it used to be in the header, next to the
+       title, which pushed the title off-centre); its panel opens just below it. -->
+  <button class="info-btn" id="infoBtn" aria-label="About these stats" aria-expanded="false" aria-controls="infoPanel">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6h.01"/>
+        </svg>
+      </button>
+  <div class="info-panel" id="infoPanel" role="dialog" aria-label="About these stats">
+    <div class="info-panel-title">About these stats</div>
+    <div class="stats-blurb" id="statsBlurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
+  </div>
 </div>
 
 
