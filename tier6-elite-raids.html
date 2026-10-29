@@ -622,6 +622,8 @@ body{ background:#20263a; color: var(--text-muted); }
   function place(){
     var nav = document.getElementById("quickLinks");
     if(!nav) return;
+    // not on the home page - it is where the Home link goes, and it has its own front-page layout
+    if(/(^|\/)(index\.html)?$/.test(location.pathname)){ nav.remove(); return; }
     var hdr = document.querySelector(".sticky-header");
     if(hdr){
       hdr.appendChild(nav);
