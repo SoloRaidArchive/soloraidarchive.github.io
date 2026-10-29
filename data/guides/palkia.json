@@ -3,7 +3,7 @@
   "types": [],
   "strategies": [
     {
-      "strategyName": "Dragon Breath/Fire Blast",
+      "strategyName": "Fire Blast [HS/CT]",
       "weather": "Windy",
       "adventureEffect": "Blade Boost",
       "difficulty": "6★",
@@ -102,7 +102,15 @@
           ]
         }
       ],
-      "submittedAt": "2026-10-27T21:59:28.775Z"
+      "bossMoves": {
+        "fast": [
+          "Dragon Breath"
+        ],
+        "charge": [
+          "Fire Blast"
+        ]
+      },
+      "submittedAt": "2026-10-29T20:51:05.505Z"
     },
     {
       "strategyName": "Catch tank/Draco Meteor",
