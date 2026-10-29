@@ -643,6 +643,17 @@ if ("serviceWorker" in navigator) {
   .bs-empty{ padding:9px 10px; font-size:12px; font-weight:600; color:var(--text-dim, #6b7387); }
   .boss-search-hint{ font-size:11px; font-weight:700; color:#d6455d; margin-top:4px; }
   .boss-search-hint:empty{ display:none; }
+  /* Boss moveset picker (route form) */
+  .field-optional{ font-weight:600; text-transform:none; letter-spacing:0; opacity:.7; }
+  .bm-hint{ font-size:11.5px; color:var(--text-dim); margin:2px 0 8px; line-height:1.45; }
+  .bm-label{ font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em; margin:6px 0 5px; }
+  .bm-row{ display:flex; flex-wrap:wrap; gap:6px; }
+  .bm-chip{ font:700 12px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border);
+    border-radius:999px; padding:5px 11px; cursor:pointer; }
+  .bm-chip:hover{ border-color:var(--blue); }
+  .bm-chip[aria-pressed="true"]{ color:#fff; background:var(--blue); border-color:var(--blue); box-shadow:0 0 10px rgba(61,157,255,.45); }
+  .bm-chip[aria-pressed="true"]::before{ content:"✓ "; }
+  .bm-empty{ font-size:12px; color:var(--text-dim); }
 </style>
 </head>
 <body>
@@ -883,6 +894,17 @@ if ("serviceWorker" in navigator) {
           <option>1&#9733;</option><option>2&#9733;</option><option>3&#9733;</option><option>4&#9733;</option><option>5&#9733;</option><option>5.5&#9733;</option><option>6&#9733;</option>
         </select>
       </div>
+    </div>
+
+    <!-- Optional: the boss moveset(s) this route is built for. Picked moves are spotlighted in the
+         guide's Boss Info when a reader views this route; with none picked, nothing changes. -->
+    <div class="field-group" id="bossMovesGroup">
+      <label class="field-label">Boss moveset <span class="field-optional">(optional &middot; pick any number)</span></label>
+      <div class="bm-hint">The boss moves this route is built for. Picked moves stand out in the guide's Boss Info; leave them all unpicked if the route works against any moveset.</div>
+      <div class="bm-label">Fast moves</div>
+      <div class="bm-row" id="bmFast"><span class="bm-empty">Choose a boss first</span></div>
+      <div class="bm-label">Charge moves</div>
+      <div class="bm-row" id="bmCharge"><span class="bm-empty">Choose a boss first</span></div>
     </div>
 
     <div class="field-group">
@@ -1844,6 +1866,7 @@ function editStrategy(index){
   document.querySelectorAll('.party-card').forEach(c => c.remove());
   buildPartiesFromData(s.battleParties || [], /* trackForDraft */ false);
   if(document.querySelectorAll('.party-card').length === 0) addParty();
+  renderBossMoves(s.bossMoves || { fast: [], charge: [] });
 
   document.getElementById('editingBanner').style.display = 'flex';
   document.getElementById('deleteRouteBtn').style.display = 'block';
@@ -1858,12 +1881,73 @@ function cancelEdit(){
   document.getElementById('deleteRouteBtn').style.display = 'none';
   submitBtn.textContent = "Submit for review";
   nameFieldEl.value = ""; resetVodFields([]);
+  renderBossMoves({ fast: [], charge: [] });
   applyStrategyTemplate();
   document.querySelectorAll('.party-card').forEach(c => c.remove());
   addParty();
   syncPreview();
 }
 document.getElementById('cancelEditBtn').addEventListener('click', cancelEdit);
+
+// ---- Boss moveset picker ----
+// Moves come from csv/pokemon-movepool.csv (the list the calculators use), minus Elite TM moves,
+// which a raid boss can't have. A route's picks are sent as bossMoves: { fast: [...], charge: [...] }
+// and only when at least one move is picked - a route with none saves exactly as before.
+let EDITOR_MOVEPOOL = null;
+function loadEditorMovepool(){
+  if(!EDITOR_MOVEPOOL) EDITOR_MOVEPOOL = fetch('csv/pokemon-movepool.csv')
+    .then(r => r.ok ? r.text() : "")
+    .then(t => {
+      const map = {};
+      t.split(/\r?\n/).slice(1).forEach(line => {
+        const [n, m, kind, elite] = line.split(",");
+        if(!n || !m) return;
+        const k = n.trim().toLowerCase();
+        map[k] = map[k] || { fast: [], charge: [] };
+        if((elite || "").trim() === "1") return;
+        (String(kind).trim() === "fast" ? map[k].fast : map[k].charge).push(m.trim());
+      });
+      return map;
+    }).catch(() => ({}));
+  return EDITOR_MOVEPOOL;
+}
+function bossMovepool(map, boss){
+  const n = String(boss || "").trim().toLowerCase();
+  const tries = [n, n.replace(/^shadow\s+/, ""), n.replace(/^(mega|primal)\s+/, "").replace(/\s+[xy]$/, "")];
+  for(const t of tries) if(map[t]) return map[t];
+  return null;
+}
+const bmPicked = { fast: new Set(), charge: new Set() };
+async function renderBossMoves(picks){
+  if(picks){ bmPicked.fast = new Set(picks.fast || []); bmPicked.charge = new Set(picks.charge || []); }
+  const boss = currentBossName();
+  const rows = { fast: document.getElementById('bmFast'), charge: document.getElementById('bmCharge') };
+  if(!boss){ Object.values(rows).forEach(r => r.innerHTML = `<span class="bm-empty">Choose a boss first</span>`); return; }
+  const pool = bossMovepool(await loadEditorMovepool(), boss);
+  if(boss !== currentBossName()) return;   // the boss changed while the list loaded
+  ["fast", "charge"].forEach(kind => {
+    const moves = pool ? pool[kind] : [];
+    // a saved pick that isn't in the list (renamed move, older data) still shows, so it can be removed
+    const all = moves.concat([...bmPicked[kind]].filter(m => !moves.includes(m)));
+    rows[kind].innerHTML = all.length
+      ? all.map(m => `<button type="button" class="bm-chip" aria-pressed="${bmPicked[kind].has(m)}" data-kind="${kind}" data-move="${escapeHtml(m)}">${escapeHtml(m)}</button>`).join("")
+      : `<span class="bm-empty">No moves on file for this boss</span>`;
+  });
+}
+document.getElementById('bossMovesGroup').addEventListener('click', e => {
+  const chip = e.target.closest('.bm-chip');
+  if(!chip) return;
+  const set = bmPicked[chip.dataset.kind], m = chip.dataset.move;
+  if(set.has(m)) set.delete(m); else set.add(m);
+  chip.setAttribute('aria-pressed', String(set.has(m)));
+  if(typeof saveDraft === "function") saveDraft();
+});
+function collectBossMoves(){
+  const fast = [...bmPicked.fast], charge = [...bmPicked.charge];
+  return (fast.length || charge.length) ? { fast, charge } : null;
+}
+function bossMovesField(){ const bm = collectBossMoves(); return bm ? { bossMoves: bm } : {}; }
+
 function currentLiveStrategy(){
   return {
     strategyName: nameFieldEl.value.trim(),
@@ -1874,6 +1958,7 @@ function currentLiveStrategy(){
     isPlaceholder: !quill.getText().trim(),
     vods: collectVods(),
     battleParties: collectParties(),
+    ...bossMovesField(),
   };
 }
 function renderRouteTabs(){
@@ -1944,6 +2029,7 @@ function selectPreviewRoute(which){
 
 async function onBossChange(){
   const pBoss = document.getElementById('p-boss');
+  renderBossMoves({ fast: [], charge: [] });   // a different boss has different moves
   if(bossSearchEl) bossSearchEl.value = bossEl.value || "";
 
   newBossRow.style.display = "none";
@@ -2990,6 +3076,7 @@ async function addStrategy(){
     vods: collectVods(),
     submittedBy: nameEl.value.trim() || "Anonymous",
     battleParties: collectParties(),
+    ...bossMovesField(),
     ...(editingIndex !== null ? { editIndex: editingIndex } : {}),
   };
 
@@ -3013,6 +3100,7 @@ async function addStrategy(){
       text: quill.root.innerHTML,
       vods: collectVods(),
       battleParties: collectParties(),
+      ...bossMovesField(),
     };
     let selectIndex;
     if(editingIndex !== null){
@@ -3139,6 +3227,7 @@ function saveDraft(){
         vods: collectVods(),
         submittedBy: document.getElementById('f-name').value,
         battleParties: collectParties(),
+        bossMoves: collectBossMoves(),
       };
       localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     }catch(e){ /* localStorage unavailable or full - draft saving just silently doesn't happen */ }
@@ -3174,6 +3263,7 @@ async function restoreDraft(){
   else applyStrategyTemplate();
 
   buildPartiesFromData(draft.battleParties || [], /* trackForDraft */ true);
+  if(draft.bossMoves) renderBossMoves(draft.bossMoves);
 
   syncPreview();
   document.getElementById('draftNote').style.display = 'flex';
