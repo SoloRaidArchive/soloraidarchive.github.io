@@ -9,6 +9,13 @@ on:
       # workflow makes cannot match this path filter and re-trigger itself.
       - "data/nav-partial.html"
       - "generate_nav.py"
+      # Pages the submission worker publishes (articles, raid guides) are built from the worker's
+      # own templates, with their own copy of the menu. Running here when one lands gives it the
+      # current menu and header shortcut links straight away, instead of whenever the partial
+      # next changes. No loop: this job pushes with the built-in GITHUB_TOKEN, and GitHub never
+      # starts workflow runs from pushes made with that token.
+      - "articles/*.html"
+      - "data/guides/*.html"
   workflow_dispatch: {}
     # ^ lets you run it from the Actions tab without pushing anything, e.g. after
     # editing the partial in the web editor, or to re-sync if a commit slipped through.
