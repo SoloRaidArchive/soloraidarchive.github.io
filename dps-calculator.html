@@ -833,6 +833,10 @@ if ("serviceWorker" in navigator) {
   /* the shared behaviour card: switches and the priority list */
   .team-behavior-card .team-behavior-row{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
   .team-behavior-card .check-item{ text-transform:none; letter-spacing:0; font-size:12.5px; color:var(--text); }
+  .team-dodge-limit{ cursor:default; }
+  .team-dodge-limit select{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card);
+    border:1.5px solid var(--border); border-radius:7px; padding:2px 4px; margin-left:2px; }
+  .team-dodge-limit.is-off{ opacity:.5; }
   .team-order-head{ font:800 11.5px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
   .team-order-head span{ text-transform:none; letter-spacing:0; font-weight:600; }
   .team-order{ list-style:none; margin:0 0 12px; padding:0; display:flex; flex-direction:column; gap:6px; max-width:560px; }
@@ -895,6 +899,7 @@ if ("serviceWorker" in navigator) {
   .team-tl .seg-main{ background:#3d9dff; } .team-tl .seg-tank{ background:#f5b94a; }
   .team-tl .seg-swap{ background:repeating-linear-gradient(45deg,#8890a6 0 3px,transparent 3px 6px); }
   .team-tl b{ position:absolute; top:0; width:2px; height:26px; background:#ff6b8a; }
+  .team-tl .seg-dodge{ background:repeating-linear-gradient(-45deg,#1b5fae 0 3px,#3d9dff 3px 6px); }
   .team-tl-axis{ display:flex; justify-content:space-between; font:600 10.5px 'Manrope',sans-serif; color:var(--text-dim); }
   .team-tl-legend{ display:flex; gap:14px; flex-wrap:wrap; font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin:6px 0 4px; }
   .team-tl-legend em{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
@@ -1185,11 +1190,12 @@ if ("serviceWorker" in navigator) {
         <li>Swaps take 0.5s each way and are made at the last moment before the hit lands.</li>
         <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
+        <li>With "Main allowed to dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed.</li>
       </ul>
       <p class="beta-h">Not modelled yet</p>
       <ul>
-        <li>Dodging, Resolve Nerf and tick-perfect casts.</li>
+        <li>Dodging fast moves, dodging by catch tanks, Resolve Nerf and tick-perfect casts.</li>
         <li>Rejoining, hot swaps, and double or trailing catch tanks.</li>
         <li>Boss HP and the raid timer (300s is only a safety limit), and changing weather.</li>
       </ul>
@@ -1462,8 +1468,15 @@ if ("serviceWorker" in navigator) {
     <div class="team-behavior-row">
       <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label>
       <label class="check-item" title="Buffer the charge move from the Pokémon you swap out of, so a catch tank can fire its charge move as soon as the caught energy allows - without a fast move first. Same as CM Buffer in Single Catch Tank mode."><input type="checkbox" id="ctCmBuffer"> CM Buffer</label>
+      <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main allowed to dodge</label>
+      <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
+        <select id="ctDodgeLimit">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          <option value="0">No limit</option>
+        </select>
+      </label>
     </div>
-    <div class="team-order-head">Priority <span>&middot; who takes each boss charge move, top first. A catch tank type is used up before the next one comes in; the main DPSer takes it only when sponging is safe.</span></div>
+    <div class="team-order-head">Priority <span>&middot; who takes each boss charge move, top first. A catch tank type is used up before the next one comes in; the main DPSer takes it only when sponging is safe. With dodging allowed, the main DPSer dodges instead (up to the set number over the run) while that is safe; after that, catch tanks catch as usual.</span></div>
     <ol class="team-order" id="ctOrderList"></ol>
     <!-- the order, saved with setups and links: "main" and catch tank numbers, e.g. "main,1,2" -->
     <input type="hidden" id="ctPriority" value="main,1">
@@ -2505,6 +2518,10 @@ function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
 // At 1.0s, Mega Mewtwo X + 5 Shadow Regigigas vs Kyurem White ran 72.0s instead of ~67s.
 const TEAM_SWAP_TICKS = 1;
 const TEAM_MAX_TICKS = 600;     // 300s: the Tier 5 raid timer, a backstop rather than a setting
+// A dodge is 2 ticks (1.0s) in which the main DPSer does nothing else - the same cost Main DPS
+// mode and Single Catch Tank charge for Dodge CM. Here it is timed like a swap: as late as
+// possible, ending on the tick the boss's charge move lands.
+const TEAM_DODGE_TICKS = 2;
 
 function simulateTeam(P){
   const S = {
@@ -2525,13 +2542,16 @@ function simulateTeam(P){
     // spend the energy it is holding/building. The run ends when that charge move lands
     // (finishAt), provided it lands before the boss's next charge move would hit (finishDeadline).
     finishing: false, finishDeadline: null, finishAt: null,
+    // Main allowed to dodge: pendingDodge is booked when the boss casts { cast, land, latest };
+    // dodging is the one in progress. mainDodges counts the main DPSer's dodges over the whole run.
+    pendingDodge: null, dodging: null, mainDodges: 0,
     ended: null, probe: null,
   };
   const R = newTeamRecorder();
   while(!S.ended){
-    const snap = P.mainAbsorbs ? structuredClone(S) : null;   // state at the start of this tick
+    const snap = (P.mainAbsorbs || P.mainDodges) ? structuredClone(S) : null;   // state at the start of this tick
     const before = { hits: new Set(S.hits), dmg: R.dmg.length, boss: R.bossMoves.length, swaps: R.swaps.length,
-                     events: R.events.length, flight: S.boss.inFlight };
+                     events: R.events.length, flight: S.boss.inFlight, dodges: R.dodges.length };
     teamStep(S, R, P, snap);
     R.mainEnergy[S.t] = S.mons[0].energy;
     R.ticks.push(teamTickRecord(P, S, R, before));
@@ -2555,7 +2575,7 @@ function simulateTeam(P){
 }
 
 function newTeamRecorder(){
-  return { dmg: [], events: [], segs: [{ t: 0, who: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], mainEnergy: [], ticks: [], state: [] };
+  return { dmg: [], events: [], segs: [{ t: 0, who: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], dodges: [], mainEnergy: [], ticks: [], state: [] };
 }
 
 // Bank energy on one Pokemon, capped at 100. Returns how much went over the cap.
@@ -2584,7 +2604,7 @@ function teamStep(S, R, P, snap){
       // A fainted tank's move in progress never lands; the next Pokemon comes in.
       S.hits = S.hits.filter(h => h.who !== who);
       S.gains = S.gains.filter(g => g.who !== who);
-      if(S.nextTank > P.qty && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs) S.finishing = true; }
+      if(S.nextTank > P.qty && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs && !P.mainDodges) S.finishing = true; }
       const next = S.pendingSwap ? S.pendingSwap.to : 0;
       S.pendingSwap = null;
       startSwap(who, next);
@@ -2601,7 +2621,14 @@ function teamStep(S, R, P, snap){
 
   // Decide who takes a boss charge move cast now, landing at `land`.
   const onBossCM = (land) => {
-    if(S.probe){ if(t !== S.probe.cast) S.probe.done = "fail"; return; }   // probe: only its own CM
+    if(S.probe){
+      // probe: only its own CM. (A dodge probe that has already seen the main DPSer fire is only
+      // waiting for that charge move to land; a boss charge move cast meanwhile is the real run's
+      // next decision, not this one's.)
+      if(t !== S.probe.cast){ if(!S.probe.cmLand) S.probe.done = "fail"; }
+      else if(S.probe.dodge) S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
+      return;
+    }
     const holder = S.swap ? S.swap.to : S.active;   // who will be in when it lands
     const hm = S.mons[holder];
     const dec = { cast: t, land, outcome: null, tank: null };
@@ -2619,13 +2646,30 @@ function teamStep(S, R, P, snap){
         R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} sponges it`, ev: { type: "bossCM", to: 0, how: "sponge" } });
         return;
       }
+      // Main allowed to dodge: while it has dodges left (the set number, over the whole run), the
+      // main DPSer dodges instead of a catch tank coming in - only when it is free in time to dodge,
+      // survives the dodged hit, and fires its own charge move before the boss's next one and lives
+      // to see it land (teamMainCanDodge). Otherwise the priority list carries on as usual: catch
+      // tanks catch, and the main DPSer only drops out (the run ends) when nothing can keep it safe.
+      const dodgesLeft = P.mainDodges && (P.dodgeLimit === 0 || S.mainDodges < P.dodgeLimit);
+      const dodgeFree = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0) + TEAM_DODGE_TICKS <= land;
+      if(dodgesLeft && dodgeFree && snap && teamMainCanDodge(snap, P, t, land)){
+        dec.outcome = "main-dodge";
+        S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
+        S.mainDodges++;
+        S.awaitMainCM = true;
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} dodges it (${S.mainDodges}${P.dodgeLimit ? ` of ${P.dodgeLimit}` : ""})`,
+          ev: { type: "bossCM", to: 0, how: "dodge", n: S.mainDodges, of: P.dodgeLimit } });
+        return;
+      }
       if(!tanksLeft){
         // Nobody can take this one. Before stopping, the main DPSer gets to fire the charge move
         // it is holding or building - but it has to land before this charge move does.
         dec.outcome = "end";
         S.finishing = true;
         if(S.finishDeadline === null) S.finishDeadline = land;
-        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → no catch tank left${P.mainAbsorbs ? ` and ${P.main.name} can't sponge it safely` : ""}; ${P.main.name} must fire before it lands`, ev: { type: "bossCM", to: null, how: "none" } });
+        const could = [P.mainAbsorbs && "sponge", P.mainDodges && "dodge"].filter(Boolean).join(" or ");
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → no catch tank left${could ? ` and ${P.main.name} can't ${could} it safely` : ""}; ${P.main.name} must fire before it lands`, ev: { type: "bossCM", to: null, how: "none" } });
         return;
       }
       const freeAt = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0);
@@ -2663,6 +2707,8 @@ function teamStep(S, R, P, snap){
     B.energy = Math.min(100, B.energy + energyFromDamage(h.dmg));
     // Any charge move landing is a safe point: whatever energy built up has just been spent.
     if(h.cm && !S.probe) S.safePoint = Math.max(S.safePoint === null ? 0 : S.safePoint, t);
+    // dodge probe: the main DPSer's charge move after the dodge has landed - the dodge is safe
+    if(h.cm && h.who === 0 && S.probe && S.probe.dodge && !S.probe.done && S.probe.cmLand === t) S.probe.done = "ok";
     return false;
   });
   if(S.finishAt !== null && t >= S.finishAt){ end(S.finishAt, "finished"); return; }
@@ -2697,21 +2743,23 @@ function teamStep(S, R, P, snap){
     }
     const m = S.mons[who];
     const side = sideOf(who);
-    const dmg = mv.cm ? side.bossCmDmg : side.bossFmDmg;
+    const dodged = mv.cm && who === 0 && S.dodging !== null && S.dodging.cast === mv.cast;
+    if(dodged) S.dodging = null;
+    const dmg = mv.cm ? (dodged ? P.main.bossCmDmgDodged : side.bossCmDmg) : side.bossFmDmg;
     m.hp -= dmg;
     const over = teamBank(m, energyFromDamage(dmg));
-    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over });
+    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged });
     R.hp.push({ t, who, hp: m.hp });
     if(mv.cm){
       R.events.push({ t, kind: m.tank ? "ct" : "main",
-        ev: { type: "hit", who, dmg, energy: energyFromDamage(dmg) - over, over, ko: m.hp <= 0 },
+        ev: { type: "hit", who, dmg, energy: energyFromDamage(dmg) - over, over, ko: m.hp <= 0, dodged },
         text: m.hp <= 0
-          ? `${teamLabel(P, who)} takes ${P.bossCM.n}: ${dmg} damage`
-          : `${teamLabel(P, who)} takes ${P.bossCM.n}: ${dmg} damage, +${energyFromDamage(dmg) - over} energy${over ? ` (${over} over the cap)` : ""}` });
+          ? `${teamLabel(P, who)} ${dodged ? "dodges" : "takes"} ${P.bossCM.n}: ${dmg} damage`
+          : `${teamLabel(P, who)} ${dodged ? "dodges" : "takes"} ${P.bossCM.n}: ${dmg} damage, +${energyFromDamage(dmg) - over} energy${over ? ` (${over} over the cap)` : ""}` });
       // Sponging must keep at least 90% of the charge move's energy: no more than 10% may go over
       // 100. (All-or-nothing was too strict to ever pass; no limit at all let Eternatus waste 67 of
       // 83 energy on a sponge it didn't need.)
-      if(S.probe && !m.tank){
+      if(S.probe && !m.tank && !S.probe.dodge){
         const gain = energyFromDamage(dmg);
         if(gain - over < 0.9 * gain) S.probe.done = "fail";
       }
@@ -2743,7 +2791,14 @@ function teamStep(S, R, P, snap){
       // in for the whole animation: against Zekrom's 4.0s Outrage that was ~3s per catch of the
       // tank's Dragon Tails instead of Eternatus's, plus 12 energy lost over the cap each time.
       const nextDur = m.energy >= side.cmCost ? side.cm.ad : side.fm.ad;
-      if(S.pendingSwap && t + nextDur > S.pendingSwap.latest){
+      if(who === 0 && S.pendingDodge && t + nextDur > S.pendingDodge.latest){
+        // Main allowed to dodge: its next move wouldn't finish before the dodge has to start, so it
+        // stops here and dodges, busy until the charge move lands. Any wait before the dodge's
+        // last 1.0s is counted with it - the main DPSer can't attack in that time either.
+        S.dodging = S.pendingDodge; S.pendingDodge = null;
+        m.busyUntil = S.dodging.land;
+        if(!S.probe) R.dodges.push({ t, start: S.dodging.latest, until: S.dodging.land, cast: S.dodging.cast });
+      } else if(S.pendingSwap && t + nextDur > S.pendingSwap.latest){
         const to = S.pendingSwap.to; S.pendingSwap = null;
         startSwap(who, to);
       } else if(m.tank && m.cmCasts >= side.casts){
@@ -2757,7 +2812,7 @@ function teamStep(S, R, P, snap){
         // The last tank is done. Rather than ending here - which left Eternatus benched on a full
         // 100 energy whenever the swap for the last tank had cut its Dynamax Cannon off - the main
         // DPSer comes back and fires what it has built (see finishing).
-        if(S.nextTank > P.qty && !S.pendingSwap && !P.mainAbsorbs) S.finishing = true;
+        if(S.nextTank > P.qty && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges) S.finishing = true;
         startSwap(who, 0);   // back to the main
       } else if(m.energy >= side.cmCost && !(m.tank && m.owesTap)){
         if(S.finishing && !m.tank && !S.probe){
@@ -2777,7 +2832,14 @@ function teamStep(S, R, P, snap){
         // fired Dynamax Cannon that same tick, the check ignored it and waited for the NEXT one,
         // the boss's following Outrage came first, and the safe sponge was refused.
         // Only if nothing has already failed: the energy rule (step 4) can fail on this same tick.
-        if(S.probe && !S.probe.done && !m.tank && t >= S.probe.land) S.probe.done = "ok";
+        if(S.probe && !S.probe.done && !m.tank && t >= S.probe.land){
+          // A sponge is accepted once the charge move starts. A dodge waits for it to LAND: a main
+          // DPSer that dodges, fires, and faints before the hit lands has gained nothing (seen with
+          // Kyurem Black vs Mega Dragonite - the second dodge left it on 35 HP, Freeze Shock started
+          // at 35.5s, a Dragon Tail knocked it out at 36.0s, and the run was cut back to 17.0s).
+          if(!S.probe.dodge) S.probe.done = "ok";
+          else if(!S.probe.cmLand) S.probe.cmLand = t + side.cm.ad;
+        }
         if(!m.tank && S.awaitMainCM){ S.safePoint = t + side.cm.ad; S.awaitMainCM = false; }
       } else {
         m.owesTap = false;
@@ -2796,6 +2858,22 @@ function teamStep(S, R, P, snap){
 function teamMainCanAbsorb(snap, P, cast, land){
   const L = structuredClone(snap);
   L.probe = { cast, land, done: null };
+  const R = newTeamRecorder();
+  for(let k = 0; k < 400 && !L.probe.done && !L.ended; k++){
+    teamStep(L, R, P, null);
+    if(L.probe.done || L.ended) break;
+    L.t++;
+  }
+  return L.probe.done === "ok";
+}
+
+// Can the main DPSer dodge this charge move instead? The same play-forward test as a sponge -
+// survives the (dodged) hit, and starts its next charge move after it lands without another boss
+// charge move arriving first - with two differences: no energy rule (a dodged hit brings in little
+// energy), and that charge move has to LAND before the main DPSer faints, not just start.
+function teamMainCanDodge(snap, P, cast, land){
+  const L = structuredClone(snap);
+  L.probe = { cast, land, done: null, dodge: true };
   const R = newTeamRecorder();
   for(let k = 0; k < 400 && !L.probe.done && !L.ended; k++){
     teamStep(L, R, P, null);
@@ -2910,6 +2988,10 @@ function runTeamSim(c){
     tanks, monMeta, mainRank,
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
     cmBuffer: $("ctCmBuffer").checked,
+    // Main allowed to dodge: how many charge moves it may dodge over the whole run (0 = no limit).
+    // Once they are used, catch tanks catch as usual.
+    mainDodges: $("ctMainDodge").checked,
+    dodgeLimit: Math.max(0, parseInt($("ctDodgeLimit").value, 10) || 0),
     bossName: c.bossName,
     bossFM: { n: c.bossFMMove.n, ad: c.bossFMMove.ad, energyGain: c.bossFMMove.energy || 0 },
     bossCM: { n: c.bossCMMove.n, ad: c.bossCMMove.ad },
@@ -2921,6 +3003,8 @@ function runTeamSim(c){
       bossCmDmg: bossMoveDamage(c.bossCMMove, c.bossAtk, c.playerDef, c.bossCMMods),
     },
   };
+  // a dodged charge move does 25% of its damage, rounded down - as Dodge CM does in the other modes
+  P.main.bossCmDmgDodged = Math.floor(P.main.bossCmDmg * 0.25);
   P.tank = tanks[0];   // the first catch tank type in the priority order
   const { S, R } = simulateTeam(P);
   window.__teamSim = { P, S, R };   // the last run: read by the CSV download, and handy to inspect
@@ -3026,7 +3110,8 @@ function updateTeamPreviewFor(p, c){
 function teamTickRecord(P, S, R, before){
   const t = S.t, name = who => teamLabel(P, who), B = S.boss;
   const started = S.hits.filter(h => !before.hits.has(h)).map(h => `${name(h.who)}: ${h.mv}`)
-    .concat(R.swaps.slice(before.swaps).map(w => `Swap ${name(w.from)} → ${name(w.to)} (done ${(w.until / 2).toFixed(1)}s)`));
+    .concat(R.swaps.slice(before.swaps).map(w => `Swap ${name(w.from)} → ${name(w.to)} (done ${(w.until / 2).toFixed(1)}s)`))
+    .concat(R.dodges.slice(before.dodges).map(d => `${name(0)}: dodge (hit lands ${(d.until / 2).toFixed(1)}s)`));
   const landed = R.dmg.slice(before.dmg).map(d => `${name(d.who)} ${d.mv} ${d.dmg}`);
   const bossCast = (B.inFlight && B.inFlight !== before.flight && B.inFlight.cast === t)
     ? `${B.inFlight.cm ? P.bossCM.n : P.bossFM.n} (energy ${B.energyAtMove} → ${B.energy}, lands ${(B.inFlight.land / 2).toFixed(1)}s)` : "";
@@ -3034,7 +3119,8 @@ function teamTickRecord(P, S, R, before){
   const tankIdx = S.active > 0 ? S.active : (S.swap ? Math.max(S.swap.from, S.swap.to) : 0);
   const tm = tankIdx > 0 ? S.mons[tankIdx] : null;
   return {
-    tick: t, onField: S.swap ? `Swapping ${name(S.swap.from)} → ${name(S.swap.to)}` : name(S.active),
+    tick: t, onField: S.swap ? `Swapping ${name(S.swap.from)} → ${name(S.swap.to)}`
+      : (S.active === 0 && S.dodging ? `${name(0)} (dodging)` : name(S.active)),
     started: started.join("; "), landed: landed.join("; "),
     mainDmg: R.dmg.slice(before.dmg).filter(d => d.who === 0).reduce((a, d) => a + d.dmg, 0),
     tankDmg: R.dmg.slice(before.dmg).filter(d => d.who !== 0).reduce((a, d) => a + d.dmg, 0),
@@ -3105,6 +3191,7 @@ function teamLogLine(P, e){
     case "bossCM": {
       const tail = v.how === "tank" ? `${ico(v.to)} catches it`
         : v.how === "sponge" ? `${ico(0)} sponges it`
+        : v.how === "dodge" ? `${ico(0)} dodges it <span class="team-dim">(dodge ${v.n}${v.of ? ` of ${v.of}` : ""})</span>`
         : v.how === "late" ? `too late to swap in &middot; lands on ${ico(0)}`
         : v.how === "tank-again" ? `${ico(v.to)} is still in and takes it`
         : v.how === "tank-faint" ? `lands on ${ico(v.to)}`
@@ -3112,7 +3199,7 @@ function teamLogLine(P, e){
       return `${teamIcon(P, "boss")} ${cm} <span class="team-arrow">&rarr;</span> ${tail}`;
     }
     case "swap": return `${teamSym("swap", "Swap")}${ico(v.who)} ${v.who === 0 ? "back in" : "in"}`;
-    case "hit": return `${ico(v.who)} takes ${cm} <span class="team-num neg">&minus;${v.dmg} HP</span>`
+    case "hit": return `${ico(v.who)} ${v.dodged ? "dodges" : "takes"} ${cm} <span class="team-num neg">&minus;${v.dmg} HP</span>`
       + (v.ko ? ` <span class="team-dim">fainted</span>`
               : ` <span class="team-num pos">+${v.energy} energy</span>${v.over ? ` <span class="team-dim">(${v.over} over 100)</span>` : ""}`);
     case "cast": return `${ico(v.who)} <b>${v.move}</b> <span class="team-num">${v.dmg} dmg</span>${v.finish ? ` <span class="team-dim">&middot; finisher</span>` : ""}`;
@@ -3132,7 +3219,10 @@ function renderTeamSim(P, S, R){
   const dps = secs > 0 ? total / secs : 0;
   const decs = R.decisions.filter(d => d.cast < E || (d.cast === E && d.outcome !== "end"));
   const n = k => decs.filter(d => d.outcome === k).length;
-  const caught = n("tank") + n("tank-again"), byMain = n("main"), late = n("late") + n("tank-faint");
+  const caught = n("tank") + n("tank-again"), byMain = n("main"), dodged = n("main-dodge"), late = n("late") + n("tank-faint");
+  // dodges up to the end point, and the time they took (from when the main DPSer stopped attacking)
+  const dodges = R.dodges.filter(d => d.t < E);
+  const dodgeSecs = dodges.reduce((a, d) => a + (Math.min(d.until, E) - d.t), 0) / 2;
   const tanksIn = new Set(upTo(R.segs).filter(s => s.who > 0).map(s => s.who)).size;
   const swaps = R.swaps.filter(s => s.t < E);
   const swapSecs = swaps.reduce((a, s) => a + (Math.min(s.until, E) - s.t), 0) / 2;
@@ -3165,6 +3255,9 @@ function renderTeamSim(P, S, R){
     if(to <= s.t) return "";
     const cls = s.who === -1 ? "seg-swap" : s.who === 0 ? "seg-main" : "seg-tank";
     return `<i class="${cls}" style="left:${(s.t / span * 100).toFixed(2)}%;width:${((to - s.t) / span * 100).toFixed(2)}%"></i>`;
+  }).join("") + dodges.map(d => {
+    const to = Math.min(d.until, E);
+    return to > d.t ? `<i class="seg-dodge" title="${P.main.name} dodges ${P.bossCM.n}" style="left:${(d.t / span * 100).toFixed(2)}%;width:${((to - d.t) / span * 100).toFixed(2)}%"></i>` : "";
   }).join("") + decs.map(d =>
     `<b style="left:${(d.cast / span * 100).toFixed(2)}%" title="${P.bossCM.n} cast at ${(d.cast / 2).toFixed(1)}s"></b>`).join("");
   const axis = [0, 0.25, 0.5, 0.75, 1].map(f => `<span>${(secs * f).toFixed(0)}s</span>`).join("");
@@ -3222,15 +3315,16 @@ function renderTeamSim(P, S, R){
       </div>
       <div class="team-tl">${bar}</div>
       <div class="team-tl-axis">${axis}</div>
-      <div class="team-tl-legend"><span><em style="background:#3d9dff"></em>${mainIco}</span><span><em style="background:#f5b94a"></em>${typeIcos.join("")}</span><span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span><span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
+      <div class="team-tl-legend"><span><em style="background:#3d9dff"></em>${mainIco}</span><span><em style="background:#f5b94a"></em>${typeIcos.join("")}</span><span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
       <table class="dps-stat-table">
         <tbody>
           <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Rotation</th></tr>
           <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
           <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
-          <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`).join(" &middot; ")} &middot; ${mainIco} sponged ${byMain}${late ? ` &middot; ${late} too late to swap` : ""}</span></td></tr>
+          <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`).join(" &middot; ")} &middot; ${mainIco} sponged ${byMain}${P.mainDodges ? ` &middot; ${mainIco} dodged ${dodged}` : ""}${late ? ` &middot; ${late} too late to swap` : ""}</span></td></tr>
           <tr><td>Catch tanks used</td><td>${tanksIn} of ${P.qty}${P.tanks.length > 1 ? ` <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} ${usedByType[i]} of ${tp.qty}`).join(" &middot; ")}</span>` : ""}</td></tr>
           <tr><td>Swaps</td><td><span class="team-sub">${teamSym("swap", "Swap")}${swaps.length}</span> <span class="dps-stat-sub">${swapSecs.toFixed(1)}s spent swapping</span></td></tr>
+          ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodges.length} <span class="dps-stat-sub">${dodgeSecs.toFixed(1)}s not attacking &middot; ${P.dodgeLimit ? `${P.dodgeLimit} allowed` : "no limit"}</span></td></tr>` : ""}
           <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Main DPSer</th></tr>
           <tr><td>HP left</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${P.main.hp} <span class="dps-stat-sub">${pct.toFixed(0)}%</span></td></tr>
           <tr><td>Unspent energy</td><td>${leftover} <span class="dps-stat-sub">of ${P.main.cmCost} for ${P.main.cm.n}</span></td></tr>
@@ -4593,7 +4687,7 @@ const SETUP_FIELD_IDS = [
   // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
-  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer",
+  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit",
   // Beta: Catch Tank 2 and 3 (their cards only exist while added - see applySetup) and how many
   "ctTypes",
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
@@ -4651,7 +4745,7 @@ function applySetup(setup){
   });
   // the aggression slider's own label/hint and the sponge/priority link listen for these events
   ["bossAggro"].forEach(id => document.getElementById(id).dispatchEvent(new Event("input")));
-  ["bossAggroOn","ctMainAbsorb","ctPriority","optimalDps"].forEach(id => document.getElementById(id).dispatchEvent(new Event("change")));
+  ["bossAggroOn","ctMainAbsorb","ctPriority","optimalDps","ctMainDodge"].forEach(id => document.getElementById(id).dispatchEvent(new Event("change")));
   updateMoveOptionsFor("pokemonName","playerCM","playerFM");
   updateMoveOptionsFor("bossName","bossCM","bossFM");
   teamPrefixes().forEach(p => { if(document.getElementById(p + "Name").value.trim()) updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); });
@@ -5489,7 +5583,7 @@ const SETUP_SHORT_KEYS = {
   ctMode:"m",
   bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp", optimalDps:"od",
   ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
-  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt",
+  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
 };
@@ -5714,6 +5808,14 @@ function renderTeamOrder(){
   }));
 }
 document.getElementById("ctMainAbsorb").addEventListener("change", renderTeamOrder);
+// "Dodges before bailing" only matters while dodging is allowed
+function updateDodgeLimit(){
+  const on = document.getElementById("ctMainDodge").checked;
+  document.getElementById("ctDodgeLimitWrap").classList.toggle("is-off", !on);
+  document.getElementById("ctDodgeLimit").disabled = !on;
+}
+document.getElementById("ctMainDodge").addEventListener("change", updateDodgeLimit);
+updateDodgeLimit();
 wireTeamCard("ct");
 setTeamTypeCount(teamTypeCount());
 document.getElementById("cadenceMode").addEventListener("change", updateCadenceMode);
