@@ -364,6 +364,13 @@ if ("serviceWorker" in navigator) {
   .stat-cell-sm{ display:flex; align-items:baseline; gap:5px; }
   .stat-label-sm{ font-family:'Manrope', sans-serif; font-weight:700; font-size:10px; color: var(--text-dim); text-transform:uppercase; }
   .stat-value-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; color: var(--blue-dark); margin:0; }
+  /* Route moveset spotlight: when the route being viewed lists the boss moves it was built for
+     (bossMoves), those chips glow and the rest of that row fades back. A row with no picks is
+     left exactly as it was. */
+  .move-chip{ transition: opacity .2s, filter .2s, box-shadow .2s, transform .2s; }
+  .movepool-row.has-route-move .move-chip:not(.is-route-move){ opacity:.32; filter:saturate(.4); }
+  .move-chip.is-route-move{ box-shadow:0 0 0 2px var(--chip, #3d9dff), 0 0 16px 4px var(--chip, #3d9dff); transform:translateY(-1px); }
+  [data-theme="dark"] .move-chip.is-route-move{ box-shadow:0 0 0 2px #fff, 0 0 16px 4px var(--chip, #3d9dff); }
 </style>
 </head>
 <body>
@@ -771,6 +778,25 @@ function strategyDropdownLabel(s, fallbackNum){
   return s.strategyName ? s.strategyName : `Route ${fallbackNum}`;
 }
 
+// Spotlight the boss moves a route was built for - bossMoves: { fast: [...], charge: [...] },
+// set (optionally) in the editor - by marking those chips in Boss Info; the CSS fades the rest of
+// that row. Called whenever the route changes, so the highlight follows the route being viewed.
+function applyRouteMoveset(s){
+  const picks = (s && s.bossMoves) || {};
+  [['fast-move-row', picks.fast], ['charge-move-row', picks.charge]].forEach(function(pair){
+    const row = document.getElementById(pair[0]);
+    if(!row) return;
+    const want = new Set((Array.isArray(pair[1]) ? pair[1] : []).map(function(n){ return String(n).trim().toLowerCase(); }));
+    let any = false;
+    row.querySelectorAll('.move-chip').forEach(function(chip){
+      const on = want.has(chip.textContent.trim().toLowerCase());
+      chip.classList.toggle('is-route-move', on);
+      if(on){ any = true; chip.style.setProperty('--chip', chip.style.background || chip.style.backgroundColor); }
+    });
+    row.classList.toggle('has-route-move', any);
+  });
+}
+
 function selectRoute(index){
   document.querySelectorAll('.route-btn[data-index]').forEach(btn => {
     btn.classList.toggle('active', Number(btn.dataset.index) === index);
@@ -784,6 +810,7 @@ function selectRoute(index){
     dd.classList.remove('open');
   });
   document.getElementById('strategy-display').innerHTML = strategyBlockHtml(loadedStrategies[index]);
+  applyRouteMoveset(loadedStrategies[index]);
 }
 
 function toggleRouteDropdown(btn){
