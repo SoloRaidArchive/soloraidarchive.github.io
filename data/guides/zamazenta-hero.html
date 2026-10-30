@@ -8,15 +8,6 @@
 <link rel="icon" type="image/png" sizes="32x32" href="../../assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="../../assets/icons/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../../assets/icons/favicon-180.png">
-<!-- PWA install support -->
-<link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#3d9dff">
-<script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
-}
-</script>
-<!-- /PWA install support -->
 <meta name="description" content="How to solo Zamazenta Hero in Pokémon GO: exact battle parties, weather conditions, and difficulty routes from real recorded solo clears, with video proof for every strategy.">
 <link rel="canonical" href="https://soloraidarchive.github.io/data/guides/zamazenta-hero.html">
 <meta property="og:type" content="article">
@@ -70,21 +61,13 @@ if ("serviceWorker" in navigator) {
     position:sticky; top:0; z-index:15; background: var(--bg1);
     padding: 10px 16px; border-bottom: 1px solid var(--border);
   }
-  /* min-height matches the hamburger's 44px hit area plus its 3px shadow on each side, so the
-     button sits inside the bar instead of spilling past its top and bottom edges. Pages that
-     already reserve this on .sticky-header-title-row render a 65px bar; this brings the rest to
-     the same height with the same mechanism rather than a second one. Any future control added
-     to this row inherits the clearance instead of needing its own fix. */
-  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; min-height:44px; }
+  .sticky-header-row{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%; position:relative; }
   .sticky-header-row .hamburger-btn{ position:absolute; right:0; }
   .page-title-sm{ font-family:'Manrope', sans-serif; font-weight:800; font-size:18px; margin:0; color: var(--text); text-align:center; }
 
-  /* 44px, not 38: this is the only always-available navigation control on mobile and 38px is
-     below every touch-target guideline. It renders 44x44 on 12 other pages - the 38px value
-     lived in a second, independent .hamburger-btn rule that these pages happened to inherit. */
   .hamburger-btn{
     flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
-    width:44px; height:44px; border-radius:50%;
+    width:38px; height:38px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
     gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
@@ -179,23 +162,6 @@ if ("serviceWorker" in navigator) {
   .move-type-icon{ width:13px; height:13px; flex-shrink:0; object-fit:contain; filter:brightness(0) invert(1); }
 
   .route-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-  /* ---- layout reservations (CLS) ----------------------------------------------------------
-     Everything below is filled by loadGuide() after the guide JSON resolves. Measured on a
-     throttled phone, the un-reserved page scored 0.480 CLS: #strategy-display grew 75 -> 2211px,
-     the two movepool rows 0 -> 26px each, and #route-row shrank 75 -> 40px as its "Loading..."
-     placeholder was replaced. Reserving each slot means the content lands in space already
-     allocated instead of displacing the footer.
-     min-height on #strategy-display only bites while it is near-empty; once the routes render
-     it is far taller, so this costs nothing after load. */
-  #strategy-display{ min-height: 80vh; }
-  #fast-move-row, #charge-move-row{ min-height: 26px; }
-  /* Charge rows wrap to two lines on a phone for 10 of 13 bosses, so 58px is the common case
-     rather than the minimum. Mega Starmie is a deliberate outlier - its movepool lists all 16
-     Hidden Power variants as separate fast moves, so no sane reservation covers it; over-
-     reserving for that one page would leave visible dead space on the other twelve. */
-  @media (max-width:700px){ #charge-move-row{ min-height: 58px; } }
-  .route-row{ min-height: 40px; align-content: flex-start; }
-  .route-row .load-state{ line-height: 40px; padding: 0; margin: 0; }
   .route-btn{
     font-family:'Manrope', sans-serif; font-weight:700; font-size:12px;
     background: var(--card); color: var(--text-dim); border:1.5px solid var(--border);
@@ -283,16 +249,7 @@ if ("serviceWorker" in navigator) {
     font-family:'Inter',sans-serif; font-weight:700; font-size:10px; color: var(--blue-dark);
     background: var(--accent-soft); padding:2px 9px; border-radius:999px;
   }
-  /* These regions hold text typed or pasted by contributors through the Quill editor, so their
-     content is unbounded by definition. A single unbreakable token - a pasted YouTube URL in one
-     guide - pushed the page 20px wider than a 320px viewport and gave the whole document a
-     horizontal scrollbar. `anywhere` lets the browser break inside such a token as a last resort;
-     normal words are unaffected because it only applies when a line cannot otherwise fit. This is
-     a property of user-generated content, so it belongs in the template rather than being patched
-     per guide as future submissions reintroduce it. */
-  .strategy-text{ font-size:14px; color: var(--text); line-height:1.4; margin:0 0 6px;
-    overflow-wrap:anywhere; }
-  .strategy-text a, .strategy-block a{ overflow-wrap:anywhere; }
+  .strategy-text{ font-size:14px; color: var(--text); line-height:1.4; margin:0 0 6px; }
   .strategy-text p{ margin:0 0 6px; }
   .strategy-text h2{ font-family:'Manrope', sans-serif; font-weight:800; font-size:17px; margin:14px 0 6px; }
   .strategy-text h3{ font-family:'Manrope', sans-serif; font-weight:700; font-size:15px; margin:12px 0 5px; }
@@ -303,6 +260,25 @@ if ("serviceWorker" in navigator) {
   .strategy-text li[data-list="bullet"]::before{ content:"\2022"; display:inline-block; margin-left:-1.2em; margin-right:.3em; width:1em; }
   .strategy-text li[data-list="ordered"]{ counter-increment:list-0; }
   .strategy-text li[data-list="ordered"]::before{ content:counter(list-0) ". "; display:inline-block; margin-left:-1.4em; margin-right:.3em; width:1.2em; }
+  /* Nested list levels. Quill marks an indented item with ql-indent-1 .. ql-indent-8
+     instead of nesting a real <ul>, so without these a sub-bullet renders flush against
+     its parent. Kept identical to data/guide-template.html - see the note on the two copies. */
+  .strategy-text li.ql-indent-1{ padding-left:1.6em; counter-reset:list-1; }
+  .strategy-text li.ql-indent-2{ padding-left:3.2em; counter-reset:list-2; }
+  .strategy-text li.ql-indent-3{ padding-left:4.8em; counter-reset:list-3; }
+  .strategy-text li.ql-indent-4{ padding-left:6.4em; counter-reset:list-4; }
+  .strategy-text li.ql-indent-5{ padding-left:8.0em; counter-reset:list-5; }
+  .strategy-text li.ql-indent-6{ padding-left:9.6em; counter-reset:list-6; }
+  .strategy-text li.ql-indent-7{ padding-left:11.2em; counter-reset:list-7; }
+  .strategy-text li.ql-indent-8{ padding-left:12.8em; counter-reset:list-8; }
+  .strategy-text li.ql-indent-1[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-3[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-5[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-7[data-list="bullet"]::before{ content:"\25E6"; }
+  .strategy-text li.ql-indent-2[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-4[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-6[data-list="bullet"]::before,
+  .strategy-text li.ql-indent-8[data-list="bullet"]::before{ content:"\25AA"; }
   .strategy-text img{ max-width:100%; border-radius:8px; margin:6px 0; }
   .strategy-text strong{ font-weight:800; }
   .strategy-text a{ color:#0e8f82; font-weight:700; text-decoration:underline; text-underline-offset:2px; }
@@ -375,103 +351,26 @@ if ("serviceWorker" in navigator) {
 </head>
 <body>
 
-<!-- NAV:START - generated by generate_nav.py from data/nav-partial.html. Do not edit by hand. -->
-<!-- Shortcut links to the most-used pages, and one header-title size for every page. Defined
-     here once; generate_nav.py stamps it into every page, and marks the link to the page itself
-     "current" (as it does in the menu). The links are placed into the page's header bar by the
-     script below - this partial sits at the very top of <body>, before the header exists - and
-     stay hidden until then so they never flash at the top of the page. -->
-<style>
-  /* Header titles were 26px on some pages, 22px on the raid archives, 18px on others, and 15px
-     Inter on boss collection pages. One size everywhere: */
-  body .sticky-header .page-title-sm, body .sticky-header h1{
-    font-family:'Manrope', sans-serif; font-weight:800; font-size:22px; line-height:1.2; letter-spacing:-0.01em;
-  }
-  body .sticky-header .crumb-header #crumbBoss{ font-family:'Manrope', sans-serif; font-weight:800; font-size:22px; color:var(--text); }
-  @media (max-width:600px){
-    body .sticky-header .page-title-sm, body .sticky-header h1, body .sticky-header .crumb-header #crumbBoss{ font-size:18px; }
-  }
-  .qlinks[hidden]{ display:none !important; }
-  /* Own colour settings, borrowing the page's variables where it has them: not every page defines
-     --text-dim / --blue (Top Catch Tanks doesn't), and without these the links took the header's
-     text colour and the current-page highlight vanished. */
-  #quickLinks{ --ql-dim: var(--text-dim, #8a93a6); --ql-text: var(--text, #e6e9f0); --ql-accent: var(--blue, #3d9dff); }
-  .qlinks{ display:flex; justify-content:center; gap:2px; padding:6px 0 0; overflow-x:auto; scrollbar-width:none; }
-  .qlinks::-webkit-scrollbar{ display:none; }
-  #quickLinks a{ font:700 12.5px 'Manrope', sans-serif; color:var(--ql-dim); padding:5px 11px; border-radius:999px;
-    white-space:nowrap; text-decoration:none; background:none; }
-  #quickLinks a:hover{ color:var(--ql-text); }
-  #quickLinks a.current{ color:var(--ql-accent); background:color-mix(in srgb, var(--ql-accent) 13%, transparent); }
-  .qlinks .ql-short{ display:none; }
-  /* pages without a header bar (Home, Difficulty & Roles, the Guide Editor): a row at the top */
-  #quickLinks.qlinks-standalone{ padding:12px 64px 4px; }
-  @media (max-width:600px){
-    .qlinks{ justify-content:space-between; gap:0; }
-    #quickLinks a{ font-size:11.5px; padding:5px 7px; }
-    .qlinks .ql-full{ display:none; } .qlinks .ql-short{ display:inline; }
-    /* Header rows whose menu button is pinned to the right (raid guides, CT Calculator) were only as
-       tall as the title, so the 44px button hung down over the links. */
-    body .sticky-header .sticky-header-row{ min-height:44px; }
-    /* no header bar: the menu button floats at the top right, so the row goes just below it */
-    #quickLinks.qlinks-standalone{ padding:62px 8px 4px; }
-  }
-  /* the narrowest phones (320px): all five still fit without cutting off "Mechanics" */
-  @media (max-width:360px){
-    #quickLinks a{ font-size:10.5px; padding:5px 3px; letter-spacing:-0.01em; }
-    #quickLinks.qlinks-standalone{ padding:62px 6px 4px; }
-  }
-</style>
-<nav class="qlinks" id="quickLinks" aria-label="Shortcuts" hidden>
-  <a href="/"><span class="ql-full">Home</span><span class="ql-short">Home</span></a>
-  <a href="../../dps-calculator.html"><span class="ql-full">DPS Calculator</span><span class="ql-short">DPS Calc</span></a>
-  <a href="../../research.html"><span class="ql-full">Top Raiders</span><span class="ql-short">Raiders</span></a>
-  <a href="../../ct-database.html"><span class="ql-full">Top Catch Tanks</span><span class="ql-short">Catch Tanks</span></a>
-  <a href="../../solo-raid-mechanics.html"><span class="ql-full">Solo Mechanics</span><span class="ql-short">Mechanics</span></a>
-</nav>
-<script>
-(function(){
-  function place(){
-    var nav = document.getElementById("quickLinks");
-    if(!nav) return;
-    // not on the home page - it is where the Home link goes, and it has its own front-page layout
-    if(/(^|\/)(index\.html)?$/.test(location.pathname)){ nav.remove(); return; }
-    var hdr = document.querySelector(".sticky-header");
-    if(hdr){
-      hdr.appendChild(nav);
-    } else {
-      nav.classList.add("qlinks-standalone");
-      document.body.insertBefore(nav, document.body.firstChild);
-    }
-    var cur = nav.querySelector("a.current");
-    if(cur) cur.setAttribute("aria-current", "page");
-    nav.hidden = false;
-  }
-  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", place); else place();
-})();
-</script>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
   <div class="hamburger-section">
-    <a href="/"><img src="../../assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+    <a href="../../index.html"><img src="../../assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
   </div>
   <div class="hamburger-section">
-    <div class="hamburger-section-label">PVE Meta</div>
-    <a href="../../research.html" class="hamburger-featured">Top Raiders</a>
-    <a href="../../ct-database.html" class="hamburger-featured">Top Catch Tanks</a>
-    <a href="../../meta-battle-parties.html">Battle Parties</a>
-  </div>
-    <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
-    <a href="../../dps-calculator.html" class="hamburger-featured">DPS Calculator</a>
-    <a href="../../solo-raid-mechanics.html" class="hamburger-featured">Solo Mechanics</a>
-    <a href="../../guides.html" class="hamburger-featured">Raid Guides</a>
-    <a href="../../articles.html">Articles</a>
-    <a href="../../move-data.html">Move Stats</a>
+    <a href="../../research.html" class="hamburger-featured">Most Used Raiders</a>
+    <a href="../../ct-database.html" class="hamburger-featured">Viable Catch Tanks</a>
+    <a href="../../solo-raid-mechanics.html" class="hamburger-featured">Solo Raid Mechanics</a>
+    <a href="../../guides.html" class="hamburger-featured">Boss Guides</a>
+    <a href="../../articles.html" class="hamburger-featured">Research Articles</a>
+    <a href="../../meta-battle-parties.html">Meta Battle Parties</a>
+    <a href="../../dps-calculator.html">DPS Calculator</a>
+    <a href="../../move-data.html">Move Data</a>
     <a href="../../pokemon-stats.html">Pokémon Stats</a>
-    <a href="../../reference.html">Difficulty &amp; Roles</a>
+    <a href="../../reference.html">Difficulty &amp; Role Reference</a>
   </div>
   <div class="hamburger-section">
-    <div class="hamburger-section-label">Archives</div>
+    <div class="hamburger-section-label">Raid Archives</div>
     <a href="../../tier4-raids.html">Mega</a>
     <a href="../../tier5-raids.html">Legendary</a>
     <a href="../../tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
@@ -484,55 +383,6 @@ if ("serviceWorker" in navigator) {
     <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
   </div>
 </div>
-
-<script>
-/* Keeps the nav panel open across page navigation.
-
-   Every page load builds a fresh DOM, so the panel is closed by default and the old behaviour
-   also closed it on any outside click. Following a link therefore always dismissed the menu,
-   which made it tedious to move between several pages.
-
-   The open/closed state now lives in sessionStorage - per tab, cleared when the tab closes -
-   and is restored on load. Only the hamburger button toggles it, plus Escape as a keyboard
-   escape hatch.
-
-   Each page already ships its own hamburger handler inline, outside the NAV markers this file
-   is injected between, so those handlers cannot be edited from here. Instead the button is
-   replaced with a clone (which drops the page's listener) and the page's closeHamburger() is
-   neutralised, so the page's own outside-click rule can no longer shut the panel. */
-(function(){
-  var KEY = "sra-nav-open";
-  document.addEventListener("DOMContentLoaded", function(){
-    var panel = document.getElementById("hamburgerPanel");
-    var btn = document.getElementById("hamburgerBtn");
-    if(!panel || !btn) return;
-
-    var fresh = btn.cloneNode(true);
-    btn.parentNode.replaceChild(fresh, btn);
-    btn = fresh;
-
-    if(typeof window.closeHamburger === "function") window.closeHamburger = function(){};
-
-    function setOpen(open){
-      panel.classList.toggle("open", open);
-      btn.setAttribute("aria-expanded", String(open));
-      try { sessionStorage.setItem(KEY, open ? "1" : "0"); } catch(e){ /* private mode */ }
-    }
-
-    btn.addEventListener("click", function(e){
-      e.stopPropagation();
-      setOpen(!panel.classList.contains("open"));
-    });
-
-    document.addEventListener("keydown", function(e){
-      if(e.key === "Escape" && panel.classList.contains("open")) setOpen(false);
-    });
-
-    try { if(sessionStorage.getItem(KEY) === "1") setOpen(true); } catch(e){}
-  });
-})();
-</script>
-<!-- NAV:END -->
 
 <div class="sticky-header">
   <div class="sticky-header-row">
@@ -649,15 +499,6 @@ function toDbSlug(name){
   return n.replace(/\s+/g, "-");
 }
 const GOHUB_OVERRIDES = {
-  // The Origin formes have no animated sprite on the CDN - "dialga-origin.gif" and
-  // "palkia-origin.gif" both 404 - so they fall back to the static pogo-256 art. Giratina
-  // Origin does have a .gif, which is why it never showed this problem.
-  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
-  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
-  // Mega Lucario Z has no sprite on the mgrann03 CDN - the generic mega rule produces
-  // "lucario-z-mega.gif", which 404s - so it falls back to this hosted image. Same entry
-  // pokemon-stats.html already carried; the other pages were simply missing it.
-  "mega lucario z": "https://i.pokebase.app/pokemongo/reXolE7NB52Hq4WOJE5lO.png",
   "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
   "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
   "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
@@ -676,10 +517,6 @@ const ANI_OVERRIDES = {
   "zacian crown": "zacian-crownedsword",
   "zamazenta crown": "zamazenta-crownedshield",
   "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
-  // Aegislash's two forms. Shield is the CDN's base file, so the generic rule's
-  // "aegislash-shield" 404s; Blade does have its own file. Both confirmed against the CDN.
-  "aegislash shield": "aegislash", "aegislash": "aegislash",
-  "aegislash blade": "aegislash-blade",
   "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
@@ -690,9 +527,6 @@ const ANI_OVERRIDES = {
   "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
 };
 const ANI_URL_OVERRIDES = {
-  // Self-hosted: the external fallback host sends no CORS header, so the canvas export
-  // ("Copy as image") could not draw it. Same-origin removes that constraint.
-  "mega lucario z": "assets/sprites/lucario-megaz.png",
   "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
   "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
 };
@@ -705,10 +539,7 @@ const ANI_URL_OVERRIDES = {
 const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
 function monSpriteUrl(name){
   const key = name.trim().toLowerCase();
-  // Shadow-stripped key tried too, matching the ANI_OVERRIDES lookup below - otherwise
-  // "Shadow Mega Lucario Z" misses the override its base form has.
-  const gohub = GOHUB_OVERRIDES[key] || GOHUB_OVERRIDES[key.replace(/^shadow\s+/, "")];
-  if (gohub) return gohub;
+  if (GOHUB_OVERRIDES[key]) return GOHUB_OVERRIDES[key];
   if (ANI_URL_OVERRIDES[key]) return ANI_URL_OVERRIDES[key];
   const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
   if (LOCAL_SPRITES.has(slug)) return `../../assets/sprites/${slug}.gif`;
@@ -719,9 +550,9 @@ function battleMonIconHtml(name){
   const isShadow = /^shadow\s+/i.test(name.trim());
   const src = monSpriteUrl(name);
   if(isShadow){
-    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
+    return `<div class="battle-mon-icon shadow-mist"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
   }
-  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background='var(--accent-soft)'; this.remove();"></div>`;
+  return `<div class="battle-mon-icon"><img src="${src}" alt="${escapeAttr(name)}" title="${escapeAttr(name)}" onerror="this.parentElement.style.background=\'var(--accent-soft)\'; this.remove();"></div>`;
 }
 function roleBadgeClass(role){
   return `role-badge role-${role.toLowerCase().replace(/\s+/g, '-')}`;
