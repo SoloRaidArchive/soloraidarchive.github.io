@@ -980,6 +980,18 @@ if ("serviceWorker" in navigator) {
   .usage-boss-link{ display:inline-flex; align-items:center; gap:7px; text-decoration:none; color:inherit; font-weight:700; }
   .usage-boss-link img{ width:26px; height:26px; object-fit:contain; }
   .usage-boss-link:hover{ color: var(--blue); }
+  /* Share Tier List */
+  .tier-share-btn{ margin-left:auto; flex:none; display:inline-flex; align-items:center; gap:7px;
+    font:800 12.5px 'Manrope', sans-serif; color:#fff; background:var(--blue, #3d9dff); border:none;
+    border-radius:999px; padding:8px 14px; cursor:pointer; white-space:nowrap; }
+  .tier-share-btn[hidden]{ display:none; }
+  .tier-share-btn:hover{ filter:brightness(1.08); }
+  .tier-share-btn:disabled{ opacity:.75; cursor:default; }
+  /* phones: the two view tabs fill the row, so the button gets a line of its own below them */
+  @media (max-width: 600px){
+    .view-switch-row{ flex-wrap:wrap; }
+    .tier-share-btn{ flex:1 0 100%; justify-content:center; margin:6px 0 0; }
+  }
 </style>
 </head>
 <body>
@@ -1205,6 +1217,12 @@ if ("serviceWorker" in navigator) {
   <button type="button" class="tier-info-btn" id="tierInfoBtn" aria-expanded="false"
           aria-controls="tierInfoPanel" title="How the ranks are assigned" hidden>i</button>
   <div class="tier-info-panel" id="tierInfoPanel" role="dialog" aria-label="How the ranks are assigned"></div>
+  <!-- Copies the tier list as it is currently filtered as an image (a shareable infographic,
+       stamped with the date and time it was shared). Shown only in the Meta Tier List view. -->
+  <button type="button" class="tier-share-btn" id="tierShareBtn" hidden>
+    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Share Tier List</span>
+  </button>
 </div>
 
 <div class="container" id="tierContainer" hidden></div>
@@ -2141,6 +2159,190 @@ document.addEventListener("click", (e) => {
   openTierCard(parseInt(card.dataset.idx, 10));
 });
 
+
+// ============ SHARE TIER LIST ============
+// Draws the tier list - as currently filtered by the type chips - onto a canvas as a shareable
+// infographic, stamped with the date and time it was shared, and copies it to the clipboard
+// (downloading a PNG where the browser can't copy images). Drawn from TIER_VISIBLE, not
+// screenshotted, so it is the same list the page shows; band colours are read from the rendered
+// bands so they always match the page.
+function tsLoadImage(src){
+  return new Promise(resolve => {
+    if(!src) return resolve(null);
+    const im = new Image();
+    im.crossOrigin = "anonymous";          // needed to keep the canvas exportable
+    const done = ok => { clearTimeout(timer); resolve(ok ? im : null); };
+    const timer = setTimeout(() => done(false), 8000);
+    im.onload = () => done(true);
+    im.onerror = () => done(false);
+    im.src = src;
+  });
+}
+function tsRoundRect(x, X, Y, W, H, R){
+  x.beginPath();
+  if(x.roundRect) x.roundRect(X, Y, W, H, R); else x.rect(X, Y, W, H);
+}
+async function buildTierShareImage(){
+  const rows = (typeof TIER_VISIBLE !== "undefined" && TIER_VISIBLE) ? TIER_VISIBLE : [];
+  if(!rows.length) return null;
+  const byTier = new Map();
+  for(const r of rows){ if(!byTier.has(r.tier)) byTier.set(r.tier, []); byTier.get(r.tier).push(r); }
+  const tiers = [...byTier.keys()].sort(tierCompare);
+  // colours: the page's own, so dark/light theme and every band colour match what is on screen
+  const cs = getComputedStyle(document.body);
+  const v = (name, fb) => (cs.getPropertyValue(name) || "").trim() || fb;
+  const dark = (document.documentElement.getAttribute("data-theme") || document.body.getAttribute("data-theme")) === "dark";
+  const C = { bg: v("--bg1", dark ? "#0c0e1c" : "#ffffff"), card: v("--card", dark ? "#171b2c" : "#ffffff"),
+              text: v("--text", dark ? "#e8ebf4" : "#1b1f2e"), dim: v("--text-dim", dark ? "#8a93a6" : "#6b7387"),
+              line: v("--border", dark ? "#2a3048" : "#e3e7ef"), blue: v("--blue", "#3d9dff") };
+  const bandColour = {};
+  document.querySelectorAll("#tierContainer .tier-band").forEach(b => {
+    const lab = b.querySelector(".tier-label");
+    if(lab){ const s = getComputedStyle(lab); bandColour[lab.textContent.trim()] = { bg: s.backgroundColor, fg: s.color }; }
+  });
+  // layout
+  const S = 2, W = 1200, PAD = 40, LABW = 104, CELLW = 84, CELLH = 112, SPR = 60;
+  const perRow = Math.max(1, Math.floor((W - PAD * 2 - LABW - 16) / CELLW));
+  const bandH = list => Math.ceil(list.length / perRow) * CELLH + 20;
+  const headH = 132, footH = 54, gap = 10;
+  const H = headH + tiers.reduce((a, t) => a + bandH(byTier.get(t)) + gap, 0) + footH;
+  // images: sprites (same-origin or CORS-enabled hosts) and type icons; a missing one never
+  // blocks the image - it is drawn as a lettered disc / plain badge instead
+  const spriteFor = {}, iconFor = {};
+  await Promise.all([
+    ...[...new Set(rows.map(r => r.name))].map(async n => { spriteFor[n] = await tsLoadImage(spriteUrl(n)); }),
+    ...[...new Set(rows.map(r => r.type))].map(async t => { iconFor[t] = await tsLoadImage(`${TYPE_ICON_BASE}${t}.svg`); }),
+  ]);
+  const cv = document.createElement("canvas");
+  cv.width = W * S; cv.height = H * S;
+  const x = cv.getContext("2d");
+  x.scale(S, S);
+  x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
+  // header: title, what's shown, and when it was shared
+  const now = new Date();
+  const dateTxt = now.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+  const timeTxt = now.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+  const types = [...new Set(rows.map(r => r.type))];
+  const scope = (typeof activeTypes !== "undefined" && activeTypes.size)
+    ? [...activeTypes].map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(" · ") + " types"
+    : "All types";
+  x.fillStyle = C.blue; x.font = "800 13px Manrope, sans-serif";
+  x.fillText("SOLO RAID ARCHIVE", PAD, 46);
+  x.fillStyle = C.text; x.font = "800 34px Manrope, sans-serif";
+  x.fillText("Meta Tier List", PAD, 86);
+  x.fillStyle = C.dim; x.font = "600 14px Inter, sans-serif";
+  x.fillText(`${scope} \u00b7 ${rows.length} Pok\u00e9mon`, PAD, 112);
+  x.textAlign = "right";
+  x.fillStyle = C.dim; x.font = "700 12px Manrope, sans-serif";
+  x.fillText("SHARED", W - PAD, 58);
+  x.fillStyle = C.text; x.font = "800 16px Manrope, sans-serif";
+  x.fillText(dateTxt, W - PAD, 82);
+  x.fillStyle = C.dim; x.font = "600 14px Inter, sans-serif";
+  x.fillText(timeTxt, W - PAD, 104);
+  x.textAlign = "left";
+  // bands
+  let y = headH;
+  for(const tier of tiers){
+    const list = byTier.get(tier), h = bandH(list);
+    const col = bandColour[tier] || { bg: C.blue, fg: "#fff" };
+    x.fillStyle = C.card; tsRoundRect(x, PAD, y, W - PAD * 2, h, 14); x.fill();
+    x.strokeStyle = C.line; x.lineWidth = 1; x.stroke();
+    x.fillStyle = col.bg; tsRoundRect(x, PAD, y, LABW, h, 14); x.fill();
+    x.fillRect(PAD + LABW - 14, y, 14, h);               // square inner edge
+    x.fillStyle = col.fg; x.textAlign = "center"; x.textBaseline = "middle";
+    const fs = tier.length > 4 ? 18 : 30;
+    x.font = `800 ${fs}px Manrope, sans-serif`;
+    x.fillText(tier, PAD + LABW / 2, y + h / 2);
+    x.textBaseline = "alphabetic";
+    list.forEach((m, i) => {
+      const cx = PAD + LABW + 16 + (i % perRow) * CELLW + CELLW / 2;
+      const cy = y + 10 + Math.floor(i / perRow) * CELLH;
+      if(typeof needsShadowMist === "function" && needsShadowMist(m.name)){
+        const g = x.createRadialGradient(cx, cy + SPR / 2, 4, cx, cy + SPR / 2, SPR / 2);
+        g.addColorStop(0, "rgba(140,80,220,.55)"); g.addColorStop(1, "rgba(140,80,220,0)");
+        x.fillStyle = g; x.fillRect(cx - SPR / 2, cy, SPR, SPR);
+      }
+      const im = spriteFor[m.name];
+      if(im){
+        const r = Math.min(SPR / im.width, SPR / im.height);
+        x.drawImage(im, cx - im.width * r / 2, cy + (SPR - im.height * r) / 2, im.width * r, im.height * r);
+      } else {
+        x.fillStyle = C.line; x.beginPath(); x.arc(cx, cy + SPR / 2, 24, 0, Math.PI * 2); x.fill();
+        x.fillStyle = C.dim; x.font = "800 14px Manrope, sans-serif"; x.textAlign = "center"; x.textBaseline = "middle";
+        x.fillText(m.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase(), cx, cy + SPR / 2);
+        x.textBaseline = "alphabetic";
+      }
+      // type badge
+      const bx = cx + 20, by = cy + SPR - 8;
+      x.fillStyle = (typeof TYPE_COLORS !== "undefined" && (TYPE_COLORS[m.type] || TYPE_COLORS.unknown)) || "#888";
+      x.beginPath(); x.arc(bx, by, 10, 0, Math.PI * 2); x.fill();
+      x.lineWidth = 2; x.strokeStyle = C.card; x.stroke();
+      if(iconFor[m.type]) x.drawImage(iconFor[m.type], bx - 6, by - 6, 12, 12);
+      // name on up to two lines, so "Mega Mewtwo X" and "Mega Mewtwo Y" stay distinguishable
+      x.fillStyle = C.text; x.font = "700 11px Manrope, sans-serif"; x.textAlign = "center";
+      const maxW = CELLW - 6, words = m.name.split(/\s+/), lines = [""];
+      words.forEach(w => {
+        const cur = lines[lines.length - 1], next = cur ? cur + " " + w : w;
+        if(x.measureText(next).width <= maxW || !cur) lines[lines.length - 1] = next; else lines.push(w);
+      });
+      let out = lines.slice(0, 2);
+      if(lines.length > 2) out[1] = out[1] + " " + lines.slice(2).join(" ");
+      out = out.map(t => {
+        if(x.measureText(t).width <= maxW) return t;
+        while(t.length > 2 && x.measureText(t + "\u2026").width > maxW) t = t.slice(0, -1);
+        return t + "\u2026";
+      });
+      out.forEach((t, k) => x.fillText(t, cx, cy + SPR + 18 + k * 13));
+      x.textAlign = "left";
+    });
+    y += h + gap;
+  }
+  x.fillStyle = C.dim; x.font = "600 12px Inter, sans-serif";
+  x.fillText("soloraidarchive.github.io/research.html", PAD, H - 22);
+  x.textAlign = "right";
+  x.fillText("Tier placements are the archive's curated meta ranking", W - PAD, H - 22);
+  x.textAlign = "left";
+  return cv;
+}
+async function shareTierList(btn){
+  const label = btn.querySelector("span"), old = label.textContent;
+  btn.disabled = true; label.textContent = "Copying\u2026";
+  try{
+    // Copied to the clipboard (as "Copy as image" does in the DPS calculator) rather than handed
+    // to the OS share sheet, whose copy button often can't take an image. Safari needs the
+    // ClipboardItem built synchronously inside the click, so it gets a PROMISE of the blob.
+    const supported = typeof ClipboardItem !== "undefined" && navigator.clipboard && navigator.clipboard.write;
+    if(supported){
+      const blobPromise = (async () => {
+        const cv = await buildTierShareImage();
+        if(!cv) throw new Error("no tier list to copy");
+        return await new Promise(r => cv.toBlob(r, "image/png"));
+      })();
+      await navigator.clipboard.write([ new ClipboardItem({ "image/png": blobPromise }) ]);
+      label.textContent = "Copied!";
+      return;
+    }
+    const cv = await buildTierShareImage();
+    if(!cv){ label.textContent = "Nothing to share"; return; }
+    const blob = await new Promise(r => cv.toBlob(r, "image/png"));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `solo-raid-archive-tier-list-${new Date().toISOString().slice(0, 10)}.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    label.textContent = "Downloaded";
+  }catch(e){
+    console.error("Could not share the tier list:", e);
+    label.textContent = "Couldn\u2019t copy";
+  }finally{
+    setTimeout(() => { label.textContent = old; btn.disabled = false; }, 1800);
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const b = document.getElementById("tierShareBtn");
+  if(b) b.addEventListener("click", () => shareTierList(b));
+});
+
 function setView(view){
   if(VIEW === view) return;
   VIEW = view;
@@ -2148,6 +2350,8 @@ function setView(view){
   document.getElementById("viewTier").classList.toggle("on", view === "tier");
   document.getElementById("viewUsage").setAttribute("aria-selected", String(view === "usage"));
   document.getElementById("viewTier").setAttribute("aria-selected", String(view === "tier"));
+  const shareBtn = document.getElementById("tierShareBtn");
+  if(shareBtn) shareBtn.hidden = view !== "tier";
   const infoBtn = document.getElementById("tierInfoBtn");
   if(infoBtn){
     infoBtn.hidden = view !== "tier";
