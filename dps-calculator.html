@@ -3596,7 +3596,11 @@ function renderTeamSim(P, S, R){
     "last-tank-fainted": `The last ${lastType.name} fainted before it could fire`,
     "tanks": `The boss cast ${P.bossCM.n} with no catch tanks left`,
     "no-safe-catch": `No catch tanks left and ${P.main.name} couldn't safely sponge the next ${P.bossCM.n}; results stop at the last safe point`,
-    "main-fainted": `${P.main.name} would faint at ${((S.ended.faintAt ?? S.ended.t) / 2).toFixed(1)}s, so it bails after the last charge move that landed (${(S.ended.t / 2).toFixed(1)}s)`,
+    // With "All in on the last charge move" on, the main DPSer's last push is for one more charge
+    // move; when it faints before that lands, the results go back to its last charge move.
+    "main-fainted": P.allIn
+      ? `${P.main.name} went all in for one more ${P.main.cm.n} but would faint at ${((S.ended.faintAt ?? S.ended.t) / 2).toFixed(1)}s before it landed; results go back to its last charge move (${(S.ended.t / 2).toFixed(1)}s)`
+      : `${P.main.name} would faint at ${((S.ended.faintAt ?? S.ended.t) / 2).toFixed(1)}s, so it bails after the last charge move that landed (${(S.ended.t / 2).toFixed(1)}s)`,
     "main-fainted-early": `${P.main.name} fainted before any catch tank was needed`,
     "timer": "Reached the 300s raid timer",
   };
