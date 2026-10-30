@@ -833,6 +833,8 @@ if ("serviceWorker" in navigator) {
   .boss-ct-mon{ display:flex; align-items:center; gap:8px; color:var(--text); font-weight:800; white-space:nowrap; }
   .boss-ct-ico{ width:34px; height:34px; object-fit:contain; flex:none; }
   .boss-ct-build{ white-space:nowrap; }
+  .boss-ct-conds{ display:flex; align-items:center; gap:6px; }
+  .boss-ct-cond{ width:22px; height:22px; object-fit:contain; flex:none; }
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
 
   /* "About this beta" panel (Beta: Simple Catch Tank Sim only) - same collapsible as Type matchup */
@@ -1256,6 +1258,7 @@ if ("serviceWorker" in navigator) {
         <li>Swaps take 0.5s each way and are made at the last moment before the hit lands.</li>
         <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
+        <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many cycles fit in the 300s timer; Minimum DPS and Cumulative DPS take that many rejoins of this length out of the timer.</li>
         <li>The swap to a catch tank is timed automatically for the highest DPS. Once the boss has begun its charge move, the swap can start any time up to the last moment that still gets the catch tank in before the hit (the main DPSer attacks until then). The simulator runs the whole fight with the same boss for every swap time, 0.5s apart - first one timing for all catches, then each catch on its own - and keeps whatever gives the highest DPS. A catch tank that comes in early attacks with fast moves, but holds its charge move and stays in until it has caught the hit.</li>
         <li>With "Main allowed to dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in on the last charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
@@ -1543,6 +1546,9 @@ if ("serviceWorker" in navigator) {
           <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
           <option value="0">No limit</option>
         </select>
+      </label>
+      <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
+        <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
       </label>
       <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in on the last charge move</label>
     </div>
@@ -2594,22 +2600,25 @@ const TEAM_MAX_TICKS = 600;     // 300s: the Tier 5 raid timer, a backstop rathe
 const TEAM_DODGE_TICKS = 2;
 const TEAM_DODGE_KEEP = 0.85;   // a dodge must keep at least this share of the dodged hit's energy
 // Rejoins over a raid: one per cycle that fits in the 300s timer (floor(300 / cycle)), each
-// costing 7.0s. The suggested DPS is the tier's 0-rejoin bar (Tier 5: 50, Tier 4 Mega: 30) raised
-// to make up for that lost time - base x 300 / (300 - 7 x rejoins), cut to 2 decimals. This gives
-// the published tables exactly (Tier 5: 50.00, 51.19, 52.44, 53.76, 55.14; Mega: 30.00, 30.71,
-// 31.46, 32.25, 33.08) and carries on the same way past 4 rejoins.
-const RAID_SECS = 300, REJOIN_SECS = 7;
+// costing the rejoin time (7.0s unless the beta's "Rejoin time" says otherwise, 5.5s at the
+// fastest). The minimum DPS is the tier's 0-rejoin bar (Tier 5: 50, Tier 4 Mega: 30) raised to
+// make up for that lost time - base x 300 / (300 - rejoin time x rejoins), cut to 2 decimals. At
+// 7.0s this gives the published tables exactly (Tier 5: 50.00, 51.19, 52.44, 53.76, 55.14; Mega:
+// 30.00, 30.71, 31.46, 32.25, 33.08) and carries on the same way past 4 rejoins.
+const RAID_SECS = 300, REJOIN_SECS = 7, REJOIN_SECS_MIN = 5.5, REJOIN_SECS_MAX = 15;   // rejoins come in 0.5s steps
 // Minimum DPS for a given number of rejoins (null once the rejoins would use up the timer).
-// Cycle DPS, shown with it on the beta card, is the run's DPS spread over the whole 300s raid
-// once the rejoins are taken out: DPS x (300 - 7 x rejoins) / 300.
-function rejoinDpsFor(mega, rejoins){
-  const left = RAID_SECS - REJOIN_SECS * rejoins;
+// Cumulative DPS, shown with it on the beta card, is the run's DPS spread over the whole 300s
+// raid once the rejoins are taken out: DPS x (300 - rejoin time x rejoins) / 300.
+function rejoinDpsFor(mega, rejoins, rejoinSecs = REJOIN_SECS){
+  const left = RAID_SECS - rejoinSecs * rejoins;
   return left > 0 ? Math.floor((mega ? 30 : 50) * RAID_SECS / left * 100 + 1e-9) / 100 : null;
 }
-function teamRejoinTarget(cycleSecs, bossName){
+// "7s", "5.5s" - the rejoin time as the card writes it
+const rejoinSecsText = secs => `${+secs.toFixed(1)}s`;
+function teamRejoinTarget(cycleSecs, bossName, rejoinSecs = REJOIN_SECS){
   const rejoins = cycleSecs > 0 ? Math.floor(RAID_SECS / cycleSecs) : null;
   const mega = isMegaBoss(bossName);   // Mega and Primal bosses, as for Dynamic Punch+
-  const dps = rejoins === null ? null : rejoinDpsFor(mega, rejoins);
+  const dps = rejoins === null ? null : rejoinDpsFor(mega, rejoins, rejoinSecs);
   return { rejoins, dps, tier: mega ? "Tier 4 Mega" : "Tier 5" };
 }
 
@@ -3161,6 +3170,8 @@ function runTeamSim(c){
     // All in on the last charge move: with no catch tank left, finish what it is building rather
     // than bail on it
     allIn: $("ctAllIn").checked,
+    // how long one rejoin takes (Minimum DPS, Cumulative DPS): 5.5s at the fastest, 7.0s by default
+    rejoinSecs: clampRejoinSecs($("ctRejoinSecs").value),
     bossName: c.bossName,
     bossFM: { n: c.bossFMMove.n, ad: c.bossFMMove.ad, energyGain: c.bossFMMove.energy || 0 },
     bossCM: { n: c.bossCMMove.n, ad: c.bossCMMove.ad },
@@ -3415,7 +3426,7 @@ function teamLogLine(P, e){
 
 // Hover (or tap) help for the two DPS rows. The icon is drawn by CSS, so it adds no text to
 // the row's label - Copy as image reads the label as "Cycle DPS", not "Cycle DPS i".
-const TEAM_DPS_TIP = "Cycle DPS: the DPS of one cycle (the main DPSer and its catch tanks, start to finish), the big number at the top. Cumulative DPS: that cycle repeated over the whole 300s raid, with 7.0s taken out for each expected rejoin, so it is lower whenever there are rejoins.";
+const teamDpsTip = rejoinSecs => `Cycle DPS: the DPS of one cycle (the main DPSer and its catch tanks, start to finish), the big number at the top. Cumulative DPS: that cycle repeated over the whole 300s raid, with ${rejoinSecsText(rejoinSecs)} taken out for each expected rejoin, so it is lower whenever there are rejoins.`;
 const teamTip = text => ` <span class="team-tip" tabindex="0" role="note" aria-label="${text}" data-tip="${text}"></span>`;
 
 // ---- Beta result card: collapsible sections and the Minimum DPS pop-up ----
@@ -3432,7 +3443,7 @@ function teamGroupHead(key, title){
   return `<tbody class="team-grp${folded ? " is-folded" : ""}" data-grp="${key}">
           <tr class="dps-stat-group dps-group-rotation"><th colspan="2"><button type="button" class="team-grp-toggle" aria-expanded="${!folded}">${title}</button></th></tr>`;
 }
-// Minimum DPS per cycle for 0-5 rejoins of 7.0s, as a small table under the "Minimum DPS" label.
+// Minimum DPS per cycle for 0-5 rejoins at the set rejoin time, as a small table under the label.
 function teamMinPopClose(){
   document.querySelectorAll(".team-min-pop").forEach(p => p.remove());
   document.querySelectorAll(".team-min-btn[aria-expanded='true']").forEach(b => b.setAttribute("aria-expanded", "false"));
@@ -3440,15 +3451,17 @@ function teamMinPopClose(){
 function teamMinPopOpen(btn){
   teamMinPopClose();
   const mega = btn.dataset.mega === "1", cur = btn.dataset.rejoins === "" ? null : +btn.dataset.rejoins;
+  const rejoinSecs = parseFloat(btn.dataset.rejoinSecs) || REJOIN_SECS;
+  const head = `Minimum DPS per cycle with ${rejoinSecsText(rejoinSecs)} rejoin times`;
   const rows = [0, 1, 2, 3, 4, 5].map(r => {
-    const v = rejoinDpsFor(mega, r);
+    const v = rejoinDpsFor(mega, r, rejoinSecs);
     return `<tr class="${r === cur ? "is-current" : ""}"><td>${r} rejoin${r === 1 ? "" : "s"}</td><td>${v === null ? "&mdash;" : v.toFixed(2)}</td></tr>`;
   }).join("");
   const pop = document.createElement("div");
   pop.className = "team-min-pop";
   pop.setAttribute("role", "dialog");
-  pop.setAttribute("aria-label", "Minimum DPS per cycle with 7s rejoin times");
-  pop.innerHTML = `<table><thead><tr><th colspan="2">Minimum DPS per cycle with 7s rejoin times</th></tr></thead><tbody>${rows}</tbody></table>`;
+  pop.setAttribute("aria-label", head);
+  pop.innerHTML = `<table><thead><tr><th colspan="2">${head}</th></tr></thead><tbody>${rows}</tbody></table>`;
   document.body.appendChild(pop);
   // under the label, kept inside the window
   const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
@@ -3588,7 +3601,7 @@ function renderTeamSim(P, S, R){
   }).join("");
 
   const pct = Math.max(0, mainHp) / P.main.hp * 100;
-  const rj = teamRejoinTarget(secs, P.bossName);   // expected rejoins and the suggested DPS for them
+  const rj = teamRejoinTarget(secs, P.bossName, P.rejoinSecs);   // expected rejoins and the suggested DPS for them
   // The main DPSer's energy at the end point - a full bar left unspent means a charge move's worth
   // of damage never made it into the result.
   let leftover = 0;
@@ -3612,9 +3625,9 @@ function renderTeamSim(P, S, R){
           <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
           <tr><td>Expected rejoins</td><td>${rj.rejoins === null ? "&mdash;" : rj.rejoins}</td></tr>
           ${attackerRows}
-          <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-mega="${isMegaBoss(P.bossName) ? 1 : 0}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}">Minimum DPS</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
-          <tr><td>Cycle DPS${teamTip(TEAM_DPS_TIP)}</td><td>${dps.toFixed(1)}</td></tr>
-          <tr><td>Cumulative DPS${teamTip(TEAM_DPS_TIP)}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - REJOIN_SECS * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
+          <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-mega="${isMegaBoss(P.bossName) ? 1 : 0}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">Minimum DPS</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
+          <tr><td>Cycle DPS${teamTip(teamDpsTip(P.rejoinSecs))}</td><td>${dps.toFixed(1)}</td></tr>
+          <tr><td>Cumulative DPS${teamTip(teamDpsTip(P.rejoinSecs))}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - P.rejoinSecs * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
         </tbody>
         ${teamGroupHead("rotation", "Rotation")}
           <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
@@ -4992,7 +5005,7 @@ const SETUP_FIELD_IDS = [
   // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
-  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn",
+  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn","ctRejoinSecs",
   // Beta: Catch Tank 2 and 3 (their cards only exist while added - see applySetup) and how many
   "ctTypes",
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
@@ -5041,6 +5054,8 @@ function applySetup(setup){
     if(el.type === "checkbox") el.checked = !!setup[id];
     else el.value = setup[id];
   });
+  // Rejoin time is a dropdown of 0.5s steps: a value between steps (an older link) snaps to one
+  if("ctRejoinSecs" in setup) document.getElementById("ctRejoinSecs").value = clampRejoinSecs(setup.ctRejoinSecs).toFixed(1);
   const modeToId = { maindps: "ctModeMainDPS", single: "ctModeSingle", double: "ctModeDouble", team: "ctModeTeam" };
   document.getElementById(modeToId[setup.ctMode] || "ctModeSingle").checked = true;
   updateCTMode();
@@ -5389,6 +5404,18 @@ function loadCtDatabase(){
   return CT_DB_PROMISE;
 }
 const ctKey = n => String(n || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+// the same weather and Adventure Effect icons as the Top Catch Tanks page (ct-database.html)
+const CT_WEATHER_ICONS = {
+  clear: "assets/icons/weather-clear.png", sunny: "assets/icons/weather-clear.png",
+  cloudy: "assets/icons/weather-cloudy.png", partlycloudy: "assets/icons/weather-partly-cloudy.png",
+  windy: "assets/icons/weather-windy.png", wind: "assets/icons/weather-windy.png",
+  rain: "assets/icons/weather-rain.png", rainy: "assets/icons/weather-rain.png",
+  snow: "assets/icons/weather-snow.png", fog: "assets/icons/weather-fog.png",
+  extreme: "assets/icons/weather-extreme.png",
+  none: "assets/icons/weather-extreme.png",   // "None" in the sheet: no weather boost, same as extreme
+};
+const CT_BLADE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
+const CT_SHIELD_ICON = "https://static.wikia.nocookie.net/396c21d1-3e98-4c0d-8bb2-9150fda4ec41";
 const ctEsc = t => String(t == null ? "" : t).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 async function updateBossCtLink(){
   const box = document.getElementById("bossCtLink");
@@ -5412,7 +5439,21 @@ function openBossCtTable(entries){
   const bossName = entries[0].boss;
   let sort = "dps";
   const icon = n => `<img class="boss-ct-ico${needsShadowMist(n) ? " shadow-mist" : ""}" src="${spriteUrl(n)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
-  const conds = e => [e.weather ? e.weather.charAt(0).toUpperCase() + e.weather.slice(1) : "", e.blade ? "Blade Boost" : "", e.shield ? "Shield Boost" : ""].filter(Boolean).join(" &middot; ") || "&mdash;";
+  // Conditions as icons, as on the Top Catch Tanks page: the weather always (its "extreme" icon
+  // means no boost), Blade/Shield Boost only when used. Hover names them; an icon that fails to
+  // load turns back into its name.
+  const condIco = (src, name, tip) => `<img class="boss-ct-cond" src="${src}" alt="${ctEsc(name)}" title="${ctEsc(tip)}" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.alt))">`;
+  const conds = e => {
+    const out = [];
+    const wName = /^none$/i.test(e.weather) ? "Extreme" : /^partly\s*cloudy$/i.test(e.weather) ? "Partly cloudy"
+      : e.weather ? e.weather.charAt(0).toUpperCase() + e.weather.slice(1) : "";
+    const wIcon = CT_WEATHER_ICONS[e.weather.toLowerCase().replace(/[^a-z]/g, "")];
+    if(wIcon) out.push(condIco(wIcon, wName, `${wName} weather`));
+    else if(wName) out.push(`<span>${ctEsc(wName)}</span>`);
+    if(e.blade) out.push(condIco(CT_BLADE_ICON, "Blade Boost", "Blade Boost: +10% damage dealt"));
+    if(e.shield) out.push(condIco(CT_SHIELD_ICON, "Shield Boost", "Shield Boost: +10% damage reduction"));
+    return out.length ? `<div class="boss-ct-conds">${out.join("")}</div>` : "&mdash;";
+  };
   const rowsHtml = () => entries.slice().sort((a, b) => sort === "name" ? a.mon.localeCompare(b.mon) || b.ctDps - a.ctDps : b.ctDps - a.ctDps).map(e => `
       <tr>
         <td><div class="boss-ct-mon">${icon(e.mon)}<span>${ctEsc(e.mon)}</span></div></td>
@@ -5977,7 +6018,7 @@ const SETUP_SHORT_KEYS = {
   ctMode:"m",
   bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp", optimalDps:"od",
   ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
-  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai",
+  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctRejoinSecs:"trs",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
 };
@@ -6209,6 +6250,13 @@ function updateDodgeLimit(){
   document.getElementById("ctDodgeLimit").disabled = !on;
 }
 document.getElementById("ctMainDodge").addEventListener("change", updateDodgeLimit);
+// Rejoin time: a 0.5s step from 5.5s to 15.0s (the dropdown only offers those); anything else -
+// say an old link - snaps to the nearest step, and a blank goes back to the 7.0s default
+function clampRejoinSecs(v){
+  const n = parseFloat(v);
+  if(!isFinite(n)) return REJOIN_SECS;
+  return Math.round(Math.min(REJOIN_SECS_MAX, Math.max(REJOIN_SECS_MIN, n)) * 2) / 2;
+}
 updateDodgeLimit();
 wireTeamCard("ct");
 setTeamTypeCount(teamTypeCount());
