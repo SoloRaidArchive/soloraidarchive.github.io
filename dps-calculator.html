@@ -899,6 +899,20 @@ if ("serviceWorker" in navigator) {
   .team-tl .seg-main{ background:#3d9dff; } .team-tl .seg-tank{ background:#f5b94a; }
   .team-tl .seg-swap{ background:repeating-linear-gradient(45deg,#8890a6 0 3px,transparent 3px 6px); }
   .team-tl b{ position:absolute; top:0; width:2px; height:26px; background:#ff6b8a; }
+  .team-target{ font-weight:800; }
+  .team-target.ok{ color:#2e9e62; } .team-target.short{ color:#d6455d; }
+  [data-theme="dark"] .team-target.ok{ color:#5fd08f; } [data-theme="dark"] .team-target.short{ color:#ff7a8f; }
+  .team-rejoin-more{ display:inline-block; margin-top:3px; }
+  .team-rejoin-more summary{ display:inline-flex; align-items:center; gap:4px; cursor:pointer; list-style:none;
+    font:700 11px 'Manrope',sans-serif; color:var(--blue); }
+  .team-rejoin-more summary::-webkit-details-marker{ display:none; }
+  .team-rejoin-more summary::after{ content:"\25BE"; font-size:10px; transition:transform .15s; }
+  .team-rejoin-more[open] summary::after{ transform:rotate(180deg); }
+  .team-rejoin-list{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px 6px; margin-top:6px; }
+  .team-rejoin-list span{ font:600 11px 'Manrope',sans-serif; color:var(--text-dim); background:var(--bg1);
+    border:1.5px solid var(--border); border-radius:999px; padding:2px 8px; white-space:nowrap; }
+  .team-rejoin-list span b{ color:var(--text); font-weight:800; }
+  .team-rejoin-list span.is-current{ border-color:var(--blue); color:var(--text); }
   .team-tl .seg-dodge{ background:repeating-linear-gradient(-45deg,#1b5fae 0 3px,#3d9dff 3px 6px); }
   .team-tl-axis{ display:flex; justify-content:space-between; font:600 10.5px 'Manrope',sans-serif; color:var(--text-dim); }
   .team-tl-legend{ display:flex; gap:14px; flex-wrap:wrap; font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin:6px 0 4px; }
@@ -1191,7 +1205,7 @@ if ("serviceWorker" in navigator) {
         <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
         <li>With "Main allowed to dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
-        <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed.</li>
+        <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in on the last charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
       </ul>
       <p class="beta-h">Not modelled yet</p>
       <ul>
@@ -1475,6 +1489,7 @@ if ("serviceWorker" in navigator) {
           <option value="0">No limit</option>
         </select>
       </label>
+      <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in on the last charge move</label>
     </div>
     <div class="team-order-head">Priority <span>&middot; who takes each boss charge move, top first. A catch tank type is used up before the next one comes in; the main DPSer takes it only when sponging is safe. With dodging allowed, the main DPSer dodges instead (up to the set number over the run) while that is safe; after that, catch tanks catch as usual.</span></div>
     <ol class="team-order" id="ctOrderList"></ol>
@@ -2522,6 +2537,28 @@ const TEAM_MAX_TICKS = 600;     // 300s: the Tier 5 raid timer, a backstop rathe
 // mode and Single Catch Tank charge for Dodge CM. Here it is timed like a swap: as late as
 // possible, ending on the tick the boss's charge move lands.
 const TEAM_DODGE_TICKS = 2;
+// Rejoins over a raid: one per cycle that fits in the 300s timer (floor(300 / cycle)), each
+// costing 7.0s. The suggested DPS is the tier's 0-rejoin bar (Tier 5: 50, Tier 4 Mega: 30) raised
+// to make up for that lost time - base x 300 / (300 - 7 x rejoins), cut to 2 decimals. This gives
+// the published tables exactly (Tier 5: 50.00, 51.19, 52.44, 53.76, 55.14; Mega: 30.00, 30.71,
+// 31.46, 32.25, 33.08) and carries on the same way past 4 rejoins.
+const RAID_SECS = 300, REJOIN_SECS = 7;
+// DPS Minimum for a given number of rejoins (null once the rejoins would use up the timer).
+// Lobby DPS, shown with it on the beta card, is the run's DPS spread over the whole 300s lobby
+// once the rejoins are taken out: DPS x (300 - 7 x rejoins) / 300.
+function rejoinDpsFor(mega, rejoins){
+  const left = RAID_SECS - REJOIN_SECS * rejoins;
+  return left > 0 ? Math.floor((mega ? 30 : 50) * RAID_SECS / left * 100 + 1e-9) / 100 : null;
+}
+function teamRejoinTarget(cycleSecs, bossName){
+  const rejoins = cycleSecs > 0 ? Math.floor(RAID_SECS / cycleSecs) : null;
+  const mega = isMegaBoss(bossName);   // Mega and Primal bosses, as for Dynamic Punch+
+  const dps = rejoins === null ? null : rejoinDpsFor(mega, rejoins);
+  // the 0-4 table, plus this run's count when it is higher - for the "All minimums" list
+  const counts = [0, 1, 2, 3, 4].concat(rejoins > 4 ? [rejoins] : []);
+  const table = counts.map(r => ({ rejoins: r, dps: rejoinDpsFor(mega, r) })).filter(x => x.dps !== null);
+  return { rejoins, dps, tier: mega ? "Tier 4 Mega" : "Tier 5", table };
+}
 
 function simulateTeam(P){
   const S = {
@@ -2544,7 +2581,7 @@ function simulateTeam(P){
     finishing: false, finishDeadline: null, finishAt: null,
     // Main allowed to dodge: pendingDodge is booked when the boss casts { cast, land, latest };
     // dodging is the one in progress. mainDodges counts the main DPSer's dodges over the whole run.
-    pendingDodge: null, dodging: null, mainDodges: 0,
+    pendingDodge: null, dodging: null, mainDodges: 0, allIn: false,
     ended: null, probe: null,
   };
   const R = newTeamRecorder();
@@ -2610,7 +2647,7 @@ function teamStep(S, R, P, snap){
       startSwap(who, next);
       return;
     }
-    if(S.finishing){ end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return; }
+    if(S.finishing){ end(S.safePoint !== null ? S.safePoint : t, S.allIn ? "all-in-fainted" : "finish-missed"); return; }
     // The main DPSer can't continue. With tanks still unused, the run is cut back to the end of
     // the last catch tank's turn; otherwise it ends here.
     const tanksLeft = S.nextTank <= P.qty;
@@ -2660,6 +2697,24 @@ function teamStep(S, R, P, snap){
         S.awaitMainCM = true;
         R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} dodges it (${S.mainDodges}${P.dodgeLimit ? ` of ${P.dodgeLimit}` : ""})`,
           ev: { type: "bossCM", to: 0, how: "dodge", n: S.mainDodges, of: P.dodgeLimit } });
+        return;
+      }
+      if(!tanksLeft && P.allIn){
+        // All in: nobody can safely take this one, but instead of bailing on the energy it holds
+        // the main DPSer stays in to finish the charge move it is building. If dodging is allowed it
+        // dodges whenever it is free in time - the "Dodges before bailing" count doesn't apply, as
+        // this is the alternative to bailing, and there is no safety test: it's the last push.
+        // Otherwise it takes the hit. The run ends when that charge move lands; if the main DPSer faints first,
+        // results stop at the last charge move that landed, exactly as a bail would.
+        S.finishing = true; S.allIn = true;
+        const canDodge = P.mainDodges && Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0) + TEAM_DODGE_TICKS <= land;
+        if(canDodge){
+          S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
+          S.mainDodges++;
+          dec.outcome = "all-in-dodge";
+        } else dec.outcome = "all-in";
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → no catch tank left; ${P.main.name} goes all in and ${canDodge ? "dodges" : "takes"} it`,
+          ev: { type: "bossCM", to: 0, how: canDodge ? "allin-dodge" : "allin", n: S.mainDodges, of: P.dodgeLimit } });
         return;
       }
       if(!tanksLeft){
@@ -2738,7 +2793,8 @@ function teamStep(S, R, P, snap){
     const mv = B.inFlight;
     B.inFlight = null;
     const who = S.swap ? S.swap.from : S.active;
-    if(mv.cm && S.finishing && !S.probe && who === 0 && !(R.decisions.find(d => d.cast === mv.cast) || {}).outcome?.startsWith("main")){
+    const outcome = (R.decisions.find(d => d.cast === mv.cast) || {}).outcome || "";
+    if(mv.cm && S.finishing && !S.probe && who === 0 && !outcome.startsWith("main") && !outcome.startsWith("all-in")){
       end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return;
     }
     const m = S.mons[who];
@@ -2992,6 +3048,9 @@ function runTeamSim(c){
     // Once they are used, catch tanks catch as usual.
     mainDodges: $("ctMainDodge").checked,
     dodgeLimit: Math.max(0, parseInt($("ctDodgeLimit").value, 10) || 0),
+    // All in on the last charge move: with no catch tank left, finish what it is building rather
+    // than bail on it
+    allIn: $("ctAllIn").checked,
     bossName: c.bossName,
     bossFM: { n: c.bossFMMove.n, ad: c.bossFMMove.ad, energyGain: c.bossFMMove.energy || 0 },
     bossCM: { n: c.bossCMMove.n, ad: c.bossCMMove.ad },
@@ -3192,6 +3251,8 @@ function teamLogLine(P, e){
       const tail = v.how === "tank" ? `${ico(v.to)} catches it`
         : v.how === "sponge" ? `${ico(0)} sponges it`
         : v.how === "dodge" ? `${ico(0)} dodges it <span class="team-dim">(dodge ${v.n}${v.of ? ` of ${v.of}` : ""})</span>`
+        : v.how === "allin-dodge" ? `no catch tank left &middot; ${ico(0)} goes all in and dodges it`
+        : v.how === "allin" ? `no catch tank left &middot; ${ico(0)} goes all in and takes it`
         : v.how === "late" ? `too late to swap in &middot; lands on ${ico(0)}`
         : v.how === "tank-again" ? `${ico(v.to)} is still in and takes it`
         : v.how === "tank-faint" ? `lands on ${ico(v.to)}`
@@ -3219,7 +3280,8 @@ function renderTeamSim(P, S, R){
   const dps = secs > 0 ? total / secs : 0;
   const decs = R.decisions.filter(d => d.cast < E || (d.cast === E && d.outcome !== "end"));
   const n = k => decs.filter(d => d.outcome === k).length;
-  const caught = n("tank") + n("tank-again"), byMain = n("main"), dodged = n("main-dodge"), late = n("late") + n("tank-faint");
+  const caught = n("tank") + n("tank-again"), byMain = n("main"), dodged = n("main-dodge") + n("all-in-dodge"), late = n("late") + n("tank-faint");
+  const allInTaken = n("all-in");
   // dodges up to the end point, and the time they took (from when the main DPSer stopped attacking)
   const dodges = R.dodges.filter(d => d.t < E);
   const dodgeSecs = dodges.reduce((a, d) => a + (Math.min(d.until, E) - d.t), 0) / 2;
@@ -3237,6 +3299,7 @@ function renderTeamSim(P, S, R){
   const reasons = {
     "finished": `No catch tanks left; ${P.main.name} fired its remaining ${P.main.cm.n} and the run ends as it lands`,
     "finish-missed": `No catch tank left for the next ${P.bossCM.n}, and ${P.main.name} couldn't fire again before it landed; results stop when the last charge move landed`,
+    "all-in-fainted": `No catch tank left; ${P.main.name} went all in for its last ${P.main.cm.n} but fainted before it landed; results stop when the last charge move landed`,
     "last-tank": `The last ${lastType.name} finished its ${lastType.cm.n}`,
     "last-tank-fainted": `The last ${lastType.name} fainted before it could fire`,
     "tanks": `The boss cast ${P.bossCM.n} with no catch tanks left`,
@@ -3299,6 +3362,7 @@ function renderTeamSim(P, S, R){
   }).join("");
 
   const pct = Math.max(0, mainHp) / P.main.hp * 100;
+  const rj = teamRejoinTarget(secs, P.bossName);   // expected rejoins and the suggested DPS for them
   // The main DPSer's energy at the end point - a full bar left unspent means a charge move's worth
   // of damage never made it into the result.
   let leftover = 0;
@@ -3312,6 +3376,7 @@ function renderTeamSim(P, S, R){
         <div class="dps-result-label">Simple Catch Tank Sim &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty} catch tank${P.qty > 1 ? "s" : ""}</div>
         <div class="dps-result-value">${dps.toFixed(1)}</div>
         <div class="team-loadout">${mainIco} ${P.main.fm.n} / ${P.main.cm.n}${P.tanks.map((tp, i) => ` <span class="team-plus">+</span> ${tp.qty}&times; ${typeIcos[i]} ${tp.fm.n} / ${tp.cm.n}`).join("")}</div>
+        ${activeConditionsHtml()}
       </div>
       <div class="team-tl">${bar}</div>
       <div class="team-tl-axis">${axis}</div>
@@ -3321,10 +3386,16 @@ function renderTeamSim(P, S, R){
           <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Rotation</th></tr>
           <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
           <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
-          <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`).join(" &middot; ")} &middot; ${mainIco} sponged ${byMain}${P.mainDodges ? ` &middot; ${mainIco} dodged ${dodged}` : ""}${late ? ` &middot; ${late} too late to swap` : ""}</span></td></tr>
+          <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`).join(" &middot; ")} &middot; ${mainIco} sponged ${byMain}${P.mainDodges ? ` &middot; ${mainIco} dodged ${dodged}` : ""}${allInTaken ? ` &middot; ${mainIco} took ${allInTaken} going all in` : ""}${late ? ` &middot; ${late} too late to swap` : ""}</span></td></tr>
           <tr><td>Catch tanks used</td><td>${tanksIn} of ${P.qty}${P.tanks.length > 1 ? ` <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} ${usedByType[i]} of ${tp.qty}`).join(" &middot; ")}</span>` : ""}</td></tr>
           <tr><td>Swaps</td><td><span class="team-sub">${teamSym("swap", "Swap")}${swaps.length}</span> <span class="dps-stat-sub">${swapSecs.toFixed(1)}s spent swapping</span></td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodges.length} <span class="dps-stat-sub">${dodgeSecs.toFixed(1)}s not attacking &middot; ${P.dodgeLimit ? `${P.dodgeLimit} allowed` : "no limit"}</span></td></tr>` : ""}
+          <tr class="dps-stat-group dps-group-rotation"><th colspan="2">DPS &amp; Rejoins</th></tr>
+          <tr><td>Expected rejoins</td><td>${rj.rejoins === null ? "&mdash;" : rj.rejoins}</td></tr>
+          <tr><td>DPS Minimum</td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}
+            <details class="team-rejoin-more"><summary>All minimums</summary><div class="team-rejoin-list">${rj.table.map(x =>
+              `<span class="${x.rejoins === rj.rejoins ? "is-current" : ""}">${x.rejoins} rejoin${x.rejoins === 1 ? "" : "s"} <b>${x.dps.toFixed(2)}</b></span>`).join("")}</div></details></td></tr>
+          <tr><td>Lobby DPS</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - REJOIN_SECS * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
           <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Main DPSer</th></tr>
           <tr><td>HP left</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${P.main.hp} <span class="dps-stat-sub">${pct.toFixed(0)}%</span></td></tr>
           <tr><td>Unspent energy</td><td>${leftover} <span class="dps-stat-sub">of ${P.main.cmCost} for ${P.main.cm.n}</span></td></tr>
@@ -4687,7 +4758,7 @@ const SETUP_FIELD_IDS = [
   // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
-  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit",
+  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn",
   // Beta: Catch Tank 2 and 3 (their cards only exist while added - see applySetup) and how many
   "ctTypes",
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
@@ -5583,7 +5654,7 @@ const SETUP_SHORT_KEYS = {
   ctMode:"m",
   bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp", optimalDps:"od",
   ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
-  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl",
+  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
 };
@@ -5844,6 +5915,32 @@ function shareCardData(){
   // string - plus the Boss rotation graph, which was skipped entirely (its cell spans both
   // columns). Colours come from the card's own computed styles, so either theme matches.
   const pct = el => parseFloat(el.style.left) || 0;
+  // Beta: Simple Catch Tank Sim. Its card has no .loadout-pokemon panel (the image's top strip
+  // came out empty), so the party is read from the run itself - main DPSer, each catch tank type,
+  // the boss - along with the timeline bar. Its sub-lines name Pokemon only by icon, so icons are
+  // read as their names ("Shadow Dialga caught 1") rather than dropped ("caught 1").
+  let team = null, teamTimeline = null;
+  if(card.querySelector(".team-loadout") && window.__teamSim){
+    const { P } = window.__teamSim;
+    team = [{ name: P.main.name, role: "Main DPSer", moves: `${P.main.fm.n} / ${P.main.cm.n}` }]
+      .concat(P.tanks.map(tp => ({ name: tp.name, role: tp.qty > 1 ? `Catch tank \u00d7${tp.qty}` : "Catch tank", moves: `${tp.fm.n} / ${tp.cm.n}` })))
+      .concat([{ name: P.bossName, role: "Raid boss", moves: `${P.bossFM.n} / ${P.bossCM.n}`, boss: true }])
+      .map(m => Object.assign(m, { sprite: spriteUrl(m.name) }));
+    const tl = card.querySelector(".team-tl");
+    if(tl) teamTimeline = {
+      segs: [...tl.querySelectorAll("i")].map(i => ({ l: parseFloat(i.style.left) || 0, w: parseFloat(i.style.width) || 0,
+        kind: i.classList.contains("seg-dodge") ? "dodge" : i.classList.contains("seg-swap") ? "swap" : i.classList.contains("seg-tank") ? "tank" : "main" })),
+      marks: [...tl.querySelectorAll("b")].map(pct),
+      axis: [...card.querySelectorAll(".team-tl-axis span")].map(txt),
+      dodges: !!card.querySelector(".team-tl .seg-dodge"),
+    };
+  }
+  const named = el => {
+    if(!el) return "";
+    const c = el.cloneNode(true);
+    c.querySelectorAll(".team-ico").forEach(ic => ic.replaceWith(document.createTextNode(` ${ic.getAttribute("title") || ""} `)));
+    return txt(c);
+  };
   const rows = [];
   card.querySelectorAll(".dps-stat-table tr").forEach(tr => {
     const th = tr.querySelector("th"), td = tr.querySelectorAll("td");
@@ -5870,9 +5967,9 @@ function shareCardData(){
     }
     if(td.length === 2){
       const valueOnly = td[1].cloneNode(true);
-      valueOnly.querySelectorAll(".dps-stat-sub, .dps-stat-math").forEach(e => e.remove());
-      rows.push({ k: txt(td[0]), v: txt(valueOnly), math: txt(td[1].querySelector(".dps-stat-math")),
-                  sub: txt(td[1].querySelector(".dps-stat-sub")), vColor: getComputedStyle(td[1]).color });
+      valueOnly.querySelectorAll(".dps-stat-sub, .dps-stat-math, .team-rejoin-more").forEach(e => e.remove());
+      rows.push({ k: txt(td[0]), v: named(valueOnly), math: txt(td[1].querySelector(".dps-stat-math")),
+                  sub: named(td[1].querySelector(".dps-stat-sub")), vColor: getComputedStyle(td[1]).color });
     }
   });
   // Conditions travel with the image: a shared result without its weather and effects is
@@ -5885,7 +5982,7 @@ function shareCardData(){
   return {
     label: txt(card.querySelector(".dps-result-label")),
     dps: txt(card.querySelector(".dps-result-value")),
-    mons, rows, conds,
+    mons, rows, conds, team, teamTimeline,
   };
 }
 
@@ -5980,7 +6077,8 @@ async function buildResultShareImage(){
   const condH = (d.conds && d.conds.length) ? 30 : 0;
   const headH = 118 + condH;
   const bodyH = d.rows.reduce((s, r) => s + (r.group ? 32 : r.graph ? graphH : rowH + (r.sub ? subH : 0)), 0);
-  const H = PAD + headH + 74 + bodyH + PAD + 34;
+  const tlH = d.teamTimeline ? 62 : 0;   // Beta: the timeline bar under the headline
+  const H = PAD + headH + 74 + tlH + bodyH + PAD + 34;
 
   const cv = document.createElement("canvas");
   const dpr = 2;
@@ -5999,6 +6097,30 @@ async function buildResultShareImage(){
   rr(PAD, PAD, W - PAD * 2, headH, 14); x.fillStyle = C.card; x.fill();
   x.strokeStyle = C.line; x.lineWidth = 1.5; x.stroke();
 
+  // fits text into a width, ending in an ellipsis when it has to be cut
+  const fit = (t, w) => { if(x.measureText(t).width <= w) return t; while(t.length > 1 && x.measureText(t + "\u2026").width > w) t = t.slice(0, -1); return t + "\u2026"; };
+  if(d.team){
+    // Beta party: every Pokemon in a column - sprite, name, role, moves - with the boss after "VS"
+    const teamSprites = await Promise.all(d.team.map(m => shareLoadImage(m.sprite)));
+    const vsW = 34, n = d.team.length;
+    const cw = (W - PAD * 2 - 36 - vsW) / n;
+    x.textAlign = "center";
+    d.team.forEach((m, i) => {
+      const cx = PAD + 18 + i * cw + (m.boss ? vsW : 0) + cw / 2;
+      const sp = teamSprites[i];
+      if(sp) drawContain(x, sp, cx - 26, PAD + 12, 52, 50);
+      else drawSpritePlaceholder(x, m.name, cx - 21, PAD + 14, 42, 46, C);
+      x.fillStyle = C.text; x.font = "800 13.5px Manrope, sans-serif";
+      x.fillText(fit(m.name, cw - 10), cx, PAD + 78);
+      x.fillStyle = m.boss ? C.dim : C.accent; x.font = "800 10.5px Manrope, sans-serif";
+      x.fillText(m.role.toUpperCase(), cx, PAD + 93);
+      x.fillStyle = C.dim; x.font = "600 10.5px Inter, sans-serif";
+      x.fillText(fit(m.moves, cw - 8), cx, PAD + 108);
+    });
+    x.fillStyle = C.dim; x.font = "800 12px Manrope, sans-serif";
+    x.fillText("VS", PAD + 18 + (n - 1) * cw + vsW / 2, PAD + 46);
+    x.textAlign = "left";
+  }
   const sprites = await Promise.all(d.mons.map(m => shareLoadImage(m.sprite)));
   const half = (W - PAD * 2) / 2;
   d.mons.slice(0, 2).forEach((m, i) => {
@@ -6048,6 +6170,34 @@ async function buildResultShareImage(){
   x.fillText(d.dps, W / 2, y + 54);
   x.textAlign = "left";
   y += 74;
+
+  if(d.teamTimeline){
+    // Beta: who was on the field when, as on the card - main DPSer, catch tanks, swaps, dodges,
+    // and a tick for each boss charge move
+    const g = d.teamTimeline, bx = PAD + 60, bw = W - PAD * 2 - 120, bh = 18;
+    const col = { main: "#3d9dff", tank: "#f5b94a", swap: "#8890a6", dodge: "#1b5fae" };
+    x.save(); rr(bx, y, bw, bh, 5); x.clip();
+    x.fillStyle = C.line; x.fillRect(bx, y, bw, bh);
+    g.segs.forEach(sg => { x.fillStyle = col[sg.kind]; x.fillRect(bx + bw * sg.l / 100, y, Math.max(1, bw * sg.w / 100), bh); });
+    x.fillStyle = "#ff6b8a"; g.marks.forEach(m => x.fillRect(bx + bw * m / 100 - 1, y, 2, bh));
+    x.restore();
+    x.fillStyle = C.dim; x.font = "600 10px Inter, sans-serif";
+    g.axis.forEach((a, i) => {
+      x.textAlign = i === 0 ? "left" : i === g.axis.length - 1 ? "right" : "center";
+      x.fillText(a, bx + bw * i / Math.max(1, g.axis.length - 1), y + bh + 13);
+    });
+    // legend
+    const legend = [["main", "Main DPSer"], ["tank", "Catch tanks"], ["swap", "Swap"]].concat(g.dodges ? [["dodge", "Dodge"]] : []).concat([["cm", "Boss charge move"]]);
+    x.textAlign = "left"; x.font = "700 10.5px Manrope, sans-serif";
+    let lx = bx;
+    legend.forEach(([k, label]) => {
+      x.fillStyle = k === "cm" ? "#ff6b8a" : col[k];
+      x.fillRect(lx, y + bh + 25, 9, 9);
+      x.fillStyle = C.dim; x.fillText(label, lx + 13, y + bh + 33);
+      lx += x.measureText(label).width + 28;
+    });
+    y += tlH;
+  }
 
   // stat rows
   const tX = PAD + 60, tW = W - PAD * 2 - 120;
