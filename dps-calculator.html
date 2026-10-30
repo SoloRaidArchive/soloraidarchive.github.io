@@ -226,7 +226,7 @@ if ("serviceWorker" in navigator) {
     background: color-mix(in srgb, var(--yellow) 16%, transparent);
   }
   [data-theme="dark"] .dps-group-survive th{ color: var(--yellow); }
-  .dps-stat-table tr:first-child th{ border-top:none; padding-top:2px; }
+  .dps-stat-table tbody:first-of-type tr:first-child th{ border-top:none; padding-top:2px; }
   /* the arithmetic reads as working, not as a headline figure */
   /* Value and qualifier are two different things - a figure and the detail behind it - so they
      get two lines rather than being jammed together, where bold-black next to grey read as a
@@ -902,17 +902,25 @@ if ("serviceWorker" in navigator) {
   .team-target{ font-weight:800; }
   .team-target.ok{ color:#2e9e62; } .team-target.short{ color:#d6455d; }
   [data-theme="dark"] .team-target.ok{ color:#5fd08f; } [data-theme="dark"] .team-target.short{ color:#ff7a8f; }
-  .team-rejoin-more{ display:inline-block; margin-top:3px; }
-  .team-rejoin-more summary{ display:inline-flex; align-items:center; gap:4px; cursor:pointer; list-style:none;
-    font:700 11px 'Manrope',sans-serif; color:var(--blue); }
-  .team-rejoin-more summary::-webkit-details-marker{ display:none; }
-  .team-rejoin-more summary::after{ content:"\25BE"; font-size:10px; transition:transform .15s; }
-  .team-rejoin-more[open] summary::after{ transform:rotate(180deg); }
-  .team-rejoin-list{ display:flex; flex-wrap:wrap; justify-content:flex-end; gap:4px 6px; margin-top:6px; }
-  .team-rejoin-list span{ font:600 11px 'Manrope',sans-serif; color:var(--text-dim); background:var(--bg1);
-    border:1.5px solid var(--border); border-radius:999px; padding:2px 8px; white-space:nowrap; }
-  .team-rejoin-list span b{ color:var(--text); font-weight:800; }
-  .team-rejoin-list span.is-current{ border-color:var(--blue); color:var(--text); }
+  /* Beta result card: section headings fold their rows away */
+  .team-grp-toggle{ all:unset; display:flex; align-items:center; justify-content:space-between; width:100%;
+    cursor:pointer; box-sizing:border-box; }
+  .team-grp-toggle::after{ content:""; width:7px; height:7px; margin-right:4px; border-right:2px solid currentColor;
+    border-bottom:2px solid currentColor; transform:rotate(45deg) translateY(-2px); transition:transform .15s; opacity:.8; }
+  .team-grp.is-folded .team-grp-toggle::after{ transform:rotate(-45deg); }
+  .team-grp-toggle:focus-visible{ outline:2px solid var(--blue); outline-offset:3px; border-radius:3px; }
+  .team-grp.is-folded tr:not(.dps-stat-group){ display:none; }
+  /* "Minimum DPS" opens a small table of the per-rejoin minimums */
+  .team-min-btn{ all:unset; cursor:pointer; color:var(--blue); font-weight:700; border-bottom:1.5px dotted currentColor; }
+  .team-min-btn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:3px; }
+  .team-min-pop{ position:absolute; z-index:60; background:var(--card); border:1.5px solid var(--border); border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25); padding:6px 4px; font-family:'Manrope',sans-serif; }
+  .team-min-pop table{ border-collapse:collapse; min-width:230px; }
+  .team-min-pop th{ font-size:11.5px; font-weight:800; color:var(--text); text-align:left; padding:7px 12px 8px;
+    border-bottom:1.5px solid var(--border); max-width:230px; white-space:normal; line-height:1.35; }
+  .team-min-pop td{ font-size:13px; padding:6px 12px; color:var(--text-dim); font-weight:600; }
+  .team-min-pop td:last-child{ text-align:right; color:var(--text); font-weight:800; }
+  .team-min-pop tr.is-current td{ background:color-mix(in srgb, var(--blue) 14%, transparent); color:var(--text); }
   .team-tl .seg-dodge{ background:repeating-linear-gradient(-45deg,#1b5fae 0 3px,#3d9dff 3px 6px); }
   .team-tl-axis{ display:flex; justify-content:space-between; font:600 10.5px 'Manrope',sans-serif; color:var(--text-dim); }
   .team-tl-legend{ display:flex; gap:14px; flex-wrap:wrap; font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin:6px 0 4px; }
@@ -945,6 +953,9 @@ if ("serviceWorker" in navigator) {
   [data-theme="dark"] .team-num.neg{ color:#ff8fa3; } [data-theme="dark"] .team-num.pos{ color:#4fd1a1; }
   .team-dim{ color:var(--text-dim); font-weight:600; }
   .team-sub{ display:inline-flex; align-items:center; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+  .team-sub.team-who{ justify-content:flex-start; gap:6px; flex-wrap:nowrap; }
+  .team-sub.team-who > span:last-child{ min-width:0; }
+  .dps-stat-table tr.team-who-row td{ vertical-align:middle; padding-top:4px; padding-bottom:4px; }
   /* the icon breakdown under a total sits on its own line, right-aligned, like every other sub-line */
   .dps-stat-sub.team-sub{ display:flex; margin-top:3px; }
   .team-log td{ vertical-align:middle; }
@@ -1200,11 +1211,11 @@ if ("serviceWorker" in navigator) {
       <p class="beta-h">What it does</p>
       <ul>
         <li>One main DPSer and up to three kinds of catch tank (add them with "+ Add another catch tank"). Each tank is used once: it swaps in as the boss's charge move lands, fires the number of charge moves set on its card (using fast moves in between as needed), and swaps back.</li>
-        <li>The boss starts with 0 energy and gains energy from its fast moves and from half the damage it takes (the moment that damage lands), never holding more than 100. Its charge move costs 100, and it never casts two in a row. When it casts is set by the aggression slider, the same way every time.</li>
+        <li>The boss starts with 0 energy and gains energy from its fast moves and from half the damage it takes (the moment that damage lands), never holding more than 100. Its charge move costs 100, and it never casts two in a row. When it casts is random: on each of its moves it has the aggression slider's chance of deciding to use its charge move, which it does as soon as it has 100 energy. So every Calculate is a new simulation, and the result can change from one to the next.</li>
         <li>Swaps take 0.5s each way and are made at the last moment before the hit lands.</li>
         <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
-        <li>With "Main allowed to dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
+        <li>With "Main allowed to dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in on the last charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
       </ul>
       <p class="beta-h">Not modelled yet</p>
@@ -1482,7 +1493,7 @@ if ("serviceWorker" in navigator) {
     <div class="team-behavior-row">
       <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label>
       <label class="check-item" title="Buffer the charge move from the Pokémon you swap out of, so a catch tank can fire its charge move as soon as the caught energy allows - without a fast move first. Same as CM Buffer in Single Catch Tank mode."><input type="checkbox" id="ctCmBuffer"> CM Buffer</label>
-      <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main allowed to dodge</label>
+      <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main allowed to dodge</label>
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
         <select id="ctDodgeLimit">
           <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
@@ -2537,14 +2548,15 @@ const TEAM_MAX_TICKS = 600;     // 300s: the Tier 5 raid timer, a backstop rathe
 // mode and Single Catch Tank charge for Dodge CM. Here it is timed like a swap: as late as
 // possible, ending on the tick the boss's charge move lands.
 const TEAM_DODGE_TICKS = 2;
+const TEAM_DODGE_KEEP = 0.85;   // a dodge must keep at least this share of the dodged hit's energy
 // Rejoins over a raid: one per cycle that fits in the 300s timer (floor(300 / cycle)), each
 // costing 7.0s. The suggested DPS is the tier's 0-rejoin bar (Tier 5: 50, Tier 4 Mega: 30) raised
 // to make up for that lost time - base x 300 / (300 - 7 x rejoins), cut to 2 decimals. This gives
 // the published tables exactly (Tier 5: 50.00, 51.19, 52.44, 53.76, 55.14; Mega: 30.00, 30.71,
 // 31.46, 32.25, 33.08) and carries on the same way past 4 rejoins.
 const RAID_SECS = 300, REJOIN_SECS = 7;
-// DPS Minimum for a given number of rejoins (null once the rejoins would use up the timer).
-// Lobby DPS, shown with it on the beta card, is the run's DPS spread over the whole 300s lobby
+// Minimum DPS for a given number of rejoins (null once the rejoins would use up the timer).
+// Cycle DPS, shown with it on the beta card, is the run's DPS spread over the whole 300s raid
 // once the rejoins are taken out: DPS x (300 - 7 x rejoins) / 300.
 function rejoinDpsFor(mega, rejoins){
   const left = RAID_SECS - REJOIN_SECS * rejoins;
@@ -2554,10 +2566,7 @@ function teamRejoinTarget(cycleSecs, bossName){
   const rejoins = cycleSecs > 0 ? Math.floor(RAID_SECS / cycleSecs) : null;
   const mega = isMegaBoss(bossName);   // Mega and Primal bosses, as for Dynamic Punch+
   const dps = rejoins === null ? null : rejoinDpsFor(mega, rejoins);
-  // the 0-4 table, plus this run's count when it is higher - for the "All minimums" list
-  const counts = [0, 1, 2, 3, 4].concat(rejoins > 4 ? [rejoins] : []);
-  const table = counts.map(r => ({ rejoins: r, dps: rejoinDpsFor(mega, r) })).filter(x => x.dps !== null);
-  return { rejoins, dps, tier: mega ? "Tier 4 Mega" : "Tier 5", table };
+  return { rejoins, dps, tier: mega ? "Tier 4 Mega" : "Tier 5" };
 }
 
 function simulateTeam(P){
@@ -2565,7 +2574,9 @@ function simulateTeam(P){
     t: 0,
     // The boss starts the fight with an EMPTY bar (as Main DPS mode now does too), so its first
     // charge move has to be earned from its fast moves and the damage it takes.
-    boss: { energy: 0, acc: 0.5, nextCast: 1, inFlight: null, lastWasCM: false, unseen: 0 },
+    // acc: charge moves the boss has decided on but not cast yet (see step 5)
+    boss: { energy: 0, acc: 0, nextCast: 1, inFlight: null, lastWasCM: false, unseen: 0 },
+    rng: P.seed >>> 0,   // this run's random stream; copied into probes, so they see the same future
     mons: [{ tank: false, hp: P.main.hp, energy: 0, busyUntil: 0, cmCasts: 0 }]
       .concat(P.monMeta.slice(1).map(mm => ({ tank: true, type: mm.type, num: mm.num, hp: P.tanks[mm.type].hp, energy: 0, busyUntil: 0, cmCasts: 0 }))),
     active: 0, swap: null, pendingSwap: null,   // pendingSwap: { to, latest }
@@ -2613,6 +2624,15 @@ function simulateTeam(P){
 
 function newTeamRecorder(){
   return { dmg: [], events: [], segs: [{ t: 0, who: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], dodges: [], mainEnergy: [], ticks: [], state: [] };
+}
+
+// The run's random numbers (mulberry32): small, fast, and its whole state is one number in S, so
+// structuredClone copies it into a probe along with everything else.
+function teamRand(S){
+  let t = (S.rng = (S.rng + 0x6D2B79F5) >>> 0);
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }
 
 // Bank energy on one Pokemon, capped at 100. Returns how much went over the cap.
@@ -2814,10 +2834,12 @@ function teamStep(S, R, P, snap){
           : `${teamLabel(P, who)} ${dodged ? "dodges" : "takes"} ${P.bossCM.n}: ${dmg} damage, +${energyFromDamage(dmg) - over} energy${over ? ` (${over} over the cap)` : ""}` });
       // Sponging must keep at least 90% of the charge move's energy: no more than 10% may go over
       // 100. (All-or-nothing was too strict to ever pass; no limit at all let Eternatus waste 67 of
-      // 83 energy on a sponge it didn't need.)
-      if(S.probe && !m.tank && !S.probe.dodge){
+      // 83 energy on a sponge it didn't need.) A dodge must keep at least 85% of the (smaller)
+      // energy of the dodged hit - when the bar is too full for that, the timing is wrong for a
+      // dodge and a catch tank catches it instead.
+      if(S.probe && !m.tank){
         const gain = energyFromDamage(dmg);
-        if(gain - over < 0.9 * gain) S.probe.done = "fail";
+        if(gain - over < (S.probe.dodge ? TEAM_DODGE_KEEP : 0.9) * gain) S.probe.done = "fail";
       }
     }
     B.nextCast = t + (mv.cm ? 1 : 4);
@@ -2826,7 +2848,12 @@ function teamStep(S, R, P, snap){
   // 5. the boss picks its next move. Never a charge move straight after a charge move.
   if(!B.inFlight && t === B.nextCast){
     B.energyAtMove = B.energy;   // shown in the CSV: what it had when it chose this move
-    B.acc += P.aggro;
+    // Each Calculate is a new simulation: on every move the boss decides, at random with the
+    // aggression slider's chance, to use its charge move, and does so as soon as it has 100 energy
+    // (never twice in a row). Same average rate as the fixed pattern this replaced (+aggression
+    // per move), but the timing differs from run to run. One draw per move, whatever happens, so
+    // a sponge/dodge probe - which copies S, rng included - plays out the same boss as the run.
+    B.acc += teamRand(S) < P.aggro ? 1 : 0;
     const cm = !B.lastWasCM && B.energy >= 100 && B.acc >= 1;
     if(cm){ B.acc -= 1; B.energy -= 100; }
     else B.energy = Math.min(100, B.energy + P.bossFM.energyGain);
@@ -2925,8 +2952,9 @@ function teamMainCanAbsorb(snap, P, cast, land){
 
 // Can the main DPSer dodge this charge move instead? The same play-forward test as a sponge -
 // survives the (dodged) hit, and starts its next charge move after it lands without another boss
-// charge move arriving first - with two differences: no energy rule (a dodged hit brings in little
-// energy), and that charge move has to LAND before the main DPSer faints, not just start.
+// charge move arriving first - with two differences: the energy rule is 85% of the dodged hit's
+// energy (TEAM_DODGE_KEEP) rather than 90%, and that charge move has to LAND before the main DPSer
+// faints, not just start.
 function teamMainCanDodge(snap, P, cast, land){
   const L = structuredClone(snap);
   L.probe = { cast, land, done: null, dodge: true };
@@ -3041,6 +3069,8 @@ function runTeamSim(c){
   // the next tank in line belongs to a type listed after it (or no tanks are left)
   const mainRank = order.slice(0, order.indexOf("main")).filter(x => x !== "main").length;
   const P = {
+    // a new random stream for every run (window.__teamSeed, if set, repeats one - for testing)
+    seed: Number.isInteger(window.__teamSeed) ? window.__teamSeed : crypto.getRandomValues(new Uint32Array(1))[0],
     tanks, monMeta, mainRank,
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
     cmBuffer: $("ctCmBuffer").checked,
@@ -3186,7 +3216,7 @@ function teamTickRecord(P, S, R, before){
     bossCast, bossLanded: bossLanded.join("; "),
     mainEnergy: S.mons[0].energy, mainHp: Math.max(0, S.mons[0].hp),
     tank: tm ? name(tankIdx) : "", tankEnergy: tm ? tm.energy : "", tankHp: tm ? Math.max(0, tm.hp) : "",
-    bossEnergy: B.energy, bossAggro: B.acc.toFixed(2),
+    bossEnergy: B.energy, bossAggro: B.acc,
     notes: R.events.slice(before.events).map(e => e.text).join("; "),
   };
 }
@@ -3200,7 +3230,7 @@ function downloadTeamCsv(){
   const head = ["Tick", "Time (s)", "On field", "Player move started", "Player damage landed",
     `${main} damage`, `${tank} damage`, "Boss move started", "Boss move landed",
     `${main} energy`, `${main} HP`, `${tank} in play`, `${tank} energy`, `${tank} HP`,
-    `${boss} energy (max 100)`, `${boss} aggression counter`, "Notes"];
+    `${boss} energy (max 100)`, `${boss} charge moves decided, not cast`, "Notes"];
   const q = v => { const x = String(v === undefined || v === null ? "" : v); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
   const rows = R.ticks.filter(r => r.tick <= E).map(r => [r.tick, (r.tick / 2).toFixed(1), r.onField, r.started, r.landed,
     r.mainDmg, r.tankDmg, r.bossCast, r.bossLanded, r.mainEnergy, r.mainHp, r.tank, r.tankEnergy, r.tankHp,
@@ -3269,7 +3299,65 @@ function teamLogLine(P, e){
   }
 }
 
+// ---- Beta result card: collapsible sections and the Minimum DPS pop-up ----
+// Each section of the stat table (Rotation, DPS & Rejoins, Main DPSer) is its own <tbody>, and
+// its heading is a button that folds the rows away. Which ones are folded is remembered (this
+// browser only) so a recalculation or a later visit keeps the same layout; Copy as image leaves
+// folded sections out, so the picture matches the screen.
+const TEAM_FOLD_KEY = "teamSimFoldedSections";
+function teamFolded(){
+  try{ return new Set(JSON.parse(localStorage.getItem(TEAM_FOLD_KEY) || "[]")); }catch(e){ return new Set(); }
+}
+function teamGroupHead(key, title){
+  const folded = teamFolded().has(key);
+  return `<tbody class="team-grp${folded ? " is-folded" : ""}" data-grp="${key}">
+          <tr class="dps-stat-group dps-group-rotation"><th colspan="2"><button type="button" class="team-grp-toggle" aria-expanded="${!folded}">${title}</button></th></tr>`;
+}
+// Minimum DPS per cycle for 0-5 rejoins of 7.0s, as a small table under the "Minimum DPS" label.
+function teamMinPopClose(){
+  document.querySelectorAll(".team-min-pop").forEach(p => p.remove());
+  document.querySelectorAll(".team-min-btn[aria-expanded='true']").forEach(b => b.setAttribute("aria-expanded", "false"));
+}
+function teamMinPopOpen(btn){
+  teamMinPopClose();
+  const mega = btn.dataset.mega === "1", cur = btn.dataset.rejoins === "" ? null : +btn.dataset.rejoins;
+  const rows = [0, 1, 2, 3, 4, 5].map(r => {
+    const v = rejoinDpsFor(mega, r);
+    return `<tr class="${r === cur ? "is-current" : ""}"><td>${r} rejoin${r === 1 ? "" : "s"}</td><td>${v === null ? "&mdash;" : v.toFixed(2)}</td></tr>`;
+  }).join("");
+  const pop = document.createElement("div");
+  pop.className = "team-min-pop";
+  pop.setAttribute("role", "dialog");
+  pop.setAttribute("aria-label", "Minimum DPS per cycle with 7s rejoin times");
+  pop.innerHTML = `<table><thead><tr><th colspan="2">Minimum DPS per cycle with 7s rejoin times</th></tr></thead><tbody>${rows}</tbody></table>`;
+  document.body.appendChild(pop);
+  // under the label, kept inside the window
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth;
+  const left = Math.min(Math.max(8, r.left), document.documentElement.clientWidth - w - 8);
+  pop.style.left = (left + window.scrollX) + "px";
+  pop.style.top = (r.bottom + window.scrollY + 6) + "px";
+  btn.setAttribute("aria-expanded", "true");
+}
+document.addEventListener("click", e => {
+  const tg = e.target.closest(".team-grp-toggle");
+  if(tg){
+    const tb = tg.closest("tbody.team-grp"), folded = tb.classList.toggle("is-folded");
+    tg.setAttribute("aria-expanded", String(!folded));
+    const set = teamFolded();
+    folded ? set.add(tb.dataset.grp) : set.delete(tb.dataset.grp);
+    try{ localStorage.setItem(TEAM_FOLD_KEY, JSON.stringify([...set])); }catch(err){}
+    if(folded) teamMinPopClose();
+    return;
+  }
+  const mb = e.target.closest(".team-min-btn");
+  if(mb){ mb.getAttribute("aria-expanded") === "true" ? teamMinPopClose() : teamMinPopOpen(mb); return; }
+  if(!e.target.closest(".team-min-pop")) teamMinPopClose();
+});
+document.addEventListener("keydown", e => { if(e.key === "Escape") teamMinPopClose(); });
+window.addEventListener("resize", teamMinPopClose);
+
 function renderTeamSim(P, S, R){
+  teamMinPopClose();   // a new result replaces the row the pop-up belonged to
   const E = S.ended.t;
   const upTo = arr => arr.filter(x => x.t <= E);
   const dmg = upTo(R.dmg);
@@ -3313,6 +3401,28 @@ function renderTeamSim(P, S, R){
   // timeline bar
   const span = Math.max(E, 1);
   const segs = upTo(R.segs);
+  // Each attacker's own DPS: its damage over the time it was on the field (the main DPSer's dodges
+  // count, it is on the field for them). Catch tanks of one type are pooled.
+  const fieldTicks = new Map();
+  segs.forEach((sg, i) => {
+    if(sg.who < 0) return;
+    const to = Math.min(i + 1 < segs.length ? segs[i + 1].t : E, E);
+    if(to > sg.t) fieldTicks.set(sg.who, (fieldTicks.get(sg.who) || 0) + (to - sg.t));
+  });
+  // A catch tank's own DPS also carries the swaps it costs: 0.5s in and 0.5s out per catch - or
+  // just the 0.5s in when the run ends while it is still in.
+  R.swaps.filter(w => w.t < E).forEach(w => {
+    const ticks = w.until - w.t;
+    if(w.to > 0) fieldTicks.set(w.to, (fieldTicks.get(w.to) || 0) + ticks);
+    if(w.from > 0) fieldTicks.set(w.from, (fieldTicks.get(w.from) || 0) + ticks);
+  });
+  const ownDps = (dmgSum, ticks) => ticks > 0 ? (dmgSum / (ticks / 2)).toFixed(1) : "&mdash;";
+  const attackerRows = [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}</span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}</td></tr>`]
+    .concat(P.tanks.map((tp, i) => {
+      let ticks = 0;
+      fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
+      return `<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, null, { type: i })}<span>${tp.name}</span></span></td><td>${ticks ? ownDps(dmgByType[i], ticks) : "&mdash;"}</td></tr>`;
+    })).join("");
   const bar = segs.map((s, i) => {
     const to = i + 1 < segs.length ? segs[i + 1].t : E;
     if(to <= s.t) return "";
@@ -3381,22 +3491,22 @@ function renderTeamSim(P, S, R){
       <div class="team-tl">${bar}</div>
       <div class="team-tl-axis">${axis}</div>
       <div class="team-tl-legend"><span><em style="background:#3d9dff"></em>${mainIco}</span><span><em style="background:#f5b94a"></em>${typeIcos.join("")}</span><span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
-      <table class="dps-stat-table">
-        <tbody>
-          <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Rotation</th></tr>
+      <table class="dps-stat-table team-stat-table">
+        ${teamGroupHead("rotation", "Rotation")}
           <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
           <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
           <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`).join(" &middot; ")} &middot; ${mainIco} sponged ${byMain}${P.mainDodges ? ` &middot; ${mainIco} dodged ${dodged}` : ""}${allInTaken ? ` &middot; ${mainIco} took ${allInTaken} going all in` : ""}${late ? ` &middot; ${late} too late to swap` : ""}</span></td></tr>
           <tr><td>Catch tanks used</td><td>${tanksIn} of ${P.qty}${P.tanks.length > 1 ? ` <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} ${usedByType[i]} of ${tp.qty}`).join(" &middot; ")}</span>` : ""}</td></tr>
           <tr><td>Swaps</td><td><span class="team-sub">${teamSym("swap", "Swap")}${swaps.length}</span> <span class="dps-stat-sub">${swapSecs.toFixed(1)}s spent swapping</span></td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodges.length} <span class="dps-stat-sub">${dodgeSecs.toFixed(1)}s not attacking &middot; ${P.dodgeLimit ? `${P.dodgeLimit} allowed` : "no limit"}</span></td></tr>` : ""}
-          <tr class="dps-stat-group dps-group-rotation"><th colspan="2">DPS &amp; Rejoins</th></tr>
+        </tbody>
+        ${teamGroupHead("rejoins", "DPS &amp; Rejoins")}
           <tr><td>Expected rejoins</td><td>${rj.rejoins === null ? "&mdash;" : rj.rejoins}</td></tr>
-          <tr><td>DPS Minimum</td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}
-            <details class="team-rejoin-more"><summary>All minimums</summary><div class="team-rejoin-list">${rj.table.map(x =>
-              `<span class="${x.rejoins === rj.rejoins ? "is-current" : ""}">${x.rejoins} rejoin${x.rejoins === 1 ? "" : "s"} <b>${x.dps.toFixed(2)}</b></span>`).join("")}</div></details></td></tr>
-          <tr><td>Lobby DPS</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - REJOIN_SECS * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
-          <tr class="dps-stat-group dps-group-rotation"><th colspan="2">Main DPSer</th></tr>
+          ${attackerRows}
+          <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-mega="${isMegaBoss(P.bossName) ? 1 : 0}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}">Minimum DPS</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
+          <tr><td>Cycle DPS</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - REJOIN_SECS * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
+        </tbody>
+        ${teamGroupHead("main", "Main DPSer")}
           <tr><td>HP left</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${P.main.hp} <span class="dps-stat-sub">${pct.toFixed(0)}%</span></td></tr>
           <tr><td>Unspent energy</td><td>${leftover} <span class="dps-stat-sub">of ${P.main.cmCost} for ${P.main.cm.n}</span></td></tr>
           <tr><td>Ended</td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
@@ -5943,6 +6053,7 @@ function shareCardData(){
   };
   const rows = [];
   card.querySelectorAll(".dps-stat-table tr").forEach(tr => {
+    if(tr.closest("tbody.is-folded")) return;   // a folded section is left out, as on screen
     const th = tr.querySelector("th"), td = tr.querySelectorAll("td");
     if(th){
       const cs = getComputedStyle(th);
@@ -5967,7 +6078,7 @@ function shareCardData(){
     }
     if(td.length === 2){
       const valueOnly = td[1].cloneNode(true);
-      valueOnly.querySelectorAll(".dps-stat-sub, .dps-stat-math, .team-rejoin-more").forEach(e => e.remove());
+      valueOnly.querySelectorAll(".dps-stat-sub, .dps-stat-math").forEach(e => e.remove());
       rows.push({ k: txt(td[0]), v: named(valueOnly), math: txt(td[1].querySelector(".dps-stat-math")),
                   sub: named(td[1].querySelector(".dps-stat-sub")), vColor: getComputedStyle(td[1]).color });
     }
