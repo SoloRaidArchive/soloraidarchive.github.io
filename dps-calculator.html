@@ -1055,6 +1055,11 @@ if ("serviceWorker" in navigator) {
   .team-log tr.lr-boss td:first-child{ box-shadow:inset 3px 0 0 #ff6b8a; }
   .team-log tr.lr-ct td:first-child{ box-shadow:inset 3px 0 0 #f5b94a; }
   .team-log tr.lr-main td:first-child{ box-shadow:inset 3px 0 0 #3d9dff; }
+  .team-log tr.lr-fm td:first-child{ box-shadow:inset 3px 0 0 var(--border); }
+  .team-log tr.lr-fm .team-line{ color:var(--text-dim); }
+  .team-log tr.is-after{ opacity:.6; }
+  .team-log tr.team-after-head td{ padding:9px 8px 5px; font-size:10.5px; font-weight:800; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--text-dim); border-top:1.5px dashed var(--border); }
   .team-tl-legend span{ display:inline-flex; align-items:center; gap:4px; }
   .team-csv-row{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:16px 0 4px; font-size:12px; }
   .team-csv-btn{ font:800 12.5px 'Manrope',sans-serif; color:var(--blue); background:var(--card); border:2px solid var(--border);
@@ -1267,7 +1272,7 @@ if ("serviceWorker" in navigator) {
       <ul>
         <li>One main DPSer and up to three kinds of catch tank (add them with "+ Add another catch tank"). Each tank is used once: it swaps in as the boss's charge move lands, fires the number of charge moves set on its card (using fast moves in between as needed), and swaps back.</li>
         <li>The boss starts with 0 energy and gains energy from its fast moves and from half the damage it takes (the moment that damage lands), never holding more than 100. Its charge move costs 100, and it never casts two in a row. When it casts is random: on each of its moves it has the aggression slider's chance of deciding to use its charge move, which it does as soon as it has 100 energy. So every Calculate is a new simulation, and the result can change from one to the next.</li>
-        <li>Swaps take 0.5s each way and are made at the last moment before the hit lands.</li>
+        <li>Swaps take 0.5s each way (when they start is chosen for the highest DPS - see below).</li>
         <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
         <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many cycles fit in the 300s timer; Minimum Cycle DPS and Cumulative DPS take that many rejoins of this length out of the timer.</li>
@@ -1278,6 +1283,7 @@ if ("serviceWorker" in navigator) {
       <p class="beta-h">Not modelled yet</p>
       <ul>
         <li>Dodging fast moves, dodging by catch tanks, Resolve Nerf and tick-perfect casts.</li>
+        <li>Multi-player Buffs (Friendship, Primal/Mega boost, Party Power, Enrage): switched off in this mode for now, and their section is hidden.</li>
         <li>Rejoining, hot swaps, and double or trailing catch tanks.</li>
         <li>Boss HP and the raid timer (300s is only a safety limit), and changing weather.</li>
       </ul>
@@ -1627,8 +1633,8 @@ if ("serviceWorker" in navigator) {
     </div>
   </div>
 
-  <!-- STEP 3: MULTI-PLAYER BUFFS -->
-  <div class="step-card">
+  <!-- STEP 3: MULTI-PLAYER BUFFS (switched off in the beta - see mpBuffsOff) -->
+  <div class="step-card team-hide">
     <details id="multiplayerDetails">
       <summary class="step-head" style="cursor:pointer; list-style:none;">
         <div class="step-num">3</div>
@@ -2747,12 +2753,15 @@ function teamStep(S, R, P, snap){
       return;
     }
     if(S.finishing){ end(S.safePoint !== null ? S.safePoint : t, S.allIn ? "all-in-fainted" : "finish-missed"); return; }
-    // The main DPSer can't continue. With tanks still unused, the run is cut back to the end of
-    // the last catch tank's turn; otherwise it ends here.
-    const tanksLeft = S.nextTank <= P.qty;
-    if(tanksLeft && S.lastTankDoneAt !== null) end(S.lastTankDoneAt, "main-fainted-cut");
-    else if(S.nextTank === 1) end(t, "main-fainted-early");
+    // The main DPSer can't safely continue, so it bails at its last safe point: the last charge
+    // move that landed before it would faint - everything up to there counts, catch tanks left or
+    // not. (This used to cut back to the end of the last catch tank's turn whenever tanks were
+    // unused, which threw away whatever came after: a Mega Mewtwo X worn down by Snarl lost 35s
+    // and 1,444 damage, and the card showed it on 105 HP beside "fainted".) S.ended.faintAt keeps
+    // when the faint would have come, for the Ended line.
+    if(S.nextTank === 1 && S.safePoint === null) end(t, "main-fainted-early");
     else end(S.safePoint !== null ? S.safePoint : t, "main-fainted");   // no half-built charge move
+    S.ended.faintAt = t;
   };
 
   // Decide who takes a boss charge move cast now, landing at `land`.
@@ -3151,8 +3160,8 @@ function teamBossContextFromDom(){
     bossName, bossAtk: bs.atk, bossDef: bs.def, bossFMMove, bossCMMove,
     bossFMMods: base(bossFMMove, "bossStabFM"), bossCMMods: base(bossCMMove, "bossStabCM"),
     playerMods: {
-      partyPower: $("partyPower").checked, zacian: $("zacianBlade").checked,
-      primalMega: parseFloat($("primalMega").value), friendship: parseFloat($("friendship").value),
+      partyPower: mpChecked("partyPower"), zacian: $("zacianBlade").checked,
+      primalMega: mpValue("primalMega"), friendship: mpValue("friendship"),
       dynamicPunch: $("dynamicPunch").checked && isMegaBoss(bossName),
     },
   };
@@ -3379,9 +3388,12 @@ function downloadTeamCsv(){
     `${main} energy`, `${main} HP`, `${tank} in play`, `${tank} energy`, `${tank} HP`,
     `${boss} energy (max 100)`, `${boss} charge moves decided, not cast`, "Notes"];
   const q = v => { const x = String(v === undefined || v === null ? "" : v); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
-  const rows = R.ticks.filter(r => r.tick <= E).map(r => [r.tick, (r.tick / 2).toFixed(1), r.onField, r.started, r.landed,
+  // Up to the end of the results - or, when the main DPSer bailed before it would faint, on to the
+  // faint, those extra rows marked in Notes (they aren't counted in the DPS).
+  const last = S.ended.faintAt != null ? S.ended.faintAt : E;
+  const rows = R.ticks.filter(r => r.tick <= last).map(r => [r.tick, (r.tick / 2).toFixed(1), r.onField, r.started, r.landed,
     r.mainDmg, r.tankDmg, r.bossCast, r.bossLanded, r.mainEnergy, r.mainHp, r.tank, r.tankEnergy, r.tankHp,
-    r.bossEnergy, r.bossAggro, r.notes]);
+    r.bossEnergy, r.bossAggro, r.tick > E ? ["After the results end (not counted)", r.notes].filter(Boolean).join("; ") : r.notes]);
   const csv = "\ufeff" + [head].concat(rows).map(r => r.map(q).join(",")).join("\r\n");   // BOM: Excel reads ⭐/→ correctly
   const slug = v => v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const a = document.createElement("a");
@@ -3442,6 +3454,7 @@ function teamLogLine(P, e){
       + (v.ko ? ` <span class="team-dim">fainted</span>`
               : ` <span class="team-num pos">+${v.energy} energy</span>${v.over ? ` <span class="team-dim">(${v.over} over 100)</span>` : ""}`);
     case "cast": return `${ico(v.who)} <b>${v.move}</b> Cast${v.finish ? ` <span class="team-dim">&middot; finisher</span>` : ""}`;
+    case "chip": return `${teamIcon(P, "boss")} <b>${v.move}</b> ${v.n > 1 ? `&times;${v.n}` : "Hit"} <span class="team-arrow">&rarr;</span> ${ico(v.who)} <span class="team-num neg">&minus;${v.dmg} HP</span>`;
     case "cmHit": return `${ico(v.who)} <b>${v.move}</b> Hit <span class="team-num">${v.dmg} dmg</span>`;
     case "faint": return `${teamSym("faint", "Fainted")}${ico(v.who)} fainted`;
     default: return e.text;
@@ -3583,8 +3596,7 @@ function renderTeamSim(P, S, R){
     "last-tank-fainted": `The last ${lastType.name} fainted before it could fire`,
     "tanks": `The boss cast ${P.bossCM.n} with no catch tanks left`,
     "no-safe-catch": `No catch tanks left and ${P.main.name} couldn't safely sponge the next ${P.bossCM.n}; results stop at the last safe point`,
-    "main-fainted-cut": `${P.main.name} fainted; results stop after the last catch tank's turn`,
-    "main-fainted": `${P.main.name} fainted after the catch tanks were used; results stop when the last charge move landed`,
+    "main-fainted": `${P.main.name} would faint at ${((S.ended.faintAt ?? S.ended.t) / 2).toFixed(1)}s, so it bails after the last charge move that landed (${(S.ended.t / 2).toFixed(1)}s)`,
     "main-fainted-early": `${P.main.name} fainted before any catch tank was needed`,
     "timer": "Reached the 300s raid timer",
   };
@@ -3660,8 +3672,31 @@ function renderTeamSim(P, S, R){
   }).join("");
   const axis = [0, 0.25, 0.5, 0.75, 1].map(f => `<span>${(secs * f).toFixed(0)}s</span>`).join("");
 
-  const events = upTo(R.events);
-  const shown = events.slice(0, 80);
+  // Timeline rows: the run's events, plus grouped lines for the boss's fast moves that land between
+  // them ("Feint Attack ×4 → Mega Mewtwo X −32 HP"), so HP lost to fast moves is on record too.
+  // When the main DPSer bailed before it would faint, the rows carry on past the end of the results,
+  // dimmed under an "After the results end" divider, up to the faint itself.
+  const logEnd = S.ended.faintAt != null ? S.ended.faintAt : E;
+  const items = R.events.filter(e => e.t <= logEnd).map(e => ({ t: e.t, ord: 1, e }))
+    .concat(R.bossMoves.filter(b => !b.cm && b.t <= logEnd).map(h => ({ t: h.t, ord: 0, h })))
+    .sort((a, b) => a.t - b.t || a.ord - b.ord);
+  const events = []; let grp = null;
+  const flushFm = () => {
+    if(!grp) return;
+    const st = R.state[grp.t] || [];
+    events.push({ t: grp.t, kind: "fm", ev: { type: "chip", who: grp.who, n: grp.n, dmg: grp.dmg, move: P.bossFM.n },
+      mainHp: st[0] ? st[0].hp : null, tankWho: grp.who > 0 ? grp.who : null, tankHp: grp.who > 0 && st[grp.who] ? st[grp.who].hp : null });
+    grp = null;
+  };
+  items.forEach(it => {
+    if(it.h){
+      if(grp && grp.who !== it.h.who) flushFm();
+      if(!grp) grp = { who: it.h.who, n: 0, dmg: 0 };
+      grp.n++; grp.dmg += it.h.dmg; grp.t = it.t;
+    } else { flushFm(); events.push(it.e); }
+  });
+  flushFm();
+  const shown = events.slice(0, 160);
   // the tank column's header: the catch tank type's icon, or every type's when there are several
   const mainIco = teamIcon(P, 0), tankIco = P.tanks.map((tp, i) => teamIcon(P, null, { type: i })).join("");
   // HP cells: low HP (a quarter or less) and fainted are coloured, as in the main result tables.
@@ -3674,7 +3709,9 @@ function renderTeamSim(P, S, R){
   // Time | Event | main icon | main HP | tank icon | tank HP. The main DPSer is on every row;
   // the tank column is empty when no tank is involved or in.
   const icoCell = who => `<td class="team-ico-col">${who === null || who === undefined ? "" : teamIcon(P, who)}</td>`;
-  const log = shown.map(e => `<tr class="lr-${e.kind}"><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-line">${teamLogLine(P, e)}</span></td>`
+  const afterHead = `<tr class="team-after-head"><td colspan="6">After the results end &middot; until ${P.main.name} would faint (${(logEnd / 2).toFixed(1)}s)</td></tr>`;
+  const log = shown.map((e, i) => (e.t > E && (i === 0 || shown[i - 1].t <= E) ? afterHead : "")
+      + `<tr class="lr-${e.kind}${e.t > E ? " is-after" : ""}"><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-line">${teamLogLine(P, e)}</span></td>`
       + icoCell(0) + hpCell(e.mainHp, P.main.hp)
       + icoCell(e.tankWho || null) + (e.tankWho ? hpCell(e.tankHp, tankMaxHp(e.tankWho)) : hpCell(null))
       + `</tr>`).join("")
@@ -3760,7 +3797,7 @@ function renderTeamSim(P, S, R){
       </table>
       <div class="team-csv-row">
         <button type="button" class="team-csv-btn" onclick="downloadTeamCsv()">&#8681; Download tick-by-tick CSV</button>
-        <span class="team-dim">every action, one row per 0.5s turn, up to ${secs.toFixed(1)}s</span>
+        <span class="team-dim">every action, one row per 0.5s turn, up to ${secs.toFixed(1)}s${S.ended.faintAt != null && S.ended.faintAt > E ? ` (and on to the faint at ${(S.ended.faintAt / 2).toFixed(1)}s)` : ""}</span>
       </div>
       <details class="team-log" open>
         <summary class="mod-summary">Timeline</summary>
@@ -4018,10 +4055,10 @@ function runCalculation(){
     eff: 1, // set per-move below
     weather: false,
     stab: false,
-    partyPower: document.getElementById("partyPower").checked,
+    partyPower: mpChecked("partyPower"),
     zacian: document.getElementById("zacianBlade").checked,
-    primalMega: parseFloat(document.getElementById("primalMega").value),
-    friendship: parseFloat(document.getElementById("friendship").value),
+    primalMega: mpValue("primalMega"),
+    friendship: mpValue("friendship"),
   };
 
   const bossName = document.getElementById("bossName").value.trim();
@@ -4033,7 +4070,7 @@ function runCalculation(){
     return;
   }
   const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
-  const t7Enraged = document.getElementById("t7Enraged").checked;
+  const t7Enraged = mpChecked("t7Enraged");
   const bossMods = bossModifierState();
   const _bs = bossStats(boss, bossCPMVal, bossMods);
   let bossAtk = _bs.atk, bossDef = _bs.def, bossHp = _bs.hp;
@@ -5339,7 +5376,7 @@ function playerMoveDamagePreviewHtml(){
   const boss = findPokemon(bossName);
   if(!boss) return "";
   const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
-  const t7Enraged = document.getElementById("t7Enraged").checked;
+  const t7Enraged = mpChecked("t7Enraged");
   let bossDef = bossStats(boss, bossCPMVal, bossModifierState()).def;
 
   const cmName = document.getElementById("playerCM").value.trim();
@@ -5349,11 +5386,11 @@ function playerMoveDamagePreviewHtml(){
   if(!cm || !fm) return "";
 
   const playerMods = {
-    partyPower: document.getElementById("partyPower").checked,
+    partyPower: mpChecked("partyPower"),
     zacian: document.getElementById("zacianBlade").checked,
     dynamicPunch: document.getElementById("dynamicPunch").checked && isMegaBoss(bossName),
-    primalMega: parseFloat(document.getElementById("primalMega").value),
-    friendship: parseFloat(document.getElementById("friendship").value),
+    primalMega: mpValue("primalMega"),
+    friendship: mpValue("friendship"),
   };
   const cmDmg = playerMoveDamage(cm, pkmnName, playerAtk, bossDef, Object.assign({}, playerMods, {
     eff: parseFloat(document.getElementById("effCM").value),
@@ -5481,7 +5518,7 @@ function updateBossPreview(){
   if(!name){ el.innerHTML = ""; if(dmgEl) dmgEl.innerHTML = ""; return; }
   if(!boss){ el.innerHTML = renderMiniPreview(name, null); if(dmgEl) dmgEl.innerHTML = ""; return; }
   const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
-  const t7Enraged = document.getElementById("t7Enraged").checked;
+  const t7Enraged = mpChecked("t7Enraged");
   const _pv = bossStats(boss, bossCPMVal, bossModifierState());
   let bAtk = _pv.atk, bDef = _pv.def, bHp = _pv.hp;
   el.innerHTML = renderMiniPreview(name, { atk: bAtk, def: bDef, hp: bHp });
@@ -6806,16 +6843,16 @@ function activeConditionsHtml(){
   if(on("zacianBlade"))  chips.push({ label: "Blade Boost", kind: "ae" });
   if(on("shieldAE"))     chips.push({ label: "Shield Boost", kind: "ae" });
   if(on("dynamicPunch")) chips.push({ label: "Dynamic Punch+", kind: "ae" });
-  if(on("partyPower"))   chips.push({ label: "Party Power", kind: "boost" });
-  if(on("t7Enraged"))    chips.push({ label: "Enraged", kind: "boost" });
+  if(mpChecked("partyPower")) chips.push({ label: "Party Power", kind: "boost" });
+  if(mpChecked("t7Enraged"))  chips.push({ label: "Enraged", kind: "boost" });
 
   const pm = document.getElementById("primalMega");
-  if(pm && parseFloat(pm.value) !== 1){
+  if(pm && mpValue("primalMega") !== 1){
     const txt = pm.selectedOptions[0] ? pm.selectedOptions[0].textContent.trim() : "Mega support";
     chips.push({ label: txt, kind: "boost" });
   }
   const fr = document.getElementById("friendship");
-  if(fr && parseFloat(fr.value) !== 1){
+  if(fr && mpValue("friendship") !== 1){
     const txt = fr.selectedOptions[0] ? fr.selectedOptions[0].textContent.trim() : "Friendship";
     chips.push({ label: txt, kind: "boost" });
   }
@@ -6853,9 +6890,16 @@ function bossModLabel(){
   return bits.length ? " \u00b7 " + bits.join(" \u00b7 ") : "";
 }
 
+// Multi-player Buffs (Friendship, Primal/Mega boost, Party Power, Enrage T7, Shadow Enrage) are
+// switched off for now in the beta, Simple Catch Tank Sim: its section is hidden there, and every
+// read goes through these, which give the "none" value in that mode - so a box left on in another
+// mode can't creep into a beta run. The settings themselves are kept for the other modes.
+function mpBuffsOff(){ return document.body.classList.contains("ct-mode-team"); }
+function mpChecked(id){ const e = document.getElementById(id); return !mpBuffsOff() && !!(e && e.checked); }
+function mpValue(id){ const e = document.getElementById(id); return mpBuffsOff() || !e ? 1 : parseFloat(e.value); }
+
 function bossModifierState(){
-  const g = id => { const e = document.getElementById(id); return e ? e.checked : false; };
-  return { t7: g("t7Enraged"), shadowT5: isShadowTier(), shadowEnraged: g("shadowEnraged") };
+  return { t7: mpChecked("t7Enraged"), shadowT5: isShadowTier(), shadowEnraged: mpChecked("shadowEnraged") };
 }
 
 // Selecting the Shadow T5 tier switches the boss to its Shadow variant, and deselecting reverts
