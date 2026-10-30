@@ -930,7 +930,16 @@ if ("serviceWorker" in navigator) {
   .team-tl i{ position:absolute; top:0; bottom:0; }
   .team-tl .seg-main{ background:#3d9dff; } .team-tl .seg-tank{ background:#f5b94a; }
   .team-tl .seg-swap{ background:repeating-linear-gradient(45deg,#8890a6 0 3px,transparent 3px 6px); }
-  .team-tl b{ position:absolute; top:0; width:2px; height:26px; background:#ff6b8a; }
+  .team-tl b{ position:absolute; top:0; width:2px; height:26px; background:#ff6b8a; z-index:2; cursor:help; }
+  .team-tl b::before{ content:""; position:absolute; top:0; bottom:0; left:-5px; right:-5px; }   /* a wider hover area */
+  .team-tl i{ cursor:help; }
+  .team-tl .is-tipped{ box-shadow:inset 0 0 0 2px rgba(255,255,255,.85); }
+  .team-tl b.is-tipped{ box-shadow:0 0 0 2px rgba(255,255,255,.85); }
+  .team-tl-tip{ position:absolute; z-index:70; max-width:280px; padding:8px 11px; border-radius:10px; white-space:pre-line;
+    background:var(--card); color:var(--text); border:1.5px solid var(--border); box-shadow:0 8px 24px rgba(0,0,0,.28);
+    font:600 12px/1.5 'Manrope',sans-serif; pointer-events:none; opacity:0; transition:opacity .1s; }
+  .team-tl-tip.on{ opacity:1; }
+  .team-tl-tip::first-line{ font-weight:800; }
   .team-target{ font-weight:800; }
   .dps-stat-table td.team-pace{ font-weight:800; }
   .dps-stat-table td.team-pace.ok{ color:#2e9e62; } .dps-stat-table td.team-pace.short{ color:#d6455d; }
@@ -3439,6 +3448,43 @@ function teamLogLine(P, e){
   }
 }
 
+// Timeline bar colours for the catch tank types, in priority order (the main DPSer is blue).
+const TEAM_TANK_COLORS = ["#f5b94a", "#b48cff", "#2ec4a6"];
+// The bar's hover details: one floating box (the bar clips anything inside it), shown over the
+// piece under the pointer, or on tap, with the lines from its data-tip.
+function teamTlTipShow(el){
+  let tip = document.querySelector(".team-tl-tip");
+  if(!tip){ tip = document.createElement("div"); tip.className = "team-tl-tip"; tip.setAttribute("role", "tooltip"); document.body.appendChild(tip); }
+  tip.textContent = el.dataset.tip;
+  tip.classList.add("on");
+  const r = el.getBoundingClientRect(), bar = el.closest(".team-tl").getBoundingClientRect();
+  const w = tip.offsetWidth, h = tip.offsetHeight, vw = document.documentElement.clientWidth;
+  const cx = r.left + r.width / 2;
+  tip.style.left = (Math.min(Math.max(8, cx - w / 2), vw - w - 8) + window.scrollX) + "px";
+  const above = bar.top - h - 8;
+  tip.style.top = ((above >= 8 ? above : bar.bottom + 8) + window.scrollY) + "px";
+  document.querySelectorAll(".team-tl .is-tipped").forEach(x => x.classList.remove("is-tipped"));
+  el.classList.add("is-tipped");
+}
+function teamTlTipHide(){
+  const tip = document.querySelector(".team-tl-tip");
+  if(tip) tip.classList.remove("on");
+  document.querySelectorAll(".team-tl .is-tipped").forEach(x => x.classList.remove("is-tipped"));
+}
+// A mouse shows it on hover and hides it on leaving; a touch shows it on tap and keeps it until
+// the next tap elsewhere (phones fire a "mouse left" right after a tap, which would hide it at once).
+document.addEventListener("pointerover", e => {
+  if(e.pointerType !== "mouse") return;
+  const el = e.target.closest(".team-tl [data-tip]"); if(el) teamTlTipShow(el);
+});
+document.addEventListener("pointerout", e => {
+  if(e.pointerType !== "mouse" || !e.target.closest(".team-tl [data-tip]")) return;
+  const to = e.relatedTarget;
+  if(!(to && to.closest && to.closest(".team-tl [data-tip]"))) teamTlTipHide();
+});
+document.addEventListener("click", e => { const el = e.target.closest(".team-tl [data-tip]"); el ? teamTlTipShow(el) : teamTlTipHide(); });
+window.addEventListener("scroll", teamTlTipHide, { passive: true });
+
 // Hover (or tap) help for the two DPS rows. The icon is drawn by CSS, so it adds no text to
 // the row's label - Copy as image reads the label as "Cycle DPS", not "Cycle DPS i".
 const teamCycleTip = () => "This Cycle DPS: the DPS of one cycle, from the start until the run ends, counting the main DPSer and its catch tanks. It’s the big number at the top.";
@@ -3573,16 +3619,45 @@ function renderTeamSim(P, S, R){
       onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; });
       return `<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, null, { type: i })}<span>${tp.name}</span></span></td><td>${ticks ? ownDps(dmgByType[i], ticks) : "&mdash;"}${uptime(up)}</td></tr>`;
     })).join("");
+  // Hover (or tap) details for each piece of the bar, built from the run's events: who was in and
+  // what they did, each swap, each dodge, and each boss charge move and who handled it.
+  const sec = t => `${(t / 2).toFixed(1)}s`;
+  const evIn = (from, to) => upTo(R.events).filter(e => e.ev && e.t >= from && e.t <= to);
+  const segTip = (who, from, to) => {
+    const lines = [`${teamLabel(P, who)} · ${sec(from)}–${sec(to)}`];
+    evIn(from, to).forEach(e => {
+      const v = e.ev;
+      if(v.type === "cast" && v.who === who) lines.push(`${sec(e.t)}  ${v.move} cast${v.finish ? " (finisher)" : ""}`);
+      else if(v.type === "cmHit" && v.who === who) lines.push(`${sec(e.t)}  ${v.move} hit: ${v.dmg} dmg`);
+      else if(v.type === "hit" && v.who === who) lines.push(`${sec(e.t)}  ${v.dodged ? "Dodged" : who > 0 ? "Caught" : "Took"} ${P.bossCM.n}: −${v.dmg} HP${v.ko ? ", fainted" : `, +${v.energy} energy`}`);
+      else if(v.type === "faint" && v.who === who) lines.push(`${sec(e.t)}  Fainted`);
+    });
+    return lines;
+  };
+  const tipAttr = lines => ` data-tip="${lines.join("\n").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")}"`;
   const bar = segs.map((s, i) => {
     const to = i + 1 < segs.length ? segs[i + 1].t : E;
     if(to <= s.t) return "";
-    const cls = s.who === -1 ? "seg-swap" : s.who === 0 ? "seg-main" : "seg-tank";
-    return `<i class="${cls}" style="left:${(s.t / span * 100).toFixed(2)}%;width:${((to - s.t) / span * 100).toFixed(2)}%"></i>`;
+    const pos = `left:${(s.t / span * 100).toFixed(2)}%;width:${((to - s.t) / span * 100).toFixed(2)}%`;
+    if(s.who === -1){
+      const w = R.swaps.find(x => x.t === s.t);
+      const tip = w ? [`${teamLabel(P, w.from)} out, ${teamLabel(P, w.to)} in`, `Swap ${sec(w.t)}–${sec(Math.min(w.until, E))}`] : [`Swap ${sec(s.t)}`];
+      return `<i class="seg-swap" style="${pos}"${tipAttr(tip)}></i>`;
+    }
+    if(s.who === 0) return `<i class="seg-main" style="${pos}"${tipAttr(segTip(0, s.t, to))}></i>`;
+    const ty = typeOf(s.who);
+    return `<i class="seg-tank" data-type="${ty}" style="${pos};background:${TEAM_TANK_COLORS[ty % TEAM_TANK_COLORS.length]}"${tipAttr(segTip(s.who, s.t, to))}></i>`;
   }).join("") + dodges.map(d => {
     const to = Math.min(d.until, E);
-    return to > d.t ? `<i class="seg-dodge" title="${P.main.name} dodges ${P.bossCM.n}" style="left:${(d.t / span * 100).toFixed(2)}%;width:${((to - d.t) / span * 100).toFixed(2)}%"></i>` : "";
-  }).join("") + decs.map(d =>
-    `<b style="left:${(d.cast / span * 100).toFixed(2)}%" title="${P.bossCM.n} cast at ${(d.cast / 2).toFixed(1)}s"></b>`).join("");
+    const hit = R.bossMoves.find(b => b.cast === d.cast);
+    const tip = [`${P.main.name} dodges ${P.bossCM.n}`, `${sec(d.t)}–${sec(d.until)}${hit ? ` · −${hit.dmg} HP` : ""}`];
+    return to > d.t ? `<i class="seg-dodge" style="left:${(d.t / span * 100).toFixed(2)}%;width:${((to - d.t) / span * 100).toFixed(2)}%"${tipAttr(tip)}></i>` : "";
+  }).join("") + decs.map(d => {
+    const castEv = upTo(R.events).find(e => e.t === d.cast && e.ev && e.ev.type === "bossCM");
+    const outcome = castEv ? castEv.text.replace(/^.*?→\s*/, "") : "";
+    const tip = [`${P.bossName} casts ${P.bossCM.n} · ${sec(d.cast)}`, outcome ? outcome.charAt(0).toUpperCase() + outcome.slice(1) : "", d.land <= E ? `Lands ${sec(d.land)}` : ""].filter(Boolean);
+    return `<b style="left:${(d.cast / span * 100).toFixed(2)}%"${tipAttr(tip)}></b>`;
+  }).join("");
   const axis = [0, 0.25, 0.5, 0.75, 1].map(f => `<span>${(secs * f).toFixed(0)}s</span>`).join("");
 
   const events = upTo(R.events);
@@ -3640,7 +3715,7 @@ function renderTeamSim(P, S, R){
       </div>
       <div class="team-tl">${bar}</div>
       <div class="team-tl-axis">${axis}</div>
-      <div class="team-tl-legend"><span><em style="background:#3d9dff"></em>${mainIco}</span><span><em style="background:#f5b94a"></em>${typeIcos.join("")}</span><span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
+      <div class="team-tl-legend"><span><em style="background:#3d9dff"></em>${mainIco}</span>${typeIcos.map((ico, i) => `<span><em style="background:${TEAM_TANK_COLORS[i % TEAM_TANK_COLORS.length]}"></em>${ico}</span>`).join("")}<span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
       <table class="dps-stat-table team-stat-table">
         ${teamGroupHead("rejoins", "DPS &amp; Rejoins")}
           <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
@@ -6334,7 +6409,9 @@ function shareCardData(){
     const tl = card.querySelector(".team-tl");
     if(tl) teamTimeline = {
       segs: [...tl.querySelectorAll("i")].map(i => ({ l: parseFloat(i.style.left) || 0, w: parseFloat(i.style.width) || 0,
-        kind: i.classList.contains("seg-dodge") ? "dodge" : i.classList.contains("seg-swap") ? "swap" : i.classList.contains("seg-tank") ? "tank" : "main" })),
+        kind: i.classList.contains("seg-dodge") ? "dodge" : i.classList.contains("seg-swap") ? "swap" : i.classList.contains("seg-tank") ? "tank" : "main",
+        type: i.dataset.type !== undefined ? +i.dataset.type : null })),
+      tankTypes: window.__teamSim.P.tanks.map((tp, i) => ({ name: tp.name, color: TEAM_TANK_COLORS[i % TEAM_TANK_COLORS.length] })),
       marks: [...tl.querySelectorAll("b")].map(pct),
       axis: [...card.querySelectorAll(".team-tl-axis span")].map(txt),
       dodges: !!card.querySelector(".team-tl .seg-dodge"),
@@ -6584,7 +6661,10 @@ async function buildResultShareImage(){
     const col = { main: "#3d9dff", tank: "#f5b94a", swap: "#8890a6", dodge: "#1b5fae" };
     x.save(); rr(bx, y, bw, bh, 5); x.clip();
     x.fillStyle = C.line; x.fillRect(bx, y, bw, bh);
-    g.segs.forEach(sg => { x.fillStyle = col[sg.kind]; x.fillRect(bx + bw * sg.l / 100, y, Math.max(1, bw * sg.w / 100), bh); });
+    g.segs.forEach(sg => {
+      x.fillStyle = sg.kind === "tank" && sg.type !== null && g.tankTypes ? g.tankTypes[sg.type].color : col[sg.kind];
+      x.fillRect(bx + bw * sg.l / 100, y, Math.max(1, bw * sg.w / 100), bh);
+    });
     x.fillStyle = "#ff6b8a"; g.marks.forEach(m => x.fillRect(bx + bw * m / 100 - 1, y, 2, bh));
     x.restore();
     x.fillStyle = C.dim; x.font = "600 10px Inter, sans-serif";
@@ -6593,11 +6673,13 @@ async function buildResultShareImage(){
       x.fillText(a, bx + bw * i / Math.max(1, g.axis.length - 1), y + bh + 13);
     });
     // legend
-    const legend = [["main", "Main DPSer"], ["tank", "Catch tanks"], ["swap", "Swap"]].concat(g.dodges ? [["dodge", "Dodge"]] : []).concat([["cm", "Boss charge move"]]);
+    const legend = [[col.main, "Main DPSer"]]
+      .concat(g.tankTypes ? g.tankTypes.map(tt => [tt.color, tt.name]) : [[col.tank, "Catch tanks"]])
+      .concat([[col.swap, "Swap"]]).concat(g.dodges ? [[col.dodge, "Dodge"]] : []).concat([["#ff6b8a", "Boss charge move"]]);
     x.textAlign = "left"; x.font = "700 10.5px Manrope, sans-serif";
     let lx = bx;
-    legend.forEach(([k, label]) => {
-      x.fillStyle = k === "cm" ? "#ff6b8a" : col[k];
+    legend.forEach(([color, label]) => {
+      x.fillStyle = color;
       x.fillRect(lx, y + bh + 25, 9, 9);
       x.fillStyle = C.dim; x.fillText(label, lx + 13, y + bh + 33);
       lx += x.measureText(label).width + 28;
