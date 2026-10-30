@@ -902,6 +902,17 @@ if ("serviceWorker" in navigator) {
   .team-target{ font-weight:800; }
   .team-target.ok{ color:#2e9e62; } .team-target.short{ color:#d6455d; }
   [data-theme="dark"] .team-target.ok{ color:#5fd08f; } [data-theme="dark"] .team-target.short{ color:#ff7a8f; }
+  /* Cycle / Cumulative DPS help: an "i" that shows its note on hover or tap (focus) */
+  .team-tip{ position:relative; display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px;
+    margin-left:4px; border-radius:50%; border:1.5px solid currentColor; color:var(--text-dim); cursor:help;
+    font:800 10px 'Manrope',sans-serif; vertical-align:1px; outline:none; }
+  .team-tip::before{ content:"i"; }
+  .team-tip::after{ content:attr(data-tip); position:absolute; left:-6px; top:calc(100% + 8px); z-index:40; width:250px;
+    padding:9px 11px; border-radius:10px; background:var(--card); color:var(--text); border:1.5px solid var(--border);
+    box-shadow:0 8px 24px rgba(0,0,0,.25); font:600 12px/1.45 'Manrope',sans-serif; text-align:left; white-space:normal;
+    opacity:0; pointer-events:none; transform:translateY(-3px); transition:opacity .12s, transform .12s; }
+  .team-tip:hover::after, .team-tip:focus::after{ opacity:1; transform:none; }
+  .team-tip:focus-visible{ box-shadow:0 0 0 2px var(--blue); }
   /* Beta result card: section headings fold their rows away */
   .team-grp-toggle{ all:unset; display:flex; align-items:center; justify-content:space-between; width:100%;
     cursor:pointer; box-sizing:border-box; }
@@ -1215,6 +1226,7 @@ if ("serviceWorker" in navigator) {
         <li>Swaps take 0.5s each way and are made at the last moment before the hit lands.</li>
         <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
+        <li>"Catch tank swaps in" sets when the swap to a catch tank starts, once the boss has begun its charge move: as soon as the boss casts, or just before the hit lands (the main DPSer attacks until then). Best timing (the default) runs the whole fight once for every swap time from the cast to the hit, 0.5s apart and with the same boss, and keeps the one with the highest DPS. A catch tank that comes in early attacks with fast moves, but holds its charge move and stays in until it has caught the hit.</li>
         <li>With "Main allowed to dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in on the last charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
       </ul>
@@ -1492,6 +1504,13 @@ if ("serviceWorker" in navigator) {
     </div>
     <div class="team-behavior-row">
       <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label>
+      <label class="check-item team-dodge-limit" title="When the catch tank is swapped in after the boss starts its charge move. Best timing runs the fight once for every swap time from the boss's cast to the last moment that still gets the tank in before the hit, and keeps the highest DPS. Swapping early lets the catch tank attack before the hit; swapping late keeps the main DPSer attacking longer.">Catch tank swaps in
+        <select id="ctSwapTiming">
+          <option value="best" selected>Best timing (highest DPS)</option>
+          <option value="early">As soon as the boss casts</option>
+          <option value="late">Just before the hit lands</option>
+        </select>
+      </label>
       <label class="check-item" title="Buffer the charge move from the Pokémon you swap out of, so a catch tank can fire its charge move as soon as the caught energy allows - without a fast move first. Same as CM Buffer in Single Catch Tank mode."><input type="checkbox" id="ctCmBuffer"> CM Buffer</label>
       <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main allowed to dodge</label>
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
@@ -2577,8 +2596,10 @@ function simulateTeam(P){
     // acc: charge moves the boss has decided on but not cast yet (see step 5)
     boss: { energy: 0, acc: 0, nextCast: 1, inFlight: null, lastWasCM: false, unseen: 0 },
     rng: P.seed >>> 0,   // this run's random stream; copied into probes, so they see the same future
+    // waitCatch: the tick the charge move this catch tank is in for lands - until then it only uses
+    // fast moves (no charge move, no swapping out), however early it came in
     mons: [{ tank: false, hp: P.main.hp, energy: 0, busyUntil: 0, cmCasts: 0 }]
-      .concat(P.monMeta.slice(1).map(mm => ({ tank: true, type: mm.type, num: mm.num, hp: P.tanks[mm.type].hp, energy: 0, busyUntil: 0, cmCasts: 0 }))),
+      .concat(P.monMeta.slice(1).map(mm => ({ tank: true, type: mm.type, num: mm.num, hp: P.tanks[mm.type].hp, energy: 0, busyUntil: 0, cmCasts: 0, waitCatch: null }))),
     active: 0, swap: null, pendingSwap: null,   // pendingSwap: { to, latest }
     hits: [], gains: [],
     nextTank: 1, lastTankDoneAt: null,
@@ -2688,6 +2709,13 @@ function teamStep(S, R, P, snap){
     }
     const holder = S.swap ? S.swap.to : S.active;   // who will be in when it lands
     const hm = S.mons[holder];
+    // Book the swap to the next catch tank, timed by "Catch tank swaps in" (teamSwapLatest): the
+    // Pokemon on the field keeps attacking while its next move finishes by "latest".
+    const bookSwap = (freeAt) => {
+      const to = S.nextTank++;
+      S.pendingSwap = { to, latest: teamSwapLatest(P, t, land, freeAt) };
+      S.mons[to].waitCatch = land;
+    };
     const dec = { cast: t, land, outcome: null, tank: null };
     R.decisions.push(dec);
     if(!hm.tank){
@@ -2749,8 +2777,8 @@ function teamStep(S, R, P, snap){
       }
       const freeAt = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0);
       if(freeAt + TEAM_SWAP_TICKS <= land){
-        S.pendingSwap = { to: S.nextTank++, latest: land - TEAM_SWAP_TICKS };
-        dec.outcome = "tank"; dec.tank = S.pendingSwap.to;
+        bookSwap(freeAt);
+        dec.outcome = "tank"; dec.tank = S.pendingSwap.to; dec.latest = S.pendingSwap.latest;
         R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → swap in ${teamLabel(P, dec.tank)}`, ev: { type: "bossCM", to: dec.tank, how: "tank" } });
       } else {
         dec.outcome = "late";
@@ -2760,11 +2788,14 @@ function teamStep(S, R, P, snap){
     }
     // A catch tank is still in from the last charge move.
     if(hm.hp > P.tanks[hm.type].bossCmDmg){
+      // It stays in to catch this one too (it used to finish its charge moves and swap out before
+      // the hit landed, leaving the main DPSer to take it), and fires its charge moves again after.
+      hm.waitCatch = land; hm.cmCasts = 0;
       dec.outcome = "tank-again"; dec.tank = holder;
       R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${teamLabel(P, holder)} is still in and takes it`, ev: { type: "bossCM", to: holder, how: "tank-again" } });
     } else if(S.nextTank <= P.qty && Math.max(t, hm.busyUntil) + TEAM_SWAP_TICKS <= land){
-      S.pendingSwap = { to: S.nextTank++, latest: land - TEAM_SWAP_TICKS };
-      dec.outcome = "tank"; dec.tank = S.pendingSwap.to;
+      bookSwap(Math.max(t, hm.busyUntil));
+      dec.outcome = "tank"; dec.tank = S.pendingSwap.to; dec.latest = S.pendingSwap.latest;
       R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → swap in ${teamLabel(P, dec.tank)}`, ev: { type: "bossCM", to: dec.tank, how: "tank" } });
     } else {
       dec.outcome = "tank-faint"; dec.tank = holder;
@@ -2779,6 +2810,9 @@ function teamStep(S, R, P, snap){
   S.hits = S.hits.filter(h => {
     if(h.tick !== t) return true;
     R.dmg.push({ t, who: h.who, dmg: h.dmg, mv: h.mv });
+    // a charge move landing gets its own line in the timeline ("... Hit 312 dmg"), apart from its cast
+    if(h.cm && !S.probe) R.events.push({ t, kind: S.mons[h.who].tank ? "ct" : "main", text: `${teamLabel(P, h.who)}'s ${h.mv} hits: ${h.dmg} damage`,
+      ev: { type: "cmHit", who: h.who, move: h.mv, dmg: h.dmg } });
     B.energy = Math.min(100, B.energy + energyFromDamage(h.dmg));
     // Any charge move landing is a safe point: whatever energy built up has just been spent.
     if(h.cm && !S.probe) S.safePoint = Math.max(S.safePoint === null ? 0 : S.safePoint, t);
@@ -2867,13 +2901,15 @@ function teamStep(S, R, P, snap){
     const who = S.active, m = S.mons[who];
     if(m.busyUntil <= t && m.hp > 0){
       const side = sideOf(who);
-      // A swap is booked for the boss's charge move. It starts as LATE as possible - on the last
-      // tick that still gets the catch tank in before the hit lands - and until then the Pokemon
-      // on the field keeps attacking, as long as its next move finishes by that tick. Starting the
-      // swap the moment the boss began its charge move (as this first did) left the tank standing
-      // in for the whole animation: against Zekrom's 4.0s Outrage that was ~3s per catch of the
-      // tank's Dragon Tails instead of Eternatus's, plus 12 energy lost over the cap each time.
-      const nextDur = m.energy >= side.cmCost ? side.cm.ad : side.fm.ad;
+      // A swap is booked for the boss's charge move, to start by pendingSwap.latest - chosen by
+      // "Catch tank swaps in" (teamSwapLatest) - and until then the Pokemon on the field keeps
+      // attacking, as long as its next move finishes by that tick. Always swapping the moment the
+      // boss began its charge move (as this first did) left the tank standing in for the whole
+      // animation: against Zekrom's 4.0s Outrage that was ~3s per catch of the tank's Dragon Tails
+      // instead of Eternatus's, plus 12 energy lost over the cap each time - hence "best timing".
+      // a catch tank in ahead of its catch: fast moves only, and it stays in until the hit lands
+      const waiting = m.tank && m.waitCatch !== null && t < m.waitCatch;
+      const nextDur = m.energy >= side.cmCost && !waiting ? side.cm.ad : side.fm.ad;
       if(who === 0 && S.pendingDodge && t + nextDur > S.pendingDodge.latest){
         // Main allowed to dodge: its next move wouldn't finish before the dodge has to start, so it
         // stops here and dodges, busy until the charge move lands. Any wait before the dodge's
@@ -2884,7 +2920,7 @@ function teamStep(S, R, P, snap){
       } else if(S.pendingSwap && t + nextDur > S.pendingSwap.latest){
         const to = S.pendingSwap.to; S.pendingSwap = null;
         startSwap(who, to);
-      } else if(m.tank && m.cmCasts >= side.casts){
+      } else if(m.tank && m.cmCasts >= side.casts && !waiting){
         // Single catch tank: it has fired its "Charge moves" setting's worth (using fast moves in
         // between as needed). If it was the last one, the rotation ends
         // the moment its final charge move lands (this tick): with no tank left for the boss's
@@ -2897,7 +2933,7 @@ function teamStep(S, R, P, snap){
         // DPSer comes back and fires what it has built (see finishing).
         if(S.nextTank > P.qty && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges) S.finishing = true;
         startSwap(who, 0);   // back to the main
-      } else if(m.energy >= side.cmCost && !(m.tank && m.owesTap)){
+      } else if(m.energy >= side.cmCost && !(m.tank && m.owesTap) && !waiting){
         if(S.finishing && !m.tank && !S.probe){
           if(S.finishDeadline !== null && t + side.cm.ad > S.finishDeadline){
             end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return;
@@ -2932,6 +2968,24 @@ function teamStep(S, R, P, snap){
       }
     }
   }
+}
+
+// ---- Catch tank swaps in ----
+// When the swap to a catch tank may start at the latest, once the boss has cast its charge move:
+// "late": the last tick that still gets the tank in before the hit lands (TEAM_SWAP_TICKS before);
+// "early": as soon as the Pokemon on the field is free; "best": swapOffset ticks after the cast -
+// runTeamSim plays the whole fight once per offset, from 0 ("early") up to "late", with the same
+// boss, and keeps the highest-DPS run. One timing for every catch, so it can be done in a raid.
+function teamSwapLatest(P, cast, land, freeAt){
+  const late = land - TEAM_SWAP_TICKS;
+  if(P.swapTiming === "early") return Math.min(freeAt, late);
+  if(P.swapTiming === "best" && Number.isInteger(P.swapOffset)) return Math.min(cast + P.swapOffset, late);
+  return late;
+}
+// a run's DPS as the result card shows it: damage up to where it ended, over that time
+function teamRunDps(S, R){
+  const E = S.ended.t;
+  return E > 0 ? R.dmg.reduce((a, d) => a + (d.t <= E ? d.dmg : 0), 0) / (E / 2) : 0;
 }
 
 // Can the main DPSer take ("sponge") this charge move itself? Plays the fight forward from the
@@ -3081,6 +3135,8 @@ function runTeamSim(c){
     // All in on the last charge move: with no catch tank left, finish what it is building rather
     // than bail on it
     allIn: $("ctAllIn").checked,
+    // Catch tank swaps in: "best" (highest damage), "early" (as soon as the boss casts), "late"
+    swapTiming: ["best", "early", "late"].includes($("ctSwapTiming").value) ? $("ctSwapTiming").value : "best",
     bossName: c.bossName,
     bossFM: { n: c.bossFMMove.n, ad: c.bossFMMove.ad, energyGain: c.bossFMMove.energy || 0 },
     bossCM: { n: c.bossCMMove.n, ad: c.bossCMMove.ad },
@@ -3095,7 +3151,19 @@ function runTeamSim(c){
   // a dodged charge move does 25% of its damage, rounded down - as Dodge CM does in the other modes
   P.main.bossCmDmgDodged = Math.floor(P.main.bossCmDmg * 0.25);
   P.tank = tanks[0];   // the first catch tank type in the priority order
-  const { S, R } = simulateTeam(P);
+  let run;
+  if(P.swapTiming === "best"){
+    // Best timing: the whole fight once per swap time - 0, 0.5s, 1.0s ... after the boss casts, up
+    // to just before the hit lands - with the same boss (same seed), keeping the highest DPS.
+    // Ties go to the later swap.
+    for(let k = 0; k <= Math.max(0, P.bossCM.ad - TEAM_SWAP_TICKS); k++){
+      const r = simulateTeam(Object.assign({}, P, { swapOffset: k }));
+      const dps = teamRunDps(r.S, r.R);
+      if(!run || dps >= run.dps - 1e-9) run = { S: r.S, R: r.R, dps, k };
+    }
+    P.swapOffset = run.k;
+  } else run = simulateTeam(P);
+  const { S, R } = run;
   window.__teamSim = { P, S, R };   // the last run: read by the CSV download, and handy to inspect
   return renderTeamSim(P, S, R);
 }
@@ -3287,17 +3355,23 @@ function teamLogLine(P, e){
         : v.how === "tank-again" ? `${ico(v.to)} is still in and takes it`
         : v.how === "tank-faint" ? `lands on ${ico(v.to)}`
         : `no catch tank left`;
-      return `${teamIcon(P, "boss")} ${cm} <span class="team-arrow">&rarr;</span> ${tail}`;
+      return `${teamIcon(P, "boss")} ${cm} Cast <span class="team-arrow">&rarr;</span> ${tail}`;
     }
     case "swap": return `${teamSym("swap", "Swap")}${ico(v.who)} ${v.who === 0 ? "back in" : "in"}`;
-    case "hit": return `${ico(v.who)} ${v.dodged ? "dodges" : "takes"} ${cm} <span class="team-num neg">&minus;${v.dmg} HP</span>`
+    case "hit": return `${teamIcon(P, "boss")} ${cm} Hit <span class="team-arrow">&rarr;</span> ${ico(v.who)}${v.dodged ? " dodged" : ""} <span class="team-num neg">&minus;${v.dmg} HP</span>`
       + (v.ko ? ` <span class="team-dim">fainted</span>`
               : ` <span class="team-num pos">+${v.energy} energy</span>${v.over ? ` <span class="team-dim">(${v.over} over 100)</span>` : ""}`);
-    case "cast": return `${ico(v.who)} <b>${v.move}</b> <span class="team-num">${v.dmg} dmg</span>${v.finish ? ` <span class="team-dim">&middot; finisher</span>` : ""}`;
+    case "cast": return `${ico(v.who)} <b>${v.move}</b> Cast${v.finish ? ` <span class="team-dim">&middot; finisher</span>` : ""}`;
+    case "cmHit": return `${ico(v.who)} <b>${v.move}</b> Hit <span class="team-num">${v.dmg} dmg</span>`;
     case "faint": return `${teamSym("faint", "Fainted")}${ico(v.who)} fainted`;
     default: return e.text;
   }
 }
+
+// Hover (or tap) help for the two DPS rows. The icon is drawn by CSS, so it adds no text to
+// the row's label - Copy as image reads the label as "Cycle DPS", not "Cycle DPS i".
+const TEAM_DPS_TIP = "Cycle DPS: the DPS of one cycle (the main DPSer and its catch tanks, start to finish), the big number at the top. Cumulative DPS: that cycle repeated over the whole 300s raid, with 7.0s taken out for each expected rejoin, so it is lower whenever there are rejoins.";
+const teamTip = text => ` <span class="team-tip" tabindex="0" role="note" aria-label="${text}" data-tip="${text}"></span>`;
 
 // ---- Beta result card: collapsible sections and the Minimum DPS pop-up ----
 // Each section of the stat table (Rotation, DPS & Rejoins, Main DPSer) is its own <tbody>, and
@@ -3372,10 +3446,7 @@ function renderTeamSim(P, S, R){
   const allInTaken = n("all-in");
   // dodges up to the end point, and the time they took (from when the main DPSer stopped attacking)
   const dodges = R.dodges.filter(d => d.t < E);
-  const dodgeSecs = dodges.reduce((a, d) => a + (Math.min(d.until, E) - d.t), 0) / 2;
-  const tanksIn = new Set(upTo(R.segs).filter(s => s.who > 0).map(s => s.who)).size;
   const swaps = R.swaps.filter(s => s.t < E);
-  const swapSecs = swaps.reduce((a, s) => a + (Math.min(s.until, E) - s.t), 0) / 2;
   const mainHp = (upTo(R.hp).filter(h => h.who === 0).pop() || { hp: P.main.hp }).hp;
   const lastType = P.tanks[P.monMeta[P.qty].type];
   const typeOf = who => P.monMeta[who].type;
@@ -3492,19 +3563,27 @@ function renderTeamSim(P, S, R){
       <div class="team-tl-axis">${axis}</div>
       <div class="team-tl-legend"><span><em style="background:#3d9dff"></em>${mainIco}</span><span><em style="background:#f5b94a"></em>${typeIcos.join("")}</span><span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
       <table class="dps-stat-table team-stat-table">
-        ${teamGroupHead("rotation", "Rotation")}
-          <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
-          <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
-          <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`).join(" &middot; ")} &middot; ${mainIco} sponged ${byMain}${P.mainDodges ? ` &middot; ${mainIco} dodged ${dodged}` : ""}${allInTaken ? ` &middot; ${mainIco} took ${allInTaken} going all in` : ""}${late ? ` &middot; ${late} too late to swap` : ""}</span></td></tr>
-          <tr><td>Catch tanks used</td><td>${tanksIn} of ${P.qty}${P.tanks.length > 1 ? ` <span class="dps-stat-sub team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} ${usedByType[i]} of ${tp.qty}`).join(" &middot; ")}</span>` : ""}</td></tr>
-          <tr><td>Swaps</td><td><span class="team-sub">${teamSym("swap", "Swap")}${swaps.length}</span> <span class="dps-stat-sub">${swapSecs.toFixed(1)}s spent swapping</span></td></tr>
-          ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodges.length} <span class="dps-stat-sub">${dodgeSecs.toFixed(1)}s not attacking &middot; ${P.dodgeLimit ? `${P.dodgeLimit} allowed` : "no limit"}</span></td></tr>` : ""}
-        </tbody>
         ${teamGroupHead("rejoins", "DPS &amp; Rejoins")}
+          <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
           <tr><td>Expected rejoins</td><td>${rj.rejoins === null ? "&mdash;" : rj.rejoins}</td></tr>
           ${attackerRows}
           <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-mega="${isMegaBoss(P.bossName) ? 1 : 0}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}">Minimum DPS</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
-          <tr><td>Cycle DPS</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - REJOIN_SECS * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
+          <tr><td>Cycle DPS${teamTip(TEAM_DPS_TIP)}</td><td>${dps.toFixed(1)}</td></tr>
+          <tr><td>Cumulative DPS${teamTip(TEAM_DPS_TIP)}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - REJOIN_SECS * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
+        </tbody>
+        ${teamGroupHead("rotation", "Rotation")}
+          <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
+          <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${[
+            ...P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`),
+            // "sponged 0" says nothing when the main DPSer dodged instead - shown only if it sponged
+            (byMain > 0 || !dodged) ? `${mainIco} sponged ${byMain}` : "",
+            P.mainDodges ? `${mainIco} dodged ${dodged}` : "",
+            allInTaken ? `${mainIco} took ${allInTaken} going all in` : "",
+            late ? `${late} too late to swap` : "",
+          ].filter(Boolean).join(" &middot; ")}</span></td></tr>
+          <tr><td>Catch tanks used</td><td><span class="team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} ${usedByType[i]} of ${tp.qty}`).join(" &middot; ")}</span></td></tr>
+          <tr><td>Swaps</td><td><span class="team-sub">${teamSym("swap", "Swap")}${swaps.length}</span></td></tr>
+          ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
         </tbody>
         ${teamGroupHead("main", "Main DPSer")}
           <tr><td>HP left</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${P.main.hp} <span class="dps-stat-sub">${pct.toFixed(0)}%</span></td></tr>
@@ -4868,7 +4947,7 @@ const SETUP_FIELD_IDS = [
   // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
-  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn",
+  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn","ctSwapTiming",
   // Beta: Catch Tank 2 and 3 (their cards only exist while added - see applySetup) and how many
   "ctTypes",
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
@@ -5764,7 +5843,7 @@ const SETUP_SHORT_KEYS = {
   ctMode:"m",
   bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp", optimalDps:"od",
   ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
-  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai",
+  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctSwapTiming:"tst",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
 };
