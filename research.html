@@ -2178,6 +2178,21 @@ function tsLoadImage(src){
     im.src = src;
   });
 }
+// Sprites come from the same sources, in the same order, as the page's own <img> tags:
+// spriteUrl() (local -> mgrann03), then the pokemongohub fallback spriteUrl() registers in
+// SPRITE_FALLBACK. The page can show a pokemongohub image directly, but a canvas can only be
+// exported if every image drawn on it was served with a CORS header, and pokemongohub sends
+// none (see ANI_URL_OVERRIDES). So that step is tried as-is first, in case the host ever adds
+// the header, then through wsrv.nl, a public image proxy that serves the same picture with it.
+const TS_CORS_PROXY = "https://wsrv.nl/?url=";
+async function tsLoadSprite(name){
+  const url = spriteUrl(name);
+  const im = await tsLoadImage(url);
+  if(im) return im;
+  const fb = SPRITE_FALLBACK[url];
+  if(!fb) return null;
+  return (await tsLoadImage(fb)) || (await tsLoadImage(TS_CORS_PROXY + encodeURIComponent(fb)));
+}
 function tsRoundRect(x, X, Y, W, H, R){
   x.beginPath();
   if(x.roundRect) x.roundRect(X, Y, W, H, R); else x.rect(X, Y, W, H);
@@ -2210,7 +2225,7 @@ async function buildTierShareImage(){
   // blocks the image - it is drawn as a lettered disc / plain badge instead
   const spriteFor = {}, iconFor = {};
   await Promise.all([
-    ...[...new Set(rows.map(r => r.name))].map(async n => { spriteFor[n] = await tsLoadImage(spriteUrl(n)); }),
+    ...[...new Set(rows.map(r => r.name))].map(async n => { spriteFor[n] = await tsLoadSprite(n); }),
     ...[...new Set(rows.map(r => r.type))].map(async t => { iconFor[t] = await tsLoadImage(`${TYPE_ICON_BASE}${t}.svg`); }),
   ]);
   const cv = document.createElement("canvas");
