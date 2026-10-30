@@ -403,6 +403,10 @@ if ("serviceWorker" in navigator) {
   #quickLinks a:hover{ color:var(--ql-text); }
   #quickLinks a.current{ color:var(--ql-accent); background:color-mix(in srgb, var(--ql-accent) 13%, transparent); }
   .qlinks .ql-short{ display:none; }
+  /* Submit a VOD / Submit a Guide are on the landing page only, at the end of the same row */
+  #quickLinks .ql-home-only{ display:none; }
+  #quickLinks.qlinks-home .ql-home-only{ display:inline-block; }
+  #quickLinks.qlinks-home{ flex-wrap:wrap; }
   /* pages without a header bar (Home, Difficulty & Roles, the Guide Editor): a row at the top */
   #quickLinks.qlinks-standalone{ padding:12px 64px 4px; }
   @media (max-width:600px){
@@ -414,6 +418,8 @@ if ("serviceWorker" in navigator) {
     body .sticky-header .sticky-header-row{ min-height:44px; }
     /* no header bar: the menu button floats at the top right, so the row goes just below it */
     #quickLinks.qlinks-standalone{ padding:62px 8px 4px; }
+    /* the landing page's seven links don't fit one phone row: centred, wrapping onto a second */
+    #quickLinks.qlinks-home{ justify-content:center; row-gap:2px; }
   }
   /* the narrowest phones (320px): all five still fit without cutting off "Mechanics" */
   @media (max-width:360px){
@@ -427,14 +433,18 @@ if ("serviceWorker" in navigator) {
   <a href="../../research.html"><span class="ql-full">Top Raiders</span><span class="ql-short">Raiders</span></a>
   <a href="../../ct-database.html"><span class="ql-full">Top Catch Tanks</span><span class="ql-short">Catch Tanks</span></a>
   <a href="../../solo-raid-mechanics.html"><span class="ql-full">Solo Mechanics</span><span class="ql-short">Mechanics</span></a>
+  <!-- the landing page only: its old Submit buttons now live here, as plain links like the rest -->
+  <a href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" class="ql-home-only" target="_blank" rel="noopener noreferrer"><span class="ql-full">Submit a VOD</span><span class="ql-short">Submit VOD</span></a>
+  <a href="../../editor.html" class="ql-home-only" title="Requires a GitHub account"><span class="ql-full">Submit a Guide</span><span class="ql-short">Submit Guide</span></a>
 </nav>
 <script>
 (function(){
   function place(){
     var nav = document.getElementById("quickLinks");
     if(!nav) return;
-    // not on the home page - it is where the Home link goes, and it has its own front-page layout
-    if(/(^|\/)(index\.html)?$/.test(location.pathname)){ nav.remove(); return; }
+    // The landing page gets the same row (Home highlighted), plus its Submit a VOD / Submit a Guide
+    // links at the end; it has no header bar, so the row sits at the top like the editor's.
+    if(/(^|\/)(index\.html)?$/.test(location.pathname)) nav.classList.add("qlinks-home");
     var hdr = document.querySelector(".sticky-header");
     if(hdr){
       hdr.appendChild(nav);
