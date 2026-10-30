@@ -341,39 +341,12 @@ if ("serviceWorker" in navigator) {
   [data-theme="dark"] .weather-icon-wrap.extreme .weather-icon-img{ filter: none; }
   .live-boss-date{ font-size:10px; font-weight:700; color: var(--text-muted); }
 
-  .popular-links-row{
-    /* width:100% is load-bearing. body is display:flex/column, and `margin: 0 auto`
-       makes this a shrink-to-fit flex item, so max-width never binds -- the row
-       collapsed to 539px and forced every label onto two lines. */
-    width: 100%; max-width: 640px; margin: 0 auto 18px; padding: 0 24px;
-    display:flex; flex-wrap:nowrap; gap:8px;
-  }
-  .popular-link{
-    /* `1 1 0` + min-width:0 => five equal columns that always share one row.
-       Text wraps to two lines inside a button rather than pushing it to a new row.
-       Below 480px there isn't room for five legible columns, so wrapping resumes
-       with flex-grow off, which is what stops a lone button going full-width. */
-    flex: 1 1 0; display:flex; align-items:center; justify-content:center; text-align:center;
-    min-width:0; min-height:44px; overflow-wrap:anywhere; background: var(--card); border-radius:16px;
-    padding: 12px 8px; text-decoration:none; color: var(--text);
-    font-family:'Manrope', sans-serif; font-weight:700; font-size:12.5px; line-height:1.3;
-    border: 2px solid transparent;
-    background-image:
-      linear-gradient(var(--card), var(--card)),
-      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
-    background-origin: padding-box, border-box;
-    background-clip: padding-box, border-box;
-    background-size: 100% 100%, 300% 100%;
-    animation: hamburgerShine 4s linear infinite;
-    transition: transform .12s ease;
-  }
-  /* Discord + announcement row, under the five-pill row. The Discord link is an icon-only round
+  /* Discord + announcement row, under the boss search. The Discord link is an icon-only round
      button - same 44px tap target and blurple sweeping shine (hamburgerShine keyframes) as before,
      shaped like the hamburger button because both are icon-only. Its name lives in aria-label for
      screen readers and in a small hover/focus tooltip (data-tip) for everyone else.
      To its right: the current announcement, a small label over one line of text that wraps
-     naturally on a phone. Row width and side padding match .popular-links-row so the button lines
-     up with the first pill. */
+     naturally on a phone. */
   .discord-row{ width:100%; max-width:640px; margin:0 auto 20px; padding:0 24px;
     display:flex; align-items:center; gap:12px; }
   .discord-link{
@@ -393,7 +366,7 @@ if ("serviceWorker" in navigator) {
   }
   .discord-link:hover{ transform:translateY(-2px); box-shadow:0 5px 16px rgba(88,101,242,.40); }
   .discord-mark{ width:22px; height:17px; flex:none; }
-  /* Hover/focus label. Sits under the button so it never covers the pills above, and starts at
+  /* Hover/focus label. Sits under the button so it never covers the search above, and starts at
      the button's left edge rather than centring on it: the button is only 16px from the edge of a
      phone screen, and a centred label was cut off there ("oin the Discord"). */
   .discord-link::after{
@@ -413,36 +386,6 @@ if ("serviceWorker" in navigator) {
   .announcement-text{ font-weight:700; font-size:13px; }
   @media (max-width:480px){
     .discord-row{ padding:0 16px; }
-  }
-
-  .popular-link:hover{ transform: translateY(-2px); }
-
-  .popular-link.vod-submit{
-    color:#c15a00;
-    background-image:
-      linear-gradient(var(--card), var(--card)),
-      linear-gradient(90deg, #ff9d4d, #ffcc99, #ff7a30, #ff9d4d, #ffcc99, #ff7a30);
-  }
-
-  .popular-link.guides-link{
-    color: var(--blue-dark);
-    font-weight:800;
-    background-image:
-      linear-gradient(var(--card), var(--card)),
-      linear-gradient(90deg, #3d9dff, #ffe17a, #2b7fd6, #ffd034, #3d9dff, #ffe17a);
-  }
-
-  @media (max-width:500px){
-    /* 500, not 480: below ~485 a nowrap column gets narrower than the word
-       "Mechanics", which would overflow rather than wrap. */
-    .popular-links-row{ flex-wrap:wrap; justify-content:center; gap:10px; }
-    .popular-link{ flex: 0 1 auto; padding: 14px 14px; }
-  }
-  @media (max-width:360px){
-    /* At 14px side padding the five natural widths spill to three rows on a 320px
-       phone. Trimming to 8px keeps it at 3 + 2. min-height still holds the tap target. */
-    .popular-links-row{ padding: 0 16px; gap: 8px; }
-    .popular-link{ padding: 14px 8px; }
   }
 
   .boss-search-wrap{
@@ -674,14 +617,6 @@ if ("serviceWorker" in navigator) {
     <input id="bossSearch" type="text" placeholder="Search a boss" autocomplete="off">
   </div>
   <div id="bossSearchResults" class="boss-search-results"></div>
-</div>
-
-<div class="popular-links-row">
-  <a class="popular-link" href="research.html">Meta Raiders</a>
-  <a class="popular-link guides-link" href="guides.html">Guides</a>
-  <a class="popular-link" href="solo-raid-mechanics.html">Mechanics</a>
-  <a class="popular-link vod-submit" href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" target="_blank" rel="noopener noreferrer">Submit a VOD</a>
-  <a class="popular-link vod-submit" href="editor.html" title="Requires a GitHub account">Submit a Guide</a>
 </div>
 
 <div class="discord-row">
