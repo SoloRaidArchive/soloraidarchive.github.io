@@ -942,6 +942,10 @@ if ("serviceWorker" in navigator) {
   .team-tl-tip::first-line{ font-weight:800; }
   .team-target{ font-weight:800; }
   .dps-stat-table td.team-pace{ font-weight:800; }
+  .team-pace-head{ font:800 13.5px 'Manrope',sans-serif; margin-top:2px; }
+  .team-pace-head.ok{ color:#2e9e62; } .team-pace-head.short{ color:#d6455d; }
+  [data-theme="dark"] .team-pace-head.ok{ color:#5fd08f; } [data-theme="dark"] .team-pace-head.short{ color:#ff7a8f; }
+  .team-build{ display:block; font-size:11px; font-weight:600; color:var(--text-dim); opacity:.85; margin-top:1px; }
   .dps-stat-table td.team-pace.ok{ color:#2e9e62; } .dps-stat-table td.team-pace.short{ color:#d6455d; }
   [data-theme="dark"] .dps-stat-table td.team-pace.ok{ color:#5fd08f; } [data-theme="dark"] .dps-stat-table td.team-pace.short{ color:#ff7a8f; }
   .team-target.ok{ color:#2e9e62; } .team-target.short{ color:#d6455d; }
@@ -3218,6 +3222,10 @@ function runTeamSim(c){
   // a dodged charge move does 25% of its damage, rounded down - as Dodge CM does in the other modes
   P.main.bossCmDmgDodged = Math.floor(P.main.bossCmDmg * 0.25);
   P.tank = tanks[0];   // the first catch tank type in the priority order
+  // Level and IVs as entered, for the result card and Copy as image ("Lv 50 · 15/15/15")
+  const buildOf = (lv, a, d, h) => `Lv ${String($(lv).value).trim() || "?"} \u00b7 ${[a, d, h].map(id => String($(id).value).trim() || "?").join("/")}`;
+  P.main.build = buildOf("pokemonLevel", "ivAtk", "ivDef", "ivHp");
+  P.tanks.forEach(tp => { const pre = tp.k === 1 ? "ct" : `ct${tp.k}`; tp.build = buildOf(pre + "Level", pre + "IvAtk", pre + "IvDef", pre + "IvHp"); });
   let run;
   {
     // Best timing, chosen for each catch. Every candidate is the whole fight with the same boss
@@ -3628,12 +3636,12 @@ function renderTeamSim(P, S, R){
     if(w.from > 0) fieldTicks.set(w.from, (fieldTicks.get(w.from) || 0) + ticks);
   });
   const ownDps = (dmgSum, ticks) => ticks > 0 ? (dmgSum / (ticks / 2)).toFixed(1) : "&mdash;";
-  const attackerRows = [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}</span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${uptime(onField.get(0) || 0)}</td></tr>`]
+  const attackerRows = [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${uptime(onField.get(0) || 0)}</td></tr>`]
     .concat(P.tanks.map((tp, i) => {
       let ticks = 0, up = 0;
       fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
       onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; });
-      return `<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, null, { type: i })}<span>${tp.name}</span></span></td><td>${ticks ? ownDps(dmgByType[i], ticks) : "&mdash;"}${uptime(up)}</td></tr>`;
+      return `<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, null, { type: i })}<span>${tp.name}<small class="team-build">${tp.build}</small></span></span></td><td>${ticks ? ownDps(dmgByType[i], ticks) : "&mdash;"}${uptime(up)}</td></tr>`;
     })).join("");
   // Hover (or tap) details for each piece of the bar, built from the run's events: who was in and
   // what they did, each swap, each dodge, and each boss charge move and who handled it.
@@ -3739,6 +3747,19 @@ function renderTeamSim(P, S, R){
 
   const pct = Math.max(0, mainHp) / P.main.hp * 100;
   const rj = teamRejoinTarget(secs, P.bossName, P.rejoinSecs);   // expected rejoins and the suggested DPS for them
+  // Solo pace: how far this cycle's DPS is above (or below) the Minimum Cycle DPS for its expected
+  // rejoins - e.g. 50.7 / 50.00 = 1.4% ahead - and the same in seconds: the 300s timer against the
+  // time this run needs to deal the boss's HP at this DPS, plus its rejoins. Shown under the big
+  // number and in its own row.
+  const pace = (() => {
+    if(rj.rejoins === null || rj.dps === null) return null;
+    const pct = (dps / rj.dps - 1) * 100, ahead = pct >= 0;
+    const need = dps > 0 ? rj.hp / dps + P.rejoinSecs * rj.rejoins : Infinity;
+    const secsOff = Math.abs(RAID_SECS - need);
+    const text = `${Math.abs(pct).toFixed(1)}%${isFinite(secsOff) ? ` \u00b7 ${secsOff.toFixed(1)}s` : ""} ${ahead ? "ahead of" : "behind"} pace`;
+    const title = `${dps.toFixed(1)} / ${rj.dps.toFixed(2)} Minimum Cycle DPS \u00b7 needs ~${isFinite(need) ? need.toFixed(1) + "s" : "\u2014"} of the ${RAID_SECS}s timer (${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"} of ${rejoinSecsText(P.rejoinSecs)}) \u00b7 ${rj.tier}, ${rj.hp.toLocaleString()} HP`;
+    return { ahead, text, title };
+  })();
   // The main DPSer's energy at the end point - a full bar left unspent means a charge move's worth
   // of damage never made it into the result.
   let leftover = 0;
@@ -3751,7 +3772,7 @@ function renderTeamSim(P, S, R){
       <div class="dps-result-main">
         <div class="dps-result-label">Simple Catch Tank Sim &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty} catch tank${P.qty > 1 ? "s" : ""}</div>
         <div class="dps-result-value">${dps.toFixed(1)}</div>
-        <div class="team-loadout">${mainIco} ${P.main.fm.n} / ${P.main.cm.n}${P.tanks.map((tp, i) => ` <span class="team-plus">+</span> ${tp.qty}&times; ${typeIcos[i]} ${tp.fm.n} / ${tp.cm.n}`).join("")}</div>
+        ${pace ? `<div class="team-pace-head ${pace.ahead ? "ok" : "short"}" title="${pace.title}">${pace.text}</div>` : ""}
         ${activeConditionsHtml()}
       </div>
       <div class="team-tl">${bar}</div>
@@ -3765,19 +3786,7 @@ function renderTeamSim(P, S, R){
           <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-hp="${rj.hp}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">Minimum Cycle DPS</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
           <tr><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
           <tr><td>Cumulative DPS${teamTip(teamCumulativeTip(P.rejoinSecs))}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - P.rejoinSecs * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
-          ${(() => {
-            // Solo pace, its own row: how far this cycle's DPS is above (or below) the Minimum DPS
-            // for its expected rejoins - e.g. 50.7 / 50.00 = 1.4% ahead. Being ahead is the same as
-            // Cumulative DPS reaching the boss's HP over 300s, for this boss's raid tier.
-            if(rj.rejoins === null || rj.dps === null) return `<tr><td>Solo pace</td><td>&mdash;</td></tr>`;
-            const pct = (dps / rj.dps - 1) * 100, ahead = pct >= 0;
-            // and in seconds: the 300s timer against the time this run needs to deal the boss's HP
-            // at this cycle's DPS, plus its expected rejoins
-            const need = dps > 0 ? rj.hp / dps + P.rejoinSecs * rj.rejoins : Infinity;
-            const secsOff = Math.abs(RAID_SECS - need);
-            const secsTxt = isFinite(secsOff) ? ` &middot; ${secsOff.toFixed(1)}s` : "";
-            return `<tr><td>Solo pace</td><td class="team-pace ${ahead ? "ok" : "short"}" title="${dps.toFixed(1)} / ${rj.dps.toFixed(2)} Minimum Cycle DPS &middot; needs ~${isFinite(need) ? need.toFixed(1) + "s" : "&mdash;"} of the ${RAID_SECS}s timer (${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"} of ${rejoinSecsText(P.rejoinSecs)}) &middot; ${rj.tier}, ${rj.hp.toLocaleString()} HP">${Math.abs(pct).toFixed(1)}%${secsTxt} ${ahead ? "ahead of" : "behind"} pace</td></tr>`;
-          })()}
+          <tr><td>Solo pace</td>${pace ? `<td class="team-pace ${pace.ahead ? "ok" : "short"}" title="${pace.title}">${pace.text}</td>` : "<td>&mdash;</td>"}</tr>
         </tbody>
         ${teamGroupHead("rotation", "Rotation")}
           <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
@@ -6441,11 +6450,12 @@ function shareCardData(){
   // the boss - along with the timeline bar. Its sub-lines name Pokemon only by icon, so icons are
   // read as their names ("Shadow Dialga caught 1") rather than dropped ("caught 1").
   let team = null, teamTimeline = null;
-  if(card.querySelector(".team-loadout") && window.__teamSim){
+  if(card.querySelector(".team-stat-table") && window.__teamSim){
     const { P } = window.__teamSim;
-    team = [{ name: P.main.name, role: "Main DPSer", moves: `${P.main.fm.n} / ${P.main.cm.n}` }]
-      .concat(P.tanks.map(tp => ({ name: tp.name, role: tp.qty > 1 ? `Catch tank \u00d7${tp.qty}` : "Catch tank", moves: `${tp.fm.n} / ${tp.cm.n}` })))
-      .concat([{ name: P.bossName, role: "Raid boss", moves: `${P.bossFM.n} / ${P.bossCM.n}`, boss: true }])
+    const raid = raidTierFor(P.bossName);
+    team = [{ name: P.main.name, role: "Main DPSer", moves: `${P.main.fm.n} / ${P.main.cm.n}`, build: P.main.build || "" }]
+      .concat(P.tanks.map(tp => ({ name: tp.name, role: tp.qty > 1 ? `Catch tank \u00d7${tp.qty}` : "Catch tank", moves: `${tp.fm.n} / ${tp.cm.n}`, build: tp.build || "" })))
+      .concat([{ name: P.bossName, role: "Raid boss", moves: `${P.bossFM.n} / ${P.bossCM.n}`, build: `${raid.name} \u00b7 ${raid.hp.toLocaleString()} HP`, boss: true }])
       .map(m => Object.assign(m, { sprite: spriteUrl(m.name) }));
     const tl = card.querySelector(".team-tl");
     if(tl) teamTimeline = {
@@ -6492,8 +6502,11 @@ function shareCardData(){
     if(td.length === 2){
       const valueOnly = td[1].cloneNode(true);
       valueOnly.querySelectorAll(".dps-stat-sub, .dps-stat-math").forEach(e => e.remove());
-      rows.push({ k: txt(td[0]), v: named(valueOnly), math: txt(td[1].querySelector(".dps-stat-math")),
-                  sub: named(td[1].querySelector(".dps-stat-sub")), vColor: getComputedStyle(td[1]).color });
+      const keyEl = td[0].cloneNode(true); keyEl.querySelectorAll(".team-build").forEach(e => e.remove());
+      rows.push({ k: txt(keyEl), v: named(valueOnly), math: txt(td[1].querySelector(".dps-stat-math")),
+                  sub: named(td[1].querySelector(".dps-stat-sub")), vColor: getComputedStyle(td[1]).color,
+                  // the beta's Solo pace value keeps its green / red in the image
+                  paceColor: td[1].classList.contains("team-pace") ? getComputedStyle(td[1]).color : null });
     }
   });
   // Conditions travel with the image: a shared result without its weather and effects is
@@ -6506,6 +6519,7 @@ function shareCardData(){
   return {
     label: txt(card.querySelector(".dps-result-label")),
     dps: txt(card.querySelector(".dps-result-value")),
+    pace: (() => { const el = card.querySelector(".team-pace-head"); return el ? { text: txt(el), ok: el.classList.contains("ok") } : null; })(),
     mons, rows, conds, team, teamTimeline,
   };
 }
@@ -6599,10 +6613,26 @@ async function buildResultShareImage(){
   const W = 900, PAD = 30;
   const rowH = 34, subH = 16, graphH = 104;
   const condH = (d.conds && d.conds.length) ? 30 : 0;
-  const headH = 118 + condH;
-  const bodyH = d.rows.reduce((s, r) => s + (r.group ? 32 : r.graph ? graphH : rowH + (r.sub ? subH : 0)), 0);
+  const headH = 118 + (d.team ? 16 : 0) + condH;   // Beta: one more line per Pokemon (level / IVs)
+  // Long values (the Ended line) wrap onto more lines instead of running over their label.
+  const mx = document.createElement("canvas").getContext("2d");
+  const lineH = 17, valW = r => W - PAD * 2 - 120 - (mx.font = "600 13px Inter, sans-serif", mx.measureText(r.k).width) - 28;
+  d.rows.forEach(r => {
+    if(r.group || r.graph) return;
+    mx.font = "800 13px Manrope, sans-serif";
+    const words = String(r.v).split(" "), max = valW(r), lines = [];
+    mx.font = "800 13px Manrope, sans-serif";
+    words.forEach(w => {
+      const cur = lines.length ? lines[lines.length - 1] : null;
+      if(cur !== null && mx.measureText(cur + " " + w).width <= max) lines[lines.length - 1] = cur + " " + w;
+      else lines.push(w);
+    });
+    r.lines = r.math ? [r.v] : lines;
+  });
+  const bodyH = d.rows.reduce((s, r) => s + (r.group ? 32 : r.graph ? graphH : rowH + (r.lines.length - 1) * lineH + (r.sub ? subH : 0)), 0);
   const tlH = d.teamTimeline ? 62 : 0;   // Beta: the timeline bar under the headline
-  const H = PAD + headH + 74 + tlH + bodyH + PAD + 34;
+  const paceH = d.pace ? 22 : 0;          // Beta: solo pace under the big number
+  const H = PAD + headH + 74 + paceH + tlH + bodyH + PAD + 34;
 
   const cv = document.createElement("canvas");
   const dpr = 2;
@@ -6640,6 +6670,7 @@ async function buildResultShareImage(){
       x.fillText(m.role.toUpperCase(), cx, PAD + 93);
       x.fillStyle = C.dim; x.font = "600 10.5px Inter, sans-serif";
       x.fillText(fit(m.moves, cw - 8), cx, PAD + 108);
+      if(m.build){ x.fillStyle = C.dim; x.font = "700 10.5px Manrope, sans-serif"; x.fillText(fit(m.build, cw - 8), cx, PAD + 124); }
     });
     x.fillStyle = C.dim; x.font = "800 12px Manrope, sans-serif";
     x.fillText("VS", PAD + 18 + (n - 1) * cw + vsW / 2, PAD + 46);
@@ -6692,8 +6723,13 @@ async function buildResultShareImage(){
   x.fillText(d.label.toUpperCase(), W / 2, y + 12);
   x.fillStyle = C.accent; x.font = "900 40px Manrope, sans-serif";
   x.fillText(d.dps, W / 2, y + 54);
+  if(d.pace){
+    x.fillStyle = d.pace.ok ? (dark ? "#5fd08f" : "#2e9e62") : (dark ? "#ff7a8f" : "#d6455d");
+    x.font = "800 14px Manrope, sans-serif";
+    x.fillText(d.pace.text, W / 2, y + 76);
+  }
   x.textAlign = "left";
-  y += 74;
+  y += 74 + paceH;
 
   if(d.teamTimeline){
     // Beta: who was on the field when, as on the card - main DPSer, catch tanks, swaps, dodges,
@@ -6747,8 +6783,9 @@ async function buildResultShareImage(){
     x.fillText(r.k, tX, y + 22);
     // value right-aligned, its working (if any) just before it in dimmer type
     x.textAlign = "right";
-    x.fillStyle = C.text; x.font = "800 13px Manrope, sans-serif";
-    x.fillText(r.v, tX + tW, y + 22);
+    x.fillStyle = r.paceColor || C.text; x.font = "800 13px Manrope, sans-serif";
+    r.lines.forEach((ln, i) => x.fillText(ln, tX + tW, y + 22 + i * lineH));
+    const extra = (r.lines.length - 1) * lineH;
     if(r.math){
       const vw = x.measureText(r.v).width;
       x.fillStyle = C.dim; x.font = "500 12px Manrope, sans-serif";
@@ -6756,10 +6793,10 @@ async function buildResultShareImage(){
     }
     if(r.sub){
       x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";
-      x.fillText(r.sub, tX + tW, y + 22 + subH);
+      x.fillText(r.sub, tX + tW, y + 22 + extra + subH);
     }
     x.textAlign = "left";
-    y += rowH + (r.sub ? subH : 0);
+    y += rowH + extra + (r.sub ? subH : 0);
   });
 
   x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";
