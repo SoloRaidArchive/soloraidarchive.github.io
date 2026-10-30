@@ -803,6 +803,36 @@ if ("serviceWorker" in navigator) {
     100%{ background-position: 0 0, 100% 0; }
   }
 
+  /* Catch tanks for the chosen boss: button under the boss stats, and its pop-up table */
+  .boss-ct-btn{ display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 8px; width:100%; margin-top:10px; padding:10px 14px;
+    background:var(--card); border:1.5px dashed var(--blue); border-radius:12px; cursor:pointer; text-align:left;
+    font:800 13px 'Manrope',sans-serif; color:var(--blue); }
+  .boss-ct-btn:hover{ border-style:solid; }
+  .boss-ct-btn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
+  .boss-ct-count{ font-weight:700; font-size:12px; color:var(--text-dim); }
+  .boss-ct-overlay{ position:fixed; inset:0; z-index:1000; background:rgba(8,10,18,.55); display:flex; align-items:center; justify-content:center;
+    padding:16px; padding-top:max(16px, env(safe-area-inset-top, 0px)); padding-bottom:max(16px, env(safe-area-inset-bottom, 0px)); }
+  .boss-ct-modal{ background:var(--card); border:1.5px solid var(--border); border-radius:16px; width:min(860px, 100%); max-height:100%;
+    display:flex; flex-direction:column; box-shadow:0 18px 50px rgba(0,0,0,.35); overflow:hidden; }
+  .boss-ct-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 16px 10px; }
+  .boss-ct-title{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .boss-ct-title h3{ margin:0; font:800 17px 'Manrope',sans-serif; color:var(--text); }
+  .boss-ct-sub{ font:600 12px 'Manrope',sans-serif; color:var(--text-dim); margin-top:2px; }
+  .boss-ct-title .boss-ct-ico{ width:44px; height:44px; }
+  .boss-ct-close{ flex:none; width:34px; height:34px; border-radius:50%; border:1.5px solid var(--border); background:transparent;
+    color:var(--text); font-size:20px; line-height:1; cursor:pointer; }
+  .boss-ct-controls{ padding:0 16px 10px; }
+  .boss-ct-sort{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border); border-radius:8px; padding:5px 8px; }
+  .boss-ct-scroll{ overflow:auto; border-top:1.5px solid var(--border); }
+  .boss-ct-table{ width:100%; border-collapse:collapse; font:600 12.5px 'Manrope',sans-serif; color:var(--text-dim); }
+  .boss-ct-table th{ position:sticky; top:0; background:var(--card); text-align:left; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--text-dim); padding:9px 10px; border-bottom:1.5px solid var(--border); white-space:nowrap; }
+  .boss-ct-table td{ padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .boss-ct-table .num{ text-align:right; white-space:nowrap; }
+  .boss-ct-table td.num b{ color:var(--text); font-size:13.5px; }
+  .boss-ct-mon{ display:flex; align-items:center; gap:8px; color:var(--text); font-weight:800; white-space:nowrap; }
+  .boss-ct-ico{ width:34px; height:34px; object-fit:contain; flex:none; }
+  .boss-ct-build{ white-space:nowrap; }
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
 
   /* "About this beta" panel (Beta: Simple Catch Tank Sim only) - same collapsible as Type matchup */
@@ -1226,7 +1256,7 @@ if ("serviceWorker" in navigator) {
         <li>Swaps take 0.5s each way and are made at the last moment before the hit lands.</li>
         <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
-        <li>"Catch tank swaps in" sets when the swap to a catch tank starts, once the boss has begun its charge move: as soon as the boss casts, or just before the hit lands (the main DPSer attacks until then). Best timing (the default) runs the whole fight once for every swap time from the cast to the hit, 0.5s apart and with the same boss, and keeps the one with the highest DPS. A catch tank that comes in early attacks with fast moves, but holds its charge move and stays in until it has caught the hit.</li>
+        <li>The swap to a catch tank is timed automatically for the highest DPS. Once the boss has begun its charge move, the swap can start any time up to the last moment that still gets the catch tank in before the hit (the main DPSer attacks until then). The simulator runs the whole fight with the same boss for every swap time, 0.5s apart - first one timing for all catches, then each catch on its own - and keeps whatever gives the highest DPS. A catch tank that comes in early attacks with fast moves, but holds its charge move and stays in until it has caught the hit.</li>
         <li>With "Main allowed to dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in on the last charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
       </ul>
@@ -1365,6 +1395,8 @@ if ("serviceWorker" in navigator) {
           </div>
         </div>
         <div id="bossPreview"></div>
+        <!-- appears when the CT Database has catch tank entries for the chosen boss -->
+        <div id="bossCtLink"></div>
 
         <div class="subhead">Moves</div>
         <div class="field-grid compact">
@@ -1504,13 +1536,6 @@ if ("serviceWorker" in navigator) {
     </div>
     <div class="team-behavior-row">
       <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label>
-      <label class="check-item team-dodge-limit" title="When the catch tank is swapped in after the boss starts its charge move. Best timing runs the fight once for every swap time from the boss's cast to the last moment that still gets the tank in before the hit, and keeps the highest DPS. Swapping early lets the catch tank attack before the hit; swapping late keeps the main DPSer attacking longer.">Catch tank swaps in
-        <select id="ctSwapTiming">
-          <option value="best" selected>Best timing (highest DPS)</option>
-          <option value="early">As soon as the boss casts</option>
-          <option value="late">Just before the hit lands</option>
-        </select>
-      </label>
       <label class="check-item" title="Buffer the charge move from the Pokémon you swap out of, so a catch tank can fire its charge move as soon as the caught energy allows - without a fast move first. Same as CM Buffer in Single Catch Tank mode."><input type="checkbox" id="ctCmBuffer"> CM Buffer</label>
       <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main allowed to dodge</label>
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
@@ -2614,6 +2639,7 @@ function simulateTeam(P){
     // Main allowed to dodge: pendingDodge is booked when the boss casts { cast, land, latest };
     // dodging is the one in progress. mainDodges counts the main DPSer's dodges over the whole run.
     pendingDodge: null, dodging: null, mainDodges: 0, allIn: false,
+    catchNo: 0,   // swaps to a catch tank booked so far - which catch's timing to use (Best timing)
     ended: null, probe: null,
   };
   const R = newTeamRecorder();
@@ -2709,11 +2735,11 @@ function teamStep(S, R, P, snap){
     }
     const holder = S.swap ? S.swap.to : S.active;   // who will be in when it lands
     const hm = S.mons[holder];
-    // Book the swap to the next catch tank, timed by "Catch tank swaps in" (teamSwapLatest): the
+    // Book the swap to the next catch tank, timed for the highest DPS (teamSwapLatest): the
     // Pokemon on the field keeps attacking while its next move finishes by "latest".
     const bookSwap = (freeAt) => {
       const to = S.nextTank++;
-      S.pendingSwap = { to, latest: teamSwapLatest(P, t, land, freeAt) };
+      S.pendingSwap = { to, latest: teamSwapLatest(P, t, land, freeAt, S.catchNo++) };
       S.mons[to].waitCatch = land;
     };
     const dec = { cast: t, land, outcome: null, tank: null };
@@ -2902,7 +2928,7 @@ function teamStep(S, R, P, snap){
     if(m.busyUntil <= t && m.hp > 0){
       const side = sideOf(who);
       // A swap is booked for the boss's charge move, to start by pendingSwap.latest - chosen by
-      // "Catch tank swaps in" (teamSwapLatest) - and until then the Pokemon on the field keeps
+      // the best-timing search (teamSwapLatest) - and until then the Pokemon on the field keeps
       // attacking, as long as its next move finishes by that tick. Always swapping the moment the
       // boss began its charge move (as this first did) left the tank standing in for the whole
       // animation: against Zekrom's 4.0s Outrage that was ~3s per catch of the tank's Dragon Tails
@@ -2970,17 +2996,17 @@ function teamStep(S, R, P, snap){
   }
 }
 
-// ---- Catch tank swaps in ----
-// When the swap to a catch tank may start at the latest, once the boss has cast its charge move:
-// "late": the last tick that still gets the tank in before the hit lands (TEAM_SWAP_TICKS before);
-// "early": as soon as the Pokemon on the field is free; "best": swapOffset ticks after the cast -
-// runTeamSim plays the whole fight once per offset, from 0 ("early") up to "late", with the same
-// boss, and keeps the highest-DPS run. One timing for every catch, so it can be done in a raid.
-function teamSwapLatest(P, cast, land, freeAt){
+// ---- When a catch tank is swapped in ----
+// The latest tick the swap to a catch tank may start, once the boss has cast its charge move: a
+// number of ticks after the cast, chosen for each catch by runTeamSim's search for the highest DPS
+// (P.swapOffsets: list[i] for the i-th catch of the run, def for any catch without its own), never
+// later than the last tick that still gets the tank in before the hit (TEAM_SWAP_TICKS before it).
+// Without offsets - in sponge/dodge probes' own runs - the swap is as late as possible.
+function teamSwapLatest(P, cast, land, freeAt, catchNo){
   const late = land - TEAM_SWAP_TICKS;
-  if(P.swapTiming === "early") return Math.min(freeAt, late);
-  if(P.swapTiming === "best" && Number.isInteger(P.swapOffset)) return Math.min(cast + P.swapOffset, late);
-  return late;
+  if(!P.swapOffsets) return late;
+  const k = P.swapOffsets.list[catchNo] ?? P.swapOffsets.def;
+  return Math.min(cast + k, late);
 }
 // a run's DPS as the result card shows it: damage up to where it ended, over that time
 function teamRunDps(S, R){
@@ -3135,8 +3161,6 @@ function runTeamSim(c){
     // All in on the last charge move: with no catch tank left, finish what it is building rather
     // than bail on it
     allIn: $("ctAllIn").checked,
-    // Catch tank swaps in: "best" (highest damage), "early" (as soon as the boss casts), "late"
-    swapTiming: ["best", "early", "late"].includes($("ctSwapTiming").value) ? $("ctSwapTiming").value : "best",
     bossName: c.bossName,
     bossFM: { n: c.bossFMMove.n, ad: c.bossFMMove.ad, energyGain: c.bossFMMove.energy || 0 },
     bossCM: { n: c.bossCMMove.n, ad: c.bossCMMove.ad },
@@ -3152,17 +3176,38 @@ function runTeamSim(c){
   P.main.bossCmDmgDodged = Math.floor(P.main.bossCmDmg * 0.25);
   P.tank = tanks[0];   // the first catch tank type in the priority order
   let run;
-  if(P.swapTiming === "best"){
-    // Best timing: the whole fight once per swap time - 0, 0.5s, 1.0s ... after the boss casts, up
-    // to just before the hit lands - with the same boss (same seed), keeping the highest DPS.
-    // Ties go to the later swap.
-    for(let k = 0; k <= Math.max(0, P.bossCM.ad - TEAM_SWAP_TICKS); k++){
-      const r = simulateTeam(Object.assign({}, P, { swapOffset: k }));
-      const dps = teamRunDps(r.S, r.R);
-      if(!run || dps >= run.dps - 1e-9) run = { S: r.S, R: r.R, dps, k };
+  {
+    // Best timing, chosen for each catch. Every candidate is the whole fight with the same boss
+    // (same seed), so they differ only in when the swaps start: 0, 0.5s, 1.0s ... after the boss
+    // casts, up to just before the hit lands (K).
+    //  1. one timing for every catch - the best of these is the starting point (ties: later swap);
+    //  2. then each catch in turn tries every timing with the others held, keeping any change that
+    //     raises the DPS, until a full pass changes nothing (at most 3 passes).
+    // So the result is never below any single timing, "early" and "late" included.
+    const K = Math.max(0, P.bossCM.ad - TEAM_SWAP_TICKS);
+    const tryRun = offsets => {
+      const r = simulateTeam(Object.assign({}, P, { swapOffsets: offsets }));
+      return { S: r.S, R: r.R, dps: teamRunDps(r.S, r.R), offsets };
+    };
+    for(let k = 0; k <= K; k++){
+      const r = tryRun({ def: k, list: [] });
+      if(!run || r.dps >= run.dps - 1e-9) run = r;
     }
-    P.swapOffset = run.k;
-  } else run = simulateTeam(P);
+    for(let pass = 0; pass < 3; pass++){
+      let improved = false;
+      for(let i = 0; i < run.S.catchNo; i++){
+        const cur = run.offsets.list[i] ?? run.offsets.def;
+        for(let k = 0; k <= K; k++){
+          if(k === cur) continue;
+          const list = run.offsets.list.slice(); list[i] = k;
+          const r = tryRun({ def: run.offsets.def, list });
+          if(r.dps > run.dps + 1e-9){ run = r; improved = true; }
+        }
+      }
+      if(!improved) break;
+    }
+    P.swapOffsets = run.offsets;
+  }
   const { S, R } = run;
   window.__teamSim = { P, S, R };   // the last run: read by the CSV download, and handy to inspect
   return renderTeamSim(P, S, R);
@@ -4947,7 +4992,7 @@ const SETUP_FIELD_IDS = [
   // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
-  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn","ctSwapTiming",
+  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn",
   // Beta: Catch Tank 2 and 3 (their cards only exist while added - see applySetup) and how many
   "ctTypes",
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
@@ -5304,6 +5349,7 @@ function bossMoveDamagePreviewHtml(bAtk){
 }
 
 function updateBossPreview(){
+  updateBossCtLink();
   const name = document.getElementById("bossName").value.trim();
   const boss = findPokemon(name);
   const el = document.getElementById("bossPreview");
@@ -5316,6 +5362,94 @@ function updateBossPreview(){
   let bAtk = _pv.atk, bDef = _pv.def, bHp = _pv.hp;
   el.innerHTML = renderMiniPreview(name, { atk: bAtk, def: bDef, hp: bHp });
   if(dmgEl) dmgEl.innerHTML = bossMoveDamagePreviewHtml(bAtk);
+}
+
+// ============ CATCH TANKS FOR THE CHOSEN BOSS (from the CT Database) ============
+// Once a boss is picked, a button under its stats opens the CT Database's entries for that boss
+// as a table - the same data and columns as the boss view on the Top Catch Tanks page. Bosses with
+// no entries get no button. The sheet is fetched once, on the first boss that is picked.
+let CT_DB_PROMISE = null;
+function loadCtDatabase(){
+  if(!CT_DB_PROMISE) CT_DB_PROMISE = fetch("/csv/ct-database.csv").then(r => r.ok ? r.text() : "").then(text => {
+    const rows = parseCSV(text);
+    const head = (rows.shift() || []).map(h => String(h).trim());
+    const col = n => head.indexOf(n);
+    const c = { mon: col("Pokemon"), lvl: col("Level"), ivs: col("IVs"), moves: col("Player Moveset"), blade: col("Zacian Blade boost"),
+      boss: col("Boss"), weather: col("Weather"), bossMoves: col("Boss Moveset"), shield: col("Zamazenta Shield Boost"),
+      fm: col("Boss FM Tanked"), ct: col("CT DPS"), secs: col("Seconds") };
+    if(c.mon < 0 || c.boss < 0 || c.ct < 0) return [];
+    const get = (r, i) => i < 0 ? "" : String(r[i] == null ? "" : r[i]).trim();
+    return rows.filter(r => get(r, c.mon) && get(r, c.boss) && isFinite(parseFloat(get(r, c.ct)))).map(r => ({
+      mon: get(r, c.mon), level: get(r, c.lvl), ivs: get(r, c.ivs), moves: get(r, c.moves),
+      boss: get(r, c.boss), weather: get(r, c.weather), bossMoves: get(r, c.bossMoves),
+      blade: /^yes$/i.test(get(r, c.blade)), shield: /^yes$/i.test(get(r, c.shield)),
+      fm: get(r, c.fm), ctDps: parseFloat(get(r, c.ct)), secs: get(r, c.secs),
+    }));
+  }).catch(() => []);
+  return CT_DB_PROMISE;
+}
+const ctKey = n => String(n || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const ctEsc = t => String(t == null ? "" : t).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+async function updateBossCtLink(){
+  const box = document.getElementById("bossCtLink");
+  if(!box) return;
+  const name = document.getElementById("bossName").value.trim();
+  // Same boss as the button already shows: leave it alone. The boss field's blur/change fires as
+  // the button is clicked, and redrawing it then swallowed the click.
+  if(name && box.dataset.boss === ctKey(name) && box.firstElementChild) return;
+  if(!name){ box.innerHTML = ""; delete box.dataset.boss; return; }
+  const db = await loadCtDatabase();
+  if(document.getElementById("bossName").value.trim() !== name) return;   // typed on meanwhile
+  const entries = db.filter(e => ctKey(e.boss) === ctKey(name));
+  if(!entries.length){ box.innerHTML = ""; delete box.dataset.boss; return; }
+  box.dataset.boss = ctKey(name);
+  const tanks = new Set(entries.map(e => e.mon)).size;
+  box.innerHTML = `<button type="button" class="boss-ct-btn" aria-haspopup="dialog">Catch tanks for ${ctEsc(entries[0].boss)}
+    <span class="boss-ct-count">${entries.length} entr${entries.length === 1 ? "y" : "ies"} &middot; ${tanks} catch tank${tanks === 1 ? "" : "s"}</span></button>`;
+  box.querySelector("button").addEventListener("click", () => openBossCtTable(entries));
+}
+function openBossCtTable(entries){
+  const bossName = entries[0].boss;
+  let sort = "dps";
+  const icon = n => `<img class="boss-ct-ico${needsShadowMist(n) ? " shadow-mist" : ""}" src="${spriteUrl(n)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+  const conds = e => [e.weather ? e.weather.charAt(0).toUpperCase() + e.weather.slice(1) : "", e.blade ? "Blade Boost" : "", e.shield ? "Shield Boost" : ""].filter(Boolean).join(" &middot; ") || "&mdash;";
+  const rowsHtml = () => entries.slice().sort((a, b) => sort === "name" ? a.mon.localeCompare(b.mon) || b.ctDps - a.ctDps : b.ctDps - a.ctDps).map(e => `
+      <tr>
+        <td><div class="boss-ct-mon">${icon(e.mon)}<span>${ctEsc(e.mon)}</span></div></td>
+        <td>${ctEsc(e.moves) || "&mdash;"}</td>
+        <td>${ctEsc(e.bossMoves) || "&mdash;"}</td>
+        <td>${conds(e)}</td>
+        <td class="boss-ct-build">Lv ${ctEsc(e.level)}${e.ivs ? ` &middot; ${ctEsc(e.ivs)}` : ""}</td>
+        <td class="num"><b>${e.ctDps.toFixed(1)}</b></td>
+      </tr>`).join("");
+  const tanks = new Set(entries.map(e => e.mon)).size;
+  const ov = document.createElement("div");
+  ov.className = "boss-ct-overlay";
+  ov.innerHTML = `
+    <div class="boss-ct-modal" role="dialog" aria-modal="true" aria-label="Catch tanks for ${ctEsc(bossName)}">
+      <div class="boss-ct-head">
+        <div class="boss-ct-title">${icon(bossName)}<div><h3>Catch tanks for ${ctEsc(bossName)}</h3>
+          <div class="boss-ct-sub">${entries.length} entr${entries.length === 1 ? "y" : "ies"} &middot; ${tanks} catch tank${tanks === 1 ? "" : "s"} &middot; from the CT Database</div></div></div>
+        <button type="button" class="boss-ct-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="boss-ct-controls">
+        <select class="boss-ct-sort" aria-label="Sort entries"><option value="dps">CT DPS high&ndash;low</option><option value="name">Catch tank A&ndash;Z</option></select>
+      </div>
+      <div class="boss-ct-scroll">
+        <table class="boss-ct-table">
+          <thead><tr><th>Catch tank</th><th>Moveset</th><th>Boss moveset</th><th>Conditions</th><th>Build</th><th class="num">CT DPS</th></tr></thead>
+          <tbody>${rowsHtml()}</tbody>
+        </table>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  const close = () => { ov.remove(); document.removeEventListener("keydown", onKey); };
+  const onKey = e => { if(e.key === "Escape") close(); };
+  document.addEventListener("keydown", onKey);
+  ov.addEventListener("click", e => { if(e.target === ov) close(); });
+  ov.querySelector(".boss-ct-close").addEventListener("click", close);
+  ov.querySelector(".boss-ct-sort").addEventListener("change", e => { sort = e.target.value; ov.querySelector("tbody").innerHTML = rowsHtml(); });
+  ov.querySelector(".boss-ct-close").focus();
 }
 
 // ============ MOVE DROPDOWNS (populated from each Pokemon's actual movepool) ============
@@ -5843,7 +5977,7 @@ const SETUP_SHORT_KEYS = {
   ctMode:"m",
   bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp", optimalDps:"od",
   ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
-  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctSwapTiming:"tst",
+  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
 };
