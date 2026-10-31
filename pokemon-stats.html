@@ -315,54 +315,34 @@ if ("serviceWorker" in navigator) {
 [data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
 .ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
 
-  /* MOBILE HEADER (#2)
-     The title is centred while three 44px buttons sit absolutely at the right, so on a 390px
-     screen they overlapped it - "Pokémon Stats" rendered as "Pokémon S". On mobile the row
-     becomes a real flex layout: info button on the LEFT, title taking the remaining space, the
-     nav buttons on the right. Nothing can overlap because nothing is absolutely positioned. */
-  @media (max-width: 700px){
-    .sticky-header{ padding:8px 10px; }
-    .sticky-header-title-row{ justify-content:flex-start; gap:6px; }
-    .sticky-header-title-row .header-buttons{
-      position:static; transform:none; margin-left:auto; display:flex; gap:4px;
-    }
-    /* Pulled out of .header-buttons and placed first in the row. */
-    .sticky-header-title-row .info-btn{ order:-1; margin-right:2px; }
-    .sticky-header-title-row .page-title-sm{
-      flex:1 1 auto; min-width:0; text-align:center; font-size:17px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    }
-    .info-btn, .hamburger-btn, .filter-btn, .gear-btn{ width:38px; height:38px; }
-    /* The info button has moved down beside the search box, so nothing on the left balances the
-       two 38px buttons on the right (38 + 4 + 38 = 80px): an invisible spacer of that width keeps
-       the title centred without anything being absolutely positioned. */
-    .sticky-header-title-row::before{ content:""; flex:0 0 80px; order:-1; }
-  }
-  /* the narrowest phones: a touch smaller so "Pokémon Stats" fits between spacer and buttons */
-  @media (max-width: 360px){
-    body .sticky-header .sticky-header-title-row .page-title-sm{ font-size:16px; }
-  }
+
 
   /* info button beside the search box, its panel opening just below it */
   .page-search-row{ position:relative; align-items:center; gap:8px; }
   .page-search-row .info-btn{ flex:none; width:34px; height:34px; border-radius:10px; margin:0 !important; }
   .page-search-row .info-btn svg{ width:16px; height:16px; }
   .page-search-row .info-panel{ top:calc(100% + 6px); left:20px; right:auto; }
+  /* Same header as every other page: the menu button alone at the top right, this page's filter
+     button mirrored at the top left, the title centred between them. (With both at the right, the
+     menu button sat 52px further in than elsewhere and the title was pushed off centre.) */
+  .sticky-header-title-row .header-buttons-left{ left:0; right:auto; }
 </style>
 </head>
 <body>
 
 <div class="sticky-header">
   <div class="sticky-header-title-row">
-    <h1 class="page-title-sm">Pokémon Stats</h1>
-    <div class="header-buttons">
-      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
+    <div class="header-buttons header-buttons-left">
       <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
         <span class="filter-line filter-line-1"></span>
         <span class="filter-line filter-line-2"></span>
         <span class="filter-line filter-line-3"></span>
+      </button>
+    </div>
+    <h1 class="page-title-sm">Pokémon Stats</h1>
+    <div class="header-buttons">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
       </button>
     </div>
   </div>
@@ -488,22 +468,20 @@ if ("serviceWorker" in navigator) {
 </div>
 
 <script>
-/* Keeps the nav panel open across page navigation.
+/* The nav panel: opens and closes with the hamburger button, and closes again on its own - when
+   you go to another page (it starts closed on every page), click or tap outside it, press Escape,
+   or pick one of its links. Coming back with the browser's back button closes it too (the browser
+   can restore a page exactly as it was left, panel open included).
 
-   Every page load builds a fresh DOM, so the panel is closed by default and the old behaviour
-   also closed it on any outside click. Following a link therefore always dismissed the menu,
-   which made it tedious to move between several pages.
+   It used to stay open from page to page (kept in sessionStorage) so moving between pages didn't
+   mean reopening it each time; with the shortcut row now on every page that is no longer needed.
 
-   The open/closed state now lives in sessionStorage - per tab, cleared when the tab closes -
-   and is restored on load. Only the hamburger button toggles it, plus Escape as a keyboard
-   escape hatch.
-
-   Each page already ships its own hamburger handler inline, outside the NAV markers this file
-   is injected between, so those handlers cannot be edited from here. Instead the button is
-   replaced with a clone (which drops the page's listener) and the page's closeHamburger() is
-   neutralised, so the page's own outside-click rule can no longer shut the panel. */
+   Each page ships its own hamburger handler inline, outside the NAV markers this file is injected
+   between, so those can't be edited from here. The button is replaced with a clone (dropping the
+   page's listener) and the page's closeHamburger() is pointed at this one, so every page behaves
+   the same. */
 (function(){
-  var KEY = "sra-nav-open";
+  try { sessionStorage.removeItem("sra-nav-open"); } catch(e){ /* the old open-state flag */ }
   document.addEventListener("DOMContentLoaded", function(){
     var panel = document.getElementById("hamburgerPanel");
     var btn = document.getElementById("hamburgerBtn");
@@ -513,24 +491,26 @@ if ("serviceWorker" in navigator) {
     btn.parentNode.replaceChild(fresh, btn);
     btn = fresh;
 
-    if(typeof window.closeHamburger === "function") window.closeHamburger = function(){};
-
     function setOpen(open){
       panel.classList.toggle("open", open);
       btn.setAttribute("aria-expanded", String(open));
-      try { sessionStorage.setItem(KEY, open ? "1" : "0"); } catch(e){ /* private mode */ }
     }
+    window.closeHamburger = function(){ setOpen(false); };
+    setOpen(false);
 
     btn.addEventListener("click", function(e){
       e.stopPropagation();
       setOpen(!panel.classList.contains("open"));
     });
-
-    document.addEventListener("keydown", function(e){
-      if(e.key === "Escape" && panel.classList.contains("open")) setOpen(false);
+    document.addEventListener("click", function(e){
+      if(!panel.classList.contains("open")) return;
+      if(e.target.closest && e.target.closest("#hamburgerPanel a")){ setOpen(false); return; }
+      if(!panel.contains(e.target) && !btn.contains(e.target)) setOpen(false);
     });
-
-    try { if(sessionStorage.getItem(KEY) === "1") setOpen(true); } catch(e){}
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape" && panel.classList.contains("open")){ setOpen(false); btn.focus(); }
+    });
+    window.addEventListener("pageshow", function(){ setOpen(false); });
   });
 })();
 </script>

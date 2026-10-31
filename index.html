@@ -209,11 +209,11 @@ if ("serviceWorker" in navigator) {
     .live-boss-row-grid{ gap:12px; }
     .live-boss-row-grid .live-boss-item{ width:44px; }
     .live-boss-item{ gap:6px; }
-    .hamburger-btn{ width:40px; height:40px; right:18px; }
   }
 
   .hamburger-btn{
-    position:fixed; top:18px; right:18px; z-index:20; -webkit-tap-highlight-color:transparent;
+    /* same spot and size as on every other page: 10px down, 16px in, 44px */
+    position:fixed; top:10px; right:16px; z-index:20; -webkit-tap-highlight-color:transparent;
     width:44px; height:44px; border-radius:50%;
     background: var(--card); border:2px solid var(--border);
     cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -227,7 +227,7 @@ if ("serviceWorker" in navigator) {
   .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
 
   .hamburger-panel{
-    position:fixed; top:70px; right:18px; z-index:19; width:min(240px, calc(100vw - 32px));
+    position:fixed; top:62px; right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
     display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 100px); overflow-y:auto;
@@ -557,22 +557,20 @@ if ("serviceWorker" in navigator) {
 </div>
 
 <script>
-/* Keeps the nav panel open across page navigation.
+/* The nav panel: opens and closes with the hamburger button, and closes again on its own - when
+   you go to another page (it starts closed on every page), click or tap outside it, press Escape,
+   or pick one of its links. Coming back with the browser's back button closes it too (the browser
+   can restore a page exactly as it was left, panel open included).
 
-   Every page load builds a fresh DOM, so the panel is closed by default and the old behaviour
-   also closed it on any outside click. Following a link therefore always dismissed the menu,
-   which made it tedious to move between several pages.
+   It used to stay open from page to page (kept in sessionStorage) so moving between pages didn't
+   mean reopening it each time; with the shortcut row now on every page that is no longer needed.
 
-   The open/closed state now lives in sessionStorage - per tab, cleared when the tab closes -
-   and is restored on load. Only the hamburger button toggles it, plus Escape as a keyboard
-   escape hatch.
-
-   Each page already ships its own hamburger handler inline, outside the NAV markers this file
-   is injected between, so those handlers cannot be edited from here. Instead the button is
-   replaced with a clone (which drops the page's listener) and the page's closeHamburger() is
-   neutralised, so the page's own outside-click rule can no longer shut the panel. */
+   Each page ships its own hamburger handler inline, outside the NAV markers this file is injected
+   between, so those can't be edited from here. The button is replaced with a clone (dropping the
+   page's listener) and the page's closeHamburger() is pointed at this one, so every page behaves
+   the same. */
 (function(){
-  var KEY = "sra-nav-open";
+  try { sessionStorage.removeItem("sra-nav-open"); } catch(e){ /* the old open-state flag */ }
   document.addEventListener("DOMContentLoaded", function(){
     var panel = document.getElementById("hamburgerPanel");
     var btn = document.getElementById("hamburgerBtn");
@@ -582,24 +580,26 @@ if ("serviceWorker" in navigator) {
     btn.parentNode.replaceChild(fresh, btn);
     btn = fresh;
 
-    if(typeof window.closeHamburger === "function") window.closeHamburger = function(){};
-
     function setOpen(open){
       panel.classList.toggle("open", open);
       btn.setAttribute("aria-expanded", String(open));
-      try { sessionStorage.setItem(KEY, open ? "1" : "0"); } catch(e){ /* private mode */ }
     }
+    window.closeHamburger = function(){ setOpen(false); };
+    setOpen(false);
 
     btn.addEventListener("click", function(e){
       e.stopPropagation();
       setOpen(!panel.classList.contains("open"));
     });
-
-    document.addEventListener("keydown", function(e){
-      if(e.key === "Escape" && panel.classList.contains("open")) setOpen(false);
+    document.addEventListener("click", function(e){
+      if(!panel.classList.contains("open")) return;
+      if(e.target.closest && e.target.closest("#hamburgerPanel a")){ setOpen(false); return; }
+      if(!panel.contains(e.target) && !btn.contains(e.target)) setOpen(false);
     });
-
-    try { if(sessionStorage.getItem(KEY) === "1") setOpen(true); } catch(e){}
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape" && panel.classList.contains("open")){ setOpen(false); btn.focus(); }
+    });
+    window.addEventListener("pageshow", function(){ setOpen(false); });
   });
 })();
 </script>
