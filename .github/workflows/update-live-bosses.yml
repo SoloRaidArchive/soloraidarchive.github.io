@@ -28,7 +28,22 @@ jobs:
         run: pip install requests beautifulsoup4
 
       - name: Run scraper
+        # PB_DEBUG_DIR: save every Pokebattler request and response in full (headers + body) for
+        # Pokebattler's owner to look into the Cloudflare blocks. Kept outside the repo folder
+        # and uploaded below as a run artifact - never committed.
+        env:
+          PB_DEBUG_DIR: ${{ runner.temp }}/pokebattler-responses
         run: python update_live_bosses.py
+
+      - name: Upload the saved Pokebattler responses
+        # Download from the run's Summary page, under "Artifacts".
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pokebattler-responses-${{ github.run_id }}
+          path: ${{ runner.temp }}/pokebattler-responses
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Commit changes if the boss list actually changed
         # Runs even when the scraper step failed: the scraper still writes a usable file (today's
