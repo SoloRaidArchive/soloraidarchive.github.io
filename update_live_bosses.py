@@ -349,13 +349,41 @@ def fetch_boss_dates_from_website():
     return {}, []
 
 
+# What each Pokebattler raids page returned on this run - written into live-bosses.json under
+# "sources" so a page that stops yielding dates says why (blocked, JavaScript-only, changed
+# format) instead of showing only a 0. Pokebattler's pages returned no dates on every run from at
+# least 29 Oct 2026, and nothing on record could say whether it was a block or a page change.
+POKEBATTLER_PAGE_REPORT = []
+
+
+def _page_report(url, status=None, size=0, dates=0, note=None):
+    POKEBATTLER_PAGE_REPORT.append({"url": url, "status": status, "bytes": size, "dates": dates, "note": note})
+    if note:
+        print(f"::warning title=Pokebattler page::{url}: {note}")
+
+
+def _why_no_dates(resp):
+    """A best guess at why a fetched raids page held no readable dates."""
+    body = resp.text or ""
+    low = body.lower()
+    if resp.status_code in (403, 429, 503) or "just a moment" in low or "cf-chl" in low or "challenge-platform" in low:
+        return f"blocked (HTTP {resp.status_code}, looks like a Cloudflare/bot check)"
+    if len(body) < 5000 or "enable javascript" in low or ('id="root"' in low and "cp" not in low):
+        return f"page has no raid content without JavaScript ({len(body)} bytes)"
+    return f"no dates in the expected format ({len(body)} bytes) - the page layout may have changed"
+
+
 def _dates_from_pokebattler_page(url):
     """One Pokebattler raids page -> (dates_by_name, web_occurrences); empty if it can't be read."""
     try:
         resp = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
-        resp.raise_for_status()
     except Exception as e:
         print(f"Could not fetch {url} for date info (non-fatal): {e}")
+        _page_report(url, note=f"request failed: {type(e).__name__}: {str(e)[:120]}")
+        return {}, []
+    if resp.status_code >= 400:
+        print(f"Could not fetch {url} for date info (non-fatal): HTTP {resp.status_code}")
+        _page_report(url, status=resp.status_code, size=len(resp.text or ""), note=_why_no_dates(resp))
         return {}, []
 
     try:
@@ -393,6 +421,8 @@ def _dates_from_pokebattler_page(url):
                 web_occurrences.append(occurrence)
     print(f"Found date info for {len(dates_by_name)} boss(es) on {url} "
           f"({len(web_occurrences)} boss/window occurrence(s))")
+    _page_report(url, status=resp.status_code, size=len(resp.text or ""), dates=len(dates_by_name),
+                 note=None if dates_by_name else _why_no_dates(resp))
     return dates_by_name, web_occurrences
 
 
@@ -401,6 +431,10 @@ def _sd_boss_name(raw, event_name):
     Shadow raids list the plain species ('Landorus (Incarnate)'); the event name says it's a
     Shadow raid ('... in Shadow Raids'), so 'Shadow ' is put back in front."""
     name = re.sub(r"\s*\(([^)]*)\)", lambda m: " " + re.sub(r"\s*Formes?$", "", m.group(1).strip()), raw).strip()
+    # The default forme carries no suffix in the archive: ScrapedDuck's "Deoxys (Normal)" is the
+    # archive's "Deoxys" (its Attack/Defense/Speed formes keep theirs). Without this the normal
+    # forme never matched and was dropped from Nov 25 - Dec 1 although it has strategies.
+    name = re.sub(r"\s+Normal$", "", name)
     if re.search(r"\bShadow Raids?\b", event_name or "", re.I) and not name.lower().startswith("shadow "):
         name = "Shadow " + name
     return name
@@ -459,7 +493,8 @@ def fetch_all_boss_dates():
     dates_by_name.update(web_dates)
     on_web = {k for k, _s, _e in web_occ}
     occurrences = list(web_occ) + [o for o in sd_occ if o[0] not in on_web]
-    health = {"pokebattlerWebsite": len(web_dates), "pokebattlerPage": POKEBATTLER_PAGE_USED, "scrapedDuck": len(sd_dates)}
+    health = {"pokebattlerWebsite": len(web_dates), "pokebattlerPage": POKEBATTLER_PAGE_USED, "scrapedDuck": len(sd_dates),
+              "pokebattlerPages": list(POKEBATTLER_PAGE_REPORT)}
     # GitHub Actions turns these lines into annotations on the run (and an error fails it - see
     # the end of main()), so a schedule source going blank shows up instead of quietly emptying
     # the landing page's upcoming rotations.
@@ -543,8 +578,12 @@ def gate_2_date_valid(name, start_date, end_date, now, date_only, parse_pokebatt
     if end_dt is not None:
         if category == "rotation":
             # A rotation stays visible for the whole month its window falls in, and is
-            # dropped only once the calendar month itself has passed.
-            if (end_dt.year, end_dt.month) < (now.year, now.month):
+            # dropped only once the calendar month itself has passed - in the LAST timezone to
+            # reach it, as for events below. Comparing against the UTC month dropped every
+            # October rotation at 5 pm Pacific on Oct 31, leaving the Americas with three
+            # October bosses (and no November ones yet, their month not having started).
+            month_now = now - LAST_TZ_OFFSET
+            if (end_dt.year, end_dt.month) < (month_now.year, month_now.month):
                 return False, category, f"rotation window's month ({end_date}) has passed"
         else:
             # A one-day event stays listed until its date has passed in the LAST timezone on
@@ -870,7 +909,10 @@ def _carry_forward_month(date_groups, out_path, now):
                  or parse_pokebattler_datetime(g.get("startDate") or ""))
         if not stamp:
             continue
-        if (stamp.year, stamp.month) == (now.year, now.month):
+        # The month in the last timezone to reach it (see gate_2_date_valid): carrying by the UTC
+        # month let go of the whole of October at 5 pm Pacific on Oct 31.
+        month_now = now - LAST_TZ_OFFSET
+        if (stamp.year, stamp.month) == (month_now.year, month_now.month):
             carried.append(g)
 
     if carried:
@@ -889,6 +931,7 @@ def main():
     print(f"Fetched {len(current_names)} total current boss entries from Pokebattler's API")
 
     dates_by_name, web_occurrences, source_health = fetch_all_boss_dates()
+    source_health["pokebattlerApi"] = len(current_names)   # bosses the API reports running right now
     now = datetime.now()
 
     def date_only(date_str):
