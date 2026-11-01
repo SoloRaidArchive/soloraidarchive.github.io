@@ -879,6 +879,8 @@ if ("serviceWorker" in navigator) {
   /* the shared behaviour card: switches and the priority list */
   .team-behavior-card .team-behavior-row{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
   .team-behavior-card .check-item{ text-transform:none; letter-spacing:0; font-size:12.5px; color:var(--text); }
+  /* same height as the Additional Modifiers tiles (50px) */
+  .team-behavior-card .team-behavior-row > .check-item{ min-height:50px; box-sizing:border-box; }
   .team-dodge-limit{ cursor:default; }
   .team-dodge-limit select, .team-dodge-limit input{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card);
     border:1.5px solid var(--border); border-radius:7px; padding:2px 4px; margin-left:2px; }
