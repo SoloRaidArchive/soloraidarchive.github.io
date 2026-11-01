@@ -429,6 +429,10 @@ if ("serviceWorker" in navigator) {
   }
 
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+  /* A label from live-bosses.json on an event group - "In-person" for location-bound events
+     (GO Wild Area city events), so a raid that can't be done remotely reads as such. */
+  .live-boss-tag{ display:inline-block; margin-top:3px; padding:1px 7px; border-radius:999px; font-size:10.5px; font-weight:800;
+    letter-spacing:.02em; color:var(--blue, #3d9dff); background:color-mix(in srgb, var(--blue, #3d9dff) 14%, transparent); white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -1139,6 +1143,12 @@ function formatGroupHeader(startDate, endDate){
     const m = s.match(/^([A-Za-z]+ \d+),/);
     return m ? m[1] : s;
   };
+  if(!endDate){
+    // No end date: an upcoming boss Pokebattler's API dates, whose window hasn't been announced
+    // yet (the API gives start dates only). Shown as when it starts; the end appears once the
+    // schedule lists it.
+    return `From ${shortDate(startDate)}`;
+  }
   if(!startDate){
     // No start date: Pokebattler omits it for a rotation that is already running.
     //
@@ -1200,7 +1210,7 @@ async function loadLiveBosses(){
       const overflowCount = group.bosses.length - shown.length;
       return `
       <div class="live-boss-group">
-        <div class="live-boss-group-header">${formatGroupHeader(group.startDate, group.endDate)}</div>
+        <div class="live-boss-group-header">${formatGroupHeader(group.startDate, group.endDate)}${group.label ? ` <span class="live-boss-tag">${group.label}</span>` : ""}</div>
         <div class="live-boss-row">${shown.map(boss => `
           <a class="live-boss-item" href="${bossHref(boss)}" title="${boss.name}">
             <div class="live-boss-icon"><img class="${needsShadowMist(boss.name) ? 'shadow-mist' : ''}" src="${spriteUrl(boss.name)}" alt="${boss.name}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${boss.name}')) { this.style.display='none'; }"></div>
@@ -1228,7 +1238,7 @@ async function loadLiveBosses(){
       const flat = [];
       groups.forEach(group => {
         group.bosses.forEach(boss => {
-          flat.push(Object.assign({}, boss, { startDate: group.startDate, endDate: group.endDate }));
+          flat.push(Object.assign({}, boss, { startDate: group.startDate, endDate: group.endDate, label: group.label }));
         });
       });
       flat.sort((a, b) => {
@@ -1252,6 +1262,7 @@ async function loadLiveBosses(){
             ${weatherIcon(boss.weather)}
           </div>
           <div class="live-boss-date">${formatGroupHeader(boss.startDate, boss.endDate)}</div>
+          ${boss.label ? `<div class="live-boss-tag">${boss.label}</div>` : ""}
         </a>`).join("")}</div>${overflow > 0 ? `<a class="live-boss-more" href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">See all ${flat.length} raids on Pokebattler &rarr;</a>` : ""}`;
     }
 
