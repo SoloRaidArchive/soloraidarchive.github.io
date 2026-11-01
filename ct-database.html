@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- SEASON: the regular pages rotate their colours with the seasons (assets/seasons.css), picked
+     from today's date in Pacific time - Dec-Feb winter, Mar-May spring, Jun-Aug summer, Sep-Nov fall.
+     Set before anything is drawn, so there's no flash of the old colours. ?season=winter (etc.)
+     in the address previews another season. -->
+<script>(function(){try{
+  var m=+new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",month:"numeric"}).format(new Date());
+  var s=(m===12||m<=2)?"winter":m<=5?"spring":m<=8?"summer":"fall";
+  var q=/[?&]season=(winter|spring|summer|fall)\b/.exec(location.search); if(q) s=q[1];
+  document.documentElement.setAttribute("data-season",s);
+}catch(e){}})();</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Catch Tank Database — Solo Raid Archive</title>
@@ -487,15 +498,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
     background: var(--card); cursor:pointer; white-space:nowrap;
   }
   .glossary-btn:hover{ border-color: var(--accent); color: var(--accent-dark); }
-  /* Matches the boss-mode buttons rather than the old pill: same rectangular shape, border and
-     weight, so the two read as the same class of control. */
-  .calc-link{
-    text-decoration:none; display:inline-flex; align-items:center; justify-content:center;
-    font-family:'Manrope', sans-serif; font-size:12.5px; font-weight:800;
-    padding:8px 14px; border-radius:8px;
-    border:1.5px solid var(--border); background: var(--card); color: var(--ink);
-  }
-  .calc-link:hover{ border-color: var(--accent); color: var(--accent-dark); }
   .glossary-overlay{
     position:fixed; inset:0; background:rgba(20,24,38,0.35); z-index:60;
   }
@@ -919,6 +921,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   }
 
 </style>
+<link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
 <body>
 
@@ -1132,11 +1135,9 @@ header{ padding: 12px 24px 10px; text-align:center; }
 
 <div class="controls">
   <!-- "All Types" was removed: no filter is already the default state, and every chip toggles
-       itself off, so the button only duplicated behaviour the grid already had. Its slot was
-       taking room in this row that the calculator link and tier dropdown now use. -->
-  <!-- Every row here came out of the calculator, so a reader wanting to reproduce or extend a
-       result has somewhere to go without hunting through the nav. -->
-  <a class="calc-link" href="dps-calculator.html">DPS Calculator &rarr;</a>
+       itself off, so the button only duplicated behaviour the grid already had. The DPS
+       Calculator link that sat here went too - it is in the shortcut row at the top of every
+       page - so the tier dropdown leads the row. -->
   <select id="tierFilter">
     <option value="legendary">Legendary</option>
     <option value="mega">Tier 4 Mega</option>

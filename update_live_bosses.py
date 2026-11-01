@@ -247,6 +247,9 @@ def normalize_name(name):
     if re.match(r"^(burn|chill|douse|shock)\s+genesect$", cleaned):
         return "genesect"
     cleaned = re.sub(r"\s+of many battles$", "", cleaned)
+    # The API's "Zacian Crowned Sword" / "Zamazenta Crowned Shield" are the archive's
+    # "Zacian Crown" / "Zamazenta Crown"; without this the two never matched.
+    cleaned = re.sub(r"^(zacian|zamazenta) crowned (sword|shield)$", r"\1 crown", cleaned)
     # Shadow raids name the DEFAULT forme only by omission. Pokebattler lists Shadow Landorus as
     # 'LANDORUS_SHADOW_FORM' / "Shadow Landorus", while the archive spells the forme out
     # ("Shadow Landorus Incarnate", matching its regular "Landorus Incarnate" row). Both
@@ -325,6 +328,87 @@ def save_pokebattler_exchange(label, url, request_headers, resp=None, error=None
 
 # normalized boss name -> (startDate epoch ms, display name), from the API's upcoming entries
 API_START_DATES = {}
+API_RAW = {}   # the full API response of this run (fetch_current_bosses), for its raid schedule
+# (normalized boss name, 'Nov 5, 2026') of every schedule window marked localTime: false - a fixed
+# real-world time rather than "10 AM local everywhere", which is how Pokebattler lists in-person,
+# location-bound events (GO Wild Area: Sendai / Mexico City, Nov 6-8 2026, shows as one Nov 5-9
+# global-time window). Published as events labelled "In-person", never as monthly rotation.
+API_IN_PERSON = set()
+
+# Multi-day GLOBAL events that Pokebattler's schedule can't tell apart from a monthly rotation
+# (no field marks them). Keyed by (normalized boss name, start date as published) so the same boss's
+# regular rotation later is unaffected; the value is an optional label for the landing page.
+EVENT_WINDOWS = {
+    # Into the Wild, Nov 9-13 2026 (leekduck.com/events/into-the-wild-2026): Crowned Zacian and
+    # Zamazenta take over five-star raids for the event, with Raid Hours on Nov 9 and 10.
+    ("zacian crown", "Nov 9, 2026"): None,
+    ("zamazenta crown", "Nov 9, 2026"): None,
+}
+
+
+def _find_api_schedule(data, depth=0):
+    """The API's raid schedule: a list of entries with pokemon / tier / startDate / endDate
+    (epoch ms), one per boss per window - e.g. GIRATINA_ALTERED_FORM, RAID_LEVEL_5, Nov 4 -> Nov 8.
+    It sits beside "tiers" and "dynamaxPokemon"; found by its shape rather than its key name, so a
+    renamed key doesn't silently cost us the schedule. Returns (key, list) or (None, [])."""
+    if depth > 2:
+        return None, []
+    items = data.items() if isinstance(data, dict) else []
+    for k, v in items:
+        if (isinstance(v, list) and v and isinstance(v[0], dict)
+                and {"pokemon", "tier", "startDate", "endDate"} <= set(v[0])):
+            return k, v
+    for k, v in items:
+        if isinstance(v, dict):
+            kk, vv = _find_api_schedule(v, depth + 1)
+            if vv:
+                return f"{k}.{kk}", vv
+    return None, []
+
+
+def fetch_boss_dates_from_api_schedule():
+    """Pokebattler's own raid schedule -> (dates_by_name, occurrences), in the same shape as the
+    ScrapedDuck reader. Every window has a real start AND end. Dates are read in Pacific time,
+    where they land on the announced days (Giratina Altered: Nov 4 6:00 AM -> Nov 8 10:00 PM).
+    Skipped: Max Battle tiers (Dynamax / Gigantamax - not raids), Super Mega tiers (handled as
+    enhanced raids elsewhere) and legacy pools. A boss can have several windows (Crowned Zacian:
+    a global Nov 5-9 window and a regular Nov 9-13 one) - all are kept as occurrences;
+    dates_by_name holds the earliest window that hasn't ended yet."""
+    API_IN_PERSON.clear()
+    key, schedule = _find_api_schedule(API_RAW.get("data") or {})
+    if not schedule:
+        print("::warning title=Pokebattler schedule::No raid schedule found in Pokebattler's API "
+              "response (a list of pokemon/tier/startDate/endDate entries). Falling back to the "
+              "ScrapedDuck (LeekDuck) schedule for raid dates.")
+        return {}, []
+    now_ms = datetime.now(timezone.utc).timestamp() * 1000
+    rows = []
+    for e in schedule:
+        tier = str(e.get("tier", ""))
+        if "_MAX" in tier or "_MEGA_ENHANCED" in tier or "_LEGACY" in tier:
+            continue
+        s, en = e.get("startDate"), e.get("endDate")
+        pid = e.get("pokemon") or e.get("pokemonId")
+        if not (pid and isinstance(s, (int, float)) and isinstance(en, (int, float))):
+            continue
+        k = normalize_name(pokemon_id_to_name(pid))
+        rows.append((s, en, k))
+        if e.get("localTime") is False:
+            API_IN_PERSON.add((k, re.match(r"^([A-Za-z]+ \d+, \d+)", _api_date(s)).group(1)))
+    rows.sort()
+    occurrences, chosen = [], {}
+    for s, en, k in rows:
+        occ = (k, _api_date(s), _api_date(en))
+        if occ not in occurrences:
+            occurrences.append(occ)
+        # per boss: the earliest window that hasn't ended; if every window has ended, the last one
+        prev = chosen.get(k)
+        if prev is None or (prev[2] < now_ms and (en >= now_ms or en > prev[2])):
+            chosen[k] = (occ[1], occ[2], en)
+    dates_by_name = {k: (a, b) for k, (a, b, _e) in chosen.items()}
+    print(f"Found {len(occurrences)} raid window(s) for {len(dates_by_name)} boss(es) in "
+          f"Pokebattler's raid schedule (API key '{key}')")
+    return dates_by_name, occurrences
 
 
 def _api_date(ms):
@@ -358,11 +442,18 @@ def fetch_current_bosses():
     save_pokebattler_exchange("api", POKEBATTLER_API_URL, headers, resp)
     resp.raise_for_status()
     data = resp.json()
+    API_RAW["data"] = data
 
     names = []
     enhanced_names = set()
     API_START_DATES.clear()
     for tier_entry in data.get("tiers", []):
+        # Max Battle tiers (RAID_LEVEL_6_MAX, RAID_LEVEL_2_MAX_FUTURE, ...) are Dynamax /
+        # Gigantamax battles, not raids: Dynamax Dialga or Palkia there would otherwise match the
+        # archive's raid Dialga / Palkia. Skipped entirely - no roster entries, no start dates.
+        if "_MAX" in tier_entry.get("tier", ""):
+            print(f"[{tier_entry.get('tier', '')}] skipped - Max Battle tier, not raids")
+            continue
         # Upcoming bosses carry "upcoming": true and "startDate" (epoch ms, UTC) on their entry -
         # the only schedule data the API has (no end dates). Kept per boss: the earliest start.
         if "_LEGACY" not in tier_entry.get("tier", "") and "_MEGA_ENHANCED" not in tier_entry.get("tier", ""):
@@ -547,13 +638,19 @@ def fetch_boss_dates_from_scrapedduck():
 
 
 def fetch_all_boss_dates():
-    """The raid schedule. Pokebattler's API comes first: an upcoming boss's start date is taken
+    """The raid schedule. Pokebattler's API comes first: its raid schedule (full start/end windows)
+    is used for every boss it lists, and ScrapedDuck only for bosses it doesn't list. Beyond that,
+    for a ScrapedDuck window, an upcoming boss's start date is taken
     from its startDate (read in fetch_current_bosses, which must run first). The API has no end
     dates, so windows - and bosses the API gives no date for - come from the ScrapedDuck
     (LeekDuck) schedule. An API start replaces ScrapedDuck's start for the window it belongs to
     (the one starting within 3 days of it), so a boss with two windows keeps its other one.
     Returns how much each source supplied, so a source that comes back empty is visible."""
-    sd_dates, sd_occ = fetch_boss_dates_from_scrapedduck()
+    api_dates, api_occ = fetch_boss_dates_from_api_schedule()
+    sd_all, sd_occ_all = fetch_boss_dates_from_scrapedduck()
+    # ScrapedDuck only fills in bosses Pokebattler's schedule doesn't list at all.
+    sd_dates = {k: v for k, v in sd_all.items() if k not in api_dates}
+    sd_occ = [o for o in sd_occ_all if o[0] not in api_dates]
 
     def parse(d):
         try:
@@ -576,11 +673,12 @@ def fetch_all_boss_dates():
             return api_start, end
         return start, end
 
-    occurrences = [(k,) + with_api_start(k, s_, e_) for k, s_, e_ in sd_occ]
-    dates_by_name = {k: with_api_start(k, s_, e_) for k, (s_, e_) in sd_dates.items()}
+    occurrences = list(api_occ) + [(k,) + with_api_start(k, s_, e_) for k, s_, e_ in sd_occ]
+    dates_by_name = dict(api_dates)
+    dates_by_name.update({k: with_api_start(k, s_, e_) for k, (s_, e_) in sd_dates.items()})
 
     # Upcoming in the API but with no window anywhere: no end date to show them with yet.
-    no_end = sorted(f"{nm} (from {d})" for k, (d, nm) in api.items() if k not in sd_dates)
+    no_end = sorted(f"{nm} (from {d})" for k, (d, nm) in api.items() if k not in dates_by_name)
     print(f"Pokebattler API: start dates for {len(api)} upcoming boss(es); "
           f"{len(applied)} used for a schedule window")
     for m in moved:
@@ -589,12 +687,13 @@ def fetch_all_boss_dates():
         print("  Upcoming in the API but not yet in the ScrapedDuck schedule (no end date to publish "
               f"them with): {', '.join(no_end)}")
 
-    health = {"pokebattlerApiStartDates": len(api), "pokebattlerApiStartsUsed": len(applied),
-              "scrapedDuck": len(sd_dates), "pokebattlerApiUpcomingWithoutEndDate": no_end}
-    if not sd_dates:
-        print("::error title=No raid schedule::The ScrapedDuck (LeekDuck) schedule returned no raid "
-              "dates, and Pokebattler's API gives start dates only - no windows can be built, so "
-              "upcoming rotations will be missing from the landing page.")
+    health = {"pokebattlerSchedule": len(api_dates), "pokebattlerScheduleWindows": len(api_occ),
+              "scrapedDuck": len(sd_dates), "pokebattlerApiStartDates": len(api),
+              "pokebattlerApiStartsUsed": len(applied), "pokebattlerApiUpcomingWithoutEndDate": no_end}
+    if not api_dates and not sd_all:
+        print("::error title=No raid schedule::Neither Pokebattler's raid schedule nor the ScrapedDuck "
+              "(LeekDuck) schedule returned any raid windows, so upcoming rotations will be missing "
+              "from the landing page.")
     return dates_by_name, occurrences, health
 
 
@@ -987,6 +1086,8 @@ def _carry_forward_month(date_groups, out_path, now):
 
     carried = []
     for g in previous:
+        if g.get("openEnded"):
+            continue                          # rebuilt from the API every run; never carried
         if key(g) in present:
             continue                          # the source still reports it; nothing to restore
         # An entry belongs to a month by the window it ended in. A start date is used only when
@@ -1203,6 +1304,42 @@ def main():
     # from Oct 28 every one of them was published as "Oct 28 - Nov 3". Each boss is matched to
     # the window it was last stored with (same boss, same end date, same category), so it gets
     # back its own start rather than whichever start its group happened to inherit.
+    # Upcoming bosses the API gives a start date for, that no schedule lists yet: published with
+    # their start date and no end ("From Nov 5" on the landing page) rather than left off until
+    # LeekDuck announces the window. The API never has end dates, so this is the only way to show
+    # them early. Once ScrapedDuck lists the boss, its window replaces this (dates_by_name check),
+    # and an open-ended group is never carried forward (see _carry_forward_month).
+    month_now = now - LAST_TZ_OFFSET
+    for key, (ms, api_name) in sorted(API_START_DATES.items(), key=lambda kv: kv[1][0]):
+        if key not in known_bosses or key in seen_names or key in dates_by_name:
+            continue
+        start_date = _api_date(ms)
+        start_dt = parse_pokebattler_datetime(start_date)
+        if not start_dt or (start_dt.year, start_dt.month) < (month_now.year, month_now.month):
+            continue
+        info = known_bosses[key]
+        name = info.get("name") or api_name
+        passed, reason = gate_1_not_enhanced(name, key, enhanced_names, None)
+        if not passed:
+            print(f"  GATE 1 REJECT {name}: {reason}")
+            continue
+        results.append({"name": name, "startDate": start_date, "endDate": None, "category": "rotation",
+                        "archivePage": info["archivePage"], "difficulty": info["difficulty"],
+                        "weather": info["weather"]})
+        seen_names.add(key)
+        print(f"  API: added {name} from {date_only(start_date)} - no end date announced yet")
+
+    # Event windows that would otherwise read as monthly rotation (multi-day): in-person ones
+    # (localTime: false in Pokebattler's schedule) and the listed global ones (EVENT_WINDOWS).
+    for r in results:
+        w = (normalize_name(r["name"]), date_only(r.get("startDate")))
+        if w in API_IN_PERSON:
+            r["category"], r["label"] = "event", "In-person"
+        elif w in EVENT_WINDOWS:
+            r["category"] = "event"
+            if EVENT_WINDOWS[w]:
+                r["label"] = EVENT_WINDOWS[w]
+
     out_path = REPO_ROOT / "live-bosses.json"
     try:
         _previous = json.loads(out_path.read_text(encoding="utf-8")).get("dateGroups", [])
@@ -1221,7 +1358,10 @@ def main():
 
     grouped = {}
     order = []
+    labels = {}
     for r in results:
+        if r.get("label"):
+            labels[(date_only(r["startDate"]), date_only(r["endDate"]), r["category"])] = r["label"]
         key = (date_only(r["startDate"]), date_only(r["endDate"]), r["category"])
         if key not in grouped:
             grouped[key] = []
@@ -1242,6 +1382,10 @@ def main():
             "category": category,
             "bosses": grouped[key],
         })
+        if start and not end:
+            date_groups[-1]["openEnded"] = True   # start known (from the API), end not yet
+        if key in labels:
+            date_groups[-1]["label"] = labels[key]   # e.g. "In-person", shown on the landing page
 
     # Carry forward this month's rotations that the SOURCE has already forgotten.
     #
@@ -1286,7 +1430,7 @@ def main():
     # file is still written (it keeps today's running bosses and this month's history), but the
     # run ends as FAILED so GitHub flags it, instead of passing quietly with every upcoming
     # rotation missing. The workflow commits the file regardless.
-    if not source_health["scrapedDuck"]:
+    if not source_health["scrapedDuck"] and not source_health["pokebattlerSchedule"]:
         sys.exit(1)
 
 

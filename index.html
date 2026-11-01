@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- SEASON: the regular pages rotate their colours with the seasons (assets/seasons.css), picked
+     from today's date in Pacific time - Dec-Feb winter, Mar-May spring, Jun-Aug summer, Sep-Nov fall.
+     Set before anything is drawn, so there's no flash of the old colours. ?season=winter (etc.)
+     in the address previews another season. -->
+<script>(function(){try{
+  var m=+new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",month:"numeric"}).format(new Date());
+  var s=(m===12||m<=2)?"winter":m<=5?"spring":m<=8?"summer":"fall";
+  var q=/[?&]season=(winter|spring|summer|fall)\b/.exec(location.search); if(q) s=q[1];
+  document.documentElement.setAttribute("data-season",s);
+}catch(e){}})();</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solo Raid Archive — Pokémon GO Solo Raid Strategies</title>
@@ -434,6 +445,7 @@ if ("serviceWorker" in navigator) {
   .live-boss-tag{ display:inline-block; margin-top:3px; padding:1px 7px; border-radius:999px; font-size:10.5px; font-weight:800;
     letter-spacing:.02em; color:var(--blue, #3d9dff); background:color-mix(in srgb, var(--blue, #3d9dff) 14%, transparent); white-space:nowrap; }
 </style>
+<link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
 <body>
 

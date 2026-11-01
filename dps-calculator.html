@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- SEASON: the regular pages rotate their colours with the seasons (assets/seasons.css), picked
+     from today's date in Pacific time - Dec-Feb winter, Mar-May spring, Jun-Aug summer, Sep-Nov fall.
+     Set before anything is drawn, so there's no flash of the old colours. ?season=winter (etc.)
+     in the address previews another season. -->
+<script>(function(){try{
+  var m=+new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",month:"numeric"}).format(new Date());
+  var s=(m===12||m<=2)?"winter":m<=5?"spring":m<=8?"summer":"fall";
+  var q=/[?&]season=(winter|spring|summer|fall)\b/.exec(location.search); if(q) s=q[1];
+  document.documentElement.setAttribute("data-season",s);
+}catch(e){}})();</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DPS Calculator — Pokémon GO Solo Raid Archive</title>
@@ -1084,6 +1095,7 @@ if ("serviceWorker" in navigator) {
   "description": "Estimate energy gained, damage dealt, and DPS for Main DPS, Trailing Catch Tank, Catch Tank, and Double Catch Tank roles in Pokémon GO solo raids."
 }
 </script>
+<link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
 <body>
 
@@ -4203,9 +4215,10 @@ function runCalculation(){
     // fast moves, plus 50% of the damage the player deals it. That means a harder-hitting player
     // faces more charge moves, which is the feedback loop a fixed rate would destroy.
     //
-    // Placement is deterministic rather than random (Bresenham-style accumulator), so the same
-    // inputs always give the same rotation - a calculator that returned a different answer each
-    // press would be useless for comparing loadouts.
+    // Placement is random, as in the Beta catch tank simulator: on every boss move a draw with the
+    // slider's chance decides whether it commits to its charge move, which it casts as soon as it
+    // has 100 energy. Same average rate as the fixed pattern this replaced (+aggression per move),
+    // but every Calculate is a new rotation. window.__mainSeed, if set, repeats one (for testing).
     // Never on the Fast Only cadence: that setting means the boss uses fast moves only.
     // Optimal DPS (Fast & Charge only): the boss casts its charge move only when the attacker can
     // sponge at least OPTIMAL_SPONGE of its energy - the most energy-efficient timing the boss could
@@ -4223,12 +4236,15 @@ function runCalculation(){
     // made the first one arrive unrealistically early. A short rotation can now end before the
     // boss casts at all - which is what would happen in the raid too.
     let bossEnergy = 0;
-    // Accumulator starts half-full rather than empty. Starting at 0 means the first charge move
-    // cannot arrive until 1/p decisions have passed - at 30% that is the 4th boss move, which a
-    // short rotation never reaches, so the cadence reported zero charge moves. Half-phase seeding
-    // is the standard fix for this bias and puts the first cast near the middle of its interval
-    // instead of at the far end, without making low aggression fire immediately.
-    let aggroAcc = 0.5, mdDamageTakenTotal = 0;
+    let aggroAcc = 0, mdDamageTakenTotal = 0;   // charge moves decided on, not cast yet
+    // this rotation's random numbers (mulberry32) - a new seed every Calculate
+    let mdRng = (Number.isInteger(window.__mainSeed) ? window.__mainSeed : crypto.getRandomValues(new Uint32Array(1))[0]) >>> 0;
+    const mdRand = () => {
+      let t = (mdRng = (mdRng + 0x6D2B79F5) >>> 0);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
     const mdBossMoveLog = [];   // what the boss actually did, in order
 
     // Energy from damage is banked when the damage is TAKEN, in both directions:
@@ -4264,7 +4280,7 @@ function runCalculation(){
         landedEnergy += energyFromDamage(mdPlayerHits[mdPlayerHitIdx++].dmg);
       }
       bossEnergy = Math.min(bossCMCost, bossEnergy + landedEnergy);
-      aggroAcc += bossAggroP;
+      aggroAcc += mdRand() < bossAggroP ? 1 : 0;
       // Share of this charge move's energy the attacker would keep (the rest goes over 100).
       const cmGain = energyFromDamage(bossCMDamage);
       const spongeShare = cmGain > 0 ? Math.min(cmGain, ENERGY_CAP - mdEnergyBanked) / cmGain : 1;
