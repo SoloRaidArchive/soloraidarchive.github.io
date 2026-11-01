@@ -1,9 +1,18 @@
 {
-  "generatedAt": "2026-11-01T02:51:58.370860+00:00",
+  "generatedAt": "2026-11-01T09:50:42.281515+00:00",
   "sources": {
-    "pokebattlerWebsite": 0,
-    "pokebattlerPage": null,
-    "scrapedDuck": 13
+    "pokebattlerApiStartDates": 8,
+    "pokebattlerApiStartsUsed": 2,
+    "scrapedDuck": 13,
+    "pokebattlerApiUpcomingWithoutEndDate": [
+      "Dialga (from Nov 5, 2026 12:00 PM)",
+      "Duraludon Gigantamax (from Nov 5, 2026 12:00 PM)",
+      "Machamp (from Nov 5, 2026 12:00 PM)",
+      "Palkia (from Nov 5, 2026 12:00 PM)",
+      "Zacian Crowned Sword (from Nov 5, 2026 12:00 PM)",
+      "Zamazenta Crowned Shield (from Nov 5, 2026 12:00 PM)"
+    ],
+    "pokebattlerApi": 42
   },
   "dateGroups": [
     {
@@ -76,6 +85,12 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Clear"
+        },
+        {
+          "name": "Deoxys",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
         }
       ],
       "status": "future"
