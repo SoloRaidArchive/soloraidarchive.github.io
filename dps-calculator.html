@@ -4,12 +4,32 @@
 <!-- SEASON: the regular pages rotate their colours with the seasons (assets/seasons.css), picked
      from today's date in Pacific time - Dec-Feb winter, Mar-May spring, Jun-Aug summer, Sep-Nov fall.
      Set before anything is drawn, so there's no flash of the old colours. ?season=winter (etc.)
-     in the address previews another season. -->
+     in the address previews another season. The menu's "Default theme" button turns it off. -->
 <script>(function(){try{
   var m=+new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",month:"numeric"}).format(new Date());
   var s=(m===12||m<=2)?"winter":m<=5?"spring":m<=8?"summer":"fall";
   var q=/[?&]season=(winter|spring|summer|fall)\b/.exec(location.search); if(q) s=q[1];
-  document.documentElement.setAttribute("data-season",s);
+  // A visitor can switch to the site's default colours (remembered on this device, like light/dark);
+  // a ?season= preview link always shows the season.
+  var off=false; try{ off=localStorage.getItem("raidArchiveSeasonal")==="off"; }catch(e){}
+  if(!off||q) document.documentElement.setAttribute("data-season",s);
+  // The switch: a button in the menu panel, beside the light/dark one, naming what it switches to.
+  var icon={winter:"\u2744\uFE0F",spring:"\uD83C\uDF38",summer:"\u2600\uFE0F",fall:"\uD83C\uDF42"}[s];
+  document.addEventListener("DOMContentLoaded",function(){
+    var dark=document.querySelector("#hamburgerPanel .hamburger-theme-toggle")||document.querySelector(".hamburger-panel .hamburger-theme-toggle");
+    if(!dark||document.getElementById("seasonToggle")) return;
+    var b=document.createElement("button"); b.type="button"; b.id="seasonToggle"; b.className=dark.className;
+    var root=document.documentElement;
+    function label(){ var on=root.hasAttribute("data-season");
+      b.textContent=on?"\uD83C\uDFA8 Default theme":icon+" Seasonal theme";
+      b.title=on?"Switch to the site's default colours":"Switch to this season's colours";
+      b.setAttribute("aria-pressed",String(on)); }
+    b.addEventListener("click",function(){
+      if(root.hasAttribute("data-season")){ root.removeAttribute("data-season"); try{localStorage.setItem("raidArchiveSeasonal","off");}catch(e){} }
+      else { root.setAttribute("data-season",s); try{localStorage.removeItem("raidArchiveSeasonal");}catch(e){} }
+      label(); });
+    label(); dark.parentNode.insertBefore(b,dark.nextSibling);
+  });
 }catch(e){}})();</script>
 
 <meta charset="UTF-8">
@@ -882,12 +902,8 @@ if ("serviceWorker" in navigator) {
   /* same height as the Additional Modifiers tiles (50px) */
   .team-behavior-card .team-behavior-row > .check-item{ min-height:50px; box-sizing:border-box; }
   .team-dodge-limit{ cursor:default; }
-  .team-dodge-limit select, .team-dodge-limit input{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card);
+  .team-dodge-limit select{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card);
     border:1.5px solid var(--border); border-radius:7px; padding:2px 4px; margin-left:2px; }
-  .team-dodge-limit input.invalid{ border-color:var(--red, #d6455d); }
-  #ctRejoinSecs{ width:3.6em; text-align:center; }
-  .team-unit{ font-weight:700; color:var(--text-dim); margin-left:1px; }
-  .team-input-error{ margin:-6px 0 12px; font-size:12px; font-weight:700; color:var(--red, #d6455d); }
   .team-dodge-limit.is-off{ opacity:.5; }
   #ctDodgeLimit{ width:3.3em; text-align:center; }
   .team-order-head{ font:800 11.5px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
@@ -1566,16 +1582,16 @@ if ("serviceWorker" in navigator) {
       <input type="checkbox" id="ctCmBuffer" hidden tabindex="-1"><!-- no longer offered in the Beta; kept so old links load - always treated as off -->
       <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label>
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
-        <input id="ctDodgeLimit" type="text" inputmode="numeric" list="ctDodgeLimitList" value="1" autocomplete="off" aria-describedby="ctBehaviorError">
-        <datalist id="ctDodgeLimitList"><option value="1"></option><option value="2"></option><option value="3"></option><option value="4"></option><option value="5"></option><option value="∞"></option></datalist>
+        <select id="ctDodgeLimit">
+          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
+          <option value="0" title="No limit">∞</option>
+        </select>
       </label>
-      <label class="check-item team-dodge-limit" title="How long one rejoin takes: 5.5s or more, in 0.5s steps. Pick one or type your own. Used for Minimum Cycle DPS and Cumulative DPS.">Rejoin time
-        <input id="ctRejoinSecs" type="text" inputmode="decimal" list="ctRejoinSecsList" value="7.0" autocomplete="off" aria-describedby="ctBehaviorError"><span class="team-unit">s</span>
-        <datalist id="ctRejoinSecsList"><option value="5.5"></option><option value="6.0"></option><option value="6.5"></option><option value="7.0"></option><option value="7.5"></option><option value="8.0"></option><option value="8.5"></option><option value="9.0"></option><option value="9.5"></option><option value="10.0"></option><option value="10.5"></option><option value="11.0"></option><option value="11.5"></option><option value="12.0"></option><option value="12.5"></option><option value="13.0"></option><option value="13.5"></option><option value="14.0"></option><option value="14.5"></option><option value="15.0"></option></datalist>
+      <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum Cycle DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
+        <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
       </label>
       <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
     </div>
-    <div class="team-input-error" id="ctBehaviorError" role="alert" hidden></div>
     <div class="team-order-head">Priority</div>
     <ol class="team-order" id="ctOrderList"></ol>
     <!-- the order, saved with setups and links: "main" and catch tank numbers, e.g. "main,1,2" -->
@@ -2723,7 +2739,7 @@ const TEAM_DODGE_KEEP = 0.85;   // a dodge must keep at least this share of the 
 // - HP / (300 - rejoin time x rejoins), cut to 2 decimals (raidTierFor gives the HP). At
 // 7.0s this gives the published tables exactly (Tier 5: 50.00, 51.19, 52.44, 53.76, 55.14; Mega:
 // 30.00, 30.71, 31.46, 32.25, 33.08) and carries on the same way past 4 rejoins.
-const RAID_SECS = 300, REJOIN_SECS = 7, REJOIN_SECS_MIN = 5.5, REJOIN_SECS_MAX = 60;   // rejoins come in 0.5s steps
+const RAID_SECS = 300, REJOIN_SECS = 7, REJOIN_SECS_MIN = 5.5, REJOIN_SECS_MAX = 15;   // rejoins come in 0.5s steps
 // Minimum DPS for a given number of rejoins (null once the rejoins would use up the timer).
 // Cumulative DPS, shown with it on the beta card, is the run's DPS spread over the whole 300s
 // raid once the rejoins are taken out: DPS x (300 - rejoin time x rejoins) / 300.
@@ -5315,7 +5331,6 @@ function applySetup(setup){
   });
   // Rejoin time is a dropdown of 0.5s steps: a value between steps (an older link) snaps to one
   if("ctRejoinSecs" in setup) document.getElementById("ctRejoinSecs").value = clampRejoinSecs(setup.ctRejoinSecs).toFixed(1);
-  if(typeof normalizeDodgeLimitField === "function"){ normalizeDodgeLimitField(); checkTeamBehaviorInputs(); }
   const modeToId = { maindps: "ctModeMainDPS", single: "ctModeSingle", double: "ctModeDouble", team: "ctModeTeam" };
   document.getElementById(modeToId[setup.ctMode] || "ctModeSingle").checked = true;
   updateCTMode();
@@ -6583,42 +6598,13 @@ function updateDodgeLimit(){
   document.getElementById("ctDodgeLimit").disabled = !on;
 }
 document.getElementById("ctMainDodge").addEventListener("change", updateDodgeLimit);
-// Rejoin time: 5.5s or more in 0.5s steps (typed or picked; up to 60s). For the maths anything else
-// snaps to the nearest step - the field itself is flagged until it's fixed (checkTeamBehaviorInputs)
-// - and a blank goes back to the 7.0s default
+// Rejoin time: a 0.5s step from 5.5s to 15.0s (the dropdown only offers those); anything else -
+// say an old link - snaps to the nearest step, and a blank goes back to the 7.0s default
 function clampRejoinSecs(v){
   const n = parseFloat(v);
   if(!isFinite(n)) return REJOIN_SECS;
   return Math.round(Math.min(REJOIN_SECS_MAX, Math.max(REJOIN_SECS_MIN, n)) * 2) / 2;
 }
-// Typed values for Rejoin time and Dodges before bailing: checked as they are entered. An invalid
-// one is outlined in red with a note under the row; the run still uses the nearest valid value.
-function checkTeamBehaviorInputs(){
-  const msgs = [];
-  const rj = document.getElementById("ctRejoinSecs"), dl = document.getElementById("ctDodgeLimit");
-  const r = rj.value.trim().replace(/s$/i, "");
-  const rn = parseFloat(r);
-  const rOk = r === "" || (/^\d+(\.\d+)?$/.test(r) && rn >= REJOIN_SECS_MIN && rn <= REJOIN_SECS_MAX && Math.abs(rn * 2 - Math.round(rn * 2)) < 1e-9);
-  rj.classList.toggle("invalid", !rOk);
-  if(!rOk) msgs.push(`Rejoin time: use ${REJOIN_SECS_MIN}s or more, in 0.5s steps (e.g. 6.5 or 7.0).`);
-  const d = dl.value.trim();
-  const dOk = dl.disabled || d === "" || d === "∞" || /^\d+$/.test(d);
-  dl.classList.toggle("invalid", !dOk);
-  if(!dOk) msgs.push("Dodges before bailing: a whole number, or ∞ for no limit.");
-  const box = document.getElementById("ctBehaviorError");
-  box.textContent = msgs.join(" "); box.hidden = !msgs.length;
-}
-// No limit is stored as 0 (and old links may carry 0); show it as ∞
-function normalizeDodgeLimitField(){
-  const dl = document.getElementById("ctDodgeLimit");
-  if(dl.value.trim() === "0") dl.value = "∞";
-}
-["ctRejoinSecs", "ctDodgeLimit"].forEach(id => {
-  const el = document.getElementById(id);
-  el.addEventListener("input", checkTeamBehaviorInputs);
-  el.addEventListener("change", () => { normalizeDodgeLimitField(); checkTeamBehaviorInputs(); });
-});
-document.getElementById("ctMainDodge").addEventListener("change", checkTeamBehaviorInputs);
 updateDodgeLimit();
 wireTeamCard("ct");
 setTeamTypeCount(teamTypeCount());
