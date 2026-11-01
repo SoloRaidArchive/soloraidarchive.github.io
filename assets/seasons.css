@@ -4,11 +4,7 @@
    Sep-Nov fall. Light and dark follow the usual theme toggle (data-theme="dark").
    Each season sets the colour variables both naming schemes use (--text/--blue... and
    --ink/--accent...), plus the shared components. Generated - edit the palettes, not the rules. */
-html[data-season] .site-title{ position:relative; margin-bottom:30px !important; }
-html[data-season] .site-title::after{ position:absolute; left:50%; top:100%; transform:translateX(-50%); margin-top:6px; white-space:nowrap;
-  font:800 11.5px 'Manrope',sans-serif; letter-spacing:.08em; text-transform:uppercase; padding:4px 12px; border-radius:999px; }
 
-html[data-season="winter"] .site-title::after{ content:"❄ Winter season"; }
 
 html[data-season="winter"]{
   --bg:#e9f2fc; --bg1:#ffffff; --bg2:#ffffff; --bg3:#ffffff; --bg4:#ffffff; --card:#ffffff; --border:#cfe0f2; --divider-contrast:#cfe0f2;
@@ -35,7 +31,6 @@ html[data-season="winter"] .mod-cell, html[data-season="winter"] .check-item, ht
 html[data-season="winter"] .calc-btn{ background:linear-gradient(135deg,#2f86d6,#62b6f0) !important; color:#fff !important; border:none !important; box-shadow:0 6px 16px color-mix(in srgb, #2f86d6 30%, transparent) !important; }
 html[data-season="winter"] .ct-mode-toggle input:checked + label{ background:#2f86d6 !important; color:#ffffff !important; }
 html[data-season="winter"] .step-num{ background:#eaf4ff !important; color:#2f86d6 !important; border:none !important; }
-html[data-season="winter"] .site-title::after{ background:#eaf4ff; color:#2f86d6; border:1.5px solid #cfe0f2; }
 
 html[data-season="winter"][data-theme="dark"]{
   --bg:#122039; --bg1:#16233a; --bg2:#16233a; --bg3:#16233a; --bg4:#16233a; --card:#16233a; --border:#2a3e5f; --divider-contrast:#2a3e5f;
@@ -62,9 +57,7 @@ html[data-season="winter"][data-theme="dark"] .mod-cell, html[data-season="winte
 html[data-season="winter"][data-theme="dark"] .calc-btn{ background:linear-gradient(135deg,#8fd3ff,#4aa3e6) !important; color:#fff !important; border:none !important; box-shadow:0 6px 16px color-mix(in srgb, #8fd3ff 30%, transparent) !important; }
 html[data-season="winter"][data-theme="dark"] .ct-mode-toggle input:checked + label{ background:#8fd3ff !important; color:#16233a !important; }
 html[data-season="winter"][data-theme="dark"] .step-num{ background:#1d3050 !important; color:#8fd3ff !important; border:none !important; }
-html[data-season="winter"][data-theme="dark"] .site-title::after{ background:#1d3050; color:#8fd3ff; border:1.5px solid #2a3e5f; }
 
-html[data-season="spring"] .site-title::after{ content:"🌸 Spring season"; }
 
 html[data-season="spring"]{
   --bg:#fdf3f2; --bg1:#ffffff; --bg2:#ffffff; --bg3:#ffffff; --bg4:#ffffff; --card:#ffffff; --border:#f1dbe3; --divider-contrast:#f1dbe3;
@@ -91,7 +84,6 @@ html[data-season="spring"] .mod-cell, html[data-season="spring"] .check-item, ht
 html[data-season="spring"] .calc-btn{ background:linear-gradient(135deg,#3aa864,#7fcf8f) !important; color:#fff !important; border:none !important; box-shadow:0 6px 16px color-mix(in srgb, #3aa864 30%, transparent) !important; }
 html[data-season="spring"] .ct-mode-toggle input:checked + label{ background:#3aa864 !important; color:#ffffff !important; }
 html[data-season="spring"] .step-num{ background:#fde7ef !important; color:#3aa864 !important; border:none !important; }
-html[data-season="spring"] .site-title::after{ background:#fde7ef; color:#3aa864; border:1.5px solid #f1dbe3; }
 
 html[data-season="spring"][data-theme="dark"]{
   --bg:#1b2e28; --bg1:#1c2b27; --bg2:#1c2b27; --bg3:#1c2b27; --bg4:#1c2b27; --card:#1c2b27; --border:#34503f; --divider-contrast:#34503f;
@@ -118,9 +110,7 @@ html[data-season="spring"][data-theme="dark"] .mod-cell, html[data-season="sprin
 html[data-season="spring"][data-theme="dark"] .calc-btn{ background:linear-gradient(135deg,#8ee6a8,#5cc489) !important; color:#fff !important; border:none !important; box-shadow:0 6px 16px color-mix(in srgb, #8ee6a8 30%, transparent) !important; }
 html[data-season="spring"][data-theme="dark"] .ct-mode-toggle input:checked + label{ background:#8ee6a8 !important; color:#1c2b27 !important; }
 html[data-season="spring"][data-theme="dark"] .step-num{ background:#253a31 !important; color:#8ee6a8 !important; border:none !important; }
-html[data-season="spring"][data-theme="dark"] .site-title::after{ background:#253a31; color:#8ee6a8; border:1.5px solid #34503f; }
 
-html[data-season="summer"] .site-title::after{ content:"☀ Summer season"; }
 
 html[data-season="summer"]{
   --bg:#fff4dc; --bg1:#ffffff; --bg2:#ffffff; --bg3:#ffffff; --bg4:#ffffff; --card:#ffffff; --border:#f5dfba; --divider-contrast:#f5dfba;
@@ -147,7 +137,6 @@ html[data-season="summer"] .mod-cell, html[data-season="summer"] .check-item, ht
 html[data-season="summer"] .calc-btn{ background:linear-gradient(135deg,#f2711f,#ffb43a) !important; color:#fff !important; border:none !important; box-shadow:0 6px 16px color-mix(in srgb, #f2711f 30%, transparent) !important; }
 html[data-season="summer"] .ct-mode-toggle input:checked + label{ background:#f2711f !important; color:#ffffff !important; }
 html[data-season="summer"] .step-num{ background:#fff1d6 !important; color:#f2711f !important; border:none !important; }
-html[data-season="summer"] .site-title::after{ background:#fff1d6; color:#f2711f; border:1.5px solid #f5dfba; }
 
 html[data-season="summer"][data-theme="dark"]{
   --bg:#2b1f4a; --bg1:#1f2142; --bg2:#1f2142; --bg3:#1f2142; --bg4:#1f2142; --card:#1f2142; --border:#3b3a66; --divider-contrast:#3b3a66;
@@ -174,9 +163,7 @@ html[data-season="summer"][data-theme="dark"] .mod-cell, html[data-season="summe
 html[data-season="summer"][data-theme="dark"] .calc-btn{ background:linear-gradient(135deg,#ffc65a,#ff8a59) !important; color:#fff !important; border:none !important; box-shadow:0 6px 16px color-mix(in srgb, #ffc65a 30%, transparent) !important; }
 html[data-season="summer"][data-theme="dark"] .ct-mode-toggle input:checked + label{ background:#ffc65a !important; color:#1f2142 !important; }
 html[data-season="summer"][data-theme="dark"] .step-num{ background:#2f2a55 !important; color:#ffc65a !important; border:none !important; }
-html[data-season="summer"][data-theme="dark"] .site-title::after{ background:#2f2a55; color:#ffc65a; border:1.5px solid #3b3a66; }
 
-html[data-season="fall"] .site-title::after{ content:"🍂 Fall season"; }
 
 html[data-season="fall"]{
   --bg:#fbe9d2; --bg1:#fffdf9; --bg2:#fffdf9; --bg3:#fffdf9; --bg4:#fffdf9; --card:#fffdf9; --border:#ecd3b4; --divider-contrast:#ecd3b4;
@@ -203,7 +190,6 @@ html[data-season="fall"] .mod-cell, html[data-season="fall"] .check-item, html[d
 html[data-season="fall"] .calc-btn{ background:linear-gradient(135deg,#c8581e,#e08a3a) !important; color:#fff !important; border:none !important; box-shadow:0 6px 16px color-mix(in srgb, #c8581e 30%, transparent) !important; }
 html[data-season="fall"] .ct-mode-toggle input:checked + label{ background:#c8581e !important; color:#fffdf9 !important; }
 html[data-season="fall"] .step-num{ background:#fbe6cf !important; color:#c8581e !important; border:none !important; }
-html[data-season="fall"] .site-title::after{ background:#fbe6cf; color:#c8581e; border:1.5px solid #ecd3b4; }
 
 html[data-season="fall"][data-theme="dark"]{
   --bg:#2b1f24; --bg1:#2a2326; --bg2:#2a2326; --bg3:#2a2326; --bg4:#2a2326; --card:#2a2326; --border:#9a5424; --divider-contrast:#9a5424;
@@ -230,7 +216,22 @@ html[data-season="fall"][data-theme="dark"] .mod-cell, html[data-season="fall"][
 html[data-season="fall"][data-theme="dark"] .calc-btn{ background:linear-gradient(135deg,#ff8a3d,#ffb347) !important; color:#fff !important; border:none !important; box-shadow:0 6px 16px color-mix(in srgb, #ff8a3d 30%, transparent) !important; }
 html[data-season="fall"][data-theme="dark"] .ct-mode-toggle input:checked + label{ background:#ff8a3d !important; color:#2a2326 !important; }
 html[data-season="fall"][data-theme="dark"] .step-num{ background:rgba(255,138,61,.16) !important; color:#ff8a3d !important; border:none !important; }
-html[data-season="fall"][data-theme="dark"] .site-title::after{ background:rgba(255,138,61,.16); color:#ff8a3d; border:1.5px solid #9a5424; }
 
 /* links inside page headings (e.g. the Guides page's "FAQ's") were the browser's default blue */
 html[data-season] .page-title a{ color:var(--accent) !important; }
+
+/* No borders on the landing page's announcement, season badge and boss search, or on the raid
+   tiles' difficulty chips and Pokémon icons (monthly rotation and Recently Published Raids) - the
+   seasonal colours set them apart instead. Two selectors so it outranks both the light rules and
+   the more specific dark-mode ones above. */
+html[data-season] .discord-row, html[data-season][data-theme] .discord-row,
+html[data-season] .boss-search-box, html[data-season][data-theme] .boss-search-box,
+html[data-season] .live-boss-star, html[data-season][data-theme] .live-boss-star,
+html[data-season] .live-boss-icon, html[data-season][data-theme] .live-boss-icon{ border:none !important; }
+
+/* The announcement sits directly on the page background - no card behind it. */
+html[data-season] .discord-row, html[data-season][data-theme] .discord-row{ background:transparent !important; box-shadow:none !important; }
+
+/* Dropdowns inside the DPS Calculator's modifier tiles (# of charge moves, weather, adventure
+   effect...) are plain text on the tile - no tinted band behind the selected value. */
+html[data-season] .mod-consolidated-grid .mod-cell select, html[data-season][data-theme] .mod-consolidated-grid .mod-cell select{ background:transparent !important; }
