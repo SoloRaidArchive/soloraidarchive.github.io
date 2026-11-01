@@ -815,10 +815,13 @@ if ("serviceWorker" in navigator) {
   }
 
   /* Catch tanks for the chosen boss: button under the boss stats, and its pop-up table */
-  .boss-ct-btn{ display:flex; flex-wrap:wrap; align-items:baseline; gap:2px 8px; width:100%; margin-top:10px; padding:10px 14px;
-    background:var(--card); border:1.5px dashed var(--blue); border-radius:12px; cursor:pointer; text-align:left;
-    font:800 13px 'Manrope',sans-serif; color:var(--blue); }
-  .boss-ct-btn:hover{ border-style:solid; }
+  .boss-ct-btn{ display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:3px 10px 3px 4px;
+    background:color-mix(in srgb, var(--blue) 10%, transparent); border:none; border-radius:999px; cursor:pointer; text-align:left;
+    font:800 12px 'Manrope',sans-serif; color:var(--blue); }
+  .boss-ct-btn:hover{ background:color-mix(in srgb, var(--blue) 18%, transparent); }
+  .ct-info-i{ display:inline-flex; align-items:center; justify-content:center; width:17px; height:17px; border-radius:50%;
+    background:var(--blue); color:#fff; font:italic 800 11px Georgia, 'Times New Roman', serif; flex:none; }
+  .team-ct-link .boss-ct-btn{ margin-top:4px; }
   .boss-ct-btn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
   .boss-ct-count{ font-weight:700; font-size:12px; color:var(--text-dim); }
   .boss-ct-overlay{ position:fixed; inset:0; z-index:1000; background:rgba(8,10,18,.55); display:flex; align-items:center; justify-content:center;
@@ -877,9 +880,14 @@ if ("serviceWorker" in navigator) {
   .team-behavior-card .team-behavior-row{ display:flex; flex-wrap:wrap; gap:10px; margin-bottom:14px; }
   .team-behavior-card .check-item{ text-transform:none; letter-spacing:0; font-size:12.5px; color:var(--text); }
   .team-dodge-limit{ cursor:default; }
-  .team-dodge-limit select{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card);
+  .team-dodge-limit select, .team-dodge-limit input{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card);
     border:1.5px solid var(--border); border-radius:7px; padding:2px 4px; margin-left:2px; }
+  .team-dodge-limit input.invalid{ border-color:var(--red, #d6455d); }
+  #ctRejoinSecs{ width:3.6em; text-align:center; }
+  .team-unit{ font-weight:700; color:var(--text-dim); margin-left:1px; }
+  .team-input-error{ margin:-6px 0 12px; font-size:12px; font-weight:700; color:var(--red, #d6455d); }
   .team-dodge-limit.is-off{ opacity:.5; }
+  #ctDodgeLimit{ width:3.3em; text-align:center; }
   .team-order-head{ font:800 11.5px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; margin-bottom:8px; }
   .team-order-head span{ text-transform:none; letter-spacing:0; font-weight:600; }
   .team-order{ list-style:none; margin:0 0 12px; padding:0; display:flex; flex-direction:column; gap:6px; max-width:560px; }
@@ -1082,6 +1090,49 @@ if ("serviceWorker" in navigator) {
   .team-csv-btn:hover{ border-color:var(--blue); }
   .team-loadout{ font-size:12px; color:var(--text-dim); font-weight:600; margin-top:6px;
     display:flex; align-items:center; justify-content:center; gap:6px; flex-wrap:wrap; }
+  /* Combined modifier dropdowns (see syncCombinedModifiers). */
+  .combined-hidden{ display:none !important; }
+  .adv-mech{ position:relative; cursor:pointer; }
+  .adv-mech > summary{ list-style:none; display:flex; flex-direction:column; gap:2px; outline:none; }
+  .adv-mech > summary::-webkit-details-marker{ display:none; }
+  .adv-mech-label{ font-size:11.5px; font-weight:800; color: var(--text-dim); }
+  .adv-mech-value{ font-family:'Manrope', sans-serif; font-weight:700; font-size:11.5px; color: var(--text);
+    padding-right:16px; position:relative; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .adv-mech-value::after{ content:"\25BE"; position:absolute; right:0; top:-1px; font-size:11px; color: var(--text-dim); }
+  .adv-mech-menu{ position:absolute; z-index:30; left:-2px; right:-2px; top:calc(100% + 4px); display:flex; flex-direction:column; gap:6px;
+    padding:8px; border-radius:10px; background: var(--card); border:2px solid var(--border); box-shadow:0 10px 24px rgba(0,0,0,.18); }
+  .adv-mech-menu .check-item{ height:auto !important; }
+  /* No coloured ring round the Pokémon in step 1's info boxes. */
+  .mini-preview-sprite{ border:none !important; }
+  /* Breathing room between a Pokémon's info box and its move dropdowns. */
+  .vs-col > .field-grid.compact{ margin-top:16px; }
+  .mp-buffs-menu .adv-mech-menu{ left:auto; right:-2px; min-width:250px; gap:8px; }
+  .mp-buffs-menu .adv-mech-menu .mod-cell{ background:none; border:none; padding:0; }
+  .mp-buffs-menu .adv-mech-menu select{ background: var(--bg1); border:2px solid var(--border); border-radius:9px; padding:6px 8px; }
+  /* Custom Type Modifiers (step 2): your Pokémon and the boss side by side */
+  .custom-type-details{ margin-top:12px; }
+  .custom-type-body{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:700px){ .custom-type-body{ grid-template-columns:1fr; } }
+  .custom-type-head{ font-family:'Manrope', sans-serif; font-weight:800; font-size:12.5px; margin:2px 0 8px; }
+  .custom-type-col .check-grid{ margin-top:10px; }
+  .custom-type-details .mod-summary-text{ text-align:right; font-size:11px; }
+  /* IVs: one group of three joined boxes, still typed directly */
+  .iv-group-field{ flex:0 0 170px; }
+  .iv-sub{ font-weight:700; opacity:.7; text-transform:none; letter-spacing:0; }
+  .iv-group{ display:flex; }
+  .iv-group input{ flex:1; min-width:0; text-align:center; padding-left:2px !important; padding-right:2px !important; border-radius:0 !important; margin-left:-2px; }
+  .iv-group input:first-child{ border-radius:10px 0 0 10px !important; margin-left:0; }
+  .iv-group input:last-child{ border-radius:0 10px 10px 0 !important; }
+  .iv-group input:focus{ position:relative; z-index:1; }
+  /* Beta catch tank card: no "Survives the catch with ... HP" line when all is well - only a
+     problem (e.g. it won't survive the catch) is still spelled out. */
+  .team-card .team-preview-note.ok{ display:none; }
+  /* Dropdown panels in Additional Modifiers (Advanced Mechanics, Multi-player Buffs) fit their
+     contents rather than stretching to the tile's full width. */
+  .adv-mech-menu{ right:auto !important; width:max-content; min-width:0; max-width:min(300px, 90vw); }
+  .adv-mech-menu .check-item{ white-space:nowrap; }
+  .mp-buffs-menu .adv-mech-menu{ left:-2px !important; right:auto !important; min-width:0 !important; }
+  .mp-buffs-menu .adv-mech-menu select{ width:100%; }
 </style>
 <script type="application/ld+json">
 {
@@ -1299,12 +1350,12 @@ if ("serviceWorker" in navigator) {
         <li>One main DPSer and up to three kinds of catch tank (add them with "+ Add another catch tank"). Each tank is used once: it swaps in as the boss's charge move lands, fires the number of charge moves set on its card (using fast moves in between as needed), and swaps back.</li>
         <li>The boss starts with 0 energy and gains energy from its fast moves and from half the damage it takes (the moment that damage lands), never holding more than 100. Its charge move costs 100, and it never casts two in a row. When it casts is random: on each of its moves it has the aggression slider's chance of deciding to use its charge move, which it does as soon as it has 100 energy. So every Calculate is a new simulation, and the result can change from one to the next.</li>
         <li>Swaps take 0.5s each way (when they start is chosen for the highest DPS - see below).</li>
-        <li>Without "CM Buffer", each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode; with it, the tank fires as soon as the caught energy allows.</li>
+        <li>Each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
         <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many cycles fit in the 300s timer; Minimum Cycle DPS and Cumulative DPS take that many rejoins of this length out of the timer.</li>
         <li>The swap to a catch tank is timed automatically for the highest DPS. Once the boss has begun its charge move, the swap can start any time up to the last moment that still gets the catch tank in before the hit (the main DPSer attacks until then). The simulator runs the whole fight with the same boss for every swap time, 0.5s apart - first one timing for all catches, then each catch on its own - and keeps whatever gives the highest DPS. A catch tank that comes in early attacks with fast moves, but holds its charge move and stays in until it has caught the hit.</li>
-        <li>With "Main allowed to dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
-        <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in on the last charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
+        <li>With "Main can dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
+        <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in final charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
       </ul>
       <p class="beta-h">Not modelled yet</p>
       <ul>
@@ -1322,7 +1373,7 @@ if ("serviceWorker" in navigator) {
     <div class="step-head">
       <div class="step-num">1</div>
       <div>
-        <div class="step-title">Your Pokémon vs. The Raid Boss</div>
+        <div class="step-title" id="step1Title">Your Pokémon vs. Raid Boss</div>
       </div>
     </div>
 
@@ -1332,7 +1383,6 @@ if ("serviceWorker" in navigator) {
     <div class="vs-columns">
       <!-- PLAYER COLUMN -->
       <div class="vs-col">
-        <div class="vs-col-title">Your Pokémon</div>
         <div class="name-iv-row">
           <div class="field name-field">
             <label for="pokemonName">Pokémon</label>
@@ -1345,25 +1395,18 @@ if ("serviceWorker" in navigator) {
             <datalist id="pokemonLevelOptions"></datalist>
             <div class="field-error" id="pokemonLevelError"></div>
           </div>
-          <div class="field iv-field">
-            <label for="ivAtk">Atk IV</label>
-            <input id="ivAtk" type="text" inputmode="numeric" value="15" placeholder="0–15">
-            <div class="field-error" id="ivAtkError"></div>
-          </div>
-          <div class="field iv-field">
-            <label for="ivDef">Def IV</label>
-            <input id="ivDef" type="text" inputmode="numeric" value="15" placeholder="0–15">
-            <div class="field-error" id="ivDefError"></div>
-          </div>
-          <div class="field iv-field">
-            <label for="ivHp">HP IV</label>
-            <input id="ivHp" type="text" inputmode="numeric" value="15" placeholder="0–15">
-            <div class="field-error" id="ivHpError"></div>
+          <div class="field iv-group-field">
+            <label for="ivAtk">IVs <span class="iv-sub">Atk / Def / HP</span></label>
+            <div class="iv-group">
+              <input id="ivAtk" type="text" inputmode="numeric" value="15" placeholder="0–15" aria-label="Attack IV">
+              <input id="ivDef" type="text" inputmode="numeric" value="15" placeholder="0–15" aria-label="Defense IV">
+              <input id="ivHp" type="text" inputmode="numeric" value="15" placeholder="0–15" aria-label="HP IV">
+            </div>
+            <div class="field-error" id="ivAtkError"></div><div class="field-error" id="ivDefError"></div><div class="field-error" id="ivHpError"></div>
           </div>
         </div>
         <div id="playerPreview"></div>
 
-        <div class="subhead">Moves</div>
         <div class="field-grid compact">
           <div class="field">
             <label for="playerFM_select">Fast Move</label>
@@ -1380,42 +1423,10 @@ if ("serviceWorker" in navigator) {
         </div>
         <div id="playerMovePreview"></div>
 
-        <details class="mod-details" id="playerModDetails">
-          <summary class="mod-summary">Type matchup</summary>
-          <div class="mod-details-body">
-            <div class="mod-row narrow">
-              <div class="mod-cell">
-                <label for="effCM">Charge Move Eff.</label>
-                <select id="effCM">
-                  <option value="0.39">Very Not Effective — 0.39x</option>
-                  <option value="0.625">Not Effective — 0.625x</option>
-                  <option value="1" selected>Effective — 1x</option>
-                  <option value="1.6">Super Effective — 1.6x</option>
-                  <option value="2.56">Very Super Effective — 2.56x</option>
-                </select>
-              </div>
-              <div class="mod-cell">
-                <label for="effFM">Fast Move Eff.</label>
-                <select id="effFM">
-                  <option value="0.39">Very Not Effective — 0.39x</option>
-                  <option value="0.625">Not Effective — 0.625x</option>
-                  <option value="1" selected>Effective — 1x</option>
-                  <option value="1.6">Super Effective — 1.6x</option>
-                  <option value="2.56">Very Super Effective — 2.56x</option>
-                </select>
-              </div>
-            </div>
-            <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
-              <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
-              <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
-            </div>
-          </div>
-        </details>
       </div>
 
       <!-- BOSS COLUMN -->
       <div class="vs-col">
-        <div class="vs-col-title">Raid Boss</div>
         <div class="name-iv-row">
           <div class="field name-field">
             <label for="bossName">Raid Boss</label>
@@ -1442,10 +1453,9 @@ if ("serviceWorker" in navigator) {
           </div>
         </div>
         <div id="bossPreview"></div>
-        <!-- appears when the CT Database has catch tank entries for the chosen boss -->
-        <div id="bossCtLink"></div>
+        <!-- holds the catch tank link's state only; the link itself shows in the Beta catch tank card -->
+        <div id="bossCtLink" hidden></div>
 
-        <div class="subhead">Moves</div>
         <div class="field-grid compact">
           <div class="field">
             <label for="bossFM_select">Boss Fast Move</label>
@@ -1462,42 +1472,6 @@ if ("serviceWorker" in navigator) {
         </div>
         <div id="bossMovePreview"></div>
 
-        <details class="mod-details" id="bossModDetails">
-          <summary class="mod-summary">Type matchup</summary>
-          <div class="mod-details-body">
-            <div class="mod-row narrow">
-              <div class="mod-cell catch-tank-only">
-                <label for="effBossCM">Charge Move → You</label>
-                <select id="effBossCM">
-                  <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
-                  <option value="0.39">Immune — 0.39x</option>
-                  <option value="0.390625">Very Not Effective — 0.390625x</option>
-                  <option value="0.625">Not Effective — 0.625x</option>
-                  <option value="1" selected>Effective — 1x</option>
-                  <option value="1.6">Super Effective — 1.6x</option>
-                  <option value="2.56">Very Super Effective — 2.56x</option>
-                </select>
-              </div>
-              <div class="mod-cell">
-                <label for="effBossFM">Fast Move → You</label>
-                <select id="effBossFM">
-                  <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
-                  <option value="0.39">Immune — 0.39x</option>
-                  <option value="0.390625">Very Not Effective — 0.390625x</option>
-                  <option value="0.625">Not Effective — 0.625x</option>
-                  <option value="1" selected>Effective — 1x</option>
-                  <option value="1.6">Super Effective — 1.6x</option>
-                  <option value="2.56">Very Super Effective — 2.56x</option>
-                </select>
-              </div>
-            </div>
-            <div class="check-grid" style="grid-template-columns:repeat(3,1fr);">
-              <label class="check-item catch-tank-only"><input type="checkbox" id="bossStabCM">Stab CM</label>
-              <label class="check-item"><input type="checkbox" id="bossStabFM">Stab FM</label>
-              <label class="check-item"><input type="checkbox" id="shadowDebuff">Shadow Debuff</label>
-            </div>
-          </div>
-        </details>
       </div>
     </div>
   </div>
@@ -1507,12 +1481,14 @@ if ("serviceWorker" in navigator) {
   <div class="step-card team-only team-card" id="teamCard">
     <div class="step-head">
       <div class="step-num">CT</div>
-      <div><div class="step-title"><span class="team-card-name">Catch Tank 1</span> vs. The Raid Boss</div></div>
+      <div><div class="step-title"><span class="team-card-name">Catch Tank 1</span></div>
+        <!-- "View logged catch tanks for <boss>" (updateBossCtLink); a class, not an id, so the
+             cloned Catch Tank 2 / 3 cards get one too -->
+        <div class="team-ct-link"></div></div>
       <button type="button" class="team-remove-btn" hidden>Remove</button>
     </div>
     <div class="vs-columns">
       <div class="vs-col">
-        <div class="vs-col-title">Catch Tank</div>
         <div class="name-iv-row">
           <div class="field name-field">
             <label for="ctName">Pokémon</label>
@@ -1520,9 +1496,12 @@ if ("serviceWorker" in navigator) {
             <div class="ac-list" id="ctName_ac"></div>
           </div>
           <div class="field iv-field"><label for="ctLevel">Level</label><input id="ctLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50"></div>
-        <div class="field iv-field"><label for="ctIvAtk">Atk</label><input id="ctIvAtk" type="text" inputmode="numeric" value="15" placeholder="0–15"></div>
-        <div class="field iv-field"><label for="ctIvDef">Def</label><input id="ctIvDef" type="text" inputmode="numeric" value="15" placeholder="0–15"></div>
-        <div class="field iv-field"><label for="ctIvHp">HP</label><input id="ctIvHp" type="text" inputmode="numeric" value="15" placeholder="0–15"></div>
+        <div class="field iv-group-field"><label for="ctIvAtk">IVs <span class="iv-sub">Atk / Def / HP</span></label>
+          <div class="iv-group">
+            <input id="ctIvAtk" type="text" inputmode="numeric" value="15" placeholder="0–15" aria-label="Attack IV">
+            <input id="ctIvDef" type="text" inputmode="numeric" value="15" placeholder="0–15" aria-label="Defense IV">
+            <input id="ctIvHp" type="text" inputmode="numeric" value="15" placeholder="0–15" aria-label="HP IV">
+          </div></div>
         </div>
         <div id="ctPreview"></div>
         <div class="field-grid compact team-moves">
@@ -1562,8 +1541,7 @@ if ("serviceWorker" in navigator) {
         </div>
       </div>
       <div class="vs-col">
-        <div class="vs-col-title">Raid Boss &rarr; Catch Tank</div>
-        <div id="ctBossPreview"><p class="team-hint">Enter a raid boss and the catch tank to see what each catch does.</p></div>
+        <div id="ctBossPreview"></div>
         <div id="ctMovePreview"></div>
         <div id="ctVerdict"></div>
         <div id="ctOutcomes"></div>
@@ -1583,20 +1561,20 @@ if ("serviceWorker" in navigator) {
     </div>
     <div class="team-behavior-row">
       <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label>
-      <label class="check-item" title="Buffer the charge move from the Pokémon you swap out of, so a catch tank can fire its charge move as soon as the caught energy allows - without a fast move first. Same as CM Buffer in Single Catch Tank mode."><input type="checkbox" id="ctCmBuffer"> CM Buffer</label>
-      <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main allowed to dodge</label>
+      <input type="checkbox" id="ctCmBuffer" hidden tabindex="-1"><!-- no longer offered in the Beta; kept so old links load - always treated as off -->
+      <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label>
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
-        <select id="ctDodgeLimit">
-          <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
-          <option value="0">No limit</option>
-        </select>
+        <input id="ctDodgeLimit" type="text" inputmode="numeric" list="ctDodgeLimitList" value="1" autocomplete="off" aria-describedby="ctBehaviorError">
+        <datalist id="ctDodgeLimitList"><option value="1"></option><option value="2"></option><option value="3"></option><option value="4"></option><option value="5"></option><option value="∞"></option></datalist>
       </label>
-      <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum Cycle DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
-        <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
+      <label class="check-item team-dodge-limit" title="How long one rejoin takes: 5.5s or more, in 0.5s steps. Pick one or type your own. Used for Minimum Cycle DPS and Cumulative DPS.">Rejoin time
+        <input id="ctRejoinSecs" type="text" inputmode="decimal" list="ctRejoinSecsList" value="7.0" autocomplete="off" aria-describedby="ctBehaviorError"><span class="team-unit">s</span>
+        <datalist id="ctRejoinSecsList"><option value="5.5"></option><option value="6.0"></option><option value="6.5"></option><option value="7.0"></option><option value="7.5"></option><option value="8.0"></option><option value="8.5"></option><option value="9.0"></option><option value="9.5"></option><option value="10.0"></option><option value="10.5"></option><option value="11.0"></option><option value="11.5"></option><option value="12.0"></option><option value="12.5"></option><option value="13.0"></option><option value="13.5"></option><option value="14.0"></option><option value="14.5"></option><option value="15.0"></option></datalist>
       </label>
-      <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in on the last charge move</label>
+      <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
     </div>
-    <div class="team-order-head">Priority <span>&middot; who takes each boss charge move, top first. A catch tank type is used up before the next one comes in; the main DPSer takes it only when sponging is safe. With dodging allowed, the main DPSer dodges instead (up to the set number over the run) while that is safe; after that, catch tanks catch as usual.</span></div>
+    <div class="team-input-error" id="ctBehaviorError" role="alert" hidden></div>
+    <div class="team-order-head">Priority</div>
     <ol class="team-order" id="ctOrderList"></ol>
     <!-- the order, saved with setups and links: "main" and catch tank numbers, e.g. "main,1,2" -->
     <input type="hidden" id="ctPriority" value="main,1">
@@ -1649,49 +1627,143 @@ if ("serviceWorker" in navigator) {
         <div class="aggro-hint" id="bossAggroHint">~1 charge per 2.3 fast moves</div>
       </div>
       <label class="check-item maindps-fmcm-aggro optimal-item" title="Optimal DPS: the boss times its charge moves for you - it casts one only when it has the energy AND your Pokémon can sponge at least 85% of the energy that hit gives (no more than 15% lost over 100). Replaces the aggression setting."><input type="checkbox" id="optimalDps"> Optimal DPS</label>
-      <label class="check-item single-ct-only maindps-fmcm-only team-hide"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
-      <label class="check-item team-hide"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
-      <label class="check-item"><input type="checkbox" id="shieldAE"> Shield Boost</label>
-      <label class="check-item"><input type="checkbox" id="zacianBlade"> Blade Boost</label>
-      <label class="check-item" id="dynPunchItem" title="Mega Mewtwo X's Dynamic Punch+: +15% damage in Mega raids only."><input type="checkbox" id="dynamicPunch"> Dynamic Punch+</label>
+      <!-- Adventure effects: one at a time, so one dropdown. It drives the three checkboxes below
+           (kept, hidden, so every calculation, saved setup and shared link reads them unchanged). -->
+      <div class="mod-cell" id="adventureCell">
+        <label for="adventureSelect">Adventure Effect</label>
+        <select id="adventureSelect">
+          <option value="">None</option>
+          <option value="zacianBlade">Blade Boost</option>
+          <option value="shieldAE">Shield Boost</option>
+          <option value="dynamicPunch">Dynamic Punch+</option>
+        </select>
+      </div>
+      <div class="combined-hidden" aria-hidden="true">
+        <label class="check-item"><input type="checkbox" id="shieldAE" tabindex="-1"> Shield Boost</label>
+        <label class="check-item"><input type="checkbox" id="zacianBlade" tabindex="-1"> Blade Boost</label>
+      <label class="check-item" id="dynPunchItem" title="Mega Mewtwo X's Dynamic Punch+: +15% damage in Mega raids only."><input type="checkbox" id="dynamicPunch" tabindex="-1"> Dynamic Punch+</label>
+      </div>
+      <!-- Advanced mechanics: any combination, so a dropdown of checkboxes. Each keeps its own mode
+           classes, so a mechanic a mode doesn't use stays out of the list there. -->
+      <details class="mod-cell adv-mech team-hide" id="advMechDetails">
+        <summary><span class="adv-mech-label">Advanced Mechanics</span><span class="adv-mech-value" id="advMechValue">None</span></summary>
+        <div class="adv-mech-menu">
+          <label class="check-item single-ct-only maindps-fmcm-only team-hide"><input type="checkbox" id="dodgeCM"> Dodge CM</label>
+          <label class="check-item team-hide"><input type="checkbox" id="dodgeFM"> Dodge FM</label>
       <label class="check-item single-ct-only team-hide" title="Assumes the fast move overshoots the energy needed for a charge move, and the excess energy immediately triggers the next charge move without needing another fast move first."><input type="checkbox" id="cmBuffer"> CM Buffer*</label>
-      <label class="check-item team-hide"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
+          <label class="check-item team-hide"><input type="checkbox" id="resolveNerf"> Resolve Nerf</label>
+        </div>
+      </details>
+      <!-- Multi-player Buffs (was its own step 3): a dropdown panel like Advanced Mechanics. Hidden in
+           the Beta, which doesn't use them (mpBuffsOff). Same ids as before, so saved setups and
+           shared links are unaffected. -->
+      <details class="mod-cell adv-mech mp-buffs-menu team-hide" id="mpBuffsDetails">
+        <summary><span class="adv-mech-label">Multi-player Buffs</span><span class="adv-mech-value" id="mpBuffsValue">None</span></summary>
+        <div class="adv-mech-menu">
+          <div class="mod-cell">
+            <label for="friendship">Friendship</label>
+            <select id="friendship">
+              <option value="1">None</option>
+              <option value="1.03">Good (1.03x)</option>
+              <option value="1.05">Great (1.05x)</option>
+              <option value="1.07">Ultra (1.07x)</option>
+              <option value="1.10">Best (1.10x)</option>
+              <option value="1.12">Forever (1.12x)</option>
+            </select>
+          </div>
+          <div class="mod-cell">
+            <label for="primalMega">Primal/Mega Support</label>
+            <select id="primalMega">
+              <option value="1">Inactive</option>
+              <option value="1.1">Support (1.1x)</option>
+              <option value="1.3">Stab (1.3x)</option>
+            </select>
+          </div>
+          <div class="mod-cell">
+            <label for="enrageSelect">Enrage</label>
+            <select id="enrageSelect">
+              <option value="">None</option>
+              <option value="t7Enraged">Enrage (T7)</option>
+              <option value="shadowEnraged">Shadow Enrage</option>
+            </select>
+          </div>
+          <label class="check-item"><input type="checkbox" id="partyPower"> Party Power</label>
+          <div class="combined-hidden" aria-hidden="true">
+            <label class="check-item"><input type="checkbox" id="t7Enraged" tabindex="-1"> Enrage (T7)</label>
+            <label class="check-item"><input type="checkbox" id="shadowEnraged" tabindex="-1"> Shadow Enrage</label>
+          </div>
+        </div>
+      </details>
     </div>
-  </div>
-
-  <!-- STEP 3: MULTI-PLAYER BUFFS (switched off in the beta - see mpBuffsOff) -->
-  <div class="step-card team-hide">
-    <details id="multiplayerDetails">
-      <summary class="step-head" style="cursor:pointer; list-style:none;">
-        <div class="step-num">3</div>
-        <div>
-          <div class="step-title">Multi-player Buffs</div>
+    <!-- Custom Type Modifiers (was a "Type matchup" box under each Pokémon in step 1). Effectiveness
+         and STAB are set automatically from the types; this is where to override them. Same ids as
+         before, so calculations, saved setups and shared links are unaffected. -->
+    <details class="mod-details custom-type-details" id="customTypeDetails">
+      <summary class="mod-summary">Custom Type Modifiers</summary>
+      <div class="mod-details-body custom-type-body">
+        <div class="custom-type-col">
+          <div class="custom-type-head">Your Pokémon</div>
+            <div class="mod-row narrow">
+              <div class="mod-cell">
+                <label for="effCM">Charge Move Eff.</label>
+                <select id="effCM">
+                  <option value="0.39">Very Not Effective — 0.39x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+              <div class="mod-cell">
+                <label for="effFM">Fast Move Eff.</label>
+                <select id="effFM">
+                  <option value="0.39">Very Not Effective — 0.39x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
+              <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
+              <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
+            </div>
         </div>
-      </summary>
-
-      <div class="mod-row fixed-4 mp-buffs-row" style="margin-top:16px;">
-        <div class="mod-cell">
-          <label for="friendship">Friendship</label>
-          <select id="friendship">
-            <option value="1">None</option>
-            <option value="1.03">Good (1.03x)</option>
-            <option value="1.05">Great (1.05x)</option>
-            <option value="1.07">Ultra (1.07x)</option>
-            <option value="1.10">Best (1.10x)</option>
-            <option value="1.12">Forever (1.12x)</option>
-          </select>
+        <div class="custom-type-col">
+          <div class="custom-type-head">Raid Boss &rarr; You</div>
+            <div class="mod-row narrow">
+              <div class="mod-cell catch-tank-only">
+                <label for="effBossCM">Charge Move → You</label>
+                <select id="effBossCM">
+                  <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.390625">Very Not Effective — 0.390625x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+              <div class="mod-cell">
+                <label for="effBossFM">Fast Move → You</label>
+                <select id="effBossFM">
+                  <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
+                  <option value="0.39">Immune — 0.39x</option>
+                  <option value="0.390625">Very Not Effective — 0.390625x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              </div>
+            </div>
+            <div class="check-grid" style="grid-template-columns:repeat(3,1fr);">
+              <label class="check-item catch-tank-only"><input type="checkbox" id="bossStabCM">Stab CM</label>
+              <label class="check-item"><input type="checkbox" id="bossStabFM">Stab FM</label>
+              <label class="check-item"><input type="checkbox" id="shadowDebuff">Shadow Debuff</label>
+            </div>
         </div>
-        <div class="mod-cell">
-          <label for="primalMega">Primal/Mega Support</label>
-          <select id="primalMega">
-            <option value="1">Inactive</option>
-            <option value="1.1">Support (1.1x)</option>
-            <option value="1.3">Stab (1.3x)</option>
-          </select>
-        </div>
-        <label class="check-item mp-buffs-check"><input type="checkbox" id="partyPower"> Party Power</label>
-        <label class="check-item mp-buffs-check"><input type="checkbox" id="t7Enraged"> Enrage (T7)</label>
-        <label class="check-item mp-buffs-check"><input type="checkbox" id="shadowEnraged"> Shadow Enrage</label>
       </div>
     </details>
   </div>
@@ -2649,7 +2721,7 @@ const TEAM_DODGE_KEEP = 0.85;   // a dodge must keep at least this share of the 
 // - HP / (300 - rejoin time x rejoins), cut to 2 decimals (raidTierFor gives the HP). At
 // 7.0s this gives the published tables exactly (Tier 5: 50.00, 51.19, 52.44, 53.76, 55.14; Mega:
 // 30.00, 30.71, 31.46, 32.25, 33.08) and carries on the same way past 4 rejoins.
-const RAID_SECS = 300, REJOIN_SECS = 7, REJOIN_SECS_MIN = 5.5, REJOIN_SECS_MAX = 15;   // rejoins come in 0.5s steps
+const RAID_SECS = 300, REJOIN_SECS = 7, REJOIN_SECS_MIN = 5.5, REJOIN_SECS_MAX = 60;   // rejoins come in 0.5s steps
 // Minimum DPS for a given number of rejoins (null once the rejoins would use up the timer).
 // Cumulative DPS, shown with it on the beta card, is the run's DPS spread over the whole 300s
 // raid once the rejoins are taken out: DPS x (300 - rejoin time x rejoins) / 300.
@@ -3220,7 +3292,7 @@ function runTeamSim(c){
     seed: Number.isInteger(window.__teamSeed) ? window.__teamSeed : crypto.getRandomValues(new Uint32Array(1))[0],
     tanks, monMeta, mainRank,
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
-    cmBuffer: $("ctCmBuffer").checked,
+    cmBuffer: false,   // CM Buffer isn't part of the Beta any more (removed from its card); old links' value is ignored
     // Main allowed to dodge: how many charge moves it may dodge over the whole run (0 = no limit).
     // Once they are used, catch tanks catch as usual.
     mainDodges: $("ctMainDodge").checked,
@@ -3317,7 +3389,7 @@ function updateTeamPreviewFor(p, c){
   const outcomes = document.getElementById(p + "Outcomes"), verdict = document.getElementById(p + "Verdict");
   const casts = T.casts;
   if(!c || !T.found || T.bossCmDmg === undefined || T.bossFmDmg === undefined){
-    right.innerHTML = `<p class="team-hint">Enter a raid boss with its moves, and the catch tank, to see what each catch does.</p>`;
+    right.innerHTML = "";
     if(outcomes) outcomes.innerHTML = "";
     if(verdict) verdict.innerHTML = "";
     return;
@@ -3329,7 +3401,7 @@ function updateTeamPreviewFor(p, c){
   if(outcomes && T.fm && T.cm && T.fmDmg !== undefined){
     const eCM = energyFromDamage(T.bossCmDmg);
     const rows = [0, 1, 2].map(n => singleCtRow(n, {
-      numCM: casts, cmEnergyCost: T.cmCost, effectiveBuffer: document.getElementById("ctCmBuffer").checked, energyFromCM: eCM,
+      numCM: casts, cmEnergyCost: T.cmCost, effectiveBuffer: false, energyFromCM: eCM,
       energyFromBossFM: energyFromDamage(T.bossFmDmg), fm: T.fm, cm: T.cm, resolveNerf: false,
       bossFMAD_ticks: c.bossFMMove.ad, dodgeCM: false, dodgeFM: false,
       chargeDamage: T.cmDmg, fastDamage: T.fmDmg, bossCMDamage: T.bossCmDmg, bossFMDamage: T.bossFmDmg, playerHp: T.hp,
@@ -3626,7 +3698,7 @@ function renderTeamSim(P, S, R){
     "last-tank-fainted": `The last ${lastType.name} fainted before it could fire`,
     "tanks": `The boss cast ${P.bossCM.n} with no catch tanks left`,
     "no-safe-catch": `No catch tanks left and ${P.main.name} couldn't safely sponge the next ${P.bossCM.n}; results stop at the last safe point`,
-    // With "All in on the last charge move" on, the main DPSer's last push is for one more charge
+    // With "All in final charge move" on, the main DPSer's last push is for one more charge
     // move; when it faints before that lands, the results go back to its last charge move.
     "main-fainted": P.allIn
       ? `${P.main.name} went all in for one more ${P.main.cm.n} but would faint at ${((S.ended.faintAt ?? S.ended.t) / 2).toFixed(1)}s before it landed; results go back to its last charge move (${(S.ended.t / 2).toFixed(1)}s)`
@@ -5241,6 +5313,7 @@ function applySetup(setup){
   });
   // Rejoin time is a dropdown of 0.5s steps: a value between steps (an older link) snaps to one
   if("ctRejoinSecs" in setup) document.getElementById("ctRejoinSecs").value = clampRejoinSecs(setup.ctRejoinSecs).toFixed(1);
+  if(typeof normalizeDodgeLimitField === "function"){ normalizeDodgeLimitField(); checkTeamBehaviorInputs(); }
   const modeToId = { maindps: "ctModeMainDPS", single: "ctModeSingle", double: "ctModeDouble", team: "ctModeTeam" };
   document.getElementById(modeToId[setup.ctMode] || "ctModeSingle").checked = true;
   updateCTMode();
@@ -5274,6 +5347,7 @@ function applySetup(setup){
   updatePlayerMovePreview();
   autoSetEffectiveness();
   updateTeamPreview();
+  syncCombinedModifiers();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function loadHistory(){
@@ -5608,18 +5682,29 @@ async function updateBossCtLink(){
   const name = document.getElementById("bossName").value.trim();
   // Same boss as the button already shows: leave it alone. The boss field's blur/change fires as
   // the button is clicked, and redrawing it then swallowed the click.
-  if(name && box.dataset.boss === ctKey(name) && box.firstElementChild) return;
-  if(!name){ box.innerHTML = ""; delete box.dataset.boss; return; }
+  if(name && box.dataset.boss === ctKey(name) && box.firstElementChild){
+    document.querySelectorAll(".team-ct-link").forEach(el => { if(!el.firstElementChild) el.innerHTML = box.innerHTML; });
+    return;
+  }
+  if(!name){ setCtLinks(""); CT_LINK_ENTRIES = null; delete box.dataset.boss; return; }
   const db = await loadCtDatabase();
   if(document.getElementById("bossName").value.trim() !== name) return;   // typed on meanwhile
   const entries = db.filter(e => ctKey(e.boss) === ctKey(name));
-  if(!entries.length){ box.innerHTML = ""; delete box.dataset.boss; return; }
+  if(!entries.length){ setCtLinks(""); CT_LINK_ENTRIES = null; delete box.dataset.boss; return; }
   box.dataset.boss = ctKey(name);
-  const tanks = new Set(entries.map(e => e.mon)).size;
-  box.innerHTML = `<button type="button" class="boss-ct-btn" aria-haspopup="dialog">Catch tanks for ${ctEsc(entries[0].boss)}
-    <span class="boss-ct-count">${entries.length} entr${entries.length === 1 ? "y" : "ies"} &middot; ${tanks} catch tank${tanks === 1 ? "" : "s"}</span></button>`;
-  box.querySelector("button").addEventListener("click", () => openBossCtTable(entries));
+  CT_LINK_ENTRIES = entries;
+  setCtLinks(`<button type="button" class="boss-ct-btn" aria-haspopup="dialog"><span class="ct-info-i" aria-hidden="true">i</span>View logged catch tanks for ${ctEsc(entries[0].boss)}</button>`);
 }
+// The same link sits in step 1 (other modes) and in every Beta catch tank card. Clicks are
+// handled once, below, so a card cloned after the link was drawn (Catch Tank 2 / 3) works too.
+let CT_LINK_ENTRIES = null;
+function setCtLinks(html){
+  document.querySelectorAll("#bossCtLink, .team-ct-link").forEach(el => { el.innerHTML = html; });
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest && e.target.closest("#bossCtLink .boss-ct-btn, .team-ct-link .boss-ct-btn");
+  if(b && CT_LINK_ENTRIES) openBossCtTable(CT_LINK_ENTRIES);
+});
 function openBossCtTable(entries){
   const bossName = entries[0].boss;
   let sort = "dps";
@@ -5686,7 +5771,11 @@ function populateMoveSelect(baseId, moveList){
   const sel = document.getElementById(baseId + "_select");
   const prevValue = sel.value;
   const options = moveList.map(m => `<option value="${m}">${m}</option>`).join("");
-  sel.innerHTML = options + `<option value="__custom__">Custom Move…</option>`;
+  // Player and boss dropdowns end with "+ Create a … move", which opens the move creator (it used
+  // to be a separate button under each dropdown).
+  const createOpt = MC_CREATE_IDS.includes(baseId)
+    ? `<option value="__create__">+ Create a ${baseId.endsWith("CM") ? "charge" : "fast"} move…</option>` : "";
+  sel.innerHTML = options + `<option value="__custom__">Custom Move…</option>` + createOpt;
   sel.value = moveList.includes(prevValue) ? prevValue : (moveList[0] || "__custom__");
   onMoveSelectChange(baseId);
 }
@@ -5736,8 +5825,17 @@ function updateMoveOptionsFor(nameFieldId, cmBaseId, fmBaseId){
   populateMoveSelect(cmBaseId, chargeList);
 }
 
+const MC_CREATE_IDS = ["playerFM", "playerCM", "bossFM", "bossCM"];
 function onMoveSelectChange(baseId){
   const sel = document.getElementById(baseId + "_select");
+  if(sel.value === "__create__"){
+    // Not a move: put the previous choice back and open the move creator.
+    const prev = sel.dataset.prev;
+    sel.value = prev && [...sel.options].some(o => o.value === prev) ? prev : (sel.options[0] ? sel.options[0].value : "");
+    openMoveCreator(baseId);
+    return;
+  }
+  sel.dataset.prev = sel.value;
   const customInput = document.getElementById(baseId + "_custom");
   const datalist = document.getElementById(baseId + "_customList");
   const hidden = document.getElementById(baseId);
@@ -5986,17 +6084,18 @@ document.addEventListener("DOMContentLoaded", () => {
   [["playerFM","fast"],["playerCM","charge"],["bossFM","fast"],["bossCM","charge"]].forEach(([id,kind]) => {
     const sel = document.getElementById(id + "_select");
     if(!sel) return;
-    const b = document.createElement("button");
-    b.type = "button"; b.className = "mc-new-btn";
-    b.textContent = "+ Create a " + kind + " move";
-    b.addEventListener("click", () => openMoveCreator(id));
-    sel.parentNode.insertBefore(b, sel.nextSibling);
-
+    // "+ Create a fast/charge move" is the last option of the dropdown (populateMoveSelect); only
+    // the "Edit <created move>" button remains, shown while a created move is selected.
+    if(!sel.querySelector('option[value="__create__"]')){
+      const o = document.createElement("option");
+      o.value = "__create__"; o.textContent = "+ Create a " + kind + " move…";
+      sel.appendChild(o);
+    }
     const e = document.createElement("button");
     e.type = "button"; e.className = "mc-new-btn mc-edit-btn"; e.id = "mcEdit_" + id;
     e.hidden = true;
     e.addEventListener("click", () => openMoveCreator(id, document.getElementById(id + "_select").value));
-    b.parentNode.insertBefore(e, b.nextSibling);
+    sel.parentNode.insertBefore(e, sel.nextSibling);
 
     sel.addEventListener("change", () => mcRefreshEditButton(id));
     mcRefreshEditButton(id);
@@ -6067,8 +6166,6 @@ function updateModSummaries(){
     playerModSummaryEl.textContent =
       `${EFF_LABELS[effCM] || effCM}x CM · ${EFF_LABELS[effFM] || effFM}x FM · ${playerStabText}`;
   }
-  const playerNonDefault = effCM !== "1" || effFM !== "1" || stabCM || stabFM;
-  if(playerNonDefault) document.getElementById("playerModDetails").open = true;
 
   const effBossCM = document.getElementById("effBossCM").value;
   const effBossFM = document.getElementById("effBossFM").value;
@@ -6077,9 +6174,6 @@ function updateModSummaries(){
     bossModSummaryEl.textContent =
       `${EFF_LABELS[effBossCM] || effBossCM}x CM · ${EFF_LABELS[effBossFM] || effBossFM}x FM`;
   }
-  const bossNonDefault = effBossCM !== "1" || effBossFM !== "1" ||
-    document.getElementById("bossStabCM").checked || document.getElementById("bossStabFM").checked;
-  if(bossNonDefault) document.getElementById("bossModDetails").open = true;
 }
 ["effCM","effFM","stabCM","stabFM","effBossCM","effBossFM","bossStabCM","bossStabFM"].forEach(id => {
   document.getElementById(id).addEventListener("change", updateModSummaries);
@@ -6277,22 +6371,74 @@ function updateCTMode(){
   document.body.classList.toggle("ct-mode-double", mode === "double");
   document.body.classList.toggle("ct-mode-maindps", mode === "maindps");
   document.body.classList.toggle("ct-mode-team", mode === "team");
-  const firstColTitle = document.querySelector(".vs-col .vs-col-title");
-  if(firstColTitle) firstColTitle.textContent = mode === "team" ? "Main DPSer" : "Your Pokémon";
+  const t1 = document.getElementById("step1Title");
+  if(t1) t1.textContent = mode === "team" ? "Main DPSer" : "Your Pokémon vs. Raid Boss";
   updateCadenceMode();
   updateBossAggro();
   updateDynPunch();
+  if(typeof syncCombinedModifiers === "function") syncCombinedModifiers();
 }
 // In Main DPS mode the boss's charge move only matters for the "Fast & Charge" cadence, so its
 // inputs are hidden when "Fast Only" is selected. Every other mode always needs them.
 // Dynamic Punch+ only does anything in a Mega raid, so the control says so rather than sitting
 // there looking active while contributing nothing.
+// ---- Combined modifier dropdowns -------------------------------------------------------------
+// Adventure Effect (one of Blade Boost / Shield Boost / Dynamic Punch+), Enrage (one of T7 /
+// Shadow) and Advanced Mechanics (any of Dodge CM / Dodge FM / CM Buffer / Resolve Nerf). The
+// original checkboxes stay in the page and stay the source of truth for every calculation, saved
+// setup and shared link; the dropdowns set them, and syncCombinedModifiers() reads them back
+// after a setup or link is loaded.
+const COMBINED_SINGLE = { adventureSelect: ["zacianBlade", "shieldAE", "dynamicPunch"], enrageSelect: ["t7Enraged", "shadowEnraged"] };
+function syncCombinedModifiers(){
+  Object.entries(COMBINED_SINGLE).forEach(([selId, ids]) => {
+    const sel = document.getElementById(selId);
+    if(!sel) return;
+    sel.value = ids.find(id => document.getElementById(id).checked) || "";
+  });
+  const names = [...document.querySelectorAll("#advMechDetails .adv-mech-menu .check-item")]
+    .filter(l => l.querySelector("input").checked && getComputedStyle(l).display !== "none")
+    .map(l => l.textContent.trim().replace(/\*$/, ""));
+  const out = document.getElementById("advMechValue");
+  if(out) out.textContent = names.length ? names.join(", ") : "None";
+  // Multi-player Buffs: what's active, in short
+  const mp = [];
+  const opt = id => { const e = document.getElementById(id); return e && e.selectedIndex > 0 ? e.options[e.selectedIndex].textContent : ""; };
+  const fr = opt("friendship"); if(fr) mp.push(fr.replace(/\s*\(.*\)/, "") + " friends");
+  const pm = opt("primalMega"); if(pm) mp.push("Primal/Mega " + pm.replace(/\s*\(.*\)/, ""));
+  const en = opt("enrageSelect"); if(en) mp.push(en);
+  const pp = document.getElementById("partyPower"); if(pp && pp.checked) mp.push("Party Power");
+  const mpOut = document.getElementById("mpBuffsValue");
+  if(mpOut) mpOut.textContent = mp.length ? mp.join(", ") : "None";
+}
+document.addEventListener("DOMContentLoaded", () => {
+  Object.entries(COMBINED_SINGLE).forEach(([selId, ids]) => {
+    const sel = document.getElementById(selId);
+    if(!sel) return;
+    sel.addEventListener("change", () => {
+      ids.forEach(id => {
+        const box = document.getElementById(id);
+        const want = id === sel.value;
+        if(box.checked !== want){ box.checked = want; box.dispatchEvent(new Event("change", { bubbles: true })); }
+      });
+    });
+  });
+  document.querySelectorAll("#advMechDetails input[type=checkbox], #mpBuffsDetails input, #mpBuffsDetails select")
+    .forEach(el => el.addEventListener("change", syncCombinedModifiers));
+  // a dropdown panel closes on a click anywhere else
+  document.addEventListener("click", e => {
+    document.querySelectorAll(".adv-mech[open]").forEach(d => { if(!d.contains(e.target)) d.open = false; });
+  });
+  syncCombinedModifiers();
+});
+
 function updateDynPunch(){
   const item = document.getElementById("dynPunchItem");
   const box = document.getElementById("dynamicPunch");
   if(!item || !box) return;
   const mega = isMegaBoss(document.getElementById("bossName").value);
   item.classList.toggle("ae-inactive", !mega);
+  const opt = document.querySelector('#adventureSelect option[value="dynamicPunch"]');
+  if(opt) opt.textContent = mega ? "Dynamic Punch+" : "Dynamic Punch+ (Mega raids only)";
   item.title = mega
     ? "Mega Mewtwo X's Dynamic Punch+: +15% damage against this Mega boss."
     : "Dynamic Punch+ applies in Mega raids only — this boss is not a Mega, so it has no effect.";
@@ -6371,7 +6517,7 @@ function buildTeamCard(k){
   $c("Qty").value = "3"; $c("Casts").value = "1";
   ["FM", "CM"].forEach(m => { $c(m + "_select").innerHTML = ""; $c(m).value = ""; const cu = $c(m + "_custom"); cu.value = ""; cu.style.display = "none"; });
   ["Preview", "MovePreview", "Verdict", "Outcomes"].forEach(id => $c(id).innerHTML = "");
-  $c("BossPreview").innerHTML = `<p class="team-hint">Enter a raid boss and this catch tank to see what each catch does.</p>`;
+  $c("BossPreview").innerHTML = "";
   return card;
 }
 function setTeamTypeCount(n){
@@ -6435,13 +6581,42 @@ function updateDodgeLimit(){
   document.getElementById("ctDodgeLimit").disabled = !on;
 }
 document.getElementById("ctMainDodge").addEventListener("change", updateDodgeLimit);
-// Rejoin time: a 0.5s step from 5.5s to 15.0s (the dropdown only offers those); anything else -
-// say an old link - snaps to the nearest step, and a blank goes back to the 7.0s default
+// Rejoin time: 5.5s or more in 0.5s steps (typed or picked; up to 60s). For the maths anything else
+// snaps to the nearest step - the field itself is flagged until it's fixed (checkTeamBehaviorInputs)
+// - and a blank goes back to the 7.0s default
 function clampRejoinSecs(v){
   const n = parseFloat(v);
   if(!isFinite(n)) return REJOIN_SECS;
   return Math.round(Math.min(REJOIN_SECS_MAX, Math.max(REJOIN_SECS_MIN, n)) * 2) / 2;
 }
+// Typed values for Rejoin time and Dodges before bailing: checked as they are entered. An invalid
+// one is outlined in red with a note under the row; the run still uses the nearest valid value.
+function checkTeamBehaviorInputs(){
+  const msgs = [];
+  const rj = document.getElementById("ctRejoinSecs"), dl = document.getElementById("ctDodgeLimit");
+  const r = rj.value.trim().replace(/s$/i, "");
+  const rn = parseFloat(r);
+  const rOk = r === "" || (/^\d+(\.\d+)?$/.test(r) && rn >= REJOIN_SECS_MIN && rn <= REJOIN_SECS_MAX && Math.abs(rn * 2 - Math.round(rn * 2)) < 1e-9);
+  rj.classList.toggle("invalid", !rOk);
+  if(!rOk) msgs.push(`Rejoin time: use ${REJOIN_SECS_MIN}s or more, in 0.5s steps (e.g. 6.5 or 7.0).`);
+  const d = dl.value.trim();
+  const dOk = dl.disabled || d === "" || d === "∞" || /^\d+$/.test(d);
+  dl.classList.toggle("invalid", !dOk);
+  if(!dOk) msgs.push("Dodges before bailing: a whole number, or ∞ for no limit.");
+  const box = document.getElementById("ctBehaviorError");
+  box.textContent = msgs.join(" "); box.hidden = !msgs.length;
+}
+// No limit is stored as 0 (and old links may carry 0); show it as ∞
+function normalizeDodgeLimitField(){
+  const dl = document.getElementById("ctDodgeLimit");
+  if(dl.value.trim() === "0") dl.value = "∞";
+}
+["ctRejoinSecs", "ctDodgeLimit"].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener("input", checkTeamBehaviorInputs);
+  el.addEventListener("change", () => { normalizeDodgeLimitField(); checkTeamBehaviorInputs(); });
+});
+document.getElementById("ctMainDodge").addEventListener("change", checkTeamBehaviorInputs);
 updateDodgeLimit();
 wireTeamCard("ct");
 setTeamTypeCount(teamTypeCount());

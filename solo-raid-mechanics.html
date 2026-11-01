@@ -135,7 +135,7 @@ if ("serviceWorker" in navigator) {
 
   .clip-video{
     display:block; margin-top:0; width:100%; max-width:220px;
-    border-radius:12px; background:#000; border:2px solid var(--border);
+    border-radius:12px; background:#000; border:none;
     /* Reserve the slot before the source loads. Deferring the clips left each <video> at zero
        height until it was scrolled to, so the page grew ~950px as they filled in - that shifted
        content under the reader and pushed #strategy- anchors off target by a few hundred pixels.

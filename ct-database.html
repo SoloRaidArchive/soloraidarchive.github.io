@@ -920,6 +920,10 @@ header{ padding: 12px 24px 10px; text-align:center; }
     .leader-toggle img{ width:28px; height:28px; }
   }
 
+  /* A soft border in the season's accent round the entries (boss groups, leaderboard rows,
+     expanded cards), lighter than the full-strength border they had. */
+  .boss-group, .leader-group, .sub-card{ border:1.5px solid color-mix(in srgb, var(--accent) 30%, transparent) !important; }
+  .sub-card.open{ border-color:color-mix(in srgb, var(--accent) 55%, transparent) !important; }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
