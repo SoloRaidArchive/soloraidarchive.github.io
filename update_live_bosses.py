@@ -25,11 +25,13 @@ worth flagging to them directly, or revisiting once resolved.
 """
 import csv
 import json
+import os
 import re
 import sys
 from datetime import datetime, timezone, timedelta
 
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 # The furthest-behind inhabited timezone (American Samoa / Niue, UTC-11). A dated entry is only
 # retired once its day is over there, so nothing is hidden from a player whose local date still
@@ -49,7 +51,11 @@ POKEBATTLER_API_URL = "https://fight.pokebattler.com/raids"
 # plain-text read can't see into; the previous site stays up at old.pokebattler.com, so it goes
 # first, with www kept as a fallback in case old.* is retired or www goes back to plain HTML.
 POKEBATTLER_PAGE_USED = None   # which of these supplied the dates on this run (recorded in the output)
-POKEBATTLER_WEB_URLS = [
+# NO LONGER REQUESTED (Nov 2026): old.pokebattler.com answers GitHub's servers with a Cloudflare 403
+# (and its robots.txt disallows bots), and www.pokebattler.com is a JavaScript app with no data
+# in its HTML. Start dates now come from the API itself (upcoming/startDate on each raid entry),
+# so the bot makes one request to Pokebattler per run. Kept only for reference.
+_UNUSED_POKEBATTLER_WEB_URLS = [
     "https://old.pokebattler.com/raids",
     "https://www.pokebattler.com/raids",
 ]
@@ -277,6 +283,59 @@ def same_month(dt, ref):
     return dt is not None and dt.year == ref.year and dt.month == ref.month
 
 
+# ----------------------------------------------------------------------------
+# Full record of every request to Pokebattler, for Pokebattler's owner to look into the
+# Cloudflare 403s: the request as sent (URL + headers) and the response exactly as received
+# (status, every header - cf-ray, server, set-cookie... - and the whole body, byte for byte).
+# Written only when PB_DEBUG_DIR is set; the workflow sets it and uploads the folder as a run
+# artifact, so nothing here is committed to the public repo.
+# ----------------------------------------------------------------------------
+PB_DEBUG_DIR = os.environ.get("PB_DEBUG_DIR") or None
+
+
+def save_pokebattler_exchange(label, url, request_headers, resp=None, error=None):
+    if not PB_DEBUG_DIR:
+        return
+    try:
+        folder = Path(PB_DEBUG_DIR)
+        folder.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        base = folder / f"{stamp}-{label}"
+        record = {"label": label, "requestedAt": datetime.now(timezone.utc).isoformat(), "url": url,
+                  "requestHeaders": dict(resp.request.headers) if resp is not None and resp.request is not None
+                                    else dict(request_headers or {}),
+                  "error": error}
+        if resp is not None:
+            ctype = resp.headers.get("Content-Type", "")
+            ext = ".json" if "json" in ctype else ".html" if "html" in ctype else ".txt"
+            body_file = base.with_name(base.name + "-body" + ext)
+            body_file.write_bytes(resp.content or b"")
+            record.update({
+                "status": resp.status_code, "reason": resp.reason, "finalUrl": resp.url,
+                "elapsedSeconds": resp.elapsed.total_seconds() if resp.elapsed else None,
+                "redirects": [{"status": h.status_code, "url": h.url, "headers": dict(h.headers)} for h in resp.history],
+                "responseHeaders": dict(resp.headers),
+                "bodyBytes": len(resp.content or b""), "bodyFile": body_file.name,
+            })
+        base.with_name(base.name + "-headers.json").write_text(json.dumps(record, indent=2), encoding="utf-8")
+        print(f"Saved the full Pokebattler response for {url} ({label})")
+    except Exception as e:                      # a debug record must never break a run
+        print(f"Could not save the Pokebattler response for {url} (non-fatal): {e}")
+
+
+# normalized boss name -> (startDate epoch ms, display name), from the API's upcoming entries
+API_START_DATES = {}
+
+
+def _api_date(ms):
+    """API startDate (epoch ms, UTC) -> 'Nov 4, 2026 6:00 AM' in Pacific time, the format the
+    other schedule dates use. Pokebattler's rotation starts (14:00 UTC = 6 AM Pacific) land on
+    the right calendar day in Pacific time, as the site's dates are read."""
+    dt = datetime.fromtimestamp(ms / 1000, timezone.utc).astimezone(ZoneInfo("America/Los_Angeles"))
+    hour12 = dt.hour % 12 or 12
+    return f"{dt:%b} {dt.day}, {dt.year} {hour12}:{dt:%M} {'AM' if dt.hour < 12 else 'PM'}"
+
+
 def fetch_current_bosses():
     """Fetches the live roster from Pokebattler's API. Returns a list of boss names
     currently active.
@@ -290,13 +349,29 @@ def fetch_current_bosses():
     July 26 GO Fest event, while every nonzero-cp entry in the same tier did not). So this
     now searches every tier's raids list and filters on cp==0 per-entry, rather than
     excluding entire tiers by name."""
-    resp = requests.get(POKEBATTLER_API_URL, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        resp = requests.get(POKEBATTLER_API_URL, timeout=20, headers=headers)
+    except Exception as e:
+        save_pokebattler_exchange("api", POKEBATTLER_API_URL, headers, error=f"{type(e).__name__}: {e}")
+        raise
+    save_pokebattler_exchange("api", POKEBATTLER_API_URL, headers, resp)
     resp.raise_for_status()
     data = resp.json()
 
     names = []
     enhanced_names = set()
+    API_START_DATES.clear()
     for tier_entry in data.get("tiers", []):
+        # Upcoming bosses carry "upcoming": true and "startDate" (epoch ms, UTC) on their entry -
+        # the only schedule data the API has (no end dates). Kept per boss: the earliest start.
+        if "_LEGACY" not in tier_entry.get("tier", "") and "_MEGA_ENHANCED" not in tier_entry.get("tier", ""):
+            for r in tier_entry.get("raids", []):
+                pid = r.get("pokemonId") or r.get("pokemon")
+                if pid and r.get("upcoming") and isinstance(r.get("startDate"), (int, float)):
+                    k = normalize_name(pokemon_id_to_name(pid))
+                    if k and (k not in API_START_DATES or r["startDate"] < API_START_DATES[k][0]):
+                        API_START_DATES[k] = (r["startDate"], pokemon_id_to_name(pid))
         tier_key = tier_entry.get("tier", "")
         raids = tier_entry.get("raids", [])
         # Super Mega tiers, per Pokebattler's own naming:
@@ -335,25 +410,9 @@ def fetch_current_bosses():
 
 
 def fetch_boss_dates_from_website():
-    """Fetches the human-readable raids page (used only to recover scheduled dates, since
-    the JSON API doesn't expose them) and returns a dict mapping normalized boss name ->
-    (startDate, endDate). The API remains the authority on WHICH bosses are current and
-    soloable; this is purely a supplementary lookup for WHEN, matched by name."""
-    global POKEBATTLER_PAGE_USED
-    POKEBATTLER_PAGE_USED = None
-    for url in POKEBATTLER_WEB_URLS:
-        dates_by_name, web_occurrences = _dates_from_pokebattler_page(url)
-        if dates_by_name:
-            POKEBATTLER_PAGE_USED = url
-            return dates_by_name, web_occurrences
+    """Retired Nov 2026 - Pokebattler's raids pages are no longer requested (see
+    _UNUSED_POKEBATTLER_WEB_URLS). Start dates come from the API; windows from ScrapedDuck."""
     return {}, []
-
-
-# What each Pokebattler raids page returned on this run - written into live-bosses.json under
-# "sources" so a page that stops yielding dates says why (blocked, JavaScript-only, changed
-# format) instead of showing only a 0. Pokebattler's pages returned no dates on every run from at
-# least 29 Oct 2026, and nothing on record could say whether it was a block or a page change.
-POKEBATTLER_PAGE_REPORT = []
 
 
 def _page_report(url, status=None, size=0, dates=0, note=None):
@@ -375,12 +434,16 @@ def _why_no_dates(resp):
 
 def _dates_from_pokebattler_page(url):
     """One Pokebattler raids page -> (dates_by_name, web_occurrences); empty if it can't be read."""
+    headers = {"User-Agent": "Mozilla/5.0"}
+    label = re.sub(r"[^a-z0-9]+", "-", url.split("//", 1)[-1].lower()).strip("-")
     try:
-        resp = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
+        resp = requests.get(url, timeout=20, headers=headers)
     except Exception as e:
+        save_pokebattler_exchange(label, url, headers, error=f"{type(e).__name__}: {e}")
         print(f"Could not fetch {url} for date info (non-fatal): {e}")
         _page_report(url, note=f"request failed: {type(e).__name__}: {str(e)[:120]}")
         return {}, []
+    save_pokebattler_exchange(label, url, headers, resp)
     if resp.status_code >= 400:
         print(f"Could not fetch {url} for date info (non-fatal): HTTP {resp.status_code}")
         _page_report(url, status=resp.status_code, size=len(resp.text or ""), note=_why_no_dates(resp))
@@ -484,31 +547,54 @@ def fetch_boss_dates_from_scrapedduck():
 
 
 def fetch_all_boss_dates():
-    """Both schedule sources, merged. Pokebattler's page wins wherever it lists a boss (it has been
-    the authority all along); ScrapedDuck fills in every boss it doesn't. Also returns how many
-    bosses each source supplied, so a source that comes back empty is visible rather than silent."""
-    web_dates, web_occ = fetch_boss_dates_from_website()
+    """The raid schedule. Pokebattler's API comes first: an upcoming boss's start date is taken
+    from its startDate (read in fetch_current_bosses, which must run first). The API has no end
+    dates, so windows - and bosses the API gives no date for - come from the ScrapedDuck
+    (LeekDuck) schedule. An API start replaces ScrapedDuck's start for the window it belongs to
+    (the one starting within 3 days of it), so a boss with two windows keeps its other one.
+    Returns how much each source supplied, so a source that comes back empty is visible."""
     sd_dates, sd_occ = fetch_boss_dates_from_scrapedduck()
-    dates_by_name = dict(sd_dates)
-    dates_by_name.update(web_dates)
-    on_web = {k for k, _s, _e in web_occ}
-    occurrences = list(web_occ) + [o for o in sd_occ if o[0] not in on_web]
-    health = {"pokebattlerWebsite": len(web_dates), "pokebattlerPage": POKEBATTLER_PAGE_USED, "scrapedDuck": len(sd_dates),
-              "pokebattlerPages": list(POKEBATTLER_PAGE_REPORT)}
-    # GitHub Actions turns these lines into annotations on the run (and an error fails it - see
-    # the end of main()), so a schedule source going blank shows up instead of quietly emptying
-    # the landing page's upcoming rotations.
-    if not web_dates and sd_dates:
-        print("::warning title=Pokebattler raids page::No raid dates could be read from any Pokebattler "
-              f"raids page ({', '.join(POKEBATTLER_WEB_URLS)}). Upcoming rotations are coming from "
-              "the ScrapedDuck (LeekDuck) schedule instead.")
-    if not sd_dates and web_dates:
-        print("::warning title=ScrapedDuck schedule::The ScrapedDuck (LeekDuck) schedule returned no "
-              "raid dates. Pokebattler's page is still being used.")
-    if not web_dates and not sd_dates:
-        print("::error title=No raid schedule::Neither Pokebattler's raids pages nor the ScrapedDuck "
-              "schedule returned any raid dates. Only bosses running right now can be published, "
-              "so upcoming rotations will be missing from the landing page.")
+
+    def parse(d):
+        try:
+            return datetime.strptime(d, "%b %d, %Y %I:%M %p")
+        except (TypeError, ValueError):
+            return None
+
+    api = {k: (_api_date(ms), nm) for k, (ms, nm) in API_START_DATES.items()}
+    applied, moved = set(), []
+
+    def with_api_start(key, start, end):
+        if key not in api:
+            return start, end
+        api_start = api[key][0]
+        a_dt, s_dt = parse(api_start), parse(start)
+        if a_dt and s_dt and abs((a_dt - s_dt).total_seconds()) <= 3 * 86400:
+            if a_dt.date() != s_dt.date():
+                moved.append(f"{api[key][1]}: {start} -> {api_start}")
+            applied.add(key)
+            return api_start, end
+        return start, end
+
+    occurrences = [(k,) + with_api_start(k, s_, e_) for k, s_, e_ in sd_occ]
+    dates_by_name = {k: with_api_start(k, s_, e_) for k, (s_, e_) in sd_dates.items()}
+
+    # Upcoming in the API but with no window anywhere: no end date to show them with yet.
+    no_end = sorted(f"{nm} (from {d})" for k, (d, nm) in api.items() if k not in sd_dates)
+    print(f"Pokebattler API: start dates for {len(api)} upcoming boss(es); "
+          f"{len(applied)} used for a schedule window")
+    for m in moved:
+        print(f"  API start date differs from ScrapedDuck's: {m}")
+    if no_end:
+        print("  Upcoming in the API but not yet in the ScrapedDuck schedule (no end date to publish "
+              f"them with): {', '.join(no_end)}")
+
+    health = {"pokebattlerApiStartDates": len(api), "pokebattlerApiStartsUsed": len(applied),
+              "scrapedDuck": len(sd_dates), "pokebattlerApiUpcomingWithoutEndDate": no_end}
+    if not sd_dates:
+        print("::error title=No raid schedule::The ScrapedDuck (LeekDuck) schedule returned no raid "
+              "dates, and Pokebattler's API gives start dates only - no windows can be built, so "
+              "upcoming rotations will be missing from the landing page.")
     return dates_by_name, occurrences, health
 
 
@@ -1196,10 +1282,11 @@ def main():
         names = ", ".join(b["name"] for b in g["bosses"])
         print(f"  [{g['category']}] [{g['startDate'] or 'no date match'} -> {g['endDate']}]: {names}")
 
-    # Both schedule sources empty: the file is still written (it keeps today's running bosses and
-    # this month's history), but the run ends as FAILED so GitHub flags it, instead of passing
-    # quietly with every upcoming rotation missing. The workflow commits the file regardless.
-    if not source_health["pokebattlerWebsite"] and not source_health["scrapedDuck"]:
+    # No schedule windows at all (ScrapedDuck empty - the API alone has start dates only): the
+    # file is still written (it keeps today's running bosses and this month's history), but the
+    # run ends as FAILED so GitHub flags it, instead of passing quietly with every upcoming
+    # rotation missing. The workflow commits the file regardless.
+    if not source_health["scrapedDuck"]:
         sys.exit(1)
 
 
