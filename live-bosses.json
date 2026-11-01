@@ -1,20 +1,13 @@
 {
-  "generatedAt": "2026-11-01T17:18:26.993146+00:00",
+  "generatedAt": "2026-11-01T20:29:09.826922+00:00",
   "sources": {
-    "pokebattlerApiStartDates": 10,
-    "pokebattlerApiStartsUsed": 2,
-    "scrapedDuck": 13,
-    "pokebattlerApiUpcomingWithoutEndDate": [
-      "Dialga (from Nov 5, 2026 12:00 PM)",
-      "Druddigon (from Nov 9, 2026 5:00 AM)",
-      "Duraludon Gigantamax (from Nov 5, 2026 12:00 PM)",
-      "Machamp (from Nov 5, 2026 12:00 PM)",
-      "Orthworm (from Nov 9, 2026 5:00 AM)",
-      "Palkia (from Nov 5, 2026 12:00 PM)",
-      "Zacian Crowned Sword (from Nov 5, 2026 12:00 PM)",
-      "Zamazenta Crowned Shield (from Nov 5, 2026 12:00 PM)"
-    ],
-    "pokebattlerApi": 44
+    "pokebattlerSchedule": 34,
+    "pokebattlerScheduleWindows": 38,
+    "scrapedDuck": 1,
+    "pokebattlerApiStartDates": 7,
+    "pokebattlerApiStartsUsed": 0,
+    "pokebattlerApiUpcomingWithoutEndDate": [],
+    "pokebattlerApi": 36
   },
   "dateGroups": [
     {
@@ -44,6 +37,21 @@
         }
       ],
       "status": "active"
+    },
+    {
+      "startDate": "Nov 5, 2026",
+      "endDate": "Nov 9, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zacian Crown",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "7 \u2b50",
+          "weather": "Clear"
+        }
+      ],
+      "label": "In-person",
+      "status": "future"
     },
     {
       "startDate": "Nov 16, 2026",
@@ -98,6 +106,46 @@
       "status": "future"
     },
     {
+      "startDate": "Nov 15, 2026",
+      "endDate": "Nov 15, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Reshiram",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5.5 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Kyurem Black",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Cloudy"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 14, 2026",
+      "endDate": "Nov 14, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zekrom",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Kyurem White",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Cloudy"
+        }
+      ],
+      "status": "future"
+    },
+    {
       "startDate": "Oct 28, 2026",
       "endDate": "Nov 8, 2026",
       "category": "rotation",
@@ -124,6 +172,20 @@
         }
       ],
       "status": "active"
+    },
+    {
+      "startDate": "Nov 9, 2026",
+      "endDate": "Nov 13, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zacian Crown",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "7 \u2b50",
+          "weather": "Clear"
+        }
+      ],
+      "status": "future"
     }
   ]
 }
