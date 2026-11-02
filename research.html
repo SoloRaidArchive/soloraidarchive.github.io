@@ -1034,6 +1034,33 @@ if ("serviceWorker" in navigator) {
      full-strength border it had (Shadow entries keep their purple cue). */
   .tier-mon:not(.is-shadow){ border-color:color-mix(in srgb, var(--accent, var(--blue, #3d9dff)) 30%, transparent) !important; box-shadow:none !important; }
   .tier-mon:not(.is-shadow):hover, .tier-mon:not(.is-shadow):focus-visible{ border-color:color-mix(in srgb, var(--accent, var(--blue, #3d9dff)) 55%, transparent) !important; box-shadow:none !important; }
+  /* Most Used Raiders grid (renderLeaderboard): rank, icon and uses per tile; a faint border in the
+     colour of the Pokemon's most-used role, keyed by the legend above - the Reference page's role
+     colours, light and dark. */
+  .lbg{ --c-main:#c62828; --c-support:#00897b; --c-tank:#7d4fd6; --c-exec:#292929;
+    --b-main:#ffe1e1; --b-support:#dff5f3; --b-tank:#f2ebff; --b-exec:#e9e9eb; }
+  [data-theme="dark"] .lbg{ --c-main:#ff9494; --c-support:#5eded4; --c-tank:#c1a8ff; --c-exec:#e4e4e6;
+    --b-main:rgba(220,53,69,.22); --b-support:rgba(0,150,136,.22); --b-tank:rgba(155,123,240,.2); --b-exec:rgba(255,255,255,.14); }
+  .lbg-legend{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
+  .role-key{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:999px; font:800 12px 'Manrope',sans-serif; }
+  .role-key i{ width:10px; height:10px; border-radius:3px; border:2px solid currentColor; opacity:.75; }
+  .role-key.r-main{ color:var(--c-main); background:var(--b-main); } .role-key.r-support{ color:var(--c-support); background:var(--b-support); }
+  .role-key.r-tank{ color:var(--c-tank); background:var(--b-tank); } .role-key.r-exec{ color:var(--c-exec); background:var(--b-exec); }
+  .lbg-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:10px; }
+  .lbg .lb-row.lbg-tile{ all:unset; box-sizing:border-box; cursor:pointer; position:relative; display:flex; flex-direction:column; align-items:center; gap:6px;
+    padding:12px 6px 10px; background:var(--card); border:2px solid var(--border); border-radius:14px; text-align:center; transition:transform .12s, border-color .12s; }
+  .lbg .lb-row.lbg-tile:hover{ transform:translateY(-1px); }
+  .lbg .lb-row.lbg-tile:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
+  .lbg .lb-row.lbg-tile.r-main{ border-color:color-mix(in srgb, var(--c-main) 40%, transparent); }
+  .lbg .lb-row.lbg-tile.r-support{ border-color:color-mix(in srgb, var(--c-support) 40%, transparent); }
+  .lbg .lb-row.lbg-tile.r-tank{ border-color:color-mix(in srgb, var(--c-tank) 40%, transparent); }
+  .lbg .lb-row.lbg-tile.r-exec{ border-color:color-mix(in srgb, var(--c-exec) 35%, transparent); }
+  .lbg .lb-row.lbg-tile.r-main:hover{ border-color:var(--c-main); } .lbg .lb-row.lbg-tile.r-support:hover{ border-color:var(--c-support); }
+  .lbg .lb-row.lbg-tile.r-tank:hover{ border-color:var(--c-tank); } .lbg .lb-row.lbg-tile.r-exec:hover{ border-color:var(--c-exec); }
+  .lbg-icon{ display:block; } .lbg-icon img{ display:block; }
+  .lbg-rank{ position:absolute; top:5px; left:7px; font:800 11px 'Manrope',sans-serif; color:var(--text-dim); }
+  .lbg-rank.top1{ color:#ffb300; } .lbg-rank.top2{ color:#9aa3b2; } .lbg-rank.top3{ color:#c97b3d; }
+  .lbg-uses{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim); } .lbg-uses b{ font-size:14px; color:var(--text); }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
@@ -2984,6 +3011,11 @@ function lazySpriteImg(cls, url, name, extraAttrs){
 }
 
 function renderLeaderboard(){
+  // Most Used Raiders as a grid of tiles: rank, icon and uses. Each tile's faint border is the
+  // colour of the role that Pokemon is used in most (from its per-role counts; Executor included;
+  // a tie goes Main DPS -> Support DPS -> Catch Tank -> Executor), with a legend above - the same
+  // role colours as the Reference page. With a role filter on, every tile takes that role's colour.
+  // Clicking a tile opens the detail popup (class lb-row + data-idx, as the rows had).
   const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
   let filtered = ALL_RESULTS
     .filter(r => !query || r.name.toLowerCase().includes(query))
@@ -3005,8 +3037,6 @@ function renderLeaderboard(){
   if(currentRole){
     filtered = [...filtered].sort((a,b) => roleSpecificCount(b) - roleSpecificCount(a));
   }
-
-  const maxCount = filtered.length ? roleSpecificCount(filtered[0]) : 1;
   if(currentLimit > 0) filtered = filtered.slice(0, currentLimit);
 
   const container = document.getElementById("container");
@@ -3015,43 +3045,31 @@ function renderLeaderboard(){
     return;
   }
 
-  LAST_RENDERED = filtered;   // data-idx indexes into this, so it must match what was rendered
-  container.innerHTML = `<div class="leaderboard">${filtered.map((r, i) => {
-    const rankClass = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
-    const shownBosses = r.bosses.slice(0, 4);
-    const extra = r.bosses.length - shownBosses.length;
-    const roleText = currentRole ? currentRole : (r.roles.length ? r.roles.join(", ") : "");
-    const displayCount = roleSpecificCount(r);
-    return `
-    <div class="lb-row-wrap">
-      <button type="button" class="lb-row" data-idx="${i}" aria-haspopup="dialog">
-        <div class="lb-rank ${rankClass}"><div class="lb-rank-change-slot">${currentRole ? "" : rankChangeBadge(r.name, i+1)}</div><div class="lb-rank-number">${i+1}</div></div>
-        <div class="lb-sprite">${lazySpriteImg(needsShadowMist(r.name) ? 'shadow-mist' : '', spriteUrl(r.name), r.name, 'width="44" height="44"')}</div>
-        <div class="lb-main">
-          <div class="lb-name">${displayName(r.name)}</div>
-          ${roleText ? `<div class="lb-roles">${roleText}</div>` : ""}
-          ${lbMovesetsHtml(r.instances)}
-          <div class="lb-bar-wrap"><div class="lb-bar" data-w="${(displayCount/maxCount*100).toFixed(1)}"></div></div>
-        </div>
-        <div class="lb-bosses">
-          ${shownBosses.map(b => `<span class="lb-boss-icon" title="${b.name}">${lazySpriteImg(needsShadowMist(b.name) ? 'shadow-mist' : '', spriteUrl(b.name), b.name, 'width="26" height="26"')}</span>`).join("")}
-          ${extra > 0 ? `<span class="lb-boss-more">+${extra}</span>` : ""}
-        </div>
-        <div class="lb-count">${displayCount}<span>use${displayCount===1?"":"s"}</span></div>
-        <span class="lb-chevron">&#9974;</span>
-      </button>
-    </div>`;
-  }).join("")}</div>`;
+  const ROLES = ["Main DPS", "Support DPS", "Catch Tank", "Executor"];
+  const ROLE_CLASS = { "Main DPS": "r-main", "Support DPS": "r-support", "Catch Tank": "r-tank", "Executor": "r-exec" };
+  function mainRole(r){
+    if(currentRole) return currentRole;
+    const counts = ROLES.map(x => x === "Executor" ? (r.executorCount || 0) : ((r.roleUsageCounts || {})[x] || 0));
+    return ROLES[counts.indexOf(Math.max(...counts))];
+  }
 
-  // Re-observe after every render: filtering and searching rebuild these rows, so sprites that
+  LAST_RENDERED = filtered;   // data-idx indexes into this, so it must match what was rendered
+  const legend = `<div class="lbg-legend" aria-label="Border colour: the role each Pokémon is used in most">${ROLES.map(x =>
+    `<span class="role-key ${ROLE_CLASS[x]}"><i></i>${x}</span>`).join("")}</div>`;
+  container.innerHTML = `<div class="lbg">${legend}<div class="lbg-grid">${filtered.map((r, i) => {
+    const rankClass = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
+    const role = mainRole(r);
+    const n = roleSpecificCount(r);
+    return `<button type="button" class="lb-row lbg-tile ${ROLE_CLASS[role]}" data-idx="${i}" aria-haspopup="dialog" title="${displayName(r.name)} - mostly ${role}">
+      <span class="lbg-rank ${rankClass}">${i+1}</span>
+      <span class="lbg-icon">${lazySpriteImg(needsShadowMist(r.name) ? 'shadow-mist' : '', spriteUrl(r.name), r.name, 'width="56" height="56"')}</span>
+      <span class="lbg-uses"><b>${n}</b> use${n === 1 ? "" : "s"}</span>
+    </button>`;
+  }).join("")}</div></div>`;
+
+  // Re-observe after every render: filtering and searching rebuild these tiles, so sprites that
   // were never loaded must be picked up again by the observer.
   observeSprites(container);
-
-  requestAnimationFrame(() => {
-    document.querySelectorAll(".lb-bar").forEach(bar => {
-      bar.style.width = bar.dataset.w + "%";
-    });
-  });
 }
 
 document.getElementById("pokemonSearch").addEventListener("input", renderLeaderboard);
