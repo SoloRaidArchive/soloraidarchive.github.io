@@ -1057,7 +1057,10 @@ if ("serviceWorker" in navigator) {
   .lbg .lb-row.lbg-tile.r-exec{ border-color:color-mix(in srgb, var(--c-exec) 35%, transparent); }
   .lbg .lb-row.lbg-tile.r-main:hover{ border-color:var(--c-main); } .lbg .lb-row.lbg-tile.r-support:hover{ border-color:var(--c-support); }
   .lbg .lb-row.lbg-tile.r-tank:hover{ border-color:var(--c-tank); } .lbg .lb-row.lbg-tile.r-exec:hover{ border-color:var(--c-exec); }
-  .lbg-icon{ display:block; } .lbg-icon img{ display:block; }
+  /* The same sprite size as the rest of the site (the raid archives' boss cards): a 56x56 box,
+     each GIF scaled to fit with its proportions kept - never stretched to the square. */
+  .lbg-icon{ display:block; width:56px; height:56px; }
+  .lbg-icon img{ display:block; width:56px; height:56px; object-fit:contain; }
   .lbg-rank{ position:absolute; top:5px; left:7px; font:800 11px 'Manrope',sans-serif; color:var(--text-dim); }
   .lbg-rank.top1{ color:#ffb300; } .lbg-rank.top2{ color:#9aa3b2; } .lbg-rank.top3{ color:#c97b3d; }
   .lbg-uses{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim); } .lbg-uses b{ font-size:14px; color:var(--text); }
