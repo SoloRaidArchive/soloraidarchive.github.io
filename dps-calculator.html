@@ -1169,6 +1169,13 @@ if ("serviceWorker" in navigator) {
   .seg-dmg{ position:absolute; right:0; top:0; bottom:0; background:#e5484d; }
   /* the table row the bars are showing */
   tr.rot-active td{ background:color-mix(in srgb, var(--blue, #3d9dff) 7%, transparent); }
+  /* Inner containers (fields, tiles, toggles, panels, info boxes, priority rows) get a fainter
+     border than the section cards they sit in, which keep the full-strength border. Half of the
+     theme's border colour, so it follows every season and mode. Red "invalid" outlines and the
+     focus highlight are left alone. Specific enough to outrank the seasonal stylesheet's rules. */
+  .step-card{ --border-inner: color-mix(in srgb, var(--border) 50%, transparent); }
+  html .step-card :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.invalid):not(:focus), select:not(:focus), textarea:not(:focus), .mod-cell, .check-item, .adv-mech-menu, .qty-stepper, summary.mod-summary, details.mod-details, .mini-preview, .boss-dmg-preview, .team-order li, .team-order button, .team-add-btn, .mc-new-btn),
+  html[data-season][data-theme] .step-card :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.invalid):not(:focus), select:not(:focus), textarea:not(:focus), .mod-cell, .check-item, .adv-mech-menu, .qty-stepper, summary.mod-summary, details.mod-details, .mini-preview, .boss-dmg-preview, .team-order li, .team-order button, .team-add-btn, .mc-new-btn){ border-color: var(--border-inner) !important; }
 </style>
 <script type="application/ld+json">
 {
