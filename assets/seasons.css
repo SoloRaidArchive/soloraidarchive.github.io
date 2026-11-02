@@ -235,3 +235,11 @@ html[data-season] .discord-row, html[data-season][data-theme] .discord-row{ back
 /* Dropdowns inside the DPS Calculator's modifier tiles (# of charge moves, weather, adventure
    effect...) are plain text on the tile - no tinted band behind the selected value. */
 html[data-season] .mod-consolidated-grid .mod-cell select, html[data-season][data-theme] .mod-consolidated-grid .mod-cell select{ background:transparent !important; }
+
+/* Dark mode: the browser draws an opened dropdown's list on white, so its options need dark text
+   (they inherited the light page text and were almost invisible, e.g. Fall dark's # of Charge
+   Moves and Weather). */
+html[data-season][data-theme="dark"] select option, html[data-season][data-theme="dark"] select optgroup{ color:#1f1b18 !important; background-color:#ffffff !important; }
+
+/* The number inside a +/- stepper (# of catch tanks) sits on the stepper itself - no tinted box. */
+html[data-season] .qty-stepper input:not([type=checkbox]):not([type=radio]):not([type=range]), html[data-season][data-theme] .qty-stepper input:not([type=checkbox]):not([type=radio]):not([type=range]){ background:transparent !important; }
