@@ -1057,8 +1057,9 @@ if ("serviceWorker" in navigator) {
   .team-log td{ vertical-align:middle; }
   .team-sponge-row .check-item{ text-transform:none; letter-spacing:0; font-size:12.5px; color:var(--text); }
   .team-card .qty-stepper{ border-width:2px; }
-  .team-card .qty-stepper button{ height:26px; width:32px; font-size:16px; }
-  .team-card .qty-stepper input{ height:26px; width:34px; }
+  /* 31px inside its 2px border: the same 35px as the Charge moves dropdown beside it */
+  .team-card .qty-stepper button{ height:31px; width:32px; font-size:16px; }
+  .team-card .qty-stepper input{ height:31px; width:34px; }
   .team-plus{ color:var(--text-dim); margin:0 2px; }
   .team-log thead th, .team-final thead th{ text-align:left; font-size:10.5px; font-weight:800; color:var(--text-dim);
     text-transform:uppercase; letter-spacing:.04em; padding:6px 8px; white-space:nowrap; }
@@ -1151,6 +1152,23 @@ if ("serviceWorker" in navigator) {
   .adv-mech-menu .check-item{ white-space:nowrap; }
   .mp-buffs-menu .adv-mech-menu{ left:-2px !important; right:auto !important; min-width:0 !important; }
   .mp-buffs-menu .adv-mech-menu select{ width:100%; }
+  /* Health bars (Single / Double Catch Tank): green -> yellow at half -> red at a quarter */
+  .hp-bar-block{ margin-top:8px; }
+  .hp-bar-label{ display:flex; justify-content:space-between; gap:8px; font-size:11px; font-weight:700; color:var(--text-dim); }
+  .hp-bar-label b{ color:var(--text); font-family:'Manrope', sans-serif; }
+  .hp-bar{ position:relative; height:10px; margin-top:3px; border-radius:999px; overflow:hidden;
+    background:color-mix(in srgb, var(--text) 12%, transparent); }
+  .hp-fill{ height:100%; border-radius:999px; transition:width .35s ease, background-color .35s ease; }
+  .hp-green{ background:#3cbf68; } .hp-yellow{ background:#f2c230; } .hp-red{ background:#e5484d; }
+  /* the chunk one rotation takes off the boss */
+  .hp-chunk{ position:absolute; top:0; bottom:0; min-width:3px; background:#e5484d; box-shadow:0 0 0 1px rgba(255,255,255,.6) inset; }
+  .hp-bar-note{ margin-top:3px; font-size:10.5px; font-weight:600; color:var(--text-dim); }
+  /* zoomed segment strip: one block per 100 HP, filled by the damage */
+  .seg-strip{ display:flex; gap:3px; margin-top:5px; }
+  .seg-box{ position:relative; width:26px; height:9px; border-radius:3px; overflow:hidden; background:#3cbf68; }
+  .seg-dmg{ position:absolute; right:0; top:0; bottom:0; background:#e5484d; }
+  /* the table row the bars are showing */
+  tr.rot-active td{ background:color-mix(in srgb, var(--blue, #3d9dff) 7%, transparent); }
 </style>
 <script type="application/ld+json">
 {
@@ -7231,6 +7249,97 @@ document.addEventListener("click", (e) => {
     hamburgerBtn.setAttribute("aria-expanded", "false");
   }
 });
+// ---- Health bars (Single / Double Catch Tank modes) -------------------------------------------
+// One catch rotation, as you'd tally it by hand: what the boss's charge move and fast moves do to
+// the catch tank, and what the catch tank's charge move and fast moves do to the boss.
+//   Attacker: HP after the catch = HP - damage taken (cumulativeDamage: the boss fast moves
+//             tanked + its charge move). Green above half, yellow to a quarter, red below.
+//   Boss:     the rotation's damage (catch tank DPS x its rotation time = charge move + the fast
+//             moves used) taken off its HP. The bar is 100 segments, so a Tier 5 boss's 15,000 HP
+//             is 150 HP a segment (Tier 4 Megas 90, Tier 6 225) - a full-length bar with the chunk
+//             this rotation removes, plus a zoomed strip of the segments it covers.
+// The card's bars follow the best row of the table (highest catch tank DPS that doesn't faint);
+// hovering a row shows that row (and highlights it).
+const HP_SEGMENTS = 100;   // the boss's bar is always 100 segments: 150 HP each for 15,000 HP
+function hpBarColor(frac){ return frac > 0.5 ? "hp-green" : frac > 0.25 ? "hp-yellow" : "hp-red"; }
+function rotationFigures(row){
+  const card = document.querySelector("#resultsWrap .loadout-card");
+  const mons = card ? card.querySelectorAll(".loadout-pokemon .loadout-info") : [];
+  const hpEl = mons[0] ? [...mons[0].querySelectorAll(".loadout-stats span")].find(e => /^HP/.test(e.textContent)) : null;
+  const maxHp = hpEl ? parseFloat(hpEl.querySelector("b").textContent) : 0;
+  const bossName = (lastCalcContext.bossName || document.getElementById("bossName").value || "").trim();
+  const raid = raidTierFor(bossName);
+  const dealt = row.fainted ? 0 : Math.round((row.ctDPS || 0) * (row.ctSeconds || row.seconds || 0));
+  const segHp = raid.hp / HP_SEGMENTS;
+  return { maxHp, taken: row.cumulativeDamage || 0, left: Math.max(0, maxHp - (row.cumulativeDamage || 0)),
+           fainted: !!row.fainted, dealt, bossHp: raid.hp, segHp, segs: dealt / segHp, totalSegs: HP_SEGMENTS };
+}
+function segmentStripHtml(dealt, segHp){
+  const n = Math.max(3, Math.ceil(dealt / segHp) + 1);
+  let h = "";
+  for(let i = 0; i < n; i++){
+    const f = Math.max(0, Math.min(1, (dealt - i * segHp) / segHp));
+    h += `<span class="seg-box"><span class="seg-dmg" style="width:${(f * 100).toFixed(1)}%"></span></span>`;
+  }
+  return `<div class="seg-strip" title="Each block is one segment: ${Math.round(segHp)} HP">${h}</div>`;
+}
+function updateHealthBars(n){
+  const wrap = document.getElementById("resultsWrap");
+  const mode = (document.querySelector('input[name="ctMode"]:checked') || {}).value;
+  const card = wrap && wrap.querySelector(".loadout-card");
+  if(!card) return;
+  card.querySelectorAll(".hp-bar-block").forEach(e => e.remove());
+  if(mode !== "single" && mode !== "double") return;
+  if(!lastCalcContext || !lastCalcContext.rowsByN) return;
+  const rows = lastCalcContext.rowsByN;
+  const best = bestHealthRow(rows);
+  const row = n != null && rows[n] ? rows[n] : best;
+  if(!row) return;
+  const mons = card.querySelectorAll(".loadout-pokemon .loadout-info");
+  if(mons.length < 2) return;
+  const F = rotationFigures(row);
+  const fm = `${row.n} boss FM${row.n === 1 ? "" : "s"} tanked`;
+  const frac = F.maxHp ? F.left / F.maxHp : 0;
+  mons[0].insertAdjacentHTML("beforeend", `<div class="hp-bar-block">
+    <div class="hp-bar-label"><span>HP after the catch</span><b>${F.left} / ${F.maxHp}</b></div>
+    <div class="hp-bar"><div class="hp-fill ${hpBarColor(frac)}" style="width:${(frac * 100).toFixed(2)}%"></div></div>
+    <div class="hp-bar-note">${F.fainted ? "Faints - " : ""}takes ${F.taken} damage (${fm})</div></div>`);
+  const leftFrac = (F.bossHp - F.dealt) / F.bossHp;
+  mons[1].insertAdjacentHTML("beforeend", `<div class="hp-bar-block">
+    <div class="hp-bar-label"><span>This rotation</span><b>&minus;${F.dealt.toLocaleString()} HP</b></div>
+    <div class="hp-bar"><div class="hp-fill ${hpBarColor(leftFrac)}" style="width:${(leftFrac * 100).toFixed(3)}%"></div>
+      <div class="hp-chunk" style="left:${(leftFrac * 100).toFixed(3)}%;width:${(F.dealt / F.bossHp * 100).toFixed(3)}%"></div>
+</div>
+    ${segmentStripHtml(F.dealt, F.segHp)}
+    ${F.fainted ? `<div class="hp-bar-note">No damage - the catch tank faints first</div>` : ""}</div>`);
+  const table = wrap.querySelector("table");
+  table && table.querySelectorAll("tbody tr").forEach(tr => tr.classList.toggle("rot-active", tableRowN(tr) === row.n));
+}
+// The boss-FMs-tanked number of a table row: its first cell holding a whole number (bosses that
+// take submissions add a checkbox column in front, so it isn't always the first cell).
+function tableRowN(tr){
+  for(const c of tr.cells){ const t = c.textContent.trim(); if(/^\d+$/.test(t)) return parseInt(t, 10); }
+  return NaN;
+}
+function bestHealthRow(rows){
+  const list = Object.values(rows || {});
+  const ok = list.filter(r => !r.fainted && r.ctDPS > 0);
+  return (ok.length ? ok : list).reduce((a, r) => (!a || (r.ctDPS || 0) > (a.ctDPS || 0)) ? r : a, null);
+}
+(function(){
+  const _run = runCalculation;
+  runCalculation = function(){ const r = _run.apply(this, arguments); try{ updateHealthBars(); }catch(e){ console.error(e); } return r; };
+  document.addEventListener("mouseover", e => {
+    const tr = e.target.closest && e.target.closest("#resultsWrap table tbody tr");
+    if(!tr || !lastCalcContext || !lastCalcContext.rowsByN) return;
+    const n = tableRowN(tr);
+    if(Number.isFinite(n) && lastCalcContext.rowsByN[n]) updateHealthBars(n);
+  });
+  document.addEventListener("mouseout", e => {
+    const t = e.target.closest && e.target.closest("#resultsWrap table");
+    if(t && !(e.relatedTarget && t.contains(e.relatedTarget))) updateHealthBars();
+  });
+})();
 </script>
 
 <!-- Move creator. One dialog serves all four selects (player/boss x fast/charge) and therefore
