@@ -1044,6 +1044,14 @@ if ("serviceWorker" in navigator) {
   .lbg-legend{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
   .role-key{ display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:999px; font:800 12px 'Manrope',sans-serif; }
   .role-key i{ width:10px; height:10px; border-radius:3px; border:2px solid currentColor; opacity:.75; }
+  button.role-key{ border:1.5px solid transparent; cursor:pointer; transition:opacity .12s, border-color .12s; }
+  button.role-key:hover{ border-color:currentColor; }
+  button.role-key.active{ border-color:currentColor; }
+  .role-key.r-all{ color:var(--text-dim); background:color-mix(in srgb, var(--text) 8%, transparent); }
+  .role-key.r-all.active{ color:var(--text); }
+  /* while filtering, the other roles step back */
+  .lbg-legend.filtering .role-key:not(.active){ opacity:.5; }
+  .lbg-legend.filtering .role-key:not(.active):hover{ opacity:1; }
   .role-key.r-main{ color:var(--c-main); background:var(--b-main); } .role-key.r-support{ color:var(--c-support); background:var(--b-support); }
   .role-key.r-tank{ color:var(--c-tank); background:var(--b-tank); } .role-key.r-exec{ color:var(--c-exec); background:var(--b-exec); }
   .lbg-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:10px; }
@@ -1264,8 +1272,8 @@ if ("serviceWorker" in navigator) {
     <div class="hamburger-section">
       <div class="hamburger-section-label">Show</div>
       <div class="vertical-toggle" id="viewToggleList">
-        <button class="hamburger-item active" data-n="20">Top 20</button>
-        <button class="hamburger-item" data-n="50">Top 50</button>
+        <button class="hamburger-item" data-n="20">Top 20</button>
+        <button class="hamburger-item active" data-n="50">Top 50</button>
         <button class="hamburger-item" data-n="0">Show All</button>
       </div>
     </div>
@@ -2469,7 +2477,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if(u)  u.addEventListener("click", () => setView("usage"));
   if(tb) tb.addEventListener("click", () => setView("tier"));
 });
-let currentLimit = 20;
+let currentLimit = 50;   // default view: the top 50 (matches the active "Top 50" button)
 let currentRole = "";
 
 const AE_ICON = "https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png";
@@ -3057,8 +3065,11 @@ function renderLeaderboard(){
   }
 
   LAST_RENDERED = filtered;   // data-idx indexes into this, so it must match what was rendered
-  const legend = `<div class="lbg-legend" aria-label="Border colour: the role each Pokémon is used in most">${ROLES.map(x =>
-    `<span class="role-key ${ROLE_CLASS[x]}"><i></i>${x}</span>`).join("")}</div>`;
+  // The legend doubles as the role filter: a chip shows only that role (again, or "All roles",
+  // clears it). It presses the filter panel's own role buttons, so the two always agree.
+  const legend = `<div class="lbg-legend${currentRole ? " filtering" : ""}" role="group" aria-label="Border colour: the role each Pokémon is used in most. Click a role to filter.">
+    <button type="button" class="role-key r-all${currentRole ? "" : " active"}" data-role="" aria-pressed="${!currentRole}">All roles</button>
+    ${ROLES.map(x => `<button type="button" class="role-key ${ROLE_CLASS[x]}${currentRole === x ? " active" : ""}" data-role="${x}" aria-pressed="${currentRole === x}" title="${currentRole === x ? "Show all roles" : "Show only " + x}"><i></i>${x}</button>`).join("")}</div>`;
   container.innerHTML = `<div class="lbg">${legend}<div class="lbg-grid">${filtered.map((r, i) => {
     const rankClass = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
     const role = mainRole(r);
@@ -3076,6 +3087,13 @@ function renderLeaderboard(){
 }
 
 document.getElementById("pokemonSearch").addEventListener("input", renderLeaderboard);
+document.getElementById("container").addEventListener("click", e => {
+  const chip = e.target.closest(".lbg-legend .role-key");
+  if(!chip) return;
+  const role = chip.dataset.role === currentRole ? "" : chip.dataset.role;   // the active chip again clears it
+  const btn = document.querySelector(`#roleFilterList .hamburger-item[data-role="${role}"]`);
+  if(btn) btn.click();
+});
 document.querySelectorAll("#viewToggleList .hamburger-item").forEach(btn => {
   btn.addEventListener("click", () => {
     document.querySelectorAll("#viewToggleList .hamburger-item").forEach(b => b.classList.remove("active"));
