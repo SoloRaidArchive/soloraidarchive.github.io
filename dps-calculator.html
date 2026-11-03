@@ -1615,6 +1615,10 @@ if ("serviceWorker" in navigator) {
         <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
       </label>
       <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
+      <label class="check-item" title="Each catch tank catches two of the boss's charge moves. After its first catch it casts the set number of fast moves and swaps out without firing, keeping its energy; it comes back for the boss's next charge move and fires on the combined energy."><input type="checkbox" id="ctDoubleCatch"> Double catch</label>
+      <label class="check-item team-dodge-limit is-off" id="ctDcFMsWrap" title="How many fast moves the catch tank casts after its first catch, before it swaps out to wait for the second">Fast moves on 1st swap
+        <select id="ctDcFMs" disabled><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
+      </label>
     </div>
     <div class="team-order-head">Priority</div>
     <ol class="team-order" id="ctOrderList"></ol>
@@ -2805,7 +2809,8 @@ function simulateTeam(P){
     // waitCatch: the tick the charge move this catch tank is in for lands - until then it only uses
     // fast moves (no charge move, no swapping out), however early it came in
     mons: [{ tank: false, hp: P.main.hp, energy: 0, busyUntil: 0, cmCasts: 0 }]
-      .concat(P.monMeta.slice(1).map(mm => ({ tank: true, type: mm.type, num: mm.num, hp: P.tanks[mm.type].hp, energy: 0, busyUntil: 0, cmCasts: 0, waitCatch: null }))),
+      .concat(P.monMeta.slice(1).map(mm => ({ tank: true, type: mm.type, num: mm.num, hp: P.tanks[mm.type].hp, energy: 0, busyUntil: 0, cmCasts: 0, waitCatch: null,
+        dc: 0, dcFMsLeft: 0, primed: false }))),   // double catch: catches so far, fast moves left after the 1st, waiting for its 2nd
     active: 0, swap: null, pendingSwap: null,   // pendingSwap: { to, latest }
     hits: [], gains: [],
     nextTank: 1, lastTankDoneAt: null,
@@ -2880,6 +2885,24 @@ function teamStep(S, R, P, snap){
     R.swaps.push({ t, until: t + TEAM_SWAP_TICKS, from, to });
   };
   const end = (at, reason) => { S.ended = { t: at, reason }; };
+  // Double catch: a primed catch tank (caught once, swapped out holding its energy) that can live
+  // through another catch is next in line, ahead of a fresh one. 0 = none.
+  // "Can live through another catch" means the hit AND the boss fast moves that land while it then
+  // taps its fast move and fires: a tank that only just survives the catch (e.g. Shadow Regigigas
+  // on 102 HP against Zekrom's 96-damage Outrage) would faint to a Dragon Breath with its charge
+  // move unfired. Window: the tap plus its charge move(s); the boss moves every fast move + 2.0s.
+  const safeSecond = m => {
+    const tp = P.tanks[m.type];
+    const windowTicks = tp.fm.ad + tp.cm.ad * Math.max(1, tp.casts);
+    const bossFms = Math.ceil(windowTicks / (P.bossFM.ad + 4));
+    return m.hp > tp.bossCmDmg + bossFms * tp.bossFmDmg;
+  };
+  const primedTank = () => {
+    if(!P.doubleCatch) return 0;
+    for(let i = 1; i < S.mons.length; i++){ const m = S.mons[i]; if(m.primed && m.hp > 0 && safeSecond(m)) return i; }
+    return 0;
+  };
+  const noTankLeft = () => S.nextTank > P.qty && !primedTank();
 
   const faint = (who) => {
     const m = S.mons[who];
@@ -2889,7 +2912,7 @@ function teamStep(S, R, P, snap){
       // A fainted tank's move in progress never lands; the next Pokemon comes in.
       S.hits = S.hits.filter(h => h.who !== who);
       S.gains = S.gains.filter(g => g.who !== who);
-      if(S.nextTank > P.qty && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs && !P.mainDodges) S.finishing = true; }
+      if(noTankLeft() && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs && !P.mainDodges) S.finishing = true; }
       const next = S.pendingSwap ? S.pendingSwap.to : 0;
       S.pendingSwap = null;
       startSwap(who, next);
@@ -2922,8 +2945,10 @@ function teamStep(S, R, P, snap){
     // Book the swap to the next catch tank, timed for the highest DPS (teamSwapLatest): the
     // Pokemon on the field keeps attacking while its next move finishes by "latest".
     const bookSwap = (freeAt) => {
-      const to = S.nextTank++;
-      S.pendingSwap = { to, latest: teamSwapLatest(P, t, land, freeAt, S.catchNo++) };
+      const pr = primedTank();   // double catch: a primed tank comes back for its 2nd catch first
+      const to = pr || S.nextTank++;
+      if(pr) S.mons[pr].primed = false;
+      S.pendingSwap = { to, latest: teamSwapLatest(P, t, land, freeAt, S.catchNo++), second: !!pr };
       S.mons[to].waitCatch = land;
     };
     const dec = { cast: t, land, outcome: null, tank: null };
@@ -2931,10 +2956,11 @@ function teamStep(S, R, P, snap){
     if(!hm.tank){
       // Priority: main-first tries the sponge before a tank; tanks-first only falls back to it once
       // the tanks are gone. Either way the sponge needs the safety checks to pass.
-      const tanksLeft = S.nextTank <= P.qty;
+      const tanksLeft = !noTankLeft();
       let safe = null;
       const mainSafe = () => (safe === null ? (safe = !!(P.mainAbsorbs && snap && teamMainCanAbsorb(snap, P, t, land))) : safe);
-      const mainAhead = !tanksLeft || P.mainRank <= S.mons[S.nextTank].type;
+      const nextIn = primedTank() || S.nextTank;
+      const mainAhead = !tanksLeft || P.mainRank <= S.mons[nextIn].type;
       if(P.mainAbsorbs && mainAhead && mainSafe()){
         dec.outcome = "main";
         S.awaitMainCM = true;
@@ -2988,8 +3014,8 @@ function teamStep(S, R, P, snap){
       const freeAt = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0);
       if(freeAt + TEAM_SWAP_TICKS <= land){
         bookSwap(freeAt);
-        dec.outcome = "tank"; dec.tank = S.pendingSwap.to; dec.latest = S.pendingSwap.latest;
-        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → preparing ${teamLabel(P, dec.tank)}`, ev: { type: "bossCM", to: dec.tank, how: "tank" } });
+        dec.outcome = "tank"; dec.tank = S.pendingSwap.to; dec.latest = S.pendingSwap.latest; dec.second = S.pendingSwap.second;
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → preparing ${teamLabel(P, dec.tank)}${dec.second ? " (2nd catch)" : ""}`, ev: { type: "bossCM", to: dec.tank, how: "tank", second: dec.second } });
       } else {
         dec.outcome = "late";
         R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → too late to swap; ${P.main.name} takes it`, ev: { type: "bossCM", to: 0, how: "late" } });
@@ -2997,16 +3023,17 @@ function teamStep(S, R, P, snap){
       return;
     }
     // A catch tank is still in from the last charge move.
-    if(hm.hp > P.tanks[hm.type].bossCmDmg){
+    if(hm.hp > P.tanks[hm.type].bossCmDmg && !(P.doubleCatch && hm.dc === 1 && !safeSecond(hm))){
       // It stays in to catch this one too (it used to finish its charge moves and swap out before
       // the hit landed, leaving the main DPSer to take it), and fires its charge moves again after.
-      hm.waitCatch = land; hm.cmCasts = 0;
+      // (With double catch, a tank still in after its 1st catch makes this its 2nd, without a swap.)
+      hm.waitCatch = land; hm.cmCasts = 0; hm.primed = false;
       dec.outcome = "tank-again"; dec.tank = holder;
       R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → preparing ${teamLabel(P, holder)} (still in)`, ev: { type: "bossCM", to: holder, how: "tank-again" } });
-    } else if(S.nextTank <= P.qty && Math.max(t, hm.busyUntil) + TEAM_SWAP_TICKS <= land){
+    } else if(!noTankLeft() && Math.max(t, hm.busyUntil) + TEAM_SWAP_TICKS <= land){
       bookSwap(Math.max(t, hm.busyUntil));
-      dec.outcome = "tank"; dec.tank = S.pendingSwap.to; dec.latest = S.pendingSwap.latest;
-      R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → preparing ${teamLabel(P, dec.tank)}`, ev: { type: "bossCM", to: dec.tank, how: "tank" } });
+      dec.outcome = "tank"; dec.tank = S.pendingSwap.to; dec.latest = S.pendingSwap.latest; dec.second = S.pendingSwap.second;
+      R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → preparing ${teamLabel(P, dec.tank)}${dec.second ? " (2nd catch)" : ""}`, ev: { type: "bossCM", to: dec.tank, how: "tank", second: dec.second } });
     } else {
       dec.outcome = "tank-faint"; dec.tank = holder;
       R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → lands on ${teamLabel(P, holder)}`, ev: { type: "bossCM", to: holder, how: "tank-faint" } });
@@ -3087,6 +3114,18 @@ function teamStep(S, R, P, snap){
       }
     }
     B.nextCast = t + (mv.cm ? 1 : 4);
+    // Double catch: a catch tank's 1st catch -> it will cast dcFirstFMs fast moves and swap out
+    // holding the energy; its 2nd -> it fires as usual
+    if(mv.cm && m.tank && P.doubleCatch && m.hp > 0){
+      m.dc++;
+      if(m.dc === 1){
+        // It only holds its energy for a 2nd catch it can safely take (safeSecond, with the HP it has
+        // left now); otherwise it fires straight away, as a single catch - rather than sitting on
+        // the bench with energy it never gets to spend.
+        if(safeSecond(m)){ m.dcFMsLeft = P.dcFirstFMs; m.cmCasts = 0; }
+        else m.dc = 2;
+      }
+    }
     if(m.hp <= 0){ faint(who); if(S.ended || (S.probe && S.probe.done)) return; }
   }
   // 5. the boss picks its next move. Never a charge move straight after a charge move.
@@ -3130,6 +3169,19 @@ function teamStep(S, R, P, snap){
       } else if(S.pendingSwap && t + nextDur > S.pendingSwap.latest){
         const to = S.pendingSwap.to; S.pendingSwap = null;
         startSwap(who, to);
+      } else if(m.tank && P.doubleCatch && m.dc === 1 && !waiting){
+        // Double catch, after the 1st catch: the set number of fast moves, then out - keeping the
+        // energy for the 2nd catch (it doesn't fire yet, whatever it holds).
+        if(m.dcFMsLeft > 0){
+          m.dcFMsLeft--; m.owesTap = false;
+          m.busyUntil = t + side.fm.ad;
+          S.hits.push({ tick: t + side.fm.ad, dmg: side.fmDmg, who, mv: side.fm.n });
+          S.gains.push({ tick: t + side.fm.ad, who, e: side.fm.energy });
+        } else {
+          m.primed = true;
+          if(!S.probe) R.events.push({ t, kind: "ct", text: `${teamLabel(P, who)} keeps its ${Math.round(m.energy)} energy for a 2nd catch`, ev: { type: "dcHold", who, energy: Math.round(m.energy) } });
+          startSwap(who, 0);   // back to the main
+        }
       } else if(m.tank && m.cmCasts >= side.casts && !waiting){
         // Single catch tank: it has fired its "Charge moves" setting's worth (using fast moves in
         // between as needed). If it was the last one, the rotation ends
@@ -3141,7 +3193,7 @@ function teamStep(S, R, P, snap){
         // The last tank is done. Rather than ending here - which left Eternatus benched on a full
         // 100 energy whenever the swap for the last tank had cut its Dynamax Cannon off - the main
         // DPSer comes back and fires what it has built (see finishing).
-        if(S.nextTank > P.qty && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges) S.finishing = true;
+        if(noTankLeft() && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges) S.finishing = true;
         startSwap(who, 0);   // back to the main
       } else if(m.energy >= side.cmCost && !(m.tank && m.owesTap) && !waiting){
         if(S.finishing && !m.tank && !S.probe){
@@ -3345,6 +3397,11 @@ function runTeamSim(c){
     // All in on the last charge move: with no catch tank left, finish what it is building rather
     // than bail on it
     allIn: $("ctAllIn").checked,
+    // Double catch: each catch tank catches two of the boss's charge moves - after the first it
+    // casts dcFirstFMs fast moves and swaps out without firing, keeping its energy ("primed"),
+    // then comes back for the boss's next charge move and fires on the combined energy.
+    doubleCatch: $("ctDoubleCatch").checked,
+    dcFirstFMs: Math.max(0, parseInt($("ctDcFMs").value, 10) || 0),
     // how long one rejoin takes (Minimum DPS, Cumulative DPS): 5.5s at the fastest, 7.0s by default
     rejoinSecs: clampRejoinSecs($("ctRejoinSecs").value),
     bossName: c.bossName,
@@ -3584,7 +3641,7 @@ function teamLogLine(P, e){
   const cm = `<b>${P.bossCM.n}</b>`;
   switch(v.type){
     case "bossCM": {
-      const tail = v.how === "tank" ? `Preparing ${ico(v.to)}`
+      const tail = v.how === "tank" ? `Preparing ${ico(v.to)}${v.second ? ` <span class="team-dim">(2nd catch)</span>` : ""}`
         : v.how === "sponge" ? `${ico(0)} sponges it`
         : v.how === "dodge" ? `${ico(0)} dodges it <span class="team-dim">(dodge ${v.n}${v.of ? ` of ${v.of}` : ""})</span>`
         : v.how === "allin-dodge" ? `no catch tank left &middot; ${ico(0)} goes all in and dodges it`
@@ -3604,6 +3661,7 @@ function teamLogLine(P, e){
     case "chip": return `${teamIcon(P, "boss")} <b>${v.move}</b> ${v.n > 1 ? `&times;${v.n}` : "Hit"} <span class="team-arrow">&rarr;</span> ${ico(v.who)} <span class="team-num neg">&minus;${v.dmg} HP</span>`;
     case "cmHit": return `${ico(v.who)} <b>${v.move}</b> Hit <span class="team-num">${v.dmg} dmg</span>`;
     case "faint": return `${teamSym("faint", "Fainted")}${ico(v.who)} fainted`;
+    case "dcHold": return `${ico(v.who)} keeps its ${v.energy} energy <span class="team-dim">for a 2nd catch</span>`;
     default: return e.text;
   }
 }
@@ -5307,7 +5365,7 @@ const SETUP_FIELD_IDS = [
   // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
-  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn","ctRejoinSecs",
+  "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn","ctDoubleCatch","ctDcFMs","ctRejoinSecs",
   // Beta: Catch Tank 2 and 3 (their cards only exist while added - see applySetup) and how many
   "ctTypes",
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
@@ -5392,6 +5450,7 @@ function applySetup(setup){
   autoSetEffectiveness();
   updateTeamPreview();
   syncCombinedModifiers();
+  if(typeof updateDoubleCatch === "function") updateDoubleCatch();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function loadHistory(){
@@ -6341,7 +6400,7 @@ const SETUP_SHORT_KEYS = {
   ctMode:"m",
   bossAggro:"ba", bossAggroOn:"bao", cadenceMode:"cm", dynamicPunch:"dp", optimalDps:"od",
   ctName:"tn", ctLevel:"tl", ctIvAtk:"tia", ctIvDef:"tid", ctIvHp:"tih", ctCM:"tc", ctFM:"tf",
-  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctRejoinSecs:"trs",
+  ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctDoubleCatch:"tdc", ctDcFMs:"tdf", ctRejoinSecs:"trs",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
 };
@@ -6625,6 +6684,13 @@ function updateDodgeLimit(){
   document.getElementById("ctDodgeLimit").disabled = !on;
 }
 document.getElementById("ctMainDodge").addEventListener("change", updateDodgeLimit);
+// Double catch: the "Fast moves on 1st swap" dropdown only applies with it on
+function updateDoubleCatch(){
+  const on = document.getElementById("ctDoubleCatch").checked;
+  document.getElementById("ctDcFMsWrap").classList.toggle("is-off", !on);
+  document.getElementById("ctDcFMs").disabled = !on;
+}
+document.getElementById("ctDoubleCatch").addEventListener("change", updateDoubleCatch);
 // Rejoin time: a 0.5s step from 5.5s to 15.0s (the dropdown only offers those); anything else -
 // say an old link - snaps to the nearest step, and a blank goes back to the 7.0s default
 function clampRejoinSecs(v){
@@ -6632,7 +6698,7 @@ function clampRejoinSecs(v){
   if(!isFinite(n)) return REJOIN_SECS;
   return Math.round(Math.min(REJOIN_SECS_MAX, Math.max(REJOIN_SECS_MIN, n)) * 2) / 2;
 }
-updateDodgeLimit();
+updateDodgeLimit(); if(typeof updateDoubleCatch === "function") updateDoubleCatch();
 wireTeamCard("ct");
 setTeamTypeCount(teamTypeCount());
 document.getElementById("cadenceMode").addEventListener("change", updateCadenceMode);
