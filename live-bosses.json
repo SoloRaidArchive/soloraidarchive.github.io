@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-11-02T20:56:28.762712+00:00",
+  "generatedAt": "2026-11-03T02:42:52.010954+00:00",
   "sources": {
-    "pokebattlerSchedule": 34,
-    "pokebattlerScheduleWindows": 38,
+    "pokebattlerSchedule": 39,
+    "pokebattlerScheduleWindows": 45,
     "scrapedDuck": 1,
     "pokebattlerApiStartDates": 7,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 36
+    "pokebattlerApi": 39
   },
   "dateGroups": [
     {
@@ -152,6 +152,38 @@
         }
       ],
       "status": "active"
+    },
+    {
+      "startDate": "Nov 24, 2026",
+      "endDate": "Nov 30, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Mega Houndoom",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Manectric",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Beedrill",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Sableye",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "Cloudy"
+        }
+      ],
+      "status": "future"
     },
     {
       "startDate": "Oct 7, 2026",
