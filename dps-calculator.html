@@ -1432,7 +1432,7 @@ if ("serviceWorker" in navigator) {
             <div class="ac-list" id="pokemonName_ac"></div>
           </div>
           <div class="field iv-field">
-            <label for="pokemonLevel" title="Valid range: 20–51">Level</label>
+            <label for="pokemonLevel" title="Valid range: 20–55">Level</label>
             <input id="pokemonLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50" list="pokemonLevelOptions">
             <datalist id="pokemonLevelOptions"></datalist>
             <div class="field-error" id="pokemonLevelError"></div>
@@ -2575,7 +2575,9 @@ function refreshMoveDropdowns(){
   autoSetEffectiveness();
 }
 let MOVE_DB = [];
-// ============ CPM TABLE (levels 40-51, half-level increments) ============
+// ============ CPM TABLE (levels 20-55; half levels from 30) ============
+// Past 51 it keeps the +0.0025-per-level steps; each half level is the root-mean-square of its two
+// neighbours (51.5 = sqrt((0.8453^2 + 0.8503^2) / 2)), the same rule as the published half levels.
 const CPM = {
   "20":0.59740001, "21":0.61215729, "22":0.62656713, "23":0.64065295, "24":0.65443563,
   "25":0.66793400, "26":0.68116492, "27":0.69414365, "28":0.70688421, "29":0.71939909,
@@ -2589,6 +2591,7 @@ const CPM = {
   "47.5":0.827799990, "48":0.830299990, "48.5":0.832799990, "49":0.835299990,
   "49.5":0.837799990, "50":0.840299990, "50.5":0.842799990, "51":0.845300000,
   "51.5":0.847803686002838, "52":0.85030, "52.5":0.852803664391751, "53":0.85530,
+  "53.5":0.857803643032600, "54":0.86030, "54.5":0.862803621921002, "55":0.86530,
 };
 const ELITE_CPM = 1.0;
 document.getElementById("pokemonLevelOptions").innerHTML = Object.keys(CPM)
@@ -5470,7 +5473,7 @@ function wireValidation(inputId, errorId, validateFn, errorMsg){
   input.addEventListener("blur", check);
   return check;
 }
-wireValidation("pokemonLevel", "pokemonLevelError", validateLevel, "Level must be 20–51 (whole numbers 20–29, 0.5 steps 30–51, e.g. 47.5)");
+wireValidation("pokemonLevel", "pokemonLevelError", validateLevel, "Level must be 20–55 (whole numbers 20–29, 0.5 steps 30–55, e.g. 47.5)");
 wireValidation("ivAtk", "ivAtkError", validateIV, "Must be a whole number 0–15");
 wireValidation("ivDef", "ivDefError", validateIV, "Must be a whole number 0–15");
 wireValidation("ivHp", "ivHpError", validateIV, "Must be a whole number 0–15");
