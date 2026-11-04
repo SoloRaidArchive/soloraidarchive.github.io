@@ -1006,7 +1006,7 @@ if ("serviceWorker" in navigator) {
   .team-grp.is-folded .team-grp-toggle::after{ transform:rotate(-45deg); }
   .team-grp-toggle:focus-visible{ outline:2px solid var(--blue); outline-offset:3px; border-radius:3px; }
   .team-grp.is-folded tr:not(.dps-stat-group){ display:none; }
-  /* "Minimum Cycle DPS" opens a small table of the per-rejoin minimums */
+  /* "Minimum DPS for x rejoins" opens a small table of the per-rejoin minimums */
   .team-min-btn{ all:unset; cursor:pointer; color:var(--blue); font-weight:700; border-bottom:1.5px dotted currentColor; }
   .team-min-btn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:3px; }
   .team-min-pop{ position:absolute; z-index:60; background:var(--card); border:1.5px solid var(--border); border-radius:12px;
@@ -1049,6 +1049,7 @@ if ("serviceWorker" in navigator) {
   [data-theme="dark"] .team-num.neg{ color:#ff8fa3; } [data-theme="dark"] .team-num.pos{ color:#4fd1a1; }
   .team-dim{ color:var(--text-dim); font-weight:600; }
   .team-sub{ display:inline-flex; align-items:center; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+  .team-sub-item{ display:inline-flex; align-items:center; gap:4px; white-space:nowrap; }
   .team-sub.team-who{ justify-content:flex-start; gap:6px; flex-wrap:nowrap; }
   .team-sub.team-who > span:last-child{ min-width:0; }
   .dps-stat-table tr.team-who-row td{ vertical-align:middle; padding-top:4px; padding-bottom:4px; }
@@ -1395,7 +1396,7 @@ if ("serviceWorker" in navigator) {
         <li>Swaps take 0.5s each way (when they start is chosen for the highest DPS - see below).</li>
         <li>Each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode.</li>
         <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
-        <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many cycles fit in the 300s timer; Minimum Cycle DPS and Cumulative DPS take that many rejoins of this length out of the timer.</li>
+        <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many cycles fit in the 300s timer; Minimum DPS for that many rejoins and Cumulative DPS take that many rejoins of this length out of the timer.</li>
         <li>The swap to a catch tank is timed automatically for the highest DPS. Once the boss has begun its charge move, the swap can start any time up to the last moment that still gets the catch tank in before the hit (the main DPSer attacks until then). The simulator runs the whole fight with the same boss for every swap time, 0.5s apart - first one timing for all catches, then each catch on its own - and keeps whatever gives the highest DPS. A catch tank that comes in early attacks with fast moves, but holds its charge move and stays in until it has caught the hit.</li>
         <li>With "Main can dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in final charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
@@ -1611,7 +1612,7 @@ if ("serviceWorker" in navigator) {
           <option value="0" title="No limit">∞</option>
         </select>
       </label>
-      <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum Cycle DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
+      <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
         <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
       </label>
       <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
@@ -3781,6 +3782,14 @@ function renderTeamSim(P, S, R){
   const decs = R.decisions.filter(d => d.cast < E || (d.cast === E && d.outcome !== "end"));
   const n = k => decs.filter(d => d.outcome === k).length;
   const caught = n("tank") + n("tank-again"), byMain = n("main"), dodged = n("main-dodge") + n("all-in-dodge"), late = n("late") + n("tank-faint");
+  // Boss rotation: its fast moves per charge move over the run - e.g. 3.2 Snarls per Focus Blast
+  const bossCast = R.bossMoves.filter(b => b.cast <= E);
+  const bossFmN = bossCast.filter(b => !b.cm).length, bossCmN = bossCast.filter(b => b.cm).length;
+  const plural = n => /s$/i.test(n) ? n : n + "s";
+  const bossCadence = bossCmN ? (bossFmN / bossCmN).toFixed(1) : "&mdash;";
+  const bossCadenceTip = bossCmN
+    ? `Boss rotation: how many fast moves the boss uses per charge move. Here ${(bossFmN / bossCmN).toFixed(1)} ${plural(P.bossFM.n)} per ${P.bossCM.n} (${bossFmN} ${bossFmN === 1 ? P.bossFM.n : plural(P.bossFM.n)} and ${bossCmN} ${bossCmN === 1 ? P.bossCM.n : plural(P.bossCM.n)} over this run).`
+    : `Boss rotation: how many fast moves the boss uses per charge move. It used no ${P.bossCM.n} in this run.`;
   const allInTaken = n("all-in");
   // dodges up to the end point, and the time they took (from when the main DPSer stopped attacking)
   const dodges = R.dodges.filter(d => d.t < E);
@@ -3954,7 +3963,7 @@ function renderTeamSim(P, S, R){
     const need = dps > 0 ? rj.hp / dps + P.rejoinSecs * rj.rejoins : Infinity;
     const secsOff = Math.abs(RAID_SECS - need);
     const text = `${Math.abs(pct).toFixed(1)}%${isFinite(secsOff) ? ` \u00b7 ${secsOff.toFixed(1)}s` : ""} ${ahead ? "ahead of" : "behind"} pace`;
-    const title = `${dps.toFixed(1)} / ${rj.dps.toFixed(2)} Minimum Cycle DPS \u00b7 needs ~${isFinite(need) ? need.toFixed(1) + "s" : "\u2014"} of the ${RAID_SECS}s timer (${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"} of ${rejoinSecsText(P.rejoinSecs)}) \u00b7 ${rj.tier}, ${rj.hp.toLocaleString()} HP`;
+    const title = `${dps.toFixed(1)} / ${rj.dps.toFixed(2)} Minimum DPS \u00b7 needs ~${isFinite(need) ? need.toFixed(1) + "s" : "\u2014"} of the ${RAID_SECS}s timer (${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"} of ${rejoinSecsText(P.rejoinSecs)}) \u00b7 ${rj.tier}, ${rj.hp.toLocaleString()} HP`;
     return { ahead, text, title };
   })();
   // The main DPSer's energy at the end point - a full bar left unspent means a charge move's worth
@@ -3980,10 +3989,9 @@ function renderTeamSim(P, S, R){
           <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
           <tr><td>Expected rejoins</td><td>${rj.rejoins === null ? "&mdash;" : rj.rejoins}</td></tr>
           ${attackerRows}
-          <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-hp="${rj.hp}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">Minimum Cycle DPS</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
+          <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-hp="${rj.hp}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">${rj.rejoins === null ? "Minimum DPS" : `Minimum DPS for ${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"}`}</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
           <tr><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
           <tr><td>Cumulative DPS${teamTip(teamCumulativeTip(P.rejoinSecs))}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - P.rejoinSecs * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
-          <tr><td>Solo pace</td>${pace ? `<td class="team-pace ${pace.ahead ? "ok" : "short"}" title="${pace.title}">${pace.text}</td>` : "<td>&mdash;</td>"}</tr>
         </tbody>
         ${teamGroupHead("rotation", "Rotation")}
           <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
@@ -3994,14 +4002,15 @@ function renderTeamSim(P, S, R){
             P.mainDodges ? `${mainIco} dodged ${dodged}` : "",
             allInTaken ? `${mainIco} took ${allInTaken} going all in` : "",
             late ? `${late} too late to swap` : "",
-          ].filter(Boolean).join(" &middot; ")}</span></td></tr>
-          <tr><td>Catch tanks used</td><td><span class="team-sub">${P.tanks.map((tp, i) => `${typeIcos[i]} ${usedByType[i]} of ${tp.qty}`).join(" &middot; ")}</span></td></tr>
-          <tr><td>Swaps</td><td><span class="team-sub">${teamSym("swap", "Swap")}${swaps.length}</span></td></tr>
+            // each icon stays with its own words when the line wraps (an icon used to end one line
+            // and "took 1 going all in" start the next)
+          ].filter(Boolean).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
+          <tr><td>Boss rotation${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
         </tbody>
         ${teamGroupHead("main", "Main DPSer")}
-          <tr><td>HP left</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${P.main.hp} <span class="dps-stat-sub">${pct.toFixed(0)}%</span></td></tr>
-          <tr><td>Unspent energy</td><td>${leftover} <span class="dps-stat-sub">of ${P.main.cmCost} for ${P.main.cm.n}</span></td></tr>
+          <tr><td>HP left</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${P.main.hp}</td></tr>
+          <tr><td>Unspent energy</td><td>${leftover}</td></tr>
           <tr><td>Ended</td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
         </tbody>
       </table>
