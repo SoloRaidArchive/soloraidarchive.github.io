@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-04T00:56:54.553721+00:00",
+  "generatedAt": "2026-11-04T10:02:06.813283+00:00",
   "sources": {
     "pokebattlerSchedule": 46,
     "pokebattlerScheduleWindows": 59,
@@ -7,7 +7,7 @@
     "pokebattlerApiStartDates": 5,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 44
+    "pokebattlerApi": 38
   },
   "dateGroups": [
     {
@@ -23,20 +23,6 @@
         }
       ],
       "status": "future"
-    },
-    {
-      "startDate": "Oct 28, 2026",
-      "endDate": "Nov 3, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Giratina Origin",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Windy"
-        }
-      ],
-      "status": "active"
     },
     {
       "startDate": "Nov 5, 2026",
@@ -195,6 +181,20 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "5.5 \u2b50",
           "weather": "Snow"
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "startDate": "Oct 28, 2026",
+      "endDate": "Nov 3, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Giratina Origin",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
         }
       ],
       "status": "active"
