@@ -1177,6 +1177,7 @@ if ("serviceWorker" in navigator) {
   .step-card{ --border-inner: color-mix(in srgb, var(--border) 50%, transparent); }
   html .step-card :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.invalid):not(:focus), select:not(:focus), textarea:not(:focus), .mod-cell, .check-item, .adv-mech-menu, .qty-stepper, summary.mod-summary, details.mod-details, .mini-preview, .boss-dmg-preview, .team-order li, .team-order button, .team-add-btn, .mc-new-btn),
   html[data-season][data-theme] .step-card :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.invalid):not(:focus), select:not(:focus), textarea:not(:focus), .mod-cell, .check-item, .adv-mech-menu, .qty-stepper, summary.mod-summary, details.mod-details, .mini-preview, .boss-dmg-preview, .team-order li, .team-order button, .team-add-btn, .mc-new-btn){ border-color: var(--border-inner) !important; }
+  .team-dc-note{ color:var(--red, #d6455d); font-weight:700; }
 </style>
 <script type="application/ld+json">
 {
@@ -3503,15 +3504,26 @@ function updateTeamPreviewFor(p, c){
   // the same number the simulator's tanks fire before swapping back.
   if(outcomes && T.fm && T.cm && T.fmDmg !== undefined){
     const eCM = energyFromDamage(T.bossCmDmg);
-    const rows = [0, 1, 2].map(n => singleCtRow(n, {
+    // With "Double catch" on, the figures are for a double catch (doubleCtRow) - unless this tank
+    // can't safely take a 2nd catch, when the simulator fires after one and so does this block.
+    const dcOn = !!(document.getElementById("ctDoubleCatch") || {}).checked;
+    const dcK = Math.max(0, parseInt((document.getElementById("ctDcFMs") || {}).value, 10) || 0);
+    const dcSafe = dcOn && doubleCatchSafe(T, c.bossFMMove.ad);
+    const rows = [0, 1, 2].map(n => dcSafe
+      ? doubleCtRow(n, { k: dcK, numCM: casts, cmEnergyCost: T.cmCost, energyFromCM: eCM, energyFromBossFM: energyFromDamage(T.bossFmDmg),
+          fm: T.fm, cm: T.cm, bossFMAD_ticks: c.bossFMMove.ad, chargeDamage: T.cmDmg, fastDamage: T.fmDmg,
+          bossCMDamage: T.bossCmDmg, bossFMDamage: T.bossFmDmg, playerHp: T.hp })
+      : singleCtRow(n, {
       numCM: casts, cmEnergyCost: T.cmCost, effectiveBuffer: false, energyFromCM: eCM,
       energyFromBossFM: energyFromDamage(T.bossFmDmg), fm: T.fm, cm: T.cm, resolveNerf: false,
       bossFMAD_ticks: c.bossFMMove.ad, dodgeCM: false, dodgeFM: false,
       chargeDamage: T.cmDmg, fastDamage: T.fmDmg, bossCMDamage: T.bossCmDmg, bossFMDamage: T.bossFmDmg, playerHp: T.hp,
     }));
     const esc = v => String(v).replace(/"/g, "&quot;");
+    const headSub = dcSafe ? `${casts} &times; ${T.cm.n} per double catch &middot; ${dcK} FM on the 1st swap`
+      : `${casts} &times; ${T.cm.n} per catch${dcOn ? ` &middot; <span class="team-dc-note" title="After its 1st catch it couldn't survive another plus the boss's fast moves while it fires, so the simulator fires it after one catch.">no 2nd catch: not enough HP</span>` : ""}`;
     outcomes.innerHTML = `<div class="team-outcomes">
-        <div class="team-outcomes-head">Catch tank DPS <span>&middot; ${casts} &times; ${T.cm.n} per catch</span></div>
+        <div class="team-outcomes-head">Catch tank DPS <span>&middot; ${headSub}</span></div>
         <div class="team-outcomes-grid">${rows.map(r => r.fainted
           ? `<div class="team-outcome fainted"><div class="lbl">${r.n} FM</div><div class="val">Faints</div><div class="sub">takes ${Math.round(r.cumulativeDamage)}</div></div>`
           : `<div class="team-outcome"${r.risky ? ` title="${esc(r.riskyNote)}"` : ""}><div class="lbl">${r.n} FM</div><div class="val">${r.ctDPS.toFixed(1)}${r.risky ? " ⚠️" : ""}</div><div class="sub">${r.ctSeconds.toFixed(1)}s</div></div>`).join("")}</div>
@@ -4036,6 +4048,46 @@ function renderTeamSim(P, S, R){
 // the boss's fast moves also tanked (n = 0, 1, 2). Lifted out of runCalculation unchanged so the
 // Beta catch tank card can show the same CT DPS figures for its catch tank as this mode does.
 // `x` carries the values the block used to read from runCalculation's scope.
+// Double catch (the Beta's "Double catch" setting): one catch tank catches two of the boss's
+// charge moves. Swap 1: catch, cast k fast moves ("Fast moves on 1st swap"), swap out holding the
+// energy. Swap 2: catch again, top up with fast moves if needed (after the one tap the charge-move
+// button needs), fire, swap out. Follows Double Catch Tank mode's model (which assumes k = 1):
+// swap 1 sits before the rotation's own timer but its fast moves' time, damage and energy count;
+// the boss fast moves tanked (n) follow the 2nd catch; four one-way swaps add 2.0s. Energy is
+// capped at 100 at each catch, as in the game.
+function doubleCtRow(n, x){
+  const { k, numCM, cmEnergyCost, energyFromCM, energyFromBossFM, fm, cm, bossFMAD_ticks, chargeDamage, fastDamage, bossCMDamage, bossFMDamage, playerHp } = x;
+  const totalCost = numCM * cmEnergyCost;
+  const held = Math.min(100, energyFromCM + k * fm.energy);            // after swap 1
+  const atStart = Math.min(100, held + energyFromCM) + n * energyFromBossFM;   // after the 2nd catch
+  const energyNeeded = Math.max(totalCost - atStart, 0);
+  const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad;
+  const mandatoryFMBonus = (totalCost > 0 && atStart >= totalCost) ? fm.ad : 0;   // the one tap
+  const swap1FMTicks = k * fm.ad;
+  const swap2Ticks = buildupTicks + cm.ad * numCM + mandatoryFMBonus;
+  const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMLandingTicks(bossFMAD_ticks, n)[n - 1];
+  let ticks = swap1FMTicks + Math.max(swap2Ticks, bossFMFloor);
+  ticks = Math.max(bossFMAD_ticks + 1, ticks);
+  const battleTicks = ticks;
+  ticks += 4;   // 2 round trips: 4 one-way swaps x 0.5s
+  const seconds = ticks / 2;
+  const fastMoves = (buildupTicks + mandatoryFMBonus) / fm.ad + k;
+  const numerator = chargeDamage * numCM + fastMoves * fastDamage;
+  const cumulativeDamage = 2 * bossCMDamage + n * bossFMDamage;
+  const fainted = cumulativeDamage >= playerHp;
+  const ctDPS = fainted ? 0 : numerator / Math.max(seconds, 0.1);
+  return { n, ctDPS, ctSeconds: seconds, cumulativeDamage, fainted, risky: false, battleTicks };
+}
+// Would the Beta take a 2nd catch with this tank? The same test the simulator uses (safeSecond):
+// after the 1st catch it must survive another, plus the boss fast moves landing while it taps and
+// fires. If not, the simulator fires after one catch, so the catch tank DPS block shows that.
+function doubleCatchSafe(T, bossFMAD_ticks){
+  const hpAfter1 = T.hp - T.bossCmDmg;
+  const windowTicks = T.fm.ad + T.cm.ad * Math.max(1, T.casts);
+  const bossFms = Math.ceil(windowTicks / (bossFMAD_ticks + 4));
+  return hpAfter1 > T.bossCmDmg + bossFms * T.bossFmDmg;
+}
+
 function singleCtRow(n, x){
   const { numCM, cmEnergyCost, effectiveBuffer, energyFromCM, energyFromBossFM, fm, cm, resolveNerf, bossFMAD_ticks, dodgeCM, dodgeFM, chargeDamage, fastDamage, bossCMDamage, bossFMDamage, playerHp } = x;
     const totalCostAllCasts = numCM * cmEnergyCost;
