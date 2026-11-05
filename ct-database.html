@@ -1008,6 +1008,10 @@ header{ padding: 12px 24px 10px; text-align:center; }
     /* the landing page's seven links don't fit one phone row: centred, wrapping onto a second */
     #quickLinks.qlinks-home{ justify-content:center; row-gap:2px; }
   }
+  /* The menu opens flush against the right edge of the screen: no gap, no border or rounded
+     corners on that side. Every page positions it from a full-width header or the window. */
+  body .hamburger-panel{ right:0 !important; border-right:none !important;
+    border-top-right-radius:0 !important; border-bottom-right-radius:0 !important; }
   /* the narrowest phones (320px): all five still fit without cutting off "Mechanics" */
   @media (max-width:360px){
     #quickLinks a{ font-size:10.5px; padding:5px 3px; letter-spacing:-0.01em; }
