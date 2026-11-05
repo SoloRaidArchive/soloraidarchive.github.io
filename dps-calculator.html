@@ -2942,6 +2942,8 @@ function teamStep(S, R, P, snap){
       // probe: only its own CM. (A dodge probe that has already seen the main DPSer fire is only
       // waiting for that charge move to land; a boss charge move cast meanwhile is the real run's
       // next decision, not this one's.)
+      // (Once no catch tank is left, the sponge decision doesn't use this play-forward check at all -
+      // see teamMainCanKeepGoing.)
       if(t !== S.probe.cast){ if(!S.probe.cmLand) S.probe.done = "fail"; }
       else if(S.probe.dodge) S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
       return;
@@ -2964,7 +2966,13 @@ function teamStep(S, R, P, snap){
       // the tanks are gone. Either way the sponge needs the safety checks to pass.
       const tanksLeft = !noTankLeft();
       let safe = null;
-      const mainSafe = () => (safe === null ? (safe = !!(P.mainAbsorbs && snap && teamMainCanAbsorb(snap, P, t, land))) : safe);
+      // With catch tanks left, a sponge must earn its place over a catch (teamMainCanAbsorb: keeps
+      // its energy, fires before the boss's next one...). With none left the choice is only sponge
+      // and keep going vs go all in - both take this same hit, energy and all - so it is a plain
+      // health check against the boss's threat (teamMainCanKeepGoing).
+      const mainSafe = () => (safe === null ? (safe = !!(P.mainAbsorbs && (tanksLeft
+        ? (snap && teamMainCanAbsorb(snap, P, t, land))
+        : teamMainCanKeepGoing(S, P, t, land)))) : safe);
       const nextIn = primedTank() || S.nextTank;
       const mainAhead = !tanksLeft || P.mainRank <= S.mons[nextIn].type;
       if(P.mainAbsorbs && mainAhead && mainSafe()){
@@ -3256,10 +3264,11 @@ function teamRunDps(S, R){
   return E > 0 ? R.dmg.reduce((a, d) => a + (d.t <= E ? d.dmg : 0), 0) / (E / 2) : 0;
 }
 
-// Can the main DPSer take ("sponge") this charge move itself? Plays the fight forward from the
-// start of this tick with the main absorbing it, and accepts only if: it keeps at least 90% of the
-// hit's energy (no more than 10% over 100), survives the hit, and starts its next charge move
-// after it lands without fainting and without another boss charge move arriving first.
+// Can the main DPSer take ("sponge") this charge move itself, while catch tanks are still left?
+// Plays the fight forward from the start of this tick with the main absorbing it, and accepts only
+// if: it keeps at least 90% of the hit's energy (no more than 10% over 100), survives the hit, and
+// starts its next charge move after it lands without fainting and without another boss charge move
+// arriving first. With no catch tank left, teamMainCanKeepGoing decides instead.
 function teamMainCanAbsorb(snap, P, cast, land){
   const L = structuredClone(snap);
   L.probe = { cast, land, done: null };
@@ -3270,6 +3279,24 @@ function teamMainCanAbsorb(snap, P, cast, land){
     L.t++;
   }
   return L.probe.done === "ok";
+}
+
+// No catch tank left: can the main DPSer take this charge move and still complete another rotation?
+// The plain check a player makes: after the hit, its HP must outlast the boss's fast moves while it
+// builds the energy it is missing (charge move first, if it already has the energy before the hit
+// lands) and casts its charge move. Energy going over the cap doesn't matter here: going all in
+// takes the very same hit, and only ends the run afterwards.
+function teamMainCanKeepGoing(S, P, t, land){
+  const m = S.mons[0], M = P.main;
+  const hpAfter = m.hp - M.bossCmDmg;
+  if(hpAfter <= 0) return false;
+  let e = m.energy + Math.floor(Math.max(0, land - Math.max(t, m.busyUntil)) / M.fm.ad) * M.fm.energy;
+  if(e >= M.cmCost) e -= M.cmCost;                       // fires before the hit lands
+  e = Math.min(100, e + energyFromDamage(M.bossCmDmg));
+  const missing = Math.max(0, M.cmCost - e);
+  const windowTicks = Math.ceil(missing / M.fm.energy) * M.fm.ad + M.cm.ad;
+  const bossFms = Math.ceil(windowTicks / (P.bossFM.ad + 4));
+  return hpAfter > bossFms * M.bossFmDmg;
 }
 
 // Can the main DPSer dodge this charge move instead? The same play-forward test as a sponge -
