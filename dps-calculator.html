@@ -1178,6 +1178,8 @@ if ("serviceWorker" in navigator) {
   html .step-card :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.invalid):not(:focus), select:not(:focus), textarea:not(:focus), .mod-cell, .check-item, .adv-mech-menu, .qty-stepper, summary.mod-summary, details.mod-details, .mini-preview, .boss-dmg-preview, .team-order li, .team-order button, .team-add-btn, .mc-new-btn),
   html[data-season][data-theme] .step-card :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.invalid):not(:focus), select:not(:focus), textarea:not(:focus), .mod-cell, .check-item, .adv-mech-menu, .qty-stepper, summary.mod-summary, details.mod-details, .mini-preview, .boss-dmg-preview, .team-order li, .team-order button, .team-add-btn, .mc-new-btn){ border-color: var(--border-inner) !important; }
   .team-dc-note{ color:var(--red, #d6455d); font-weight:700; }
+  .beta-about-body li ul{ margin:6px 0 2px; padding-left:18px; }
+  .beta-about-body li ul li{ margin-bottom:4px; }
 </style>
 <script type="application/ld+json">
 {
@@ -1396,21 +1398,26 @@ if ("serviceWorker" in navigator) {
       <p>This simulator uses simple logic for now. It is a guide for comparing setups, not a prediction of a real run.</p>
       <p class="beta-h">What it does</p>
       <ul>
-        <li>One main DPSer and up to three kinds of catch tank (add them with "+ Add another catch tank"). Each tank is used once: it swaps in as the boss's charge move lands, fires the number of charge moves set on its card (using fast moves in between as needed), and swaps back.</li>
+        <li>One main DPSer and up to three kinds of catch tank (add them with "+ Add another catch tank"). Each tank is used once: it swaps in as the boss's charge move lands, fires the number of charge moves set on its card (using fast moves in between as needed), and swaps back. With "Double catch" on, a tank catches two charge moves instead: after the first it casts the set number of fast moves and swaps out holding its energy, then comes back for the boss's next charge move and fires on the combined energy - only when it has the HP to survive the second catch and fire, otherwise it fires after one.</li>
         <li>The boss starts with 0 energy and gains energy from its fast moves and from half the damage it takes (the moment that damage lands), never holding more than 100. Its charge move costs 100, and it never casts two in a row. When it casts is random: on each of its moves it has the aggression slider's chance of deciding to use its charge move, which it does as soon as it has 100 energy. So every Calculate is a new simulation, and the result can change from one to the next.</li>
         <li>Swaps take 0.5s each way (when they start is chosen for the highest DPS - see below).</li>
         <li>Each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode.</li>
-        <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. The main DPSer takes a charge move only when "Main can sponge" is ticked and it is safe: it keeps at least 90% of the energy, survives, and can still fire its own charge move; otherwise the next entry takes it.</li>
+        <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. With "Main can sponge" ticked, the main DPSer takes a charge move itself in two different ways:
+          <ul>
+            <li><b>While catch tanks are left</b>, the energy can be managed, so a sponge has to earn its place over a catch: the main DPSer must keep at least 90% of the hit's energy (no more than 10% going over 100), survive it, and fire its own charge move before the boss's next one. Otherwise a catch tank intercepts - even when the main DPSer is above the catch tanks in the priority list - rather than waste the energy.</li>
+            <li><b>Once no catch tank is left</b>, it's a single attacker at the mercy of the boss's moves, so the run plays out: the main DPSer keeps taking charge moves for as long as its HP can cover another full rotation - the hit, then the boss's fast moves while it refills its energy and casts its charge move. Energy going over 100 doesn't count against it here. When another rotation isn't safe, it goes all in (or bails - see below).</li>
+          </ul>
+        </li>
         <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many cycles fit in the 300s timer; Minimum DPS for that many rejoins and Cumulative DPS take that many rejoins of this length out of the timer.</li>
         <li>The swap to a catch tank is timed automatically for the highest DPS. Once the boss has begun its charge move, the swap can start any time up to the last moment that still gets the catch tank in before the hit (the main DPSer attacks until then). The simulator runs the whole fight with the same boss for every swap time, 0.5s apart - first one timing for all catches, then each catch on its own - and keeps whatever gives the highest DPS. A catch tank that comes in early attacks with fast moves, but holds its charge move and stays in until it has caught the hit.</li>
         <li>With "Main can dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
-        <li>The run ends when there's no catch tank left for the next charge move. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in final charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
+        <li>The run ends when there's no catch tank left for the next charge move and the main DPSer can't (or isn't allowed to) take it. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in final charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
       </ul>
       <p class="beta-h">Not modelled yet</p>
       <ul>
         <li>Dodging fast moves, dodging by catch tanks, Resolve Nerf and tick-perfect casts.</li>
         <li>Multi-player Buffs (Friendship, Primal/Mega boost, Party Power, Enrage): switched off in this mode for now, and their section is hidden.</li>
-        <li>Rejoining, hot swaps, and double or trailing catch tanks.</li>
+        <li>Rejoining, hot swaps, and trailing catch tanks.</li>
       </ul>
     </div>
   </details>
