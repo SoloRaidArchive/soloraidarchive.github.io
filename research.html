@@ -400,7 +400,7 @@ if ("serviceWorker" in navigator) {
   .filter-line-1{ width:16px; } .filter-line-2{ width:11px; } .filter-line-3{ width:6px; }
   .gear-panel{
     /* opens under the filter button, which sits at the header's left */
-    display:none; position:absolute; top:calc(100% + 1px); left:16px; right:auto; z-index:19;
+    display:none; position:absolute; top:calc(100% + 1px); left:0; right:auto; z-index:19;
     width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
@@ -1072,6 +1072,8 @@ if ("serviceWorker" in navigator) {
   .lbg-rank{ position:absolute; top:5px; left:7px; font:800 11px 'Manrope',sans-serif; color:var(--text-dim); }
   .lbg-rank.top1{ color:#ffb300; } .lbg-rank.top2{ color:#9aa3b2; } .lbg-rank.top3{ color:#c97b3d; }
   .lbg-uses{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim); } .lbg-uses b{ font-size:14px; color:var(--text); }
+  /* The filter panel opens flush against the left edge of the screen, like the menu on the right */
+  .gear-panel{ border-left:none !important; border-top-left-radius:0 !important; border-bottom-left-radius:0 !important; }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>

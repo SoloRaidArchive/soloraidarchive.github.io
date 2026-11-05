@@ -1158,9 +1158,8 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <div class="view-intro" id="viewIntro"></div>
 
 <div class="controls">
-  <!-- "All Types" was removed: no filter is already the default state, and every chip toggles
-       itself off, so the button only duplicated behaviour the grid already had. The DPS
-       Calculator link that sat here went too - it is in the shortcut row at the top of every
+  <!-- "All types" is the first chip of the type filter (renderTypeFilter), as on Top Raiders. The
+       DPS Calculator link that sat here went - it is in the shortcut row at the top of every
        page - so the tier dropdown leads the row. -->
   <select id="tierFilter">
     <option value="legendary">Legendary</option>
@@ -2866,7 +2865,10 @@ function renderTypeFilter(){
   // then silently overridden, leaving all 18 chips on one line at every width.
   el.style.display = "";
 
+  // "All types" first, spanning the grid's full width - the same reset as on Top Raiders
   el.innerHTML =
+    `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type=""
+             aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All types</span></button>` +
     types.map(t => `
       <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
               style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown};"
