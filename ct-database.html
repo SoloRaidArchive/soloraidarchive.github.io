@@ -213,22 +213,15 @@ header{ padding: 12px 24px 10px; text-align:center; }
     padding:5px 8px; border-radius:8px; border:1.5px solid var(--border); background: var(--card);
     cursor:pointer; max-width:150px;
   }
-  /* narrow: tabbed, one at a time (column headings redundant next to the active tab) */
+  /* tabbed, one at a time (column headings redundant next to the active tab) */
   .view-col-title{ display:none; }
   /* heading hides when tabbed (the active tab already names the view) but the sort stays */
   .view-col-head{ justify-content:flex-end; }   /* tabbed: heading hidden, so the sort sits right */
   body:not(.view-byboss) #col-byboss{ display:none; }
   body:not(.view-best) #col-best{ display:none; }
 
-  @media (min-width: 1040px){
-    .views-grid{ grid-template-columns: 1fr 1fr; align-items:start; }
-    .view-tabs, .view-intro{ display:none; }
-    .view-col-title{ display:block; }
-    .view-col-head{ justify-content:space-between; }
-    /* both columns visible regardless of which tab was last active */
-    body:not(.view-byboss) #col-byboss,
-    body:not(.view-best) #col-best{ display:block; }
-  }
+  /* One view at a time at every width - the tabs switch between them (it used to show both side
+     by side from 1040px), so each grid has the page's full width, like Top Raiders. */
 
   /* --- BY BOSS: progressive disclosure ---
      A catch tank's viability against a boss is conditional: the same tank swings 10+ DPS on
@@ -944,6 +937,23 @@ header{ padding: 12px 24px 10px; text-align:center; }
      expanded cards), lighter than the full-strength border they had. */
   .boss-group, .leader-group, .sub-card{ border:1.5px solid color-mix(in srgb, var(--accent) 30%, transparent) !important; }
   .sub-card.open{ border-color:color-mix(in srgb, var(--accent) 55%, transparent) !important; }
+  /* Both views as tile grids, like Top Raiders: a 56x56 sprite (proportions kept, as across the
+     site), the headline count, and in By Total Usage the rank. A faint border
+     in the season's accent, full strength on hover. */
+  .ctg-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:10px; }
+  .ctg-tile.boss-group, .ctg-tile.leader-group{ all:unset; box-sizing:border-box; cursor:pointer; position:relative;
+    display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 6px 10px; text-align:center;
+    background:var(--card); border:2px solid color-mix(in srgb, var(--accent, var(--blue, #3d9dff)) 30%, transparent) !important;
+    border-radius:14px; transition:transform .12s, border-color .12s; }
+  .ctg-tile.boss-group:hover, .ctg-tile.leader-group:hover{ transform:translateY(-1px); border-color:color-mix(in srgb, var(--accent, var(--blue, #3d9dff)) 75%, transparent) !important; }
+  .ctg-tile:focus-visible{ outline:2px solid var(--accent, var(--blue, #3d9dff)); outline-offset:2px; }
+  .ctg-icon{ display:block; width:56px; height:56px; }
+  .ctg-icon img{ display:block; width:56px; height:56px; object-fit:contain; }
+  .ctg-rank{ position:absolute; top:5px; left:7px; font:800 11px 'Manrope',sans-serif; color:var(--text-dim, #8a93a6); }
+  .ctg-rank.top1{ color:#ffb300; } .ctg-rank.top2{ color:#9aa3b2; } .ctg-rank.top3{ color:#c97b3d; }
+  .ctg-main{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim, #8a93a6); } .ctg-main b{ font-size:14px; color:var(--text, inherit); }
+  .ctg-sub{ font:800 11px 'Manrope',sans-serif; color:var(--accent, var(--blue, #3d9dff)); }
+  @media (max-width:520px){ .ctg-grid{ grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; } }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
@@ -1156,7 +1166,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     <input type="radio" name="dbView" id="viewByBoss" value="byboss" checked>
     <label for="viewByBoss">By Raid Boss</label>
     <input type="radio" name="dbView" id="viewBest" value="best">
-    <label for="viewBest">Best Catch Tanks</label>
+    <label for="viewBest">By Total Usage</label>
   </div>
 </div>
 <div class="view-intro" id="viewIntro"></div>
@@ -1191,7 +1201,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     </section>
     <section class="view-col" id="col-best">
       <div class="view-col-head">
-        <h2 class="view-col-title">Catch Tanks by Usage</h2>
+        <h2 class="view-col-title">Catch Tanks by Total Usage</h2>
         <select class="col-sort" id="sortBest" aria-label="Sort catch tanks">
           <option value="entries" selected>Most entries</option>
           <option value="dps">Highest avg CT DPS</option>
@@ -2333,26 +2343,16 @@ function renderByBoss(list){
 
   if(!groups.length) return `<div class="empty">No submissions match your search yet.</div>`;
 
-  return groups.map((g, gi) => `
-    <div class="boss-group" id="bossGroup-${gi}">
-      <button type="button" class="boss-toggle" onclick="toggleBossGroup(${gi})" aria-expanded="false">
-        <div class="boss-group-icon"><img class="${needsShadowMist(g.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(g.boss)}" alt="" loading="lazy" onerror="this.remove();"></div>
-        <div style="min-width:0;">
-          <div class="boss-group-name">${escapeHtml(g.boss)}</div>
-          <div class="boss-group-meta">${g.tankCount} catch tank${g.tankCount !== 1 ? "s" : ""}</div>
-        </div>
-        <span class="boss-caret">${g.scenarios.reduce((n,s)=>n+s.entries.length,0) >= ENTRY_TABLE_THRESHOLD ? "&#9974;" : "&#9654;"}</span>
-      </button>
-      <!-- The inline expandable body used to live here. It is unreachable now:
-           ENTRY_TABLE_THRESHOLD is 1, so toggleBossGroup() always returns into the modal before
-           it can add .boss-group.open, and .boss-body is display:none with no other route to
-           being shown. Rendering it anyway put ~1500 unreachable <img> tags into the DOM, of
-           which the browser eagerly fetched ~250 - a zero-size image gives loading="lazy"
-           nothing to work with, so the attribute cannot defer them.
-           To restore the split view, restore this block AND raise the threshold; the modal
-           markup is built on demand in openBossEntriesTable(). -->
-    </div>
-  `).join("");
+  // A grid of tiles, like Top Raiders: boss sprite and how many catch tanks have been logged for
+  // it. Clicking opens the boss's entries table (toggleBossGroup -> openBossEntriesTable).
+  return `<div class="ctg-grid">${groups.map((g, gi) => {
+    const entries = g.scenarios.reduce((n, sc) => n + sc.entries.length, 0);
+    return `<button type="button" class="ctg-tile boss-group" id="bossGroup-${gi}" onclick="toggleBossGroup(${gi})" aria-haspopup="dialog"
+        title="${escapeHtml(g.boss)} - ${g.tankCount} catch tank${g.tankCount !== 1 ? "s" : ""}, ${entries} ${entries === 1 ? "entry" : "entries"}">
+      <span class="ctg-icon"><img class="${needsShadowMist(g.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(g.boss)}" alt="" loading="lazy" onerror="this.remove();"></span>
+      <span class="ctg-main"><b>${g.tankCount}</b> tank${g.tankCount !== 1 ? "s" : ""}</span>
+    </button>`;
+  }).join("")}</div>`;
 }
 
 // Move name -> small colored type icon, matching the raid archive pages' type-icon treatment
@@ -2480,82 +2480,20 @@ function renderBest(list){
 
   if(!ranked.length) return `<div class="empty">No submissions match your search yet.</div>`;
 
-  return ranked.map((m, i) => {
-    // Expanded: the same conditional detail as the boss view, but pivoted - for THIS tank,
-    // which bosses is it proven against and under what conditions. Grouped by boss, best first.
-    // Keyed by boss + its moveset + weather, since those three together define the fight this
-    // result actually describes - the header row carries them, so results underneath differ only
-    // by what the player brought and how they played it.
-    // Two levels: the boss (named once, alphabetically) and beneath it each distinct
-    // moveset+weather it was fought under. Previously the same boss could appear several times
-    // in a row with only the moveset differing, which read as separate bosses.
-    const byBossName = new Map();
-    m.entries.forEach(e => {
-      if(!byBossName.has(e.boss)) byBossName.set(e.boss, new Map());
-      const key = `${e.bossMoveset}|||${e.weather}`;
-      const scen = byBossName.get(e.boss);
-      if(!scen.has(key)) scen.set(key, { moveset: e.bossMoveset, weather: e.weather, entries: [] });
-      scen.get(key).entries.push(e);
-    });
-    const bossBlocks = [...byBossName.entries()]
-      .map(([boss, scenMap]) => ({
-        boss,
-        scenarios: [...scenMap.values()].map(s => {
-          s.entries.sort((x,y) => parseFloat(y.ctDPS) - parseFloat(x.ctDPS));
-          return { ...s, best: parseFloat(s.entries[0].ctDPS) };
-        }).sort((a,b) => b.best - a.best),
-      }))
-      .sort((a,b) => a.boss.localeCompare(b.boss));
-
-    return `
-    <div class="leader-group" id="leaderGroup-${i}">
-      <button type="button" class="leader-toggle" onclick="toggleLeaderGroup(${i})" aria-expanded="false">
-        <div class="leader-rank">${i + 1}</div>
-        <div class="leader-icon"><img class="${needsShadowMist(m.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(m.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></div>
-        <div class="leader-body">
-          <div class="leader-name">${escapeHtml(m.pokemon)}</div>
-          <div class="leader-sub">${m.entries.length} ${m.entries.length === 1 ? "entry" : "entries"}</div>
-        </div>
-        <div class="leader-stats">
-          <div class="leader-best">${m.avg.toFixed(1)}</div>
-          <div class="leader-best-label" data-tooltip="Average Catch Tank DPS across all ${m.entries.length} recorded ${m.entries.length === 1 ? "entry" : "entries"} for this Pok&eacute;mon.">Avg CT DPS</div>
-        </div>
-        <span class="boss-caret">${m.entries.length >= ENTRY_TABLE_THRESHOLD ? "&#9974;" : "&#9654;"}</span>
-      </button>
-      <div class="leader-body-expand">
-        <div>
-        ${bossBlocks.map(b => `
-          <div class="boss-block">
-            <div class="boss-block-head">
-              <span class="scenario-boss-icon"><img class="${needsShadowMist(b.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(b.boss)}" alt="" loading="lazy" onerror="this.parentElement.remove();"></span>
-              <span class="scenario-moveset">${escapeHtml(b.boss)}</span>
-            </div>
-            ${b.scenarios.map(sc => `
-              <div class="scenario">
-                <div class="scenario-head cond-row">
-                  <span class="scenario-boss-moves">${movesetHtml(sc.moveset)}</span>
-                  <span class="ct-pick-conds">${weatherIcon(sc.weather || "")}</span>
-                </div>
-                ${sc.entries.map(e => `
-                  <div class="ct-pick">
-                    <div class="ct-pick-body">
-                      <div class="ct-pick-sub">${movesetHtml(e.playerMoveset || "")}<span class="ct-pick-conds">${boostIconsHtml(e)}${doubleCTBadgeHtml(e)}</span></div>
-                      ${detailLineHtml(e, true)}
-                    </div>
-                    <div class="ct-pick-dps">
-                      <div class="ct-pick-dps-val">${parseFloat(e.ctDPS).toFixed(1)}</div>
-                      <div class="ct-pick-dps-label" data-tooltip="Full Catch Tank output - the number that determines how strong a submission is.">CT DPS</div>
-                    </div>
-                  </div>
-                `).join("")}
-              </div>
-            `).join("")}
-          </div>
-        `).join("")}
-        </div>
-      </div>
-    </div>`;
-  }).join("");
+  // A grid of tiles, like Top Raiders: rank, sprite and entries. Clicking opens the
+  // Pokemon's entries table (toggleLeaderGroup -> openEntriesTable), as the rows did. (The rows'
+  // inline expanding body is gone: it was never reachable - every click opened the table - but
+  // was built for every Pokemon on every render.)
+  return `<div class="ctg-grid">${ranked.map((m, i) => {
+    const n = m.entries.length;
+    const rankClass = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
+    return `<button type="button" class="ctg-tile leader-group" id="leaderGroup-${i}" onclick="toggleLeaderGroup(${i})" aria-haspopup="dialog"
+        title="${escapeHtml(m.pokemon)} - ${n} ${n === 1 ? "entry" : "entries"} against ${m.bossCount} boss${m.bossCount !== 1 ? "es" : ""}">
+      <span class="ctg-rank ${rankClass}">${i + 1}</span>
+      <span class="ctg-icon"><img class="${needsShadowMist(m.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(m.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></span>
+      <span class="ctg-main"><b>${n}</b> ${n === 1 ? "entry" : "entries"}</span>
+    </button>`;
+  }).join("")}</div>`;
 }
 
 // Dense, scannable view of every entry for one Pokemon. The inline expansion is deliberately
