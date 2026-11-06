@@ -1185,6 +1185,40 @@ if ("serviceWorker" in navigator) {
   .support-settings{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
   .support-settings .check-item{ min-height:38px; }
   .support-settings .field{ min-width:200px; }
+  /* Rotation behavior: three subgroups - Main, Support DPS, Catch tank */
+  .tb-group{ padding:14px 0 4px; border-top:1px solid color-mix(in srgb, var(--border) 70%, transparent); }
+  .tb-group:first-of-type{ border-top:none; padding-top:2px; }
+  .tb-group-head{ font:800 12px 'Manrope',sans-serif; color:var(--accent, var(--blue)); text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; }
+  .tb-group-head span{ text-transform:none; letter-spacing:0; font-weight:600; color:var(--text-dim); }
+  .tb-empty{ font-size:12.5px; color:var(--text-dim); margin:0 0 8px; }
+  .sd-behavior-row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 10px; padding:8px 10px; margin-bottom:8px;
+    border:1.5px solid color-mix(in srgb, var(--border) 60%, transparent); border-radius:12px; }
+  .sd-row-name{ flex:1 1 170px; font-size:13px; } .sd-row-name span{ color:var(--text-dim); font-weight:600; }
+  /* Priority & hot swap order */
+  .pl-mode{ display:flex; align-items:center; flex-wrap:wrap; gap:8px 12px; margin:2px 0 12px; }
+  .pl-mode-lbl{ font:700 12.5px 'Manrope',sans-serif; }
+  .pl-seg{ display:inline-flex; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; }
+  .pl-seg button{ font:800 12px 'Manrope',sans-serif; padding:6px 14px; border:0; background:var(--card); color:var(--text-dim); cursor:pointer; }
+  .pl-seg button.on{ background:var(--accent, var(--blue)); color:#fff; }
+  .pl-mode-hint{ font-size:12px; color:var(--text-dim); flex:1 1 260px; }
+  .pl-group{ border:1.5px solid color-mix(in srgb, var(--border) 70%, transparent); border-radius:14px; padding:8px 10px 4px; margin-bottom:10px; }
+  .pl-group-head{ display:flex; align-items:center; gap:8px; padding:2px 0 8px; flex-wrap:wrap; }
+  .pl-gnum{ display:inline-flex; width:22px; height:22px; border-radius:50%; align-items:center; justify-content:center; background:var(--accent, var(--blue)); color:#fff; font:800 11.5px 'Manrope',sans-serif; flex:none; }
+  .pl-gname{ flex:1 1 140px; font-size:13.5px; } .pl-gname span{ color:var(--text-dim); font-weight:600; }
+  .pl-dodge{ padding:4px 10px !important; min-height:0 !important; font-size:12px !important; }
+  .pl-list{ list-style:none; margin:0 0 4px 30px; padding:0; }
+  .pl-item{ display:flex; align-items:center; gap:8px; padding:5px 8px; margin-bottom:6px; border:1.5px solid color-mix(in srgb, var(--border) 55%, transparent); border-radius:10px; font-size:12.5px; flex-wrap:wrap; }
+  .pl-item.pl-sponge{ background:color-mix(in srgb, var(--accent, var(--blue)) 8%, transparent); }
+  .pl-item.is-off{ opacity:.6; }
+  .pl-num{ font:800 11px 'Manrope',sans-serif; color:var(--text-dim); width:14px; text-align:center; }
+  .pl-ico{ width:24px; height:24px; object-fit:contain; }
+  .pl-sym{ width:24px; text-align:center; font-weight:800; color:var(--accent, var(--blue)); }
+  .pl-label{ flex:1 1 150px; } .pl-label span{ color:var(--text-dim); font-weight:600; }
+  .pl-switch{ font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); display:inline-flex; align-items:center; gap:4px; }
+  .pl-move{ font:700 11.5px 'Manrope',sans-serif; padding:3px 6px; border-radius:7px; border:1.5px solid var(--border); background:var(--card); color:var(--text); max-width:190px; }
+  .pl-arrows{ display:inline-flex; gap:4px; } .pl-arrows button{ width:24px; height:24px; border-radius:7px; border:1.5px solid var(--border); background:var(--card); color:var(--text); font-size:12px; cursor:pointer; }
+  .pl-arrows button:disabled{ opacity:.35; cursor:default; }
+  @media (max-width:560px){ .pl-list{ margin-left:8px; } }
 </style>
 <script type="application/ld+json">
 {
@@ -1407,10 +1441,10 @@ if ("serviceWorker" in navigator) {
         <li>The boss starts with 0 energy and gains energy from its fast moves and from half the damage it takes (the moment that damage lands), never holding more than 100. Its charge move costs 100, and it never casts two in a row. When it casts is random: on each of its moves it has the aggression slider's chance of deciding to use its charge move, which it does as soon as it has 100 energy. So every Calculate is a new simulation, and the result can change from one to the next.</li>
         <li>Swaps take 0.5s each way (when they start is chosen for the highest DPS - see below).</li>
         <li>Each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode.</li>
-        <li>The priority list decides who takes each boss charge move, top first. A catch tank type is used up before the next one in the list comes in. With "Main can sponge" ticked, the main DPSer takes a charge move itself in two different ways:
+        <li><b>Priority &amp; hot swap order</b> lists the attackers in the order they come in (the main DPSer, then any support DPSers), and under each one who takes the boss's charge moves while it is in: its own catch tanks, one by one, and its own sponge. Whatever is higher goes first - a sponge above the catch tanks means the attacker tries to take the charge move itself before calling a catch tank in. <b>Soft</b> assignment lets an attacker borrow an unused catch tank from another attacker before it hot swaps; <b>Strict</b> keeps each to its own. Sponging needs no setting:
           <ul>
-            <li><b>While catch tanks are left</b>, the energy can be managed, so a sponge has to earn its place over a catch: the main DPSer must keep at least 90% of the hit's energy (no more than 10% going over 100), survive it, and fire its own charge move before the boss's next one. Otherwise a catch tank intercepts - even when the main DPSer is above the catch tanks in the priority list - rather than waste the energy.</li>
-            <li><b>Once no catch tank is left</b>, it's a single attacker at the mercy of the boss's moves, so the run plays out: the main DPSer keeps taking charge moves for as long as its HP can cover another full rotation - the hit, then the boss's fast moves while it refills its energy and casts its charge move. Energy going over 100 doesn't count against it here. When another rotation isn't safe, it goes all in (or bails - see below).</li>
+            <li><b>While the attacker has catch tanks</b>, the energy can be managed, so a sponge has to earn its place over a catch: it must keep at least 90% of the hit's energy (no more than 10% going over 100), survive it, and fire its own charge move before the boss's next one. Otherwise a catch tank intercepts - even when the sponge is listed first - rather than waste the energy.</li>
+            <li><b>Once it has no catch tank left</b>, the run plays out: it keeps taking charge moves for as long as its HP can cover another full rotation - the hit, then the boss's fast moves while it refills its energy and casts its charge move. When another rotation isn't safe it hot swaps to the next attacker, or, if it is the last, goes all in (or bails - see below). An attacker that can't live to land its next charge move hot swaps straight away.</li>
           </ul>
         </li>
         <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many cycles fit in the 300s timer; Minimum DPS for that many rejoins and Cumulative DPS take that many rejoins of this length out of the timer.</li>
@@ -1552,7 +1586,7 @@ if ("serviceWorker" in navigator) {
         <div class="name-iv-row">
           <div class="field name-field">
             <label for="ctName">Pokémon</label>
-            <input id="ctName" placeholder="e.g. Kyurem Black" autocomplete="off">
+            <input id="ctName" placeholder="e.g. Kyurem Black" autocomplete="off" title="With a support DPSer added, leave this empty for a hot-swap chain with no catch tanks.">
             <div class="ac-list" id="ctName_ac"></div>
           </div>
           <div class="field iv-field"><label for="ctLevel">Level</label><input id="ctLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50"></div>
@@ -1606,6 +1640,9 @@ if ("serviceWorker" in navigator) {
               <option value="0">Main DPSer</option>
               <option value="1">Support DPSer 1</option>
               <option value="2">Support DPSer 2</option>
+              <option value="3">Support DPSer 3</option>
+              <option value="4">Support DPSer 4</option>
+              <option value="5">Support DPSer 5</option>
             </select>
           </div>
         </div>
@@ -1629,40 +1666,59 @@ if ("serviceWorker" in navigator) {
   <div class="step-card team-only team-behavior-card" id="teamBehaviorCard">
     <div class="step-head">
       <div class="step-num">&#8645;</div>
-      <div><div class="step-title">Catch tank behavior</div></div>
+      <div><div class="step-title">Rotation behavior</div></div>
     </div>
-    <div class="team-behavior-row">
-      <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label>
-      <label class="check-item team-dodge-limit" id="ctMainRuleWrap" title="Keep the energy: a sponge must keep at least 90% of the hit's energy and let the main DPSer fire before the boss's next charge move (while catch tanks are left). Survive only: it sponges whenever it can take the hit and still reach its next charge move - e.g. Eternatus sponging a Fusion Flare or two to build Dynamax Cannon, before its catch tanks come in.">Sponge rule
-        <select id="ctMainRule"><option value="keep" selected>Keep the energy</option><option value="survive">Survive only</option></select>
-      </label>
-      <input type="checkbox" id="ctCmBuffer" hidden tabindex="-1"><!-- no longer offered in the Beta; kept so old links load - always treated as off -->
-      <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label>
+    <!-- Sponging needs no setting: while an attacker has catch tanks it only sponges when that keeps
+         its energy (no more than 10% over 100) and it can fire again; with none left, a health check. -->
+    <div class="tb-group">
+      <div class="tb-group-head">Main behavior</div>
+      <div class="team-behavior-row">
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
         <select id="ctDodgeLimit">
           <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
           <option value="0" title="No limit">∞</option>
         </select>
       </label>
+      <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
       <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
         <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
       </label>
-      <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
+      </div>
+    </div>
+    <div class="tb-group">
+      <div class="tb-group-head">Priority &amp; hot swap order <span>&middot; attackers come in top to bottom; within each, who takes the boss's charge moves first</span></div>
+      <div class="pl-mode">
+        <span class="pl-mode-lbl">Catch tank assignment</span>
+        <div class="pl-seg" role="group" aria-label="Catch tank assignment">
+          <button type="button" data-assign="soft">Soft</button><button type="button" data-assign="strict">Strict</button>
+        </div>
+        <span class="pl-mode-hint" id="ctAssignHint"></span>
+      </div>
+      <div id="ctPlanList"></div>
+      <div class="team-add-row"><button type="button" class="team-add-btn" id="sdAdd" title="Hot swap: when the attacker in can't reach another charge move (its catch tanks used and a sponge unsafe), it swaps out and the next support DPSer comes in.">+ Add a support DPSer</button><button type="button" class="team-add-btn" id="ctAddType">+ Add another catch tank</button></div>
+      <!-- the plan, saved with setups and links: attackers in order, each with its catch tanks and its
+           sponge ("s"), e.g. "m:1.1,1.2,s|s1:s,1.3,1.4"; and soft / strict assignment -->
+      <input type="hidden" id="ctPlan" value="">
+      <input type="hidden" id="ctAssign" value="soft">
+      <!-- kept for setups and links saved before the list: the old Priority order, catch tank types -->
+      <input type="hidden" id="ctPriority" value="main,1">
+      <input type="hidden" id="ctTypes" value="1">
+      <input type="hidden" id="sdCount" value="0">
+      <div hidden>
+        <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label><label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label><input type="checkbox" id="ctCmBuffer" hidden tabindex="-1">
+        <div id="supportBehaviorRows"></div><div id="supportBehaviorEmpty"></div>
+      </div>
+    </div>
+    <div class="tb-group">
+      <div class="tb-group-head">Catch tank behavior</div>
+      <div class="team-behavior-row">
       <label class="check-item" title="Each catch tank catches two of the boss's charge moves. After its first catch it casts the set number of fast moves and swaps out without firing, keeping its energy; it comes back for the boss's next charge move and fires on the combined energy."><input type="checkbox" id="ctDoubleCatch"> Double catch</label>
       <label class="check-item team-dodge-limit is-off" id="ctDcFMsWrap" title="How many fast moves the catch tank casts after its first catch, before it swaps out to wait for the second">Fast moves on 1st swap
         <select id="ctDcFMs" disabled><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
       </label>
+      </div>
     </div>
-    <div class="team-order-head">Priority</div>
-    <ol class="team-order" id="ctOrderList"></ol>
-    <!-- the order, saved with setups and links: "main" and catch tank numbers, e.g. "main,1,2" -->
-    <input type="hidden" id="ctPriority" value="main,1">
-    <input type="hidden" id="ctTypes" value="1">
-    <div class="team-add-row">
-      <button type="button" class="team-add-btn" id="ctAddType">+ Add another catch tank</button>
-      <button type="button" class="team-add-btn" id="sdAdd" title="Hot swap: when the attacker in can't reach another charge move (its catch tanks used and a sponge unsafe), it swaps out and the next support DPSer comes in.">+ Add a support DPSer</button>
-    </div>
-    <input type="hidden" id="sdCount" value="0">
+  </div>
   </div>
 
   <!-- STEP 2: ADDITIONAL MODIFIERS -->
@@ -2834,7 +2890,9 @@ function raidTierFor(bossName){
 // "7s", "5.5s" - the rejoin time as the card writes it
 const rejoinSecsText = secs => `${+secs.toFixed(1)}s`;
 function teamRejoinTarget(cycleSecs, bossName, rejoinSecs = REJOIN_SECS){
-  const rejoins = cycleSecs > 0 ? Math.floor(RAID_SECS / cycleSecs) : null;
+  // a cycle that lasts the whole timer (e.g. a long hot-swap chain) needs no rejoin at all - it used
+  // to count one, as floor(300 / 300) = 1
+  const rejoins = cycleSecs > 0 ? (cycleSecs >= RAID_SECS ? 0 : Math.floor(RAID_SECS / cycleSecs)) : null;
   const raid = raidTierFor(bossName);
   const dps = rejoins === null ? null : rejoinDpsFor(raid.hp, rejoins, rejoinSecs);
   return { rejoins, dps, tier: raid.name, hp: raid.hp };
@@ -2853,7 +2911,7 @@ function simulateTeam(P){
     mons: [{ tank: false, hp: P.main.hp, energy: 0, busyUntil: 0, cmCasts: 0 }]
       .concat(P.monMeta.slice(1).map(mm => ({ tank: true, type: mm.type, num: mm.num, hp: P.tanks[mm.type].hp, energy: 0, busyUntil: 0, cmCasts: 0, waitCatch: null,
         dc: 0, dcFMsLeft: 0, primed: false,   // double catch: catches so far, fast moves left after the 1st, waiting for its 2nd
-        owner: P.tanks[mm.type].owner ?? -1, used: false }))),   // hot swap: which attacker it serves (-1 any); booked yet
+        owner: mm.owner ?? 0, pos: mm.pos ?? 0, used: false }))),   // the attacker it serves, its place in that one's list; booked yet
     active: 0, swap: null, pendingSwap: null,   // pendingSwap: { to, latest }
     hits: [], gains: [],
     nextTank: 1, lastTankDoneAt: null,
@@ -2917,7 +2975,7 @@ function teamApplyAttacker(P, S){
   if(!P.attackers) return;
   const A = P.attackers[S.att || 0];
   if(P.main === A) return;
-  P.main = A; P.mainAbsorbs = A.absorbs; P.mainDodges = A.dodges; P.mainRank = A.rank; P.spongeRule = A.rule;
+  P.main = A; P.mainAbsorbs = A.absorbs; P.mainDodges = A.dodges; P.spongeRule = A.rule;
 }
 
 // The run's random numbers (mulberry32): small, fast, and its whole state is one number in S, so
@@ -2959,10 +3017,15 @@ function teamStep(S, R, P, snap){
     const bossFms = Math.ceil(windowTicks / (P.bossFM.ad + 4));
     return m.hp > tp.bossCmDmg + bossFms * tp.bossFmDmg;
   };
-  // Hot swap: a catch tank serves any attacker, or only the one it is set to ("Used by").
-  const mayUse = m => m.owner < 0 || m.owner === (S.att || 0);
-  const nextFresh = () => {   // the next unused catch tank the attacker in may use (0 = none)
-    for(let i = 1; i < S.mons.length; i++){ const m = S.mons[i]; if(!m.used && mayUse(m)) return i; }
+  // Priority & hot swap order: each catch tank serves the attacker whose list it is in. Strict: only
+  // that one may use it. Soft: an attacker uses its own first, then borrows unused ones - from the end
+  // of the list, so the attackers nearest in line keep theirs longest.
+  const mayUse = m => P.assign !== "strict" || m.owner === (S.att || 0);
+  const nextFresh = () => {   // the next catch tank the attacker in would call in (0 = none)
+    const a = S.att || 0;
+    for(let i = 1; i < S.mons.length; i++){ const m = S.mons[i]; if(!m.used && m.owner === a) return i; }
+    if(P.assign === "strict") return 0;
+    for(let i = S.mons.length - 1; i >= 1; i--){ if(!S.mons[i].used) return i; }
     return 0;
   };
   const primedTank = () => {
@@ -3058,7 +3121,10 @@ function teamStep(S, R, P, snap){
         ? (snap && teamMainCanAbsorb(snap, P, t, land))
         : teamMainCanKeepGoing(S, P, t, land)))) : safe);
       const nextIn = primedTank() || nextFresh();
-      const mainAhead = !tanksLeft || P.mainRank <= S.mons[nextIn].type;
+      // its sponge comes first when it is listed ahead of that catch tank in its own list (a borrowed
+      // catch tank is never ahead of its own sponge)
+      const nm = S.mons[nextIn];
+      const mainAhead = !tanksLeft || nm.owner !== (S.att || 0) || (P.main.spongePos ?? -1) < nm.pos;
       if(P.mainAbsorbs && mainAhead && mainSafe()){
         dec.outcome = "main";
         S.awaitMainCM = true;
@@ -3280,6 +3346,29 @@ function teamStep(S, R, P, snap){
       // a catch tank in ahead of its catch: fast moves only, and it stays in until the hit lands
       const waiting = m.tank && m.waitCatch !== null && t < m.waitCatch;
       const nextDur = m.energy >= side.cmCost && !waiting ? side.cm.ad : side.fm.ad;
+      // Hot swap before fading out: with another attacker waiting, one that can't live to land its
+      // next charge move - the boss's fast moves due before then would knock it out - swaps out now
+      // rather than tapping fast moves until it faints. (Eternatus landed Dynamax Cannon on 4 HP with
+      // 0 energy and kept attacking for 2.5s until a Fire Fang finished it; 100 energy was ~10s away.)
+      if(who === 0 && !S.hotSwap && !S.pendingSwap && !S.pendingDodge && !S.dodging && hasNext()){
+        const missing = Math.max(0, side.cmCost - m.energy);
+        const lands = t + Math.ceil(missing / side.fm.energy) * side.fm.ad + side.cm.ad;   // its next charge move landing
+        // The boss's fast moves that hit before then: the one in flight for certain; of the moves after
+        // it, while this attacker still has catch tanks only the share that won't be charge moves
+        // (those its catch tanks take - it is benched meanwhile). Counting every boss move as a fast
+        // move sent Eternatus out on 53 HP before its own two Necrozma Dusk Mane had caught anything.
+        let n = 0;
+        if(B.inFlight && !B.inFlight.cm && B.inFlight.land <= lands) n++;
+        let later = 0;
+        let cast = Math.max(B.nextCast, B.inFlight ? B.inFlight.land + (B.inFlight.cm ? 1 : 4) : t);
+        for(; cast + P.bossFM.ad <= lands; cast += P.bossFM.ad + 4) later++;
+        n += later * (noTankLeft() ? 1 : 1 - P.aggro);
+        if(m.hp <= n * P.main.bossFmDmg){
+          if(!S.probe) R.events.push({ t, kind: "main", text: `${P.main.name} can't live to land another ${side.cm.n} (${m.hp} HP, ${Math.round(m.energy)} energy)`,
+            ev: { type: "doomed", hp: m.hp, energy: Math.round(m.energy), move: side.cm.n } });
+          startHotSwap(); return;
+        }
+      }
       if(who === 0 && S.hotSwap){
         // Hot swap booked: fire the charge move it is building only if it (and the 0.5s swap after
         // it) finishes before the boss's hit lands; otherwise go now, so the next attacker takes it.
@@ -3516,35 +3605,42 @@ function teamBossContextFromDom(){
 // worked out for the main DPSer and the boss, so both are computed exactly as in every other mode.
 function runTeamSim(c){
   const $ = id => document.getElementById(id);
-  const types = teamPrefixes().map(p => teamTankNumbers(c, p));
+  // Hot swap with no catch tanks (e.g. six Zacian Crown in a chain): with a support DPSer added and
+  // Catch Tank 1 left empty (and no Catch Tank 2 / 3), the run has no catch tanks at all.
+  const noTanks = supportCount() > 0 && teamTypeCount() === 1 && !$("ctName").value.trim();
+  const types = noTanks ? [] : teamPrefixes().map(p => teamTankNumbers(c, p));
   const bad = types.find(T => T.error);
   if(bad) return `<div class="empty-result">${bad.error}</div>`;
-  // Priority: catch tank types in the listed order (a type is used up before the next comes in),
-  // with the main DPSer's place in the list deciding when it is offered a sponge.
-  const order = teamOrder();
-  const tankOrder = order.filter(x => x !== "main").map(x => +x);
-  const tanks = tankOrder.map(k => {
-    const T = types[k - 1];
-    // hot swap: which attacker this type serves ("any" = -1); a support that isn't there -> any
-    const ow = (document.getElementById((k === 1 ? "ct" : "ct" + k) + "Owner") || {}).value;
-    const owner = /^[0-2]$/.test(ow || "") && +ow <= supportCount() ? +ow : -1;
-    return { k, name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, qty: T.qty, casts: T.casts,
-             fmDmg: T.fmDmg, cmDmg: T.cmDmg, bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg, owner };
-  });
-  // Hot swap: the support DPSers, in order (each must be filled in)
+  // Hot swap: the support DPSers (each must be filled in)
   const supports = supportPrefixes().map(p => teamTankNumbers(c, p));
   const badSup = supports.find(T => T.error);
   if(badSup) return `<div class="empty-result">${badSup.error}</div>`;
-  // every catch tank in the order it will be used: its type (index into tanks) and number within it
+  // Priority & hot swap order: the attackers in the order they come in, each with its own catch
+  // tanks and its sponge, in the order they take the boss's charge moves
+  const plan = noTanks ? teamPlan().map(b => ({ att: b.att, items: ["s"] })) : teamPlan();
+  // catch tank types, in the order they first appear in the plan
+  const typeSeq = [];
+  plan.forEach(b => b.items.forEach(x => { if(x !== "s"){ const k = +x.split(".")[0]; if(!typeSeq.includes(k)) typeSeq.push(k); } }));
+  const tanks = typeSeq.map(k => {
+    const T = types[k - 1];
+    return { k, name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, qty: T.qty, casts: T.casts,
+             fmDmg: T.fmDmg, cmDmg: T.cmDmg, bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg };
+  });
+  // every catch tank in plan order: its type, number, the attacker it serves (block) and its place
+  // in that attacker's list (pos - compared with the attacker's sponge to decide who goes first)
   const monMeta = [null];
-  tanks.forEach((tp, ti) => { for(let n = 1; n <= tp.qty; n++) monMeta.push({ type: ti, num: n }); });
-  // where the main DPSer sits in the list, in terms of tank types: it is offered a sponge when
-  // the next tank in line belongs to a type listed after it (or no tanks are left)
-  const mainRank = order.slice(0, order.indexOf("main")).filter(x => x !== "main").length;
+  plan.forEach((b, bi) => b.items.forEach((x, pos) => {
+    if(x === "s") return;
+    const [k, j] = x.split(".").map(Number);
+    monMeta.push({ type: typeSeq.indexOf(k), num: j, owner: bi, pos });
+  }));
+  // a type served by one attacker only is labelled "for <attacker>" on the result card
+  tanks.forEach((tp, ti) => { const ow = new Set(monMeta.slice(1).filter(m => m.type === ti).map(m => m.owner)); tp.owner = ow.size === 1 ? [...ow][0] : -1; });
+  const mainRank = 0;   // no longer used: the plan's sponge position decides (kept for older readers)
   const P = {
     // a new random stream for every run (window.__teamSeed, if set, repeats one - for testing)
     seed: Number.isInteger(window.__teamSeed) ? window.__teamSeed : crypto.getRandomValues(new Uint32Array(1))[0],
-    tanks, monMeta, mainRank,
+    tanks, monMeta, mainRank, assign: document.getElementById("ctAssign").value === "strict" ? "strict" : "soft",
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
     cmBuffer: false,   // CM Buffer isn't part of the Beta any more (removed from its card); old links' value is ignored
     // Main allowed to dodge: how many charge moves it may dodge over the whole run (0 = no limit).
@@ -3577,26 +3673,26 @@ function runTeamSim(c){
   P.tank = tanks[0];   // the first catch tank type in the priority order
   // the main DPSer's sponge rule: "keep" (the default - keep the energy while catch tanks are left)
   // or "survive" (a health check only, overflow fine)
-  P.spongeRule = ($("ctMainRule") || {}).value === "survive" ? "survive" : "keep";
-  // Hot swap: the attackers in order - the main DPSer, then the support DPSers. The main keeps the
-  // Catch tank behavior settings (its place in Priority, Main can sponge / dodge, and the
-  // "keep the energy" sponge rule while catch tanks are left); each support has its own.
-  if(supports.length){
-    Object.assign(P.main, { absorbs: P.mainAbsorbs, dodges: P.mainDodges, rank: P.mainRank, rule: P.spongeRule });
-    P.attackers = [P.main].concat(supports.map((T, i) => {
-      const pre = "sd" + (i + 1), $s = id => document.getElementById(pre + id);
-      return { name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, fmDmg: T.fmDmg, cmDmg: T.cmDmg,
-               bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg, bossCmDmgDodged: Math.floor(T.bossCmDmg * 0.25),
-               absorbs: $s("Sponge").checked, dodges: $s("Dodge").checked,
-               rank: $s("First").value === "sponge" ? -1 : 99, rule: $s("Rule").value === "keep" ? "keep" : "survive",
-               support: i + 1 };
-    }));
-  }
+  P.spongeRule = "keep";   // no setting any more: energy-efficient while catch tanks are left, a health check once none are
+  // The attackers in the plan's order (the main DPSer need not come first); each with its sponge's
+  // place in its own list (spongePos) - it sponges ahead of a catch tank listed after it.
+  Object.assign(P.main, { absorbs: P.mainAbsorbs, dodges: P.mainDodges, rule: "keep" });
+  const supA = supports.map((T, i) => {
+    const pre = "sd" + (i + 1), $s = id => document.getElementById(pre + id);
+    return { name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, fmDmg: T.fmDmg, cmDmg: T.cmDmg,
+             bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg, bossCmDmgDodged: Math.floor(T.bossCmDmg * 0.25),
+             absorbs: $s("Sponge").checked, dodges: $s("Dodge").checked, rule: "keep", support: i + 1 };
+  });
+  P.attackers = plan.map(b => {
+    const A = b.att === "m" ? P.main : supA[+b.att.slice(1) - 1];
+    A.spongePos = b.items.indexOf("s");
+    return A;
+  });
   // Level and IVs as entered, for the result card and Copy as image ("Lv 50 · 15/15/15")
   const buildOf = (lv, a, d, h) => `Lv ${String($(lv).value).trim() || "?"} \u00b7 ${[a, d, h].map(id => String($(id).value).trim() || "?").join("/")}`;
   P.main.build = buildOf("pokemonLevel", "ivAtk", "ivDef", "ivHp");
   P.tanks.forEach(tp => { const pre = tp.k === 1 ? "ct" : `ct${tp.k}`; tp.build = buildOf(pre + "Level", pre + "IvAtk", pre + "IvDef", pre + "IvHp"); });
-  (P.attackers || []).slice(1).forEach(A => { const pre = "sd" + A.support; A.build = buildOf(pre + "Level", pre + "IvAtk", pre + "IvDef", pre + "IvHp"); });
+  (P.attackers || []).filter(A => A.support).forEach(A => { const pre = "sd" + A.support; A.build = buildOf(pre + "Level", pre + "IvAtk", pre + "IvDef", pre + "IvHp"); });
   let run;
   {
     // Best timing, chosen for each catch. Every candidate is the whole fight with the same boss
@@ -3851,6 +3947,7 @@ function teamLogLine(P, e){
     case "cmHit": return `${ico(v.who)} <b>${v.move}</b> Hit <span class="team-num">${v.dmg} dmg</span>`;
     case "faint": return `${teamSym("faint", "Fainted")}${ico(v.who)} fainted`;
     case "dcHold": return `${ico(v.who)} keeps its ${v.energy} energy <span class="team-dim">for a 2nd catch</span>`;
+    case "doomed": return `${ico(0)} can't live to land another <b>${v.move}</b> <span class="team-dim">(${v.hp} HP, ${v.energy} energy) &middot; hot swap</span>`;
     case "hotswap": return `${teamSym("swap", "Hot swap")}${aIco(v.fromAtt)} Out${v.fainted ? " (fainted)" : ""}, ${aIco(v.toAtt)} In <span class="team-dim">(hot swap)</span>`;
     default: return e.text;
   }
@@ -3858,9 +3955,9 @@ function teamLogLine(P, e){
 
 // Timeline bar colours for the catch tank types, in priority order (the main DPSer is blue).
 const TEAM_TANK_COLORS = ["#f5b94a", "#b48cff", "#2ec4a6"];
-// Hot swap: the attackers' colours - the main DPSer blue, Support DPSer 1 indigo, 2 plum (clear of
-// the catch tanks' amber / violet / teal and the pink of the boss's charge-move marks)
-const TEAM_ATT_COLORS = ["#3d9dff", "#4f5bd5", "#b4448f"];
+// Hot swap: the attackers' colours - the main DPSer blue, then the support DPSers (clear of the catch
+// tanks' amber / violet / teal and the pink of the boss's charge-move marks)
+const TEAM_ATT_COLORS = ["#3d9dff", "#4f5bd5", "#b4448f", "#5f7d95", "#8a8f2e", "#a0622d"];
 // The bar's hover details: one floating box (the bar clips anything inside it), shown over the
 // piece under the pointer, or on tap, with the lines from its data-tip.
 function teamTlTipShow(el){
@@ -3994,7 +4091,7 @@ function renderTeamSim(P, S, R){
   const dodges = R.dodges.filter(d => d.t < E);
   const swaps = R.swaps.filter(s => s.t < E);
   const mainHp = (upTo(R.hp).filter(h => h.who === 0 && (h.att || 0) === lastAtt).pop() || { hp: ATT[lastAtt].hp }).hp;
-  const lastType = P.tanks[P.monMeta[P.qty].type];
+  const lastType = P.qty ? P.tanks[P.monMeta[P.qty].type] : { name: "catch tank", cm: { n: "charge move" } };
   const typeOf = who => P.monMeta[who].type;
   const tankMaxHp = who => P.tanks[typeOf(who)].hp;
   const typeIcos = P.tanks.map((tp, i) => teamIcon(P, null, { type: i }));
@@ -4049,7 +4146,7 @@ function renderTeamSim(P, S, R){
     if(to > sg.t) attTicks[sg.att || 0] += to - sg.t;
   });
   const attDmg = ATT.map((A, k) => dmg.filter(d => d.who === 0 && (d.att || 0) === k).reduce((a, d) => a + d.dmg, 0));
-  const attackerRows = (multi ? ATT.map((A, k) => `<tr class="team-who-row"><td><span class="team-sub team-who">${attIco(k)}<span>${A.name}<small class="team-build">${k === 0 ? "Main DPSer" : "Support DPSer " + k} &middot; ${A.build || ""}</small></span></span></td><td>${attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"}${uptime(attTicks[k])}</td></tr>`) : [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${uptime(onField.get(0) || 0)}</td></tr>`])
+  const attackerRows = (multi ? ATT.map((A, k) => `<tr class="team-who-row"><td><span class="team-sub team-who">${attIco(k)}<span>${A.name}<small class="team-build">${A.support ? "Support DPSer " + A.support : "Main DPSer"} &middot; ${A.build || ""}</small></span></span></td><td>${attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"}${uptime(attTicks[k])}</td></tr>`) : [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${uptime(onField.get(0) || 0)}</td></tr>`])
     .concat(P.tanks.map((tp, i) => {
       let ticks = 0, up = 0;
       fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
@@ -4158,7 +4255,7 @@ function renderTeamSim(P, S, R){
   function finalRow(m, who){
     const max = who === 0 ? P.main.hp : tankMaxHp(who);
     const status = m.hp <= 0 ? `<span class="team-fainted">Fainted</span>`
-      : who === 0 ? (multi ? (lastAtt ? `Support DPSer ${lastAtt}` : "Main DPSer") : "Main DPSer")
+      : who === 0 ? (multi && ATT[lastAtt].support ? `Support DPSer ${ATT[lastAtt].support}` : "Main DPSer")
       : entered.has(who) ? "Used" : `<span class="team-dim">Not used</span>`;
     return `<tr><td>${teamIcon(P, who)} <span class="team-final-name">${teamLabel(P, who)}</span></td>${hpCell(m.hp, max)}`
       + `<td class="team-hp">${m.energy}<span class="team-dim">/100</span></td><td>${status}</td></tr>`;
@@ -4189,7 +4286,7 @@ function renderTeamSim(P, S, R){
   return `
     <div class="dps-result-card">${warn}
       <div class="dps-result-main">
-        <div class="dps-result-label">Simple Catch Tank Sim &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty} catch tank${P.qty > 1 ? "s" : ""}${multi ? ` &middot; ${ATT.length - 1} support DPSer${ATT.length > 2 ? "s" : ""}` : ""}</div>
+        <div class="dps-result-label">Simple Catch Tank Sim &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty ? `${P.qty} catch tank${P.qty > 1 ? "s" : ""}` : "no catch tanks"}${multi ? ` &middot; ${ATT.length - 1} support DPSer${ATT.length > 2 ? "s" : ""}` : ""}</div>
         <div class="dps-result-value">${dps.toFixed(1)}</div>
         ${pace ? `<div class="team-pace-head ${pace.ahead ? "ok" : "short"}" title="${pace.title}">${pace.text}</div>` : ""}
         ${activeConditionsHtml()}
@@ -5635,9 +5732,12 @@ const SETUP_FIELD_IDS = [
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
   "ct3Name","ct3Level","ct3IvAtk","ct3IvDef","ct3IvHp","ct3CM","ct3FM","ct3Qty","ct3Casts",
   // Hot swap: which attacker each catch tank type serves, and the support DPSers
-  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule",
+  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign",
   "sd1Name","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge",
   "sd2Name","sd2Level","sd2IvAtk","sd2IvDef","sd2IvHp","sd2CM","sd2FM","sd2Sponge","sd2First","sd2Rule","sd2Dodge",
+  "sd3Name","sd3Level","sd3IvAtk","sd3IvDef","sd3IvHp","sd3CM","sd3FM","sd3Sponge","sd3First","sd3Rule","sd3Dodge",
+  "sd4Name","sd4Level","sd4IvAtk","sd4IvDef","sd4IvHp","sd4CM","sd4FM","sd4Sponge","sd4First","sd4Rule","sd4Dodge",
+  "sd5Name","sd5Level","sd5IvAtk","sd5IvDef","sd5IvHp","sd5CM","sd5FM","sd5Sponge","sd5First","sd5Rule","sd5Dodge",
 ];
 function captureSetup(){
   const setup = {};
@@ -5677,12 +5777,23 @@ function applySetup(setup){
   // the Catch Tank 2/3 and Support DPSer cards have to exist before their fields can be filled in
   setTeamTypeCount(parseInt(setup.ctTypes, 10) || 1);
   setSupportCount(parseInt(setup.sdCount, 10) || 0);
+  // a setup from before Priority & hot swap order has no plan: it is rebuilt below from its old
+  // Priority order / Used by / First settings once those are loaded
+  document.getElementById("ctPlan").value = ""; document.getElementById("ctAssign").value = "soft";
   SETUP_FIELD_IDS.forEach(id => {
     const el = document.getElementById(id);
     if(!(id in setup) || !el) return;
     if(el.type === "checkbox") el.checked = !!setup[id];
     else el.value = setup[id];
   });
+  if(!("ctPlan" in setup)){
+    document.getElementById("ctPlan").value = "";
+    // before the list, catch tanks set to one attacker ("Used by") could only be used by that one
+    if(!("ctAssign" in setup) && ["ctOwner", "ct2Owner", "ct3Owner"].some(k => /^[0-5]$/.test(String(setup[k] ?? ""))))
+      document.getElementById("ctAssign").value = "strict";
+  }
+  if(document.getElementById("ctAssign").value !== "strict") document.getElementById("ctAssign").value = "soft";
+  renderTeamOrder();
   // Rejoin time is a dropdown of 0.5s steps: a value between steps (an older link) snaps to one
   if("ctRejoinSecs" in setup) document.getElementById("ctRejoinSecs").value = clampRejoinSecs(setup.ctRejoinSecs).toFixed(1);
   const modeToId = { maindps: "ctModeMainDPS", single: "ctModeSingle", double: "ctModeDouble", team: "ctModeTeam" };
@@ -5706,7 +5817,8 @@ function applySetup(setup){
       playerCM: setup.playerCM, playerFM: setup.playerFM,
       bossCM: setup.bossCM, bossFM: setup.bossFM,
       ctCM: setup.ctCM, ctFM: setup.ctFM, ct2CM: setup.ct2CM, ct2FM: setup.ct2FM, ct3CM: setup.ct3CM, ct3FM: setup.ct3FM,
-      sd1CM: setup.sd1CM, sd1FM: setup.sd1FM, sd2CM: setup.sd2CM, sd2FM: setup.sd2FM,
+      sd1CM: setup.sd1CM, sd1FM: setup.sd1FM, sd2CM: setup.sd2CM, sd2FM: setup.sd2FM, sd3CM: setup.sd3CM, sd3FM: setup.sd3FM,
+      sd4CM: setup.sd4CM, sd4FM: setup.sd4FM, sd5CM: setup.sd5CM, sd5FM: setup.sd5FM,
     };
   }
   restoreMoveSelection("playerCM", setup.playerCM);
@@ -5721,7 +5833,7 @@ function applySetup(setup){
   updateTeamPreview();
   syncCombinedModifiers();
   if(typeof updateDoubleCatch === "function") updateDoubleCatch();
-  if(typeof updateMainRule === "function") updateMainRule();
+  if(typeof updateSupportRowNames === "function") updateSupportRowNames();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function loadHistory(){
@@ -6674,9 +6786,12 @@ const SETUP_SHORT_KEYS = {
   ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctDoubleCatch:"tdc", ctDcFMs:"tdf", ctRejoinSecs:"trs",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
-  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr",
+  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas",
   sd1Name:"h1n", sd1Level:"h1l", sd1IvAtk:"h1a", sd1IvDef:"h1d", sd1IvHp:"h1h", sd1CM:"h1c", sd1FM:"h1f", sd1Sponge:"h1s", sd1First:"h1p", sd1Rule:"h1r", sd1Dodge:"h1g",
   sd2Name:"h2n", sd2Level:"h2l", sd2IvAtk:"h2a", sd2IvDef:"h2d", sd2IvHp:"h2h", sd2CM:"h2c", sd2FM:"h2f", sd2Sponge:"h2s", sd2First:"h2p", sd2Rule:"h2r", sd2Dodge:"h2g",
+  sd3Name:"h3n", sd3Level:"h3l", sd3IvAtk:"h3a", sd3IvDef:"h3d", sd3IvHp:"h3h", sd3CM:"h3c", sd3FM:"h3f", sd3Sponge:"h3s", sd3First:"h3p", sd3Rule:"h3r", sd3Dodge:"h3g",
+  sd4Name:"h4n", sd4Level:"h4l", sd4IvAtk:"h4a", sd4IvDef:"h4d", sd4IvHp:"h4h", sd4CM:"h4c", sd4FM:"h4f", sd4Sponge:"h4s", sd4First:"h4p", sd4Rule:"h4r", sd4Dodge:"h4g",
+  sd5Name:"h5n", sd5Level:"h5l", sd5IvAtk:"h5a", sd5IvDef:"h5d", sd5IvHp:"h5h", sd5CM:"h5c", sd5FM:"h5f", sd5Sponge:"h5s", sd5First:"h5p", sd5Rule:"h5r", sd5Dodge:"h5g",
 };
 const SETUP_LONG_KEYS = Object.fromEntries(Object.entries(SETUP_SHORT_KEYS).map(([k,v]) => [v,k]));
 function encodeSetupForUrl(setup){
@@ -6923,8 +7038,9 @@ document.getElementById("ctAddType").addEventListener("click", () => setTeamType
 // come back: one swaps out (hot swap) when it can't reach another charge move, its catch tanks
 // used and a sponge unsafe. A support card is a copy of the catch tank card (Pokemon, level, IVs,
 // moves) with the attacker's own settings in place of the catch tank ones.
-function supportCount(){ return Math.max(0, Math.min(2, parseInt((document.getElementById("sdCount") || {}).value, 10) || 0)); }
-function supportPrefixes(){ return ["sd1", "sd2"].slice(0, supportCount()); }
+const SUPPORT_MAX = 5;   // six attackers in all: e.g. a chain of six Zacian Crown
+function supportCount(){ return Math.max(0, Math.min(SUPPORT_MAX, parseInt((document.getElementById("sdCount") || {}).value, 10) || 0)); }
+function supportPrefixes(){ return ["sd1", "sd2", "sd3", "sd4", "sd5"].slice(0, supportCount()); }
 function buildSupportCard(k){
   const p = "sd" + k, card = document.getElementById("teamCard").cloneNode(true);
   card.id = "supportCard" + k;
@@ -6939,21 +7055,8 @@ function buildSupportCard(k){
   card.querySelector(".team-card-name").textContent = "Support DPSer " + k;
   const link = card.querySelector(".team-ct-link"); if(link) link.remove();
   [p + "Verdict", p + "Outcomes"].forEach(id => { const el = card.querySelector("#" + id); if(el) el.remove(); });
-  const row = card.querySelector(".team-type-row");
-  row.className = "team-type-row support-settings";
-  row.innerHTML = `
-    <label class="check-item"><input type="checkbox" id="${p}Sponge" checked> Can sponge</label>
-    <label class="check-item"><input type="checkbox" id="${p}Dodge"> Can dodge</label>
-    <div class="field"><label for="${p}First">Boss charge moves</label>
-      <select id="${p}First" title="When this attacker is in: who takes the boss's charge moves first">
-        <option value="sponge" selected>Sponge first, then catch tanks</option>
-        <option value="tanks">Catch tanks first, then sponge</option>
-      </select></div>
-    <div class="field"><label for="${p}Rule">Sponge rule</label>
-      <select id="${p}Rule" title="Survive only: it sponges whenever it can take the hit and still reach its next charge move, even if some energy goes over 100. Keep the energy: the main DPSer's rule - no more than 10% over the cap while catch tanks are left.">
-        <option value="survive" selected>Survive only (overflow OK)</option>
-        <option value="keep">Keep the energy (≤10% over)</option>
-      </select></div>`;
+  const row = card.querySelector(".team-type-row");   // quantity / charge moves / used by: not for attackers
+  if(row) row.remove();
   const $c = id => card.querySelector("#" + p + id);
   $c("Name").value = ""; $c("Name").placeholder = "e.g. Mega Rayquaza";
   $c("Level").value = "50"; ["IvAtk", "IvDef", "IvHp"].forEach(id => $c(id).value = "15");
@@ -6964,22 +7067,46 @@ function buildSupportCard(k){
 function wireSupportCard(p){
   initPokemonAutocomplete(p + "Name", p + "Name_ac");
   ["input", "change"].forEach(ev => document.getElementById(p + "Name")
-    .addEventListener(ev, () => { updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); renderTeamOrder(); }));
+    .addEventListener(ev, () => { updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); renderTeamOrder(); updateSupportRowNames(); }));
+}
+// The support DPSers' settings, one row each in "Support DPS behavior"
+function buildSupportRow(k){
+  const p = "sd" + k, row = document.createElement("div");
+  row.className = "sd-behavior-row"; row.id = "supportRow" + k;
+  row.innerHTML = `
+    <span class="sd-row-name"><b>Support DPSer ${k}</b> <span id="${p}RowName"></span></span>
+    <label class="check-item" title="This support DPSer takes the boss's charge moves itself when it is safe: while it has catch tanks, only when that keeps its energy (no more than 10% over 100) and it can fire again; with none left, whenever it can survive to its next charge move."><input type="checkbox" id="${p}Sponge" checked> Can sponge</label>
+    <label class="check-item" title="This support DPSer dodges the boss's charge move instead, when that is safe (as Main can dodge)."><input type="checkbox" id="${p}Dodge"> Can dodge</label>
+    <label class="check-item team-dodge-limit" title="Who takes the boss's charge moves first while this support DPSer is in">First
+      <select id="${p}First"><option value="sponge" selected>Sponge, then catch tanks</option><option value="tanks">Catch tanks, then sponge</option></select>
+    </label>`;
+  return row;
+}
+function updateSupportRowNames(){
+  supportPrefixes().forEach(p => {
+    const el = document.getElementById(p + "RowName"), nm = (document.getElementById(p + "Name") || {}).value || "";
+    if(el) el.innerHTML = nm.trim() ? `&middot; ${nm.trim().replace(/</g, "&lt;")}` : "";
+  });
 }
 function setSupportCount(n){
-  n = Math.max(0, Math.min(2, n));
-  const wrap = document.getElementById("supportCards");
-  for(let k = 1; k <= 2; k++){
+  n = Math.max(0, Math.min(SUPPORT_MAX, n));
+  const wrap = document.getElementById("supportCards"), rows = document.getElementById("supportBehaviorRows");
+  for(let k = 1; k <= SUPPORT_MAX; k++){
     const have = document.getElementById("supportCard" + k);
     if(k <= n && !have){ wrap.appendChild(buildSupportCard(k)); wireSupportCard("sd" + k); }
     if(k > n && have) have.remove();
+    const hasRow = document.getElementById("supportRow" + k);
+    if(k <= n && !hasRow) rows.appendChild(buildSupportRow(k));
+    if(k > n && hasRow) hasRow.remove();
   }
+  document.getElementById("supportBehaviorEmpty").hidden = n > 0;
+  updateSupportRowNames();
   document.getElementById("sdCount").value = String(n);
-  for(let k = 1; k <= 2; k++){   // only the last support card offers Remove
+  for(let k = 1; k <= SUPPORT_MAX; k++){   // only the last support card offers Remove
     const c = document.getElementById("supportCard" + k);
     if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = (k !== n); btn.onclick = () => setSupportCount(n - 1); }
   }
-  document.getElementById("sdAdd").hidden = n >= 2;
+  document.getElementById("sdAdd").hidden = n >= SUPPORT_MAX;
   updateOwnerOptions();
   renderTeamOrder();
   if(typeof updateTeamPreview === "function") updateTeamPreview();
@@ -6990,9 +7117,9 @@ function updateOwnerOptions(){
   ["ct", "ct2", "ct3"].forEach(p => {
     const sel = document.getElementById(p + "Owner");
     if(!sel) return;
-    [...sel.options].forEach(o => { if(/^[12]$/.test(o.value)) o.hidden = +o.value > n; });
-    if(/^[12]$/.test(sel.value) && +sel.value > n) sel.value = "any";
-    const f = sel.closest(".owner-field"); if(f) f.hidden = n === 0;
+    [...sel.options].forEach(o => { if(/^[1-5]$/.test(o.value)) o.hidden = +o.value > n; });
+    if(/^[1-5]$/.test(sel.value) && +sel.value > n) sel.value = "any";
+    const f = sel.closest(".owner-field"); if(f) f.hidden = true;   // replaced by Priority & hot swap order
   });
 }
 document.getElementById("sdAdd").addEventListener("click", () => setSupportCount(supportCount() + 1));
@@ -7009,37 +7136,160 @@ function teamOrder(){
   return order;
 }
 function setTeamOrder(order){ document.getElementById("ctPriority").value = order.join(","); renderTeamOrder(); }
-function renderTeamOrder(){
-  const list = document.getElementById("ctOrderList");
-  if(!list) return;
-  const order = teamOrder(), sponge = document.getElementById("ctMainAbsorb").checked;
-  document.getElementById("ctPriority").value = order.join(",");
-  const label = x => {
-    if(x === "main") return `<b>Main DPSer</b>${sponge ? "" : ` <span class="team-order-off">&middot; off (Main can sponge is unticked)</span>`}`;
-    const p = x === "1" ? "ct" : "ct" + x;
-    const name = (document.getElementById(p + "Name") || {}).value || "";
-    const qty = (document.getElementById(p + "Qty") || {}).value || "";
-    return `<b>Catch Tank ${x}</b>${name.trim() ? ` <span>&middot; ${name.trim().replace(/</g, "&lt;")} &times;${qty}</span>` : ""}`;
+// ---- Priority & hot swap order ----
+// One list for the whole rotation: the attackers in the order they come in (blocks), and inside
+// each, who takes the boss's charge moves while it is in - its own catch tanks, one by one, and its
+// sponge ("s"). Kept in #ctPlan as "m:1.1,1.2,s|s1:s,1.3,1.4" (m = Main DPSer, s1 = Support DPSer 1;
+// 1.3 = Catch Tank 1, #3). Soft assignment: an attacker uses its own catch tanks first and may
+// borrow unused ones before it hot swaps; strict: only its own.
+function teamPlanAttackers(){ return ["m"].concat(supportPrefixes().map((p, i) => "s" + (i + 1))); }
+function teamPlanTanks(){
+  const $ = id => document.getElementById(id);
+  if(supportCount() > 0 && teamTypeCount() === 1 && !$("ctName").value.trim()) return [];   // a chain with no catch tanks
+  const out = [];
+  teamPrefixes().forEach((p, i) => {
+    const q = Math.max(1, Math.min(10, parseInt(($(p + "Qty") || {}).value, 10) || 1));
+    for(let j = 1; j <= q; j++) out.push(`${i + 1}.${j}`);
+  });
+  return out;
+}
+function teamPlanParse(str){
+  return String(str || "").split("|").map(b => {
+    const m = b.match(/^\s*(m|s[1-5])\s*:(.*)$/);
+    return m ? { att: m[1], items: m[2].split(",").map(x => x.trim()).filter(Boolean) } : null;
+  }).filter(Boolean);
+}
+// Setups saved before the list: the old Priority order (the main DPSer's place among the catch tank
+// types), each type's "Used by", and each support's "First" setting.
+function teamPlanLegacy(atts, tanks){
+  const blocks = atts.map(a => ({ att: a, items: [] })), B = a => blocks.find(b => b.att === a);
+  const ownerOf = k => {
+    const v = (document.getElementById((k === 1 ? "ct" : "ct" + k) + "Owner") || {}).value;
+    return /^[1-5]$/.test(v || "") && +v <= supportCount() ? "s" + v : "m";
   };
-  list.innerHTML = order.map((x, i) => `<li class="${x === "main" && !sponge ? "is-off" : ""}">
-      <span class="team-order-pos">${i + 1}</span><span class="team-order-label">${label(x)}</span>
-      <button type="button" aria-label="Move up" ${i === 0 ? "disabled" : ""} data-i="${i}" data-d="-1">&uarr;</button>
-      <button type="button" aria-label="Move down" ${i === order.length - 1 ? "disabled" : ""} data-i="${i}" data-d="1">&darr;</button></li>`).join("");
-  list.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
-    const o = teamOrder(), i = +b.dataset.i, j = i + +b.dataset.d;
-    [o[i], o[j]] = [o[j], o[i]]; setTeamOrder(o);
+  teamOrder().forEach(x => {
+    if(x === "main"){ B("m").items.push("s"); return; }
+    tanks.filter(t => t.split(".")[0] === x).forEach(t => (B(ownerOf(+x)) || B("m")).items.push(t));
+  });
+  blocks.forEach(b => {
+    if(b.att === "m") return;
+    const first = (document.getElementById("sd" + b.att.slice(1) + "First") || {}).value !== "tanks";
+    if(first) b.items.unshift("s"); else b.items.push("s");
+  });
+  return blocks;
+}
+// The plan as it stands, made consistent with the cards (attackers and catch tanks added or removed)
+// and written back to #ctPlan.
+function teamPlan(){
+  const atts = teamPlanAttackers(), tanks = teamPlanTanks(), el = document.getElementById("ctPlan");
+  let blocks = teamPlanParse(el.value);
+  if(!blocks.length) blocks = teamPlanLegacy(atts, tanks);
+  const seen = new Set();
+  blocks = blocks.filter(b => atts.includes(b.att) && !seen.has(b.att) && seen.add(b.att));
+  atts.forEach(a => { if(!seen.has(a)) blocks.push({ att: a, items: ["s"] }); });   // a new support: sponges first
+  const used = new Set();
+  blocks.forEach(b => {
+    let sp = false;
+    b.items = b.items.filter(x => {
+      if(x === "s"){ if(sp) return false; sp = true; return true; }
+      if(!tanks.includes(x) || used.has(x)) return false;
+      used.add(x); return true;
+    });
+    if(!sp) b.items.unshift("s");
+  });
+  const mainB = blocks.find(b => b.att === "m");
+  tanks.forEach(t => { if(!used.has(t)) mainB.items.push(t); });   // a new catch tank joins the main DPSer's block
+  el.value = blocks.map(b => b.att + ":" + b.items.join(",")).join("|");
+  return blocks;
+}
+function teamPlanSet(blocks){ document.getElementById("ctPlan").value = blocks.map(b => b.att + ":" + b.items.join(",")).join("|"); renderTeamOrder(); }
+function teamAttInput(a, what){ return document.getElementById(a === "m" ? (what === "sponge" ? "ctMainAbsorb" : "ctMainDodge") : "sd" + a.slice(1) + (what === "sponge" ? "Sponge" : "Dodge")); }
+function teamAttName(a){
+  const v = ((document.getElementById(a === "m" ? "pokemonName" : "sd" + a.slice(1) + "Name") || {}).value || "").trim();
+  return v || (a === "m" ? "Main DPSer" : "Support DPSer " + a.slice(1));
+}
+function teamTankLabel(t){
+  const [k, j] = t.split("."), p = k === "1" ? "ct" : "ct" + k;
+  const nm = ((document.getElementById(p + "Name") || {}).value || "").trim() || "Catch Tank " + k;
+  const q = Math.max(1, parseInt((document.getElementById(p + "Qty") || {}).value, 10) || 1);
+  return q > 1 ? `${nm} #${j}` : nm;
+}
+function renderTeamOrder(){
+  const list = document.getElementById("ctPlanList");
+  if(!list) return;
+  const blocks = teamPlan(), strict = document.getElementById("ctAssign").value === "strict";
+  document.querySelectorAll(".pl-seg button").forEach(b => b.classList.toggle("on", (b.dataset.assign === "strict") === strict));
+  document.getElementById("ctAssignHint").textContent = strict
+    ? "Each attacker uses only its own catch tanks; when they are gone (and it can't safely sponge) it hot swaps."
+    : "Each attacker uses its own catch tanks first, and may borrow an unused one from another attacker before it hot swaps.";
+  const esc = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  const ico = n => `<img class="pl-ico" src="${esc(spriteUrl(n))}" alt="" onerror="this.style.visibility='hidden'">`;
+  const arrows = (up, down, data) => `<span class="pl-arrows"><button type="button" aria-label="Move up" ${up ? "" : "disabled"} ${data} data-d="-1">&uarr;</button><button type="button" aria-label="Move down" ${down ? "" : "disabled"} ${data} data-d="1">&darr;</button></span>`;
+  list.innerHTML = blocks.map((b, bi) => {
+    const name = teamAttName(b.att), role = b.att === "m" ? "Main DPSer" : "Support DPSer " + b.att.slice(1);
+    const spongeOn = (teamAttInput(b.att, "sponge") || {}).checked, dodgeOn = (teamAttInput(b.att, "dodge") || {}).checked;
+    const items = b.items.map((x, i) => {
+      const nav = arrows(i > 0, i < b.items.length - 1, `data-b="${bi}" data-i="${i}"`);
+      if(x === "s") return `<li class="pl-item pl-sponge${spongeOn ? "" : " is-off"}"><span class="pl-num">${i + 1}</span><span class="pl-sym">&#10515;</span>
+        <span class="pl-label"><b>${esc(name)} sponges</b> <span>&middot; ${spongeOn ? "when it keeps its energy" : "off"}</span></span>
+        <label class="pl-switch" title="Whether ${esc(name)} takes the boss's charge moves itself when it is safe"><input type="checkbox" data-sponge="${b.att}" ${spongeOn ? "checked" : ""}> on</label>${nav}</li>`;
+      const tName = teamTankLabel(x);
+      const opts = blocks.map((o, oi) => `<option value="${oi}" ${oi === bi ? "selected" : ""}>${oi === bi ? "for " : "&rarr; "}${esc(teamAttName(o.att))}</option>`).join("");
+      return `<li class="pl-item"><span class="pl-num">${i + 1}</span>${ico(tName.replace(/ #\d+$/, ""))}
+        <span class="pl-label"><b>${esc(tName)}</b> <span>&middot; catch tank</span></span>
+        ${blocks.length > 1 ? `<select class="pl-move" data-b="${bi}" data-i="${i}" title="Which attacker this catch tank catches for">${opts}</select>` : ""}${nav}</li>`;
+    }).join("");
+    return `<div class="pl-group">
+      <div class="pl-group-head"><span class="pl-gnum">${bi + 1}</span>${ico(name)}<span class="pl-gname"><b>${esc(name)}</b> <span>&middot; ${role}</span></span>
+        <label class="check-item pl-dodge" title="${esc(name)} dodges the boss's charge move instead, when that is safe"><input type="checkbox" data-dodge="${b.att}" ${dodgeOn ? "checked" : ""}> Can dodge</label>
+        ${blocks.length > 1 ? arrows(bi > 0, bi < blocks.length - 1, `data-blk="${bi}"`) : ""}</div>
+      <ol class="pl-list">${items}</ol></div>`;
+  }).join("");
+}
+(function(){
+  const list = document.getElementById("ctPlanList");
+  list.addEventListener("click", e => {
+    const btn = e.target.closest("button[data-d]");
+    if(!btn) return;
+    const blocks = teamPlan(), d = +btn.dataset.d;
+    if(btn.dataset.blk !== undefined){
+      const i = +btn.dataset.blk, j = i + d;
+      [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+    } else {
+      const b = blocks[+btn.dataset.b], i = +btn.dataset.i, j = i + d;
+      [b.items[i], b.items[j]] = [b.items[j], b.items[i]];
+    }
+    teamPlanSet(blocks);
+  });
+  list.addEventListener("change", e => {
+    const t = e.target;
+    if(t.matches("select.pl-move")){
+      const blocks = teamPlan(), from = blocks[+t.dataset.b], to = blocks[+t.value];
+      const [x] = from.items.splice(+t.dataset.i, 1);
+      to.items.push(x);
+      teamPlanSet(blocks);
+    } else if(t.dataset.sponge){
+      const el = teamAttInput(t.dataset.sponge, "sponge"); if(el){ el.checked = t.checked; el.dispatchEvent(new Event("change", { bubbles: true })); }
+      renderTeamOrder();
+    } else if(t.dataset.dodge){
+      const el = teamAttInput(t.dataset.dodge, "dodge"); if(el){ el.checked = t.checked; el.dispatchEvent(new Event("change", { bubbles: true })); }
+      updateDodgeLimit(); renderTeamOrder();
+    }
+  });
+  document.querySelectorAll(".pl-seg button").forEach(b => b.addEventListener("click", () => {
+    document.getElementById("ctAssign").value = b.dataset.assign;
+    renderTeamOrder();
+    document.getElementById("ctAssign").dispatchEvent(new Event("change", { bubbles: true }));
   }));
-}
+  // the attackers' names in the list follow their cards
+  ["pokemonName"].forEach(id => ["input", "change"].forEach(ev => document.getElementById(id).addEventListener(ev, renderTeamOrder)));
+})();
 document.getElementById("ctMainAbsorb").addEventListener("change", renderTeamOrder);
-function updateMainRule(){
-  const on = document.getElementById("ctMainAbsorb").checked;
-  document.getElementById("ctMainRuleWrap").classList.toggle("is-off", !on);
-  document.getElementById("ctMainRule").disabled = !on;
-}
-document.getElementById("ctMainAbsorb").addEventListener("change", updateMainRule);
+function updateMainRule(){}   // the sponge rule is no longer a setting (kept so callers needn't change)
 // "Dodges before bailing" only matters while dodging is allowed
 function updateDodgeLimit(){
-  const on = document.getElementById("ctMainDodge").checked;
+  const on = document.getElementById("ctMainDodge").checked
+    || supportPrefixes().some(p => (document.getElementById(p + "Dodge") || {}).checked);
   document.getElementById("ctDodgeLimitWrap").classList.toggle("is-off", !on);
   document.getElementById("ctDodgeLimit").disabled = !on;
 }
