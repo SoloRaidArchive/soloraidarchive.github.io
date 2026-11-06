@@ -1443,7 +1443,7 @@ if ("serviceWorker" in navigator) {
         <li>Each catch tank uses one fast move before its first charge move, as in Single Catch Tank mode.</li>
         <li><b>Priority &amp; hot swap order</b> lists the attackers in the order they come in (the main DPSer, then any support DPSers), and under each one who takes the boss's charge moves while it is in: its own catch tanks, one by one, and its own sponge. Whatever is higher goes first - a sponge above the catch tanks means the attacker tries to take the charge move itself before calling a catch tank in. <b>Soft</b> assignment lets an attacker borrow an unused catch tank from another attacker before it hot swaps; <b>Strict</b> keeps each to its own. Sponging needs no setting:
           <ul>
-            <li><b>While the attacker has catch tanks</b>, the energy can be managed, so a sponge has to earn its place over a catch: it must keep at least 90% of the hit's energy (no more than 10% going over 100), survive it, and fire its own charge move before the boss's next one. Otherwise a catch tank intercepts - even when the sponge is listed first - rather than waste the energy.</li>
+            <li><b>While the attacker has catch tanks</b>, the energy can be managed, so a sponge has to earn its place over a catch: it must absorb at least 90% of the hit's energy (no more than 10% overflow), survive it, and fire its own charge move before the boss's next one. Otherwise a catch tank intercepts - even when the sponge is listed first - rather than waste the energy.</li>
             <li><b>Once it has no catch tank left</b>, the run plays out: it keeps taking charge moves for as long as its HP can cover another full rotation - the hit, then the boss's fast moves while it refills its energy and casts its charge move. When another rotation isn't safe it hot swaps to the next attacker, or, if it is the last, goes all in (or bails - see below). An attacker that can't live to land its next charge move hot swaps straight away.</li>
           </ul>
         </li>
@@ -1632,19 +1632,6 @@ if ("serviceWorker" in navigator) {
               <button type="button" id="ctQtyPlus" aria-label="One more catch tank">+</button>
             </div>
           </div>
-          <!-- hot swap: which attacker these catch tanks serve (shown once a support DPSer is added) -->
-          <div class="field owner-field" hidden>
-            <label for="ctOwner">Used by</label>
-            <select id="ctOwner" title="Which attacker these catch tanks catch for. With support DPSers, give each attacker its own - e.g. two Necrozma Dusk Mane for the main DPSer and two for the support - so the main hot swaps out when its own are used.">
-              <option value="any" selected>Any attacker</option>
-              <option value="0">Main DPSer</option>
-              <option value="1">Support DPSer 1</option>
-              <option value="2">Support DPSer 2</option>
-              <option value="3">Support DPSer 3</option>
-              <option value="4">Support DPSer 4</option>
-              <option value="5">Support DPSer 5</option>
-            </select>
-          </div>
         </div>
       </div>
       <div class="vs-col">
@@ -1669,7 +1656,7 @@ if ("serviceWorker" in navigator) {
       <div><div class="step-title">Rotation behavior</div></div>
     </div>
     <!-- Sponging needs no setting: while an attacker has catch tanks it only sponges when that keeps
-         its energy (no more than 10% over 100) and it can fire again; with none left, a health check. -->
+         the energy (no more than 10% overflow) and it can fire again; with none left, a health check. -->
     <div class="tb-group">
       <div class="tb-group-head">Main behavior</div>
       <div class="team-behavior-row">
@@ -1686,7 +1673,7 @@ if ("serviceWorker" in navigator) {
       </div>
     </div>
     <div class="tb-group">
-      <div class="tb-group-head">Priority &amp; hot swap order <span>&middot; attackers come in top to bottom; within each, who takes the boss's charge moves first</span></div>
+      <div class="tb-group-head">Priority &amp; hot swap order</div>
       <div class="pl-mode">
         <span class="pl-mode-lbl">Catch tank assignment</span>
         <div class="pl-seg" role="group" aria-label="Catch tank assignment">
@@ -1705,8 +1692,10 @@ if ("serviceWorker" in navigator) {
       <input type="hidden" id="ctTypes" value="1">
       <input type="hidden" id="sdCount" value="0">
       <div hidden>
-        <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label><label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label><input type="checkbox" id="ctCmBuffer" hidden tabindex="-1">
+        <label class="check-item" title="Safe = absorbs at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label><label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label><input type="checkbox" id="ctCmBuffer" hidden tabindex="-1">
         <div id="supportBehaviorRows"></div><div id="supportBehaviorEmpty"></div>
+        <!-- "Used by" from before the list (Catch Tank 1 / 2 / 3), only read to convert old setups -->
+        <input type="hidden" id="ctOwner" value="any"><input type="hidden" id="ct2Owner" value="any"><input type="hidden" id="ct3Owner" value="any">
       </div>
     </div>
     <div class="tb-group">
@@ -3288,7 +3277,7 @@ function teamStep(S, R, P, snap){
         ev: { type: "hit", who, dmg, energy: energyFromDamage(dmg) - over, over, ko: m.hp <= 0, dodged },
         text: m.hp <= 0
           ? `${teamLabel(P, who)} ${dodged ? "dodges" : "takes"} ${P.bossCM.n}: ${dmg} damage`
-          : `${teamLabel(P, who)} ${dodged ? "dodges" : "takes"} ${P.bossCM.n}: ${dmg} damage, +${energyFromDamage(dmg) - over} energy${over ? ` (${over} over the cap)` : ""}` });
+          : `${teamLabel(P, who)} ${dodged ? "dodges" : "takes"} ${P.bossCM.n}: ${dmg} damage, +${energyFromDamage(dmg) - over} energy${over ? ` (${over} overflow)` : ""}` });
       // Sponging must keep at least 90% of the charge move's energy: no more than 10% may go over
       // 100. (All-or-nothing was too strict to ever pass; no limit at all let Eternatus waste 67 of
       // 83 energy on a sponge it didn't need.) A dodge must keep at least 85% of the (smaller)
@@ -3940,7 +3929,7 @@ function teamLogLine(P, e){
     case "swap": return `${teamSym("swap", "Swap")}${v.from !== undefined ? `${ico(v.from)} Out, ` : ""}${ico(v.who)} In`;
     case "hit": return `${teamIcon(P, "boss")} ${cm} Hit <span class="team-arrow">&rarr;</span> ${ico(v.who)}${v.dodged ? " dodged" : ""} <span class="team-num neg">&minus;${v.dmg} HP</span>`
       + (v.ko ? ` <span class="team-dim">fainted</span>`
-              : ` <span class="team-num pos">+${v.energy} energy</span>${v.over ? ` <span class="team-dim">(${v.over} over 100)</span>` : ""}`);
+              : ` <span class="team-num pos">+${v.energy} energy</span>${v.over ? ` <span class="team-dim">(${v.over} overflow)</span>` : ""}`);
     case "cast": return `${ico(v.who)} <b>${v.move}</b> Cast${v.finish ? ` <span class="team-dim">&middot; finisher</span>` : ""}`;
     case "chip": return `${teamIcon(P, "boss")} <b>${v.move}</b> ${v.n > 1 ? `&times;${v.n}` : "Hit"} <span class="team-arrow">&rarr;</span> ${ico(v.who)} <span class="team-num neg">&minus;${v.dmg} HP</span>`;
     case "cmHit": return `${ico(v.who)} <b>${v.move}</b> Hit <span class="team-num">${v.dmg} dmg</span>`;
@@ -5143,7 +5132,7 @@ function runCalculation(){
                                                   : ` - ${pkmnName} had already fainted, so it absorbs no energy`;
                       energy = `<b class="bseq-e lane${lane} is-fainted" style="left:${pct.toFixed(2)}%" title="${label}">+0</b>`;
                     } else {
-                      label += ` - absorbed ${m.absorbed} of ${m.gain} energy${over > 0 ? ` (${over} over 100)` : ""}`;
+                      label += ` - absorbed ${m.absorbed} of ${m.gain} energy${over > 0 ? ` (${over} overflow)` : ""}`;
                       energy = `<b class="bseq-e lane${lane}${over > 0 ? " is-over" : ""}" style="left:${pct.toFixed(2)}%" title="${label}">+${m.absorbed}</b>`;
                     }
                   }
@@ -7074,7 +7063,7 @@ function buildSupportRow(k){
   row.className = "sd-behavior-row"; row.id = "supportRow" + k;
   row.innerHTML = `
     <span class="sd-row-name"><b>Support DPSer ${k}</b> <span id="${p}RowName"></span></span>
-    <label class="check-item" title="This support DPSer takes the boss's charge moves itself when it is safe: while it has catch tanks, only when that keeps its energy (no more than 10% over 100) and it can fire again; with none left, whenever it can survive to its next charge move."><input type="checkbox" id="${p}Sponge" checked> Can sponge</label>
+    <label class="check-item" title="This support DPSer takes the boss's charge moves itself when it is safe: while it has catch tanks, only when it absorbs the energy (no more than 10% overflow) and it can fire again; with none left, whenever it can survive to its next charge move."><input type="checkbox" id="${p}Sponge" checked> Can sponge</label>
     <label class="check-item" title="This support DPSer dodges the boss's charge move instead, when that is safe (as Main can dodge)."><input type="checkbox" id="${p}Dodge"> Can dodge</label>
     <label class="check-item team-dodge-limit" title="Who takes the boss's charge moves first while this support DPSer is in">First
       <select id="${p}First"><option value="sponge" selected>Sponge, then catch tanks</option><option value="tanks">Catch tanks, then sponge</option></select>
@@ -7112,13 +7101,12 @@ function setSupportCount(n){
 }
 // "Used by" on the catch tank cards: only offered once there is a support DPSer, listing those added
 function updateOwnerOptions(){
+  // "Used by" is no longer on the cards (Priority & hot swap order replaced it); its old value is
+  // only kept to convert setups saved before the list - one naming a support that isn't there is "any"
   const n = supportCount();
   ["ct", "ct2", "ct3"].forEach(p => {
-    const sel = document.getElementById(p + "Owner");
-    if(!sel) return;
-    [...sel.options].forEach(o => { if(/^[1-5]$/.test(o.value)) o.hidden = +o.value > n; });
-    if(/^[1-5]$/.test(sel.value) && +sel.value > n) sel.value = "any";
-    const f = sel.closest(".owner-field"); if(f) f.hidden = true;   // replaced by Priority & hot swap order
+    const el = document.getElementById(p + "Owner");
+    if(el && /^[1-5]$/.test(el.value) && +el.value > n) el.value = "any";
   });
 }
 document.getElementById("sdAdd").addEventListener("click", () => setSupportCount(supportCount() + 1));
@@ -7230,7 +7218,7 @@ function renderTeamOrder(){
     const items = b.items.map((x, i) => {
       const nav = arrows(i > 0, i < b.items.length - 1, `data-b="${bi}" data-i="${i}"`);
       if(x === "s") return `<li class="pl-item pl-sponge${spongeOn ? "" : " is-off"}"><span class="pl-num">${i + 1}</span><span class="pl-sym">&#10515;</span>
-        <span class="pl-label"><b>${esc(name)} sponges</b> <span>&middot; ${spongeOn ? "when it keeps its energy" : "off"}</span></span>
+        <span class="pl-label"><b>${esc(name)} sponges</b> <span>&middot; ${spongeOn ? "when it absorbs the energy (&le;10% overflow)" : "off"}</span></span>
         <label class="pl-switch" title="Whether ${esc(name)} takes the boss's charge moves itself when it is safe"><input type="checkbox" data-sponge="${b.att}" ${spongeOn ? "checked" : ""}> on</label>${nav}</li>`;
       const tName = teamTankLabel(x);
       const opts = blocks.map((o, oi) => `<option value="${oi}" ${oi === bi ? "selected" : ""}>${oi === bi ? "for " : "&rarr; "}${esc(teamAttName(o.att))}</option>`).join("");
