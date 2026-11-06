@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-06T10:00:19.433949+00:00",
+  "generatedAt": "2026-11-06T18:36:19.591939+00:00",
   "sources": {
-    "pokebattlerSchedule": 41,
-    "pokebattlerScheduleWindows": 54,
+    "pokebattlerSchedule": 40,
+    "pokebattlerScheduleWindows": 52,
     "scrapedDuck": 1,
-    "pokebattlerApiStartDates": 2,
+    "pokebattlerApiStartDates": 4,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
     "pokebattlerApi": 36
@@ -38,6 +38,26 @@
       ],
       "label": "In-person",
       "status": "active"
+    },
+    {
+      "startDate": "Nov 14, 2026",
+      "endDate": "Nov 14, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zekrom",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Kyurem White",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Cloudy"
+        }
+      ],
+      "status": "future"
     },
     {
       "startDate": "Nov 16, 2026",
@@ -98,26 +118,6 @@
         },
         {
           "name": "Kyurem Black",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Cloudy"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Nov 14, 2026",
-      "endDate": "Nov 14, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Zekrom",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Kyurem White",
           "archivePage": "tier5-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Cloudy"
