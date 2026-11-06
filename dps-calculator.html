@@ -1180,6 +1180,11 @@ if ("serviceWorker" in navigator) {
   .team-dc-note{ color:var(--red, #d6455d); font-weight:700; }
   .beta-about-body li ul{ margin:6px 0 2px; padding-left:18px; }
   .beta-about-body li ul li{ margin-bottom:4px; }
+  /* Hot swap: the add buttons side by side; a support card's attacker settings */
+  .team-add-row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .support-settings{ display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+  .support-settings .check-item{ min-height:38px; }
+  .support-settings .field{ min-width:200px; }
 </style>
 <script type="application/ld+json">
 {
@@ -1593,6 +1598,16 @@ if ("serviceWorker" in navigator) {
               <button type="button" id="ctQtyPlus" aria-label="One more catch tank">+</button>
             </div>
           </div>
+          <!-- hot swap: which attacker these catch tanks serve (shown once a support DPSer is added) -->
+          <div class="field owner-field" hidden>
+            <label for="ctOwner">Used by</label>
+            <select id="ctOwner" title="Which attacker these catch tanks catch for. With support DPSers, give each attacker its own - e.g. two Necrozma Dusk Mane for the main DPSer and two for the support - so the main hot swaps out when its own are used.">
+              <option value="any" selected>Any attacker</option>
+              <option value="0">Main DPSer</option>
+              <option value="1">Support DPSer 1</option>
+              <option value="2">Support DPSer 2</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="vs-col">
@@ -1606,6 +1621,8 @@ if ("serviceWorker" in navigator) {
 
   <!-- Catch Tank 2 and 3 are inserted here, as copies of the card above -->
   <div id="teamExtraCards"></div>
+  <!-- Hot swap: Support DPSer 1 and 2, copies of the catch tank card with attacker settings -->
+  <div id="supportCards"></div>
 
   <!-- Beta: settings that apply to the whole run - who may take the boss's charge moves, and in
        what order. -->
@@ -1616,6 +1633,9 @@ if ("serviceWorker" in navigator) {
     </div>
     <div class="team-behavior-row">
       <label class="check-item" title="Safe = keeps at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label>
+      <label class="check-item team-dodge-limit" id="ctMainRuleWrap" title="Keep the energy: a sponge must keep at least 90% of the hit's energy and let the main DPSer fire before the boss's next charge move (while catch tanks are left). Survive only: it sponges whenever it can take the hit and still reach its next charge move - e.g. Eternatus sponging a Fusion Flare or two to build Dynamax Cannon, before its catch tanks come in.">Sponge rule
+        <select id="ctMainRule"><option value="keep" selected>Keep the energy</option><option value="survive">Survive only</option></select>
+      </label>
       <input type="checkbox" id="ctCmBuffer" hidden tabindex="-1"><!-- no longer offered in the Beta; kept so old links load - always treated as off -->
       <label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label>
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
@@ -1638,7 +1658,11 @@ if ("serviceWorker" in navigator) {
     <!-- the order, saved with setups and links: "main" and catch tank numbers, e.g. "main,1,2" -->
     <input type="hidden" id="ctPriority" value="main,1">
     <input type="hidden" id="ctTypes" value="1">
-    <button type="button" class="team-add-btn" id="ctAddType">+ Add another catch tank</button>
+    <div class="team-add-row">
+      <button type="button" class="team-add-btn" id="ctAddType">+ Add another catch tank</button>
+      <button type="button" class="team-add-btn" id="sdAdd" title="Hot swap: when the attacker in can't reach another charge move (its catch tanks used and a sponge unsafe), it swaps out and the next support DPSer comes in.">+ Add a support DPSer</button>
+    </div>
+    <input type="hidden" id="sdCount" value="0">
   </div>
 
   <!-- STEP 2: ADDITIONAL MODIFIERS -->
@@ -2581,13 +2605,13 @@ function refreshMoveDropdowns(){
   const pending = PENDING_MOVE_SELECTION;
   if(document.getElementById("pokemonName").value.trim()) updateMoveOptionsFor("pokemonName","playerCM","playerFM");
   if(document.getElementById("bossName").value.trim()) updateMoveOptionsFor("bossName","bossCM","bossFM");
-  teamPrefixes().forEach(p => { if(document.getElementById(p + "Name").value.trim()) updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); });
+  teamPrefixes().concat(supportPrefixes()).forEach(p => { if(document.getElementById(p + "Name").value.trim()) updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); });
   if(pending){
     restoreMoveSelection("playerCM", pending.playerCM);
     restoreMoveSelection("playerFM", pending.playerFM);
     restoreMoveSelection("bossCM", pending.bossCM);
     restoreMoveSelection("bossFM", pending.bossFM);
-    teamPrefixes().forEach(p => { restoreMoveSelection(p + "CM", pending[p + "CM"]); restoreMoveSelection(p + "FM", pending[p + "FM"]); });
+    teamPrefixes().concat(supportPrefixes()).forEach(p => { restoreMoveSelection(p + "CM", pending[p + "CM"]); restoreMoveSelection(p + "FM", pending[p + "FM"]); });
     PENDING_MOVE_SELECTION = null;
   }
   // Always re-render previews and re-run type detection, not just for shared links: a user who
@@ -2828,10 +2852,15 @@ function simulateTeam(P){
     // fast moves (no charge move, no swapping out), however early it came in
     mons: [{ tank: false, hp: P.main.hp, energy: 0, busyUntil: 0, cmCasts: 0 }]
       .concat(P.monMeta.slice(1).map(mm => ({ tank: true, type: mm.type, num: mm.num, hp: P.tanks[mm.type].hp, energy: 0, busyUntil: 0, cmCasts: 0, waitCatch: null,
-        dc: 0, dcFMsLeft: 0, primed: false }))),   // double catch: catches so far, fast moves left after the 1st, waiting for its 2nd
+        dc: 0, dcFMsLeft: 0, primed: false,   // double catch: catches so far, fast moves left after the 1st, waiting for its 2nd
+        owner: P.tanks[mm.type].owner ?? -1, used: false }))),   // hot swap: which attacker it serves (-1 any); booked yet
     active: 0, swap: null, pendingSwap: null,   // pendingSwap: { to, latest }
     hits: [], gains: [],
     nextTank: 1, lastTankDoneAt: null,
+    // hot swap: the attacker in slot 0 (index into P.attackers) since attFrom; hotSwap is booked
+    // when it can't take the boss's next charge move { deadline }: it fires if that lands in time,
+    // then swaps out
+    att: 0, attFrom: 0, hotSwap: null,
     // The last point the rotation was on solid ground: a catch tank's final charge move landing,
     // or the main DPSer's charge move landing after a sponge. A run that ends because nobody can
     // take the next charge move is cut back to here, so it never includes a half-built cycle.
@@ -2848,6 +2877,8 @@ function simulateTeam(P){
   };
   const R = newTeamRecorder();
   while(!S.ended){
+    teamApplyAttacker(P, S);
+    const attNow = S.att;
     const snap = (P.mainAbsorbs || P.mainDodges) ? structuredClone(S) : null;   // state at the start of this tick
     const before = { hits: new Set(S.hits), dmg: R.dmg.length, boss: R.bossMoves.length, swaps: R.swaps.length,
                      events: R.events.length, flight: S.boss.inFlight, dodges: R.dodges.length };
@@ -2863,6 +2894,7 @@ function simulateTeam(P){
       let tw = v.who > 0 ? v.who : (v.to > 0 ? v.to : null);
       if(tw === null) tw = S.active > 0 ? S.active : (S.swap ? (S.swap.from > 0 ? S.swap.from : (S.swap.to > 0 ? S.swap.to : null)) : null);
       e.mainHp = S.mons[0].hp;
+      if(e.att === undefined) e.att = (e.ev && e.ev.type === "hotswap") ? e.ev.fromAtt : S.att;
       e.tankWho = tw;
       e.tankHp = tw ? S.mons[tw].hp : null;
     }
@@ -2874,7 +2906,18 @@ function simulateTeam(P){
 }
 
 function newTeamRecorder(){
-  return { dmg: [], events: [], segs: [{ t: 0, who: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], dodges: [], mainEnergy: [], ticks: [], state: [] };
+  return { dmg: [], events: [], segs: [{ t: 0, who: 0, att: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], dodges: [], mainEnergy: [], ticks: [], state: [], attSpans: [] };
+}
+
+// Hot swap: the attackers - the main DPSer, then any support DPSers - take turns in slot 0, one
+// after another (never coming back). P.main and the main DPSer's settings (mainAbsorbs,
+// mainDodges, mainRank, spongeRule) are those of the attacker S.att, loaded here at the start of
+// every tick, so all the decision code serves whichever attacker is in.
+function teamApplyAttacker(P, S){
+  if(!P.attackers) return;
+  const A = P.attackers[S.att || 0];
+  if(P.main === A) return;
+  P.main = A; P.mainAbsorbs = A.absorbs; P.mainDodges = A.dodges; P.mainRank = A.rank; P.spongeRule = A.rule;
 }
 
 // The run's random numbers (mulberry32): small, fast, and its whole state is one number in S, so
@@ -2894,6 +2937,7 @@ function teamBank(m, amount){
 }
 
 function teamStep(S, R, P, snap){
+  teamApplyAttacker(P, S);
   const t = S.t, B = S.boss;
   const sideOf = who => S.mons[who].tank ? P.tanks[S.mons[who].type] : P.main;
 
@@ -2915,12 +2959,37 @@ function teamStep(S, R, P, snap){
     const bossFms = Math.ceil(windowTicks / (P.bossFM.ad + 4));
     return m.hp > tp.bossCmDmg + bossFms * tp.bossFmDmg;
   };
-  const primedTank = () => {
-    if(!P.doubleCatch) return 0;
-    for(let i = 1; i < S.mons.length; i++){ const m = S.mons[i]; if(m.primed && m.hp > 0 && safeSecond(m)) return i; }
+  // Hot swap: a catch tank serves any attacker, or only the one it is set to ("Used by").
+  const mayUse = m => m.owner < 0 || m.owner === (S.att || 0);
+  const nextFresh = () => {   // the next unused catch tank the attacker in may use (0 = none)
+    for(let i = 1; i < S.mons.length; i++){ const m = S.mons[i]; if(!m.used && mayUse(m)) return i; }
     return 0;
   };
-  const noTankLeft = () => S.nextTank > P.qty && !primedTank();
+  const primedTank = () => {
+    if(!P.doubleCatch) return 0;
+    for(let i = 1; i < S.mons.length; i++){ const m = S.mons[i]; if(m.primed && m.hp > 0 && mayUse(m) && safeSecond(m)) return i; }
+    return 0;
+  };
+  const noTankLeft = () => !nextFresh() && !primedTank();
+  // Another attacker waiting to come in (never in a probe: a probe that reaches a hot swap means
+  // the attacker couldn't carry on, which is what it is testing)
+  const hasNext = () => !S.probe && !!P.attackers && (S.att || 0) < P.attackers.length - 1;
+  // The attacker in can't carry on: it swaps out (0.5s) and the next one takes slot 0 when the
+  // swap completes (step 3) - with full HP and 0 energy. What it dealt stays in the results.
+  const startHotSwap = () => {
+    const out = S.mons[0];
+    R.attSpans.push({ att: S.att, from: S.attFrom, to: t, hp: out.hp, energy: out.energy });
+    if(out.hp <= 0) S.hits = S.hits.filter(h => h.who !== 0);   // a fainted attacker's move never lands
+    S.gains = S.gains.filter(g => g.who !== 0);
+    S.hotSwap = null; S.finishing = false; S.finishDeadline = null; S.finishAt = null; S.allIn = false;
+    S.pendingDodge = null; S.dodging = null; S.awaitMainCM = false;
+    S.swap = { from: 0, to: 0, until: t + TEAM_SWAP_TICKS, hot: true };
+    R.segs.push({ t, who: -1 });
+    R.swaps.push({ t, until: t + TEAM_SWAP_TICKS, from: 0, to: 0, hot: true, fromAtt: S.att, toAtt: S.att + 1 });
+    const nx = P.attackers[S.att + 1];
+    R.events.push({ t, kind: "main", text: `Hot swap: ${P.main.name} out${out.hp <= 0 ? " (fainted)" : ""}, ${nx.name} in`,
+      ev: { type: "hotswap", fromAtt: S.att, toAtt: S.att + 1, fainted: out.hp <= 0 } });
+  };
 
   const faint = (who) => {
     const m = S.mons[who];
@@ -2930,12 +2999,13 @@ function teamStep(S, R, P, snap){
       // A fainted tank's move in progress never lands; the next Pokemon comes in.
       S.hits = S.hits.filter(h => h.who !== who);
       S.gains = S.gains.filter(g => g.who !== who);
-      if(noTankLeft() && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs && !P.mainDodges) S.finishing = true; }
+      if(noTankLeft() && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs && !P.mainDodges && !hasNext()) S.finishing = true; }
       const next = S.pendingSwap ? S.pendingSwap.to : 0;
       S.pendingSwap = null;
       startSwap(who, next);
       return;
     }
+    if(hasNext()){ startHotSwap(); return; }   // hot swap: the next attacker comes in
     if(S.finishing){ end(S.safePoint !== null ? S.safePoint : t, S.allIn ? "all-in-fainted" : "finish-missed"); return; }
     // The main DPSer can't safely continue, so it bails at its last safe point: the last charge
     // move that landed before it would faint - everything up to there counts, catch tanks left or
@@ -2943,7 +3013,7 @@ function teamStep(S, R, P, snap){
     // unused, which threw away whatever came after: a Mega Mewtwo X worn down by Snarl lost 35s
     // and 1,444 damage, and the card showed it on 105 HP beside "fainted".) S.ended.faintAt keeps
     // when the faint would have come, for the Ended line.
-    if(S.nextTank === 1 && S.safePoint === null) end(t, "main-fainted-early");
+    if(!S.mons.some(m => m.tank && m.used) && S.safePoint === null) end(t, "main-fainted-early");
     else end(S.safePoint !== null ? S.safePoint : t, "main-fainted");   // no half-built charge move
     S.ended.faintAt = t;
   };
@@ -2966,12 +3036,13 @@ function teamStep(S, R, P, snap){
     // Pokemon on the field keeps attacking while its next move finishes by "latest".
     const bookSwap = (freeAt) => {
       const pr = primedTank();   // double catch: a primed tank comes back for its 2nd catch first
-      const to = pr || S.nextTank++;
+      const to = pr || nextFresh();
       if(pr) S.mons[pr].primed = false;
+      S.mons[to].used = true;
       S.pendingSwap = { to, latest: teamSwapLatest(P, t, land, freeAt, S.catchNo++), second: !!pr };
       S.mons[to].waitCatch = land;
     };
-    const dec = { cast: t, land, outcome: null, tank: null };
+    const dec = { cast: t, land, outcome: null, tank: null, att: S.att || 0 };
     R.decisions.push(dec);
     if(!hm.tank){
       // Priority: main-first tries the sponge before a tank; tanks-first only falls back to it once
@@ -2982,10 +3053,11 @@ function teamStep(S, R, P, snap){
       // its energy, fires before the boss's next one...). With none left the choice is only sponge
       // and keep going vs go all in - both take this same hit, energy and all - so it is a plain
       // health check against the boss's threat (teamMainCanKeepGoing).
-      const mainSafe = () => (safe === null ? (safe = !!(P.mainAbsorbs && (tanksLeft
+      // A support DPSer set to "Survive only" always uses the health check (energy over the cap is fine).
+      const mainSafe = () => (safe === null ? (safe = !!(P.mainAbsorbs && (tanksLeft && P.spongeRule !== "survive"
         ? (snap && teamMainCanAbsorb(snap, P, t, land))
         : teamMainCanKeepGoing(S, P, t, land)))) : safe);
-      const nextIn = primedTank() || S.nextTank;
+      const nextIn = primedTank() || nextFresh();
       const mainAhead = !tanksLeft || P.mainRank <= S.mons[nextIn].type;
       if(P.mainAbsorbs && mainAhead && mainSafe()){
         dec.outcome = "main";
@@ -3007,6 +3079,16 @@ function teamStep(S, R, P, snap){
         S.awaitMainCM = true;
         R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} dodges it (${S.mainDodges}${P.dodgeLimit ? ` of ${P.dodgeLimit}` : ""})`,
           ev: { type: "bossCM", to: 0, how: "dodge", n: S.mainDodges, of: P.dodgeLimit } });
+        return;
+      }
+      if(!tanksLeft && hasNext()){
+        // Hot swap: no catch tank left for this attacker and it can't safely take this one. It
+        // fires the charge move it is building if that lands in time to swap out before the hit,
+        // then swaps out; the next attacker comes in and takes the hit (step 6, S.hotSwap).
+        dec.outcome = "hot-swap";
+        S.hotSwap = { deadline: land, fired: false };
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → no catch tank left for ${P.main.name}; hot swap to ${P.attackers[S.att + 1].name}`,
+          ev: { type: "bossCM", to: 0, how: "hotswap", toAtt: S.att + 1 } });
         return;
       }
       if(!tanksLeft && P.allIn){
@@ -3072,7 +3154,7 @@ function teamStep(S, R, P, snap){
   //    showed a "waiting" figure as high as 231 and Focus Blast apparently cast at 50 + 16.)
   S.hits = S.hits.filter(h => {
     if(h.tick !== t) return true;
-    R.dmg.push({ t, who: h.who, dmg: h.dmg, mv: h.mv });
+    R.dmg.push({ t, who: h.who, dmg: h.dmg, mv: h.mv, att: h.att });
     // a charge move landing gets its own line in the timeline ("... Hit 312 dmg"), apart from its cast
     if(h.cm && !S.probe) R.events.push({ t, kind: S.mons[h.who].tank ? "ct" : "main", text: `${teamLabel(P, h.who)}'s ${h.mv} hits: ${h.dmg} damage`,
       ev: { type: "cmHit", who: h.who, move: h.mv, dmg: h.dmg } });
@@ -3083,7 +3165,10 @@ function teamStep(S, R, P, snap){
     if(h.cm && h.who === 0 && S.probe && S.probe.dodge && !S.probe.done && S.probe.cmLand === t) S.probe.done = "ok";
     return false;
   });
-  if(S.finishAt !== null && t >= S.finishAt){ end(S.finishAt, "finished"); return; }
+  if(S.finishAt !== null && t >= S.finishAt){
+    if(hasNext()){ S.finishAt = null; startHotSwap(); }
+    else { end(S.finishAt, "finished"); return; }
+  }
   // 2. a finished fast move's energy is credited
   S.gains = S.gains.filter(g => {
     if(g.tick !== t) return true;
@@ -3091,7 +3176,16 @@ function teamStep(S, R, P, snap){
     return false;
   });
   // 3. a swap finishes
-  if(S.swap && S.swap.until === t){
+  if(S.swap && S.swap.until === t && S.swap.hot){
+    // Hot swap done: the next attacker is in slot 0, with full HP and no energy
+    S.swap = null;
+    S.att++; S.attFrom = t;
+    teamApplyAttacker(P, S);
+    S.mons[0] = { tank: false, hp: P.main.hp, energy: 0, busyUntil: t, cmCasts: 0 };
+    S.mainDodges = 0;
+    S.active = 0;
+    R.segs.push({ t, who: 0, att: S.att });
+  } else if(S.swap && S.swap.until === t){
     const { from, to } = S.swap;
     S.swap = null;
     S.active = to;
@@ -3101,7 +3195,7 @@ function teamStep(S, R, P, snap){
     // (Until this was added the simulator always behaved as if buffered, while the CT DPS block
     // never did, so the two disagreed - e.g. Shadow Tapu Lele read 4.0s there either way.)
     if(S.mons[to].tank) S.mons[to].owesTap = !P.cmBuffer;
-    R.segs.push({ t, who: to });
+    R.segs.push(to === 0 ? { t, who: 0, att: S.att } : { t, who: to });
     if(to === 0 && S.mons[from].tank) S.lastTankDoneAt = t;
     R.events.push({ t, kind: S.mons[to].tank ? "ct" : "main", text: `${teamLabel(P, from)} out, ${teamLabel(P, to)} in`, ev: { type: "swap", who: to, from } });
   }
@@ -3112,7 +3206,8 @@ function teamStep(S, R, P, snap){
     const who = S.swap ? S.swap.from : S.active;
     const outcome = (R.decisions.find(d => d.cast === mv.cast) || {}).outcome || "";
     if(mv.cm && S.finishing && !S.probe && who === 0 && !outcome.startsWith("main") && !outcome.startsWith("all-in")){
-      end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return;
+      if(hasNext()) startHotSwap();   // it takes this hit on the way out
+      else { end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return; }
     }
     const m = S.mons[who];
     const side = sideOf(who);
@@ -3121,8 +3216,8 @@ function teamStep(S, R, P, snap){
     const dmg = mv.cm ? (dodged ? P.main.bossCmDmgDodged : side.bossCmDmg) : side.bossFmDmg;
     m.hp -= dmg;
     const over = teamBank(m, energyFromDamage(dmg));
-    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged });
-    R.hp.push({ t, who, hp: m.hp });
+    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged, att: who === 0 ? S.att : undefined });
+    R.hp.push({ t, who, hp: m.hp, att: who === 0 ? S.att : undefined });
     if(mv.cm){
       R.events.push({ t, kind: m.tank ? "ct" : "main",
         ev: { type: "hit", who, dmg, energy: energyFromDamage(dmg) - over, over, ko: m.hp <= 0, dodged },
@@ -3185,6 +3280,13 @@ function teamStep(S, R, P, snap){
       // a catch tank in ahead of its catch: fast moves only, and it stays in until the hit lands
       const waiting = m.tank && m.waitCatch !== null && t < m.waitCatch;
       const nextDur = m.energy >= side.cmCost && !waiting ? side.cm.ad : side.fm.ad;
+      if(who === 0 && S.hotSwap){
+        // Hot swap booked: fire the charge move it is building only if it (and the 0.5s swap after
+        // it) finishes before the boss's hit lands; otherwise go now, so the next attacker takes it.
+        const need = Math.max(0, Math.ceil((side.cmCost - m.energy) / side.fm.energy));
+        const cmDone = t + need * side.fm.ad + side.cm.ad;
+        if(S.hotSwap.fired || cmDone + TEAM_SWAP_TICKS > S.hotSwap.deadline){ startHotSwap(); return; }
+      }
       if(who === 0 && S.pendingDodge && t + nextDur > S.pendingDodge.latest){
         // Main allowed to dodge: its next move wouldn't finish before the dodge has to start, so it
         // stops here and dodges, busy until the charge move lands. Any wait before the dodge's
@@ -3201,7 +3303,7 @@ function teamStep(S, R, P, snap){
         if(m.dcFMsLeft > 0){
           m.dcFMsLeft--; m.owesTap = false;
           m.busyUntil = t + side.fm.ad;
-          S.hits.push({ tick: t + side.fm.ad, dmg: side.fmDmg, who, mv: side.fm.n });
+          S.hits.push({ tick: t + side.fm.ad, dmg: side.fmDmg, who, mv: side.fm.n, att: who === 0 ? S.att : undefined });
           S.gains.push({ tick: t + side.fm.ad, who, e: side.fm.energy });
         } else {
           m.primed = true;
@@ -3219,18 +3321,20 @@ function teamStep(S, R, P, snap){
         // The last tank is done. Rather than ending here - which left Eternatus benched on a full
         // 100 energy whenever the swap for the last tank had cut its Dynamax Cannon off - the main
         // DPSer comes back and fires what it has built (see finishing).
-        if(noTankLeft() && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges) S.finishing = true;
+        if(noTankLeft() && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges && !hasNext()) S.finishing = true;
         startSwap(who, 0);   // back to the main
       } else if(m.energy >= side.cmCost && !(m.tank && m.owesTap) && !waiting){
+        if(who === 0 && S.hotSwap) S.hotSwap.fired = true;
         if(S.finishing && !m.tank && !S.probe){
           if(S.finishDeadline !== null && t + side.cm.ad > S.finishDeadline){
+            if(hasNext()){ startHotSwap(); return; }
             end(S.safePoint !== null ? S.safePoint : t, "finish-missed"); return;
           }
           S.finishAt = t + side.cm.ad;
         }
         m.energy -= side.cmCost; m.cmCasts++;
         m.busyUntil = t + side.cm.ad;
-        S.hits.push({ tick: t + side.cm.ad, dmg: side.cmDmg, who, cm: true, mv: side.cm.n });
+        S.hits.push({ tick: t + side.cm.ad, dmg: side.cmDmg, who, cm: true, mv: side.cm.n, att: who === 0 ? S.att : undefined });
         if(!S.probe) R.events.push({ t, kind: m.tank ? "ct" : "main", text: `${teamLabel(P, who)} casts ${side.cm.n} (${side.cmDmg})`,
           ev: { type: "cast", who, move: side.cm.n, dmg: side.cmDmg, finish: !m.tank && S.finishAt === t + side.cm.ad } });
         // ">=": within a tick the boss's hit lands (step 4) before the attacker acts (step 6), so a
@@ -3251,7 +3355,7 @@ function teamStep(S, R, P, snap){
       } else {
         m.owesTap = false;
         m.busyUntil = t + side.fm.ad;
-        S.hits.push({ tick: t + side.fm.ad, dmg: side.fmDmg, who, mv: side.fm.n });
+        S.hits.push({ tick: t + side.fm.ad, dmg: side.fmDmg, who, mv: side.fm.n, att: who === 0 ? S.att : undefined });
         S.gains.push({ tick: t + side.fm.ad, who, e: side.fm.energy });
       }
     }
@@ -3343,11 +3447,12 @@ function teamTankNumbers(c, p = "ct"){
   // p: which catch tank card to read - "ct" (Catch Tank 1), "ct2", "ct3"
   const $ = id => document.getElementById(p + id);
   const k = p === "ct" ? 1 : +p.slice(2);
-  const who = teamTypeCount() > 1 ? `Catch Tank ${k}: ` : "";
-  const T = { k, name: $("Name").value.trim(), qty: Math.max(1, Math.min(10, parseInt($("Qty").value, 10) || 1)),
-              casts: Math.max(1, Math.min(3, parseInt($("Casts").value, 10) || 1)) };
+  const sup = p.startsWith("sd");   // a Support DPSer card (hot swap): no quantity or charge-move count
+  const who = sup ? `Support DPSer ${k}: ` : teamTypeCount() > 1 ? `Catch Tank ${k}: ` : "";
+  const T = { k, name: $("Name").value.trim(), qty: $("Qty") ? Math.max(1, Math.min(10, parseInt($("Qty").value, 10) || 1)) : 1,
+              casts: $("Casts") ? Math.max(1, Math.min(3, parseInt($("Casts").value, 10) || 1)) : 1 };
   const tank = T.name ? findPokemon(T.name) : null;
-  if(!tank){ T.error = `${who}Enter a valid catch tank Pokémon to simulate.`; return T; }
+  if(!tank){ T.error = sup ? `${who}Enter a valid Pokémon to simulate.` : `${who}Enter a valid catch tank Pokémon to simulate.`; return T; }
   const lvl = $("Level").value.trim();
   const ivs = ["IvAtk", "IvDef", "IvHp"].map(id => $(id).value.trim());
   if(!validateLevel(lvl) || !ivs.every(validateIV)){ T.error = `${who}Fix the catch tank's Level/IV fields (Level 40–51 in 0.5 steps, IVs 0–15).`; return T; }
@@ -3420,9 +3525,16 @@ function runTeamSim(c){
   const tankOrder = order.filter(x => x !== "main").map(x => +x);
   const tanks = tankOrder.map(k => {
     const T = types[k - 1];
+    // hot swap: which attacker this type serves ("any" = -1); a support that isn't there -> any
+    const ow = (document.getElementById((k === 1 ? "ct" : "ct" + k) + "Owner") || {}).value;
+    const owner = /^[0-2]$/.test(ow || "") && +ow <= supportCount() ? +ow : -1;
     return { k, name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, qty: T.qty, casts: T.casts,
-             fmDmg: T.fmDmg, cmDmg: T.cmDmg, bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg };
+             fmDmg: T.fmDmg, cmDmg: T.cmDmg, bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg, owner };
   });
+  // Hot swap: the support DPSers, in order (each must be filled in)
+  const supports = supportPrefixes().map(p => teamTankNumbers(c, p));
+  const badSup = supports.find(T => T.error);
+  if(badSup) return `<div class="empty-result">${badSup.error}</div>`;
   // every catch tank in the order it will be used: its type (index into tanks) and number within it
   const monMeta = [null];
   tanks.forEach((tp, ti) => { for(let n = 1; n <= tp.qty; n++) monMeta.push({ type: ti, num: n }); });
@@ -3463,10 +3575,28 @@ function runTeamSim(c){
   // a dodged charge move does 25% of its damage, rounded down - as Dodge CM does in the other modes
   P.main.bossCmDmgDodged = Math.floor(P.main.bossCmDmg * 0.25);
   P.tank = tanks[0];   // the first catch tank type in the priority order
+  // the main DPSer's sponge rule: "keep" (the default - keep the energy while catch tanks are left)
+  // or "survive" (a health check only, overflow fine)
+  P.spongeRule = ($("ctMainRule") || {}).value === "survive" ? "survive" : "keep";
+  // Hot swap: the attackers in order - the main DPSer, then the support DPSers. The main keeps the
+  // Catch tank behavior settings (its place in Priority, Main can sponge / dodge, and the
+  // "keep the energy" sponge rule while catch tanks are left); each support has its own.
+  if(supports.length){
+    Object.assign(P.main, { absorbs: P.mainAbsorbs, dodges: P.mainDodges, rank: P.mainRank, rule: P.spongeRule });
+    P.attackers = [P.main].concat(supports.map((T, i) => {
+      const pre = "sd" + (i + 1), $s = id => document.getElementById(pre + id);
+      return { name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, fmDmg: T.fmDmg, cmDmg: T.cmDmg,
+               bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg, bossCmDmgDodged: Math.floor(T.bossCmDmg * 0.25),
+               absorbs: $s("Sponge").checked, dodges: $s("Dodge").checked,
+               rank: $s("First").value === "sponge" ? -1 : 99, rule: $s("Rule").value === "keep" ? "keep" : "survive",
+               support: i + 1 };
+    }));
+  }
   // Level and IVs as entered, for the result card and Copy as image ("Lv 50 · 15/15/15")
   const buildOf = (lv, a, d, h) => `Lv ${String($(lv).value).trim() || "?"} \u00b7 ${[a, d, h].map(id => String($(id).value).trim() || "?").join("/")}`;
   P.main.build = buildOf("pokemonLevel", "ivAtk", "ivDef", "ivHp");
   P.tanks.forEach(tp => { const pre = tp.k === 1 ? "ct" : `ct${tp.k}`; tp.build = buildOf(pre + "Level", pre + "IvAtk", pre + "IvDef", pre + "IvHp"); });
+  (P.attackers || []).slice(1).forEach(A => { const pre = "sd" + A.support; A.build = buildOf(pre + "Level", pre + "IvAtk", pre + "IvDef", pre + "IvHp"); });
   let run;
   {
     // Best timing, chosen for each catch. Every candidate is the whole fight with the same boss
@@ -3522,7 +3652,7 @@ function teamMoveRow(move, dmg){
 function updateTeamPreview(){
   if(!document.body.classList.contains("ct-mode-team")) return;
   const c = teamBossContextFromDom();
-  teamPrefixes().forEach(p => updateTeamPreviewFor(p, c));
+  teamPrefixes().concat(supportPrefixes()).forEach(p => updateTeamPreviewFor(p, c));
 }
 // One catch tank card's live preview; p is its id prefix ("ct", "ct2", "ct3").
 function updateTeamPreviewFor(p, c){
@@ -3694,6 +3824,8 @@ const teamSym = (kind, title) => `<span class="team-sym ${kind}" title="${title}
 function teamLogLine(P, e){
   const v = e.ev || {};
   const ico = w => teamIcon(P, w);
+  // an attacker's icon by its place in the order (hot swap), whoever is in slot 0 for this line
+  const aIco = k => { const keep = P.main; P.main = (P.attackers || [P.main])[k] || keep; const h = teamIcon(P, 0); P.main = keep; return h; };
   const cm = `<b>${P.bossCM.n}</b>`;
   switch(v.type){
     case "bossCM": {
@@ -3705,6 +3837,7 @@ function teamLogLine(P, e){
         : v.how === "late" ? `too late to swap in &middot; lands on ${ico(0)}`
         : v.how === "tank-again" ? `Preparing ${ico(v.to)} <span class="team-dim">(still in)</span>`
         : v.how === "tank-faint" ? `lands on ${ico(v.to)}`
+        : v.how === "hotswap" ? `no catch tank left &middot; hot swap to ${aIco(v.toAtt)}`
         : `no catch tank left`;
       return `${teamIcon(P, "boss")} ${cm} Cast <span class="team-arrow">&rarr;</span> ${tail}`;
     }
@@ -3718,12 +3851,16 @@ function teamLogLine(P, e){
     case "cmHit": return `${ico(v.who)} <b>${v.move}</b> Hit <span class="team-num">${v.dmg} dmg</span>`;
     case "faint": return `${teamSym("faint", "Fainted")}${ico(v.who)} fainted`;
     case "dcHold": return `${ico(v.who)} keeps its ${v.energy} energy <span class="team-dim">for a 2nd catch</span>`;
+    case "hotswap": return `${teamSym("swap", "Hot swap")}${aIco(v.fromAtt)} Out${v.fainted ? " (fainted)" : ""}, ${aIco(v.toAtt)} In <span class="team-dim">(hot swap)</span>`;
     default: return e.text;
   }
 }
 
 // Timeline bar colours for the catch tank types, in priority order (the main DPSer is blue).
 const TEAM_TANK_COLORS = ["#f5b94a", "#b48cff", "#2ec4a6"];
+// Hot swap: the attackers' colours - the main DPSer blue, Support DPSer 1 indigo, 2 plum (clear of
+// the catch tanks' amber / violet / teal and the pink of the boss's charge-move marks)
+const TEAM_ATT_COLORS = ["#3d9dff", "#4f5bd5", "#b4448f"];
 // The bar's hover details: one floating box (the bar clips anything inside it), shown over the
 // piece under the pointer, or on tap, with the lines from its data-tip.
 function teamTlTipShow(el){
@@ -3827,6 +3964,13 @@ window.addEventListener("resize", teamMinPopClose);
 function renderTeamSim(P, S, R){
   teamMinPopClose();   // a new result replaces the row the pop-up belonged to
   const E = S.ended.t;
+  // Hot swap: the attackers in order; slot 0 belongs to each in turn. withAtt(k, fn) runs fn with
+  // P.main set to attacker k, so the shared helpers (teamIcon, teamLabel, segTip) name the right one.
+  const ATT = P.attackers || [P.main], multi = ATT.length > 1;
+  const withAtt = (k, fn) => { if(!multi) return fn(); const keep = P.main; P.main = ATT[k || 0]; try { return fn(); } finally { P.main = keep; } };
+  const lastAtt = multi ? (S.att || 0) : 0;
+  const attIco = k => withAtt(k, () => teamIcon(P, 0));
+  const attColor = k => TEAM_ATT_COLORS[(k || 0) % TEAM_ATT_COLORS.length];
   const upTo = arr => arr.filter(x => x.t <= E);
   const dmg = upTo(R.dmg);
   const mainDmg = dmg.filter(d => d.who === 0).reduce((a, d) => a + d.dmg, 0);
@@ -3849,7 +3993,7 @@ function renderTeamSim(P, S, R){
   // dodges up to the end point, and the time they took (from when the main DPSer stopped attacking)
   const dodges = R.dodges.filter(d => d.t < E);
   const swaps = R.swaps.filter(s => s.t < E);
-  const mainHp = (upTo(R.hp).filter(h => h.who === 0).pop() || { hp: P.main.hp }).hp;
+  const mainHp = (upTo(R.hp).filter(h => h.who === 0 && (h.att || 0) === lastAtt).pop() || { hp: ATT[lastAtt].hp }).hp;
   const lastType = P.tanks[P.monMeta[P.qty].type];
   const typeOf = who => P.monMeta[who].type;
   const tankMaxHp = who => P.tanks[typeOf(who)].hp;
@@ -3857,7 +4001,7 @@ function renderTeamSim(P, S, R){
   const dmgByType = P.tanks.map((tp, i) => dmg.filter(d => d.who > 0 && typeOf(d.who) === i).reduce((a, d) => a + d.dmg, 0));
   const caughtByType = P.tanks.map((tp, i) => decs.filter(d => (d.outcome === "tank" || d.outcome === "tank-again") && d.tank && typeOf(d.tank) === i).length);
   const usedByType = P.tanks.map((tp, i) => new Set(upTo(R.segs).filter(s => s.who > 0 && typeOf(s.who) === i).map(s => s.who)).size);
-  const reasons = {
+  const reasons = withAtt(lastAtt, () => ({
     "finished": `No catch tanks left; ${P.main.name} fired its remaining ${P.main.cm.n} and the run ends as it lands`,
     "finish-missed": `No catch tank left for the next ${P.bossCM.n}, and ${P.main.name} couldn't fire again before it landed; results stop when the last charge move landed`,
     "all-in-fainted": `No catch tank left; ${P.main.name} went all in for its last ${P.main.cm.n} but fainted before it landed; results stop when the last charge move landed`,
@@ -3872,7 +4016,7 @@ function renderTeamSim(P, S, R){
       : `${P.main.name} would faint at ${((S.ended.faintAt ?? S.ended.t) / 2).toFixed(1)}s, so it bails after the last charge move that landed (${(S.ended.t / 2).toFixed(1)}s)`,
     "main-fainted-early": `${P.main.name} fainted before any catch tank was needed`,
     "timer": "Reached the 300s raid timer",
-  };
+  }));
 
   // timeline bar
   const span = Math.max(E, 1);
@@ -3897,12 +4041,20 @@ function renderTeamSim(P, S, R){
     if(w.from > 0) fieldTicks.set(w.from, (fieldTicks.get(w.from) || 0) + ticks);
   });
   const ownDps = (dmgSum, ticks) => ticks > 0 ? (dmgSum / (ticks / 2)).toFixed(1) : "&mdash;";
-  const attackerRows = [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${uptime(onField.get(0) || 0)}</td></tr>`]
+  // hot swap: each attacker's own time in slot 0 and damage
+  const attTicks = ATT.map(() => 0);
+  segs.forEach((sg, i) => {
+    if(sg.who !== 0) return;
+    const to = Math.min(i + 1 < segs.length ? segs[i + 1].t : E, E);
+    if(to > sg.t) attTicks[sg.att || 0] += to - sg.t;
+  });
+  const attDmg = ATT.map((A, k) => dmg.filter(d => d.who === 0 && (d.att || 0) === k).reduce((a, d) => a + d.dmg, 0));
+  const attackerRows = (multi ? ATT.map((A, k) => `<tr class="team-who-row"><td><span class="team-sub team-who">${attIco(k)}<span>${A.name}<small class="team-build">${k === 0 ? "Main DPSer" : "Support DPSer " + k} &middot; ${A.build || ""}</small></span></span></td><td>${attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"}${uptime(attTicks[k])}</td></tr>`) : [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${uptime(onField.get(0) || 0)}</td></tr>`])
     .concat(P.tanks.map((tp, i) => {
       let ticks = 0, up = 0;
       fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
       onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; });
-      return `<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, null, { type: i })}<span>${tp.name}<small class="team-build">${tp.build}</small></span></span></td><td>${ticks ? ownDps(dmgByType[i], ticks) : "&mdash;"}${uptime(up)}</td></tr>`;
+      return `<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, null, { type: i })}<span>${tp.name}<small class="team-build">${multi && tp.owner >= 0 ? `for ${ATT[tp.owner].name} &middot; ` : ""}${tp.build}</small></span></span></td><td>${ticks ? ownDps(dmgByType[i], ticks) : "&mdash;"}${uptime(up)}</td></tr>`;
     })).join("");
   // Hover (or tap) details for each piece of the bar, built from the run's events: who was in and
   // what they did, each swap, each dodge, and each boss charge move and who handled it.
@@ -3926,10 +4078,10 @@ function renderTeamSim(P, S, R){
     const pos = `left:${(s.t / span * 100).toFixed(2)}%;width:${((to - s.t) / span * 100).toFixed(2)}%`;
     if(s.who === -1){
       const w = R.swaps.find(x => x.t === s.t);
-      const tip = w ? [`${teamLabel(P, w.from)} out, ${teamLabel(P, w.to)} in`, `Swap ${sec(w.t)}–${sec(Math.min(w.until, E))}`] : [`Swap ${sec(s.t)}`];
+      const tip = w ? [w.hot ? `Hot swap: ${ATT[w.fromAtt].name} out, ${ATT[w.toAtt].name} in` : `${teamLabel(P, w.from)} out, ${teamLabel(P, w.to)} in`, `Swap ${sec(w.t)}–${sec(Math.min(w.until, E))}`] : [`Swap ${sec(s.t)}`];
       return `<i class="seg-swap" style="${pos}"${tipAttr(tip)}></i>`;
     }
-    if(s.who === 0) return `<i class="seg-main" style="${pos}"${tipAttr(segTip(0, s.t, to))}></i>`;
+    if(s.who === 0) return `<i class="seg-main" style="${pos}${multi ? `;background:${attColor(s.att)}` : ""}"${tipAttr(withAtt(s.att, () => segTip(0, s.t, to)))}></i>`;
     const ty = typeOf(s.who);
     return `<i class="seg-tank" data-type="${ty}" style="${pos};background:${TEAM_TANK_COLORS[ty % TEAM_TANK_COLORS.length]}"${tipAttr(segTip(s.who, s.t, to))}></i>`;
   }).join("") + dodges.map(d => {
@@ -3958,13 +4110,14 @@ function renderTeamSim(P, S, R){
     if(!grp) return;
     const st = R.state[grp.t] || [];
     events.push({ t: grp.t, kind: "fm", ev: { type: "chip", who: grp.who, n: grp.n, dmg: grp.dmg, move: P.bossFM.n },
-      mainHp: st[0] ? st[0].hp : null, tankWho: grp.who > 0 ? grp.who : null, tankHp: grp.who > 0 && st[grp.who] ? st[grp.who].hp : null });
+      mainHp: st[0] ? st[0].hp : null, tankWho: grp.who > 0 ? grp.who : null, tankHp: grp.who > 0 && st[grp.who] ? st[grp.who].hp : null,
+      att: grp.who === 0 ? (grp.att || 0) : (R.segs.filter(x => x.who === 0 && x.t <= grp.t).pop() || {}).att || 0 });
     grp = null;
   };
   items.forEach(it => {
     if(it.h){
-      if(grp && grp.who !== it.h.who) flushFm();
-      if(!grp) grp = { who: it.h.who, n: 0, dmg: 0 };
+      if(grp && (grp.who !== it.h.who || grp.att !== it.h.att)) flushFm();
+      if(!grp) grp = { who: it.h.who, att: it.h.att, n: 0, dmg: 0 };
       grp.n++; grp.dmg += it.h.dmg; grp.t = it.t;
     } else { flushFm(); events.push(it.e); }
   });
@@ -3972,6 +4125,7 @@ function renderTeamSim(P, S, R){
   const shown = events.slice(0, 160);
   // the tank column's header: the catch tank type's icon, or every type's when there are several
   const mainIco = teamIcon(P, 0), tankIco = P.tanks.map((tp, i) => teamIcon(P, null, { type: i })).join("");
+  const attHeadIco = multi ? ATT.map((A, k) => attIco(k)).join("") : mainIco;
   // HP cells: low HP (a quarter or less) and fainted are coloured, as in the main result tables.
   const hpCell = (hp, max, lead = "") => {
     if(hp === null || hp === undefined) return `<td class="team-hp"><span class="team-dim">&mdash;</span></td>`;
@@ -3982,31 +4136,35 @@ function renderTeamSim(P, S, R){
   // Time | Event | main icon | main HP | tank icon | tank HP. The main DPSer is on every row;
   // the tank column is empty when no tank is involved or in.
   const icoCell = who => `<td class="team-ico-col">${who === null || who === undefined ? "" : teamIcon(P, who)}</td>`;
-  const afterHead = `<tr class="team-after-head"><td colspan="6">After the results end &middot; until ${P.main.name} would faint (${(logEnd / 2).toFixed(1)}s)</td></tr>`;
+  const afterHead = `<tr class="team-after-head"><td colspan="6">After the results end &middot; until ${ATT[lastAtt].name} would faint (${(logEnd / 2).toFixed(1)}s)</td></tr>`;
   const log = shown.map((e, i) => (e.t > E && (i === 0 || shown[i - 1].t <= E) ? afterHead : "")
-      + `<tr class="lr-${e.kind}${e.t > E ? " is-after" : ""}"><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-line">${teamLogLine(P, e)}</span></td>`
-      + icoCell(0) + hpCell(e.mainHp, P.main.hp)
+      + withAtt(e.att, () => `<tr class="lr-${e.kind}${e.t > E ? " is-after" : ""}"><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-line">${teamLogLine(P, e)}</span></td>`
+      + icoCell(0) + hpCell(e.mainHp, P.main.hp))
       + icoCell(e.tankWho || null) + (e.tankWho ? hpCell(e.tankHp, tankMaxHp(e.tankWho)) : hpCell(null))
       + `</tr>`).join("")
     + (events.length > shown.length ? `<tr><td></td><td colspan="5">…and ${events.length - shown.length} more</td></tr>` : "");
   const logHead = `<tr class="team-log-head"><th>Time</th><th>Event</th>`
-    + `<th class="team-ico-col">${mainIco}</th><th>HP</th><th class="team-ico-col">${tankIco}</th><th>HP</th></tr>`;
+    + `<th class="team-ico-col">${attHeadIco}</th><th>HP</th><th class="team-ico-col">${tankIco}</th><th>HP</th></tr>`;
 
   // Final reading at the end point: every Pokemon's HP and energy, and whether each tank was used.
   let st = null;
   for(let k = E; k >= 0; k--){ if(R.state[k]){ st = R.state[k]; break; } }
   if(!st) st = [{ hp: P.main.hp, energy: 0 }].concat(P.monMeta.slice(1).map(mm => ({ hp: P.tanks[mm.type].hp, energy: 0 })));
   const entered = new Set(upTo(R.segs).filter(x => x.who > 0).map(x => x.who));
-  const finalRows = st.map((m, who) => {
+  const outRows = multi ? R.attSpans.filter(x => x.att < lastAtt).map(x => withAtt(x.att, () =>
+    `<tr><td>${teamIcon(P, 0)} <span class="team-final-name">${P.main.name}</span></td>${hpCell(x.hp, P.main.hp)}`
+    + `<td class="team-hp">${x.energy}<span class="team-dim">/100</span></td><td>${x.hp <= 0 ? `<span class="team-fainted">Fainted</span> &middot; hot swapped out` : `Hot swapped out at ${(x.to / 2).toFixed(1)}s`}</td></tr>`)).join("") : "";
+  const finalRows = outRows + st.map((m, who) => who === 0 ? withAtt(lastAtt, () => finalRow(m, who)) : finalRow(m, who)).join("");
+  function finalRow(m, who){
     const max = who === 0 ? P.main.hp : tankMaxHp(who);
     const status = m.hp <= 0 ? `<span class="team-fainted">Fainted</span>`
-      : who === 0 ? "Main DPSer"
+      : who === 0 ? (multi ? (lastAtt ? `Support DPSer ${lastAtt}` : "Main DPSer") : "Main DPSer")
       : entered.has(who) ? "Used" : `<span class="team-dim">Not used</span>`;
     return `<tr><td>${teamIcon(P, who)} <span class="team-final-name">${teamLabel(P, who)}</span></td>${hpCell(m.hp, max)}`
       + `<td class="team-hp">${m.energy}<span class="team-dim">/100</span></td><td>${status}</td></tr>`;
-  }).join("");
+  }
 
-  const pct = Math.max(0, mainHp) / P.main.hp * 100;
+  const pct = Math.max(0, mainHp) / ATT[lastAtt].hp * 100;
   const rj = teamRejoinTarget(secs, P.bossName, P.rejoinSecs);   // expected rejoins and the suggested DPS for them
   // Solo pace: how far this cycle's DPS is above (or below) the Minimum Cycle DPS for its expected
   // rejoins - e.g. 50.7 / 50.00 = 1.4% ahead - and the same in seconds: the 300s timer against the
@@ -4031,14 +4189,14 @@ function renderTeamSim(P, S, R){
   return `
     <div class="dps-result-card">${warn}
       <div class="dps-result-main">
-        <div class="dps-result-label">Simple Catch Tank Sim &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty} catch tank${P.qty > 1 ? "s" : ""}</div>
+        <div class="dps-result-label">Simple Catch Tank Sim &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty} catch tank${P.qty > 1 ? "s" : ""}${multi ? ` &middot; ${ATT.length - 1} support DPSer${ATT.length > 2 ? "s" : ""}` : ""}</div>
         <div class="dps-result-value">${dps.toFixed(1)}</div>
         ${pace ? `<div class="team-pace-head ${pace.ahead ? "ok" : "short"}" title="${pace.title}">${pace.text}</div>` : ""}
         ${activeConditionsHtml()}
       </div>
       <div class="team-tl">${bar}</div>
       <div class="team-tl-axis">${axis}</div>
-      <div class="team-tl-legend"><span><em style="background:#3d9dff"></em>${mainIco}</span>${typeIcos.map((ico, i) => `<span><em style="background:${TEAM_TANK_COLORS[i % TEAM_TANK_COLORS.length]}"></em>${ico}</span>`).join("")}<span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
+      <div class="team-tl-legend">${multi ? ATT.map((A, k) => `<span><em style="background:${attColor(k)}"></em>${attIco(k)}</span>`).join("") : `<span><em style="background:#3d9dff"></em>${mainIco}</span>`}${typeIcos.map((ico, i) => `<span><em style="background:${TEAM_TANK_COLORS[i % TEAM_TANK_COLORS.length]}"></em>${ico}</span>`).join("")}<span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
       <table class="dps-stat-table team-stat-table">
         ${teamGroupHead("rejoins", "DPS &amp; Rejoins")}
           <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
@@ -4049,11 +4207,12 @@ function renderTeamSim(P, S, R){
           <tr><td>Cumulative DPS${teamTip(teamCumulativeTip(P.rejoinSecs))}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - P.rejoinSecs * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
         </tbody>
         ${teamGroupHead("rotation", "Rotation")}
-          <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${mainIco} ${mainDmg.toLocaleString()}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
+          <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`).join(" &middot; ") : `${mainIco} ${mainDmg.toLocaleString()}`}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
           <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${[
             ...P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`),
             // "sponged 0" says nothing when the main DPSer dodged instead - shown only if it sponged
-            (byMain > 0 || !dodged) ? `${mainIco} sponged ${byMain}` : "",
+            ...(multi ? ATT.map((A, k) => { const c = decs.filter(d => d.outcome === "main" && (d.att || 0) === k).length; return c ? `${attIco(k)} sponged ${c}` : ""; })
+                      : [(byMain > 0 || !dodged) ? `${mainIco} sponged ${byMain}` : ""]),
             P.mainDodges ? `${mainIco} dodged ${dodged}` : "",
             allInTaken ? `${mainIco} took ${allInTaken} going all in` : "",
             late ? `${late} too late to swap` : "",
@@ -4063,8 +4222,9 @@ function renderTeamSim(P, S, R){
           <tr><td>Boss rotation${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
         </tbody>
-        ${teamGroupHead("main", "Main DPSer")}
-          <tr><td>HP left</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${P.main.hp}</td></tr>
+        ${teamGroupHead("main", multi ? "Attackers" : "Main DPSer")}
+          ${multi ? `<tr><td>Hot swaps</td><td>${R.attSpans.filter(x => x.to <= E).length ? R.attSpans.filter(x => x.to <= E).map(x => `<span class="team-sub-item">${attIco(x.att)} &rarr; ${attIco(x.att + 1)} at ${(x.to / 2).toFixed(1)}s${x.hp <= 0 ? " (fainted)" : ` &middot; ${x.hp} HP left`}</span>`).join("<br>") : "none"}</td></tr>` : ""}
+          <tr><td>HP left${multi ? ` <span class="dps-stat-sub">${ATT[lastAtt].name}</span>` : ""}</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${ATT[lastAtt].hp}</td></tr>
           <tr><td>Unspent energy</td><td>${leftover}</td></tr>
           <tr><td>Ended</td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
         </tbody>
@@ -5474,6 +5634,10 @@ const SETUP_FIELD_IDS = [
   "ctTypes",
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
   "ct3Name","ct3Level","ct3IvAtk","ct3IvDef","ct3IvHp","ct3CM","ct3FM","ct3Qty","ct3Casts",
+  // Hot swap: which attacker each catch tank type serves, and the support DPSers
+  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule",
+  "sd1Name","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge",
+  "sd2Name","sd2Level","sd2IvAtk","sd2IvDef","sd2IvHp","sd2CM","sd2FM","sd2Sponge","sd2First","sd2Rule","sd2Dodge",
 ];
 function captureSetup(){
   const setup = {};
@@ -5510,8 +5674,9 @@ function restoreMoveSelection(baseId, savedMove){
 }
 
 function applySetup(setup){
-  // the Catch Tank 2/3 cards have to exist before their fields can be filled in
+  // the Catch Tank 2/3 and Support DPSer cards have to exist before their fields can be filled in
   setTeamTypeCount(parseInt(setup.ctTypes, 10) || 1);
+  setSupportCount(parseInt(setup.sdCount, 10) || 0);
   SETUP_FIELD_IDS.forEach(id => {
     const el = document.getElementById(id);
     if(!(id in setup) || !el) return;
@@ -5541,13 +5706,14 @@ function applySetup(setup){
       playerCM: setup.playerCM, playerFM: setup.playerFM,
       bossCM: setup.bossCM, bossFM: setup.bossFM,
       ctCM: setup.ctCM, ctFM: setup.ctFM, ct2CM: setup.ct2CM, ct2FM: setup.ct2FM, ct3CM: setup.ct3CM, ct3FM: setup.ct3FM,
+      sd1CM: setup.sd1CM, sd1FM: setup.sd1FM, sd2CM: setup.sd2CM, sd2FM: setup.sd2FM,
     };
   }
   restoreMoveSelection("playerCM", setup.playerCM);
   restoreMoveSelection("playerFM", setup.playerFM);
   restoreMoveSelection("bossCM", setup.bossCM);
   restoreMoveSelection("bossFM", setup.bossFM);
-  teamPrefixes().forEach(p => { restoreMoveSelection(p + "CM", setup[p + "CM"]); restoreMoveSelection(p + "FM", setup[p + "FM"]); });
+  teamPrefixes().concat(supportPrefixes()).forEach(p => { if(document.getElementById(p + "Name").value.trim()) updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); restoreMoveSelection(p + "CM", setup[p + "CM"]); restoreMoveSelection(p + "FM", setup[p + "FM"]); });
   updatePlayerPreview();
   updateBossPreview();
   updatePlayerMovePreview();
@@ -5555,6 +5721,7 @@ function applySetup(setup){
   updateTeamPreview();
   syncCombinedModifiers();
   if(typeof updateDoubleCatch === "function") updateDoubleCatch();
+  if(typeof updateMainRule === "function") updateMainRule();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 function loadHistory(){
@@ -6507,6 +6674,9 @@ const SETUP_SHORT_KEYS = {
   ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctDoubleCatch:"tdc", ctDcFMs:"tdf", ctRejoinSecs:"trs",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
+  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr",
+  sd1Name:"h1n", sd1Level:"h1l", sd1IvAtk:"h1a", sd1IvDef:"h1d", sd1IvHp:"h1h", sd1CM:"h1c", sd1FM:"h1f", sd1Sponge:"h1s", sd1First:"h1p", sd1Rule:"h1r", sd1Dodge:"h1g",
+  sd2Name:"h2n", sd2Level:"h2l", sd2IvAtk:"h2a", sd2IvDef:"h2d", sd2IvHp:"h2h", sd2CM:"h2c", sd2FM:"h2f", sd2Sponge:"h2s", sd2First:"h2p", sd2Rule:"h2r", sd2Dodge:"h2g",
 };
 const SETUP_LONG_KEYS = Object.fromEntries(Object.entries(SETUP_SHORT_KEYS).map(([k,v]) => [v,k]));
 function encodeSetupForUrl(setup){
@@ -6742,10 +6912,90 @@ function setTeamTypeCount(n){
     if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = (k !== n); btn.onclick = () => setTeamTypeCount(n - 1); }
   }
   document.getElementById("ctAddType").hidden = n >= 3;
+  if(typeof updateOwnerOptions === "function") updateOwnerOptions();
   renderTeamOrder();
   if(typeof updateTeamPreview === "function") updateTeamPreview();
 }
 document.getElementById("ctAddType").addEventListener("click", () => setTeamTypeCount(teamTypeCount() + 1));
+
+// ---- Hot swap: Support DPSers ----
+// Attackers come in one after another - the main DPSer, then Support DPSer 1, then 2 - and never
+// come back: one swaps out (hot swap) when it can't reach another charge move, its catch tanks
+// used and a sponge unsafe. A support card is a copy of the catch tank card (Pokemon, level, IVs,
+// moves) with the attacker's own settings in place of the catch tank ones.
+function supportCount(){ return Math.max(0, Math.min(2, parseInt((document.getElementById("sdCount") || {}).value, 10) || 0)); }
+function supportPrefixes(){ return ["sd1", "sd2"].slice(0, supportCount()); }
+function buildSupportCard(k){
+  const p = "sd" + k, card = document.getElementById("teamCard").cloneNode(true);
+  card.id = "supportCard" + k;
+  card.classList.add("support-card");
+  const fix = v => v.replace(/\bct(?=[A-Z])/g, p);
+  card.querySelectorAll("*").forEach(el => {
+    ["id", "for", "list", "onchange", "oninput", "aria-controls"].forEach(at => {
+      if(el.hasAttribute(at)) el.setAttribute(at, fix(el.getAttribute(at)));
+    });
+  });
+  card.querySelector(".step-num").textContent = "S" + k;
+  card.querySelector(".team-card-name").textContent = "Support DPSer " + k;
+  const link = card.querySelector(".team-ct-link"); if(link) link.remove();
+  [p + "Verdict", p + "Outcomes"].forEach(id => { const el = card.querySelector("#" + id); if(el) el.remove(); });
+  const row = card.querySelector(".team-type-row");
+  row.className = "team-type-row support-settings";
+  row.innerHTML = `
+    <label class="check-item"><input type="checkbox" id="${p}Sponge" checked> Can sponge</label>
+    <label class="check-item"><input type="checkbox" id="${p}Dodge"> Can dodge</label>
+    <div class="field"><label for="${p}First">Boss charge moves</label>
+      <select id="${p}First" title="When this attacker is in: who takes the boss's charge moves first">
+        <option value="sponge" selected>Sponge first, then catch tanks</option>
+        <option value="tanks">Catch tanks first, then sponge</option>
+      </select></div>
+    <div class="field"><label for="${p}Rule">Sponge rule</label>
+      <select id="${p}Rule" title="Survive only: it sponges whenever it can take the hit and still reach its next charge move, even if some energy goes over 100. Keep the energy: the main DPSer's rule - no more than 10% over the cap while catch tanks are left.">
+        <option value="survive" selected>Survive only (overflow OK)</option>
+        <option value="keep">Keep the energy (≤10% over)</option>
+      </select></div>`;
+  const $c = id => card.querySelector("#" + p + id);
+  $c("Name").value = ""; $c("Name").placeholder = "e.g. Mega Rayquaza";
+  $c("Level").value = "50"; ["IvAtk", "IvDef", "IvHp"].forEach(id => $c(id).value = "15");
+  ["FM", "CM"].forEach(m => { $c(m + "_select").innerHTML = ""; $c(m).value = ""; const cu = $c(m + "_custom"); cu.value = ""; cu.style.display = "none"; });
+  ["Preview", "MovePreview", "BossPreview"].forEach(id => { const el = $c(id); if(el) el.innerHTML = ""; });
+  return card;
+}
+function wireSupportCard(p){
+  initPokemonAutocomplete(p + "Name", p + "Name_ac");
+  ["input", "change"].forEach(ev => document.getElementById(p + "Name")
+    .addEventListener(ev, () => { updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); renderTeamOrder(); }));
+}
+function setSupportCount(n){
+  n = Math.max(0, Math.min(2, n));
+  const wrap = document.getElementById("supportCards");
+  for(let k = 1; k <= 2; k++){
+    const have = document.getElementById("supportCard" + k);
+    if(k <= n && !have){ wrap.appendChild(buildSupportCard(k)); wireSupportCard("sd" + k); }
+    if(k > n && have) have.remove();
+  }
+  document.getElementById("sdCount").value = String(n);
+  for(let k = 1; k <= 2; k++){   // only the last support card offers Remove
+    const c = document.getElementById("supportCard" + k);
+    if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = (k !== n); btn.onclick = () => setSupportCount(n - 1); }
+  }
+  document.getElementById("sdAdd").hidden = n >= 2;
+  updateOwnerOptions();
+  renderTeamOrder();
+  if(typeof updateTeamPreview === "function") updateTeamPreview();
+}
+// "Used by" on the catch tank cards: only offered once there is a support DPSer, listing those added
+function updateOwnerOptions(){
+  const n = supportCount();
+  ["ct", "ct2", "ct3"].forEach(p => {
+    const sel = document.getElementById(p + "Owner");
+    if(!sel) return;
+    [...sel.options].forEach(o => { if(/^[12]$/.test(o.value)) o.hidden = +o.value > n; });
+    if(/^[12]$/.test(sel.value) && +sel.value > n) sel.value = "any";
+    const f = sel.closest(".owner-field"); if(f) f.hidden = n === 0;
+  });
+}
+document.getElementById("sdAdd").addEventListener("click", () => setSupportCount(supportCount() + 1));
 
 // The priority order lives in the hidden #ctPriority ("main,1,2") so it is saved with setups and
 // links. Setups saved before this used "main" (Main first) or "tanks" (Tanks first).
@@ -6781,6 +7031,12 @@ function renderTeamOrder(){
   }));
 }
 document.getElementById("ctMainAbsorb").addEventListener("change", renderTeamOrder);
+function updateMainRule(){
+  const on = document.getElementById("ctMainAbsorb").checked;
+  document.getElementById("ctMainRuleWrap").classList.toggle("is-off", !on);
+  document.getElementById("ctMainRule").disabled = !on;
+}
+document.getElementById("ctMainAbsorb").addEventListener("change", updateMainRule);
 // "Dodges before bailing" only matters while dodging is allowed
 function updateDodgeLimit(){
   const on = document.getElementById("ctMainDodge").checked;
