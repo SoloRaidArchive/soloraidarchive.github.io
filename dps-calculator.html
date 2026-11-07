@@ -1453,7 +1453,7 @@ if ("serviceWorker" in navigator) {
         <li><b>Priority &amp; hot swap order</b> lists the attackers in the order they come in (the main DPSer, then any support DPSers), and under each one who takes the boss's charge moves while it is in: its own catch tanks, one by one, and its own sponge. Whatever is higher goes first - a sponge above the catch tanks means the attacker tries to take the charge move itself before calling a catch tank in. <b>Soft</b> assignment lets an attacker borrow an unused catch tank from another attacker before it hot swaps; <b>Strict</b> keeps each to its own. Sponging needs no setting:
           <ul>
             <li><b>While the attacker has catch tanks</b>, the energy can be managed, so a sponge has to earn its place over a catch: it must absorb at least 90% of the hit's energy (no more than 10% overflow), survive it, and fire its own charge move before the boss's next one. Otherwise a catch tank intercepts - even when the sponge is listed first - rather than waste the energy.</li>
-            <li><b>Once it has no catch tank left</b>, the run plays out: it keeps taking charge moves for as long as its HP can cover another full rotation - the hit, then the boss's fast moves while it refills its energy and casts its charge move. When another rotation isn't safe it hot swaps to the next attacker, or, if it is the last, goes all in (or bails - see below). An attacker that can't live to land its next charge move hot swaps straight away.</li>
+            <li><b>Once it has no catch tank left</b>, the run plays out: it keeps taking charge moves for as long as its HP can cover another full rotation - the hit, then the boss's fast moves while it refills its energy and casts its charge move. When another rotation isn't safe it hot swaps to the next attacker, or, if it is the last, goes all in (or bails - see below). An attacker that can't live to land its next charge move hot swaps straight away. With <b>Juice main DPS</b> on, an attacker about to hot swap first goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes; when they wouldn't, it hot swaps where it would have, as if it never tried.</li>
           </ul>
         </li>
         <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many times the party has to rejoin before the 300s timer runs out - each cycle, plus the rejoin after it (98.5s cycles with 7.0s rejoins: 2, as the third cycle runs past 300s); Minimum DPS for that many rejoins and Cumulative DPS take that many rejoins of this length out of the timer.</li>
@@ -1677,6 +1677,7 @@ if ("serviceWorker" in navigator) {
         </select>
       </label>
       <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
+      <label class="check-item" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
       <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
         <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
       </label>
@@ -2926,7 +2927,7 @@ function simulateTeam(P){
     // hot swap: the attacker in slot 0 (index into P.attackers) since attFrom; hotSwap is booked
     // when it can't take the boss's next charge move { deadline }: it fires if that lands in time,
     // then swaps out
-    att: 0, attFrom: 0, hotSwap: null,
+    att: 0, attFrom: 0, hotSwap: null, juice: false,   // juice: staying in for one more charge move (Juice main DPS)
     // The last point the rotation was on solid ground: a catch tank's final charge move landing,
     // or the main DPSer's charge move landing after a sponge. A run that ends because nobody can
     // take the next charge move is cut back to here, so it never includes a half-built cycle.
@@ -2945,7 +2946,7 @@ function simulateTeam(P){
   while(!S.ended){
     teamApplyAttacker(P, S);
     const attNow = S.att;
-    const snap = (P.mainAbsorbs || P.mainDodges) ? structuredClone(S) : null;   // state at the start of this tick
+    const snap = (P.mainAbsorbs || P.mainDodges || P.juice) ? structuredClone(S) : null;   // state at the start of this tick
     const before = { hits: new Set(S.hits), dmg: R.dmg.length, boss: R.bossMoves.length, swaps: R.swaps.length,
                      events: R.events.length, flight: S.boss.inFlight, dodges: R.dodges.length };
     teamStep(S, R, P, snap);
@@ -3052,7 +3053,7 @@ function teamStep(S, R, P, snap){
     R.attSpans.push({ att: S.att, from: S.attFrom, to: t, hp: out.hp, energy: out.energy });
     if(out.hp <= 0) S.hits = S.hits.filter(h => h.who !== 0);   // a fainted attacker's move never lands
     S.gains = S.gains.filter(g => g.who !== 0);
-    S.hotSwap = null; S.finishing = false; S.finishDeadline = null; S.finishAt = null; S.allIn = false;
+    S.hotSwap = null; S.juice = false; S.finishing = false; S.finishDeadline = null; S.finishAt = null; S.allIn = false;
     S.pendingDodge = null; S.dodging = null; S.awaitMainCM = false;
     S.swap = { from: 0, to: 0, until: t + TEAM_SWAP_TICKS, hot: true };
     R.segs.push({ t, who: -1 });
@@ -3115,6 +3116,13 @@ function teamStep(S, R, P, snap){
     };
     const dec = { cast: t, land, outcome: null, tank: null, att: S.att || 0 };
     R.decisions.push(dec);
+    if(!hm.tank && S.juice){
+      // juicing: it takes this one itself, going for its next charge move
+      dec.outcome = "juice";
+      if(!S.probe) R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} takes it, juicing for another ${P.main.cm.n}`,
+        ev: { type: "bossCM", to: 0, how: "juice" } });
+      return;
+    }
     if(!hm.tank){
       // Priority: main-first tries the sponge before a tank; tanks-first only falls back to it once
       // the tanks are gone. Either way the sponge needs the safety checks to pass.
@@ -3159,10 +3167,20 @@ function teamStep(S, R, P, snap){
         // Hot swap: no catch tank left for this attacker and it can't safely take this one. It
         // fires the charge move it is building if that lands in time to swap out before the hit,
         // then swaps out; the next attacker comes in and takes the hit (step 6, S.hotSwap).
+        if(P.juice && teamJuiceProbe(snap, P)){
+          // Juice main DPS: the boss's moves let it live to land one more - it stays in for it
+          dec.outcome = "juice"; S.juice = true;
+          R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → no catch tank left; ${P.main.name} juices for another ${P.main.cm.n}`,
+            ev: { type: "bossCM", to: 0, how: "juice-start" } });
+          return;
+        }
         dec.outcome = "hot-swap";
-        S.hotSwap = { deadline: land, fired: false };
-        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → no catch tank left for ${P.main.name}; hot swap to ${P.attackers[S.att + 1].name}`,
-          ev: { type: "bossCM", to: 0, how: "hotswap", toAtt: S.att + 1 } });
+        const greed = teamMainCanFinishCM(S, P, t, land);
+        S.hotSwap = { deadline: land, fired: false, greed };
+        R.events.push({ t, kind: "boss", text: greed
+            ? `${P.bossCM.n} → ${P.main.name} stays in to land its ${P.main.cm.n}, then hot swaps to ${P.attackers[S.att + 1].name}`
+            : `${P.bossCM.n} → no catch tank left for ${P.main.name}; hot swap to ${P.attackers[S.att + 1].name}`,
+          ev: { type: "bossCM", to: 0, how: greed ? "hotswap-greed" : "hotswap", toAtt: S.att + 1 } });
         return;
       }
       if(!tanksLeft && P.allIn){
@@ -3237,6 +3255,11 @@ function teamStep(S, R, P, snap){
     if(h.cm && !S.probe) S.safePoint = Math.max(S.safePoint === null ? 0 : S.safePoint, t);
     // dodge probe: the main DPSer's charge move after the dodge has landed - the dodge is safe
     if(h.cm && h.who === 0 && S.probe && S.probe.dodge && !S.probe.done && S.probe.cmLand === t) S.probe.done = "ok";
+    // juice: the charge move it went in for has landed - the gamble paid off; normal decisions resume
+    if(h.cm && h.who === 0){
+      if(S.probe && S.probe.juice && !S.probe.done){ if(S.probe.skip > 0) S.probe.skip--; else S.probe.done = "ok"; }
+      if(S.juice && !S.probe) S.juice = false;
+    }
     return false;
   });
   if(S.finishAt !== null && t >= S.finishAt){
@@ -3358,7 +3381,7 @@ function teamStep(S, R, P, snap){
       // next charge move - the boss's fast moves due before then would knock it out - swaps out now
       // rather than tapping fast moves until it faints. (Eternatus landed Dynamax Cannon on 4 HP with
       // 0 energy and kept attacking for 2.5s until a Fire Fang finished it; 100 energy was ~10s away.)
-      if(who === 0 && !S.hotSwap && !S.pendingSwap && !S.pendingDodge && !S.dodging && hasNext()){
+      if(who === 0 && !S.hotSwap && !S.juice && !S.pendingSwap && !S.pendingDodge && !S.dodging && hasNext()){
         const missing = Math.max(0, side.cmCost - m.energy);
         const lands = t + Math.ceil(missing / side.fm.energy) * side.fm.ad + side.cm.ad;   // its next charge move landing
         // The boss's fast moves that hit before then: the one in flight for certain; of the moves after
@@ -3372,9 +3395,16 @@ function teamStep(S, R, P, snap){
         for(; cast + P.bossFM.ad <= lands; cast += P.bossFM.ad + 4) later++;
         n += later * (noTankLeft() ? 1 : 1 - P.aggro);
         if(m.hp <= n * P.main.bossFmDmg){
-          if(!S.probe) R.events.push({ t, kind: "main", text: `${P.main.name} can't live to land another ${side.cm.n} (${m.hp} HP, ${Math.round(m.energy)} energy)`,
-            ev: { type: "doomed", hp: m.hp, energy: Math.round(m.energy), move: side.cm.n } });
-          startHotSwap(); return;
+          if(P.juice && teamJuiceProbe(snap, P)){
+            // Juice main DPS: by the odds it shouldn't live to land another, but this time it will
+            S.juice = true;
+            R.events.push({ t, kind: "main", text: `${P.main.name} juices for another ${side.cm.n} (${m.hp} HP, ${Math.round(m.energy)} energy)`,
+              ev: { type: "juice", hp: m.hp, energy: Math.round(m.energy), move: side.cm.n } });
+          } else {
+            if(!S.probe) R.events.push({ t, kind: "main", text: `${P.main.name} can't live to land another ${side.cm.n} (${m.hp} HP, ${Math.round(m.energy)} energy)`,
+              ev: { type: "doomed", hp: m.hp, energy: Math.round(m.energy), move: side.cm.n } });
+            startHotSwap(); return;
+          }
         }
       }
       if(who === 0 && S.hotSwap){
@@ -3382,7 +3412,8 @@ function teamStep(S, R, P, snap){
         // it) finishes before the boss's hit lands; otherwise go now, so the next attacker takes it.
         const need = Math.max(0, Math.ceil((side.cmCost - m.energy) / side.fm.energy));
         const cmDone = t + need * side.fm.ad + side.cm.ad;
-        if(S.hotSwap.fired || cmDone + TEAM_SWAP_TICKS > S.hotSwap.deadline){ startHotSwap(); return; }
+        // ...unless it can take the hit and still land it (greed): then it stays, fires, and swaps after
+        if(S.hotSwap.fired || (cmDone + TEAM_SWAP_TICKS > S.hotSwap.deadline && !S.hotSwap.greed)){ startHotSwap(); return; }
       }
       if(who === 0 && S.pendingDodge && t + nextDur > S.pendingDodge.latest){
         // Main allowed to dodge: its next move wouldn't finish before the dodge has to start, so it
@@ -3510,6 +3541,50 @@ function teamMainCanKeepGoing(S, P, t, land){
   const windowTicks = Math.ceil(missing / M.fm.energy) * M.fm.ad + M.cm.ad;
   const bossFms = Math.ceil(windowTicks / (P.bossFM.ad + 4));
   return hpAfter > bossFms * M.bossFmDmg;
+}
+
+// Juice main DPS: the attacker in is about to hot swap. Does going in for one more charge move pay
+// off? The fight is played forward from the start of this tick (rng included, so the boss makes the
+// same moves the run will) with the attacker staying in and taking the boss's charge moves itself
+// (S.juice). It pays off if a new charge move of its own lands - one already in the air doesn't
+// count - before it faints. If not, the run hot swaps where it was going to, as if it never tried.
+function teamJuiceProbe(snap, P){
+  if(!snap) return false;
+  const L = structuredClone(snap);
+  L.juice = true;
+  L.probe = { juice: true, done: null, skip: L.hits.filter(h => h.who === 0 && h.cm).length };
+  const R = newTeamRecorder();
+  for(let k = 0; k < 200 && !L.probe.done && !L.ended; k++){
+    teamStep(L, R, P, null);
+    if(L.probe.done || L.ended) break;
+    L.t++;
+  }
+  return L.probe.done === "ok";
+}
+
+// Hot swap, "greed": the attacker in is about to hot swap but can't fire and get out before the
+// boss's hit lands. Can it stay, take the hit and still land the charge move it is building? It
+// needs the HP for the hit plus the boss's fast moves until that charge move lands (the hit's
+// energy counts toward it). If so it stays in rather than throwing the energy away - Eternatus
+// swapped out holding a full Dynamax Cannon (207 HP) because the Cannon and the 0.5s swap ended
+// just after Aqua Tail landed.
+function teamMainCanFinishCM(S, P, t, land){
+  const m = S.mons[0], M = P.main;
+  const hpAfter = m.hp - M.bossCmDmg;
+  if(hpAfter <= 0) return false;                       // the hit itself would knock it out
+  let e = m.energy + Math.floor(Math.max(0, land - Math.max(t, m.busyUntil)) / M.fm.ad) * M.fm.energy;
+  if(e < M.cmCost) e = Math.min(100, e + energyFromDamage(M.bossCmDmg));   // the hit's energy
+  const missing = Math.max(0, M.cmCost - e);
+  // Ready to fire once the hit has landed: always worth it - swapping out throws the charge move
+  // away for certain, staying only risks it (if a fast move gets in first, the next attacker comes
+  // in then, about when it would have anyway).
+  if(missing === 0) return true;
+  // Otherwise it must outlast the boss's fast moves that land before its charge move does: none
+  // during the boss's charge move, then one per fast move + 2.0s from just after it lands.
+  const cmLands = land + Math.ceil(missing / M.fm.energy) * M.fm.ad + M.cm.ad;
+  let n = 0;
+  for(let c = land + 1; c + P.bossFM.ad < cmLands; c += P.bossFM.ad + 4) n++;
+  return hpAfter > n * M.bossFmDmg;
 }
 
 // Can the main DPSer dodge this charge move instead? The same play-forward test as a sponge -
@@ -3649,6 +3724,7 @@ function runTeamSim(c){
     // a new random stream for every run (window.__teamSeed, if set, repeats one - for testing)
     seed: Number.isInteger(window.__teamSeed) ? window.__teamSeed : crypto.getRandomValues(new Uint32Array(1))[0],
     tanks, monMeta, mainRank, assign: document.getElementById("ctAssign").value === "strict" ? "strict" : "soft",
+    juice: !!(document.getElementById("ctJuice") || {}).checked,
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
     cmBuffer: false,   // CM Buffer isn't part of the Beta any more (removed from its card); old links' value is ignored
     // Main allowed to dodge: how many charge moves it may dodge over the whole run (0 = no limit).
@@ -3942,6 +4018,9 @@ function teamLogLine(P, e){
         : v.how === "tank-again" ? `Preparing ${ico(v.to)} <span class="team-dim">(still in)</span>`
         : v.how === "tank-faint" ? `lands on ${ico(v.to)}`
         : v.how === "hotswap" ? `no catch tank left &middot; hot swap to ${aIco(v.toAtt)}`
+        : v.how === "hotswap-greed" ? `${ico(0)} stays in to land its charge move, then hot swaps to ${aIco(v.toAtt)}`
+        : v.how === "juice-start" ? `no catch tank left &middot; ${ico(0)} juices for another charge move`
+        : v.how === "juice" ? `${ico(0)} takes it, juicing for another charge move`
         : `no catch tank left`;
       return `${teamIcon(P, "boss")} ${cm} Cast <span class="team-arrow">&rarr;</span> ${tail}`;
     }
@@ -3955,6 +4034,7 @@ function teamLogLine(P, e){
     case "cmHit": return `${ico(v.who)} <b>${v.move}</b> Hit <span class="team-num">${v.dmg} dmg</span>`;
     case "faint": return `${teamSym("faint", "Fainted")}${ico(v.who)} fainted`;
     case "dcHold": return `${ico(v.who)} keeps its ${v.energy} energy <span class="team-dim">for a 2nd catch</span>`;
+    case "juice": return `${ico(0)} juices for another <b>${v.move}</b> <span class="team-dim">(${v.hp} HP, ${v.energy} energy)</span>`;
     case "doomed": return `${ico(0)} can't live to land another <b>${v.move}</b> <span class="team-dim">(${v.hp} HP, ${v.energy} energy) &middot; hot swap</span>`;
     case "hotswap": return `${teamSym("swap", "Hot swap")}${aIco(v.fromAtt)} Out${v.fainted ? " (fainted)" : ""}, ${aIco(v.toAtt)} In <span class="team-dim">(hot swap)</span>`;
     default: return e.text;
@@ -5740,7 +5820,7 @@ const SETUP_FIELD_IDS = [
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
   "ct3Name","ct3Level","ct3IvAtk","ct3IvDef","ct3IvHp","ct3CM","ct3FM","ct3Qty","ct3Casts",
   // Hot swap: which attacker each catch tank type serves, and the support DPSers
-  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign",
+  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign","ctJuice",
   "sd1Name","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge",
   "sd2Name","sd2Level","sd2IvAtk","sd2IvDef","sd2IvHp","sd2CM","sd2FM","sd2Sponge","sd2First","sd2Rule","sd2Dodge",
   "sd3Name","sd3Level","sd3IvAtk","sd3IvDef","sd3IvHp","sd3CM","sd3FM","sd3Sponge","sd3First","sd3Rule","sd3Dodge",
@@ -6796,7 +6876,7 @@ const SETUP_SHORT_KEYS = {
   ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctDoubleCatch:"tdc", ctDcFMs:"tdf", ctRejoinSecs:"trs",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
-  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas",
+  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas", ctJuice:"tju",
   sd1Name:"h1n", sd1Level:"h1l", sd1IvAtk:"h1a", sd1IvDef:"h1d", sd1IvHp:"h1h", sd1CM:"h1c", sd1FM:"h1f", sd1Sponge:"h1s", sd1First:"h1p", sd1Rule:"h1r", sd1Dodge:"h1g",
   sd2Name:"h2n", sd2Level:"h2l", sd2IvAtk:"h2a", sd2IvDef:"h2d", sd2IvHp:"h2h", sd2CM:"h2c", sd2FM:"h2f", sd2Sponge:"h2s", sd2First:"h2p", sd2Rule:"h2r", sd2Dodge:"h2g",
   sd3Name:"h3n", sd3Level:"h3l", sd3IvAtk:"h3a", sd3IvDef:"h3d", sd3IvHp:"h3h", sd3CM:"h3c", sd3FM:"h3f", sd3Sponge:"h3s", sd3First:"h3p", sd3Rule:"h3r", sd3Dodge:"h3g",
