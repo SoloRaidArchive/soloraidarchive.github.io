@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-11-07T09:21:00.394057+00:00",
+  "generatedAt": "2026-11-07T17:03:37.912132+00:00",
   "sources": {
     "pokebattlerSchedule": 40,
     "pokebattlerScheduleWindows": 52,
     "scrapedDuck": 1,
-    "pokebattlerApiStartDates": 4,
+    "pokebattlerApiStartDates": 6,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 36
+    "pokebattlerApi": 37
   },
   "dateGroups": [
     {
@@ -23,6 +23,26 @@
         }
       ],
       "status": "active"
+    },
+    {
+      "startDate": "Nov 15, 2026",
+      "endDate": "Nov 15, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Reshiram",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5.5 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Kyurem Black",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Cloudy"
+        }
+      ],
+      "status": "future"
     },
     {
       "startDate": "Nov 5, 2026",
@@ -101,26 +121,6 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Extreme"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Nov 15, 2026",
-      "endDate": "Nov 15, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Reshiram",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "5.5 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Kyurem Black",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Cloudy"
         }
       ],
       "status": "future"
