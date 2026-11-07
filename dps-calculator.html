@@ -108,7 +108,7 @@ if ("serviceWorker" in navigator) {
   }
   [data-theme="dark"] .ct-mode-toggle{ background:#161a28; }
   .ct-mode-toggle input{ display:none; }
-  /* Each tab sizes to its own label and never wraps it, so "Beta: (Single Lobby) Battle Party Simulator" stays on
+  /* Each tab sizes to its own label and never wraps it, so "Beta: Battle Party Simulator" stays on
      one line. On a narrow phone the tabs themselves still wrap onto a second row of the toggle. */
   .ct-mode-toggle label{
     flex:1 1 auto; min-width:110px; white-space:nowrap; text-align:center; padding:10px 12px; border-radius:9px; cursor:pointer;
@@ -874,7 +874,7 @@ if ("serviceWorker" in navigator) {
   .boss-ct-cond{ width:22px; height:22px; object-fit:contain; flex:none; }
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
 
-  /* "About this beta" panel (Beta: (Single Lobby) Battle Party Simulator only) - same collapsible as Type matchup */
+  /* "About this beta" panel (Beta: Battle Party Simulator only) - same collapsible as Type matchup */
   .beta-about{ max-width:760px; margin:-6px 0 16px; }
   .beta-about .mod-summary{ text-transform:none; letter-spacing:0; font-size:12.5px; }
   .beta-i{ display:inline-flex; align-items:center; justify-content:center; width:17px; height:17px; border-radius:50%;
@@ -1429,17 +1429,19 @@ if ("serviceWorker" in navigator) {
 
 <div class="container">
 
+  <!-- the Battle Party Simulator comes first and is the mode the calculator opens in; a saved setup
+       or shared link always carries its own mode (one with none opens in Single Catch Tank) -->
   <div class="ct-mode-toggle">
+    <input type="radio" name="ctMode" id="ctModeTeam" value="team" checked>
+    <label for="ctModeTeam" title="Your battle party - main DPSer, support DPSers and catch tanks - simulated turn by turn">Beta: Battle Party Simulator</label>
     <input type="radio" name="ctMode" id="ctModeMainDPS" value="maindps">
     <label for="ctModeMainDPS">Main DPS</label>
-    <input type="radio" name="ctMode" id="ctModeSingle" value="single" checked>
+    <input type="radio" name="ctMode" id="ctModeSingle" value="single">
     <label for="ctModeSingle">Single Catch Tank</label>
     <input type="radio" name="ctMode" id="ctModeDouble" value="double">
     <label for="ctModeDouble">Double Catch Tank</label>
-    <input type="radio" name="ctMode" id="ctModeTeam" value="team">
-    <label for="ctModeTeam" title="Your battle party in one lobby - main DPSer, support DPSers and catch tanks - simulated turn by turn">Beta: (Single Lobby) Battle Party Simulator</label>
   </div>
-  <!-- Beta: (Single Lobby) Battle Party Simulator - what it does and doesn't model. Shown in that mode only. -->
+  <!-- Beta: Battle Party Simulator - what it does and doesn't model. Shown in that mode only. -->
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
@@ -1579,7 +1581,7 @@ if ("serviceWorker" in navigator) {
     </div>
   </div>
 
-  <!-- Beta: (Single Lobby) Battle Party Simulator - the catch tank, laid out like step 1: the tank on the left,
+  <!-- Beta: Battle Party Simulator - the catch tank, laid out like step 1: the tank on the left,
        what the boss does to it on the right (live previews), settings under the boss side. -->
   <div class="step-card team-only team-card" id="teamCard">
     <div class="step-head">
@@ -3816,7 +3818,7 @@ function runTeamSim(c){
 }
 
 
-// ---- Catch Tank card live preview (Beta: (Single Lobby) Battle Party Simulator) ----
+// ---- Catch Tank card live preview (Beta: Battle Party Simulator) ----
 // Left: the tank's stats and its damage to the boss. Right: what the boss does to it - the same
 // row layout as the main DPSer / boss previews in step 1. Numbers come from teamTankNumbers, the
 // function the simulator itself uses.
@@ -4374,7 +4376,7 @@ function renderTeamSim(P, S, R){
   return `
     <div class="dps-result-card">${warn}
       <div class="dps-result-main">
-        <div class="dps-result-label">(Single Lobby) Battle Party Simulator &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty ? `${P.qty} catch tank${P.qty > 1 ? "s" : ""}` : "no catch tanks"}${multi ? ` &middot; ${ATT.length - 1} support DPSer${ATT.length > 2 ? "s" : ""}` : ""}</div>
+        <div class="dps-result-label">Battle Party Simulator &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty ? `${P.qty} catch tank${P.qty > 1 ? "s" : ""}` : "no catch tanks"}${multi ? ` &middot; ${ATT.length - 1} support DPSer${ATT.length > 2 ? "s" : ""}` : ""}</div>
         <div class="dps-result-value">${dps.toFixed(1)}</div>
         ${pace ? `<div class="team-pace-head ${pace.ahead ? "ok" : "short"}" title="${pace.title}">${pace.text}</div>` : ""}
         ${activeConditionsHtml()}
@@ -5811,7 +5813,7 @@ const SETUP_FIELD_IDS = [
   "bossName","bossTier","bossCM","bossFM",
   "effBossCM","effBossFM","bossStabCM","bossStabFM","shadowDebuff",
   // Boss aggression, the Fast & Charge choice and Dynamic Punch+ (all used by Main DPS and the
-  // beta simulator, and none saved before), then the Beta: (Single Lobby) Battle Party Simulator's catch tank.
+  // beta simulator, and none saved before), then the Beta: Battle Party Simulator's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
   "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn","ctDoubleCatch","ctDcFMs","ctRejoinSecs",
@@ -7471,7 +7473,7 @@ function shareCardData(){
   // string - plus the Boss rotation graph, which was skipped entirely (its cell spans both
   // columns). Colours come from the card's own computed styles, so either theme matches.
   const pct = el => parseFloat(el.style.left) || 0;
-  // Beta: (Single Lobby) Battle Party Simulator. Its card has no .loadout-pokemon panel (the image's top strip
+  // Beta: Battle Party Simulator. Its card has no .loadout-pokemon panel (the image's top strip
   // came out empty), so the party is read from the run itself - main DPSer, each catch tank type,
   // the boss - along with the timeline bar. Its sub-lines name Pokemon only by icon, so icons are
   // read as their names ("Shadow Dialga caught 1") rather than dropped ("caught 1").
@@ -7958,7 +7960,7 @@ function bossModLabel(){
 }
 
 // Multi-player Buffs (Friendship, Primal/Mega boost, Party Power, Enrage T7, Shadow Enrage) are
-// switched off for now in the beta, (Single Lobby) Battle Party Simulator: its section is hidden there, and every
+// switched off for now in the beta, Battle Party Simulator: its section is hidden there, and every
 // read goes through these, which give the "none" value in that mode - so a box left on in another
 // mode can't creep into a beta run. The settings themselves are kept for the other modes.
 function mpBuffsOff(){ return document.body.classList.contains("ct-mode-team"); }
@@ -8160,6 +8162,10 @@ function bestHealthRow(rows){
     if(t && !(e.relatedTarget && t.contains(e.relatedTarget))) updateHealthBars();
   });
 })();
+
+// The calculator opens in the Battle Party Simulator (the first mode, checked in the markup): apply
+// its layout now - a shared link or saved setup loaded afterwards sets its own mode as before.
+updateCTMode();
 </script>
 
 <!-- Move creator. One dialog serves all four selects (player/boss x fast/charge) and therefore
