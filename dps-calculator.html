@@ -1222,6 +1222,12 @@ if ("serviceWorker" in navigator) {
   .pl-arrows{ display:inline-flex; gap:4px; } .pl-arrows button{ width:24px; height:24px; border-radius:7px; border:1.5px solid var(--border); background:var(--card); color:var(--text); font-size:12px; cursor:pointer; }
   .pl-arrows button:disabled{ opacity:.35; cursor:default; }
   @media (max-width:560px){ .pl-list{ margin-left:8px; } }
+  /* Tutorial mode: the toggle at the right of the card's heading; a line under each entry */
+  .team-behavior-card .step-head{ flex-wrap:wrap; }
+  .tut-toggle{ margin-left:auto; padding:6px 12px !important; min-height:0 !important; font-size:12.5px !important; }
+  .pl-tut{ flex:1 1 100%; margin:2px 0 1px 44px; font-size:12px; font-weight:600; color:var(--accent, var(--blue)); line-height:1.35; }
+  .pl-group-head .pl-tut{ margin-left:30px; }
+  @media (max-width:560px){ .pl-tut{ margin-left:22px; } }
 </style>
 <script type="application/ld+json">
 {
@@ -1657,6 +1663,7 @@ if ("serviceWorker" in navigator) {
     <div class="step-head">
       <div class="step-num">&#8645;</div>
       <div><div class="step-title">Rotation behavior</div></div>
+      <label class="check-item tut-toggle" title="Explains, in words, what each attacker and catch tank in the list will do"><input type="checkbox" id="tutorialMode"> Tutorial mode</label>
     </div>
     <!-- Sponging needs no setting: while an attacker has catch tanks it only sponges when that keeps
          the energy (no more than 10% overflow) and it can fire again; with none left, a health check. -->
@@ -3608,7 +3615,7 @@ function runTeamSim(c){
   const $ = id => document.getElementById(id);
   // Hot swap with no catch tanks (e.g. six Zacian Crown in a chain): with a support DPSer added and
   // Catch Tank 1 left empty (and no Catch Tank 2 / 3), the run has no catch tanks at all.
-  const noTanks = supportCount() > 0 && teamTypeCount() === 1 && !$("ctName").value.trim();
+  const noTanks = teamTypeCount() === 0 || (supportCount() > 0 && teamTypeCount() === 1 && !$("ctName").value.trim());
   const types = noTanks ? [] : teamPrefixes().map(p => teamTankNumbers(c, p));
   const bad = types.find(T => T.error);
   if(bad) return `<div class="empty-result">${bad.error}</div>`;
@@ -5776,7 +5783,8 @@ function restoreMoveSelection(baseId, savedMove){
 
 function applySetup(setup){
   // the Catch Tank 2/3 and Support DPSer cards have to exist before their fields can be filled in
-  setTeamTypeCount(parseInt(setup.ctTypes, 10) || 1);
+  const savedTypes = parseInt(setup.ctTypes, 10);
+  setTeamTypeCount(isNaN(savedTypes) ? 1 : savedTypes);
   setSupportCount(parseInt(setup.sdCount, 10) || 0);
   // a setup from before Priority & hot swap order has no plan: it is rebuilt below from its old
   // Priority order / Used by / First settings once those are loaded
@@ -5828,6 +5836,7 @@ function applySetup(setup){
   restoreMoveSelection("bossFM", setup.bossFM);
   teamPrefixes().concat(supportPrefixes()).forEach(p => { if(document.getElementById(p + "Name").value.trim()) updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); restoreMoveSelection(p + "CM", setup[p + "CM"]); restoreMoveSelection(p + "FM", setup[p + "FM"]); });
   updatePlayerPreview();
+  renderTeamOrder();   // tutorial lines name the boss's charge move, restored just above
   updateBossPreview();
   updatePlayerMovePreview();
   autoSetEffectiveness();
@@ -6983,7 +6992,8 @@ document.getElementById("ctModeTeam").addEventListener("change", updateCTMode);
 // (a function rather than a top-level const: the shared-link loader can run before this part of
 // the script has been reached, and a const isn't usable until then)
 function teamAllPrefixes(){ return ["ct", "ct2", "ct3"]; }
-function teamTypeCount(){ return Math.max(1, Math.min(3, parseInt(document.getElementById("ctTypes").value, 10) || 1)); }
+// 0 = no catch tanks at all (hot swapping only); otherwise 1-3 catch tank cards
+function teamTypeCount(){ const v = parseInt(document.getElementById("ctTypes").value, 10); return Math.max(0, Math.min(3, isNaN(v) ? 1 : v)); }
 function teamPrefixes(){ return teamAllPrefixes().slice(0, teamTypeCount()); }
 function wireTeamCard(p){
   initPokemonAutocomplete(p + "Name", p + "Name_ac");
@@ -6997,6 +7007,7 @@ function wireTeamCard(p){
 }
 function buildTeamCard(k){
   const p = "ct" + k, card = document.getElementById("teamCard").cloneNode(true);
+  card.style.display = "";   // Catch Tank 1 may be hidden (no catch tanks) when this copy is made
   card.id = "teamCard" + k;
   const fix = v => v.replace(/\bct(?=[A-Z])/g, p);
   card.querySelectorAll("*").forEach(el => {
@@ -7014,7 +7025,9 @@ function buildTeamCard(k){
   return card;
 }
 function setTeamTypeCount(n){
-  n = Math.max(1, Math.min(3, n));
+  n = Math.max(0, Math.min(3, n));
+  // no catch tanks: Catch Tank 1's card is hidden (kept, so its Pokemon and moves come back with it)
+  document.getElementById("teamCard").style.display = n === 0 ? "none" : "";
   const wrap = document.getElementById("teamExtraCards");
   for(let k = 2; k <= 3; k++){
     const have = document.getElementById("teamCard" + k);
@@ -7022,12 +7035,18 @@ function setTeamTypeCount(n){
     if(k > n && have) have.remove();
   }
   document.getElementById("ctTypes").value = String(n);
-  // only the last added card offers Remove
-  for(let k = 2; k <= 3; k++){
-    const c = document.getElementById("teamCard" + k);
+  // only the last card offers Remove - Catch Tank 1 too, for a run with no catch tanks
+  for(let k = 1; k <= 3; k++){
+    const c = document.getElementById(k === 1 ? "teamCard" : "teamCard" + k);
     if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = (k !== n); btn.onclick = () => setTeamTypeCount(n - 1); }
   }
-  document.getElementById("ctAddType").hidden = n >= 3;
+  const add = document.getElementById("ctAddType");
+  add.hidden = n >= 3;
+  add.textContent = n === 0 ? "+ Add a catch tank" : "+ Add another catch tank";
+  // with no catch tanks, Soft / Strict and Catch tank behavior (Double catch) have nothing to act on
+  const mode = document.querySelector("#teamBehaviorCard .pl-mode"); if(mode) mode.style.display = n === 0 ? "none" : "";
+  const ctGroup = [...document.querySelectorAll("#teamBehaviorCard .tb-group")].find(g => /Catch tank behavior/i.test((g.querySelector(".tb-group-head") || {}).textContent || ""));
+  if(ctGroup) ctGroup.style.display = n === 0 ? "none" : "";
   if(typeof updateOwnerOptions === "function") updateOwnerOptions();
   renderTeamOrder();
   if(typeof updateTeamPreview === "function") updateTeamPreview();
@@ -7044,6 +7063,7 @@ function supportCount(){ return Math.max(0, Math.min(SUPPORT_MAX, parseInt((docu
 function supportPrefixes(){ return ["sd1", "sd2", "sd3", "sd4", "sd5"].slice(0, supportCount()); }
 function buildSupportCard(k){
   const p = "sd" + k, card = document.getElementById("teamCard").cloneNode(true);
+  card.style.display = "";
   card.id = "supportCard" + k;
   card.classList.add("support-card");
   const fix = v => v.replace(/\bct(?=[A-Z])/g, p);
@@ -7145,7 +7165,7 @@ function setTeamOrder(order){ document.getElementById("ctPriority").value = orde
 function teamPlanAttackers(){ return ["m"].concat(supportPrefixes().map((p, i) => "s" + (i + 1))); }
 function teamPlanTanks(){
   const $ = id => document.getElementById(id);
-  if(supportCount() > 0 && teamTypeCount() === 1 && !$("ctName").value.trim()) return [];   // a chain with no catch tanks
+  if(teamTypeCount() === 0 || (supportCount() > 0 && teamTypeCount() === 1 && !$("ctName").value.trim())) return [];   // no catch tanks
   const out = [];
   teamPrefixes().forEach((p, i) => {
     const q = Math.max(1, Math.min(10, parseInt(($(p + "Qty") || {}).value, 10) || 1));
@@ -7225,24 +7245,54 @@ function renderTeamOrder(){
   const esc = v => String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
   const ico = n => `<img class="pl-ico" src="${esc(spriteUrl(n))}" alt="" onerror="this.style.visibility='hidden'">`;
   const arrows = (up, down, data) => `<span class="pl-arrows"><button type="button" aria-label="Move up" ${up ? "" : "disabled"} ${data} data-d="-1">&uarr;</button><button type="button" aria-label="Move down" ${down ? "" : "disabled"} ${data} data-d="1">&darr;</button></span>`;
+  // Tutorial mode: a line under each entry saying what it will do. The boss's charge moves are
+  // counted ("1st", "2nd") only while the order is certain - catch tanks listed before the attacker
+  // starts sponging / dodging; after that the count depends on how many it takes itself.
+  const tut = !!(document.getElementById("tutorialMode") || {}).checked;
+  const cmName = (((document.getElementById("bossCM") || {}).value) || "").trim() || "charge move";
+  const cmPlural = /s$/i.test(cmName) ? cmName : cmName + "s";
+  const ord = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] || "th"));
+  const tutLine = txt => tut ? `<span class="pl-tut">${txt}</span>` : "";
   list.innerHTML = blocks.map((b, bi) => {
     const name = teamAttName(b.att), role = b.att === "m" ? "Main DPSer" : "Support DPSer " + b.att.slice(1);
     const spongeOn = (teamAttInput(b.att, "sponge") || {}).checked, dodgeOn = (teamAttInput(b.att, "dodge") || {}).checked;
+    const flexible = spongeOn || dodgeOn, sIdx = b.items.indexOf("s");
+    const lastTank = b.items.reduce((acc, x, i) => x === "s" ? acc : i, -1);
+    const next = blocks[bi + 1] ? teamAttName(blocks[bi + 1].att) : null;
+    let count = 0;
+    const tutFor = (x, i) => {
+      if(x === "s"){
+        if(dodgeOn) return `Can begin dodging ${esc(cmPlural)} until unhealthy.`;
+        if(spongeOn) return `Can begin sponging ${esc(cmPlural)} until unhealthy.`;
+        return lastTank >= 0 ? `Won't take ${esc(cmPlural)} itself - its catch tanks take every one.` : `Won't take ${esc(cmPlural)} itself.`;
+      }
+      const whose = bi === 0 ? "" : `${esc(name)}'s `;
+      if(!flexible || i < sIdx){   // the order is still certain
+        count++;
+        return i === lastTank && !flexible
+          ? `Will intercept ${whose}${ord(count)} and final ${esc(cmName)}${next ? ` before ${esc(next)} hot swaps in` : ""}.`
+          : `Will intercept ${whose}${ord(count)} ${esc(cmName)}.`;
+      }
+      return i === lastTank
+        ? `Will intercept the final ${esc(cmName)} to protect ${esc(name)}${next ? ` before ${esc(next)} hot swaps in` : ""}.`
+        : `Will intercept a ${esc(cmName)} to protect ${esc(name)}.`;
+    };
+    const headTut = bi > 0 ? tutLine(`Hot swaps in when ${esc(teamAttName(blocks[bi - 1].att))} can't reach another charge move.`) : "";
     const items = b.items.map((x, i) => {
       const nav = arrows(i > 0, i < b.items.length - 1, `data-b="${bi}" data-i="${i}"`);
       if(x === "s") return `<li class="pl-item pl-sponge${spongeOn ? "" : " is-off"}"><span class="pl-num">${i + 1}</span><span class="pl-sym">&#10515;</span>
         <span class="pl-label"><b>${esc(name)} sponges</b> <span>&middot; ${spongeOn ? "when it absorbs the energy (&le;10% overflow)" : "off"}</span></span>
-        <label class="pl-switch" title="Whether ${esc(name)} takes the boss's charge moves itself when it is safe"><input type="checkbox" data-sponge="${b.att}" ${spongeOn ? "checked" : ""}> on</label>${nav}</li>`;
+        <label class="pl-switch" title="Whether ${esc(name)} takes the boss's charge moves itself when it is safe"><input type="checkbox" data-sponge="${b.att}" ${spongeOn ? "checked" : ""}> on</label>${nav}${tutLine(tutFor(x, i))}</li>`;
       const tName = teamTankLabel(x);
       const opts = blocks.map((o, oi) => `<option value="${oi}" ${oi === bi ? "selected" : ""}>${oi === bi ? "for " : "&rarr; "}${esc(teamAttName(o.att))}</option>`).join("");
       return `<li class="pl-item"><span class="pl-num">${i + 1}</span>${ico(tName.replace(/ #\d+$/, ""))}
         <span class="pl-label"><b>${esc(tName)}</b> <span>&middot; catch tank</span></span>
-        ${blocks.length > 1 ? `<select class="pl-move" data-b="${bi}" data-i="${i}" title="Which attacker this catch tank catches for">${opts}</select>` : ""}${nav}</li>`;
+        ${blocks.length > 1 ? `<select class="pl-move" data-b="${bi}" data-i="${i}" title="Which attacker this catch tank catches for">${opts}</select>` : ""}${nav}${tutLine(tutFor(x, i))}</li>`;
     }).join("");
     return `<div class="pl-group">
       <div class="pl-group-head"><span class="pl-gnum">${bi + 1}</span>${ico(name)}<span class="pl-gname"><b>${esc(name)}</b> <span>&middot; ${role}</span></span>
         <label class="check-item pl-dodge" title="${esc(name)} dodges the boss's charge move instead, when that is safe"><input type="checkbox" data-dodge="${b.att}" ${dodgeOn ? "checked" : ""}> Can dodge</label>
-        ${blocks.length > 1 ? arrows(bi > 0, bi < blocks.length - 1, `data-blk="${bi}"`) : ""}</div>
+        ${blocks.length > 1 ? arrows(bi > 0, bi < blocks.length - 1, `data-blk="${bi}"`) : ""}${headTut}</div>
       <ol class="pl-list">${items}</ol></div>`;
   }).join("");
 }
@@ -7281,6 +7331,10 @@ function renderTeamOrder(){
     renderTeamOrder();
     document.getElementById("ctAssign").dispatchEvent(new Event("change", { bubbles: true }));
   }));
+  const tutEl = document.getElementById("tutorialMode");
+  try{ tutEl.checked = localStorage.getItem("raidArchiveTutorial") === "1"; }catch(e){}
+  tutEl.addEventListener("change", () => { try{ localStorage.setItem("raidArchiveTutorial", tutEl.checked ? "1" : "0"); }catch(e){} renderTeamOrder(); });
+  ["bossCM_select", "bossCM_custom", "bossName"].forEach(id => { const el = document.getElementById(id); if(el) ["change", "input"].forEach(ev => el.addEventListener(ev, () => setTimeout(renderTeamOrder, 0))); });
   // the attackers' names in the list follow their cards
   ["pokemonName"].forEach(id => ["input", "change"].forEach(ev => document.getElementById(id).addEventListener(ev, renderTeamOrder)));
 })();
