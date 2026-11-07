@@ -108,7 +108,7 @@ if ("serviceWorker" in navigator) {
   }
   [data-theme="dark"] .ct-mode-toggle{ background:#161a28; }
   .ct-mode-toggle input{ display:none; }
-  /* Each tab sizes to its own label and never wraps it, so "Beta: Simple Catch Tank Sim" stays on
+  /* Each tab sizes to its own label and never wraps it, so "Beta: (Single Lobby) Battle Party Simulator" stays on
      one line. On a narrow phone the tabs themselves still wrap onto a second row of the toggle. */
   .ct-mode-toggle label{
     flex:1 1 auto; min-width:110px; white-space:nowrap; text-align:center; padding:10px 12px; border-radius:9px; cursor:pointer;
@@ -116,6 +116,9 @@ if ("serviceWorker" in navigator) {
     transition: background .15s ease, color .15s ease;
   }
   .ct-mode-toggle input:checked + label{ background: var(--blue); color:#fff; }
+  /* the narrowest phones (under 360px): the Battle Party Simulator label is wider than the screen,
+     so labels may wrap there - two lines rather than cut off */
+  @media (max-width: 359px){ .ct-mode-toggle label{ white-space:normal; line-height:1.25; } }
   /* Compact dropdown beside the Raid Boss name (Main DPS mode only) picking which of the two
      cadences to calculate, rather than always rendering both at once. Fixed-basis like
      .tier-field so a long boss name shrinks its own field instead of squeezing this one. */
@@ -871,7 +874,7 @@ if ("serviceWorker" in navigator) {
   .boss-ct-cond{ width:22px; height:22px; object-fit:contain; flex:none; }
   img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
 
-  /* "About this beta" panel (Beta: Simple Catch Tank Sim only) - same collapsible as Type matchup */
+  /* "About this beta" panel (Beta: (Single Lobby) Battle Party Simulator only) - same collapsible as Type matchup */
   .beta-about{ max-width:760px; margin:-6px 0 16px; }
   .beta-about .mod-summary{ text-transform:none; letter-spacing:0; font-size:12.5px; }
   .beta-i{ display:inline-flex; align-items:center; justify-content:center; width:17px; height:17px; border-radius:50%;
@@ -1428,9 +1431,9 @@ if ("serviceWorker" in navigator) {
     <input type="radio" name="ctMode" id="ctModeDouble" value="double">
     <label for="ctModeDouble">Double Catch Tank</label>
     <input type="radio" name="ctMode" id="ctModeTeam" value="team">
-    <label for="ctModeTeam" title="A main DPSer plus catch tanks, simulated turn by turn">Beta: Simple Catch Tank Sim</label>
+    <label for="ctModeTeam" title="Your battle party in one lobby - main DPSer, support DPSers and catch tanks - simulated turn by turn">Beta: (Single Lobby) Battle Party Simulator</label>
   </div>
-  <!-- Beta: Simple Catch Tank Sim - what it does and doesn't model. Shown in that mode only. -->
+  <!-- Beta: (Single Lobby) Battle Party Simulator - what it does and doesn't model. Shown in that mode only. -->
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
@@ -1447,7 +1450,7 @@ if ("serviceWorker" in navigator) {
             <li><b>Once it has no catch tank left</b>, the run plays out: it keeps taking charge moves for as long as its HP can cover another full rotation - the hit, then the boss's fast moves while it refills its energy and casts its charge move. When another rotation isn't safe it hot swaps to the next attacker, or, if it is the last, goes all in (or bails - see below). An attacker that can't live to land its next charge move hot swaps straight away.</li>
           </ul>
         </li>
-        <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many cycles fit in the 300s timer; Minimum DPS for that many rejoins and Cumulative DPS take that many rejoins of this length out of the timer.</li>
+        <li>"Rejoin time" (7.0s by default, 5.5s at the fastest, in 0.5s steps) is how long each rejoin takes. Expected rejoins is how many times the party has to rejoin before the 300s timer runs out - each cycle, plus the rejoin after it (98.5s cycles with 7.0s rejoins: 2, as the third cycle runs past 300s); Minimum DPS for that many rejoins and Cumulative DPS take that many rejoins of this length out of the timer.</li>
         <li>The swap to a catch tank is timed automatically for the highest DPS. Once the boss has begun its charge move, the swap can start any time up to the last moment that still gets the catch tank in before the hit (the main DPSer attacks until then). The simulator runs the whole fight with the same boss for every swap time, 0.5s apart - first one timing for all catches, then each catch on its own - and keeps whatever gives the highest DPS. A catch tank that comes in early attacks with fast moves, but holds its charge move and stays in until it has caught the hit.</li>
         <li>With "Main can dodge", the main DPSer dodges a boss charge move instead of a catch tank catching it - up to the number set in "Dodges before bailing" over the whole run - but only when it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. Once its dodges are used, or when a dodge isn't safe, catch tanks catch as usual. Catch tanks never take over as the main DPSer: when the main DPSer can't safely continue even with them, it bails and the run ends. A dodge takes 25% of the damage and costs 1.0s, timed to end as the hit lands; the main DPSer stops attacking once its next move wouldn't finish before then. Sponging, when safe, still comes first.</li>
         <li>The run ends when there's no catch tank left for the next charge move and the main DPSer can't (or isn't allowed to) take it. The main DPSer gets to fire the charge move it is building if that lands in time; otherwise results stop when the last charge move landed. With "All in final charge move" (on by default), it doesn't bail on the energy it holds: it stays in, dodges the hit (if dodging is allowed and there's time - the dodge count doesn't apply to this last push) or takes it, and the run ends when that last charge move lands - or, if it faints first, when the last charge move before that landed.</li>
@@ -1570,7 +1573,7 @@ if ("serviceWorker" in navigator) {
     </div>
   </div>
 
-  <!-- Beta: Simple Catch Tank Sim - the catch tank, laid out like step 1: the tank on the left,
+  <!-- Beta: (Single Lobby) Battle Party Simulator - the catch tank, laid out like step 1: the tank on the left,
        what the boss does to it on the right (live previews), settings under the boss side. -->
   <div class="step-card team-only team-card" id="teamCard">
     <div class="step-head">
@@ -2877,10 +2880,20 @@ function raidTierFor(bossName){
 }
 // "7s", "5.5s" - the rejoin time as the card writes it
 const rejoinSecsText = secs => `${+secs.toFixed(1)}s`;
+// Expected rejoins: how many times the party has to rejoin before the 300s timer runs out. Each
+// rejoin comes after a full cycle and itself takes rejoinSecs, so cycle k ends at
+// k x cycle + (k - 1) x rejoin; a rejoin is needed after it only if that is still inside the timer.
+// E.g. 98.5s cycles with 7.0s rejoins: cycle 1 ends at 98.5s, cycle 2 at 204.0s (after one rejoin),
+// cycle 3 would end at 309.5s - the raid is over during it, so 2 rejoins, not 300 / 98.5 = 3. (The
+// old count, floor(300 / cycle), left the rejoins' own time out.)
+function teamExpectedRejoins(cycleSecs, rejoinSecs = REJOIN_SECS){
+  if(!(cycleSecs > 0)) return null;
+  let k = 0;
+  while((k + 1) * cycleSecs + k * rejoinSecs < RAID_SECS - 1e-9) k++;
+  return k;
+}
 function teamRejoinTarget(cycleSecs, bossName, rejoinSecs = REJOIN_SECS){
-  // a cycle that lasts the whole timer (e.g. a long hot-swap chain) needs no rejoin at all - it used
-  // to count one, as floor(300 / 300) = 1
-  const rejoins = cycleSecs > 0 ? (cycleSecs >= RAID_SECS ? 0 : Math.floor(RAID_SECS / cycleSecs)) : null;
+  const rejoins = teamExpectedRejoins(cycleSecs, rejoinSecs);
   const raid = raidTierFor(bossName);
   const dps = rejoins === null ? null : rejoinDpsFor(raid.hp, rejoins, rejoinSecs);
   return { rejoins, dps, tier: raid.name, hp: raid.hp };
@@ -3720,7 +3733,7 @@ function runTeamSim(c){
 }
 
 
-// ---- Catch Tank card live preview (Beta: Simple Catch Tank Sim) ----
+// ---- Catch Tank card live preview (Beta: (Single Lobby) Battle Party Simulator) ----
 // Left: the tank's stats and its damage to the boss. Right: what the boss does to it - the same
 // row layout as the main DPSer / boss previews in step 1. Numbers come from teamTankNumbers, the
 // function the simulator itself uses.
@@ -3877,7 +3890,7 @@ function downloadTeamCsv(){
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
-// ---- result-card icons for the catch tank sim ----
+// ---- result-card icons for the Battle Party Simulator ----
 // A Pokemon is shown as its sprite (name in the tooltip/alt), with a small number badge when the
 // party has several copies of the catch tank. If the sprite can't load, its initials show instead.
 const TEAM_SWAP_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 5.5h10M10 3l2.5 2.5L10 8M13.5 10.5h-10M6 8l-2.5 2.5L6 13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -4274,7 +4287,7 @@ function renderTeamSim(P, S, R){
   return `
     <div class="dps-result-card">${warn}
       <div class="dps-result-main">
-        <div class="dps-result-label">Simple Catch Tank Sim &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty ? `${P.qty} catch tank${P.qty > 1 ? "s" : ""}` : "no catch tanks"}${multi ? ` &middot; ${ATT.length - 1} support DPSer${ATT.length > 2 ? "s" : ""}` : ""}</div>
+        <div class="dps-result-label">(Single Lobby) Battle Party Simulator &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty ? `${P.qty} catch tank${P.qty > 1 ? "s" : ""}` : "no catch tanks"}${multi ? ` &middot; ${ATT.length - 1} support DPSer${ATT.length > 2 ? "s" : ""}` : ""}</div>
         <div class="dps-result-value">${dps.toFixed(1)}</div>
         ${pace ? `<div class="team-pace-head ${pace.ahead ? "ok" : "short"}" title="${pace.title}">${pace.text}</div>` : ""}
         ${activeConditionsHtml()}
@@ -5711,7 +5724,7 @@ const SETUP_FIELD_IDS = [
   "bossName","bossTier","bossCM","bossFM",
   "effBossCM","effBossFM","bossStabCM","bossStabFM","shadowDebuff",
   // Boss aggression, the Fast & Charge choice and Dynamic Punch+ (all used by Main DPS and the
-  // beta simulator, and none saved before), then the Beta: Simple Catch Tank Sim's catch tank.
+  // beta simulator, and none saved before), then the Beta: (Single Lobby) Battle Party Simulator's catch tank.
   // Setups saved before these were added simply don't have them, and restore as they did.
   "bossAggro","bossAggroOn","cadenceMode","dynamicPunch","optimalDps",
   "ctName","ctLevel","ctIvAtk","ctIvDef","ctIvHp","ctCM","ctFM","ctQty","ctCasts","ctMainAbsorb","ctPriority","ctCmBuffer","ctMainDodge","ctDodgeLimit","ctAllIn","ctDoubleCatch","ctDcFMs","ctRejoinSecs",
@@ -7324,7 +7337,7 @@ function shareCardData(){
   // string - plus the Boss rotation graph, which was skipped entirely (its cell spans both
   // columns). Colours come from the card's own computed styles, so either theme matches.
   const pct = el => parseFloat(el.style.left) || 0;
-  // Beta: Simple Catch Tank Sim. Its card has no .loadout-pokemon panel (the image's top strip
+  // Beta: (Single Lobby) Battle Party Simulator. Its card has no .loadout-pokemon panel (the image's top strip
   // came out empty), so the party is read from the run itself - main DPSer, each catch tank type,
   // the boss - along with the timeline bar. Its sub-lines name Pokemon only by icon, so icons are
   // read as their names ("Shadow Dialga caught 1") rather than dropped ("caught 1").
@@ -7811,7 +7824,7 @@ function bossModLabel(){
 }
 
 // Multi-player Buffs (Friendship, Primal/Mega boost, Party Power, Enrage T7, Shadow Enrage) are
-// switched off for now in the beta, Simple Catch Tank Sim: its section is hidden there, and every
+// switched off for now in the beta, (Single Lobby) Battle Party Simulator: its section is hidden there, and every
 // read goes through these, which give the "none" value in that mode - so a box left on in another
 // mode can't creep into a beta run. The settings themselves are kept for the other modes.
 function mpBuffsOff(){ return document.body.classList.contains("ct-mode-team"); }
