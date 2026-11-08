@@ -1,15 +1,35 @@
 {
-  "generatedAt": "2026-11-08T09:44:56.173418+00:00",
+  "generatedAt": "2026-11-08T17:18:07.874469+00:00",
   "sources": {
     "pokebattlerSchedule": 40,
     "pokebattlerScheduleWindows": 52,
     "scrapedDuck": 1,
-    "pokebattlerApiStartDates": 6,
+    "pokebattlerApiStartDates": 7,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 37
+    "pokebattlerApi": 40
   },
   "dateGroups": [
+    {
+      "startDate": "Nov 16, 2026",
+      "endDate": "Nov 24, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Darkrai",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Partly Cloudy"
+        },
+        {
+          "name": "Mega Banette",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "status": "future"
+    },
     {
       "startDate": "Nov 4, 2026",
       "endDate": "Nov 8, 2026",
@@ -75,26 +95,6 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Cloudy"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Nov 16, 2026",
-      "endDate": "Nov 24, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Darkrai",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Partly Cloudy"
-        },
-        {
-          "name": "Mega Banette",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
         }
       ],
       "status": "future"
