@@ -3371,6 +3371,15 @@ function teamStep(S, R, P, snap){
   });
   if(S.finishAt !== null && t >= S.finishAt){
     if(hasNext()){ S.finishAt = null; startHotSwap(); }
+    else if(S.allIn && !S.probe && S.mons[0].hp > 0){
+      // All in: the charge move it went all in for has landed and it is still standing - it carries
+      // on rather than ending here (Mega Mewtwo X on 61 HP was stopped right after its Dynamic
+      // Punch++++, with the next one there to build). It keeps attacking, and the boss's next charge
+      // move is decided afresh - a sponge if that is safe, otherwise all in again (dodging when it
+      // can). If it faints before its next charge move lands, results stop at this one, as before.
+      S.finishing = false; S.allIn = false; S.finishAt = null; S.finishDeadline = null;
+      S.safePoint = t;
+    }
     else { end(S.finishAt, "finished"); return; }
   }
   // 2. a finished fast move's energy is credited
