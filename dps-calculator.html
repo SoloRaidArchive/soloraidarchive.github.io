@@ -1248,6 +1248,9 @@ if ("serviceWorker" in navigator) {
   @media (min-width: 700px){ .team-inline{ flex-wrap:nowrap; white-space:nowrap; } }   /* one line where there is room */
   /* the beta card's headline: the DPS, then the pace, then duration and expected rejoins */
   .team-meta-head{ font:700 12.5px 'Manrope',sans-serif; color:var(--text-dim); margin-top:3px; }
+  /* a row's total (with the boss's icon in Boss Rotation), set apart from its breakdown */
+  .team-head-total{ display:inline-flex; align-items:center; gap:5px; margin-right:12px; padding-right:12px;
+    border-right:1.5px solid color-mix(in srgb, var(--border) 80%, transparent); }
 </style>
 <script type="application/ld+json">
 {
@@ -4342,6 +4345,14 @@ function renderTeamSim(P, S, R){
   const axis = [0, 0.25, 0.5, 0.75, 1].map(f => `<span>${(secs * f).toFixed(0)}s</span>`).join("");
   // Above the bar: a marker where each Pokemon's charge move lands, in its colour (count them at a
   // glance; hover for the move, its damage and when)
+  // Boss Rotation rows open with the boss's icon and its total, spaced off from who took them
+  const bossTotal = n => `<span class="team-head-total">${teamIcon(P, "boss")}<b class="team-total">${n}</b></span>`;
+  // the boss's fast moves that landed within the results, and how many each Pokemon tanked
+  const bossFmHits = R.bossMoves.filter(b => !b.cm && b.t <= E);
+  const fmTankedItems = (multi ? ATT.map((A, k) => [attIco(k), bossFmHits.filter(b => b.who === 0 && (b.att || 0) === k).length])
+                               : [[teamIcon(P, 0), bossFmHits.filter(b => b.who === 0).length]])
+    .concat(P.tanks.map((tp, i) => [typeIcos[i], bossFmHits.filter(b => b.who > 0 && typeOf(b.who) === i).length]))
+    .filter(([, n]) => n > 0).map(([ico, n]) => `<span class="team-sub-item">${ico} ${n}</span>`).join(" &middot; ");
   const tankColor = i => TEAM_TANK_COLORS[i % TEAM_TANK_COLORS.length];
   const cmMarks = dmg.filter(d => {
     if(d.who === 0){ const A = ATT[d.att || 0] || P.main; return d.mv === A.cm.n; }
@@ -4355,6 +4366,10 @@ function renderTeamSim(P, S, R){
   // The legend as stat chips: each Pokemon's (or catch tank type's) own DPS and time in; hover for
   // its damage and charge moves. (These used to be rows under DPS & Rejoins.)
   const pctIn = ticks => E > 0 ? Math.round(ticks / E * 100) : 0;
+  // Attackers: each Pokemon's (and catch tank type's) share of the time in
+  const uptimeItems = (multi ? ATT.map((A, k) => [attIco(k), pctIn(attTicks[k])]) : [[teamIcon(P, 0), pctIn(onField.get(0) || 0)]])
+    .concat(P.tanks.map((tp, i) => { let up = 0; onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; }); return [typeIcos[i], pctIn(up)]; }))
+    .map(([ico, v]) => `<span class="team-sub-item">${ico} ${v}%</span>`).join(" &middot; ");
   const chip = (col, ico, dpsTxt, inPct, tip) => `<span class="tl-chip"${tipAttr(tip)}><em style="background:${col}"></em>${ico}<b>${dpsTxt}</b><small>DPS &middot; ${inPct}%</small></span>`;
   const attChips = (multi ? ATT : [P.main]).map((A, k) => {
     const ticks = multi ? attTicks[k] : (fieldTicks.get(0) || 0), upT = multi ? attTicks[k] : (onField.get(0) || 0);
@@ -4480,10 +4495,8 @@ function renderTeamSim(P, S, R){
           <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-hp="${rj.hp}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">${rj.rejoins === null ? "Minimum DPS" : `Minimum DPS for ${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"}`}</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
           <tr><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
         </tbody>
-        ${teamGroupHead("rotation", "Rotation")}
-          <tr><td>Damage</td><td><span class="team-sub team-inline"><b class="team-total">${total.toLocaleString()}</b> &middot; ${(multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`) : [`${mainIco} ${mainDmg.toLocaleString()}`])
-            .concat(P.tanks.map((tp, i) => `${typeIcos[i]} ${dmgByType[i].toLocaleString()}`)).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
-          <tr><td>${P.bossCM.n} casts</td><td><span class="team-sub team-inline"><b class="team-total">${decs.length}</b>${decs.length ? " &middot; " : ""}${[
+        ${teamGroupHead("rotation", "Boss Rotation")}
+          <tr><td>${P.bossCM.n} casts</td><td><span class="team-sub team-inline">${bossTotal(decs.length)}${[
             ...P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`),
             // "sponged 0" says nothing when the main DPSer dodged instead - shown only if it sponged
             ...(multi ? ATT.map((A, k) => { const c = decs.filter(d => d.outcome === "main" && (d.att || 0) === k).length; return c ? `${attIco(k)} sponged ${c}` : ""; })
@@ -4494,10 +4507,14 @@ function renderTeamSim(P, S, R){
             // each icon stays with its own words when the line wraps (an icon used to end one line
             // and "took 1 going all in" start the next)
           ].filter(Boolean).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
+          <tr><td>${P.bossFM.n} casts</td><td><span class="team-sub team-inline">${bossTotal(bossFmHits.length)}${fmTankedItems}</span></td></tr>
           <tr><td>Boss Cadence${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
         </tbody>
         ${teamGroupHead("main", multi ? "Attackers" : "Main DPSer")}
+          <tr><td>Damage</td><td><span class="team-sub team-inline"><span class="team-head-total"><b class="team-total">${total.toLocaleString()}</b></span>${(multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`) : [`${mainIco} ${mainDmg.toLocaleString()}`])
+            .concat(P.tanks.map((tp, i) => `${typeIcos[i]} ${dmgByType[i].toLocaleString()}`)).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
+          <tr><td>Uptime</td><td><span class="team-sub team-inline">${uptimeItems}</span></td></tr>
           ${multi ? `<tr><td>Hot swaps</td><td>${R.attSpans.filter(x => x.to <= E).length ? R.attSpans.filter(x => x.to <= E).map(x => `<span class="team-sub-item">${attIco(x.att)} &rarr; ${attIco(x.att + 1)} at ${(x.to / 2).toFixed(1)}s${x.hp <= 0 ? " (fainted)" : ` &middot; ${x.hp} HP left`}</span>`).join("<br>") : "none"}</td></tr>` : ""}
           <tr><td>HP left${multi ? ` <span class="dps-stat-sub">${ATT[lastAtt].name}</span>` : ""}</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${ATT[lastAtt].hp}</td></tr>
           <tr><td>Ended</td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
