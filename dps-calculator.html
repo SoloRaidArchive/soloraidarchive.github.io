@@ -1228,6 +1228,26 @@ if ("serviceWorker" in navigator) {
   .pl-tut{ flex:1 1 100%; margin:2px 0 1px 44px; font-size:12px; font-weight:600; color:var(--accent, var(--blue)); line-height:1.35; }
   .pl-group-head .pl-tut{ margin-left:30px; }
   @media (max-width:560px){ .pl-tut{ margin-left:22px; } }
+  /* The timeline's charge-move lane (above the bar) and stat chips (below it) */
+  .tl-cms{ position:relative; z-index:2; height:11px; margin:10px 0 -8px; }   /* over the bar's top edge, so markers take the hover */
+  .tl-cm{ position:absolute; top:0; width:0; height:0; transform:translateX(-50%); cursor:help;
+    border-left:5px solid transparent; border-right:5px solid transparent; border-top:8px solid var(--c, #3d9dff); }
+  .tl-cm::after{ content:""; position:absolute; left:-7px; right:-7px; top:-10px; bottom:-4px; }   /* easier to hover / tap */
+  .tl-cm-key{ display:inline-block; width:0; height:0; margin-right:4px; border-left:5px solid transparent; border-right:5px solid transparent; border-top:8px solid var(--text-dim); vertical-align:0; }
+  .tl-chips{ display:flex; flex-wrap:wrap; gap:6px 8px; margin:8px 0 2px; }
+  .tl-chip{ display:inline-flex; align-items:center; gap:5px; padding:3px 9px 3px 6px; border:1.5px solid color-mix(in srgb, var(--border) 70%, transparent);
+    border-radius:999px; font:700 11px 'Manrope',sans-serif; color:var(--text-dim); cursor:help; }
+  .tl-chip em{ display:inline-block; width:9px; height:9px; border-radius:3px; }
+  .tl-chip b{ font:800 12.5px 'Manrope',sans-serif; color:var(--text); margin-left:2px; }
+  .tl-chip small{ font:700 10.5px 'Manrope',sans-serif; }
+  /* a row's total and its breakdown on one line ("4,880 · 2,462 · 1,652 · 766"), wrapping between items */
+  .team-inline{ display:inline-flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:4px; }
+  .team-total{ font:800 13px 'Manrope',sans-serif; color:var(--text); }
+  .team-inline{ font:600 11.5px 'Manrope',sans-serif; color:var(--text-dim); }   /* the breakdown stays small, as it was under the total */
+  .team-inline .team-sub-item{ font:inherit; }
+  @media (min-width: 700px){ .team-inline{ flex-wrap:nowrap; white-space:nowrap; } }   /* one line where there is room */
+  /* the beta card's headline: the DPS, then the pace, then duration and expected rejoins */
+  .team-meta-head{ font:700 12.5px 'Manrope',sans-serif; color:var(--text-dim); margin-top:3px; }
 </style>
 <script type="application/ld+json">
 {
@@ -4080,7 +4100,9 @@ function teamTlTipShow(el){
   if(!tip){ tip = document.createElement("div"); tip.className = "team-tl-tip"; tip.setAttribute("role", "tooltip"); document.body.appendChild(tip); }
   tip.textContent = el.dataset.tip;
   tip.classList.add("on");
-  const r = el.getBoundingClientRect(), bar = el.closest(".team-tl").getBoundingClientRect();
+  // placed above (or below) the bar for its pieces; above the element itself for the charge-move
+  // markers and the legend chips, which sit outside it
+  const r = el.getBoundingClientRect(), bar = (el.closest(".team-tl") || el).getBoundingClientRect();
   const w = tip.offsetWidth, h = tip.offsetHeight, vw = document.documentElement.clientWidth;
   const cx = r.left + r.width / 2;
   tip.style.left = (Math.min(Math.max(8, cx - w / 2), vw - w - 8) + window.scrollX) + "px";
@@ -4094,18 +4116,20 @@ function teamTlTipHide(){
   if(tip) tip.classList.remove("on");
   document.querySelectorAll(".team-tl .is-tipped").forEach(x => x.classList.remove("is-tipped"));
 }
+// what has a tip: the bar's pieces, the charge-move markers above it, and the legend's stat chips
+const TL_TIP_SEL = ".team-tl [data-tip], .tl-cms [data-tip], .tl-chip[data-tip]";
 // A mouse shows it on hover and hides it on leaving; a touch shows it on tap and keeps it until
 // the next tap elsewhere (phones fire a "mouse left" right after a tap, which would hide it at once).
 document.addEventListener("pointerover", e => {
   if(e.pointerType !== "mouse") return;
-  const el = e.target.closest(".team-tl [data-tip]"); if(el) teamTlTipShow(el);
+  const el = e.target.closest(TL_TIP_SEL); if(el) teamTlTipShow(el);
 });
 document.addEventListener("pointerout", e => {
-  if(e.pointerType !== "mouse" || !e.target.closest(".team-tl [data-tip]")) return;
+  if(e.pointerType !== "mouse" || !e.target.closest(TL_TIP_SEL)) return;
   const to = e.relatedTarget;
-  if(!(to && to.closest && to.closest(".team-tl [data-tip]"))) teamTlTipHide();
+  if(!(to && to.closest && to.closest(TL_TIP_SEL))) teamTlTipHide();
 });
-document.addEventListener("click", e => { const el = e.target.closest(".team-tl [data-tip]"); el ? teamTlTipShow(el) : teamTlTipHide(); });
+document.addEventListener("click", e => { const el = e.target.closest(TL_TIP_SEL); el ? teamTlTipShow(el) : teamTlTipHide(); });
 window.addEventListener("scroll", teamTlTipHide, { passive: true });
 
 // Hover (or tap) help for the two DPS rows. The icon is drawn by CSS, so it adds no text to
@@ -4193,14 +4217,14 @@ function renderTeamSim(P, S, R){
   const decs = R.decisions.filter(d => d.cast < E || (d.cast === E && d.outcome !== "end"));
   const n = k => decs.filter(d => d.outcome === k).length;
   const caught = n("tank") + n("tank-again"), byMain = n("main"), dodged = n("main-dodge") + n("all-in-dodge"), late = n("late") + n("tank-faint");
-  // Boss rotation: its fast moves per charge move over the run - e.g. 3.2 Snarls per Focus Blast
+  // Boss Cadence: its fast moves per charge move over the run - e.g. 3.2 Snarls per Focus Blast
   const bossCast = R.bossMoves.filter(b => b.cast <= E);
   const bossFmN = bossCast.filter(b => !b.cm).length, bossCmN = bossCast.filter(b => b.cm).length;
   const plural = n => /s$/i.test(n) ? n : n + "s";
   const bossCadence = bossCmN ? (bossFmN / bossCmN).toFixed(1) : "&mdash;";
   const bossCadenceTip = bossCmN
-    ? `Boss rotation: how many fast moves the boss uses per charge move. Here ${(bossFmN / bossCmN).toFixed(1)} ${plural(P.bossFM.n)} per ${P.bossCM.n} (${bossFmN} ${bossFmN === 1 ? P.bossFM.n : plural(P.bossFM.n)} and ${bossCmN} ${bossCmN === 1 ? P.bossCM.n : plural(P.bossCM.n)} over this run).`
-    : `Boss rotation: how many fast moves the boss uses per charge move. It used no ${P.bossCM.n} in this run.`;
+    ? `Boss Cadence: how many fast moves the boss uses per charge move. Here ${(bossFmN / bossCmN).toFixed(1)} ${plural(P.bossFM.n)} per ${P.bossCM.n} (${bossFmN} ${bossFmN === 1 ? P.bossFM.n : plural(P.bossFM.n)} and ${bossCmN} ${bossCmN === 1 ? P.bossCM.n : plural(P.bossCM.n)} over this run).`
+    : `Boss Cadence: how many fast moves the boss uses per charge move. It used no ${P.bossCM.n} in this run.`;
   const allInTaken = n("all-in");
   // dodges up to the end point, and the time they took (from when the main DPSer stopped attacking)
   const dodges = R.dodges.filter(d => d.t < E);
@@ -4245,6 +4269,14 @@ function renderTeamSim(P, S, R){
   // attackers' uptimes and the time spent swapping add up to 100%.
   const onField = new Map(fieldTicks);
   const uptime = ticks => E > 0 ? `<span class="dps-stat-sub">${(ticks / E * 100).toFixed(1)}% uptime</span>` : "";
+  // an attacker's charge moves landed within the results (main / support DPSers, not catch tanks),
+  // beside its uptime - e.g. "4 Dynamax Cannons · 42.2% uptime"
+  const castsOf = k => { const A = ATT[k] || P.main; return dmg.filter(d => d.who === 0 && (d.att || 0) === k && d.mv === A.cm.n).length; };
+  const attUptime = (k, ticks) => {
+    if(!(E > 0)) return "";
+    const n = castsOf(k), A = ATT[k] || P.main;
+    return `<span class="dps-stat-sub">${n} ${n === 1 ? A.cm.n : plural(A.cm.n)} &middot; ${(ticks / E * 100).toFixed(1)}% uptime</span>`;
+  };
   // A catch tank's own DPS also carries the swaps it costs: 0.5s in and 0.5s out per catch - or
   // just the 0.5s in when the run ends while it is still in.
   R.swaps.filter(w => w.t < E).forEach(w => {
@@ -4261,7 +4293,7 @@ function renderTeamSim(P, S, R){
     if(to > sg.t) attTicks[sg.att || 0] += to - sg.t;
   });
   const attDmg = ATT.map((A, k) => dmg.filter(d => d.who === 0 && (d.att || 0) === k).reduce((a, d) => a + d.dmg, 0));
-  const attackerRows = (multi ? ATT.map((A, k) => `<tr class="team-who-row"><td><span class="team-sub team-who">${attIco(k)}<span>${A.name}${A.copy ? ` #${A.copy}` : ""}<small class="team-build">${A.support ? "Support DPSer " + A.support : "Main DPSer"} &middot; ${A.build || ""}</small></span></span></td><td>${attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"}${uptime(attTicks[k])}</td></tr>`) : [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${uptime(onField.get(0) || 0)}</td></tr>`])
+  const attackerRows = (multi ? ATT.map((A, k) => `<tr class="team-who-row"><td><span class="team-sub team-who">${attIco(k)}<span>${A.name}${A.copy ? ` #${A.copy}` : ""}<small class="team-build">${A.support ? "Support DPSer " + A.support : "Main DPSer"} &middot; ${A.build || ""}</small></span></span></td><td>${attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"}${attUptime(k, attTicks[k])}</td></tr>`) : [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${attUptime(0, onField.get(0) || 0)}</td></tr>`])
     .concat(P.tanks.map((tp, i) => {
       let ticks = 0, up = 0;
       fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
@@ -4308,6 +4340,38 @@ function renderTeamSim(P, S, R){
     return `<b style="left:${(d.cast / span * 100).toFixed(2)}%"${tipAttr(tip)}></b>`;
   }).join("");
   const axis = [0, 0.25, 0.5, 0.75, 1].map(f => `<span>${(secs * f).toFixed(0)}s</span>`).join("");
+  // Above the bar: a marker where each Pokemon's charge move lands, in its colour (count them at a
+  // glance; hover for the move, its damage and when)
+  const tankColor = i => TEAM_TANK_COLORS[i % TEAM_TANK_COLORS.length];
+  const cmMarks = dmg.filter(d => {
+    if(d.who === 0){ const A = ATT[d.att || 0] || P.main; return d.mv === A.cm.n; }
+    const tp = P.tanks[typeOf(d.who)]; return tp && d.mv === tp.cm.n;
+  }).map(d => {
+    const own = d.who === 0 ? (ATT[d.att || 0] || P.main) : null;
+    const col = d.who === 0 ? (multi ? attColor(d.att) : "#3d9dff") : tankColor(typeOf(d.who));
+    const who = d.who === 0 ? `${own.name}${own.copy ? ` #${own.copy}` : ""}` : teamLabel(P, d.who);
+    return `<i class="tl-cm" style="left:${(d.t / span * 100).toFixed(2)}%;--c:${col}"${tipAttr([`${who} · ${d.mv}`, `${d.dmg} dmg · ${sec(d.t)}`])}></i>`;
+  }).join("");
+  // The legend as stat chips: each Pokemon's (or catch tank type's) own DPS and time in; hover for
+  // its damage and charge moves. (These used to be rows under DPS & Rejoins.)
+  const pctIn = ticks => E > 0 ? Math.round(ticks / E * 100) : 0;
+  const chip = (col, ico, dpsTxt, inPct, tip) => `<span class="tl-chip"${tipAttr(tip)}><em style="background:${col}"></em>${ico}<b>${dpsTxt}</b><small>DPS &middot; ${inPct}%</small></span>`;
+  const attChips = (multi ? ATT : [P.main]).map((A, k) => {
+    const ticks = multi ? attTicks[k] : (fieldTicks.get(0) || 0), upT = multi ? attTicks[k] : (onField.get(0) || 0);
+    const dmgK = multi ? attDmg[k] : mainDmg, n = castsOf(k);
+    return chip(multi ? attColor(k) : "#3d9dff", multi ? attIco(k) : teamIcon(P, 0), ticks ? ownDps(dmgK, ticks) : "&mdash;", pctIn(upT),
+      [`${A.name}${A.copy ? ` #${A.copy}` : ""} · ${A.support ? "Support DPSer " + A.support : "Main DPSer"}`, `${A.build || ""}`,
+       `${dmgK.toLocaleString()} dmg · ${n} ${n === 1 ? A.cm.n : plural(A.cm.n)}`, `${pctIn(upT)}% of the time in`].filter(Boolean));
+  });
+  const tankChips = P.tanks.map((tp, i) => {
+    let ticks = 0, up = 0;
+    fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
+    onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; });
+    const n = dmg.filter(d => d.who > 0 && typeOf(d.who) === i && d.mv === tp.cm.n).length;
+    return chip(tankColor(i), typeIcos[i], ticks ? ownDps(dmgByType[i], ticks) : "&mdash;", pctIn(up),
+      [`${tp.name}${tp.qty > 1 ? ` ×${tp.qty}` : ""} · catch tank${multi && tp.owner >= 0 ? ` for ${(P.blockNames || [])[tp.owner] || ""}` : ""}`, tp.build,
+       `${dmgByType[i].toLocaleString()} dmg · ${n} ${n === 1 ? tp.cm.n : plural(tp.cm.n)}`, `${pctIn(up)}% of the time in`]);
+  });
 
   // Timeline rows: the run's events, plus grouped lines for the boss's fast moves that land between
   // them ("Feint Attack ×4 → Mega Mewtwo X −32 HP"), so HP lost to fast moves is on record too.
@@ -4401,26 +4465,25 @@ function renderTeamSim(P, S, R){
   return `
     <div class="dps-result-card">${warn}
       <div class="dps-result-main">
-        <div class="dps-result-label">Battle Party Simulator &middot; ${(P.aggro * 100).toFixed(0)}% aggression &middot; ${P.qty ? `${P.qty} catch tank${P.qty > 1 ? "s" : ""}` : "no catch tanks"}${multi ? ` &middot; ${ATT.length - 1} support DPSer${ATT.length > 2 ? "s" : ""}` : ""}</div>
         <div class="dps-result-value">${dps.toFixed(1)}</div>
         ${pace ? `<div class="team-pace-head ${pace.ahead ? "ok" : "short"}" title="${pace.title}">${pace.text}</div>` : ""}
+        <div class="team-meta-head">${secs.toFixed(1)}s duration &middot; ${rj.rejoins === null ? "&mdash;" : rj.rejoins === 0 ? "no rejoins needed" : `${rj.rejoins} expected rejoin${rj.rejoins === 1 ? "" : "s"}`}</div>
         ${activeConditionsHtml()}
       </div>
+      <div class="tl-cms">${cmMarks}</div>
       <div class="team-tl">${bar}</div>
       <div class="team-tl-axis">${axis}</div>
-      <div class="team-tl-legend">${multi ? ATT.map((A, k) => `<span><em style="background:${attColor(k)}"></em>${attIco(k)}</span>`).join("") : `<span><em style="background:#3d9dff"></em>${mainIco}</span>`}${typeIcos.map((ico, i) => `<span><em style="background:${TEAM_TANK_COLORS[i % TEAM_TANK_COLORS.length]}"></em>${ico}</span>`).join("")}<span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
+      <div class="tl-chips">${attChips.join("")}${tankChips.join("")}</div>
+      <div class="team-tl-legend"><span><i class="tl-cm-key"></i>Charge move</span><span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
       <table class="dps-stat-table team-stat-table">
         ${teamGroupHead("rejoins", "DPS &amp; Rejoins")}
-          <tr><td>Duration</td><td>${secs.toFixed(1)}s</td></tr>
-          <tr><td>Expected rejoins</td><td>${rj.rejoins === null ? "&mdash;" : rj.rejoins}</td></tr>
-          ${attackerRows}
           <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-hp="${rj.hp}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">${rj.rejoins === null ? "Minimum DPS" : `Minimum DPS for ${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"}`}</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
           <tr><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
-          <tr><td>Cumulative DPS${teamTip(teamCumulativeTip(P.rejoinSecs))}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - P.rejoinSecs * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
         </tbody>
         ${teamGroupHead("rotation", "Rotation")}
-          <tr><td>Damage</td><td>${total.toLocaleString()} <span class="dps-stat-sub team-sub">${multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`).join(" &middot; ") : `${mainIco} ${mainDmg.toLocaleString()}`}${P.tanks.map((tp, i) => ` &middot; ${typeIcos[i]} ${dmgByType[i].toLocaleString()}`).join("")}</span></td></tr>
-          <tr><td>${P.bossCM.n} casts</td><td>${decs.length} <span class="dps-stat-sub team-sub">${[
+          <tr><td>Damage</td><td><span class="team-sub team-inline"><b class="team-total">${total.toLocaleString()}</b> &middot; ${(multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`) : [`${mainIco} ${mainDmg.toLocaleString()}`])
+            .concat(P.tanks.map((tp, i) => `${typeIcos[i]} ${dmgByType[i].toLocaleString()}`)).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
+          <tr><td>${P.bossCM.n} casts</td><td><span class="team-sub team-inline"><b class="team-total">${decs.length}</b>${decs.length ? " &middot; " : ""}${[
             ...P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`),
             // "sponged 0" says nothing when the main DPSer dodged instead - shown only if it sponged
             ...(multi ? ATT.map((A, k) => { const c = decs.filter(d => d.outcome === "main" && (d.att || 0) === k).length; return c ? `${attIco(k)} sponged ${c}` : ""; })
@@ -4431,13 +4494,12 @@ function renderTeamSim(P, S, R){
             // each icon stays with its own words when the line wraps (an icon used to end one line
             // and "took 1 going all in" start the next)
           ].filter(Boolean).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
-          <tr><td>Boss rotation${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
+          <tr><td>Boss Cadence${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
         </tbody>
         ${teamGroupHead("main", multi ? "Attackers" : "Main DPSer")}
           ${multi ? `<tr><td>Hot swaps</td><td>${R.attSpans.filter(x => x.to <= E).length ? R.attSpans.filter(x => x.to <= E).map(x => `<span class="team-sub-item">${attIco(x.att)} &rarr; ${attIco(x.att + 1)} at ${(x.to / 2).toFixed(1)}s${x.hp <= 0 ? " (fainted)" : ` &middot; ${x.hp} HP left`}</span>`).join("<br>") : "none"}</td></tr>` : ""}
           <tr><td>HP left${multi ? ` <span class="dps-stat-sub">${ATT[lastAtt].name}</span>` : ""}</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${ATT[lastAtt].hp}</td></tr>
-          <tr><td>Unspent energy</td><td>${leftover}</td></tr>
           <tr><td>Ended</td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
         </tbody>
       </table>
@@ -5277,7 +5339,7 @@ function runCalculation(){
                   const secs = dTicks / 2;
                   return `<u style="left:${mid}%">${secs < 1 ? secs.toFixed(1).replace("0.", ".") : secs.toFixed(1) + "s"}</u>`;
                 }).join("");
-                return `<span class="bseq-head">Boss rotation</span>`
+                return `<span class="bseq-head">Boss Cadence</span>`
                      + `<span class="bseq"><span class="bseq-rail"></span>${marks}${gaps}</span>`;
               })()}
                             <span class="dps-stat-sub">${mdBossFMCount} fast &middot; ${mdBossCMCount} charge &middot; ${optimalDps ? "optimal timing" : `${(100*bossAggroP).toFixed(0)}% aggression`}</span></td></tr>
@@ -7528,7 +7590,7 @@ function shareCardData(){
   }));
   // Each row as the card shows it: the value, the working in front of it ("6x5 + 2x54"), and the
   // smaller line under it ("+24 energy") kept apart - previously all three ran together as one
-  // string - plus the Boss rotation graph, which was skipped entirely (its cell spans both
+  // string - plus the Boss Cadence graph, which was skipped entirely (its cell spans both
   // columns). Colours come from the card's own computed styles, so either theme matches.
   const pct = el => parseFloat(el.style.left) || 0;
   // Beta: Battle Party Simulator. Its card has no .loadout-pokemon panel (the image's top strip
@@ -7656,12 +7718,12 @@ function drawSpritePlaceholder(ctx, name, bx, by, bw, bh, C){
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
 
-// The Boss rotation graph, redrawn from the markers on the card: the rail, fast moves (rings) and
+// The Boss Cadence graph, redrawn from the markers on the card: the rail, fast moves (rings) and
 // charge moves (squares) at their positions, the energy each charge move gave (two label lanes,
 // as on the card), the gap times under the rail, and the caption.
 function drawShareGraph(x, g, gx, y, gw, C){
   x.fillStyle = C.dim; x.font = "600 13px Inter, sans-serif";
-  x.fillText(g.head || "Boss rotation", gx, y + 20);
+  x.fillText(g.head || "Boss Cadence", gx, y + 20);
   const sy = y + 26, railY = sy + 31;
   const px = p => gx + gw * p / 100;   // same positions as on the card
   x.fillStyle = C.line; x.fillRect(gx, railY - 1, gw, 2);
@@ -7967,7 +8029,9 @@ function activeConditionsHtml(){
   }
 
   const on = (id) => { const e = document.getElementById(id); return e && e.checked; };
-  if(on("zacianBlade"))  chips.push({ label: "Blade Boost", kind: "ae" });
+  // the same icon the raid archive shows for Blade Boost runs; Zacian Crowned's sprite if it can't load
+  if(on("zacianBlade"))  chips.push({ label: "Blade Boost", kind: "ae",
+    icon: `<img class="loadout-cond-icon" src="https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png" alt="" loading="lazy" onerror="this.onerror=null; this.src='assets/sprites/zacian-crownedsword.gif';">` });
   if(on("shieldAE"))     chips.push({ label: "Shield Boost", kind: "ae" });
   if(on("dynamicPunch")) chips.push({ label: "Dynamic Punch+", kind: "ae" });
   if(mpChecked("partyPower")) chips.push({ label: "Party Power", kind: "boost" });
