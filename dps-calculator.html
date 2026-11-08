@@ -1282,7 +1282,8 @@ if ("serviceWorker" in navigator) {
     .tl-chip small{ display:none; }   /* the narrowest phones: just the DPS (the full line is in its tip) */
   }
   /* charge-move handling: the word everywhere but the narrowest phones, which show its symbol */
-  .cm-how{ display:none; width:13px; height:13px; color:var(--text-dim); }
+  .cm-how{ display:inline-block; width:13px; height:13px; color:var(--text-dim); }
+  .cm-word{ display:none; }   /* the icons are used at every width; the word is each icon's tooltip and in the legend */
   .cm-how svg{ width:13px; height:13px; display:block; }
   /* Ended: the plain row on desktop; on phones a closed "Ended" that opens to the text */
   .team-ended .ended-m{ display:none; }
@@ -1300,13 +1301,23 @@ if ("serviceWorker" in navigator) {
      sponged / dodged */
   @media (max-width: 560px){
     .team-stat-table .team-inline .team-head-total{ flex-basis:100%; border-right:none; margin:0 0 3px; padding:0; }
-    .team-stat-table .cm-how{ display:inline-block; }
-    .team-stat-table .cm-word{ display:none; }
   }
   /* "all in" / "too late to swap": their own line under the charge moves' breakdown */
   .team-extra{ display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:4px; margin-top:5px;
     font:600 11.5px 'Manrope',sans-serif; color:var(--text-dim); }
   @media (max-width: 560px){ .team-extra{ justify-content:flex-start; } }
+  /* an "i" whose bubble holds markup (the charge-move icons' key) - styled as the text bubble */
+  .team-tip-html::after{ display:none; }
+  .team-tip-html .tip-pop{ position:absolute; left:-6px; top:calc(100% + 8px); z-index:40; display:flex; flex-direction:column; gap:6px;
+    width:max-content; max-width:320px; padding:9px 11px; border-radius:10px; background:var(--card); color:var(--text); border:1.5px solid var(--border);
+    box-shadow:0 8px 24px rgba(0,0,0,.25); font:600 12px/1.4 'Manrope',sans-serif; text-align:left; white-space:normal;
+    opacity:0; visibility:hidden; pointer-events:none; transform:translateY(-3px); transition:opacity .12s, transform .12s, visibility 0s .12s; }
+  /* visibility (not just opacity): closed, its words are no part of the label - Copy as image reads the row as "Overheat casts" */
+  .team-tip-html:hover .tip-pop, .team-tip-html:focus .tip-pop, .team-tip-html:focus-within .tip-pop{ opacity:1; visibility:visible; transform:none; transition:opacity .12s, transform .12s; }
+  .tip-key{ display:flex; align-items:center; gap:6px; }
+  .tip-key .cm-how{ color:var(--text); }
+  .tip-key b{ font-weight:800; }
+  @media (max-width: 560px){ .team-stat-table .team-tip-html .tip-pop{ left:0; max-width:min(270px, 100%); } }
 </style>
 <script type="application/ld+json">
 {
@@ -4205,6 +4216,8 @@ window.addEventListener("scroll", teamTlTipHide, { passive: true });
 const teamCycleTip = () => "This Cycle DPS: the DPS of one cycle, from the start until the run ends, counting the main DPSer and its catch tanks. It’s the big number at the top.";
 const teamCumulativeTip = rejoinSecs => `Cumulative DPS: this cycle's DPS spread over the whole 300s raid, with ${rejoinSecsText(rejoinSecs)} taken out for each expected rejoin.`;
 const teamTip = text => ` <span class="team-tip" tabindex="0" role="note" aria-label="${text}" data-tip="${text}"></span>`;
+// the same "i", opening a small panel of markup - e.g. the charge-move icons' key
+const teamTipHtml = (html, label) => ` <span class="team-tip team-tip-html" tabindex="0" role="note" aria-label="${label}"><span class="tip-pop">${html}</span></span>`;
 
 // ---- Beta result card: collapsible sections and the Minimum DPS pop-up ----
 // Each section of the stat table (Rotation, DPS & Rejoins, Main DPSer) is its own <tbody>, and
@@ -4418,6 +4431,10 @@ function renderTeamSim(P, S, R){
     .concat(attPairs(o => o === "main").map(([ico, c]) => [ico, "sponged", c]))
     .concat(P.mainDodges || (P.attackers || []).some(A => A.dodges) ? attPairs(o => o === "main-dodge" || o === "all-in-dodge").map(([ico, c]) => [ico, "dodged", c]) : [])
     .filter(([, , c]) => c > 0).map(([ico, how, c]) => `<span class="team-sub-item">${ico} ${teamHow(how, c)}</span>`).join(" &middot; ");
+  // the icons' key, in the "i" beside the row's label - only the ways this run's charge moves were handled
+  const howMeaning = { caught: "a catch tank took it", sponged: "the attacker took it, for its energy", dodged: "the attacker dodged it" };
+  const cmLegend = ["caught", "sponged", "dodged"].filter(h => cmHowItems.includes(`title="${h}"`))
+    .map(h => `<span class="tip-key"><span class="cm-how">${TEAM_HOW_SVG[h]}</span><b>${h}</b>&nbsp;&middot; ${howMeaning[h]}</span>`).join("");
   const cmExtraItems = attPairs(o => o === "all-in").filter(([, c]) => c > 0).map(([ico, c]) => `<span class="team-sub-item">${ico} took ${c} going all in</span>`)
     .concat(late ? [`<span class="team-sub-item">${late} too late to swap</span>`] : []).join(" &middot; ");
   // Boss Rotation rows open with the boss's icon and its total, spaced off from who took them
@@ -4577,7 +4594,7 @@ function renderTeamSim(P, S, R){
           <tr><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
         </tbody>
         ${teamGroupHead("rotation", "Boss Rotation")}
-          <tr><td>${P.bossCM.n} casts</td><td><span class="team-sub team-inline">${bossTotal(decs.length)}${cmHowItems}</span>${cmExtraItems ? `<div class="team-extra">${cmExtraItems}</div>` : ""}</td></tr>
+          <tr><td>${P.bossCM.n} casts${cmLegend ? teamTipHtml(cmLegend, "What the icons mean") : ""}</td><td><span class="team-sub team-inline">${bossTotal(decs.length)}${cmHowItems}</span>${cmExtraItems ? `<div class="team-extra">${cmExtraItems}</div>` : ""}</td></tr>
           <tr><td>${P.bossFM.n} casts</td><td><span class="team-sub team-inline">${bossTotal(bossFmHits.length)}${fmTankedItems}</span></td></tr>
           <tr><td>Boss Cadence${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
