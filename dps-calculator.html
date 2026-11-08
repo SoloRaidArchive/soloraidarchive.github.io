@@ -1024,7 +1024,7 @@ if ("serviceWorker" in navigator) {
   .team-tl-axis{ display:flex; justify-content:space-between; font:600 10.5px 'Manrope',sans-serif; color:var(--text-dim); }
   .team-tl-legend{ display:flex; gap:14px; flex-wrap:wrap; font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin:6px 0 4px; }
   .team-tl-legend em{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
-  .team-log{ margin-top:14px; }
+  .team-log{ margin-top:14px; max-width:100%; overflow-x:auto; }   /* a wide timeline (many Pokemon) scrolls inside its box, never the page */
   .team-log table{ width:100%; border-collapse:collapse; font-size:12.5px; }
   .team-log td{ text-align:left; padding:6px 8px; border-top:1px solid var(--border); color:var(--text); vertical-align:top; }
   .team-log td:first-child{ width:58px; color:var(--text-dim); font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -1229,7 +1229,7 @@ if ("serviceWorker" in navigator) {
   .pl-group-head .pl-tut{ margin-left:30px; }
   @media (max-width:560px){ .pl-tut{ margin-left:22px; } }
   /* The timeline's charge-move lane (above the bar) and stat chips (below it) */
-  .tl-cms{ position:relative; z-index:2; height:11px; margin:10px 0 -8px; }   /* over the bar's top edge, so markers take the hover */
+  .tl-cms{ position:relative; z-index:2; height:11px; margin:10px 0 -8px; overflow-x:clip; overflow-y:visible; }   /* a marker at the very end can't widen the page */   /* over the bar's top edge, so markers take the hover */
   .tl-cm{ position:absolute; top:0; width:0; height:0; transform:translateX(-50%); cursor:help;
     border-left:5px solid transparent; border-right:5px solid transparent; border-top:8px solid var(--c, #3d9dff); }
   .tl-cm::after{ content:""; position:absolute; left:-7px; right:-7px; top:-10px; bottom:-4px; }   /* easier to hover / tap */
@@ -1245,12 +1245,68 @@ if ("serviceWorker" in navigator) {
   .team-total{ font:800 13px 'Manrope',sans-serif; color:var(--text); }
   .team-inline{ font:600 11.5px 'Manrope',sans-serif; color:var(--text-dim); }   /* the breakdown stays small, as it was under the total */
   .team-inline .team-sub-item{ font:inherit; }
-  @media (min-width: 700px){ .team-inline{ flex-wrap:nowrap; white-space:nowrap; } }   /* one line where there is room */
+  /* desktop: labels on one line; a long breakdown wraps between its items (it used to be held on one
+     line, which squeezed the labels into three) */
+  @media (min-width: 561px){ .team-stat-table td:first-child{ white-space:nowrap; } }
   /* the beta card's headline: the DPS, then the pace, then duration and expected rejoins */
   .team-meta-head{ font:700 12.5px 'Manrope',sans-serif; color:var(--text-dim); margin-top:3px; }
   /* a row's total (with the boss's icon in Boss Rotation), set apart from its breakdown */
   .team-head-total{ display:inline-flex; align-items:center; gap:5px; margin-right:12px; padding-right:12px;
     border-right:1.5px solid color-mix(in srgb, var(--border) 80%, transparent); }
+  /* Phones: the beta card's table stacks - a row with a breakdown (or long text) puts it on its own
+     full-width line under the label; a single value stays beside its label. Folded sections still
+     hide their rows (that rule is more specific). Tighter padding and smaller chips so 320px fits. */
+  @media (max-width: 560px){
+    .team-stat-table, .team-stat-table tbody{ display:block; width:100%; }
+    .team-stat-table tr.dps-stat-group, .team-stat-table tr.dps-stat-group th{ display:block; }
+    .team-stat-table tr:not(.dps-stat-group){ display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; column-gap:10px;
+      border-top:1px solid var(--border); }   /* one divider per row - the cells' own were broken into pieces */
+    .team-stat-table tr:not(.dps-stat-group) td{ display:block; box-sizing:border-box; min-width:0; max-width:100%; border-top:none; width:auto; }   /* padding inside the width, so a full-width cell fits */
+    .team-stat-table tr:not(.dps-stat-group) td:first-child{ flex:1 1 auto; }
+    .team-stat-table tr:not(.dps-stat-group) td:last-child{ flex:0 1 auto; text-align:right; }
+    .team-stat-table tr:has(.team-inline) td:first-child, .team-stat-table tr.team-wide td:first-child{ padding-bottom:2px; }
+    .team-stat-table tr:has(.team-inline) td:last-child, .team-stat-table tr.team-wide td:last-child{ flex-basis:100%; text-align:left; padding-top:0; }
+    .team-stat-table .team-inline{ justify-content:flex-start; }
+    .team-stat-table tr.team-wide .team-sub-item{ white-space:normal; }
+    /* the "i" bubbles open from the start of their row, no wider than it - anchored at the icon,
+       a 250px bubble ran past the screen's edge (and, though hidden, widened the page) */
+    .team-stat-table td:first-child{ position:relative; }
+    .team-stat-table .team-tip{ position:static; }
+    .team-stat-table .team-tip::after{ left:0; width:auto; max-width:min(250px, 100%); right:auto; }
+    .tl-chips{ gap:5px 6px; }
+    .tl-chip{ padding:2px 8px 2px 5px; }
+    .team-tl-legend{ gap:6px 12px; }
+  }
+  @media (max-width: 360px){
+    #resultsWrap .dps-result-card{ padding-left:12px; padding-right:12px; }
+    .tl-chip small{ display:none; }   /* the narrowest phones: just the DPS (the full line is in its tip) */
+  }
+  /* charge-move handling: the word everywhere but the narrowest phones, which show its symbol */
+  .cm-how{ display:none; width:13px; height:13px; color:var(--text-dim); }
+  .cm-how svg{ width:13px; height:13px; display:block; }
+  /* Ended: the plain row on desktop; on phones a closed "Ended" that opens to the text */
+  .team-ended .ended-m{ display:none; }
+  @media (max-width: 560px){
+    .team-ended .ended-lbl, .team-ended td:last-child{ display:none !important; }
+    .team-ended .ended-m{ display:block; }
+    .team-ended td:first-child{ flex-basis:100%; }
+    .team-ended summary{ cursor:pointer; list-style:none; display:flex; align-items:center; justify-content:space-between; color:var(--text-dim); }
+    .team-ended summary::-webkit-details-marker{ display:none; }
+    .team-ended summary::after{ content:"Show"; font:700 11.5px 'Manrope',sans-serif; color:var(--accent, var(--blue)); }
+    .team-ended details[open] summary::after{ content:"Hide"; }
+    .team-ended .ended-txt{ margin-top:6px; color:var(--text); font-weight:600; line-height:1.4; }
+  }
+  /* phones: each total on its own line with its breakdown beneath, and symbols for caught /
+     sponged / dodged */
+  @media (max-width: 560px){
+    .team-stat-table .team-inline .team-head-total{ flex-basis:100%; border-right:none; margin:0 0 3px; padding:0; }
+    .team-stat-table .cm-how{ display:inline-block; }
+    .team-stat-table .cm-word{ display:none; }
+  }
+  /* "all in" / "too late to swap": their own line under the charge moves' breakdown */
+  .team-extra{ display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:4px; margin-top:5px;
+    font:600 11.5px 'Manrope',sans-serif; color:var(--text-dim); }
+  @media (max-width: 560px){ .team-extra{ justify-content:flex-start; } }
 </style>
 <script type="application/ld+json">
 {
@@ -4048,6 +4104,15 @@ function teamIcon(P, who, opts){
     + `<img src="${spriteUrl(name)}" alt="${esc(label)}" class="${needsShadowMist(name) ? "shadow-mist" : ""}" loading="lazy" `
     + `onerror="if(!trySpriteShadowFallback(this, '${name.replace(/'/g, "\\'")}')){ this.parentNode.classList.add('no-img'); this.remove(); }">${badge}</span>`;
 }
+// How a boss charge move was handled: the word, plus a small symbol that replaces it on the narrowest
+// phones (the word stays as its tooltip there) - a hit striking a body for caught, an energy bolt
+// with a plus for sponged (the hit taken for its energy), a curved arrow for dodged
+const TEAM_HOW_SVG = {
+  caught: `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="10.2" cy="9.4" r="4.4" fill="currentColor"/><path d="M1.2 2.4l4.3 3.4M5.5 5.8l-.4-2.6M5.5 5.8l-2.6.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  sponged: `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.4 1.2 1.8 8.6h3.9L4.8 14.8l5.7-7.6H6.6z" fill="currentColor"/><path d="M12.9 1.4v4.4M10.7 3.6h4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`,
+  dodged: `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 12.5C3.5 7 8 3.6 13 4.6M13 4.6l-2.6-2.1M13 4.6l-1.8 2.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+};
+const teamHow = (word, n) => `<span class="cm-how" title="${word}">${TEAM_HOW_SVG[word] || ""}</span><span class="cm-word">${word} </span>${n}`;
 const teamSym = (kind, title) => `<span class="team-sym ${kind}" title="${title}">${kind === "swap" ? TEAM_SWAP_SVG : TEAM_FAINT_SVG}</span>`;
 
 // One line of the step-by-step log, built from the event's details rather than its sentence.
@@ -4345,6 +4410,16 @@ function renderTeamSim(P, S, R){
   const axis = [0, 0.25, 0.5, 0.75, 1].map(f => `<span>${(secs * f).toFixed(0)}s</span>`).join("");
   // Above the bar: a marker where each Pokemon's charge move lands, in its colour (count them at a
   // glance; hover for the move, its damage and when)
+  // How the boss's charge moves were handled: caught (per catch tank type), sponged and dodged (per
+  // attacker) on the first line - no zero counts; going all in and too-late swaps on a line of
+  // their own beneath, so a long tail doesn't squeeze the rest
+  const attPairs = pred => (multi ? ATT : [P.main]).map((A, k) => [multi ? attIco(k) : teamIcon(P, 0), decs.filter(d => pred(d.outcome) && (multi ? (d.att || 0) === k : true)).length]);
+  const cmHowItems = P.tanks.map((tp, i) => [typeIcos[i], "caught", caughtByType[i]])
+    .concat(attPairs(o => o === "main").map(([ico, c]) => [ico, "sponged", c]))
+    .concat(P.mainDodges || (P.attackers || []).some(A => A.dodges) ? attPairs(o => o === "main-dodge" || o === "all-in-dodge").map(([ico, c]) => [ico, "dodged", c]) : [])
+    .filter(([, , c]) => c > 0).map(([ico, how, c]) => `<span class="team-sub-item">${ico} ${teamHow(how, c)}</span>`).join(" &middot; ");
+  const cmExtraItems = attPairs(o => o === "all-in").filter(([, c]) => c > 0).map(([ico, c]) => `<span class="team-sub-item">${ico} took ${c} going all in</span>`)
+    .concat(late ? [`<span class="team-sub-item">${late} too late to swap</span>`] : []).join(" &middot; ");
   // Boss Rotation rows open with the boss's icon and its total, spaced off from who took them
   const bossTotal = n => `<span class="team-head-total">${teamIcon(P, "boss")}<b class="team-total">${n}</b></span>`;
   // the boss's fast moves that landed within the results, and how many each Pokemon tanked
@@ -4366,6 +4441,12 @@ function renderTeamSim(P, S, R){
   // The legend as stat chips: each Pokemon's (or catch tank type's) own DPS and time in; hover for
   // its damage and charge moves. (These used to be rows under DPS & Rejoins.)
   const pctIn = ticks => E > 0 ? Math.round(ticks / E * 100) : 0;
+  // Attackers: each Pokemon's (and catch tank type's) own DPS - its damage over its own time in -
+  // as the rows under DPS & Rejoins used to show it
+  const dpsItems = (multi ? ATT.map((A, k) => [attIco(k), attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"])
+                          : [[teamIcon(P, 0), (fieldTicks.get(0) || 0) ? ownDps(mainDmg, fieldTicks.get(0) || 0) : "&mdash;"]])
+    .concat(P.tanks.map((tp, i) => { let ticks = 0; fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; }); return [typeIcos[i], ticks ? ownDps(dmgByType[i], ticks) : "&mdash;"]; }))
+    .map(([ico, v]) => `<span class="team-sub-item">${ico} ${v}</span>`).join(" &middot; ");
   // Attackers: each Pokemon's (and catch tank type's) share of the time in
   const uptimeItems = (multi ? ATT.map((A, k) => [attIco(k), pctIn(attTicks[k])]) : [[teamIcon(P, 0), pctIn(onField.get(0) || 0)]])
     .concat(P.tanks.map((tp, i) => { let up = 0; onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; }); return [typeIcos[i], pctIn(up)]; }))
@@ -4496,28 +4577,19 @@ function renderTeamSim(P, S, R){
           <tr><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
         </tbody>
         ${teamGroupHead("rotation", "Boss Rotation")}
-          <tr><td>${P.bossCM.n} casts</td><td><span class="team-sub team-inline">${bossTotal(decs.length)}${[
-            ...P.tanks.map((tp, i) => `${typeIcos[i]} caught ${caughtByType[i]}`),
-            // "sponged 0" says nothing when the main DPSer dodged instead - shown only if it sponged
-            ...(multi ? ATT.map((A, k) => { const c = decs.filter(d => d.outcome === "main" && (d.att || 0) === k).length; return c ? `${attIco(k)} sponged ${c}` : ""; })
-                      : [(byMain > 0 || !dodged) ? `${mainIco} sponged ${byMain}` : ""]),
-            P.mainDodges ? `${mainIco} dodged ${dodged}` : "",
-            allInTaken ? `${mainIco} took ${allInTaken} going all in` : "",
-            late ? `${late} too late to swap` : "",
-            // each icon stays with its own words when the line wraps (an icon used to end one line
-            // and "took 1 going all in" start the next)
-          ].filter(Boolean).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
+          <tr><td>${P.bossCM.n} casts</td><td><span class="team-sub team-inline">${bossTotal(decs.length)}${cmHowItems}</span>${cmExtraItems ? `<div class="team-extra">${cmExtraItems}</div>` : ""}</td></tr>
           <tr><td>${P.bossFM.n} casts</td><td><span class="team-sub team-inline">${bossTotal(bossFmHits.length)}${fmTankedItems}</span></td></tr>
           <tr><td>Boss Cadence${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
         </tbody>
-        ${teamGroupHead("main", multi ? "Attackers" : "Main DPSer")}
+        ${teamGroupHead("main", "Attackers")}
+          <tr><td>DPS</td><td><span class="team-sub team-inline">${dpsItems}</span></td></tr>
           <tr><td>Damage</td><td><span class="team-sub team-inline"><span class="team-head-total"><b class="team-total">${total.toLocaleString()}</b></span>${(multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`) : [`${mainIco} ${mainDmg.toLocaleString()}`])
             .concat(P.tanks.map((tp, i) => `${typeIcos[i]} ${dmgByType[i].toLocaleString()}`)).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
           <tr><td>Uptime</td><td><span class="team-sub team-inline">${uptimeItems}</span></td></tr>
-          ${multi ? `<tr><td>Hot swaps</td><td>${R.attSpans.filter(x => x.to <= E).length ? R.attSpans.filter(x => x.to <= E).map(x => `<span class="team-sub-item">${attIco(x.att)} &rarr; ${attIco(x.att + 1)} at ${(x.to / 2).toFixed(1)}s${x.hp <= 0 ? " (fainted)" : ` &middot; ${x.hp} HP left`}</span>`).join("<br>") : "none"}</td></tr>` : ""}
+          ${multi ? `<tr class="team-wide"><td>Hot swaps</td><td>${R.attSpans.filter(x => x.to <= E).length ? R.attSpans.filter(x => x.to <= E).map(x => `<span class="team-sub-item">${attIco(x.att)} &rarr; ${attIco(x.att + 1)} at ${(x.to / 2).toFixed(1)}s${x.hp <= 0 ? " (fainted)" : ` &middot; ${x.hp} HP left`}</span>`).join("<br>") : "none"}</td></tr>` : ""}
           <tr><td>HP left${multi ? ` <span class="dps-stat-sub">${ATT[lastAtt].name}</span>` : ""}</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${ATT[lastAtt].hp}</td></tr>
-          <tr><td>Ended</td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
+          <tr class="team-wide team-ended"><td><span class="ended-lbl">Ended</span><details class="ended-m"><summary>Ended</summary><div class="ended-txt">${reasons[S.ended.reason] || S.ended.reason}</div></details></td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
         </tbody>
       </table>
       <div class="team-csv-row">
