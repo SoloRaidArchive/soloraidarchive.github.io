@@ -734,6 +734,11 @@ if ("serviceWorker" in navigator) {
     color: var(--text); outline:none; width:100%;
   }
   [data-theme="dark"] .mod-cell select{ background:#161a28; }
+  /* Event boost: a number field dressed like the dropdowns beside it */
+  .mod-cell input#eventBoost{ width:100%; box-sizing:border-box; padding:9px 12px; border:1.5px solid var(--border); border-radius:10px;
+    background:var(--card); color:var(--text); font:700 13px 'Manrope',sans-serif; }
+  [data-theme="dark"] .mod-cell input#eventBoost{ background:#161a28; }
+  .mod-cell input#eventBoost:focus{ outline:none; border-color:var(--blue); }
 
   .mini-preview{
     display:flex; align-items:center; gap:14px; margin-top:14px;
@@ -1349,6 +1354,8 @@ if ("serviceWorker" in navigator) {
   .party-meter{ align-self:center; margin-left:auto; padding:5px 11px; border-radius:999px; font:800 12px 'Manrope',sans-serif;
     color:var(--text-dim); border:1.5px solid color-mix(in srgb, var(--border) 75%, transparent); white-space:nowrap; }
   .party-meter.is-full{ color:#e0a03a; border-color:#e0a03a; }
+  .event-boost-hint{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin-top:4px; }
+  .loadout-cond.ev{ color:#e0a03a; border-color:#e0a03a; }
 </style>
 <script type="application/ld+json">
 {
@@ -2010,6 +2017,15 @@ if ("serviceWorker" in navigator) {
             <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
               <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
               <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
+            </div>
+            <!-- Event boost: an event's damage bonus as a percentage - 40 = x1.4 on every move of
+                 yours (attackers and catch tanks), in every mode; the boss's damage is unchanged -->
+            <div class="mod-row narrow">
+              <div class="mod-cell">
+                <label for="eventBoost">Event boost %</label>
+                <input type="number" id="eventBoost" min="0" max="500" step="5" value="0" inputmode="decimal" placeholder="0">
+                <div class="event-boost-hint" id="eventBoostHint">No boost</div>
+              </div>
             </div>
         </div>
         <div class="custom-type-col">
@@ -2887,6 +2903,13 @@ function calcStat(baseStat, iv, level){
 }
 
 // ============ PLAYER DAMAGE ============
+// Event boost: the percentage typed under Custom Type Modifiers (40 -> x1.4), on all of the player's
+// damage in every mode. Read when a calculation runs.
+function eventBoostMult(){
+  const el = typeof document !== "undefined" && document.getElementById("eventBoost");
+  const v = el ? parseFloat(el.value) : 0;
+  return isFinite(v) && v > 0 ? 1 + Math.min(v, 500) / 100 : 1;
+}
 function playerMoveDamage(move, attackerName, playerAtk, bossDef, mods){
   // mods: {eff, weather, stab, partyPower, zacian, dynamicPunch, primalMega, friendship}
   const shadowMult = isShadow(attackerName) ? 1.2 : 1;
@@ -2900,7 +2923,7 @@ function playerMoveDamage(move, attackerName, playerAtk, bossDef, mods){
   const stabMult = mods.stab ? 1.2 : 1;
   const raw = move.dmg * shadowMult * mods.eff * partyMult * weatherMult * zacianMult
               * dynamicPunchMult * stabMult * mods.primalMega * mods.friendship
-              * (playerAtk / bossDef);
+              * eventBoostMult() * (playerAtk / bossDef);
   return Math.floor(0.5 * raw) + 1;
 }
 
@@ -3447,12 +3470,14 @@ function teamStep(S, R, P, snap){
       // Back-to-back: no catch tank left and this hit would knock the attacker in out - it dodges if
       // it can (the all-in / hot swap paths below do); if it can't, a low-HP catch tank is sacrificed
       // to it (the game then swaps to the first living slot)
-      if(P.b2b && !tanksLeft && S.mons[0].hp <= P.main.bossCmDmg){
+      // (only with nobody to hot swap to: a support DPSer coming in fresh takes it for one swap,
+      // keeps the catch tank, and gains the energy - better than a sacrifice and two swaps)
+      if(P.b2b && !tanksLeft && !hasNext() && S.mons[0].hp <= P.main.bossCmDmg){
         const free = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0);
         const canDodgeNow = dodgesLeft && S.mons[0].hp > P.main.bossCmDmgDodged && free + TEAM_DODGE_TICKS <= land;
         const sac = S.mons.findIndex((x, i) => i > 0 && x.tank && x.used && x.hp > 0 && x.hp <= P.tanks[x.type].bossCmDmg && !S.returnTanks.includes(i));
         if(!canDodgeNow && sac > 0 && free + TEAM_SWAP_TICKS <= land){
-          S.pendingSwap = { to: sac, latest: free, second: false };
+          S.pendingSwap = { to: sac, latest: land - TEAM_SWAP_TICKS, second: false };   // in just as it lands
           S.mons[sac].waitCatch = land;
           dec.outcome = "tank-faint"; dec.tank = sac; dec.sacrifice = true;
           if(!S.probe) R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → would knock ${P.main.name} out; ${teamLabel(P, sac)} is sacrificed to it`,
@@ -3561,7 +3586,7 @@ function teamStep(S, R, P, snap){
         const main = S.mons[0];
         if(P.mainDodges && (P.dodgeLimit === 0 || S.mainDodges < P.dodgeLimit) && main.hp > P.main.bossCmDmgDodged && free + TEAM_SWAP_TICKS + TEAM_DODGE_TICKS <= land){
           S.mainDodges++;   // counts toward "Dodges before bailing", as any other dodge
-          S.pendingSwap = { to: 0, latest: free, second: false };
+          S.pendingSwap = { to: 0, latest: land - TEAM_DODGE_TICKS - TEAM_SWAP_TICKS, second: false };   // back just in time to dodge
           S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
           if(left > 0 && !S.returnTanks.includes(holder)){ S.returnTanks.push(holder); S.returnAfter = Math.max(S.returnAfter, land); }
           dec.outcome = "main-dodge"; dec.b2b = true;
@@ -3574,7 +3599,9 @@ function teamStep(S, R, P, snap){
         let sac = S.mons.findIndex((x, i) => canSac(x, i) && !S.returnTanks.includes(i));
         if(sac < 1) sac = S.mons.findIndex((x, i) => canSac(x, i));
         if(sac > 0 && free + TEAM_SWAP_TICKS <= land){
-          S.pendingSwap = { to: sac, latest: free, second: false };
+          // in just as the hit lands - the Pokemon in keeps attacking (building energy) until then; it
+          // used to swap at once, wasting up to 2.5s of a catch tank's turn
+          S.pendingSwap = { to: sac, latest: land - TEAM_SWAP_TICKS, second: false };
           S.mons[sac].waitCatch = land;   // it stands in for the hit - no swapping straight back out
           if(left > 0 && !S.returnTanks.includes(holder)){ S.returnTanks.push(holder); S.returnAfter = Math.max(S.returnAfter, land); }
           dec.outcome = "tank-faint"; dec.tank = sac; dec.sacrifice = true;
@@ -6100,7 +6127,10 @@ function runCalculation(){
     </div>
   `;
 
-  const anyQualifies = bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= submitThreshold);
+  // An event boost's damage isn't part of the CT Database's rankings: no submissions while one is set
+  const eventBoosted = eventBoostMult() > 1;
+  const wouldQualify = bossQualifies && rows.some(r => !r.fainted && r.ctDPS >= submitThreshold);
+  const anyQualifies = !eventBoosted && wouldQualify;
 
   resultsWrap.innerHTML = loadoutHtml + `
     <table class="results-table">
@@ -6193,6 +6223,9 @@ function runCalculation(){
     <div class="submit-panel">
       <div class="submit-note">Currently accepting <b>solo Catch Tank</b> submissions for <b>Tier 5</b> and <b>Tier 4 Mega</b> raids. ${isTier4MegaBoss(bossName) ? `"${bossName}" is a Tier 4 Mega, so rows scoring ${CT_SUBMIT_THRESHOLD_MEGA}+` : `Rows scoring ${CT_SUBMIT_THRESHOLD}+`} Catch Tank DPS are eligible — check <b>one row</b> to submit, including any marked ⚠️ risky (they're still accepted, just flagged for the reviewer). This opens a pre-filled submission form in a new tab.</div>
       <button type="button" class="submit-btn" onclick="submitSelectedRows()">Submit Selected to CT Database</button>
+    </div>` : (eventBoosted && wouldQualify) ? `
+    <div class="submit-panel submit-panel-disabled">
+      <div class="submit-note">Submissions are off while an <b>event boost</b> is set - the CT Database compares unboosted runs. Set Event boost to 0% (Custom Type Modifiers) to submit.</div>
     </div>` : (!doubleCT && bossName && !bossQualifies) ? `
     <div class="submit-panel submit-panel-disabled">
       <div class="submit-note">CT Database submissions are currently accepted for <b>Tier 5</b> and <b>Tier 4 Mega</b> raid bosses. "${bossName}" isn't on either list.</div>
@@ -6323,6 +6356,7 @@ async function duplicateWarnings(f, bossName, n, row, trailingDPSText){
 
 async function submitSelectedRows(){
   if(!lastCalcContext) return;
+  if(eventBoostMult() > 1){ alert("Submissions are off while an event boost is set - set Event boost to 0% to submit."); return; }
   const checked = [...document.querySelectorAll(".submit-checkbox:checked")];
   if(checked.length === 0){
     alert("Check a row before submitting.");
@@ -6381,7 +6415,7 @@ async function submitSelectedRows(){
 // ============ SETUP HISTORY (saved via localStorage on this device/browser) ============
 const SETUP_FIELD_IDS = [
   "pokemonName","pokemonLevel","ivAtk","ivDef","ivHp",
-  "playerCM","playerFM","effCM","effFM","stabCM","stabFM",
+  "playerCM","playerFM","effCM","effFM","stabCM","stabFM","eventBoost",
   "friendship","primalMega","numCM",
   "weatherSelect","dodgeCM","dodgeFM","t7Enraged","shadowEnraged","shieldAE","zacianBlade","cmBuffer","partyPower","resolveNerf",
   "bossName","bossTier","bossCM","bossFM",
@@ -6462,6 +6496,8 @@ function applySetup(setup){
   }
   updatePartyLimits();
   if(!("ctParty" in setup)) document.getElementById("ctParty").value = "";   // older setups: the default order
+  if(!("eventBoost" in setup)) document.getElementById("eventBoost").value = "0";   // older setups: no event boost
+  if(window.__updateEventBoost) window.__updateEventBoost();
   if(!("ctPlan" in setup)){
     document.getElementById("ctPlan").value = "";
     // before the list, catch tanks set to one attacker ("Used by") could only be used by that one
@@ -7280,6 +7316,18 @@ function onCustomMoveChange(baseId){
   document.getElementById(id).addEventListener("input", updatePlayerMovePreview);
   document.getElementById(id).addEventListener("change", updatePlayerMovePreview);
 });
+// Event boost: the hint says the multiplier; every damage preview (yours, catch tanks', supports') follows
+(function(){
+  const el = document.getElementById("eventBoost"), hint = document.getElementById("eventBoostHint");
+  const update = () => {
+    const m = eventBoostMult();
+    hint.textContent = m > 1 ? `x${m.toFixed(2)} damage` : "No boost";
+    if(typeof updatePlayerMovePreview === "function") updatePlayerMovePreview();
+    if(typeof updateTeamPreview === "function") updateTeamPreview();
+  };
+  el.addEventListener("input", update); el.addEventListener("change", update);
+  window.__updateEventBoost = update;
+})();
 document.getElementById("pokemonName").addEventListener("input", () => { updateMoveOptionsFor("pokemonName","playerCM","playerFM"); autoSetEffectiveness(); });
 document.getElementById("pokemonName").addEventListener("change", () => { updateMoveOptionsFor("pokemonName","playerCM","playerFM"); autoSetEffectiveness(); });
 [
@@ -7451,7 +7499,7 @@ document.getElementById("calcBtn").addEventListener("click", runCalculation);
 // at the encode/decode boundary, so nothing else in the app needs to know about it.
 const SETUP_SHORT_KEYS = {
   pokemonName:"n", pokemonLevel:"l", ivAtk:"ia", ivDef:"id", ivHp:"ih",
-  playerCM:"pc", playerFM:"pf", effCM:"ec", effFM:"ef", stabCM:"sc", stabFM:"sf",
+  playerCM:"pc", playerFM:"pf", effCM:"ec", effFM:"ef", stabCM:"sc", stabFM:"sf", eventBoost:"eb",
   friendship:"fr", primalMega:"pm", numCM:"nc",
   weatherSelect:"w", dodgeCM:"dc", dodgeFM:"df", t7Enraged:"t7", shieldAE:"sa",
   zacianBlade:"zb", cmBuffer:"cb", partyPower:"pp", resolveNerf:"rn",
@@ -8685,6 +8733,8 @@ function activeConditionsHtml(){
 
   const on = (id) => { const e = document.getElementById(id); return e && e.checked; };
   // the same icon the raid archive shows for Blade Boost runs; Zacian Crowned's sprite if it can't load
+  const evb = parseFloat((document.getElementById("eventBoost") || {}).value);
+  if(isFinite(evb) && evb > 0) chips.push({ label: `Event +${evb}%`, kind: "ev" });
   if(on("zacianBlade"))  chips.push({ label: "Blade Boost", kind: "ae",
     icon: `<img class="loadout-cond-icon" src="https://cdn2.steamgriddb.com/icon_thumb/55e643e737da20b912037cce912305fb.png" alt="" loading="lazy" onerror="this.onerror=null; this.src='assets/sprites/zacian-crownedsword.gif';">` });
   if(on("shieldAE"))     chips.push({ label: "Shield Boost", kind: "ae" });
