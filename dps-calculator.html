@@ -1593,6 +1593,7 @@ if ("serviceWorker" in navigator) {
       <p class="beta-h">Hot swaps</p>
       <ul>
         <li>An attacker hot swaps to the next one when it can't safely take the boss's next charge move (no catch tank left, and a sponge or dodge isn't safe), or when it can't live to land its next charge move. It fires the charge move it is building first if that lands in time - or stays in, takes the hit, and lands it, when it can survive to. The next attacker comes in with full HP and no energy; attackers never come back.</li>
+        <li><b>Doubling back</b>: when an incoming charge move would make the attacker in overflow and a support DPSer could absorb it fully, the simulator plays the fight forward both ways and swaps to the support if that deals more damage. The support is used until it is done, then the attacker comes back - with the HP and energy it left with - ahead of any new one.</li>
         <li><b>Juice main DPS</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
       </ul>
       <p class="beta-h">The end of the run</p>
@@ -1820,7 +1821,6 @@ if ("serviceWorker" in navigator) {
       </label>
       <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
       <label class="check-item" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
-      <label class="check-item" title="Hot swap to save energy: when sponging a boss charge move would overflow, swap to an attacker that can take it with little waste, keeping this one's energy - and swap back to fire it once the other has landed its charge move."><input type="checkbox" id="ctDoubleBack"> Double back</label>
       <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
         <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
       </label>
@@ -3121,7 +3121,7 @@ function simulateTeam(P){
   while(!S.ended){
     teamApplyAttacker(P, S);
     const attNow = S.att;
-    const snap = (P.mainAbsorbs || P.mainDodges || P.juice) ? structuredClone(S) : null;   // state at the start of this tick
+    const snap = (P.mainAbsorbs || P.mainDodges || P.juice || (P.attackers && P.attackers.length > 1)) ? structuredClone(S) : null;   // state at the start of this tick
     const before = { hits: new Set(S.hits), dmg: R.dmg.length, boss: R.bossMoves.length, swaps: R.swaps.length,
                      events: R.events.length, flight: S.boss.inFlight, dodges: R.dodges.length };
     teamStep(S, R, P, snap);
@@ -3292,6 +3292,10 @@ function teamStep(S, R, P, snap){
   };
   // who a hot swap brings in: the next attacker not yet in, else the benched one holding most energy
   const nextAttIdx = () => {
+    // an attacker that doubled back (swapped out to avoid an overflow, still healthy) comes back
+    // first - "use the support until it's done, then back to the main and carry on"
+    const back = benched().filter(k => S.bench[k].db).sort((a, b) => a - b);
+    if(back.length) return back[0];
     const f = freshNext(); if(f >= 0) return f;
     return benched().sort((a, b) => S.bench[b].energy - S.bench[a].energy)[0] ?? -1;
   };
@@ -3301,7 +3305,7 @@ function teamStep(S, R, P, snap){
     const out = S.mons[0];
     const target = toIdx !== undefined && toIdx >= 0 ? toIdx : nextAttIdx();
     R.attSpans.push({ att: S.att, toAtt: target, from: S.attFrom, to: t, hp: out.hp, energy: out.energy });
-    if(P.doubleBack && out.hp > 0) S.bench[S.att] = { hp: out.hp, energy: out.energy };
+    if(P.doubleBack && out.hp > 0) S.bench[S.att] = { hp: out.hp, energy: out.energy, db: !!(S.hotSwap && S.hotSwap.db) };
     if(out.hp <= 0) S.hits = S.hits.filter(h => h.who !== 0);   // a fainted attacker's move never lands
     S.gains = S.gains.filter(g => g.who !== 0);
     S.hotSwap = null; S.juice = false; S.finishing = false; S.finishDeadline = null; S.finishAt = null; S.allIn = false;
@@ -3421,11 +3425,16 @@ function teamStep(S, R, P, snap){
       // Double back: no catch tank for this one, and sponging it would waste much of its energy (over
       // 10% overflow). If another attacker - on the bench, or not yet in - can take it with little
       // waste and live, swap to it now and keep this one's energy for later (it comes back to fire).
-      if(P.doubleBack && !tanksLeft && hasNext()){
+      if(!tanksLeft && hasNext()){
         const db = doubleBackTarget(land);
-        if(db >= 0){
+        let take = db >= 0;
+        if(take){
+          if(S.shadow) take = S.shadow.cast === t ? S.shadow.choice === "swap" : true;   // inside a shadow run
+          else take = !!snap && teamShadowDamage(snap, P, "swap") > teamShadowDamage(snap, P, "stay");
+        }
+        if(take){
           dec.outcome = "double-back";
-          S.hotSwap = { deadline: land, fired: false, greed: false, to: db };
+          S.hotSwap = { deadline: land, fired: false, greed: false, to: db, db: true };
           R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} would overflow; hot swap to ${P.attackers[db].name} (keeps ${Math.round(S.mons[0].energy)} energy)`,
             ev: { type: "bossCM", to: 0, how: "dbout", toAtt: db, energy: Math.round(S.mons[0].energy) } });
           return;
@@ -3829,21 +3838,6 @@ function teamStep(S, R, P, snap){
           }
         }
       }
-      if(who === 0 && P.doubleBack && S.justLanded){
-        // Double back: its charge move has just landed (little energy left). If a benched attacker is
-        // holding a ready charge move, swap back to it now to fire it - not while the boss's charge
-        // move is on its way.
-        S.justLanded = false;
-        if(!S.hotSwap && !S.pendingDodge && !S.dodging && !S.finishing && !(B.inFlight && B.inFlight.cm) && m.energy < side.cmCost){
-          // ready = holding its charge move, or within one fast move of it
-          const ready = benched().filter(k => S.bench[k].energy + P.attackers[k].fm.energy >= P.attackers[k].cmCost).sort((a, b) => S.bench[b].energy - S.bench[a].energy);
-          if(ready.length){
-            if(!S.probe) R.events.push({ t, kind: "main", text: `${P.main.name} doubles back to ${P.attackers[ready[0]].name} (${Math.round(S.bench[ready[0]].energy)} energy)`,
-              ev: { type: "doubleBack", toAtt: ready[0], energy: Math.round(S.bench[ready[0]].energy) } });
-            startHotSwap(ready[0]); return;
-          }
-        }
-      }
       if(who === 0 && S.hotSwap){
         // Hot swap booked: fire the charge move it is building only if it (and the 0.5s swap after
         // it) finishes before the boss's hit lands; otherwise go now, so the next attacker takes it.
@@ -4029,6 +4023,27 @@ function teamMainCanKeepGoing(S, P, t, land){
 // same moves the run will) with the attacker staying in and taking the boss's charge moves itself
 // (S.juice). It pays off if a new charge move of its own lands - one already in the air doesn't
 // count - before it faints. If not, the run hot swaps where it was going to, as if it never tried.
+// Doubling back: an incoming charge move would make the attacker in overflow. Is it better to take
+// it anyway, or to swap to a support DPSer that absorbs it fully (and come back later)? Like the
+// player - who knows this from experience - the simulator plays the fight forward both ways, as the
+// run itself would (same boss rolls, hot swaps and all), and compares the damage dealt over the next
+// 40 seconds. Later decisions inside such a run use the simple rule, so runs don't nest.
+const TEAM_SHADOW_TICKS = 80;
+function teamShadowDamage(snap, P, choice){
+  const L = structuredClone(snap);
+  L.shadow = { cast: snap.t, choice };
+  const R = newTeamRecorder(), t0 = snap.t, tEnd = t0 + TEAM_SHADOW_TICKS;
+  while(!L.ended && L.t <= tEnd){
+    teamApplyAttacker(P, L);
+    const sn = (P.mainAbsorbs || P.mainDodges || P.juice || (P.attackers && P.attackers.length > 1)) ? structuredClone(L) : null;
+    teamStep(L, R, P, sn);
+    if(L.ended) break;
+    L.t++;
+  }
+  teamApplyAttacker(P, snap);
+  const end = L.ended ? Math.min(L.ended.t, tEnd) : tEnd;
+  return R.dmg.reduce((a, d) => a + (d.t >= t0 && d.t <= end ? d.dmg : 0), 0);
+}
 function teamJuiceProbe(snap, P){
   if(!snap) return false;
   const L = structuredClone(snap);
@@ -4217,7 +4232,7 @@ function runTeamSim(c){
     seed: Number.isInteger(window.__teamSeed) ? window.__teamSeed : crypto.getRandomValues(new Uint32Array(1))[0],
     tanks, monMeta, mainRank, assign: document.getElementById("ctAssign").value === "strict" ? "strict" : "soft",
     juice: !!(document.getElementById("ctJuice") || {}).checked,
-    doubleBack: !!(document.getElementById("ctDoubleBack") || {}).checked,
+    doubleBack: true,   // doubling back is part of every rotation with a support DPSer (no setting)
     b2b: !!(document.getElementById("ctB2B") || {}).checked,
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
     cmBuffer: false,   // CM Buffer isn't part of the Beta any more (removed from its card); old links' value is ignored
@@ -6430,7 +6445,7 @@ const SETUP_FIELD_IDS = [
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
   "ct3Name","ct3Level","ct3IvAtk","ct3IvDef","ct3IvHp","ct3CM","ct3FM","ct3Qty","ct3Casts",
   // Hot swap: which attacker each catch tank type serves, and the support DPSers
-  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign","ctJuice","ctDoubleBack","ctB2B","ctParty",
+  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign","ctJuice","ctB2B","ctParty",
   "sd1Name","sd1Qty","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge",
   "sd2Name","sd2Qty","sd2Level","sd2IvAtk","sd2IvDef","sd2IvHp","sd2CM","sd2FM","sd2Sponge","sd2First","sd2Rule","sd2Dodge",
   "sd3Name","sd3Qty","sd3Level","sd3IvAtk","sd3IvDef","sd3IvHp","sd3CM","sd3FM","sd3Sponge","sd3First","sd3Rule","sd3Dodge",
@@ -7511,7 +7526,7 @@ const SETUP_SHORT_KEYS = {
   ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctDoubleCatch:"tdc", ctDcFMs:"tdf", ctRejoinSecs:"trs",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
-  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas", ctJuice:"tju", ctDoubleBack:"tdb", ctB2B:"tbb", ctParty:"tpo",
+  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas", ctJuice:"tju", ctB2B:"tbb", ctParty:"tpo",
   sd1Name:"h1n", sd1Qty:"h1q", sd1Level:"h1l", sd1IvAtk:"h1a", sd1IvDef:"h1d", sd1IvHp:"h1h", sd1CM:"h1c", sd1FM:"h1f", sd1Sponge:"h1s", sd1First:"h1p", sd1Rule:"h1r", sd1Dodge:"h1g",
   sd2Name:"h2n", sd2Qty:"h2q", sd2Level:"h2l", sd2IvAtk:"h2a", sd2IvDef:"h2d", sd2IvHp:"h2h", sd2CM:"h2c", sd2FM:"h2f", sd2Sponge:"h2s", sd2First:"h2p", sd2Rule:"h2r", sd2Dodge:"h2g",
   sd3Name:"h3n", sd3Qty:"h3q", sd3Level:"h3l", sd3IvAtk:"h3a", sd3IvDef:"h3d", sd3IvHp:"h3h", sd3CM:"h3c", sd3FM:"h3f", sd3Sponge:"h3s", sd3First:"h3p", sd3Rule:"h3r", sd3Dodge:"h3g",
