@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-11-09T03:18:02.640435+00:00",
+  "generatedAt": "2026-11-09T14:31:11.987920+00:00",
   "sources": {
-    "pokebattlerSchedule": 40,
-    "pokebattlerScheduleWindows": 52,
-    "scrapedDuck": 1,
-    "pokebattlerApiStartDates": 7,
+    "pokebattlerSchedule": 32,
+    "pokebattlerScheduleWindows": 36,
+    "scrapedDuck": 2,
+    "pokebattlerApiStartDates": 15,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
     "pokebattlerApi": 40
@@ -29,20 +29,6 @@
         }
       ],
       "status": "future"
-    },
-    {
-      "startDate": "Nov 4, 2026",
-      "endDate": "Nov 8, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Giratina Altered",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Fog"
-        }
-      ],
-      "status": "active"
     },
     {
       "startDate": "Nov 15, 2026",
@@ -126,20 +112,6 @@
       "status": "future"
     },
     {
-      "startDate": "Oct 28, 2026",
-      "endDate": "Nov 8, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Mega Sableye",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Clear"
-        }
-      ],
-      "status": "active"
-    },
-    {
       "startDate": "Nov 24, 2026",
       "endDate": "Nov 30, 2026",
       "category": "rotation",
@@ -157,16 +129,16 @@
           "weather": "Extreme"
         },
         {
-          "name": "Mega Beedrill",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "1 \u2b50",
-          "weather": "Extreme"
-        },
-        {
           "name": "Mega Sableye",
           "archivePage": "tier4-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Clear"
+        },
+        {
+          "name": "Mega Beedrill",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "1 \u2b50",
+          "weather": "Extreme"
         }
       ],
       "status": "future"
@@ -197,7 +169,35 @@
           "weather": "Clear"
         }
       ],
-      "status": "future"
+      "status": "active"
+    },
+    {
+      "startDate": "Nov 4, 2026",
+      "endDate": "Nov 8, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Giratina Altered",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Fog"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "startDate": "Oct 28, 2026",
+      "endDate": "Nov 8, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Mega Sableye",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        }
+      ],
+      "status": "passed"
     },
     {
       "startDate": "Oct 28, 2026",
