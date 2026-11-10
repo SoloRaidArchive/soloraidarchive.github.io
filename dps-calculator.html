@@ -9083,6 +9083,7 @@ updateCTMode();
      for the rotation settings, switch-style toggles, a sticky party bar, a floating Calculate. -->
 <style>
   .mq-only{ display:none !important; }
+  @media (min-width:561px){ .mq-handle{ display:none !important; } }
   @media (max-width:560px){
     .mq-only{ display:var(--mq-d, block) !important; }
     .mq-hide{ display:none !important; }
@@ -9128,6 +9129,49 @@ updateCTMode();
     .mq-fab{ position:fixed; left:16px; right:16px; bottom:max(14px, env(safe-area-inset-bottom, 0px)); z-index:60; height:50px; border:0; border-radius:25px;
       background:linear-gradient(90deg, #ff8a3d, #ffb36b); color:#1a1312; font:800 16px 'Manrope',sans-serif; box-shadow:0 8px 22px rgba(240,138,60,.35); align-items:center; justify-content:center; }
     .mq-fab.is-hidden{ display:none !important; }
+    /* the sticky block: section tabs, then the party slots */
+    .mq-party{ flex-direction:column; gap:7px; }
+    .mq-tabs{ display:flex; gap:4px; }
+    .mq-tab{ flex:1; border:0; border-radius:9px; padding:6px 0; background:transparent; color:var(--text-dim); font:800 11.5px 'Manrope',sans-serif; }
+    .mq-tab.on{ background:var(--accent, var(--blue)); color:#1a1312; }
+    .mq-slots{ display:flex; gap:6px; }
+    /* level slider */
+    .mq-lvl{ width:100%; margin:2px 0 10px; }
+    /* Pokemon picker */
+    .mq-seg{ display:flex; background:var(--bg1, #1e1918); border:1.5px solid var(--border); border-radius:12px; padding:3px; gap:3px; margin-bottom:10px; }
+    .mq-seg button{ flex:1; border:0; border-radius:9px; padding:7px 0; background:transparent; color:var(--text-dim); font:800 12px 'Manrope',sans-serif; }
+    .mq-seg button.on{ background:var(--accent, var(--blue)); color:#1a1312; } .mq-seg button:disabled{ opacity:.35; }
+    .mq-search{ width:100%; box-sizing:border-box; border:1.5px solid var(--border); border-radius:12px; padding:10px 12px; background:var(--bg1, #1e1918); color:var(--text); font:700 14px 'Manrope',sans-serif; }
+    .mq-h{ font:800 11px 'Manrope',sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--accent, var(--blue)); margin:14px 0 8px; }
+    .mq-grid4{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; }
+    .mq-tile{ border:1.5px solid var(--border); border-radius:14px; background:var(--bg1, #1e1918); padding:6px 3px 7px; text-align:center; color:var(--text); font:800 10px/1.2 'Manrope',sans-serif; cursor:pointer; min-width:0; }
+    .mq-tile img{ width:44px; height:44px; object-fit:contain; display:block; margin:0 auto 3px; }
+    .mq-tile small{ display:block; color:var(--accent, var(--blue)); font-size:9.5px; margin-top:2px; }
+    .mq-tile span{ display:block; overflow:hidden; text-overflow:ellipsis; }
+    .mq-none{ color:var(--text-dim); font:700 12px 'Manrope',sans-serif; padding:6px 2px; }
+    .mq-res{ display:flex; align-items:center; gap:10px; width:100%; border:0; border-bottom:1px solid var(--border); background:none; padding:7px 2px; color:var(--text); font:800 14px 'Manrope',sans-serif; text-align:left; cursor:pointer; }
+    .mq-res img{ width:40px; height:40px; object-fit:contain; }
+    .mq-acts{ display:flex; gap:8px; margin-top:14px; }
+    .mq-act{ flex:1; border:1.5px solid var(--border); border-radius:12px; padding:10px; background:var(--bg1, #1e1918); color:var(--text); font:800 13px 'Manrope',sans-serif; }
+    .mq-act.danger{ color:#ff7b7b; border-color:color-mix(in srgb, #ff7b7b 50%, var(--border)); }
+    .mq-role{ display:flex; align-items:center; gap:12px; width:100%; text-align:left; border:1.5px solid var(--border); border-radius:16px; background:var(--bg1, #1e1918); padding:13px; margin-bottom:10px; color:var(--text); cursor:pointer; }
+    .mq-role .ic{ width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:21px; background:var(--card); flex:none; }
+    .mq-role b{ font:800 15px 'Manrope',sans-serif; } .mq-role small{ display:block; color:var(--text-dim); font:700 11.5px 'Manrope',sans-serif; margin-top:2px; }
+    .mq-role:disabled{ opacity:.45; }
+    /* rotation preview */
+    .mq-plan{ margin:0 0 12px; }
+    .mq-plan-row{ display:flex; gap:5px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; } .mq-plan-row::-webkit-scrollbar{ display:none; }
+    .mq-pc{ flex:none; width:52px; border-radius:10px; border:1.5px solid var(--border); background:var(--bg1, #1e1918); text-align:center; padding:4px 2px 3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); position:relative; }
+    .mq-pc img{ width:32px; height:32px; object-fit:contain; display:block; margin:0 auto 1px; }
+    .mq-pc.ct{ border-color:color-mix(in srgb, var(--accent, var(--blue)) 60%, var(--border)); } .mq-pc.ct b{ color:var(--accent, var(--blue)); }
+    .mq-pc.sp svg{ width:13px; height:13px; position:absolute; top:3px; right:4px; color:var(--accent, var(--blue)); }
+    .mq-pc.sw{ width:auto; padding:4px 6px; display:flex; align-items:center; border-style:dashed; font-size:15px; }
+    .mq-plan-note{ font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim); margin-top:3px; }
+    /* drag handles on the priority list */
+    .mq-handle{ display:none; }
+    .mq-handle{ display:inline-flex !important; align-items:center; justify-content:center; width:22px; align-self:stretch; color:var(--text-dim); font:800 14px 'Manrope',sans-serif; letter-spacing:-2px; touch-action:none; cursor:grab; flex:none; }
+    #ctPlanList .pl-arrows{ display:none !important; }   /* the drag handles replace them on phones (kept in the page: the drag reads them) */
+    .mq-dragging{ position:relative; z-index:5; box-shadow:0 10px 24px rgba(0,0,0,.45); border-color:var(--accent, var(--blue)) !important; opacity:.96; }
     /* bottom sheet */
     .mq-sheet-wrap{ position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.5); display:flex; align-items:flex-end; }
     .mq-sheet{ width:100%; max-height:78vh; overflow:auto; background:var(--card); border-radius:20px 20px 0 0; border-top:1.5px solid var(--border); padding:10px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
@@ -9216,12 +9260,13 @@ updateCTMode();
   }
   function enhanceLevel(inp){
     if(inp._mq || !/Level$/.test(inp.id)) return; inp._mq = true;
-    const row = presetRow([40, 45, 50, 51], () => inp.value.trim(), v => { inp.value = v; fire(inp, "input", "change"); }, v => "Lv " + v);
-    row.classList.add("mq-wide", "mq-lv");
+    // a slider for the level (20-55, half levels): the box above still takes anything typed
+    const box = slider("Level", 20, 55, 0.5, ["20", "55"], () => Math.max(20, Math.min(55, parseFloat(inp.value) || 50)), v => { inp.value = String(+v); fire(inp, "input", "change"); }, v => "Lv " + (+v));
+    box.classList.add("mq-lvl");
     let at = inp.closest(".field").parentElement;
     if(at.nextElementSibling && at.nextElementSibling.classList.contains("mq-chips")) at = at.nextElementSibling;   // under the IV presets
-    at.insertAdjacentElement("afterend", row);
-    inp.addEventListener("input", () => row._paint());
+    at.insertAdjacentElement("afterend", box);
+    inp.addEventListener("input", () => box._paint()); inp.addEventListener("change", () => box._paint());
   }
   function enhanceIVs(group){
     if(group._mq) return; group._mq = true;
@@ -9298,7 +9343,11 @@ updateCTMode();
       return `<button type="button" class="mq-slot" data-tok="${esc(tok)}" aria-label="Slot ${i + 1}: ${esc(name)}"><span class="n">${i + 1}</span><img src="${esc(spriteUrl(name.replace(/ #\d+$/, "")))}" alt="" onerror="this.style.visibility='hidden'"><span class="r">${role}</span></button>`;
     });
     for(let i = order.length; i < 6; i++) slots.push(`<button type="button" class="mq-slot empty" data-tok="" aria-label="Slot ${i + 1}: empty"><span class="n">${i + 1}</span>+</button>`);
-    bar.innerHTML = slots.join("");
+    let row = bar.querySelector(".mq-slots");
+    if(!row){ bar.innerHTML = '<div class="mq-tabs"></div><div class="mq-slots"></div>'; row = bar.querySelector(".mq-slots"); }
+    row.innerHTML = slots.join("");
+    row.style.display = document.body.classList.contains("ct-mode-team") ? "" : "none";
+    paintTabs();
   }
   function buildBar(){
     const first = document.getElementById("pokemonName"); if(!first || bar) return;
@@ -9308,17 +9357,17 @@ updateCTMode();
     const setTop = () => { bar.style.top = (hdr && getComputedStyle(hdr).position === "sticky" ? hdr.getBoundingClientRect().height : 0) + "px"; };
     setTop(); window.addEventListener("resize", setTop);
     bar.addEventListener("click", e => {
+      const t = e.target.closest(".mq-tab");
+      if(t){ const sec = sections()[+t.dataset.sec]; if(sec) scrollToCard(sec[1]); return; }
       const b = e.target.closest(".mq-slot"); if(!b) return;
-      const card = cardFor(b.dataset.tok); if(!card) return;
-      // where the bar sits once stuck (under the header), not where it is now
-      const stuckBottom = (parseFloat(bar.style.top) || 0) + bar.offsetHeight;
-      const y = card.getBoundingClientRect().top + window.scrollY - (stuckBottom + 8);
-      window.scrollTo({ top: y, behavior: "smooth" });
-      card.classList.add("mq-flash"); setTimeout(() => card.classList.remove("mq-flash"), 900);
+      const slotNo = [...b.parentNode.children].indexOf(b) + 1;
+      // a filled slot: the picker with its role; an empty one: the role first
+      if(b.dataset.tok) openPicker(b.dataset.tok, null, slotNo); else openRoleFirst(slotNo);
     });
+    window.addEventListener("scroll", () => { if(!bar._tick){ bar._tick = true; requestAnimationFrame(() => { bar._tick = false; paintTabs(); }); } }, { passive: true });
     renderBar();
   }
-  const syncBarMode = () => { if(bar) bar.style.setProperty("--mq-d", document.body.classList.contains("ct-mode-team") ? "flex" : "none"); };
+  const syncBarMode = () => { if(bar){ bar.style.setProperty("--mq-d", "flex"); renderBar(); } };
 
   // ---------- the floating Calculate ----------
   function buildFab(){
@@ -9328,6 +9377,278 @@ updateCTMode();
     document.body.appendChild(fab);
     // out of the way while the page's own Calculate is in view
     new IntersectionObserver(es => es.forEach(x => fab.classList.toggle("is-hidden", x.isIntersecting)), { threshold: 0.2 }).observe(btn);
+  }
+
+  // ---------- party edits: through a captured setup, applied back (the same path as saves and links) ----------
+  const CT_P = ["ct", "ct2", "ct3", "ct4", "ct5"], CT_F = ["Name", "Level", "IvAtk", "IvDef", "IvHp", "CM", "FM", "Qty", "Casts"];
+  const SD_F = ["Name", "Qty", "Level", "IvAtk", "IvDef", "IvHp", "CM", "FM", "Sponge", "First", "Rule", "Dodge"];
+  const norm = n => String(n || "").trim().toLowerCase();
+  function editSetup(fn){
+    const S = captureSetup(); const r = fn(S); if(r === false) return false;
+    const y = window.scrollY; applySetup(S); window.scrollTo(0, y); return true;
+  }
+  // after removing catch tank kind k (1-5) or support DPSer k: the priority list and party order renumbered
+  function remap(S, kind, k){
+    const plan = String(S.ctPlan || "").split("|").filter(Boolean).map(b => {
+      const [att, its = ""] = b.split(":");
+      if(kind === "s" && att === "s" + k) return null;
+      const a2 = kind === "s" && /^s\d$/.test(att) && +att.slice(1) > k ? "s" + (+att.slice(1) - 1) : att;
+      const items = its.split(",").filter(Boolean).filter(x => !(kind === "t" && x !== "s" && +x.split(".")[0] === k))
+        .map(x => { if(kind !== "t" || x === "s") return x; const [t, j] = x.split("."); return (+t > k ? +t - 1 : +t) + "." + j; });
+      return a2 + ":" + items.join(",");
+    }).filter(Boolean);
+    S.ctPlan = plan.join("|");
+    S.ctParty = String(S.ctParty || "").split(",").filter(Boolean).filter(x => !(x[0] === (kind === "t" ? "t" : "s") && +x.slice(1).split(".")[0] === k))
+      .map(x => { if(x[0] !== (kind === "t" ? "t" : "s")) return x; const [t, j] = x.slice(1).split("."); return x[0] + (+t > k ? +t - 1 : +t) + "." + j; }).join(",");
+  }
+  function addTo(S, role, name){
+    if(role === "ct"){
+      const n = Math.max(0, parseInt(S.ctTypes, 10) || 0);
+      for(let i = 0; i < n; i++) if(norm(S[CT_P[i] + "Name"]) === norm(name)){ S[CT_P[i] + "Qty"] = String((parseInt(S[CT_P[i] + "Qty"], 10) || 1) + 1); return true; }
+      if(n >= CT_P.length) return false;
+      const p = CT_P[n]; S.ctTypes = String(n + 1);
+      Object.assign(S, { [p + "Name"]: name, [p + "Level"]: "50", [p + "IvAtk"]: "15", [p + "IvDef"]: "15", [p + "IvHp"]: "15", [p + "Qty"]: "1", [p + "Casts"]: "1" });
+      delete S[p + "FM"]; delete S[p + "CM"]; return true;
+    }
+    const n = Math.max(0, parseInt(S.sdCount, 10) || 0);
+    for(let i = 1; i <= n; i++) if(norm(S["sd" + i + "Name"]) === norm(name)){ S["sd" + i + "Qty"] = String((parseInt(S["sd" + i + "Qty"], 10) || 1) + 1); return true; }
+    if(n >= 5) return false;
+    const p = "sd" + (n + 1); S.sdCount = String(n + 1);
+    SD_F.forEach(f => delete S[p + f]);
+    Object.assign(S, { [p + "Name"]: name, [p + "Qty"]: "1", [p + "Level"]: "50", [p + "IvAtk"]: "15", [p + "IvDef"]: "15", [p + "IvHp"]: "15" });
+    return true;
+  }
+  function removeFrom(S, tok){
+    if(tok[0] === "t"){
+      const k = +tok.slice(1).split(".")[0], p = CT_P[k - 1], q = parseInt(S[p + "Qty"], 10) || 1;
+      if(q > 1){ S[p + "Qty"] = String(q - 1); return; }
+      const n = parseInt(S.ctTypes, 10) || 0;
+      for(let i = k - 1; i < n - 1; i++) CT_F.forEach(f => { S[CT_P[i] + f] = S[CT_P[i + 1] + f]; });
+      if(n > 1) CT_F.forEach(f => delete S[CT_P[n - 1] + f]);
+      S.ctTypes = String(n - 1); remap(S, "t", k);
+    } else if(tok[0] === "s"){
+      const k = +tok.slice(1).split(".")[0], p = "sd" + k, q = parseInt(S[p + "Qty"], 10) || 1;
+      if(q > 1){ S[p + "Qty"] = String(q - 1); return; }
+      const n = parseInt(S.sdCount, 10) || 0;
+      for(let i = k; i < n; i++) SD_F.forEach(f => { S["sd" + i + f] = S["sd" + (i + 1) + f]; });
+      SD_F.forEach(f => delete S["sd" + n + f]);
+      S.sdCount = String(n - 1); remap(S, "s", k);
+    }
+  }
+  const roleOf = tok => !tok ? null : tok[0] === "m" ? "main" : tok[0] === "s" ? "sup" : "ct";
+  function putInSlot(tok, role, name){
+    return editSetup(S => {
+      if(role === "main"){ S.pokemonName = name; delete S.playerFM; delete S.playerCM; return; }
+      if(tok && roleOf(tok) === role){
+        // same role: rename the card if it holds just this one, otherwise one copy moves to its own card
+        const p = role === "ct" ? CT_P[+tok.slice(1).split(".")[0] - 1] : "sd" + tok.slice(1).split(".")[0];
+        if((parseInt(S[p + "Qty"], 10) || 1) === 1 && !(role === "ct" ? CT_P : [1,2,3,4,5].map(i => "sd" + i)).some(q => q !== p && norm(S[q + "Name"]) === norm(name))){
+          S[p + "Name"] = name; delete S[p + "FM"]; delete S[p + "CM"]; return;
+        }
+      }
+      if(tok) removeFrom(S, tok);
+      if(!addTo(S, role, name)) return false;
+    });
+  }
+
+  // ---------- suggestions: verified runs for this boss (by role), catch tank data, recent picks ----------
+  let RUNS = null;
+  function loadRuns(){
+    if(!RUNS) RUNS = Promise.all(["/csv/tier5-merged.csv", "/csv/tier4-data.csv", "/csv/tier6-data.csv"].map(u => fetch(u).then(r => r.ok ? r.text() : "").catch(() => "")))
+      .then(texts => {
+        const out = [];
+        texts.forEach(t => {
+          if(!t || typeof parseCSV !== "function") return;
+          const rows = parseCSV(t), head = (rows.shift() || []).map(h => String(h).trim()), bi = head.indexOf("Boss Name");
+          if(bi < 0) return;
+          const cols = head.map((h, i) => /^Pokemon \d$/.test(h) ? i : -1).filter(i => i >= 0);
+          rows.forEach(r => cols.forEach(i => { const mon = String(r[i] || "").trim(); if(mon) out.push({ boss: String(r[bi] || "").trim(), mon, role: String(r[i + 1] || "") }); }));
+        });
+        return out;
+      });
+    return RUNS;
+  }
+  const key = n => String(n || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  async function suggestionsFor(role){
+    const boss = ((document.getElementById("bossName") || {}).value || "").trim(); if(!boss) return { boss, list: [] };
+    const runs = await loadRuns();
+    const want = role === "ct" ? /catch\s*tank/i : /main dps|support dps|executor/i;
+    const tally = new Map();
+    runs.filter(x => key(x.boss) === key(boss) && want.test(x.role)).forEach(x => { const k = key(x.mon); const e = tally.get(k) || { name: x.mon, runs: 0 }; e.runs++; tally.set(k, e); });
+    if(role === "ct" && typeof loadCtDatabase === "function"){
+      (await loadCtDatabase()).filter(e => key(e.boss) === key(boss)).forEach(e => { const k = key(e.mon); const t = tally.get(k) || { name: e.mon, runs: 0 }; t.best = Math.max(t.best || 0, e.ctDps); t.logged = (t.logged || 0) + 1; tally.set(k, t); });
+    }
+    const list = [...tally.values()].sort((a, b) => (b.runs + (b.logged || 0)) - (a.runs + (a.logged || 0))).slice(0, 8);
+    return { boss, list };
+  }
+  const RECENT_KEY = "raidArchiveRecentMons";
+  const recentGet = role => { try{ return (JSON.parse(localStorage.getItem(RECENT_KEY) || "{}")[role === "ct" ? "ct" : "att"] || []).slice(0, 8); }catch(e){ return []; } };
+  const recentAdd = (role, name) => { try{ const all = JSON.parse(localStorage.getItem(RECENT_KEY) || "{}"), k = role === "ct" ? "ct" : "att"; all[k] = [name].concat((all[k] || []).filter(n => norm(n) !== norm(name))).slice(0, 8); localStorage.setItem(RECENT_KEY, JSON.stringify(all)); }catch(e){} };
+
+  // ---------- the Pokemon picker ----------
+  const ROLE_TXT = { main: "Main DPSer", sup: "Support DPSer", ct: "Catch tank" };
+  const sprite = n => (typeof spriteUrl === "function" ? spriteUrl(n) : "");
+  const tileHtml = (name, sub) => `<button type="button" class="mq-tile" data-pick="${esc(name)}"><img src="${esc(sprite(name))}" alt="" onerror="this.style.visibility='hidden'"><span>${esc(name)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
+  function openSheetShell(html){
+    const wrap = document.createElement("div"); wrap.className = "mq-sheet-wrap";
+    wrap.innerHTML = `<div class="mq-sheet" role="dialog" aria-modal="true"><div class="mq-grab"></div>${html}</div>`;
+    wrap.addEventListener("click", e => { if(e.target === wrap || e.target.closest(".done")) wrap.remove(); });
+    document.body.appendChild(wrap); return wrap;
+  }
+  function partyFull(){ return typeof teamPartySize === "function" && teamPartySize() >= 6; }
+  // an empty slot: what's it for? (the main DPSer is always there)
+  function openRoleFirst(slotNo){
+    const mainName = ((document.getElementById("pokemonName") || {}).value || "").trim();
+    const sheetEl = openSheetShell(`<div class="mq-sheet-head"><div>What's slot ${slotNo} for?<small>Then pick the Pokémon</small></div><button type="button" class="done">Done</button></div>
+      <button type="button" class="mq-role" disabled><span class="ic">&#11088;</span><span><b>Main DPSer</b><small>${mainName ? "Taken by " + esc(mainName) + " &middot; tap its slot to replace it" : "Slot 1"}</small></span></button>
+      <button type="button" class="mq-role" data-role="sup"${(typeof supportCount === "function" && supportCount() >= 5) ? " disabled" : ""}><span class="ic">&#9876;&#65039;</span><span><b>Support DPSer</b><small>Hot swaps in after the main DPSer</small></span></button>
+      <button type="button" class="mq-role" data-role="ct"><span class="ic">&#128737;&#65039;</span><span><b>Catch tank</b><small>Catches the boss's charge moves</small></span></button>`);
+    sheetEl.addEventListener("click", e => { const b = e.target.closest("[data-role]"); if(b){ sheetEl.remove(); openPicker(null, b.dataset.role, slotNo); } });
+  }
+  // the picker: a filled slot (tok) or a new one (tok null, role chosen first)
+  function openPicker(tok, role, slotNo){
+    let cur = role || roleOf(tok), q = "";
+    const curName = tok && typeof teamPartyLabel === "function" ? teamPartyLabel(tok).replace(/ #\d+$/, "") : "";
+    const sheetEl = openSheetShell(`<div class="mq-sheet-head">${curName ? `<img src="${esc(sprite(curName))}" alt="" onerror="this.remove()">` : ""}<div>Slot ${slotNo}${curName ? " &middot; " + esc(curName) : ""}<small class="mq-sub"></small></div><button type="button" class="done">Done</button></div>
+      <div class="mq-seg"></div><input class="mq-search" type="search" placeholder="Search Pokémon…" autocomplete="off" enterkeyhint="search"><div class="mq-body"></div>
+      ${tok ? `<div class="mq-acts"><button type="button" class="mq-act" data-act="edit">Edit level, IVs &amp; moves</button>${tok[0] !== "m" ? '<button type="button" class="mq-act danger" data-act="remove">Remove</button>' : ""}</div>` : ""}`);
+    const seg = sheetEl.querySelector(".mq-seg"), body = sheetEl.querySelector(".mq-body"), sub = sheetEl.querySelector(".mq-sub"), search = sheetEl.querySelector(".mq-search");
+    const paintSeg = () => {
+      // the main DPSer's slot stays the main DPSer; any other slot is a support DPSer or a catch tank
+      const isMain = tok && tok[0] === "m";
+      seg.innerHTML = ["main", "sup", "ct"].map(r => `<button type="button" data-r="${r}" class="${r === cur ? "on" : ""}" ${(isMain ? r !== "main" : r === "main") ? "disabled" : ""}>${ROLE_TXT[r]}</button>`).join("");
+      sub.textContent = ROLE_TXT[cur];
+    };
+    let token = 0;
+    const paintBody = async () => {
+      const mine = ++token;
+      if(q){
+        const names = (typeof pokemonNameMatches === "function" ? pokemonNameMatches(q) : []).slice(0, 14);
+        body.innerHTML = names.length ? names.map(n => `<button type="button" class="mq-res" data-pick="${esc(n)}"><img src="${esc(sprite(n))}" alt="" onerror="this.style.visibility='hidden'">${esc(n)}</button>`).join("") : '<div class="mq-none">No Pokémon match that.</div>';
+        return;
+      }
+      const recent = recentGet(cur);
+      body.innerHTML = (recent.length ? `<div class="mq-h">Recent</div><div class="mq-grid4">${recent.map(n => tileHtml(n)).join("")}</div>` : "") + '<div class="mq-h mq-sug-h">Suggestions</div><div class="mq-sug"><div class="mq-none">Loading…</div></div>';
+      const { boss, list } = await suggestionsFor(cur);
+      if(mine !== token) return;
+      body.querySelector(".mq-sug-h").textContent = boss ? (cur === "ct" ? "Top catch tanks vs " : "Top raiders vs ") + boss : "Suggestions";
+      body.querySelector(".mq-sug").innerHTML = !boss ? '<div class="mq-none">Pick a raid boss first.</div>'
+        : list.length ? `<div class="mq-grid4">${list.map(e => tileHtml(e.name, e.runs ? e.runs + " run" + (e.runs === 1 ? "" : "s") : e.best ? "CT DPS " + e.best.toFixed(1) : "")).join("")}</div>`
+        : `<div class="mq-none">No verified runs for ${esc(boss)} yet - search above.</div>`;
+    };
+    seg.addEventListener("click", e => { const b = e.target.closest("[data-r]"); if(b && !b.disabled){ cur = b.dataset.r; paintSeg(); paintBody(); } });
+    search.addEventListener("input", () => { q = search.value.trim(); paintBody(); });
+    sheetEl.addEventListener("click", e => {
+      const pk = e.target.closest("[data-pick]");
+      if(pk){
+        const name = pk.dataset.pick;
+        if(!tok && partyFull()){ sheetEl.remove(); return; }
+        if(putInSlot(tok, cur, name) === false){ alert("That doesn't fit: a party holds six, with up to five support DPSers and five kinds of catch tank."); return; }
+        recentAdd(cur, name); sheetEl.remove(); return;
+      }
+      const act = e.target.closest("[data-act]");
+      if(act && act.dataset.act === "remove"){ editSetup(S => removeFrom(S, tok)); sheetEl.remove(); }
+      if(act && act.dataset.act === "edit"){ sheetEl.remove(); scrollToCard(cardFor(tok)); }
+    });
+    paintSeg(); paintBody();
+  }
+  function scrollToCard(card){
+    if(!card || !bar) return;
+    const stuckBottom = (parseFloat(bar.style.top) || 0) + bar.offsetHeight;
+    window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - (stuckBottom + 8), behavior: "smooth" });
+    card.classList.add("mq-flash"); setTimeout(() => card.classList.remove("mq-flash"), 900);
+  }
+
+  // ---------- section tabs ----------
+  function sections(){
+    const team = document.body.classList.contains("ct-mode-team");
+    const main = document.getElementById("pokemonName"), boss = document.getElementById("bossName");
+    const rot = team ? document.getElementById("teamBehaviorCard") : (document.getElementById("eventBoost") || {}).closest ? document.getElementById("eventBoost").closest(".step-card") : null;
+    return [
+      [team ? "Party" : "Pokémon", main && main.closest(".step-card")],
+      ["Boss", boss && (boss.closest(".vs-col") || boss.closest(".step-card"))],
+      [team ? "Rotation" : "Settings", rot],
+      ["Results", document.getElementById("resultsWrap") || document.getElementById("calcBtn")],
+    ].filter(x => x[1]);
+  }
+  function paintTabs(){
+    if(!bar) return;
+    const tabs = bar.querySelector(".mq-tabs"), list = sections();
+    const line = (parseFloat(bar.style.top) || 0) + bar.offsetHeight + 24;
+    let on = 0; list.forEach(([, node], i) => { if(node.getBoundingClientRect().top <= line) on = i; });
+    tabs.innerHTML = list.map(([label], i) => `<button type="button" class="mq-tab${i === on ? " on" : ""}" data-sec="${i}">${label}</button>`).join("");
+  }
+
+  // ---------- rotation preview: who takes the boss's charge moves, from the priority list ----------
+  const SPONGE_SVG = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.4 1.2 1.8 8.6h3.9L4.8 14.8l5.7-7.6H6.6z" fill="currentColor"/><path d="M12.9 1.4v4.4M10.7 3.6h4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  const ordinal = n => n + (n === 1 ? "st" : n === 2 ? "nd" : n === 3 ? "rd" : "th");
+  function renderPlanPreview(){
+    const list = document.getElementById("ctPlanList"); if(!list || typeof teamPlan !== "function") return;
+    let box = document.getElementById("mqPlan");
+    if(!box){ box = el("div", "mq-plan", "block"); box.id = "mqPlan"; list.parentNode.insertBefore(box, list); }
+    const blocks = teamPlan(); let n = 0;
+    const cm = (typeof P !== "undefined" && P && P.bossCM) ? P.bossCM.n : ((document.getElementById("bossCM") || {}).value || "charge move");
+    const cells = [];
+    blocks.forEach((b, bi) => {
+      const att = teamAttName(b.att);
+      if(bi > 0) cells.push(`<div class="mq-pc sw" title="Hot swap to ${esc(att)}">&#8644;</div>`);
+      b.items.forEach(x => {
+        if(x === "s"){
+          const on = (document.getElementById(b.att === "m" ? "ctMainAbsorb" : "sd" + b.att.slice(1) + "Sponge") || {}).checked;
+          if(on) cells.push(`<div class="mq-pc sp" title="${esc(att)} sponges when it absorbs the energy">${SPONGE_SVG}<img src="${esc(sprite(att))}" alt="" onerror="this.style.visibility='hidden'">sponge</div>`);
+          return;
+        }
+        n++;
+        const nm = teamTankLabel(x);
+        cells.push(`<div class="mq-pc ct" title="${esc(nm)}"><img src="${esc(sprite(nm.replace(/ #\d+$/, "")))}" alt="" onerror="this.style.visibility='hidden'"><b>${ordinal(n)}</b></div>`);
+      });
+    });
+    box.innerHTML = `<div class="mq-plan-row">${cells.join("") || '<div class="mq-none">No catch tanks - hot swaps and sponges only.</div>'}</div><div class="mq-plan-note">Who takes each ${esc(cm)}, in order${n ? " - drag the cards below to change it" : ""}.</div>`;
+  }
+
+  // ---------- drag handles on the priority list ----------
+  function decoratePlanList(){
+    const list = document.getElementById("ctPlanList"); if(!list) return;
+    list.querySelectorAll(".pl-group-head, .pl-item").forEach(row => {
+      if(row.querySelector(":scope > .mq-handle")) return;
+      const nav = row.querySelector(":scope > .pl-arrows, :scope button[data-d]"); if(!nav) return;
+      const h = document.createElement("span"); h.className = "mq-handle"; h.textContent = "⋮⋮"; h.setAttribute("aria-hidden", "true");
+      row.insertBefore(h, row.firstChild);
+    });
+  }
+  function startDrag(e){
+    const h = e.target.closest(".mq-handle"); if(!h) return;
+    const list = document.getElementById("ctPlanList");
+    const isBlock = !!h.closest(".pl-group-head") && !h.closest(".pl-item");
+    const node = isBlock ? h.closest(".pl-group") : h.closest(".pl-item");
+    const parent = node.parentNode, sibs = () => [...parent.children].filter(c => c.matches(isBlock ? ".pl-group" : ".pl-item"));
+    const from = sibs().indexOf(node), y0 = e.clientY;
+    const bi = isBlock ? null : +((node.querySelector("button[data-b]") || {}).dataset || {}).b;
+    e.preventDefault(); h.setPointerCapture(e.pointerId);
+    node.classList.add("mq-dragging");
+    const startTop = node.getBoundingClientRect().top;
+    // the card follows the finger; passing a neighbour's middle swaps them in the list
+    const move = ev => {
+      node.style.transform = "";
+      const nat = node.getBoundingClientRect().top;
+      node.style.transform = `translateY(${ev.clientY - y0 - (nat - startTop)}px)`;
+      const all = sibs(), i = all.indexOf(node), r = node.getBoundingClientRect(), mid = r.top + r.height / 2;
+      const nxt = all[i + 1], prv = all[i - 1];
+      const midOf = x => { const q = x.getBoundingClientRect(); return q.top + q.height / 2; };
+      if(nxt && mid > midOf(nxt)) parent.insertBefore(nxt, node);
+      else if(prv && mid < midOf(prv)) parent.insertBefore(node, prv);
+    };
+    const up = () => {
+      h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); h.removeEventListener("pointercancel", up);
+      node.classList.remove("mq-dragging"); node.style.transform = "";
+      const to = sibs().indexOf(node);
+      if(to === from){ renderTeamOrder(); return; }
+      const blocks = teamPlan();
+      if(isBlock){ const [b] = blocks.splice(from, 1); blocks.splice(to, 0, b); }
+      else { const its = blocks[bi].items; const [x] = its.splice(from, 1); its.splice(to, 0, x); }
+      teamPlanSet(blocks);
+    };
+    h.addEventListener("pointermove", move); h.addEventListener("pointerup", up); h.addEventListener("pointercancel", up);
   }
 
   // ---------- wiring ----------
@@ -9346,6 +9667,11 @@ updateCTMode();
     const orig = window[fn]; if(typeof orig !== "function") return;
     window[fn] = function(){ const r = orig.apply(this, arguments); try{ renderBar(); }catch(e){} return r; };
   });
+  // the priority list: preview and drag handles follow every redraw
+  if(typeof window.renderTeamOrder === "function"){
+    const orig = window.renderTeamOrder;
+    window.renderTeamOrder = function(){ const r = orig.apply(this, arguments); try{ renderPlanPreview(); decoratePlanList(); }catch(e){} return r; };
+  }
   // applySetup fills fields directly (no events): repaint everything after it
   if(typeof window.applySetup === "function"){
     const orig = window.applySetup;
@@ -9353,6 +9679,8 @@ updateCTMode();
   }
   function init(){
     scan(); buildBar(); buildFab(); syncBarMode();
+    try{ renderPlanPreview(); decoratePlanList(); }catch(e){}
+    const pl = document.getElementById("ctPlanList"); if(pl) pl.addEventListener("pointerdown", startDrag);
     // cards added later (catch tanks, support DPSers) get the same treatment
     new MutationObserver(() => scan()).observe(document.body, { childList: true, subtree: true });
     new MutationObserver(syncBarMode).observe(document.body, { attributes: true, attributeFilter: ["class"] });
