@@ -44,6 +44,12 @@
 <meta name="theme-color" content="#3d9dff">
 <script>
 if ("serviceWorker" in navigator) {
+  // A page an older worker served is reloaded once when the new one takes over, so an update shows
+  // without closing the tab (a first visit, with no worker yet, isn't reloaded).
+  const hadWorker = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (hadWorker && !window.__swReloaded) { window.__swReloaded = true; location.reload(); }
+  });
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
 }
 </script>
@@ -6504,7 +6510,7 @@ function restoreMoveSelection(baseId, savedMove){
     sel.value = "__custom__";
     if(!datalist.dataset.populated){
       const isCharge = baseId.toUpperCase().endsWith("CM");
-      const list = isCharge ? ALL_CHARGE_MOVES : ALL_FAST_MOVES;
+      const list = MOVE_DB.filter(m => m.type === (isCharge ? "Charge" : "Fast")).map(m => m.n).sort();   // now, not when the script first ran (the moves load later)
       datalist.innerHTML = list.map(m => `<option value="${m}">`).join("");
       datalist.dataset.populated = "1";
     }
@@ -7084,7 +7090,7 @@ function onMoveSelectChange(baseId){
     customInput.style.display = "";
     if(!datalist.dataset.populated){
       const isCharge = baseId.toUpperCase().endsWith("CM");
-      const list = isCharge ? ALL_CHARGE_MOVES : ALL_FAST_MOVES;
+      const list = MOVE_DB.filter(m => m.type === (isCharge ? "Charge" : "Fast")).map(m => m.n).sort();   // now, not when the script first ran (the moves load later)
       datalist.innerHTML = list.map(m => `<option value="${m}">`).join("");
       datalist.dataset.populated = "1";
     }
@@ -9091,6 +9097,9 @@ updateCTMode();
   /* Every width: a Pokemon's moves are picked in its damage panel (the move rows open the picker), so
      its Fast Move / Charge Move fields step aside while the panel is there. */
   .mq-viapanel{ display:none !important; }
+  /* the Fast Move / Charge Move fields are never shown: a Pokemon's moves are picked in its damage panel */
+  .mq-movefield{ display:none !important; }
+  .field-grid:has(> .field.mq-movefield):not(:has(> .field:not(.mq-movefield))){ display:none !important; }
   .field-grid:has(> .field.mq-viapanel):not(:has(> .field:not(.mq-viapanel):not(.mq-nomoves))){ display:none !important; }
   .boss-dmg-row.mq-tapmove{ cursor:pointer; border-radius:10px; margin-left:-8px; margin-right:-8px; padding-left:8px; padding-right:8px; transition:background .12s; }
   .boss-dmg-row.mq-tapmove:hover, .boss-dmg-row.mq-tapmove:focus-visible{ background:color-mix(in srgb, var(--accent, var(--blue)) 12%, transparent); outline:none; }
@@ -9106,6 +9115,10 @@ updateCTMode();
     background:color-mix(in srgb, var(--mq-c, var(--border)) 16%, var(--card)); color:var(--text); font:800 13px 'Manrope',sans-serif; text-align:left; cursor:pointer; }
   .mq-mrow.cur{ box-shadow:0 0 0 2px var(--mq-c, var(--border)); } .mq-mrow .cur-tag{ color:var(--accent, var(--blue)); font-size:10.5px; margin-left:4px; }
   .mq-mrow.plain{ --mq-c:var(--border); font-weight:700; color:var(--text-dim); }
+  .mq-sheet .mq-search{ width:100%; box-sizing:border-box; border:1.5px solid var(--border); border-radius:12px; padding:10px 12px; background:var(--bg1, #1e1918); color:var(--text); font:700 14px 'Manrope',sans-serif; }
+  .mq-sheet .mq-acts{ display:flex; gap:8px; margin-top:12px; }
+  .mq-sheet .mq-act{ flex:1; border:1.5px solid var(--border); border-radius:12px; padding:10px; background:var(--bg1, #1e1918); color:var(--text); font:800 13px 'Manrope',sans-serif; cursor:pointer; }
+  .mq-sheet .mq-act[data-use]{ background:var(--accent, var(--blue)); border-color:var(--accent, var(--blue)); color:#1a1312; }
   .mq-sheet .mq-st{ display:flex; gap:10px; font:800 11.5px 'Manrope',sans-serif; color:var(--text-dim); white-space:nowrap; }
   .mq-sheet .mq-st span{ display:inline-flex; align-items:center; gap:3px; } .mq-sheet .mq-st svg{ width:13px; height:13px; flex:none; }
   /* desktop: the picker as a centred dialog */
@@ -9253,6 +9266,7 @@ updateCTMode();
       const it = e.target.closest("[data-v]"); if(it){ onPick(it.dataset.v); close(); }
     });
     document.body.appendChild(wrap);
+    return wrap;
   }
 
   // ---------- move chips ----------
@@ -9276,15 +9290,41 @@ updateCTMode();
     const head = `${who && typeof spriteUrl === "function" ? `<img src="${esc(spriteUrl(who))}" alt="" onerror="this.remove()">` : ""}<div>${esc(who)} &middot; ${esc(lbl ? lbl.textContent.trim().toLowerCase() : "move")}<small>Tap one to use it</small></div>`;
     const rows = [...sel.options].map(o => {
       const m = moveOf(o.value), cur = o.value === sel.value;
+      if(o.value === "__custom__") return `<button type="button" class="mq-mrow plain${cur ? " cur" : ""}" data-custom="1"><span>${esc(o.text)}${cur ? '<span class="cur-tag">&middot; current</span>' : ""}</span></button>`;
       if(!m) return `<button type="button" class="mq-mrow plain" data-v="${esc(o.value)}"><span>${esc(o.text)}</span></button>`;
       return `<button type="button" class="mq-mrow${cur ? " cur" : ""}" data-v="${esc(o.value)}" style="--mq-c:${colorOf(m) || "var(--border)"}"><span>${esc(o.text)}${cur ? '<span class="cur-tag">&middot; current</span>' : ""}</span><span class="mq-st">${stats(m)}</span></button>`;
     }).join("");
-    sheet(head, rows, v => { sel.value = v; fire(sel, "change"); renderMoveChip(sel); });
+    const wrap = sheet(head, rows, v => { sel.value = v; fire(sel, "change"); renderMoveChip(sel); });
+    // "Custom Move...": a name box right here (the move field it used to open is never shown)
+    wrap.addEventListener("click", e => {
+      if(!e.target.closest("[data-custom]")) return;
+      const base = sel.id.replace(/_select$/, ""), isCharge = /CM$/.test(base);
+      // from the loaded move data, each time (a list made when the page script first ran would be empty)
+      const all = (typeof MOVE_DB !== "undefined" ? MOVE_DB : []).filter(m => m.type === (isCharge ? "Charge" : "Fast")).map(m => m.n).sort();
+      const curCustom = sel.value === "__custom__" ? ((document.getElementById(base + "_custom") || {}).value || "") : "";
+      const body = wrap.querySelector(".mq-sheet");
+      [...body.children].forEach(c => { if(!c.classList.contains("mq-grab") && !c.classList.contains("mq-sheet-head")) c.remove(); });
+      body.insertAdjacentHTML("beforeend", `<div class="mq-custom">
+          <input class="mq-search" type="text" list="mqCustomMoves" placeholder="Type a ${isCharge ? "charge" : "fast"} move name…" autocomplete="off" value="${esc(curCustom)}">
+          <datalist id="mqCustomMoves">${all.map(n => `<option value="${esc(n)}">`).join("")}</datalist>
+          <div class="mq-acts"><button type="button" class="mq-act" data-back="1">Back</button><button type="button" class="mq-act" data-use="1">Use this move</button></div></div>`);
+      const inp = body.querySelector(".mq-custom input"); inp.focus();
+      const use = () => {
+        const name = inp.value.trim(); if(!name) return;
+        sel.value = "__custom__"; fire(sel, "change");
+        const ci = document.getElementById(base + "_custom"); if(ci){ ci.value = name; fire(ci, "input", "change"); }
+        renderMoveChip(sel); wrap.remove();
+      };
+      body.querySelector("[data-use]").addEventListener("click", use);
+      inp.addEventListener("keydown", ev => { if(ev.key === "Enter"){ ev.preventDefault(); use(); } });
+      body.querySelector("[data-back]").addEventListener("click", () => { wrap.remove(); openMoveSheet(sel); });
+    });
   }
   function enhanceMoveSelect(sel){
     if(sel._mqChip || !/(FM|CM)_select$/.test(sel.id)) return;
     const chip = el("button", "mq-move", "flex"); chip.type = "button";
     sel.insertAdjacentElement("afterend", chip); sel.classList.add("mq-hide");
+    const fieldEl = sel.closest(".field"); if(fieldEl) fieldEl.classList.add("mq-movefield");
     sel._mqChip = chip; chip.addEventListener("click", () => openMoveSheet(sel));
     sel.addEventListener("change", () => { renderMoveChip(sel); linkPanelMoves(); });
     new MutationObserver(() => renderMoveChip(sel)).observe(sel, { childList: true });
@@ -9338,7 +9378,7 @@ updateCTMode();
         row.setAttribute("role", "button"); row.tabIndex = 0;
         row.setAttribute("aria-label", "Change " + (k === "fm" ? "fast" : "charge") + " move: " + curMoveName(sel));
       });
-      [[fm, linked.fm], [cm, linked.cm]].forEach(([sel, on]) => { const f = sel.closest(".field"); if(f) f.classList.toggle("mq-viapanel", on && !String(sel.value).startsWith("__")); });
+      [[fm, linked.fm], [cm, linked.cm]].forEach(([sel, on]) => { const f = sel.closest(".field"); if(f) f.classList.toggle("mq-viapanel", on); });
     });
   }
   document.addEventListener("click", e => {
