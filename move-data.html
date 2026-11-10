@@ -277,6 +277,47 @@ if ("serviceWorker" in navigator) {
   .sticky-header-title-row .header-buttons-left{ left:0; right:auto; }
   /* The filter panel opens flush against the left edge of the screen, like the menu on the right */
   .gear-panel{ border-left:none !important; border-top-left-radius:0 !important; border-bottom-left-radius:0 !important; }
+  /* ---- Type filter (as on Top Raiders / Top Catch Tanks) ---- */
+  .type-filter{
+    display:grid; gap:6px; box-sizing:border-box;
+    max-width:1100px; margin:0 auto; padding:0 20px 14px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    min-height: 136px;   /* reserved: the chips arrive with the moves CSV (no layout jump) */
+  }
+  .type-chip{
+    display:inline-flex; align-items:center; justify-content:center; gap:5px;
+    border:1.5px solid transparent; border-radius:8px; padding:6px 8px;
+    font-family:'Manrope', sans-serif; font-size:11.5px; font-weight:800;
+    color:#fff; cursor:pointer; transition: filter .12s, transform .12s;
+    text-transform:capitalize; min-width:0; overflow:hidden;
+  }
+  .type-chip span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .type-chip img{ width:13px; height:13px; filter: brightness(0) invert(1); flex:none; }
+  .type-chip:hover{ filter:brightness(1.12); }
+  .type-chip.on{ border-color: var(--text, var(--ink)); transform: translateY(-1px);
+                 box-shadow: 0 0 0 2px var(--bg1, var(--bg)), 0 0 0 3px var(--text, var(--ink)); }
+  .type-chip.all{ grid-column: 1 / -1; background: var(--card); color: var(--text, var(--ink)); border-color: var(--border); }
+  .type-chip.all.on{ background: var(--text, var(--ink)); color: var(--bg1, var(--bg)); border-color: var(--text, var(--ink)); }
+  @media (max-width:900px){ .type-filter{ grid-template-columns: repeat(5, minmax(0, 1fr)); min-height:168px; } }
+  @media (max-width:700px){ .type-filter{ grid-template-columns: repeat(4, minmax(0, 1fr)); min-height:200px; } }
+  /* Phones: the type grid goes icon-only, six across (about 175px instead of 247px with labels),
+     and the moves go two to a row - each card stacks its type under the name and its four stats
+     two by two. */
+  @media (max-width:480px){
+    .type-filter{ grid-template-columns: repeat(6, minmax(0, 1fr)); gap:6px; min-height:136px; }
+    .type-chip:not(.all) span{ display:none; }
+    .type-chip:not(.all){ padding:9px 0; border-radius:10px; }
+    .type-chip:not(.all) img{ width:18px; height:18px; }
+    .type-chip{ font-size:11px; }
+    .move-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap:8px; }
+    .move-card{ padding:10px 10px 11px; }
+    .move-top{ flex-direction:column; align-items:flex-start; gap:4px; margin-bottom:5px; }
+    .move-name{ font-size:13px; line-height:1.25; }
+    .move-type-pill{ font-size:10px; padding:2px 7px; }
+    .move-kind{ font-size:9.5px; margin-bottom:6px; }
+    .move-stats{ display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:6px 8px; font-size:10.5px; }
+    .move-stats b{ font-size:12.5px; }
+  }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
@@ -503,6 +544,10 @@ if ("serviceWorker" in navigator) {
   <input id="searchInput" type="text" placeholder="Search move name…" autocomplete="off">
 </div>
 
+<!-- Type filter: the same grid as Top Raiders and Top Catch Tanks - All types, then one chip per
+     type in the moves list; several can be on at once -->
+<div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
+
 
 
 <div class="container"><div class="move-grid" id="moveGrid"></div></div>
@@ -517,6 +562,27 @@ const MOVE_TYPE_COLORS = {
   steel:"var(--steel)", fairy:"var(--fairy)",
 };
 let MOVES = [];
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
+const TYPE_ORDER = Object.keys(MOVE_TYPE_COLORS);
+const activeTypes = new Set();
+// The type chips: only types the moves list actually has; "All types" clears the selection
+function renderTypeFilter(){
+  const el = document.getElementById("typeFilter");
+  if(!el) return;
+  const present = new Set(MOVES.map(m => String(m.elem || "").toLowerCase()));
+  const types = TYPE_ORDER.filter(t => present.has(t));
+  if(!types.length){ el.style.display = "none"; return; }
+  el.style.display = "";
+  el.innerHTML =
+    `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type="" aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All types</span></button>` +
+    types.map(t => `<button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}" style="background:${MOVE_TYPE_COLORS[t]};" aria-pressed="${activeTypes.has(t) ? "true" : "false"}">
+        <img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"><span>${t}</span></button>`).join("");
+  el.querySelectorAll(".type-chip").forEach(btn => btn.addEventListener("click", () => {
+    const t = btn.dataset.type;
+    if(!t) activeTypes.clear(); else activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
+    renderTypeFilter(); render();
+  }));
+}
 
 async function loadMoves(){
   const rows = await fetchCSV("/csv/moves.csv");
@@ -568,7 +634,8 @@ function render(){
   const q = searchInput.value.trim().toLowerCase();
   let filtered = MOVES.filter(m =>
     (!q || m.n.toLowerCase().includes(q)) &&
-    (activeKind === "All" || m.kind === activeKind)
+    (activeKind === "All" || m.kind === activeKind) &&
+    (!activeTypes.size || activeTypes.has(String(m.elem || "").toLowerCase()))
   );
   if(currentSort === "score"){
     filtered = [...filtered].sort((a,b) => moveScore(b) - moveScore(a));
@@ -600,7 +667,7 @@ document.querySelectorAll("#kindToggleList .hamburger-item").forEach(btn => {
 
 grid.innerHTML = '<div class="empty">Loading moves&hellip;</div>';
 loadMoves()
-  .then(render)
+  .then(() => { renderTypeFilter(); render(); })
   .catch(e => { grid.innerHTML = `<div class="empty">Couldn't load move data: ${e.message}</div>`; });
 
 const themeToggle = document.getElementById("themeToggle");

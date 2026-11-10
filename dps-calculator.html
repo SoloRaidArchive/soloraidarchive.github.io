@@ -3572,13 +3572,24 @@ function teamStep(S, R, P, snap){
         done += need * TT.fm.ad + TT.cm.ad; e += need * TT.fm.energy - TT.cmCost;
       }
       const say = (how, text, extra) => S.probe || R.events.push({ t, kind: "boss", text: `${P.bossCM.n} (back-to-back) → ${text}`, ev: Object.assign({ type: "bossCM", how, b2b: true }, extra) });
-      if(freshLeft && left > 0 && done + TEAM_SWAP_TICKS <= land){
+      // When both are possible, which is better depends on the timing: firing first can leave the
+      // next catch tank arriving as the hit lands, with no time for its taps (Shadow Salamence then
+      // can't reach Draco Meteor before Kyurem White's second Steel Wing), while doubling back gives
+      // it that time. Played forward both ways, like the run itself; the one dealing more is taken.
+      const canSplit = freshLeft && left > 0 && done + TEAM_SWAP_TICKS <= land;
+      const canBack = freshLeft && free + TEAM_SWAP_TICKS <= land;
+      let pick = canSplit ? "split" : canBack ? "back" : null;
+      if(canSplit && canBack){
+        if(S.shadow) pick = S.shadow.cast === t && (S.shadow.choice === "split" || S.shadow.choice === "back") ? S.shadow.choice : "split";
+        else if(!S.probe && snap) pick = teamShadowDamage(snap, P, "back") > teamShadowDamage(snap, P, "split") ? "back" : "split";
+      }
+      if(pick === "split"){
         bookSwap(done);
         dec.outcome = "tank"; dec.tank = S.pendingSwap.to; dec.split = true;
         say("b2b-split", `${teamLabel(P, holder)} fires first, then ${teamLabel(P, dec.tank)} catches it`, { to: dec.tank, from: holder });
         return;
       }
-      if(freshLeft && free + TEAM_SWAP_TICKS <= land){
+      if(pick === "back"){
         bookSwap(free);
         if(left > 0 && !S.returnTanks.includes(holder)){ S.returnTanks.push(holder); S.returnAfter = Math.max(S.returnAfter, land); }
         dec.outcome = "tank"; dec.tank = S.pendingSwap.to; dec.back = left > 0;
@@ -3803,6 +3814,17 @@ function teamStep(S, R, P, snap){
       // instead of Eternatus's, plus 12 energy lost over the cap each time - hence "best timing".
       // a catch tank in ahead of its catch: fast moves only, and it stays in until the hit lands
       const waiting = m.tank && m.waitCatch !== null && t < m.waitCatch;
+      // ...and in a tight window it holds back a fast move that would still be going when the hit
+      // lands, if it will have its charge move's energy then anyway (its tap done, taps in the air,
+      // and the catch): it fires on the landing tick, with the most time before the boss's next fast
+      // moves. (Shadow Salamence vs Kyurem White: 87 from Dragon Pulse + two Dragon Tails = 103 -
+      // a third tap still running at the landing pushed Draco Meteor late, and with 20 HP left the
+      // second Steel Wing knocked it out first.)
+      if(waiting && !P.doubleCatch && !m.owesTap && t + side.fm.ad > m.waitCatch){
+        const inAir = S.gains.reduce((a, g) => a + (g.who === who && g.tick <= m.waitCatch ? g.e : 0), 0);
+        const catchGain = energyFromDamage(side.bossCmDmg);
+        if(Math.min(100, m.energy + inAir) + catchGain >= side.cmCost){ m.busyUntil = t + 1; return; }
+      }
       const nextDur = m.energy >= side.cmCost && !waiting ? side.cm.ad : side.fm.ad;
       // Hot swap before fading out: with another attacker waiting, one that can't live to land its
       // next charge move - the boss's fast moves due before then would knock it out - swaps out now
@@ -4585,7 +4607,7 @@ function teamLogLine(P, e){
 }
 
 // Timeline bar colours for the catch tank types, in priority order (the main DPSer is blue).
-const TEAM_TANK_COLORS = ["#f5b94a", "#b48cff", "#2ec4a6"];
+const TEAM_TANK_COLORS = ["#f5b94a", "#b48cff", "#2ec4a6", "#ef6f6c", "#9ccc65"];
 // Hot swap: the attackers' colours - the main DPSer blue, then the support DPSers (clear of the catch
 // tanks' amber / violet / teal and the pink of the boss's charge-move marks)
 const TEAM_ATT_COLORS = ["#3d9dff", "#4f5bd5", "#b4448f", "#5f7d95", "#8a8f2e", "#a0622d"];
@@ -6444,6 +6466,8 @@ const SETUP_FIELD_IDS = [
   "ctTypes",
   "ct2Name","ct2Level","ct2IvAtk","ct2IvDef","ct2IvHp","ct2CM","ct2FM","ct2Qty","ct2Casts",
   "ct3Name","ct3Level","ct3IvAtk","ct3IvDef","ct3IvHp","ct3CM","ct3FM","ct3Qty","ct3Casts",
+  "ct4Name","ct4Level","ct4IvAtk","ct4IvDef","ct4IvHp","ct4CM","ct4FM","ct4Qty","ct4Casts",
+  "ct5Name","ct5Level","ct5IvAtk","ct5IvDef","ct5IvHp","ct5CM","ct5FM","ct5Qty","ct5Casts",
   // Hot swap: which attacker each catch tank type serves, and the support DPSers
   "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign","ctJuice","ctB2B","ctParty",
   "sd1Name","sd1Qty","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge",
@@ -6540,13 +6564,12 @@ function applySetup(setup){
   // If the movepool CSV hasn't landed yet the dropdowns are still empty, so these restores would
   // no-op. Record them and let refreshMoveDropdowns() replay once the data arrives.
   if(!movepoolReady){
-    PENDING_MOVE_SELECTION = {
-      playerCM: setup.playerCM, playerFM: setup.playerFM,
-      bossCM: setup.bossCM, bossFM: setup.bossFM,
-      ctCM: setup.ctCM, ctFM: setup.ctFM, ct2CM: setup.ct2CM, ct2FM: setup.ct2FM, ct3CM: setup.ct3CM, ct3FM: setup.ct3FM,
-      sd1CM: setup.sd1CM, sd1FM: setup.sd1FM, sd2CM: setup.sd2CM, sd2FM: setup.sd2FM, sd3CM: setup.sd3CM, sd3FM: setup.sd3FM,
-      sd4CM: setup.sd4CM, sd4FM: setup.sd4FM, sd5CM: setup.sd5CM, sd5FM: setup.sd5FM,
-    };
+    PENDING_MOVE_SELECTION = { playerCM: setup.playerCM, playerFM: setup.playerFM, bossCM: setup.bossCM, bossFM: setup.bossFM };
+    // every catch tank card and support DPSer card (the list used to be written out for Catch Tanks
+    // 1-3 only: a shared link's Catch Tank 5 came back with its Pokemon's default moves)
+    teamAllPrefixes().concat(["sd1", "sd2", "sd3", "sd4", "sd5"]).forEach(p => {
+      PENDING_MOVE_SELECTION[p + "CM"] = setup[p + "CM"]; PENDING_MOVE_SELECTION[p + "FM"] = setup[p + "FM"];
+    });
   }
   restoreMoveSelection("playerCM", setup.playerCM);
   restoreMoveSelection("playerFM", setup.playerFM);
@@ -7526,6 +7549,8 @@ const SETUP_SHORT_KEYS = {
   ctQty:"tq", ctCasts:"tcc", ctMainAbsorb:"tma", ctPriority:"tp", ctCmBuffer:"tcb", ctTypes:"tt", ctMainDodge:"tmd", ctDodgeLimit:"tdl", ctAllIn:"tai", ctDoubleCatch:"tdc", ctDcFMs:"tdf", ctRejoinSecs:"trs",
   ct2Name:"t2n", ct2Level:"t2l", ct2IvAtk:"t2a", ct2IvDef:"t2d", ct2IvHp:"t2h", ct2CM:"t2c", ct2FM:"t2f", ct2Qty:"t2q", ct2Casts:"t2x",
   ct3Name:"t3n", ct3Level:"t3l", ct3IvAtk:"t3a", ct3IvDef:"t3d", ct3IvHp:"t3h", ct3CM:"t3c", ct3FM:"t3f", ct3Qty:"t3q", ct3Casts:"t3x",
+  ct4Name:"t4n", ct4Level:"t4l", ct4IvAtk:"t4a", ct4IvDef:"t4d", ct4IvHp:"t4h", ct4CM:"t4c", ct4FM:"t4f", ct4Qty:"t4q", ct4Casts:"t4x",
+  ct5Name:"t5n", ct5Level:"t5l", ct5IvAtk:"t5a", ct5IvDef:"t5d", ct5IvHp:"t5h", ct5CM:"t5c", ct5FM:"t5f", ct5Qty:"t5q", ct5Casts:"t5x",
   ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas", ctJuice:"tju", ctB2B:"tbb", ctParty:"tpo",
   sd1Name:"h1n", sd1Qty:"h1q", sd1Level:"h1l", sd1IvAtk:"h1a", sd1IvDef:"h1d", sd1IvHp:"h1h", sd1CM:"h1c", sd1FM:"h1f", sd1Sponge:"h1s", sd1First:"h1p", sd1Rule:"h1r", sd1Dodge:"h1g",
   sd2Name:"h2n", sd2Qty:"h2q", sd2Level:"h2l", sd2IvAtk:"h2a", sd2IvDef:"h2d", sd2IvHp:"h2h", sd2CM:"h2c", sd2FM:"h2f", sd2Sponge:"h2s", sd2First:"h2p", sd2Rule:"h2r", sd2Dodge:"h2g",
@@ -7721,9 +7746,11 @@ document.getElementById("ctModeTeam").addEventListener("change", updateCTMode);
 // the same way for each. Only the last added card can be removed, so the numbering has no gaps.
 // (a function rather than a top-level const: the shared-link loader can run before this part of
 // the script has been reached, and a const isn't usable until then)
-function teamAllPrefixes(){ return ["ct", "ct2", "ct3"]; }
-// 0 = no catch tanks at all (hot swapping only); otherwise 1-3 catch tank cards
-function teamTypeCount(){ const v = parseInt(document.getElementById("ctTypes").value, 10); return Math.max(0, Math.min(3, isNaN(v) ? 1 : v)); }
+// Up to five kinds of catch tank - with the main DPSer, a full party of six
+const TEAM_TYPE_MAX = 5;
+function teamAllPrefixes(){ return ["ct", "ct2", "ct3", "ct4", "ct5"]; }
+// 0 = no catch tanks at all (hot swapping only); otherwise 1-5 catch tank cards
+function teamTypeCount(){ const v = parseInt(document.getElementById("ctTypes").value, 10); return Math.max(0, Math.min(TEAM_TYPE_MAX, isNaN(v) ? 1 : v)); }
 function teamPrefixes(){ return teamAllPrefixes().slice(0, teamTypeCount()); }
 function wireTeamCard(p){
   initPokemonAutocomplete(p + "Name", p + "Name_ac");
@@ -7752,30 +7779,30 @@ function buildTeamCard(k){
   card.querySelector(".team-card-name").textContent = "Catch Tank " + k;
   const $c = id => card.querySelector("#" + p + id);
   $c("Name").value = ""; $c("Level").value = "50"; ["IvAtk", "IvDef", "IvHp"].forEach(id => $c(id).value = "15");
-  $c("Qty").value = "3"; $c("Casts").value = "1";
+  $c("Qty").value = "1"; $c("Casts").value = "1";   // one to start: five kinds share the party's six slots
   ["FM", "CM"].forEach(m => { $c(m + "_select").innerHTML = ""; $c(m).value = ""; const cu = $c(m + "_custom"); cu.value = ""; cu.style.display = "none"; });
   ["Preview", "MovePreview", "Verdict", "Outcomes"].forEach(id => $c(id).innerHTML = "");
   $c("BossPreview").innerHTML = "";
   return card;
 }
 function setTeamTypeCount(n){
-  n = Math.max(0, Math.min(3, n));
+  n = Math.max(0, Math.min(TEAM_TYPE_MAX, n));
   // no catch tanks: Catch Tank 1's card is hidden (kept, so its Pokemon and moves come back with it)
   document.getElementById("teamCard").style.display = n === 0 ? "none" : "";
   const wrap = document.getElementById("teamExtraCards");
-  for(let k = 2; k <= 3; k++){
+  for(let k = 2; k <= TEAM_TYPE_MAX; k++){
     const have = document.getElementById("teamCard" + k);
     if(k <= n && !have){ wrap.appendChild(buildTeamCard(k)); wireTeamCard("ct" + k); }
     if(k > n && have) have.remove();
   }
   document.getElementById("ctTypes").value = String(n);
   // only the last card offers Remove - Catch Tank 1 too, for a run with no catch tanks
-  for(let k = 1; k <= 3; k++){
+  for(let k = 1; k <= TEAM_TYPE_MAX; k++){
     const c = document.getElementById(k === 1 ? "teamCard" : "teamCard" + k);
     if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = (k !== n); btn.onclick = () => setTeamTypeCount(n - 1); }
   }
   const add = document.getElementById("ctAddType");
-  add.hidden = n >= 3;
+  add.hidden = n >= TEAM_TYPE_MAX;
   updatePartyLimits();
   add.dataset.label = n === 0 ? "+ Add a catch tank" : "+ Add another catch tank";
   add.textContent = add.dataset.label;
@@ -7845,7 +7872,7 @@ function updatePartyLimits(){
   // the add buttons: hidden at their own limits (5 support DPSers, 3 kinds of catch tank); greyed
   // out - still in view, saying why - while the party is full
   const sd = document.getElementById("sdAdd"), ct = document.getElementById("ctAddType");
-  [[sd, supportCount() >= SUPPORT_MAX || supportCopies() >= SUPPORT_MAX], [ct, teamTypeCount() >= 3]].forEach(([btn, atLimit]) => {
+  [[sd, supportCount() >= SUPPORT_MAX || supportCopies() >= SUPPORT_MAX], [ct, teamTypeCount() >= TEAM_TYPE_MAX]].forEach(([btn, atLimit]) => {
     if(!btn) return;
     if(btn.dataset.label === undefined) btn.dataset.label = btn.textContent;
     if(btn.dataset.tip === undefined) btn.dataset.tip = btn.title || "";
