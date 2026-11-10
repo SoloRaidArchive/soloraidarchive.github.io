@@ -9087,6 +9087,7 @@ updateCTMode();
   @media (max-width:560px){
     .mq-only{ display:var(--mq-d, block) !important; }
     .mq-hide{ display:none !important; }
+    .mq-nomoves{ display:none !important; }
     /* move chips: the whole border in the move's type colour; power, energy (+ gained / - spent), time */
     .mq-move{ width:100%; text-align:left; border:2px solid var(--mq-c, var(--border)); border-radius:12px; padding:8px 11px; cursor:pointer;
       background:color-mix(in srgb, var(--mq-c, var(--border)) 16%, var(--card)); color:var(--text); font:800 13px 'Manrope',sans-serif; flex-direction:column; gap:3px; }
@@ -9199,7 +9200,10 @@ updateCTMode();
     time: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 4.4V8l2.6 1.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
   };
   const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-  const el = (tag, cls, display) => { const e = document.createElement(tag); e.className = "mq-only " + (cls || ""); if(display) e.style.setProperty("--mq-d", display); return e; };
+  // every element this layer makes is registered: a copy of one (Catch Tank 2-5 and support cards are
+  // built by copying Catch Tank 1's card, mobile chips included) isn't, and is cleared out by scan()
+  const OWN = new WeakSet();
+  const el = (tag, cls, display) => { const e = document.createElement(tag); e.className = "mq-only " + (cls || ""); if(display) e.style.setProperty("--mq-d", display); OWN.add(e); return e; };
   const fire = (node, ...evs) => evs.forEach(ev => node.dispatchEvent(new Event(ev, { bubbles: true })));
   const moveOf = name => (typeof findMove === "function" && name) ? findMove(name) : null;
   const stats = m => `<span>${IC.dmg}${m.dmg}</span><span>${m.energy >= 0 ? IC.gain : IC.cost}${Math.abs(m.energy)}</span><span>${IC.time}${(m.ad * 0.5).toFixed(1)}s</span>`;
@@ -9220,6 +9224,9 @@ updateCTMode();
   // ---------- move chips ----------
   function renderMoveChip(sel){
     const chip = sel._mqChip; if(!chip) return;
+    // no Pokemon yet (only "Custom Move..." / "+ Create a move..." on offer): the move field stays out of view
+    const real = [...sel.options].some(o => !String(o.value).startsWith("__"));
+    const field = sel.closest(".field"); if(field) field.classList.toggle("mq-nomoves", !real);
     const v = sel.value, opt = sel.selectedOptions[0];
     const name = v === "__custom__" ? (document.getElementById(sel.id.replace(/_select$/, "_custom")) || {}).value : (opt ? opt.value : "");
     const m = moveOf(name), c = colorOf(m);
@@ -9667,10 +9674,12 @@ updateCTMode();
 
   // ---------- wiring ----------
   function scan(){
+    document.querySelectorAll(".mq-only").forEach(n => { if(!OWN.has(n)) n.remove(); });   // copies from a cloned card
+    document.querySelectorAll('.boss-dmg-row-stats.mq-hide').forEach(n => { if(!(n.nextElementSibling && OWN.has(n.nextElementSibling))){ n.classList.remove("mq-hide"); n.removeAttribute("data-mq"); } });
     document.querySelectorAll('select[id$="_select"]').forEach(enhanceMoveSelect);
     convertStatLines();
     document.querySelectorAll('.iv-field input[id$="Level"]').forEach(enhanceLevel);
-    document.querySelectorAll(".iv-group").forEach(enhanceIVs);
+
     enhanceRotationControls();
   }
   // the page's own functions that rebuild or set move lists without a change event: chips follow them
