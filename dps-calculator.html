@@ -9076,5 +9076,290 @@ updateCTMode();
   </div>
 </div>
 
+<!-- ================= Mobile layer (phones, up to 560px) =================
+     New controls that drive the calculator's own fields - its dropdowns, inputs and checkboxes stay
+     the source of truth (calculations, saved setups and links are unchanged), and desktop never sees
+     any of this. Phase 1: move chips with a move picker, level / IV presets, sliders and a stepper
+     for the rotation settings, switch-style toggles, a sticky party bar, a floating Calculate. -->
+<style>
+  .mq-only{ display:none !important; }
+  @media (max-width:560px){
+    .mq-only{ display:var(--mq-d, block) !important; }
+    .mq-hide{ display:none !important; }
+    /* move chips: the whole border in the move's type colour; power, energy (+ gained / - spent), time */
+    .mq-move{ width:100%; text-align:left; border:2px solid var(--mq-c, var(--border)); border-radius:12px; padding:8px 11px; cursor:pointer;
+      background:color-mix(in srgb, var(--mq-c, var(--border)) 16%, var(--card)); color:var(--text); font:800 13px 'Manrope',sans-serif; flex-direction:column; gap:3px; }
+    .mq-move.is-empty{ color:var(--text-dim); font-weight:700; }
+    .mq-st{ display:flex; gap:10px; font:800 11.5px 'Manrope',sans-serif; color:var(--text-dim); white-space:nowrap; }
+    .mq-st span{ display:inline-flex; align-items:center; gap:3px; } .mq-st svg{ width:13px; height:13px; flex:none; }
+    /* preset chips (level, IVs, event boost) */
+    .mq-chips{ flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .mq-chip{ border:1.5px solid var(--border); border-radius:10px; padding:6px 10px; font:800 12px 'Manrope',sans-serif; background:var(--card); color:var(--text); cursor:pointer; }
+    .mq-chip.on{ border-color:var(--accent, var(--blue)); background:color-mix(in srgb, var(--accent, var(--blue)) 16%, var(--card)); }
+    .mq-chips.mq-wide{ width:100%; margin:2px 0 10px; flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; }
+    .mq-chips.mq-wide::-webkit-scrollbar{ display:none; } .mq-chips.mq-wide .mq-chip{ flex:none; }
+    body{ padding-bottom:78px; }   /* room under the last card for the floating Calculate */
+    /* sliders */
+    .mq-slider{ flex-direction:column; gap:4px; width:100%; }
+    .mq-slider-top{ display:flex; justify-content:space-between; align-items:baseline; font:800 12.5px 'Manrope',sans-serif; }
+    .mq-slider-top b{ color:var(--accent, var(--blue)); font-size:14px; }
+    .mq-slider input[type=range]{ width:100%; accent-color:var(--accent, var(--blue)); }
+    .mq-ticks{ display:flex; justify-content:space-between; font:700 9.5px 'Manrope',sans-serif; color:var(--text-dim); }
+    /* stepper */
+    .mq-step{ align-items:center; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; }
+    .mq-step button{ width:34px; height:32px; border:0; background:transparent; color:var(--accent, var(--blue)); font:800 18px 'Manrope',sans-serif; }
+    .mq-step b{ min-width:30px; text-align:center; font:800 14px 'Manrope',sans-serif; }
+    .mq-step.is-off{ opacity:.45; pointer-events:none; }
+    /* toggles in Rotation behavior: switches */
+    #teamBehaviorCard .check-item > input[type=checkbox]{ appearance:none; -webkit-appearance:none; width:40px; height:23px; border-radius:12px; background:#4a3d37; position:relative; flex:none; margin:0; cursor:pointer; transition:background .15s; order:2; margin-left:auto; }
+    #teamBehaviorCard .check-item > input[type=checkbox]::after{ content:""; position:absolute; top:3px; left:3px; width:17px; height:17px; border-radius:50%; background:#d9cdc5; transition:left .15s; }
+    #teamBehaviorCard .check-item > input[type=checkbox]:checked{ background:var(--accent, var(--blue)); }
+    #teamBehaviorCard .check-item > input[type=checkbox]:checked::after{ left:20px; background:#fff; }
+    #teamBehaviorCard .check-item:has(> input[type=checkbox]){ display:flex; align-items:center; gap:10px; width:100%; }
+    /* the sticky party bar (Battle Party Simulator) */
+    .mq-party{ position:sticky; z-index:30; gap:6px; padding:8px 10px; margin:0 -4px 10px; border-radius:0 0 14px 14px;
+      background:color-mix(in srgb, var(--bg1, #1e1918) 92%, transparent); backdrop-filter:blur(6px); border-bottom:1.5px solid var(--border); }
+    .mq-slot{ flex:1; aspect-ratio:1; border-radius:12px; border:1.5px solid var(--border); background:var(--card); position:relative; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; }
+    .mq-slot img{ width:78%; height:78%; object-fit:contain; } .mq-slot .n{ position:absolute; top:2px; left:4px; font:800 9px 'Manrope',sans-serif; color:var(--text-dim); }
+    .mq-slot .r{ position:absolute; bottom:-6px; left:50%; transform:translateX(-50%); font:800 8.5px 'Manrope',sans-serif; padding:1px 5px; border-radius:6px; background:var(--accent, var(--blue)); color:#1a1312; white-space:nowrap; }
+    .mq-slot.empty{ border-style:dashed; color:var(--text-dim); font:800 18px 'Manrope',sans-serif; }
+    .mq-flash{ outline:3px solid var(--accent, var(--blue)); outline-offset:3px; transition:outline-color .6s; }
+    /* the floating Calculate */
+    .mq-fab{ position:fixed; left:16px; right:16px; bottom:max(14px, env(safe-area-inset-bottom, 0px)); z-index:60; height:50px; border:0; border-radius:25px;
+      background:linear-gradient(90deg, #ff8a3d, #ffb36b); color:#1a1312; font:800 16px 'Manrope',sans-serif; box-shadow:0 8px 22px rgba(240,138,60,.35); align-items:center; justify-content:center; }
+    .mq-fab.is-hidden{ display:none !important; }
+    /* bottom sheet */
+    .mq-sheet-wrap{ position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.5); display:flex; align-items:flex-end; }
+    .mq-sheet{ width:100%; max-height:78vh; overflow:auto; background:var(--card); border-radius:20px 20px 0 0; border-top:1.5px solid var(--border); padding:10px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
+    .mq-grab{ width:44px; height:5px; border-radius:3px; background:var(--border); margin:0 auto 10px; }
+    .mq-sheet-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; font:800 15px 'Manrope',sans-serif; color:var(--text); }
+    .mq-sheet-head img{ width:42px; height:42px; object-fit:contain; } .mq-sheet-head small{ display:block; color:var(--text-dim); font-size:11.5px; font-weight:700; }
+    .mq-sheet-head .done{ margin-left:auto; border:0; background:none; color:var(--accent, var(--blue)); font:800 13px 'Manrope',sans-serif; }
+    .mq-mrow{ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin-bottom:7px; border:2px solid var(--mq-c, var(--border)); border-radius:12px; padding:9px 11px;
+      background:color-mix(in srgb, var(--mq-c, var(--border)) 16%, var(--card)); color:var(--text); font:800 13px 'Manrope',sans-serif; text-align:left; cursor:pointer; }
+    .mq-mrow.cur{ box-shadow:0 0 0 2px var(--mq-c, var(--border)); } .mq-mrow .cur-tag{ color:var(--accent, var(--blue)); font-size:10.5px; margin-left:4px; }
+    .mq-mrow.plain{ --mq-c:var(--border); font-weight:700; color:var(--text-dim); }
+  }
+</style>
+<script>
+(function(){
+  const MQ = window.matchMedia("(max-width:560px)");
+  const TYPE = { normal:"#9199A1", fire:"#E2661C", water:"#3E8DE0", electric:"#E0B316", grass:"#4F9A3B", ice:"#5AC7D0", fighting:"#B5442F", poison:"#9b4fb3",
+    ground:"#8a5a2a", flying:"#8f95e6", psychic:"#e44d7c", bug:"#7f9a22", rock:"#b8862a", ghost:"#5a4a8a", dragon:"#5a3ee0", dark:"#4a3d37", steel:"#7d8a99", fairy:"#e08ec4" };
+  // the move stat icons, in the result card's style (energy gained is the "sponged" icon itself)
+  const IC = {
+    dmg: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M14.6 1.4 14 4.3 6.9 11.4 4.6 9.1 11.7 2z" fill="currentColor"/><path d="M3 8.4l4.6 4.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M5 11l-2.6 2.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="1.9" cy="14.1" r="1.25" fill="currentColor"/></svg>',
+    gain: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.4 1.2 1.8 8.6h3.9L4.8 14.8l5.7-7.6H6.6z" fill="currentColor"/><path d="M12.9 1.4v4.4M10.7 3.6h4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    cost: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7.4 1.2 1.8 8.6h3.9L4.8 14.8l5.7-7.6H6.6z" fill="currentColor"/><path d="M10.7 3.6h4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    time: '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 4.4V8l2.6 1.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  };
+  const esc = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  const el = (tag, cls, display) => { const e = document.createElement(tag); e.className = "mq-only " + (cls || ""); if(display) e.style.setProperty("--mq-d", display); return e; };
+  const fire = (node, ...evs) => evs.forEach(ev => node.dispatchEvent(new Event(ev, { bubbles: true })));
+  const moveOf = name => (typeof findMove === "function" && name) ? findMove(name) : null;
+  const stats = m => `<span>${IC.dmg}${m.dmg}</span><span>${m.energy >= 0 ? IC.gain : IC.cost}${Math.abs(m.energy)}</span><span>${IC.time}${(m.ad * 0.5).toFixed(1)}s</span>`;
+  const colorOf = m => (m && TYPE[String(m.elem || "").toLowerCase()]) || "";
+
+  // ---------- bottom sheet ----------
+  function sheet(headHtml, bodyHtml, onPick){
+    const wrap = document.createElement("div"); wrap.className = "mq-sheet-wrap";
+    wrap.innerHTML = `<div class="mq-sheet" role="dialog" aria-modal="true"><div class="mq-grab"></div><div class="mq-sheet-head">${headHtml}<button type="button" class="done">Done</button></div>${bodyHtml}</div>`;
+    const close = () => wrap.remove();
+    wrap.addEventListener("click", e => {
+      if(e.target === wrap || e.target.closest(".done")) return close();
+      const it = e.target.closest("[data-v]"); if(it){ onPick(it.dataset.v); close(); }
+    });
+    document.body.appendChild(wrap);
+  }
+
+  // ---------- move chips ----------
+  function renderMoveChip(sel){
+    const chip = sel._mqChip; if(!chip) return;
+    const v = sel.value, opt = sel.selectedOptions[0];
+    const name = v === "__custom__" ? (document.getElementById(sel.id.replace(/_select$/, "_custom")) || {}).value : (opt ? opt.value : "");
+    const m = moveOf(name), c = colorOf(m);
+    chip.style.setProperty("--mq-c", c || "var(--border)");
+    chip.classList.toggle("is-empty", !sel.options.length || !name);
+    chip.innerHTML = !sel.options.length ? "Pick a Pokémon first" : `<span>${esc(name || (opt ? opt.text : "Choose a move"))}</span>${m ? `<span class="mq-st">${stats(m)}</span>` : ""}`;
+  }
+  function openMoveSheet(sel){
+    if(!sel.options.length) return;
+    const lbl = document.querySelector(`label[for="${sel.id}"]`);
+    const card = sel.closest(".step-card, .team-card"), nameEl = card && card.querySelector('input[id$="Name"], #pokemonName, #bossName');
+    const who = sel.id.startsWith("boss") ? ((document.getElementById("bossName") || {}).value || "Raid boss") : sel.id.startsWith("player") ? ((document.getElementById("pokemonName") || {}).value || "Your Pokémon") : ((nameEl || {}).value || "");
+    const head = `${who && typeof spriteUrl === "function" ? `<img src="${esc(spriteUrl(who))}" alt="" onerror="this.remove()">` : ""}<div>${esc(who)} &middot; ${esc(lbl ? lbl.textContent.trim().toLowerCase() : "move")}<small>Tap one to use it</small></div>`;
+    const rows = [...sel.options].map(o => {
+      const m = moveOf(o.value), cur = o.value === sel.value;
+      if(!m) return `<button type="button" class="mq-mrow plain" data-v="${esc(o.value)}"><span>${esc(o.text)}</span></button>`;
+      return `<button type="button" class="mq-mrow${cur ? " cur" : ""}" data-v="${esc(o.value)}" style="--mq-c:${colorOf(m) || "var(--border)"}"><span>${esc(o.text)}${cur ? '<span class="cur-tag">&middot; current</span>' : ""}</span><span class="mq-st">${stats(m)}</span></button>`;
+    }).join("");
+    sheet(head, rows, v => { sel.value = v; fire(sel, "change"); renderMoveChip(sel); });
+  }
+  function enhanceMoveSelect(sel){
+    if(sel._mqChip || !/(FM|CM)_select$/.test(sel.id)) return;
+    const chip = el("button", "mq-move", "flex"); chip.type = "button";
+    sel.insertAdjacentElement("afterend", chip); sel.classList.add("mq-hide");
+    sel._mqChip = chip; chip.addEventListener("click", () => openMoveSheet(sel));
+    sel.addEventListener("change", () => renderMoveChip(sel));
+    new MutationObserver(() => renderMoveChip(sel)).observe(sel, { childList: true });
+    renderMoveChip(sel);
+  }
+  const refreshChips = () => document.querySelectorAll('select[id$="_select"]').forEach(s => s._mqChip && renderMoveChip(s));
+
+  // ---------- level and IV presets ----------
+  function presetRow(values, current, onPick, labelOf){
+    const row = el("div", "mq-chips", "flex");
+    const paint = () => { const cur = current(); row.innerHTML = values.map(v => `<button type="button" class="mq-chip${String(v) === String(cur) ? " on" : ""}" data-p="${esc(v)}">${esc(labelOf ? labelOf(v) : v)}</button>`).join(""); };
+    row.addEventListener("click", e => { const b = e.target.closest("[data-p]"); if(b){ onPick(b.dataset.p); paint(); } });
+    paint(); row._paint = paint;
+    return row;
+  }
+  function enhanceLevel(inp){
+    if(inp._mq || !/Level$/.test(inp.id)) return; inp._mq = true;
+    const row = presetRow([40, 45, 50, 51], () => inp.value.trim(), v => { inp.value = v; fire(inp, "input", "change"); }, v => "Lv " + v);
+    row.classList.add("mq-wide", "mq-lv");
+    let at = inp.closest(".field").parentElement;
+    if(at.nextElementSibling && at.nextElementSibling.classList.contains("mq-chips")) at = at.nextElementSibling;   // under the IV presets
+    at.insertAdjacentElement("afterend", row);
+    inp.addEventListener("input", () => row._paint());
+  }
+  function enhanceIVs(group){
+    if(group._mq) return; group._mq = true;
+    const ins = [...group.querySelectorAll("input")]; if(ins.length !== 3) return;
+    const presets = ["15/15/15", "15/14/14", "14/14/14", "13/13/13"];
+    const row = presetRow(presets, () => ins.map(i => i.value.trim()).join("/"), v => { v.split("/").forEach((x, k) => { ins[k].value = x; fire(ins[k], "input", "change"); }); });
+    row.classList.add("mq-wide");
+    const fieldEl = group.closest(".field");
+    // straight under the row holding the IV boxes (and in front of the level presets, which follow)
+    const after = fieldEl && fieldEl.parentElement ? fieldEl.parentElement : group;
+    after.insertAdjacentElement("afterend", row);
+    ins.forEach(i => i.addEventListener("input", () => row._paint()));
+  }
+
+  // ---------- sliders, stepper ----------
+  function slider(label, min, max, step, ticks, get, set, fmt){
+    const box = el("div", "mq-slider", "flex");
+    box.innerHTML = `<div class="mq-slider-top"><span>${label}</span><b></b></div><input type="range" min="${min}" max="${max}" step="${step}"><div class="mq-ticks">${ticks.map(t => `<span>${t}</span>`).join("")}</div>`;
+    const r = box.querySelector("input"), out = box.querySelector("b");
+    const paint = () => { r.value = get(); out.textContent = fmt(r.value); };
+    r.addEventListener("input", () => { set(r.value); out.textContent = fmt(r.value); });
+    paint(); box._paint = paint;
+    return box;
+  }
+  function enhanceRotationControls(){
+    const rj = document.getElementById("ctRejoinSecs");
+    if(rj && !rj._mq){
+      rj._mq = true;
+      const vals = [...rj.options].map(o => parseFloat(o.value));
+      const box = slider("Rejoin time", Math.min(...vals), Math.max(...vals), 0.5, [Math.min(...vals).toFixed(1) + "s", Math.max(...vals).toFixed(1) + "s"],
+        () => rj.value, v => { rj.value = (+v).toFixed(1); fire(rj, "change"); }, v => (+v).toFixed(1) + "s");
+      const holder = rj.closest("label"); holder.classList.add("mq-hide"); holder.insertAdjacentElement("afterend", box);
+      rj.addEventListener("change", () => box._paint());
+    }
+    const dl = document.getElementById("ctDodgeLimit");
+    if(dl && !dl._mq){
+      dl._mq = true;
+      const order = [...dl.options].map(o => o.value);   // 1..5, then 0 = no limit
+      const st = el("div", "mq-step", "flex");
+      st.innerHTML = `<button type="button" aria-label="Fewer">&minus;</button><b></b><button type="button" aria-label="More">+</button>`;
+      const paint = () => { const o = dl.selectedOptions[0]; st.querySelector("b").textContent = o ? o.text : ""; st.classList.toggle("is-off", dl.disabled); };
+      st.addEventListener("click", e => { const b = e.target.closest("button"); if(!b) return; const i = order.indexOf(dl.value), j = Math.max(0, Math.min(order.length - 1, i + (b.textContent === "+" ? 1 : -1))); dl.value = order[j]; fire(dl, "change"); paint(); });
+      dl.classList.add("mq-hide"); dl.insertAdjacentElement("afterend", st);
+      dl.addEventListener("change", paint); new MutationObserver(paint).observe(dl, { attributes: true, attributeFilter: ["disabled"] });
+      paint();
+    }
+    const eb = document.getElementById("eventBoost");
+    if(eb && !eb._mq){
+      eb._mq = true;
+      const box = slider("Event boost", 0, 100, 5, ["0", "25", "50", "75", "100"], () => Math.min(100, parseFloat(eb.value) || 0), v => { eb.value = v; fire(eb, "input", "change"); }, v => (+v ? "+" + v + "%" : "None"));
+      const presets = presetRow([0, 25, 40, 100], () => String(parseFloat(eb.value) || 0), v => { eb.value = v; fire(eb, "input", "change"); box._paint(); }, v => (+v ? "+" + v + "%" : "0%"));
+      presets.classList.add("mq-wide");
+      eb.classList.add("mq-hide"); eb.insertAdjacentElement("afterend", presets); eb.insertAdjacentElement("afterend", box);
+      const hint = document.getElementById("eventBoostHint"); if(hint) hint.classList.add("mq-hide");   // the slider says it already
+      const lbl = document.querySelector('label[for="eventBoost"]'); if(lbl) lbl.classList.add("mq-hide");
+      eb.addEventListener("input", () => { box._paint(); presets._paint(); });
+    }
+  }
+
+  // ---------- the sticky party bar (Battle Party Simulator) ----------
+  let bar = null;
+  function cardFor(tok){
+    if(!tok) return document.getElementById("ctAddType");
+    if(tok[0] === "m") return document.getElementById("pokemonName").closest(".step-card");
+    if(tok[0] === "s") return document.getElementById("supportCard" + tok.split(".")[0].slice(1));
+    const k = tok.slice(1).split(".")[0];
+    return document.getElementById(k === "1" ? "teamCard" : "teamCard" + k);
+  }
+  function renderBar(){
+    if(!bar || typeof teamParty !== "function") return;
+    const order = teamParty().slice(0, 6);
+    const slots = order.map((tok, i) => {
+      const name = teamPartyLabel(tok), role = tok[0] === "t" ? "CT" : tok[0] === "m" ? "Main" : "Sup";
+      return `<button type="button" class="mq-slot" data-tok="${esc(tok)}" aria-label="Slot ${i + 1}: ${esc(name)}"><span class="n">${i + 1}</span><img src="${esc(spriteUrl(name.replace(/ #\d+$/, "")))}" alt="" onerror="this.style.visibility='hidden'"><span class="r">${role}</span></button>`;
+    });
+    for(let i = order.length; i < 6; i++) slots.push(`<button type="button" class="mq-slot empty" data-tok="" aria-label="Slot ${i + 1}: empty"><span class="n">${i + 1}</span>+</button>`);
+    bar.innerHTML = slots.join("");
+  }
+  function buildBar(){
+    const first = document.getElementById("pokemonName"); if(!first || bar) return;
+    bar = el("div", "mq-party", "flex");
+    const host = first.closest(".step-card"); host.parentNode.insertBefore(bar, host);
+    const hdr = document.querySelector(".sticky-header");
+    const setTop = () => { bar.style.top = (hdr && getComputedStyle(hdr).position === "sticky" ? hdr.getBoundingClientRect().height : 0) + "px"; };
+    setTop(); window.addEventListener("resize", setTop);
+    bar.addEventListener("click", e => {
+      const b = e.target.closest(".mq-slot"); if(!b) return;
+      const card = cardFor(b.dataset.tok); if(!card) return;
+      // where the bar sits once stuck (under the header), not where it is now
+      const stuckBottom = (parseFloat(bar.style.top) || 0) + bar.offsetHeight;
+      const y = card.getBoundingClientRect().top + window.scrollY - (stuckBottom + 8);
+      window.scrollTo({ top: y, behavior: "smooth" });
+      card.classList.add("mq-flash"); setTimeout(() => card.classList.remove("mq-flash"), 900);
+    });
+    renderBar();
+  }
+  const syncBarMode = () => { if(bar) bar.style.setProperty("--mq-d", document.body.classList.contains("ct-mode-team") ? "flex" : "none"); };
+
+  // ---------- the floating Calculate ----------
+  function buildFab(){
+    const btn = document.getElementById("calcBtn"); if(!btn || document.querySelector(".mq-fab")) return;
+    const fab = el("button", "mq-fab", "flex"); fab.type = "button"; fab.textContent = "Calculate";
+    fab.addEventListener("click", () => btn.click());
+    document.body.appendChild(fab);
+    // out of the way while the page's own Calculate is in view
+    new IntersectionObserver(es => es.forEach(x => fab.classList.toggle("is-hidden", x.isIntersecting)), { threshold: 0.2 }).observe(btn);
+  }
+
+  // ---------- wiring ----------
+  function scan(){
+    document.querySelectorAll('select[id$="_select"]').forEach(enhanceMoveSelect);
+    document.querySelectorAll('.iv-field input[id$="Level"]').forEach(enhanceLevel);
+    document.querySelectorAll(".iv-group").forEach(enhanceIVs);
+    enhanceRotationControls();
+  }
+  // the page's own functions that rebuild or set move lists without a change event: chips follow them
+  ["updateMoveOptionsFor", "restoreMoveSelection", "onMoveSelectChange", "onCustomMoveChange", "refreshMoveDropdowns"].forEach(fn => {
+    const orig = window[fn]; if(typeof orig !== "function") return;
+    window[fn] = function(){ const r = orig.apply(this, arguments); try{ refreshChips(); }catch(e){} return r; };
+  });
+  ["renderPartyOrder"].forEach(fn => {
+    const orig = window[fn]; if(typeof orig !== "function") return;
+    window[fn] = function(){ const r = orig.apply(this, arguments); try{ renderBar(); }catch(e){} return r; };
+  });
+  // applySetup fills fields directly (no events): repaint everything after it
+  if(typeof window.applySetup === "function"){
+    const orig = window.applySetup;
+    window.applySetup = function(){ const r = orig.apply(this, arguments); try{ scan(); refreshChips(); document.querySelectorAll(".mq-chips, .mq-slider").forEach(x => x._paint && x._paint()); renderBar(); }catch(e){} return r; };
+  }
+  function init(){
+    scan(); buildBar(); buildFab(); syncBarMode();
+    // cards added later (catch tanks, support DPSers) get the same treatment
+    new MutationObserver(() => scan()).observe(document.body, { childList: true, subtree: true });
+    new MutationObserver(syncBarMode).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>
+
 </body>
 </html>
