@@ -4452,6 +4452,10 @@ function updateTeamPreviewFor(p, c){
     <div class="boss-dmg-preview">
       ${teamMoveRow(c.bossFMMove, T.bossFmDmg)}
       ${teamMoveRow(c.bossCMMove, T.bossCmDmg)}
+    </div>`;
+  // what the catch does for this Pokemon - the energy it banks and the HP it keeps - sits with its own moves
+  if(T.fmDmg !== undefined && T.cmDmg !== undefined) moves.innerHTML = `
+    <div class="boss-dmg-preview">${teamMoveRow(T.fm, T.fmDmg)}${teamMoveRow(T.cm, T.cmDmg)}
       <div class="boss-dmg-row player-dmg energy-row"><span>Energy gained from ${c.bossCMMove.n}</span><b>+${gain} energy</b></div>
       <div class="boss-dmg-row player-dmg"><span>Remaining HP</span><b>${Math.max(0, hpAfter)} / ${T.hp}</b></div>
     </div>`;
@@ -6772,7 +6776,7 @@ function playerMoveDamagePreviewHtml(){
         shieldAE: document.getElementById("shieldAE").checked,
       });
       const energyGained = Math.ceil(0.5 * bossCMDmg);
-      energyLine = `<div class="boss-dmg-row player-dmg energy-row"><span>Energy from Tanking Boss CM</span><b>+${energyGained} energy</b></div>`;
+      energyLine = `<div class="boss-dmg-row player-dmg energy-row"><span>Energy gained from ${bossCMMove.n}</span><b>+${energyGained} energy</b></div>`;
     }
   }
 
@@ -9084,10 +9088,38 @@ updateCTMode();
 <style>
   .mq-only{ display:none !important; }
   @media (min-width:561px){ .mq-handle{ display:none !important; } }
+  /* Every width: a Pokemon's moves are picked in its damage panel (the move rows open the picker), so
+     its Fast Move / Charge Move fields step aside while the panel is there. */
+  .mq-viapanel{ display:none !important; }
+  .field-grid:has(> .field.mq-viapanel):not(:has(> .field:not(.mq-viapanel):not(.mq-nomoves))){ display:none !important; }
+  .boss-dmg-row.mq-tapmove{ cursor:pointer; border-radius:10px; margin-left:-8px; margin-right:-8px; padding-left:8px; padding-right:8px; transition:background .12s; }
+  .boss-dmg-row.mq-tapmove:hover, .boss-dmg-row.mq-tapmove:focus-visible{ background:color-mix(in srgb, var(--accent, var(--blue)) 12%, transparent); outline:none; }
+  .boss-dmg-row.mq-tapmove:active{ background:color-mix(in srgb, var(--accent, var(--blue)) 18%, transparent); }
+  .boss-dmg-row.mq-tapmove .boss-dmg-row-name::after{ content:" \25BE"; color:var(--accent, var(--blue)); font-size:.9em; }
+  .mq-sheet-wrap{ position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.5); display:flex; align-items:flex-end; }
+  .mq-sheet{ width:100%; max-height:78vh; overflow:auto; box-sizing:border-box; background:var(--card); border-radius:20px 20px 0 0; border-top:1.5px solid var(--border); padding:10px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .mq-grab{ width:44px; height:5px; border-radius:3px; background:var(--border); margin:0 auto 10px; }
+  .mq-sheet-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; font:800 15px 'Manrope',sans-serif; color:var(--text); }
+  .mq-sheet-head img{ width:42px; height:42px; object-fit:contain; } .mq-sheet-head small{ display:block; color:var(--text-dim); font-size:11.5px; font-weight:700; }
+  .mq-sheet-head .done{ margin-left:auto; border:0; background:none; color:var(--accent, var(--blue)); font:800 13px 'Manrope',sans-serif; cursor:pointer; }
+  .mq-mrow{ display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin-bottom:7px; border:2px solid var(--mq-c, var(--border)); border-radius:12px; padding:9px 11px;
+    background:color-mix(in srgb, var(--mq-c, var(--border)) 16%, var(--card)); color:var(--text); font:800 13px 'Manrope',sans-serif; text-align:left; cursor:pointer; }
+  .mq-mrow.cur{ box-shadow:0 0 0 2px var(--mq-c, var(--border)); } .mq-mrow .cur-tag{ color:var(--accent, var(--blue)); font-size:10.5px; margin-left:4px; }
+  .mq-mrow.plain{ --mq-c:var(--border); font-weight:700; color:var(--text-dim); }
+  .mq-sheet .mq-st{ display:flex; gap:10px; font:800 11.5px 'Manrope',sans-serif; color:var(--text-dim); white-space:nowrap; }
+  .mq-sheet .mq-st span{ display:inline-flex; align-items:center; gap:3px; } .mq-sheet .mq-st svg{ width:13px; height:13px; flex:none; }
+  /* desktop: the picker as a centred dialog */
+  @media (min-width:561px){
+    .mq-sheet-wrap{ align-items:center; justify-content:center; }
+    .mq-sheet{ max-width:460px; border-radius:18px; border:1.5px solid var(--border); padding:16px 18px 18px; box-shadow:0 20px 50px rgba(0,0,0,.45); }
+    .mq-grab{ display:none; }
+    .mq-mrow:hover{ filter:brightness(1.12); }
+  }
   @media (max-width:560px){
     .mq-only{ display:var(--mq-d, block) !important; }
     .mq-hide{ display:none !important; }
     .mq-nomoves{ display:none !important; }
+
     /* move chips: the whole border in the move's type colour; power, energy (+ gained / - spent), time */
     .mq-move{ width:100%; text-align:left; border:2px solid var(--mq-c, var(--border)); border-radius:12px; padding:8px 11px; cursor:pointer;
       background:color-mix(in srgb, var(--mq-c, var(--border)) 16%, var(--card)); color:var(--text); font:800 13px 'Manrope',sans-serif; flex-direction:column; gap:3px; }
@@ -9095,6 +9127,8 @@ updateCTMode();
     .mq-st{ display:flex; gap:10px; font:800 11.5px 'Manrope',sans-serif; color:var(--text-dim); white-space:nowrap; }
     .mq-st span{ display:inline-flex; align-items:center; gap:3px; } .mq-st svg{ width:13px; height:13px; flex:none; }
     .boss-dmg-row-stats.mq-st{ margin-top:2px; font-size:11px; gap:9px; }
+    .mq-boss-tag{ align-items:center; gap:8px; margin:-2px 0 8px; padding-bottom:7px; border-bottom:1px solid var(--border); font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); }
+    .mq-boss-tag img{ width:30px; height:30px; object-fit:contain; flex:none; } .mq-boss-tag b{ color:var(--text); font-weight:800; }
     /* preset chips (level, IVs, event boost) */
     .mq-chips{ flex-wrap:wrap; gap:6px; margin-top:6px; }
     .mq-chip{ border:1.5px solid var(--border); border-radius:10px; padding:6px 10px; font:800 12px 'Manrope',sans-serif; background:var(--card); color:var(--text); cursor:pointer; }
@@ -9252,7 +9286,7 @@ updateCTMode();
     const chip = el("button", "mq-move", "flex"); chip.type = "button";
     sel.insertAdjacentElement("afterend", chip); sel.classList.add("mq-hide");
     sel._mqChip = chip; chip.addEventListener("click", () => openMoveSheet(sel));
-    sel.addEventListener("change", () => renderMoveChip(sel));
+    sel.addEventListener("change", () => { renderMoveChip(sel); linkPanelMoves(); });
     new MutationObserver(() => renderMoveChip(sel)).observe(sel, { childList: true });
     renderMoveChip(sel);
   }
@@ -9269,6 +9303,53 @@ updateCTMode();
       line.classList.add("mq-hide"); line.insertAdjacentElement("afterend", alt);
     });
   }
+  // which panel is the boss's: the boss's own sprite and name at the top of each of its damage panels
+  // (under the raid boss, and on every catch tank / support DPSer card)
+  function tagBossPanels(){
+    const boss = ((document.getElementById("bossName") || {}).value || "").trim();
+    document.querySelectorAll('#bossMovePreview .boss-dmg-preview, [id$="BossPreview"] .boss-dmg-preview').forEach(box => {
+      let tag = box.querySelector(":scope > .mq-boss-tag");
+      if(!boss){ if(tag) tag.remove(); return; }
+      if(!tag || !OWN.has(tag)){ tag = el("div", "mq-boss-tag", "flex"); box.insertBefore(tag, box.firstChild); }
+      if(tag.dataset.boss !== boss){
+        tag.dataset.boss = boss;
+        tag.innerHTML = `<img src="${esc(spriteUrl(boss))}" alt="" onerror="this.style.visibility='hidden'"><span><b>${esc(boss)}</b> &middot; boss's moves</span>`;
+      }
+    });
+  }
+  // Moves are picked in the damage panel itself: each move row of a Pokemon's own panel (and of the
+  // boss's panel under the raid boss) opens the move picker; the separate move fields step aside while
+  // the panel is there (they stay as the fallback when it isn't - no boss yet, say).
+  const curMoveName = sel => sel.value === "__custom__" ? ((document.getElementById(sel.id.replace(/_select$/, "_custom")) || {}).value || "") : sel.value;
+  function linkPanelMoves(){
+    const pairs = [["playerMovePreview", "player"], ["bossMovePreview", "boss"]];
+    document.querySelectorAll('[id$="MovePreview"]').forEach(pn => { const m = pn.id.match(/^((?:ct\d?|sd\d))MovePreview$/); if(m) pairs.push([pn.id, m[1]]); });
+    pairs.forEach(([panelId, base]) => {
+      const panel = document.getElementById(panelId), fm = document.getElementById(base + "FM_select"), cm = document.getElementById(base + "CM_select");
+      if(!panel || !fm || !cm) return;
+      const rows = [...panel.querySelectorAll(".boss-dmg-row")].filter(r => r.querySelector(".boss-dmg-row-name"));
+      const used = new Set(), linked = { fm: false, cm: false };
+      [["fm", fm], ["cm", cm]].forEach(([k, sel]) => {
+        const name = norm(curMoveName(sel));
+        const row = rows.find(r => !used.has(r) && norm(r.querySelector(".boss-dmg-row-name").textContent) === name);
+        if(!row || !name) return;
+        used.add(row); linked[k] = true;
+        row.classList.add("mq-tapmove"); row.dataset.mqSel = sel.id;
+        row.setAttribute("role", "button"); row.tabIndex = 0;
+        row.setAttribute("aria-label", "Change " + (k === "fm" ? "fast" : "charge") + " move: " + curMoveName(sel));
+      });
+      [[fm, linked.fm], [cm, linked.cm]].forEach(([sel, on]) => { const f = sel.closest(".field"); if(f) f.classList.toggle("mq-viapanel", on && !String(sel.value).startsWith("__")); });
+    });
+  }
+  document.addEventListener("click", e => {
+    const row = e.target.closest(".boss-dmg-row.mq-tapmove"); if(!row) return;
+    const sel = document.getElementById(row.dataset.mqSel); if(sel) openMoveSheet(sel);
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key !== "Enter" && e.key !== " ") return;
+    const row = e.target.closest && e.target.closest(".boss-dmg-row.mq-tapmove"); if(!row) return;
+    e.preventDefault(); const sel = document.getElementById(row.dataset.mqSel); if(sel) openMoveSheet(sel);
+  });
   const refreshChips = () => document.querySelectorAll('select[id$="_select"]').forEach(s => s._mqChip && renderMoveChip(s));
 
   // ---------- level and IV presets ----------
@@ -9282,6 +9363,7 @@ updateCTMode();
   function enhanceLevel(inp){
     if(inp._mq || !/Level$/.test(inp.id)) return; inp._mq = true;
     // a slider for the level (20-55, half levels): the box above still takes anything typed
+    if(MQ.matches && inp.hasAttribute("list")){ inp.dataset.mqList = inp.getAttribute("list"); inp.removeAttribute("list"); }   // the slider replaces the suggestion dropdown
     const box = slider("Level", 20, 55, 0.5, ["20", "55"], () => Math.max(20, Math.min(55, parseFloat(inp.value) || 50)), v => { inp.value = String(+v); fire(inp, "input", "change"); }, v => "Lv " + (+v));
     box.classList.add("mq-lvl");
     let at = inp.closest(".field").parentElement;
@@ -9580,23 +9662,59 @@ updateCTMode();
     card.classList.add("mq-flash"); setTimeout(() => card.classList.remove("mq-flash"), 900);
   }
 
+  // ---------- the raid boss: its own section first on phones (Boss -> Party -> Rotation -> Results) ----------
+  // Its column moves out of the "Your Pokemon vs. Raid Boss" card into a card of its own above it, and
+  // back again if the screen grows past phone width - the same elements, so nothing about them changes.
+  let bossHome = null;
+  function placeBoss(){
+    const bn = document.getElementById("bossName"), pn = document.getElementById("pokemonName");
+    const col = bn && bn.closest(".vs-col"); if(!col || !pn) return;
+    if(MQ.matches){
+      if(col.closest(".mq-boss-card")) return;
+      const mainCard = pn.closest(".step-card"); if(!mainCard) return;
+      bossHome = { parent: col.parentNode, next: col.nextSibling };
+      let card = document.getElementById("mqBossCard");
+      if(!card){
+        card = el("div", "step-card mq-boss-card", "block"); card.id = "mqBossCard";
+        card.innerHTML = '<div class="step-head"><div class="step-num">B</div><div><div class="step-title">Raid Boss</div></div></div>';
+      }
+      mainCard.parentNode.insertBefore(card, mainCard);
+      card.appendChild(col);
+    } else if(bossHome && col.closest(".mq-boss-card")){
+      bossHome.parent.insertBefore(col, bossHome.next && bossHome.next.parentNode === bossHome.parent ? bossHome.next : null);
+      const card = document.getElementById("mqBossCard"); if(card) card.remove();
+    }
+  }
+
   // ---------- section tabs ----------
   function sections(){
     const team = document.body.classList.contains("ct-mode-team");
     const main = document.getElementById("pokemonName"), boss = document.getElementById("bossName");
     const rot = team ? document.getElementById("teamBehaviorCard") : (document.getElementById("eventBoost") || {}).closest ? document.getElementById("eventBoost").closest(".step-card") : null;
     return [
+      ["Boss", boss && (boss.closest(".mq-boss-card") || boss.closest(".vs-col") || boss.closest(".step-card"))],
       [team ? "Party" : "Pokémon", main && main.closest(".step-card")],
-      ["Boss", boss && (boss.closest(".vs-col") || boss.closest(".step-card"))],
       [team ? "Rotation" : "Settings", rot],
       ["Results", document.getElementById("resultsWrap") || document.getElementById("calcBtn")],
     ].filter(x => x[1]);
+  }
+  // Where each tab's content starts on the page. On a phone the raid boss block sits between the main
+  // DPSer and the catch tank / support DPSer cards, which are the party too: Party starts again there.
+  function markers(){
+    const list = sections(), out = list.map(([, node], i) => [i, node]);
+    if(document.body.classList.contains("ct-mode-team")){
+      const firstCard = [document.getElementById("teamCard"), document.getElementById("supportCards")]
+        .filter(n => n && n.offsetParent !== null && n.getBoundingClientRect().height > 0)
+        .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)[0];
+      if(firstCard) out.push([1, firstCard]);
+    }
+    return out.sort((a, b) => a[1].getBoundingClientRect().top - b[1].getBoundingClientRect().top);
   }
   function paintTabs(){
     if(!bar) return;
     const tabs = bar.querySelector(".mq-tabs"), list = sections();
     const line = (parseFloat(bar.style.top) || 0) + bar.offsetHeight + 24;
-    let on = 0; list.forEach(([, node], i) => { if(node.getBoundingClientRect().top <= line) on = i; });
+    let on = 0; markers().forEach(([i, node]) => { if(node.getBoundingClientRect().top <= line) on = i; });
     tabs.innerHTML = list.map(([label], i) => `<button type="button" class="mq-tab${i === on ? " on" : ""}" data-sec="${i}">${label}</button>`).join("");
   }
 
@@ -9637,39 +9755,70 @@ updateCTMode();
       row.insertBefore(h, row.firstChild);
     });
   }
+  // The card follows the finger; passing a neighbour's middle swaps them. Moves are listened for on the
+  // whole page: moving the card in the list (when it passes the one above) took it out of the page for
+  // an instant, the handle lost the finger, and the card froze half-way.
+  let dragEnd = null;
   function startDrag(e){
     const h = e.target.closest(".mq-handle"); if(!h) return;
-    const list = document.getElementById("ctPlanList");
+    if(dragEnd) dragEnd();   // a drag left over from an interrupted gesture
     const isBlock = !!h.closest(".pl-group-head") && !h.closest(".pl-item");
     const node = isBlock ? h.closest(".pl-group") : h.closest(".pl-item");
+    if(!node || !node.parentNode) return;
     const parent = node.parentNode, sibs = () => [...parent.children].filter(c => c.matches(isBlock ? ".pl-group" : ".pl-item"));
-    const from = sibs().indexOf(node), y0 = e.clientY;
+    const from = sibs().indexOf(node), y0 = e.clientY, pid = e.pointerId;
     const bi = isBlock ? null : +((node.querySelector("button[data-b]") || {}).dataset || {}).b;
-    e.preventDefault(); h.setPointerCapture(e.pointerId);
+    e.preventDefault();
     node.classList.add("mq-dragging");
     const startTop = node.getBoundingClientRect().top;
-    // the card follows the finger; passing a neighbour's middle swaps them in the list
-    const move = ev => {
+    const midOf = x => { const q = x.getBoundingClientRect(); return q.top + q.height / 2; };
+    // held near the top (under the sticky bar) or the bottom (over Calculate): the page scrolls along
+    let lastY = y0, raf = 0;
+    const edgeScroll = () => {
+      raf = 0;
+      const top = bar ? bar.getBoundingClientRect().bottom + 30 : 80, bottom = window.innerHeight - 110;
+      let dy = lastY < top ? -Math.min(14, (top - lastY) / 3 + 4) : lastY > bottom ? Math.min(14, (lastY - bottom) / 3 + 4) : 0;
+      // no further than the list itself: it stops once the list's first / last card is in view
+      const lr = parent.getBoundingClientRect();
+      if(dy < 0 && lr.top >= top - 10) dy = 0;
+      if(dy > 0 && lr.bottom <= bottom + 10) dy = 0;
+      if(!dy) return;
+      window.scrollBy(0, dy); place(lastY);
+      raf = requestAnimationFrame(edgeScroll);
+    };
+    const place = cy => {
       node.style.transform = "";
       const nat = node.getBoundingClientRect().top;
-      node.style.transform = `translateY(${ev.clientY - y0 - (nat - startTop)}px)`;
+      // card top (on screen) = where it started + how far the finger moved; nat is measured on screen too,
+      // so this holds while the page auto-scrolls
+      node.style.transform = `translateY(${cy - y0 - (nat - startTop)}px)`;
       const all = sibs(), i = all.indexOf(node), r = node.getBoundingClientRect(), mid = r.top + r.height / 2;
       const nxt = all[i + 1], prv = all[i - 1];
-      const midOf = x => { const q = x.getBoundingClientRect(); return q.top + q.height / 2; };
       if(nxt && mid > midOf(nxt)) parent.insertBefore(nxt, node);
       else if(prv && mid < midOf(prv)) parent.insertBefore(node, prv);
     };
-    const up = () => {
-      h.removeEventListener("pointermove", move); h.removeEventListener("pointerup", up); h.removeEventListener("pointercancel", up);
+    const move = ev => {
+      if(ev.pointerId !== pid) return;
+      ev.preventDefault();
+      lastY = ev.clientY; place(lastY);
+      if(!raf) raf = requestAnimationFrame(edgeScroll);
+    };
+    const finish = (commit) => {
+      window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); window.removeEventListener("pointercancel", cancel);
+      dragEnd = null; if(raf) cancelAnimationFrame(raf);
       node.classList.remove("mq-dragging"); node.style.transform = "";
       const to = sibs().indexOf(node);
-      if(to === from){ renderTeamOrder(); return; }
+      if(!commit || to === from || to < 0){ renderTeamOrder(); return; }   // put the list back as it was
       const blocks = teamPlan();
       if(isBlock){ const [b] = blocks.splice(from, 1); blocks.splice(to, 0, b); }
-      else { const its = blocks[bi].items; const [x] = its.splice(from, 1); its.splice(to, 0, x); }
+      else if(blocks[bi]){ const its = blocks[bi].items; const [x] = its.splice(from, 1); its.splice(to, 0, x); }
       teamPlanSet(blocks);
     };
-    h.addEventListener("pointermove", move); h.addEventListener("pointerup", up); h.addEventListener("pointercancel", up);
+    const up = ev => { if(ev.pointerId === pid) finish(true); };
+    const cancel = ev => { if(ev.pointerId === pid) finish(false); };
+    window.addEventListener("pointermove", move, { passive: false });
+    window.addEventListener("pointerup", up); window.addEventListener("pointercancel", cancel);
+    dragEnd = () => finish(false);
   }
 
   // ---------- wiring ----------
@@ -9678,6 +9827,8 @@ updateCTMode();
     document.querySelectorAll('.boss-dmg-row-stats.mq-hide').forEach(n => { if(!(n.nextElementSibling && OWN.has(n.nextElementSibling))){ n.classList.remove("mq-hide"); n.removeAttribute("data-mq"); } });
     document.querySelectorAll('select[id$="_select"]').forEach(enhanceMoveSelect);
     convertStatLines();
+    tagBossPanels();
+    linkPanelMoves();
     document.querySelectorAll('.iv-field input[id$="Level"]').forEach(enhanceLevel);
 
     enhanceRotationControls();
@@ -9702,7 +9853,8 @@ updateCTMode();
     window.applySetup = function(){ const r = orig.apply(this, arguments); try{ scan(); refreshChips(); document.querySelectorAll(".mq-chips, .mq-slider").forEach(x => x._paint && x._paint()); renderBar(); }catch(e){} return r; };
   }
   function init(){
-    scan(); buildBar(); buildFab(); syncBarMode();
+    scan(); buildBar(); buildFab(); syncBarMode(); placeBoss();
+    (MQ.addEventListener ? MQ.addEventListener("change", placeBoss) : MQ.addListener(placeBoss));
     try{ renderPlanPreview(); decoratePlanList(); }catch(e){}
     const pl = document.getElementById("ctPlanList"); if(pl) pl.addEventListener("pointerdown", startDrag);
     // cards added later (catch tanks, support DPSers) get the same treatment
