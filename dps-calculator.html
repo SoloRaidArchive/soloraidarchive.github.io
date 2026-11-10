@@ -9116,6 +9116,9 @@ updateCTMode();
   /* Every width: a Pokemon's moves are picked in its damage panel (the move rows open the picker), so
      its Fast Move / Charge Move fields step aside while the panel is there. */
   .mq-viapanel{ display:none !important; }
+  .mq-movebox{ margin-top:10px; }
+  .mq-movebox .mq-mb-hint{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin-top:2px; }
+  .mq-movebox .mq-mb-tag{ font:800 10.5px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; }
   /* the Fast Move / Charge Move fields are never shown: a Pokemon's moves are picked in its damage panel */
   .mq-movefield{ display:none !important; }
   .field-grid:has(> .field.mq-movefield):not(:has(> .field:not(.mq-movefield))){ display:none !important; }
@@ -9427,7 +9430,30 @@ updateCTMode();
         row.setAttribute("aria-label", "Change " + (k === "fm" ? "fast" : "charge") + " move: " + curMoveName(sel));
       });
       [[fm, linked.fm], [cm, linked.cm]].forEach(([sel, on]) => { const f = sel.closest(".field"); if(f) f.classList.toggle("mq-viapanel", on); });
+      moveBox(panel, base, fm, cm, linked);
     });
+  }
+  // A Pokemon whose panel has no row for a move - no moveset in the data (only "Custom Move..." and
+  // "+ Create a move..." on offer), or no damage to show yet (no boss) - still gets its moves picked
+  // here: a small box in the panel's place with a row per missing move, opening the same picker.
+  // Nothing at all until a Pokemon is chosen.
+  function moveBox(panel, base, fm, cm, linked){
+    const nameId = base === "player" ? "pokemonName" : base === "boss" ? "bossName" : base + "Name";
+    const named = ((document.getElementById(nameId) || {}).value || "").trim();
+    let box = panel.nextElementSibling && panel.nextElementSibling.classList.contains("mq-movebox") && OWN.has(panel.nextElementSibling) ? panel.nextElementSibling : null;
+    const missing = named ? [["fm", fm, linked.fm], ["cm", cm, linked.cm]].filter(x => !x[2]) : [];
+    if(!missing.length){ if(box) box.remove(); return; }
+    // every width (not a phones-only element): desktop needs it as much
+    if(!box){ box = document.createElement("div"); box.className = "boss-dmg-preview mq-movebox"; OWN.add(box); panel.insertAdjacentElement("afterend", box); }
+    const html = missing.map(([k, sel]) => {
+      const nm = String(sel.value).startsWith("__") && sel.value !== "__custom__" ? "" : curMoveName(sel);
+      const m = moveOf(nm), what = k === "fm" ? "fast" : "charge";
+      // just "Fast move" / "Charge move" until one is chosen; then its name (and numbers, when known)
+      return `<div class="boss-dmg-row player-dmg mq-tapmove" data-mq-sel="${sel.id}" role="button" tabindex="0" aria-label="Choose a ${what} move">
+          <div class="boss-dmg-row-info"><div class="boss-dmg-row-name">${nm ? esc(nm) : (k === "fm" ? "Fast move" : "Charge move")}</div>
+          ${m ? `<div class="boss-dmg-row-stats">${m.dmg} dmg &nbsp;|&nbsp; ${Math.abs(m.energy)} energy &nbsp;|&nbsp; ${(m.ad / 2).toFixed(1)}s</div>` : ""}</div></div>`;
+    }).join("");
+    if(box.dataset.html !== html){ box.dataset.html = html; box.innerHTML = html; }   // unchanged: left alone (no redraw loop)
   }
   document.addEventListener("click", e => {
     const row = e.target.closest(".boss-dmg-row.mq-tapmove"); if(!row) return;
@@ -10008,7 +10034,7 @@ updateCTMode();
 
   // ---------- wiring ----------
   function scan(){
-    document.querySelectorAll(".mq-only").forEach(n => { if(!OWN.has(n)) n.remove(); });   // copies from a cloned card
+    document.querySelectorAll(".mq-only, .mq-movebox").forEach(n => { if(!OWN.has(n)) n.remove(); });   // copies from a cloned card
     document.querySelectorAll('.boss-dmg-row-stats.mq-hide').forEach(n => { if(!(n.nextElementSibling && OWN.has(n.nextElementSibling))){ n.classList.remove("mq-hide"); n.removeAttribute("data-mq"); } });
     document.querySelectorAll('select[id$="_select"]').forEach(enhanceMoveSelect);
     convertStatLines();
