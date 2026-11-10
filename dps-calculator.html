@@ -2691,6 +2691,25 @@ function initPokemonAutocomplete(inputId, listId){
 
   input.addEventListener("input", () => { highlighted = -1; render(); });
   input.addEventListener("focus", () => { if(input.value.trim()) render(); });
+  // Leaving the box - on a phone, closing the keyboard, with no tap anywhere - closes the list. It
+  // used to stay open: the half-typed name sat there with its suggestions, and scrolling slid the
+  // list up over the sticky bars. A short wait lets a tap on a suggestion land first. A name typed in
+  // full (any capitals) is put in its proper spelling and applied, as Enter does.
+  input.addEventListener("blur", () => {
+    setTimeout(() => {
+      if(document.activeElement === input) return;
+      const typed = input.value.trim();
+      const exact = typed && POKEMON_NAME_LIST.find(n => n.toLowerCase() === typed.toLowerCase());
+      if(exact && exact !== input.value){
+        input.value = exact;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      close();
+    }, 150);
+  });
+  // ...and, as a backstop, a page scroll while the box isn't in use
+  window.addEventListener("scroll", () => { if(list.classList.contains("open") && document.activeElement !== input) close(); }, { passive: true });
   input.addEventListener("keydown", (e) => {
     const items = list.querySelectorAll(".ac-item");
     // Enter with no suggestion highlighted submits what was typed: the list closes and the name
@@ -9131,6 +9150,7 @@ updateCTMode();
   @media (max-width:560px){
     .mq-only{ display:var(--mq-d, block) !important; }
     .mq-hide{ display:none !important; }
+    .ac-list{ z-index:25; }   /* under the sticky party bar (30) and the header */
     .mq-nomoves{ display:none !important; }
 
     /* move chips: the whole border in the move's type colour; power, energy (+ gained / - spent), time */
@@ -9190,6 +9210,7 @@ updateCTMode();
     .mq-seg{ display:flex; background:var(--bg1, #1e1918); border:1.5px solid var(--border); border-radius:12px; padding:3px; gap:3px; margin-bottom:10px; }
     .mq-seg button{ flex:1; border:0; border-radius:9px; padding:7px 0; background:transparent; color:var(--text-dim); font:800 12px 'Manrope',sans-serif; }
     .mq-seg button.on{ background:var(--accent, var(--blue)); color:#1a1312; } .mq-seg button:disabled{ opacity:.35; }
+    .mq-seg[hidden]{ display:none; }   /* name boxes and the boss: no role switch */
     .mq-search{ width:100%; box-sizing:border-box; border:1.5px solid var(--border); border-radius:12px; padding:10px 12px; background:var(--bg1, #1e1918); color:var(--text); font:700 14px 'Manrope',sans-serif; }
     .mq-h{ font:800 11px 'Manrope',sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--accent, var(--blue)); margin:14px 0 8px; }
     .mq-grid4{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; }
@@ -9207,6 +9228,33 @@ updateCTMode();
     .mq-role .ic{ width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:21px; background:var(--card); flex:none; }
     .mq-role b{ font:800 15px 'Manrope',sans-serif; } .mq-role small{ display:block; color:var(--text-dim); font:700 11.5px 'Manrope',sans-serif; margin-top:2px; }
     .mq-role:disabled{ opacity:.45; }
+    /* the shared picker */
+    .mq-types{ display:grid; grid-template-columns:repeat(9, minmax(0,1fr)); gap:5px; margin:2px 0 6px; }
+    .mq-type{ border:2px solid transparent; border-radius:9px; padding:6px 0; display:flex; align-items:center; justify-content:center; color:#fff; font:800 9px 'Manrope',sans-serif; cursor:pointer; }
+    .mq-type img{ width:18px; height:18px; filter:brightness(0) invert(1); }
+    .mq-type.on{ border-color:#fff; box-shadow:0 0 0 2px var(--accent, var(--blue)); }
+    .mq-tabs3{ display:flex; gap:3px; background:var(--bg1, #1e1918); border:1.5px solid var(--border); border-radius:12px; padding:3px; margin-bottom:8px; }
+    .mq-tabs3 button{ flex:1; border:0; border-radius:9px; padding:7px 0; background:transparent; color:var(--text-dim); font:800 12px 'Manrope',sans-serif; }
+    .mq-tabs3 button.on{ background:var(--accent, var(--blue)); color:#1a1312; }
+    .mq-searchbtn{ width:100%; margin-top:14px; border:1.5px dashed var(--border); border-radius:12px; padding:11px; background:transparent; color:var(--text); font:800 13px 'Manrope',sans-serif; }
+    .mq-res span{ flex:1; } .mq-res small{ color:var(--accent, var(--blue)); font:800 10.5px 'Manrope',sans-serif; }
+    .mq-tile img[loading]{ min-height:44px; }
+    /* search: pinned to the top, as tall as the screen above the keyboard */
+    .mq-sheet-wrap.mq-top{ align-items:flex-start; }
+    .mq-sheet-wrap.mq-top .mq-sheet{ height:var(--mq-vvh, 60vh); max-height:none; border-radius:0 0 20px 20px; border-top:0; border-bottom:1.5px solid var(--border); display:flex; flex-direction:column; }
+    .mq-sheet-wrap.mq-top .mq-grab{ display:none; }
+    .mq-sheet-wrap.mq-top .mq-searchview{ display:flex; flex-direction:column; min-height:0; flex:1; }
+    .mq-sheet-wrap.mq-top .mq-results{ overflow:auto; flex:1; margin-top:6px; }
+    /* name boxes open the picker: they read as buttons */
+    input.mq-namebox{ cursor:pointer; caret-color:transparent; background-image:linear-gradient(45deg, transparent 50%, var(--text-dim) 50%), linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+      background-position:calc(100% - 15px) 52%, calc(100% - 10px) 52%; background-size:5px 5px; background-repeat:no-repeat; padding-right:26px; }
+    /* a filled slot's sheet opens on its own details */
+    .mq-editcard{ display:grid; grid-template-columns:56px 1fr; grid-template-rows:auto auto; column-gap:12px; row-gap:8px; align-items:center; width:100%; text-align:left;
+      border:2px solid var(--accent, var(--blue)); border-radius:16px; background:color-mix(in srgb, var(--accent, var(--blue)) 12%, var(--bg1, #1e1918)); padding:12px; color:var(--text); cursor:pointer; }
+    .mq-editcard img{ width:56px; height:56px; object-fit:contain; grid-row:1 / span 2; }
+    .mq-ec-text b{ display:block; font:800 16px 'Manrope',sans-serif; } .mq-ec-text small{ display:block; margin-top:2px; color:var(--text-dim); font:700 11.5px/1.35 'Manrope',sans-serif; }
+    .mq-ec-go{ justify-self:start; border-radius:10px; padding:7px 12px; background:var(--accent, var(--blue)); color:#1a1312; font:800 12.5px 'Manrope',sans-serif; }
+    .mq-h.mq-or{ margin-top:16px; }
     /* rotation preview */
     .mq-plan{ margin:0 0 12px; }
     .mq-plan-row{ display:flex; gap:5px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; } .mq-plan-row::-webkit-scrollbar{ display:none; }
@@ -9624,14 +9672,11 @@ updateCTMode();
     const list = [...tally.values()].sort((a, b) => (b.runs + (b.logged || 0)) - (a.runs + (a.logged || 0))).slice(0, 8);
     return { boss, list };
   }
-  const RECENT_KEY = "raidArchiveRecentMons";
-  const recentGet = role => { try{ return (JSON.parse(localStorage.getItem(RECENT_KEY) || "{}")[role === "ct" ? "ct" : "att"] || []).slice(0, 8); }catch(e){ return []; } };
-  const recentAdd = (role, name) => { try{ const all = JSON.parse(localStorage.getItem(RECENT_KEY) || "{}"), k = role === "ct" ? "ct" : "att"; all[k] = [name].concat((all[k] || []).filter(n => norm(n) !== norm(name))).slice(0, 8); localStorage.setItem(RECENT_KEY, JSON.stringify(all)); }catch(e){} };
 
   // ---------- the Pokemon picker ----------
   const ROLE_TXT = { main: "Main DPSer", sup: "Support DPSer", ct: "Catch tank" };
   const sprite = n => (typeof spriteUrl === "function" ? spriteUrl(n) : "");
-  const tileHtml = (name, sub) => `<button type="button" class="mq-tile" data-pick="${esc(name)}"><img src="${esc(sprite(name))}" alt="" onerror="this.style.visibility='hidden'"><span>${esc(name)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
+  const tileHtml = (name, sub) => `<button type="button" class="mq-tile" data-pick="${esc(name)}"><img src="${esc(sprite(name))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(name)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
   function openSheetShell(html){
     const wrap = document.createElement("div"); wrap.className = "mq-sheet-wrap";
     wrap.innerHTML = `<div class="mq-sheet" role="dialog" aria-modal="true"><div class="mq-grab"></div>${html}</div>`;
@@ -9648,52 +9693,152 @@ updateCTMode();
       <button type="button" class="mq-role" data-role="ct"><span class="ic">&#128737;&#65039;</span><span><b>Catch tank</b><small>Catches the boss's charge moves</small></span></button>`);
     sheetEl.addEventListener("click", e => { const b = e.target.closest("[data-role]"); if(b){ sheetEl.remove(); openPicker(null, b.dataset.role, slotNo); } });
   }
-  // the picker: a filled slot (tok) or a new one (tok null, role chosen first)
-  function openPicker(tok, role, slotNo){
-    let cur = role || roleOf(tok), q = "";
-    const curName = tok && typeof teamPartyLabel === "function" ? teamPartyLabel(tok).replace(/ #\d+$/, "") : "";
-    const sheetEl = openSheetShell(`<div class="mq-sheet-head">${curName ? `<img src="${esc(sprite(curName))}" alt="" onerror="this.remove()">` : ""}<div>Slot ${slotNo}${curName ? " &middot; " + esc(curName) : ""}<small class="mq-sub"></small></div><button type="button" class="done">Done</button></div>
-      <div class="mq-seg"></div><input class="mq-search" type="search" placeholder="Search Pokémon…" autocomplete="off" enterkeyhint="search"><div class="mq-body"></div>
-      ${tok ? `<div class="mq-acts"><button type="button" class="mq-act" data-act="edit">Edit level, IVs &amp; moves</button>${tok[0] !== "m" ? '<button type="button" class="mq-act danger" data-act="remove">Remove</button>' : ""}</div>` : ""}`);
-    const seg = sheetEl.querySelector(".mq-seg"), body = sheetEl.querySelector(".mq-body"), sub = sheetEl.querySelector(".mq-sub"), search = sheetEl.querySelector(".mq-search");
-    const paintSeg = () => {
-      // the main DPSer's slot stays the main DPSer; any other slot is a support DPSer or a catch tank
-      const isMain = tok && tok[0] === "m";
-      seg.innerHTML = ["main", "sup", "ct"].map(r => `<button type="button" data-r="${r}" class="${r === cur ? "on" : ""}" ${(isMain ? r !== "main" : r === "main") ? "disabled" : ""}>${ROLE_TXT[r]}</button>`).join("");
-      sub.textContent = ROLE_TXT[cur];
-    };
-    let token = 0;
-    const paintBody = async () => {
-      const mine = ++token;
-      if(q){
-        const names = (typeof pokemonNameMatches === "function" ? pokemonNameMatches(q) : []).slice(0, 14);
-        body.innerHTML = names.length ? names.map(n => `<button type="button" class="mq-res" data-pick="${esc(n)}"><img src="${esc(sprite(n))}" alt="" onerror="this.style.visibility='hidden'">${esc(n)}</button>`).join("") : '<div class="mq-none">No Pokémon match that.</div>';
+  // a filled slot's own details, read from its card: level, IVs, moves
+  function slotSummary(tok){
+    const p = tok[0] === "m" ? null : tok[0] === "s" ? "sd" + tok.slice(1).split(".")[0] : (k => k === "1" ? "ct" : "ct" + k)(tok.slice(1).split(".")[0]);
+    const v = id => ((document.getElementById(id) || {}).value || "").trim();
+    const lvl = v(p ? p + "Level" : "pokemonLevel");
+    const ivs = (p ? [p + "IvAtk", p + "IvDef", p + "IvHp"] : ["ivAtk", "ivDef", "ivHp"]).map(v).join("/");
+    const fm = v(p ? p + "FM" : "playerFM"), cm = v(p ? p + "CM" : "playerCM");
+    return [lvl ? "Lv " + lvl : "", ivs.replace(/\//g, "") ? ivs : "", [fm, cm].filter(Boolean).join(" / ")].filter(Boolean).join(" · ");
+  }
+  // ---------- the shared Pokemon picker: browse by type, top picks for this boss, search above the keyboard ----------
+  const TYPE_LIST = ["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
+  const TYPE_ICON = t => "https://duiker101.github.io/pokemon-type-svg-icons/icons/" + t + ".svg";
+  const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+  const typesOf = n => { try{ const r = typeof findPokemonTypes === "function" ? findPokemonTypes(n) : null; return r ? [r.t1, r.t2].filter(Boolean) : []; }catch(e){ return []; } };
+  const runsTxt = e => e.runs ? e.runs + " run" + (e.runs === 1 ? "" : "s") : e.best ? "CT DPS " + e.best.toFixed(1) : "";
+  // bosses by tier, most-run first: Tier 5 (the boss list + its runs), Mega (Tier 4 runs), Tier 6
+  let BOSS_LISTS = null;
+  function loadBossLists(){
+    if(!BOSS_LISTS) BOSS_LISTS = Promise.all(["/csv/tier5-merged.csv", "/csv/tier4-data.csv", "/csv/tier6-data.csv"].map(u => fetch(u).then(r => r.ok ? r.text() : "").catch(() => "")))
+      .then(texts => {
+        const tally = texts.map(t => {
+          const m = new Map(); if(!t || typeof parseCSV !== "function") return m;
+          const rows = parseCSV(t), head = (rows.shift() || []).map(h => String(h).trim()), bi = head.indexOf("Boss Name");
+          if(bi >= 0) rows.forEach(r => { const n = String(r[bi] || "").trim(); if(n) m.set(n, (m.get(n) || 0) + 1); });
+          return m;
+        });
+        (typeof TIER5_BOSSES !== "undefined" ? TIER5_BOSSES : []).forEach(n => { if(![...tally[0].keys()].some(k => key(k) === key(n))) tally[0].set(n, 0); });
+        const list = m => [...m.entries()].map(([name, runs]) => ({ name, runs })).sort((x, y) => y.runs - x.runs || x.name.localeCompare(y.name));
+        return { t5: list(tally[0]), mega: list(tally[1]), t6: list(tally[2]) };
+      });
+    return BOSS_LISTS;
+  }
+  // The search panel sits at the top, as tall as the part of the screen the keyboard leaves
+  function trackViewport(){
+    const vv = window.visualViewport, set = () => document.documentElement.style.setProperty("--mq-vvh", Math.round(vv ? vv.height : window.innerHeight) + "px");
+    set(); if(vv && !trackViewport.on){ trackViewport.on = true; vv.addEventListener("resize", set); vv.addEventListener("scroll", set); }
+  }
+  /* opts: { title, sub, role ("main" | "sup" | "ct" | "boss"), top, bottom, seg (slot role switch), onPick(name, role), onAct(act) } */
+  function monSheet(opts){
+    let role = opts.role, type = "", tier = "t5", token = 0;
+    const wrap = openSheetShell(`<div class="mq-sheet-head"><div><span class="mq-title">${opts.title}</span><small class="mq-sub"></small></div><button type="button" class="done">Done</button></div>
+      <div class="mq-browse">${opts.top || ""}<div class="mq-seg"${opts.seg ? "" : " hidden"}></div><div class="mq-body"></div>
+        <button type="button" class="mq-searchbtn" data-search="1">Search by name instead</button>${opts.bottom || ""}</div>
+      <div class="mq-searchview" hidden><input class="mq-search" type="text" placeholder="Type a name…" autocomplete="off" autocapitalize="words" enterkeyhint="search"><div class="mq-results"></div></div>`);
+    const sheetEl = wrap.querySelector(".mq-sheet"), body = wrap.querySelector(".mq-body"), seg = wrap.querySelector(".mq-seg"), sub = wrap.querySelector(".mq-sub");
+    const browse = wrap.querySelector(".mq-browse"), sview = wrap.querySelector(".mq-searchview"), input = wrap.querySelector(".mq-search"), results = wrap.querySelector(".mq-results");
+    const paintSeg = () => { if(opts.seg){ seg.innerHTML = opts.seg(role); } sub.textContent = opts.sub ? opts.sub(role) : ""; };
+    const typeGrid = () => `<div class="mq-types">${TYPE_LIST.map(t => `<button type="button" class="mq-type${t === type ? " on" : ""}" data-type="${t}" title="${cap(t)}" style="background:${TYPE[t]}"><img src="${TYPE_ICON(t)}" alt="${cap(t)}" onerror="this.replaceWith(document.createTextNode('${cap(t).slice(0, 3)}'))"></button>`).join("")}</div>`;
+    const paint = async () => {
+      const mine = ++token, bossName = ((document.getElementById("bossName") || {}).value || "").trim();
+      if(role === "boss"){
+        body.innerHTML = `<div class="mq-tabs3">${[["t5", "Tier 5"], ["mega", "Mega"], ["t6", "Tier 6"]].map(([k, l]) => `<button type="button" data-tier="${k}" class="${k === tier ? "on" : ""}">${l}</button>`).join("")}</div>${typeGrid()}<div class="mq-list"><div class="mq-none">Loading…</div></div>`;
+        const lists = await loadBossLists(); if(mine !== token) return;
+        const list = lists[tier].filter(e => !type || typesOf(e.name).includes(type));
+        body.querySelector(".mq-list").innerHTML = list.length ? `<div class="mq-grid4">${list.map(e => tileHtml(e.name, runsTxt(e))).join("")}</div>` : '<div class="mq-none">No bosses of that type here.</div>';
         return;
       }
-      const recent = recentGet(cur);
-      body.innerHTML = (recent.length ? `<div class="mq-h">Recent</div><div class="mq-grid4">${recent.map(n => tileHtml(n)).join("")}</div>` : "") + '<div class="mq-h mq-sug-h">Suggestions</div><div class="mq-sug"><div class="mq-none">Loading…</div></div>';
-      const { boss, list } = await suggestionsFor(cur);
-      if(mine !== token) return;
-      body.querySelector(".mq-sug-h").textContent = boss ? (cur === "ct" ? "Top catch tanks vs " : "Top raiders vs ") + boss : "Suggestions";
-      body.querySelector(".mq-sug").innerHTML = !boss ? '<div class="mq-none">Pick a raid boss first.</div>'
-        : list.length ? `<div class="mq-grid4">${list.map(e => tileHtml(e.name, e.runs ? e.runs + " run" + (e.runs === 1 ? "" : "s") : e.best ? "CT DPS " + e.best.toFixed(1) : "")).join("")}</div>`
-        : `<div class="mq-none">No verified runs for ${esc(boss)} yet - search above.</div>`;
-    };
-    seg.addEventListener("click", e => { const b = e.target.closest("[data-r]"); if(b && !b.disabled){ cur = b.dataset.r; paintSeg(); paintBody(); } });
-    search.addEventListener("input", () => { q = search.value.trim(); paintBody(); });
-    sheetEl.addEventListener("click", e => {
-      const pk = e.target.closest("[data-pick]");
-      if(pk){
-        const name = pk.dataset.pick;
-        if(!tok && partyFull()){ sheetEl.remove(); return; }
-        if(putInSlot(tok, cur, name) === false){ alert("That doesn't fit: a party holds six, with up to five support DPSers and five kinds of catch tank."); return; }
-        recentAdd(cur, name); sheetEl.remove(); return;
+      if(!type){
+        body.innerHTML = `<div class="mq-h">Browse by type</div>${typeGrid()}<div class="mq-h mq-sug-h">Suggestions</div><div class="mq-sug"><div class="mq-none">Loading…</div></div>`;
+        const { boss, list } = await suggestionsFor(role); if(mine !== token) return;
+        body.querySelector(".mq-sug-h").textContent = boss ? (role === "ct" ? "Top catch tanks vs " : "Top raiders vs ") + boss : "Suggestions";
+        body.querySelector(".mq-sug").innerHTML = !boss ? '<div class="mq-none">Pick a raid boss first for suggestions - or browse by type.</div>'
+          : list.length ? `<div class="mq-grid4">${list.map(e => tileHtml(e.name, runsTxt(e))).join("")}</div>` : `<div class="mq-none">No verified runs for ${esc(boss)} yet - browse by type or search.</div>`;
+        return;
       }
-      const act = e.target.closest("[data-act]");
-      if(act && act.dataset.act === "remove"){ editSetup(S => removeFrom(S, tok)); sheetEl.remove(); }
-      if(act && act.dataset.act === "edit"){ sheetEl.remove(); scrollToCard(cardFor(tok)); }
+      // a type: the ones used against this boss first, then every Pokemon of that type
+      body.innerHTML = `${typeGrid()}<div class="mq-h mq-used-h" hidden></div><div class="mq-used"></div><div class="mq-h">All ${cap(type)} types</div><div class="mq-all"></div>`;
+      const all = (typeof POKEMON_NAME_LIST !== "undefined" ? POKEMON_NAME_LIST : []).filter(n => typesOf(n).includes(type)).sort((x, y) => x.localeCompare(y));
+      body.querySelector(".mq-all").innerHTML = `<div class="mq-grid4">${all.map(n => tileHtml(n)).join("")}</div>`;
+      const { boss, list } = await suggestionsFor(role); if(mine !== token) return;
+      const used = list.filter(e => typesOf(e.name).includes(type));
+      if(boss && used.length){ const h = body.querySelector(".mq-used-h"); h.hidden = false; h.textContent = "Used vs " + boss; body.querySelector(".mq-used").innerHTML = `<div class="mq-grid4">${used.map(e => tileHtml(e.name, runsTxt(e))).join("")}</div>`; }
+    };
+    // search: the panel moves to the top of the screen, sized to what the keyboard leaves
+    const paintResults = async () => {
+      const q = input.value.trim(); if(!q){ results.innerHTML = '<div class="mq-none">Start typing a Pokémon\u2019s name.</div>'; return; }
+      const names = (typeof pokemonNameMatches === "function" ? pokemonNameMatches(q) : []).slice(0, 30);
+      const sug = role === "boss" ? [] : (await suggestionsFor(role)).list;
+      results.innerHTML = names.length ? names.map(n => { const e = sug.find(x => key(x.name) === key(n)); return `<button type="button" class="mq-res" data-pick="${esc(n)}"><img src="${esc(sprite(n))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(n)}</span>${e ? `<small>${esc(runsTxt(e))}</small>` : ""}</button>`; }).join("") : '<div class="mq-none">No Pokémon match that.</div>';
+    };
+    const toSearch = on => {
+      browse.hidden = on; sview.hidden = !on; wrap.classList.toggle("mq-top", on);
+      wrap.querySelector(".mq-title").textContent = on ? opts.title + " · search" : opts.title;
+      wrap.querySelector(".done").textContent = on ? "Cancel" : "Done";
+      if(on){ trackViewport(); input.value = ""; paintResults(); setTimeout(() => input.focus(), 30); }
+    };
+    input.addEventListener("input", paintResults);
+    input.addEventListener("keydown", e => { if(e.key === "Enter"){ const f = results.querySelector("[data-pick]"); if(f){ e.preventDefault(); f.click(); } } });
+    wrap.addEventListener("click", e => {
+      if(e.target.closest(".done") && wrap.classList.contains("mq-top")){ e.stopImmediatePropagation(); input.blur(); toSearch(false); return; }
+      const tb = e.target.closest("[data-type]"); if(tb){ type = type === tb.dataset.type ? "" : tb.dataset.type; paint(); return; }
+      const tr = e.target.closest("[data-tier]"); if(tr){ tier = tr.dataset.tier; paint(); return; }
+      if(e.target.closest("[data-search]")){ toSearch(true); return; }
+      const r = e.target.closest("[data-r]"); if(r && opts.seg){ if(!r.disabled){ role = r.dataset.r; type = ""; paintSeg(); paint(); } return; }
+      const pk = e.target.closest("[data-pick]"); if(pk){ input.blur(); if(opts.onPick(pk.dataset.pick, role) !== false) wrap.remove(); return; }
+      const act = e.target.closest("[data-act]"); if(act && opts.onAct){ opts.onAct(act.dataset.act); wrap.remove(); }
+    }, true);
+    paintSeg(); paint();
+    return wrap;
+  }
+  // the party bar: a filled slot (tok) or a new one (tok null, role chosen first)
+  function openPicker(tok, role, slotNo){
+    const curName = tok && typeof teamPartyLabel === "function" ? teamPartyLabel(tok).replace(/ #\d+$/, "") : "";
+    // a filled slot opens on its own details - editing is the usual reason to tap it; changing it to
+    // another Pokemon comes after, and Remove last
+    const top = tok ? `<button type="button" class="mq-editcard" data-act="edit">
+        <img src="${esc(sprite(curName))}" alt="" onerror="this.style.visibility='hidden'">
+        <span class="mq-ec-text"><b>${esc(teamPartyLabel(tok))}</b><small>${esc(slotSummary(tok))}</small></span>
+        <span class="mq-ec-go">Edit level, IVs &amp; moves &rsaquo;</span></button>
+      <div class="mq-h mq-or">Or change this slot</div>` : "";
+    const isMain = tok && tok[0] === "m";
+    monSheet({
+      title: "Slot " + slotNo, role: role || roleOf(tok), top,
+      sub: r => ROLE_TXT[r],
+      // the main DPSer's slot stays the main DPSer; any other slot is a support DPSer or a catch tank
+      seg: r => ["main", "sup", "ct"].map(x => `<button type="button" data-r="${x}" class="${x === r ? "on" : ""}" ${(isMain ? x !== "main" : x === "main") ? "disabled" : ""}>${ROLE_TXT[x]}</button>`).join(""),
+      bottom: tok && !isMain ? '<div class="mq-acts"><button type="button" class="mq-act danger" data-act="remove">Remove from party</button></div>' : "",
+      onPick: (name, r) => {
+        if(!tok && partyFull()) return true;
+        if(putInSlot(tok, r, name) === false){ alert("That doesn't fit: a party holds six, with up to five support DPSers and five kinds of catch tank."); return false; }
+      },
+      onAct: act => { if(act === "remove") editSetup(S => removeFrom(S, tok)); if(act === "edit") scrollToCard(cardFor(tok)); },
     });
-    paintSeg(); paintBody();
+  }
+  // the name boxes themselves: on phones a tap opens the picker instead of the keyboard
+  function nameBoxRole(id){ return id === "bossName" ? "boss" : /^ct\d?Name$/.test(id) ? "ct" : id === "pokemonName" ? "main" : "sup"; }
+  function nameBoxTitle(id){
+    if(id === "bossName") return "Raid Boss"; if(id === "pokemonName") return document.body.classList.contains("ct-mode-team") ? "Main DPSer" : "Your Pokémon";
+    const m = id.match(/^(ct|sd)(\d?)Name$/); return m[1] === "ct" ? "Catch Tank " + (m[2] || "1") : "Support DPSer " + m[2];
+  }
+  function openNamePicker(inp){
+    const role = nameBoxRole(inp.id);
+    monSheet({
+      title: nameBoxTitle(inp.id), role,
+      sub: () => role === "boss" ? "Most runs in the archive first" : inp.value.trim() ? "Now: " + inp.value.trim() : "Choose a Pokémon",
+      onPick: name => {
+        inp.value = name; fire(inp, "input", "change");
+        const ac = document.getElementById(inp.id + "_ac"); if(ac){ ac.classList.remove("open"); ac.innerHTML = ""; }
+      },
+    });
+  }
+  function enhanceNameBox(inp){
+    if(inp._mqName) return; inp._mqName = true;
+    const sync = () => { inp.readOnly = MQ.matches; inp.classList.toggle("mq-namebox", MQ.matches); };
+    sync(); (MQ.addEventListener ? MQ.addEventListener("change", sync) : MQ.addListener(sync));
+    inp.addEventListener("click", e => { if(!MQ.matches) return; e.preventDefault(); inp.blur(); openNamePicker(inp); });
   }
   function scrollToCard(card){
     if(!card || !bar) return;
@@ -9869,6 +10014,7 @@ updateCTMode();
     convertStatLines();
     tagBossPanels();
     linkPanelMoves();
+    document.querySelectorAll('#pokemonName, #bossName, input[id^="ct"][id$="Name"], input[id^="sd"][id$="Name"]').forEach(i => { if(/^(pokemonName|bossName|ct\d?Name|sd\dName)$/.test(i.id)) enhanceNameBox(i); });
     document.querySelectorAll('.iv-field input[id$="Level"]').forEach(enhanceLevel);
 
     enhanceRotationControls();
