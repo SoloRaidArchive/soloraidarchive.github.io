@@ -4420,7 +4420,7 @@ function updateTeamPreviewFor(p, c){
     }));
     const esc = v => String(v).replace(/"/g, "&quot;");
     const headSub = dcSafe ? `${casts} &times; ${T.cm.n} per double catch &middot; ${dcK} FM on the 1st swap`
-      : `${casts} &times; ${T.cm.n} per catch${dcOn ? ` &middot; <span class="team-dc-note" title="After its 1st catch it couldn't survive another plus the boss's fast moves while it fires, so the simulator fires it after one catch.">no 2nd catch: not enough HP</span>` : ""}`;
+      : `${casts} &times; ${T.cm.n}${dcOn ? ` &middot; <span class="team-dc-note" title="After its 1st catch it couldn't survive another plus the boss's fast moves while it fires, so the simulator fires it after one catch.">no 2nd catch: not enough HP</span>` : ""}`;
     outcomes.innerHTML = `<div class="team-outcomes">
         <div class="team-outcomes-head">Catch tank DPS <span>&middot; ${headSub}</span></div>
         <div class="team-outcomes-grid">${rows.map(r => r.fainted
@@ -4452,8 +4452,8 @@ function updateTeamPreviewFor(p, c){
     <div class="boss-dmg-preview">
       ${teamMoveRow(c.bossFMMove, T.bossFmDmg)}
       ${teamMoveRow(c.bossCMMove, T.bossCmDmg)}
-      <div class="boss-dmg-row player-dmg energy-row"><span>Energy from catching ${c.bossCMMove.n}</span><b>+${gain} energy</b></div>
-      <div class="boss-dmg-row player-dmg"><span>HP after the catch</span><b>${Math.max(0, hpAfter)} / ${T.hp}</b></div>
+      <div class="boss-dmg-row player-dmg energy-row"><span>Energy gained from ${c.bossCMMove.n}</span><b>+${gain} energy</b></div>
+      <div class="boss-dmg-row player-dmg"><span>Remaining HP</span><b>${Math.max(0, hpAfter)} / ${T.hp}</b></div>
     </div>`;
 }
 // Any edit anywhere on the form can change these numbers (boss, weather, buffs, the tank itself),
@@ -8992,7 +8992,7 @@ function updateHealthBars(n){
   const fm = `${row.n} boss FM${row.n === 1 ? "" : "s"} tanked`;
   const frac = F.maxHp ? F.left / F.maxHp : 0;
   mons[0].insertAdjacentHTML("beforeend", `<div class="hp-bar-block">
-    <div class="hp-bar-label"><span>HP after the catch</span><b>${F.left} / ${F.maxHp}</b></div>
+    <div class="hp-bar-label"><span>Remaining HP</span><b>${F.left} / ${F.maxHp}</b></div>
     <div class="hp-bar"><div class="hp-fill ${hpBarColor(frac)}" style="width:${(frac * 100).toFixed(2)}%"></div></div>
     <div class="hp-bar-note">${F.fainted ? "Faints - " : ""}takes ${F.taken} damage (${fm})</div></div>`);
   const leftFrac = (F.bossHp - F.dealt) / F.bossHp;
@@ -9093,6 +9093,7 @@ updateCTMode();
     .mq-move.is-empty{ color:var(--text-dim); font-weight:700; }
     .mq-st{ display:flex; gap:10px; font:800 11.5px 'Manrope',sans-serif; color:var(--text-dim); white-space:nowrap; }
     .mq-st span{ display:inline-flex; align-items:center; gap:3px; } .mq-st svg{ width:13px; height:13px; flex:none; }
+    .boss-dmg-row-stats.mq-st{ margin-top:2px; font-size:11px; gap:9px; }
     /* preset chips (level, IVs, event boost) */
     .mq-chips{ flex-wrap:wrap; gap:6px; margin-top:6px; }
     .mq-chip{ border:1.5px solid var(--border); border-radius:10px; padding:6px 10px; font:800 12px 'Manrope',sans-serif; background:var(--card); color:var(--text); cursor:pointer; }
@@ -9224,7 +9225,7 @@ updateCTMode();
     const m = moveOf(name), c = colorOf(m);
     chip.style.setProperty("--mq-c", c || "var(--border)");
     chip.classList.toggle("is-empty", !sel.options.length || !name);
-    chip.innerHTML = !sel.options.length ? "Pick a Pokémon first" : `<span>${esc(name || (opt ? opt.text : "Choose a move"))}</span>${m ? `<span class="mq-st">${stats(m)}</span>` : ""}`;
+    chip.innerHTML = !sel.options.length ? "Pick a Pokémon first" : `<span>${esc(name || (opt ? opt.text : "Choose a move"))}</span>`;
   }
   function openMoveSheet(sel){
     if(!sel.options.length) return;
@@ -9247,6 +9248,19 @@ updateCTMode();
     sel.addEventListener("change", () => renderMoveChip(sel));
     new MutationObserver(() => renderMoveChip(sel)).observe(sel, { childList: true });
     renderMoveChip(sel);
+  }
+  function convertStatLines(){
+    document.querySelectorAll(".boss-dmg-row-stats:not([data-mq])").forEach(line => {
+      line.setAttribute("data-mq", "1");
+      const t = line.textContent.replace(/\s+/g, " "), mm = t.match(/(-?[\d.]+) dmg \| (-?[\d.]+) energy \| ([\d.]+)s/);
+      if(!mm) return;
+      const nameEl = line.parentElement && line.parentElement.querySelector(".boss-dmg-row-name");
+      const mv = moveOf(nameEl ? nameEl.textContent.trim() : "");
+      const spent = mv ? mv.energy < 0 : false;   // a fast move gains energy, a charge move spends it
+      const alt = el("div", "boss-dmg-row-stats mq-st", "flex"); alt.setAttribute("data-mq", "1");
+      alt.innerHTML = `<span>${IC.dmg}${mm[1]}</span><span>${spent ? IC.cost : IC.gain}${Math.abs(+mm[2])}</span><span>${IC.time}${mm[3]}s</span>`;
+      line.classList.add("mq-hide"); line.insertAdjacentElement("afterend", alt);
+    });
   }
   const refreshChips = () => document.querySelectorAll('select[id$="_select"]').forEach(s => s._mqChip && renderMoveChip(s));
 
@@ -9654,6 +9668,7 @@ updateCTMode();
   // ---------- wiring ----------
   function scan(){
     document.querySelectorAll('select[id$="_select"]').forEach(enhanceMoveSelect);
+    convertStatLines();
     document.querySelectorAll('.iv-field input[id$="Level"]').forEach(enhanceLevel);
     document.querySelectorAll(".iv-group").forEach(enhanceIVs);
     enhanceRotationControls();
