@@ -1529,6 +1529,76 @@ if ("serviceWorker" in navigator) {
   .card-flash{ animation:cardFlash 1.2s ease; }
   @keyframes cardFlash{ 0%{ box-shadow:0 0 0 3px var(--accent, #ff8a3d); } 100%{ box-shadow:0 0 0 0 transparent; } }
 </style>
+<style>
+  /* The picker sheets' contents at every width (they were in the phone stylesheet only, so on desktop the
+     Pokemon browser - type grid, tiles, search - came out unstyled). Copied as they are; phone-only
+     behaviour (the search pinned above the keyboard) stays with the phones. */
+  .mq-sort{display:flex; gap:6px; align-items:center; margin:2px 0 8px;}
+  .mq-sort span{font:800 10.5px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; margin-right:2px;}
+  .mq-sort button{border:1.5px solid var(--border); border-radius:9px; padding:5px 10px; font:800 11.5px 'Manrope',sans-serif; color:var(--text); background:transparent;}
+  .mq-sort button.on{background:var(--accent, #ff8a3d); border-color:var(--accent, #ff8a3d); color:#1a1312;}
+  .pp-back{display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:transparent; border:0; border-bottom:1px solid var(--border); padding:4px 0 10px; margin-bottom:8px; color:inherit;}
+  .pp-back .a{color:var(--accent, #ff8a3d); font:800 18px 'Manrope',sans-serif;}
+  .pp-back img{width:34px; height:34px; object-fit:contain;}
+  .pp-back b{display:block; font:800 13px 'Manrope',sans-serif; color:var(--text);}
+  .pp-back small{display:block; color:var(--text-dim); font:700 10.5px 'Manrope',sans-serif;}
+  .mq-seg{display:flex; background:var(--bg1, #1e1918); border:1.5px solid var(--border); border-radius:12px; padding:3px; gap:3px; margin-bottom:10px;}
+  .mq-seg button{flex:1; border:0; border-radius:9px; padding:7px 0; background:transparent; color:var(--text-dim); font:800 12px 'Manrope',sans-serif;}
+  .mq-seg button.on{background:var(--accent, var(--blue)); color:#1a1312;}
+  .mq-seg button:disabled{opacity:.35;}
+  .mq-seg[hidden]{display:none;}
+  .mq-search{width:100%; box-sizing:border-box; border:1.5px solid var(--border); border-radius:12px; padding:10px 12px; background:var(--bg1, #1e1918); color:var(--text); font:700 14px 'Manrope',sans-serif;}
+  .mq-h{font:800 11px 'Manrope',sans-serif; letter-spacing:.08em; text-transform:uppercase; color:var(--accent, var(--blue)); margin:14px 0 8px;}
+  .mq-grid4{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px;}
+  .mq-tile{border:1.5px solid var(--border); border-radius:14px; background:var(--bg1, #1e1918); padding:6px 3px 7px; text-align:center; color:var(--text); font:800 10px/1.2 'Manrope',sans-serif; cursor:pointer; min-width:0;}
+  .mq-tile img{width:44px; height:44px; object-fit:contain; display:block; margin:0 auto 3px;}
+  .mq-tile small{display:block; color:var(--accent, var(--blue)); font-size:9.5px; margin-top:2px;}
+  .mq-tile span{display:block; overflow:hidden; text-overflow:ellipsis;}
+  .mq-none{color:var(--text-dim); font:700 12px 'Manrope',sans-serif; padding:6px 2px;}
+  .mq-res{display:flex; align-items:center; gap:10px; width:100%; border:0; border-bottom:1px solid var(--border); background:none; padding:7px 2px; color:var(--text); font:800 14px 'Manrope',sans-serif; text-align:left; cursor:pointer;}
+  .mq-res img{width:40px; height:40px; object-fit:contain;}
+  .mq-acts{display:flex; gap:8px; margin-top:14px;}
+  .mq-act{flex:1; border:1.5px solid var(--border); border-radius:12px; padding:10px; background:var(--bg1, #1e1918); color:var(--text); font:800 13px 'Manrope',sans-serif;}
+  .mq-act.danger{color:#ff7b7b; border-color:color-mix(in srgb, #ff7b7b 50%, var(--border));}
+  .mq-role{display:flex; align-items:center; gap:12px; width:100%; text-align:left; border:1.5px solid var(--border); border-radius:16px; background:var(--bg1, #1e1918); padding:13px; margin-bottom:10px; color:var(--text); cursor:pointer;}
+  .mq-role .ic{width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:21px; background:var(--card); flex:none;}
+  .mq-role b{font:800 15px 'Manrope',sans-serif;}
+  .mq-role small{display:block; color:var(--text-dim); font:700 11.5px 'Manrope',sans-serif; margin-top:2px;}
+  .mq-role:disabled{opacity:.45;}
+  .mq-types{display:grid; grid-template-columns:repeat(9, minmax(0,1fr)); gap:5px; margin:2px 0 6px;}
+  .mq-type{border:2px solid transparent; border-radius:9px; padding:6px 0; display:flex; align-items:center; justify-content:center; color:#fff; font:800 9px 'Manrope',sans-serif; cursor:pointer;}
+  .mq-type img{width:18px; height:18px; filter:brightness(0) invert(1);}
+  .mq-type.on{border-color:#fff; box-shadow:0 0 0 2px var(--accent, var(--blue));}
+  .mq-tabs3{display:flex; gap:3px; background:var(--bg1, #1e1918); border:1.5px solid var(--border); border-radius:12px; padding:3px; margin-bottom:8px;}
+  .mq-tabs3 button{flex:1; border:0; border-radius:9px; padding:7px 0; background:transparent; color:var(--text-dim); font:800 12px 'Manrope',sans-serif;}
+  .mq-tabs3 button.on{background:var(--accent, var(--blue)); color:#1a1312;}
+  .mq-searchbtn{width:100%; margin-top:14px; border:1.5px dashed var(--border); border-radius:12px; padding:11px; background:transparent; color:var(--text); font:800 13px 'Manrope',sans-serif;}
+  .mq-res span{flex:1;}
+  .mq-res small{color:var(--accent, var(--blue)); font:800 10.5px 'Manrope',sans-serif;}
+  .mq-tile img[loading]{min-height:44px;}
+  .mq-editcard{display:grid; grid-template-columns:56px 1fr; grid-template-rows:auto auto; column-gap:12px; row-gap:8px; align-items:center; width:100%; text-align:left;
+      border:2px solid var(--accent, var(--blue)); border-radius:16px; background:color-mix(in srgb, var(--accent, var(--blue)) 12%, var(--bg1, #1e1918)); padding:12px; color:var(--text); cursor:pointer;}
+  .mq-editcard img{width:56px; height:56px; object-fit:contain; grid-row:1 / span 2;}
+  .mq-h.mq-or{margin-top:16px;}
+  .mq-grab{width:44px; height:5px; border-radius:3px; background:var(--border); margin:0 auto 10px;}
+  .mq-sheet-head{display:flex; align-items:center; gap:10px; margin-bottom:10px; font:800 15px 'Manrope',sans-serif; color:var(--text);}
+  .mq-sheet-head img{width:42px; height:42px; object-fit:contain;}
+  .mq-sheet-head small{display:block; color:var(--text-dim); font-size:11.5px; font-weight:700;}
+  .mq-sheet-head .done{margin-left:auto; border:0; background:none; color:var(--accent, var(--blue)); font:800 13px 'Manrope',sans-serif;}
+  .mq-mrow{display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; margin-bottom:7px; border:2px solid var(--mq-c, var(--border)); border-radius:12px; padding:9px 11px;
+      background:color-mix(in srgb, var(--mq-c, var(--border)) 16%, var(--card)); color:var(--text); font:800 13px 'Manrope',sans-serif; text-align:left; cursor:pointer;}
+  .mq-mrow.cur{box-shadow:0 0 0 2px var(--mq-c, var(--border));}
+  .mq-mrow .cur-tag{color:var(--accent, var(--blue)); font-size:10.5px; margin-left:4px;}
+  .mq-mrow.plain{--mq-c:var(--border); font-weight:700; color:var(--text-dim);}
+  /* desktop: the Pokemon browser as a roomy dialog - every type in one row, six Pokemon to a row */
+  @media (min-width:561px){
+    .mq-sheet.mq-pick{ max-width:760px; max-height:86vh; }
+    .mq-sheet.mq-pick .mq-types{ grid-template-columns:repeat(18, minmax(0, 1fr)); }
+    .mq-sheet.mq-pick .mq-grid4{ grid-template-columns:repeat(6, minmax(0, 1fr)); }
+    .mq-sheet.mq-pick .mq-results{ max-height:60vh; overflow:auto; }
+  }
+</style>
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -1745,7 +1815,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · desktop party bar</p>
+      <p class="beta-build">Build 2026-11-11 · desktop party bar 2</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -10624,6 +10694,7 @@ updateCTMode();
         <button type="button" class="mq-searchbtn" data-search="1">Search by name instead</button>${opts.bottom || ""}</div>
       <div class="mq-searchview" hidden><input class="mq-search" type="text" placeholder="Type a name…" autocomplete="off" autocapitalize="words" enterkeyhint="search"><div class="mq-results"></div></div>`);
     const sheetEl = wrap.querySelector(".mq-sheet"), body = wrap.querySelector(".mq-body"), seg = wrap.querySelector(".mq-seg"), sub = wrap.querySelector(".mq-sub");
+    sheetEl.classList.add("mq-pick");
     const browse = wrap.querySelector(".mq-browse"), sview = wrap.querySelector(".mq-searchview"), input = wrap.querySelector(".mq-search"), results = wrap.querySelector(".mq-results");
     const paintSeg = () => { if(opts.seg){ seg.innerHTML = opts.seg(role); } sub.textContent = opts.sub ? opts.sub(role) : ""; };
     const typeGrid = () => `<div class="mq-types">${TYPE_LIST.map(t => `<button type="button" class="mq-type${t === type ? " on" : ""}" data-type="${t}" title="${cap(t)}" style="background:${TYPE[t]}"><img src="${TYPE_ICON(t)}" alt="${cap(t)}" onerror="this.replaceWith(document.createTextNode('${cap(t).slice(0, 3)}'))"></button>`).join("")}</div>`;
