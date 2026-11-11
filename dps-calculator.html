@@ -1482,7 +1482,7 @@ if ("serviceWorker" in navigator) {
   .mod-cell.has-sel-ico > .mod-sel-ico[hidden]{ display:none; }
   .mod-cell.has-sel-ico > .mod-sel-ico[hidden] + select{ grid-column:1 / -1; }
   .mod-cell.has-sel-ico > select{ grid-column:2; min-width:0; }
-  /* Add to your party: under the main DPSer */
+  /* Add to your party: under the main DPS */
   .party-add-card{ padding-top:16px !important; padding-bottom:16px !important; }
   .party-add-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
   .party-add-head .step-title{ margin:0; }
@@ -1491,7 +1491,7 @@ if ("serviceWorker" in navigator) {
   .party-add-card .party-meter{ margin:0 !important; white-space:nowrap; }
   .team-log td.team-en{ text-align:right; font-variant-numeric:tabular-nums; color:#ffd166; white-space:nowrap; padding-left:4px; }
   .beta-build{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin:0 0 6px; }
-  /* Desktop Battle Simulator: the battle party bar and the raid boss side by side; no default Main DPSer
+  /* Desktop Battle Simulator: the battle party bar and the raid boss side by side; no default Main DPS
      card (it appears once one is chosen), no Add to your party card, no party order grid */
   .dt-top{ display:none; }
   .dt-main-right{ display:none; }
@@ -1528,6 +1528,43 @@ if ("serviceWorker" in navigator) {
   #playerBossPanel:not(:empty) + .att-dps-slot, #playerBossPanel:not(:empty) ~ .att-dps-slot{ margin-top:10px; }
   .card-flash{ animation:cardFlash 1.2s ease; }
   @keyframes cardFlash{ 0%{ box-shadow:0 0 0 3px var(--accent, #ff8a3d); } 100%{ box-shadow:0 0 0 0 transparent; } }
+  .dt-rm{ position:absolute; top:5px; right:6px; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font:800 15px/1 'Manrope',sans-serif; color:var(--text-dim); border:1.5px solid var(--border); background:var(--card); cursor:pointer; }
+  .dt-rm:hover{ color:#ff6b6b; border-color:#ff6b6b; }
+  .mq-tile small{ white-space:normal !important; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.2; }
+  /* a suggested catch tank's (i), and what it opens: its uses against this boss */
+  .mq-tile{ position:relative; }
+  .mq-ti{ position:absolute; top:4px; right:4px; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font:italic 800 10.5px Georgia, serif; color:var(--text-dim); border:1.5px solid var(--border); background:var(--card); cursor:pointer; }
+  .mq-ti:hover{ color:var(--accent, #ff8a3d); border-color:var(--accent, #ff8a3d); }
+  .mq-usage{ grid-column:1 / -1; border:1.5px solid var(--accent, #ff8a3d); border-radius:12px; padding:8px 10px; background:var(--card); }
+  .mq-usage-h{ display:flex; align-items:center; gap:6px; font:700 12px 'Manrope',sans-serif; color:var(--text-dim); margin-bottom:4px; } .mq-usage-h b{ color:var(--text); }
+  .mq-usage-x{ margin-left:auto; border:0; background:transparent; color:var(--text-dim); font:800 16px/1 'Manrope',sans-serif; cursor:pointer; }
+  .mq-usage-r{ display:flex; align-items:center; gap:10px; padding:5px 0; border-top:1px solid var(--border); font:700 12px 'Manrope',sans-serif; color:var(--text-dim); }
+  .mq-usage-r span{ flex:1; min-width:0; } .mq-usage-r b{ color:var(--text); } .mq-usage-r small{ display:block; font-size:10.5px; margin-top:1px; }
+  .mq-usage-r em{ font-style:normal; font:800 11px 'Manrope',sans-serif; color:var(--accent, #ff8a3d); white-space:nowrap; }
+  /* a boss moveset: "vs" at the left, the fast move above the charge move, both starting at the same edge */
+  .mq-vs, .mq-tile span.mq-vs{ display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:4px; align-items:center; width:100%; margin-top:3px; text-align:left; white-space:normal; }
+  .mq-vs > i{ font:italic 800 9.5px 'Manrope',sans-serif; color:var(--text-dim); align-self:center; }
+  .mq-vs .mvs, .mq-tile span.mq-vs span.mvs{ display:flex; flex-direction:column; gap:2px; min-width:0; width:auto; margin:0; }
+  .mq-vs .mv, .mq-tile span.mq-vs span.mv{ display:flex; align-items:center; gap:4px; border:0; padding:0; margin:0; font:800 9.5px/1.45 'Manrope',sans-serif; color:var(--text); text-align:left; min-width:0;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mq-usage-r .mq-vs{ width:auto; max-width:220px; } .mq-usage-r .mq-vs .mv{ font-size:11px; }
+  @media (max-width:560px){   /* phones: narrow tiles - a little less padding and smaller move text, so the names fit */
+    .mq-tile:has(.mq-vs), .mq-tile.has-vs{ padding-left:3px !important; padding-right:3px !important; }
+    .mq-tile span.mq-vs{ column-gap:2px; } .mq-tile span.mq-vs > i{ font-size:8px; }
+    .mq-tile span.mq-vs span.mv{ font-size:8.5px; padding:0 3px; border-width:1.25px; }
+    .mq-grid4.mq-grid-vs{ grid-template-columns:repeat(3, minmax(0, 1fr)) !important; }   /* catch tanks: room for the boss's move names */
+    .mq-grid-vs .mq-tile span.mq-vs span.mv{ font-size:9.5px; padding:0 4px; }
+  }
+  .mq-usage-r small{ margin-top:3px !important; }
+  .mq-vs .mvi, .mq-tile span.mq-vs span.mvi{ flex:none; width:13px; height:13px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin:0; padding:0; }
+  .mq-vs .mvi img{ width:8px; height:8px; filter:brightness(0) invert(1); }
+  .mq-vs .mvn, .mq-tile span.mq-vs span.mvn{ display:block; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin:0; }
+  @media (max-width:370px){   /* the narrowest phones: a smaller icon and name so the boss's moves fit */
+    .mq-grid-vs .mq-tile span.mq-vs span.mv{ font-size:8.5px; gap:3px; } .mq-vs .mvi, .mq-tile span.mq-vs span.mvi{ width:11px; height:11px; } .mq-vs .mvi img{ width:7px; height:7px; }
+    .mq-grid-vs .mq-tile span.mq-vs{ column-gap:2px; } .mq-grid-vs .mq-tile{ padding-left:2px !important; padding-right:2px !important; }
+  }
 </style>
 <style>
   /* The picker sheets' contents at every width (they were in the phone stylesheet only, so on desktop the
@@ -1803,7 +1840,7 @@ if ("serviceWorker" in navigator) {
        or shared link always carries its own mode (one with none opens in Single Catch Tank) -->
   <div class="ct-mode-toggle">
     <input type="radio" name="ctMode" id="ctModeTeam" value="team" checked>
-    <label for="ctModeTeam" title="Your battle party - main DPSer, support DPSers and catch tanks - simulated turn by turn">Battle Simulator</label>
+    <label for="ctModeTeam" title="Your battle party - main DPS, support DPS and catch tanks - simulated turn by turn">Battle Simulator</label>
     <input type="radio" name="ctMode" id="ctModeMainDPS" value="maindps">
     <label for="ctModeMainDPS">Main DPS</label>
     <input type="radio" name="ctMode" id="ctModeSingle" value="single">
@@ -1815,11 +1852,11 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · desktop party bar 2</p>
+      <p class="beta-build">Build 2026-11-11 · desktop party bar 6</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
-        <li>A main DPSer, up to five support DPSers, and up to three kinds of catch tank - or no catch tanks at all (Remove on Catch Tank 1), for hot swapping only.</li>
+        <li>A main DPS, up to five support DPS, and up to three kinds of catch tank - or no catch tanks at all (Remove on Catch Tank 1), for hot swapping only.</li>
         <li>A catch tank swaps in as the boss's charge move lands, uses one fast move, fires the charge moves set on its card, and swaps back. With <b>Double catch</b>, it catches twice: after the first it uses the set fast moves and swaps out holding its energy, then comes back for the boss's next charge move and fires on both catches' energy (only when it has the HP for the second catch).</li>
         <li>Swaps take 0.5s. Each swap to a catch tank is timed for the highest DPS: the fight is run for every swap time, 0.5s apart, and the best is kept.</li>
       </ul>
@@ -1836,7 +1873,7 @@ if ("serviceWorker" in navigator) {
       <p class="beta-h">Hot swaps</p>
       <ul>
         <li>An attacker hot swaps to the next one when it can't safely take the boss's next charge move (no catch tank left, and a sponge or dodge isn't safe), or when it can't live to land its next charge move. It fires the charge move it is building first if that lands in time - or stays in, takes the hit, and lands it, when it can survive to. The next attacker comes in with full HP and no energy; attackers never come back.</li>
-        <li><b>Doubling back</b>: when an incoming charge move would make the attacker in overflow and a support DPSer could absorb it fully, the simulator plays the fight forward both ways and swaps to the support if that deals more damage. The support is used until it is done, then the attacker comes back - with the HP and energy it left with - ahead of any new one.</li>
+        <li><b>Doubling back</b>: when an incoming charge move would make the attacker in overflow and a support DPS could absorb it fully, the simulator plays the fight forward both ways and swaps to the support if that deals more damage. The support is used until it is done, then the attacker comes back - with the HP and energy it left with - ahead of any new one.</li>
         <li><b>Juice main DPS</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
       </ul>
       <p class="beta-h">The end of the run</p>
@@ -1859,7 +1896,7 @@ if ("serviceWorker" in navigator) {
   
   <!-- STEP 1: SIDE BY SIDE -->
     <!-- Desktop Battle Simulator: the battle party bar (left) and the raid boss (right), side by side. The
-       boss's fields are moved in here by the page script (and back into the Main DPSer card in other modes). -->
+       boss's fields are moved in here by the page script (and back into the Main DPS card in other modes). -->
   <div class="dt-top" id="dtTop">
     <div class="step-card dt-party" id="dtPartyCard">
       <div class="dt-party-head"><span class="step-title">Battle party</span><span class="party-meter" id="dtPartyMeter"></span></div>
@@ -1977,11 +2014,11 @@ if ("serviceWorker" in navigator) {
       <div class="vs-col dt-main-right" id="mainRightCol"><div id="playerBossPanel"></div></div>
       </div>
   </div>
-  <!-- Building the party: right under the main DPSer - catch tanks and support DPSers are added here,
+  <!-- Building the party: right under the main DPS - catch tanks and support DPS are added here,
        in the order a party is built; the count of six sits with it -->
   <div class="step-card team-only party-add-card" id="partyAddCard">
     <div class="party-add-head"><span class="step-title">Add to your party</span><span class="party-meter" id="ctPartyMeter" aria-live="polite"></span></div>
-    <div class="team-add-row"><button type="button" class="team-add-btn" id="ctAddType">+ Add a catch tank</button><button type="button" class="team-add-btn" id="sdAdd" title="Hot swap: when the attacker in can't reach another charge move (its catch tanks used and a sponge unsafe), it swaps out and the next support DPSer comes in.">+ Add a support DPSer</button></div>
+    <div class="team-add-row"><button type="button" class="team-add-btn" id="ctAddType">+ Add a catch tank</button><button type="button" class="team-add-btn" id="sdAdd" title="Hot swap: when the attacker in can't reach another charge move (its catch tanks used and a sponge unsafe), it swaps out and the next support DPS comes in.">+ Add a support DPS</button></div>
   </div>
 
   <!-- Beta: Battle Party Simulator - the catch tank, laid out like step 1: the tank on the left,
@@ -2000,7 +2037,7 @@ if ("serviceWorker" in navigator) {
         <div class="name-iv-row">
           <div class="field name-field">
             <label for="ctName">Pokémon</label>
-            <input id="ctName" placeholder="e.g. Kyurem Black" autocomplete="off" title="With a support DPSer added, leave this empty for a hot-swap chain with no catch tanks.">
+            <input id="ctName" placeholder="e.g. Kyurem Black" autocomplete="off" title="With a support DPS added, leave this empty for a hot-swap chain with no catch tanks.">
             <div class="ac-list" id="ctName_ac"></div>
           </div>
           <div class="field iv-field"><label for="ctLevel">Level</label><input id="ctLevel" type="text" inputmode="decimal" value="50" placeholder="e.g. 50"></div>
@@ -2070,7 +2107,7 @@ if ("serviceWorker" in navigator) {
 
   <!-- Catch Tank 2 and 3 are inserted here, as copies of the card above -->
   <div id="teamExtraCards"></div>
-  <!-- Hot swap: Support DPSer 1 and 2, copies of the catch tank card with attacker settings -->
+  <!-- Hot swap: Support DPS 1 and 2, copies of the catch tank card with attacker settings -->
   <div id="supportCards"></div>
 
   <!-- Beta: settings that apply to the whole run - who may take the boss's charge moves, and in
@@ -2086,13 +2123,13 @@ if ("serviceWorker" in navigator) {
     <div class="tb-group">
       <div class="tb-group-head">Main behavior</div>
       <div class="team-behavior-row">
-      <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPSer dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPSer only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
+      <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPS dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPS only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
         <select id="ctDodgeLimit">
           <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
           <option value="0" title="No limit">∞</option>
         </select>
       </label>
-      <label class="check-item" title="When no catch tank is left and the main DPSer can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
+      <label class="check-item" title="When no catch tank is left and the main DPS can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
       <label class="check-item" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
       <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
         <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
@@ -2118,7 +2155,7 @@ if ("serviceWorker" in navigator) {
       <input type="hidden" id="ctTypes" value="0">
       <input type="hidden" id="sdCount" value="0">
       <div hidden>
-        <label class="check-item" title="Safe = absorbs at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label><label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label><input type="checkbox" id="ctCmBuffer" hidden tabindex="-1">
+        <label class="check-item" title="Safe = absorbs at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label><label class="check-item" title="The main DPS dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label><input type="checkbox" id="ctCmBuffer" hidden tabindex="-1">
         <div id="supportBehaviorRows"></div><div id="supportBehaviorEmpty"></div>
         <!-- "Used by" from before the list (Catch Tank 1 / 2 / 3), only read to convert old setups -->
         <input type="hidden" id="ctOwner" value="any"><input type="hidden" id="ct2Owner" value="any"><input type="hidden" id="ct3Owner" value="any">
@@ -2138,7 +2175,7 @@ if ("serviceWorker" in navigator) {
       <div class="team-behavior-row">
 
 
-      <label class="check-item" title="The boss may cast a charge move straight after another. Catch tanks adapt: the one in fires first and the next catches it if there is time, otherwise the next catches it now and the first doubles back; with none left, the catch tank dodges, or the main DPSer dodges, or a low-HP catch tank is sacrificed."><input type="checkbox" id="ctB2B"> Back-to-back charge moves (beta)</label>
+      <label class="check-item" title="The boss may cast a charge move straight after another. Catch tanks adapt: the one in fires first and the next catches it if there is time, otherwise the next catches it now and the first doubles back; with none left, the catch tank dodges, or the main DPS dodges, or a low-HP catch tank is sacrificed."><input type="checkbox" id="ctB2B"> Back-to-back charge moves (beta)</label>
       </div>
     </div>
   </div>
@@ -3244,7 +3281,7 @@ function energyFromDamage(dmg){
   return Math.ceil(0.5 * dmg);
 }
 
-// How many of the boss's fast moves a catch tank (or the main DPSer absorbing a charge move) is
+// How many of the boss's fast moves a catch tank (or the main DPS absorbing a charge move) is
 // shown taking, in Single / Double Catch Tank and Main DPS: 0 to 3. Was 0 to 2.
 const FM_TANKED_OUTCOMES = [0, 1, 2, 3];
 // "1st", "2nd", "3rd", "4th"... for the risky-timing notes (they used to print "3nd").
@@ -3292,7 +3329,7 @@ function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
 }
 
 // ============ CT + MAIN DPS SIMULATOR (test mode) ============
-// A main DPSer and N copies of one catch tank against the boss, stepped one tick (0.5s) at a
+// A main DPS and N copies of one catch tank against the boss, stepped one tick (0.5s) at a
 // time on a single shared timeline. Built from the same pieces as Main DPS mode: the same boss
 // aggression model (empty starting bar, half-phase accumulator), energy from damage banked when it
 // LANDS and rounded up per hit (energyFromDamage), and the 100-energy cap on both sides.
@@ -3316,7 +3353,7 @@ function bossFMContinuousLandingTicks(bossFMAnimTicks, count){
 // At 1.0s, Mega Mewtwo X + 5 Shadow Regigigas vs Kyurem White ran 72.0s instead of ~67s.
 const TEAM_SWAP_TICKS = 1;
 const TEAM_MAX_TICKS = 600;     // 300s: the Tier 5 raid timer, a backstop rather than a setting
-// A dodge is 2 ticks (1.0s) in which the main DPSer does nothing else - the same cost Main DPS
+// A dodge is 2 ticks (1.0s) in which the main DPS does nothing else - the same cost Main DPS
 // mode and Single Catch Tank charge for Dodge CM. Here it is timed like a swap: as late as
 // possible, ending on the tick the boss's charge move lands.
 const TEAM_DODGE_TICKS = 2;
@@ -3397,15 +3434,15 @@ function simulateTeam(P){
     autoBack: null,   // after the game's auto-swap to an earlier attacker: the attacker to go back to
     autoNext: null,   // after the game's auto-swap to a catch tank: who the player swaps on to
     // The last point the rotation was on solid ground: a catch tank's final charge move landing,
-    // or the main DPSer's charge move landing after a sponge. A run that ends because nobody can
+    // or the main DPS's charge move landing after a sponge. A run that ends because nobody can
     // take the next charge move is cut back to here, so it never includes a half-built cycle.
     safePoint: null, awaitMainCM: false,
-    // Finishing: no catch tank is left for the next charge move, so the main DPSer comes back to
+    // Finishing: no catch tank is left for the next charge move, so the main DPS comes back to
     // spend the energy it is holding/building. The run ends when that charge move lands
     // (finishAt), provided it lands before the boss's next charge move would hit (finishDeadline).
     finishing: false, finishDeadline: null, finishAt: null,
     // Main allowed to dodge: pendingDodge is booked when the boss casts { cast, land, latest };
-    // dodging is the one in progress. mainDodges counts the main DPSer's dodges over the whole run.
+    // dodging is the one in progress. mainDodges counts the main DPS's dodges over the whole run.
     pendingDodge: null, dodging: null, mainDodges: 0, allIn: false,
     catchNo: 0,   // swaps to a catch tank booked so far - which catch's timing to use (Best timing)
     ended: null, probe: null,
@@ -3422,7 +3459,7 @@ function simulateTeam(P){
     R.ticks.push(teamTickRecord(P, S, R, before));
     // Every Pokemon's HP and energy after this tick, for the final reading at the end point.
     R.state[S.t] = S.mons.map(m => ({ hp: m.hp, energy: m.energy }));
-    // HP alongside each log entry: the main DPSer's, and the catch tank's - the one the entry is
+    // HP alongside each log entry: the main DPS's, and the catch tank's - the one the entry is
     // about, otherwise the one on the field (or mid-swap). Values are after the tick resolves.
     for(let k = before.events; k < R.events.length; k++){
       const e = R.events[k], v = e.ev || {};
@@ -3444,8 +3481,8 @@ function newTeamRecorder(){
   return { dmg: [], events: [], segs: [{ t: 0, who: 0, att: 0 }], bossMoves: [], decisions: [], hp: [], swaps: [], dodges: [], mainEnergy: [], ticks: [], state: [], attSpans: [] };
 }
 
-// Hot swap: the attackers - the main DPSer, then any support DPSers - take turns in slot 0, one
-// after another (never coming back). P.main and the main DPSer's settings (mainAbsorbs,
+// Hot swap: the attackers - the main DPS, then any support DPS - take turns in slot 0, one
+// after another (never coming back). P.main and the main DPS's settings (mainAbsorbs,
 // mainDodges, mainRank, spongeRule) are those of the attacker S.att, loaded here at the start of
 // every tick, so all the decision code serves whichever attacker is in.
 function teamApplyAttacker(P, S){
@@ -3659,7 +3696,7 @@ function teamStep(S, R, P, snap){
     }
     if(hasNext()){ startHotSwap(); return; }   // hot swap: the next attacker comes in
     if(S.finishing){ end(S.safePoint !== null ? S.safePoint : t, S.allIn ? "all-in-fainted" : "finish-missed"); return; }
-    // The main DPSer can't safely continue, so it bails at its last safe point: the last charge
+    // The main DPS can't safely continue, so it bails at its last safe point: the last charge
     // move that landed before it would faint - everything up to there counts, catch tanks left or
     // not. (This used to cut back to the end of the last catch tank's turn whenever tanks were
     // unused, which threw away whatever came after: a Mega Mewtwo X worn down by Snarl lost 35s
@@ -3673,7 +3710,7 @@ function teamStep(S, R, P, snap){
   // Decide who takes a boss charge move cast now, landing at `land`.
   const onBossCM = (land, cast = t) => {
     if(S.probe){
-      // probe: only its own CM. (A dodge probe that has already seen the main DPSer fire is only
+      // probe: only its own CM. (A dodge probe that has already seen the main DPS fire is only
       // waiting for that charge move to land; a boss charge move cast meanwhile is the real run's
       // next decision, not this one's.)
       // (Once no catch tank is left, the sponge decision doesn't use this play-forward check at all -
@@ -3738,7 +3775,7 @@ function teamStep(S, R, P, snap){
       // its energy, fires before the boss's next one...). With none left the choice is only sponge
       // and keep going vs go all in - both take this same hit, energy and all - so it is a plain
       // health check against the boss's threat (teamMainCanKeepGoing).
-      // A support DPSer set to "Survive only" always uses the health check (energy over the cap is fine).
+      // A support DPS set to "Survive only" always uses the health check (energy over the cap is fine).
       const mainSafe = () => (safe === null ? (safe = !!(P.mainAbsorbs && (tanksLeft && P.spongeRule !== "survive"
         ? (snap && teamMainCanAbsorb(snap, P, t, land))
         : teamMainCanKeepGoing(S, P, t, land)))) : safe);
@@ -3754,10 +3791,10 @@ function teamStep(S, R, P, snap){
         return;
       }
       // Main allowed to dodge: while it has dodges left (the set number, over the whole run), the
-      // main DPSer dodges instead of a catch tank coming in - only when it is free in time to dodge,
+      // main DPS dodges instead of a catch tank coming in - only when it is free in time to dodge,
       // survives the dodged hit, and fires its own charge move before the boss's next one and lives
       // to see it land (teamMainCanDodge). Otherwise the priority list carries on as usual: catch
-      // tanks catch, and the main DPSer only drops out (the run ends) when nothing can keep it safe.
+      // tanks catch, and the main DPS only drops out (the run ends) when nothing can keep it safe.
       const dodgesLeft = P.mainDodges && (P.dodgeLimit === 0 || S.mainDodges < P.dodgeLimit);
       const dodgeFree = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0) + TEAM_DODGE_TICKS <= land;
       if(dodgesLeft && dodgeFree && snap && teamMainCanDodge(snap, P, t, land)){
@@ -3772,7 +3809,7 @@ function teamStep(S, R, P, snap){
       // Back-to-back: no catch tank left and this hit would knock the attacker in out - it dodges if
       // it can (the all-in / hot swap paths below do); if it can't, a low-HP catch tank is sacrificed
       // to it (the game then swaps to the first living slot)
-      // (only with nobody to hot swap to: a support DPSer coming in fresh takes it for one swap,
+      // (only with nobody to hot swap to: a support DPS coming in fresh takes it for one swap,
       // keeps the catch tank, and gains the energy - better than a sacrifice and two swaps)
       if(P.b2b && !tanksLeft && !hasNext() && S.mons[0].hp <= P.main.bossCmDmg){
         const free = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0);
@@ -3809,10 +3846,10 @@ function teamStep(S, R, P, snap){
       }
       if(!tanksLeft && P.allIn){
         // All in: nobody can safely take this one, but instead of bailing on the energy it holds
-        // the main DPSer stays in to finish the charge move it is building. If dodging is allowed it
+        // the main DPS stays in to finish the charge move it is building. If dodging is allowed it
         // dodges whenever it is free in time - the "Dodges before bailing" count doesn't apply, as
         // this is the alternative to bailing, and there is no safety test: it's the last push.
-        // Otherwise it takes the hit. The run ends when that charge move lands; if the main DPSer faints first,
+        // Otherwise it takes the hit. The run ends when that charge move lands; if the main DPS faints first,
         // results stop at the last charge move that landed, exactly as a bail would.
         S.finishing = true; S.allIn = true;
         const canDodge = P.mainDodges && Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0) + TEAM_DODGE_TICKS <= land;
@@ -3826,7 +3863,7 @@ function teamStep(S, R, P, snap){
         return;
       }
       if(!tanksLeft){
-        // Nobody can take this one. Before stopping, the main DPSer gets to fire the charge move
+        // Nobody can take this one. Before stopping, the main DPS gets to fire the charge move
         // it is holding or building - but it has to land before this charge move does.
         dec.outcome = "end";
         S.finishing = true;
@@ -3851,8 +3888,8 @@ function teamStep(S, R, P, snap){
     // move before this hit lands. If it can, it finishes and the next catch tank swaps straight in
     // to intercept (two smaller catch tank turns); if not, the next catch tank swaps in now and the
     // first doubles back once that one is done. With no catch tank left: the catch tank dodges; or
-    // the main DPSer comes back and dodges; or a low-HP catch tank is sacrificed (the game then
-    // swaps to the first living slot - the main DPSer - before the first catch tank can come back).
+    // the main DPS comes back and dodges; or a low-HP catch tank is sacrificed (the game then
+    // swaps to the first living slot - the main DPS - before the first catch tank can come back).
     // (the same in a sponge / dodge probe as in the run - a probe that handled it differently
     // predicted timings the run then missed)
     if(P.b2b){
@@ -3926,7 +3963,7 @@ function teamStep(S, R, P, snap){
     }
     if(hm.hp > P.tanks[hm.type].bossCmDmg && !(P.tanks[hm.type].doubleCatch && hm.dc === 1 && !safeSecond(hm))){
       // It stays in to catch this one too (it used to finish its charge moves and swap out before
-      // the hit landed, leaving the main DPSer to take it), and fires its charge moves again after.
+      // the hit landed, leaving the main DPS to take it), and fires its charge moves again after.
       // (With double catch, a tank still in after its 1st catch makes this its 2nd, without a swap.)
       hm.waitCatch = land; hm.cmCasts = 0; hm.primed = false;
       dec.outcome = "tank-again"; dec.tank = holder;
@@ -3954,7 +3991,7 @@ function teamStep(S, R, P, snap){
     B.energy = Math.min(100, B.energy + energyFromDamage(h.dmg));
     // Any charge move landing is a safe point: whatever energy built up has just been spent.
     if(h.cm && !S.probe) S.safePoint = Math.max(S.safePoint === null ? 0 : S.safePoint, t);
-    // dodge probe: the main DPSer's charge move after the dodge has landed - the dodge is safe
+    // dodge probe: the main DPS's charge move after the dodge has landed - the dodge is safe
     if(h.cm && h.who === 0 && S.probe && S.probe.dodge && !S.probe.done && S.probe.cmLand === t) S.probe.done = "ok";
     if(h.cm && h.who === 0 && !S.probe) S.justLanded = true;   // Double back: a benched attacker may come back now
     // juice: the charge move it went in for has landed - the gamble paid off; normal decisions resume
@@ -4164,7 +4201,7 @@ function teamStep(S, R, P, snap){
       if(who === 0 && S.pendingDodge && t + nextDur > S.pendingDodge.latest){
         // Main allowed to dodge: its next move wouldn't finish before the dodge has to start, so it
         // stops here and dodges, busy until the charge move lands. Any wait before the dodge's
-        // last 1.0s is counted with it - the main DPSer can't attack in that time either.
+        // last 1.0s is counted with it - the main DPS can't attack in that time either.
         S.dodging = S.pendingDodge; S.pendingDodge = null;
         m.busyUntil = S.dodging.land;
         if(!S.probe) R.dodges.push({ t, start: S.dodging.latest, until: S.dodging.land, cast: S.dodging.cast });
@@ -4187,7 +4224,7 @@ function teamStep(S, R, P, snap){
         const to = S.autoBack; S.autoBack = null;
         startHotSwap(to); return;
       } else if(who === 0 && P.b2b && !S.pendingSwap && !S.pendingDodge && !S.dodging && t >= S.returnAfter && nextReturn(0)){
-        // Back-to-back: back at the main DPSer after a dodge or a sacrifice - a catch tank that had
+        // Back-to-back: back at the main DPS after a dodge or a sacrifice - a catch tank that had
         // to make way comes back to fire its charge move
         const to = S.returnTanks.shift();
         if(!S.probe) R.events.push({ t, kind: "ct", text: `${teamLabel(P, to)} doubles back to fire its ${P.tanks[S.mons[to].type].cm.n}`, ev: { type: "tankBack", who: to } });
@@ -4212,13 +4249,13 @@ function teamStep(S, R, P, snap){
         // Single catch tank: it has fired its "Charge moves" setting's worth (using fast moves in
         // between as needed). If it was the last one, the rotation ends
         // the moment its final charge move lands (this tick): with no tank left for the boss's
-        // next charge move, the main DPSer can't be relied on past this point.
-        // With "absorbs when safe" on, the main DPSer can still take later charge moves, so the
+        // next charge move, the main DPS can't be relied on past this point.
+        // With "absorbs when safe" on, the main DPS can still take later charge moves, so the
         // run goes on until one arrives that nobody can take.
         S.safePoint = t;
         // The last tank is done. Rather than ending here - which left Eternatus benched on a full
         // 100 energy whenever the swap for the last tank had cut its Dynamax Cannon off - the main
-        // DPSer comes back and fires what it has built (see finishing).
+        // DPS comes back and fires what it has built (see finishing).
         if(noTankLeft() && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges && !hasNext()) S.finishing = true;
         if(P.b2b && S.pendingSwap && S.pendingSwap.to !== who){
           // Back-to-back: the next catch tank is booked for the 2nd charge move - straight to it
@@ -4259,7 +4296,7 @@ function teamStep(S, R, P, snap){
         // Only if nothing has already failed: the energy rule (step 4) can fail on this same tick.
         if(S.probe && !S.probe.done && !m.tank && t >= S.probe.land){
           // A sponge is accepted once the charge move starts. A dodge waits for it to LAND: a main
-          // DPSer that dodges, fires, and faints before the hit lands has gained nothing (seen with
+          // DPS that dodges, fires, and faints before the hit lands has gained nothing (seen with
           // Kyurem Black vs Mega Dragonite - the second dodge left it on 35 HP, Freeze Shock started
           // at 35.5s, a Dragon Tail knocked it out at 36.0s, and the run was cut back to 17.0s).
           if(!S.probe.dodge) S.probe.done = "ok";
@@ -4294,7 +4331,7 @@ function teamRunDps(S, R){
   return E > 0 ? R.dmg.reduce((a, d) => a + (d.t <= E ? d.dmg : 0), 0) / (E / 2) : 0;
 }
 
-// Can the main DPSer take ("sponge") this charge move itself, while catch tanks are still left?
+// Can the main DPS take ("sponge") this charge move itself, while catch tanks are still left?
 // Plays the fight forward from the start of this tick with the main absorbing it, and accepts only
 // if: it keeps at least 90% of the hit's energy (no more than 10% over 100), survives the hit, and
 // starts its next charge move after it lands without fainting and without another boss charge move
@@ -4315,7 +4352,7 @@ function teamMainCanAbsorb(snap, P, cast, land){
   return L.probe.done === "ok";
 }
 
-// No catch tank left: can the main DPSer take this charge move and still complete another rotation?
+// No catch tank left: can the main DPS take this charge move and still complete another rotation?
 // The plain check a player makes: after the hit, its HP must outlast the boss's fast moves while it
 // builds the energy it is missing (charge move first, if it already has the energy before the hit
 // lands) and casts its charge move. Energy going over the cap doesn't matter here: going all in
@@ -4339,7 +4376,7 @@ function teamMainCanKeepGoing(S, P, t, land){
 // (S.juice). It pays off if a new charge move of its own lands - one already in the air doesn't
 // count - before it faints. If not, the run hot swaps where it was going to, as if it never tried.
 // Doubling back: an incoming charge move would make the attacker in overflow. Is it better to take
-// it anyway, or to swap to a support DPSer that absorbs it fully (and come back later)? Like the
+// it anyway, or to swap to a support DPS that absorbs it fully (and come back later)? Like the
 // player - who knows this from experience - the simulator plays the fight forward both ways, as the
 // run itself would (same boss rolls, hot swaps and all), and compares the damage dealt over the next
 // 40 seconds. Later decisions inside such a run use the simple rule, so runs don't nest.
@@ -4402,10 +4439,10 @@ function teamMainCanFinishCM(S, P, t, land){
   return hpAfter > n * M.bossFmDmg;
 }
 
-// Can the main DPSer dodge this charge move instead? The same play-forward test as a sponge -
+// Can the main DPS dodge this charge move instead? The same play-forward test as a sponge -
 // survives the (dodged) hit, and starts its next charge move after it lands without another boss
 // charge move arriving first - with two differences: the energy rule is 85% of the dodged hit's
-// energy (TEAM_DODGE_KEEP) rather than 90%, and that charge move has to LAND before the main DPSer
+// energy (TEAM_DODGE_KEEP) rather than 90%, and that charge move has to LAND before the main DPS
 // faints, not just start.
 function teamMainCanDodge(snap, P, cast, land){
   const L = structuredClone(snap);
@@ -4438,8 +4475,8 @@ function teamTankNumbers(c, p = "ct"){
   // p: which catch tank card to read - "ct" (Catch Tank 1), "ct2", "ct3"
   const $ = id => document.getElementById(p + id);
   const k = p === "ct" ? 1 : +p.slice(2);
-  const sup = p.startsWith("sd");   // a Support DPSer card (hot swap): no quantity or charge-move count
-  const who = sup ? `Support DPSer ${k}: ` : teamTypeCount() > 1 ? `Catch Tank ${k}: ` : "";
+  const sup = p.startsWith("sd");   // a Support DPS card (hot swap): no quantity or charge-move count
+  const who = sup ? `Support DPS ${k}: ` : teamTypeCount() > 1 ? `Catch Tank ${k}: ` : "";
   const T = { k, name: $("Name").value.trim(), qty: $("Qty") ? Math.max(1, Math.min(10, parseInt($("Qty").value, 10) || 1)) : 1,
               doubleCatch: !sup && !!($("DoubleCatch") || {}).checked, dcFirstFMs: Math.max(0, parseInt(($("DcFMs") || {}).value, 10) || 0),
               casts: $("Casts") ? Math.max(1, Math.min(3, parseInt($("Casts").value, 10) || 1)) : 1 };
@@ -4456,7 +4493,7 @@ function teamTankNumbers(c, p = "ct"){
   if(!T.fm || !T.cm) T.error = `${who}Choose the catch tank's fast and charge moves.`;
   if(!c) return T;
   // The tank's matchups come from typing - there are no dropdowns for it - snapped to the same
-  // option values the main DPSer's dropdowns use, so both are rounded the same way.
+  // option values the main DPS's dropdowns use, so both are rounded the same way.
   const bossTypes = findPokemonTypes(c.bossName), tankTypes = findPokemonTypes(T.name);
   const eff = (elem, defTypes, opts) => {
     const raw = defTypes ? computeEffectiveness(elem, defTypes) : null;
@@ -4505,10 +4542,10 @@ function teamBossContextFromDom(){
 }
 
 // Inputs + rendering for the CT + Main DPS simulator. `c` carries what runCalculation already
-// worked out for the main DPSer and the boss, so both are computed exactly as in every other mode.
+// worked out for the main DPS and the boss, so both are computed exactly as in every other mode.
 function runTeamSim(c){
   const $ = id => document.getElementById(id);
-  // Hot swap with no catch tanks (e.g. six Zacian Crown in a chain): with a support DPSer added and
+  // Hot swap with no catch tanks (e.g. six Zacian Crown in a chain): with a support DPS added and
   // Catch Tank 1 left empty (and no Catch Tank 2 / 3), the run has no catch tanks at all.
   const noTanks = teamTypeCount() === 0 || (supportCount() > 0 && teamTypeCount() === 1 && !$("ctName").value.trim());
   const types = noTanks ? [] : teamPrefixes().map(p => teamTankNumbers(c, p));
@@ -4516,8 +4553,8 @@ function runTeamSim(c){
   if(bad) return `<div class="empty-result">${bad.error}</div>`;
   // One lobby, one party: no more than six Pokemon
   if(teamPartySize() > PARTY_MAX)
-    return `<div class="empty-result">A battle party holds ${PARTY_MAX} Pokémon - this one has ${teamPartySize()}. Remove a catch tank or a support DPSer.</div>`;
-  // Hot swap: the support DPSers (each must be filled in)
+    return `<div class="empty-result">A battle party holds ${PARTY_MAX} Pokémon - this one has ${teamPartySize()}. Remove a catch tank or a support DPS.</div>`;
+  // Hot swap: the support DPS (each must be filled in)
   const supports = supportPrefixes().map(p => teamTankNumbers(c, p));
   const badSup = supports.find(T => T.error);
   if(badSup) return `<div class="empty-result">${badSup.error}</div>`;
@@ -4548,7 +4585,7 @@ function runTeamSim(c){
     seed: Number.isInteger(window.__teamSeed) ? window.__teamSeed : crypto.getRandomValues(new Uint32Array(1))[0],
     tanks, monMeta, mainRank, assign: document.getElementById("ctAssign").value === "strict" ? "strict" : "soft",
     juice: !!(document.getElementById("ctJuice") || {}).checked,
-    doubleBack: true,   // doubling back is part of every rotation with a support DPSer (no setting)
+    doubleBack: true,   // doubling back is part of every rotation with a support DPS (no setting)
     b2b: false,   // back-to-back charge moves: off while the logic is reassessed (the setting is ignored)
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
     cmBuffer: false,   // CM Buffer isn't part of the Beta any more (removed from its card); old links' value is ignored
@@ -4581,10 +4618,10 @@ function runTeamSim(c){
   // a dodged charge move does 25% of its damage, rounded down - as Dodge CM does in the other modes
   P.main.bossCmDmgDodged = Math.floor(P.main.bossCmDmg * 0.25);
   P.tank = tanks[0];   // the first catch tank type in the priority order
-  // the main DPSer's sponge rule: "keep" (the default - keep the energy while catch tanks are left)
+  // the main DPS's sponge rule: "keep" (the default - keep the energy while catch tanks are left)
   // or "survive" (a health check only, overflow fine)
   P.spongeRule = "keep";   // no setting any more: energy-efficient while catch tanks are left, a health check once none are
-  // The attackers in the plan's order (the main DPSer need not come first); each with its sponge's
+  // The attackers in the plan's order (the main DPS need not come first); each with its sponge's
   // place in its own list (spongePos) - it sponges ahead of a catch tank listed after it.
   Object.assign(P.main, { absorbs: P.mainAbsorbs, dodges: P.mainDodges, rule: "keep" });
   const supA = supports.map((T, i) => {
@@ -4658,7 +4695,7 @@ function runTeamSim(c){
 
 // ---- Catch Tank card live preview (Beta: Battle Party Simulator) ----
 // Left: the tank's stats and its damage to the boss. Right: what the boss does to it - the same
-// row layout as the main DPSer / boss previews in step 1. Numbers come from teamTankNumbers, the
+// row layout as the main DPS / boss previews in step 1. Numbers come from teamTankNumbers, the
 // function the simulator itself uses.
 function teamMoveRow(move, dmg){
   return `<div class="boss-dmg-row player-dmg">
@@ -4748,7 +4785,7 @@ function updateTeamPreviewFor(p, c){
   const mini = document.getElementById(p + "BossMini");
   if(mini) mini.innerHTML = bossMiniHtml([[c.bossFMMove.n, T.bossFmDmg], [c.bossCMMove.n, T.bossCmDmg]]);
   // what the catch does for this Pokemon - the energy it banks and the HP it keeps - sits with its own moves
-  // (a support DPSer's Remaining HP is the one its DPS box works out, after its slider's charge moves)
+  // (a support DPS's Remaining HP is the one its DPS box works out, after its slider's charge moves)
   if(T.fmDmg !== undefined && T.cmDmg !== undefined) moves.innerHTML = `
     <div class="boss-dmg-preview">${teamMoveRow(T.fm, T.fmDmg)}${teamMoveRow(T.cm, T.cmDmg)}
       <div class="boss-dmg-row player-dmg energy-row"><span>Energy gained from ${c.bossCMMove.n}</span><b>+${gain} energy</b></div>
@@ -4856,7 +4893,7 @@ function downloadTeamCsv(){
     `${main} energy`, `${main} HP`, `${tank} in play`, `${tank} energy`, `${tank} HP`,
     `${boss} energy (max 100)`, `${boss} charge moves decided, not cast`, "Notes"];
   const q = v => { const x = String(v === undefined || v === null ? "" : v); return /[",\n]/.test(x) ? `"${x.replace(/"/g, '""')}"` : x; };
-  // Up to the end of the results - or, when the main DPSer bailed before it would faint, on to the
+  // Up to the end of the results - or, when the main DPS bailed before it would faint, on to the
   // faint, those extra rows marked in Notes (they aren't counted in the DPS).
   const last = S.ended.faintAt != null ? S.ended.faintAt : E;
   const rows = R.ticks.filter(r => r.tick <= last).map(r => [r.tick, (r.tick / 2).toFixed(1), r.onField, r.started, r.landed,
@@ -4877,7 +4914,7 @@ function downloadTeamCsv(){
 const TEAM_SWAP_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 5.5h10M10 3l2.5 2.5L10 8M13.5 10.5h-10M6 8l-2.5 2.5L6 13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const TEAM_FAINT_SVG = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`;
 function teamIcon(P, who, opts){
-  // who: "boss", 0 (main DPSer) or a catch tank's index; opts.type: a whole catch tank type
+  // who: "boss", 0 (main DPS) or a catch tank's index; opts.type: a whole catch tank type
   // (no number badge) for headers, legends and per-type breakdowns.
   const isBoss = who === "boss";
   const spType = opts && opts.type !== undefined ? opts.type : null;
@@ -4958,9 +4995,9 @@ function teamLogLine(P, e){
   }
 }
 
-// Timeline bar colours for the catch tank types, in priority order (the main DPSer is blue).
+// Timeline bar colours for the catch tank types, in priority order (the main DPS is blue).
 const TEAM_TANK_COLORS = ["#f5b94a", "#b48cff", "#2ec4a6", "#ef6f6c", "#9ccc65"];
-// Hot swap: the attackers' colours - the main DPSer blue, then the support DPSers (clear of the catch
+// Hot swap: the attackers' colours - the main DPS blue, then the support DPS (clear of the catch
 // tanks' amber / violet / teal and the pink of the boss's charge-move marks)
 const TEAM_ATT_COLORS = ["#3d9dff", "#4f5bd5", "#b4448f", "#5f7d95", "#8a8f2e", "#a0622d"];
 // The bar's hover details: one floating box (the bar clips anything inside it), shown over the
@@ -5004,14 +5041,14 @@ window.addEventListener("scroll", teamTlTipHide, { passive: true });
 
 // Hover (or tap) help for the two DPS rows. The icon is drawn by CSS, so it adds no text to
 // the row's label - Copy as image reads the label as "Cycle DPS", not "Cycle DPS i".
-const teamCycleTip = () => "This Cycle DPS: the DPS of one cycle, from the start until the run ends, counting the main DPSer and its catch tanks. It’s the big number at the top.";
+const teamCycleTip = () => "This Cycle DPS: the DPS of one cycle, from the start until the run ends, counting the main DPS and its catch tanks. It’s the big number at the top.";
 const teamCumulativeTip = rejoinSecs => `Cumulative DPS: this cycle's DPS spread over the whole 300s raid, with ${rejoinSecsText(rejoinSecs)} taken out for each expected rejoin.`;
 const teamTip = text => ` <span class="team-tip" tabindex="0" role="note" aria-label="${text}" data-tip="${text}"></span>`;
 // the same "i", opening a small panel of markup - e.g. the charge-move icons' key
 const teamTipHtml = (html, label) => ` <span class="team-tip team-tip-html" tabindex="0" role="note" aria-label="${label}"><span class="tip-pop">${html}</span></span>`;
 
 // ---- Beta result card: collapsible sections and the Minimum DPS pop-up ----
-// Each section of the stat table (Rotation, DPS & Rejoins, Main DPSer) is its own <tbody>, and
+// Each section of the stat table (Rotation, DPS & Rejoins, Main DPS) is its own <tbody>, and
 // its heading is a button that folds the rows away. Which ones are folded is remembered (this
 // browser only) so a recalculation or a later visit keeps the same layout; Copy as image leaves
 // folded sections out, so the picture matches the screen.
@@ -5100,7 +5137,7 @@ function renderTeamSim(P, S, R){
     ? `Boss Cadence: how many fast moves the boss uses per charge move. Here ${(bossFmN / bossCmN).toFixed(1)} ${plural(P.bossFM.n)} per ${P.bossCM.n} (${bossFmN} ${bossFmN === 1 ? P.bossFM.n : plural(P.bossFM.n)} and ${bossCmN} ${bossCmN === 1 ? P.bossCM.n : plural(P.bossCM.n)} over this run).`
     : `Boss Cadence: how many fast moves the boss uses per charge move. It used no ${P.bossCM.n} in this run.`;
   const allInTaken = n("all-in");
-  // dodges up to the end point, and the time they took (from when the main DPSer stopped attacking)
+  // dodges up to the end point, and the time they took (from when the main DPS stopped attacking)
   const dodges = R.dodges.filter(d => d.t < E);
   const swaps = R.swaps.filter(s => s.t < E);
   const mainHp = (upTo(R.hp).filter(h => h.who === 0 && (h.att || 0) === lastAtt).pop() || { hp: ATT[lastAtt].hp }).hp;
@@ -5119,7 +5156,7 @@ function renderTeamSim(P, S, R){
     "last-tank-fainted": `The last ${lastType.name} fainted before it could fire`,
     "tanks": `The boss cast ${P.bossCM.n} with no catch tanks left`,
     "no-safe-catch": `No catch tanks left and ${P.main.name} couldn't safely sponge the next ${P.bossCM.n}; results stop at the last safe point`,
-    // With "All in final charge move" on, the main DPSer's last push is for one more charge
+    // With "All in final charge move" on, the main DPS's last push is for one more charge
     // move; when it faints before that lands, the results go back to its last charge move.
     "main-fainted": P.allIn
       ? `${P.main.name} went all in for one more ${P.main.cm.n} but would faint at ${((S.ended.faintAt ?? S.ended.t) / 2).toFixed(1)}s before it landed; results go back to its last charge move (${(S.ended.t / 2).toFixed(1)}s)`
@@ -5131,7 +5168,7 @@ function renderTeamSim(P, S, R){
   // timeline bar
   const span = Math.max(E, 1);
   const segs = upTo(R.segs);
-  // Each attacker's own DPS: its damage over the time it was on the field (the main DPSer's dodges
+  // Each attacker's own DPS: its damage over the time it was on the field (the main DPS's dodges
   // count, it is on the field for them). Catch tanks of one type are pooled.
   const fieldTicks = new Map();
   segs.forEach((sg, i) => {
@@ -5143,7 +5180,7 @@ function renderTeamSim(P, S, R){
   // attackers' uptimes and the time spent swapping add up to 100%.
   const onField = new Map(fieldTicks);
   const uptime = ticks => E > 0 ? `<span class="dps-stat-sub">${(ticks / E * 100).toFixed(1)}% uptime</span>` : "";
-  // an attacker's charge moves landed within the results (main / support DPSers, not catch tanks),
+  // an attacker's charge moves landed within the results (main / support DPS, not catch tanks),
   // beside its uptime - e.g. "4 Dynamax Cannons · 42.2% uptime"
   const castsOf = k => { const A = ATT[k] || P.main; return dmg.filter(d => d.who === 0 && (d.att || 0) === k && d.mv === A.cm.n).length; };
   const attUptime = (k, ticks) => {
@@ -5167,7 +5204,7 @@ function renderTeamSim(P, S, R){
     if(to > sg.t) attTicks[sg.att || 0] += to - sg.t;
   });
   const attDmg = ATT.map((A, k) => dmg.filter(d => d.who === 0 && (d.att || 0) === k).reduce((a, d) => a + d.dmg, 0));
-  const attackerRows = (multi ? ATT.map((A, k) => `<tr class="team-who-row"><td><span class="team-sub team-who">${attIco(k)}<span>${A.name}${A.copy ? ` #${A.copy}` : ""}<small class="team-build">${A.support ? "Support DPSer " + A.support : "Main DPSer"} &middot; ${A.build || ""}</small></span></span></td><td>${attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"}${attUptime(k, attTicks[k])}</td></tr>`) : [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${attUptime(0, onField.get(0) || 0)}</td></tr>`])
+  const attackerRows = (multi ? ATT.map((A, k) => `<tr class="team-who-row"><td><span class="team-sub team-who">${attIco(k)}<span>${A.name}${A.copy ? ` #${A.copy}` : ""}<small class="team-build">${A.support ? "Support DPS " + A.support : "Main DPS"} &middot; ${A.build || ""}</small></span></span></td><td>${attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"}${attUptime(k, attTicks[k])}</td></tr>`) : [`<tr class="team-who-row"><td><span class="team-sub team-who">${teamIcon(P, 0)}<span>${P.main.name}<small class="team-build">${P.main.build}</small></span></span></td><td>${ownDps(mainDmg, fieldTicks.get(0) || 0)}${attUptime(0, onField.get(0) || 0)}</td></tr>`])
     .concat(P.tanks.map((tp, i) => {
       let ticks = 0, up = 0;
       fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
@@ -5266,7 +5303,7 @@ function renderTeamSim(P, S, R){
     const ticks = multi ? attTicks[k] : (fieldTicks.get(0) || 0), upT = multi ? attTicks[k] : (onField.get(0) || 0);
     const dmgK = multi ? attDmg[k] : mainDmg, n = castsOf(k);
     return chip(multi ? attColor(k) : "#3d9dff", multi ? attIco(k) : teamIcon(P, 0), ticks ? ownDps(dmgK, ticks) : "&mdash;", pctIn(upT),
-      [`${A.name}${A.copy ? ` #${A.copy}` : ""} · ${A.support ? "Support DPSer " + A.support : "Main DPSer"}`, `${A.build || ""}`,
+      [`${A.name}${A.copy ? ` #${A.copy}` : ""} · ${A.support ? "Support DPS " + A.support : "Main DPS"}`, `${A.build || ""}`,
        `${dmgK.toLocaleString()} dmg · ${n} ${n === 1 ? A.cm.n : plural(A.cm.n)}`, `${pctIn(upT)}% of the time in`].filter(Boolean));
   });
   const tankChips = P.tanks.map((tp, i) => {
@@ -5281,7 +5318,7 @@ function renderTeamSim(P, S, R){
 
   // Timeline rows: the run's events, plus grouped lines for the boss's fast moves that land between
   // them ("Feint Attack ×4 → Mega Mewtwo X −32 HP"), so HP lost to fast moves is on record too.
-  // When the main DPSer bailed before it would faint, the rows carry on past the end of the results,
+  // When the main DPS bailed before it would faint, the rows carry on past the end of the results,
   // dimmed under an "After the results end" divider, up to the faint itself.
   const logEnd = S.ended.faintAt != null ? S.ended.faintAt : E;
   const items = R.events.filter(e => e.t <= logEnd).map(e => ({ t: e.t, ord: 1, e }))
@@ -5315,7 +5352,7 @@ function renderTeamSim(P, S, R){
     return `<td class="team-hp ${cls}">${lead}${v}<span class="team-dim">/${max}</span></td>`;
   };
   // Each Pokemon's icon sits in its own column so the icons line up down the table:
-  // Time | Event | main icon | main HP | tank icon | tank HP. The main DPSer is on every row;
+  // Time | Event | main icon | main HP | tank icon | tank HP. The main DPS is on every row;
   // the tank column is empty when no tank is involved or in.
   const icoCell = who => `<td class="team-ico-col">${who === null || who === undefined ? "" : teamIcon(P, who)}</td>`;
   // the attacker in: its energy once the moment resolves (as the HP beside it); with no catch tanks in
@@ -5351,7 +5388,7 @@ function renderTeamSim(P, S, R){
   function finalRow(m, who){
     const max = who === 0 ? P.main.hp : tankMaxHp(who);
     const status = m.hp <= 0 ? `<span class="team-fainted">Fainted</span>`
-      : who === 0 ? (multi && ATT[lastAtt].support ? `Support DPSer ${ATT[lastAtt].support}` : "Main DPSer")
+      : who === 0 ? (multi && ATT[lastAtt].support ? `Support DPS ${ATT[lastAtt].support}` : "Main DPS")
       : entered.has(who) ? "Used" : `<span class="team-dim">Not used</span>`;
     return `<tr><td>${teamIcon(P, who)} <span class="team-final-name">${teamLabel(P, who)}</span></td>${hpCell(m.hp, max)}`
       + `<td class="team-hp">${m.energy}<span class="team-dim">/100</span></td><td>${status}</td></tr>`;
@@ -5372,7 +5409,7 @@ function renderTeamSim(P, S, R){
     const title = `${dps.toFixed(1)} / ${rj.dps.toFixed(2)} Minimum DPS \u00b7 needs ~${isFinite(need) ? need.toFixed(1) + "s" : "\u2014"} of the ${RAID_SECS}s timer (${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"} of ${rejoinSecsText(P.rejoinSecs)}) \u00b7 ${rj.tier}, ${rj.hp.toLocaleString()} HP`;
     return { ahead, text, title };
   })();
-  // The main DPSer's energy at the end point - a full bar left unspent means a charge move's worth
+  // The main DPS's energy at the end point - a full bar left unspent means a charge move's worth
   // of damage never made it into the result.
   let leftover = 0;
   for(let k = E; k >= 0; k--){ if(R.mainEnergy[k] !== undefined){ leftover = R.mainEnergy[k]; break; } }
@@ -5657,7 +5694,7 @@ function singleCtRow(n, x){
 }
 
 // ============ MAIN CALCULATION ============
-// ---- An attacker's DPS box (Battle Simulator: main DPSer, support DPSers) ----
+// ---- An attacker's DPS box (Battle Simulator: main DPS, support DPS) ----
 // Fast moves only, and fast + charge moves over the number of charge moves on its slider - the same
 // rotation Main DPS mode works out. Boss aggression on: the boss may also use its charge move (at the
 // simulator's aggression %), averaged over many rotations since each one rolls differently; off: the
@@ -5683,7 +5720,7 @@ function renderAttackerDps(slotId, o){
   let dps = 0, secs = 0, taken = 0;
   for(let k = 1; k <= runs; k++){ const r = mdRotationCore(Object.assign({}, base, { seed: k * 7919 })); dps += r.dps; secs += r.seconds; taken += r.damageTaken; }
   dps /= runs; secs /= runs; taken /= runs;
-  // its HP after this rotation, in its own damage box - it follows the slider (main and support DPSers)
+  // its HP after this rotation, in its own damage box - it follows the slider (main and support DPS)
   const panel = slotId === "playerDpsBox" ? "playerMovePreview" : slotId.replace(/DpsBox$/, "MovePreview");
   showHpLeft(panel, o.hp, taken, st.n);
   slot.innerHTML = `<div class="att-dps">
@@ -5720,7 +5757,7 @@ document.addEventListener("change", e => {
 });
 // ---- One attacker's rotation, as Main DPS mode works it out ----
 // A copy of Main DPS mode's rotation (same energy cap, boss decisions, energy banked as damage lands,
-// dodges, Resolve Nerf), callable for any attacker - the main DPSer's and support DPSers' DPS boxes in
+// dodges, Resolve Nerf), callable for any attacker - the main DPS's and support DPS' DPS boxes in
 // the Battle Simulator. o: { fm, cm, fastDamage, chargeDamage, bossFMMove, bossFMDamage, bossCMDamage,
 // playerHp, numCM, resolveNerf, dodgeCM, bossAggroOn, bossAggroP, optimalDps, seed }
 function mdRotationCore(o){
@@ -5917,7 +5954,7 @@ function mdRotationCore(o){
     }
     const mdTotalTicks = mdGlobalTick;
     const mdSeconds = mdTotalTicks / 2;
-    // Damage the main DPSer takes over this rotation: every boss fast move it absorbed, at the
+    // Damage the main DPS takes over this rotation: every boss fast move it absorbed, at the
     // per-hit figure shown on the loadout card. Same count that feeds Boss FM Energy, so the two
     // stats can never disagree.
     // With aggression on the hits are not all the same size, so the running total is authoritative;
@@ -6067,7 +6104,7 @@ function runCalculation(){
   if(dodgeCM) bossCMDamage = Math.floor(bossCMDamage * 0.25);
   if(dodgeFM) bossFMDamage = Math.floor(bossFMDamage * 0.25);
 
-  // CT + Main DPS (test): a turn-by-turn simulation with its own result card. The main DPSer and
+  // CT + Main DPS (test): a turn-by-turn simulation with its own result card. The main DPS and
   // boss are taken from the values worked out above, so they match every other mode exactly.
   if(ctMode === "team"){
     window.__teamSim = null;
@@ -6297,7 +6334,7 @@ function runCalculation(){
     }
     const mdTotalTicks = mdGlobalTick;
     const mdSeconds = mdTotalTicks / 2;
-    // Damage the main DPSer takes over this rotation: every boss fast move it absorbed, at the
+    // Damage the main DPS takes over this rotation: every boss fast move it absorbed, at the
     // per-hit figure shown on the loadout card. Same count that feeds Boss FM Energy, so the two
     // stats can never disagree.
     // With aggression on the hits are not all the same size, so the running total is authoritative;
@@ -7108,7 +7145,7 @@ const SETUP_FIELD_IDS = [
   "ct4Name","ct4Level","ct4IvAtk","ct4IvDef","ct4IvHp","ct4CM","ct4FM","ct4Qty","ct4Casts",
   "ct2DoubleCatch","ct2DcFMs","ct3DoubleCatch","ct3DcFMs","ct4DoubleCatch","ct4DcFMs","ct5DoubleCatch","ct5DcFMs",
   "ct5Name","ct5Level","ct5IvAtk","ct5IvDef","ct5IvHp","ct5CM","ct5FM","ct5Qty","ct5Casts",
-  // Hot swap: which attacker each catch tank type serves, and the support DPSers
+  // Hot swap: which attacker each catch tank type serves, and the support DPS
   "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign","ctJuice","ctB2B","ctParty",
   "sd1Name","sd1Qty","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge",
   "sd2Name","sd2Qty","sd2Level","sd2IvAtk","sd2IvDef","sd2IvHp","sd2CM","sd2FM","sd2Sponge","sd2First","sd2Rule","sd2Dodge",
@@ -7151,9 +7188,9 @@ function restoreMoveSelection(baseId, savedMove){
 }
 
 function applySetup(setup){
-  // the Catch Tank 2/3 and Support DPSer cards have to exist before their fields can be filled in
+  // the Catch Tank 2/3 and Support DPS cards have to exist before their fields can be filled in
   const savedTypes = parseInt(setup.ctTypes, 10);
-  // (before "no catch tanks" was its own setting, a support DPSer with the one catch tank card left
+  // (before "no catch tanks" was its own setting, a support DPS with the one catch tank card left
   // empty meant a run without catch tanks - such a setup or link still means that)
   const typesNow = isNaN(savedTypes) ? 1 : savedTypes;
   const legacyNone = typesNow === 1 && (parseInt(setup.sdCount, 10) || 0) > 0 && !String(setup.ctName || "").trim();
@@ -7173,7 +7210,7 @@ function applySetup(setup){
   const trimmed = enforcePartyLimit();
   const note = document.getElementById("ctPartyNote");
   if(note){
-    const bits = [trimmed.tanks ? `${trimmed.tanks} catch tank${trimmed.tanks === 1 ? "" : "s"}` : "", trimmed.supports ? `${trimmed.supports} support DPSer${trimmed.supports === 1 ? "" : "s"}` : ""].filter(Boolean);
+    const bits = [trimmed.tanks ? `${trimmed.tanks} catch tank${trimmed.tanks === 1 ? "" : "s"}` : "", trimmed.supports ? `${trimmed.supports} support DPS${trimmed.supports === 1 ? "" : "s"}` : ""].filter(Boolean);
     note.hidden = !bits.length;
     note.textContent = bits.length ? `This setup had more than six Pokémon - a single lobby uses one party of six, so ${bits.join(" and ")} ${trimmed.tanks + trimmed.supports === 1 ? "was" : "were"} left out.` : "";
   }
@@ -7215,7 +7252,7 @@ function applySetup(setup){
   // no-op. Record them and let refreshMoveDropdowns() replay once the data arrives.
   if(!movepoolReady){
     PENDING_MOVE_SELECTION = { playerCM: setup.playerCM, playerFM: setup.playerFM, bossCM: setup.bossCM, bossFM: setup.bossFM };
-    // every catch tank card and support DPSer card (the list used to be written out for Catch Tanks
+    // every catch tank card and support DPS card (the list used to be written out for Catch Tanks
     // 1-3 only: a shared link's Catch Tank 5 came back with its Pokemon's default moves)
     teamAllPrefixes().concat(["sd1", "sd2", "sd3", "sd4", "sd5"]).forEach(p => {
       PENDING_MOVE_SELECTION[p + "CM"] = setup[p + "CM"]; PENDING_MOVE_SELECTION[p + "FM"] = setup[p + "FM"];
@@ -7488,7 +7525,7 @@ function updatePlayerMovePreview(){
   document.getElementById("playerMovePreview").innerHTML = playerMoveDamagePreviewHtml();
   renderMainDps();
 }
-// the Battle Simulator's main DPSer: its DPS box, once both its moves and the boss's are known (and,
+// the Battle Simulator's main DPS: its DPS box, once both its moves and the boss's are known (and,
 // on desktop, the boss's damage to it beside its own moves - the boss itself has its own section there)
 function renderMainDps(){
   const bp = document.getElementById("playerBossPanel");
@@ -7503,8 +7540,8 @@ function renderMainDps(){
 }
 
 let LAST_MAIN_BOSS_HITS = null;
-let LAST_MAIN_PLAYER = null;   // the main DPSer's moves and their damage, from its panel
-let LAST_MAIN_BOSS = null;     // the boss's moves and their damage on the main DPSer   // the boss's fast / charge move damage on the main DPSer, from the last preview
+let LAST_MAIN_PLAYER = null;   // the main DPS's moves and their damage, from its panel
+let LAST_MAIN_BOSS = null;     // the boss's moves and their damage on the main DPS   // the boss's fast / charge move damage on the main DPS, from the last preview
 function bossMoveDamagePreviewHtml(bAtk){
   LAST_MAIN_BOSS_HITS = null; LAST_MAIN_BOSS = null;
   const level = document.getElementById("pokemonLevel").value.trim();
@@ -8344,7 +8381,7 @@ function updateCTMode(){
   document.body.classList.toggle("ct-mode-maindps", mode === "maindps");
   document.body.classList.toggle("ct-mode-team", mode === "team");
   const t1 = document.getElementById("step1Title");
-  if(t1) t1.textContent = mode === "team" ? "Main DPSer" : "Your Pokémon vs. Raid Boss";
+  if(t1) t1.textContent = mode === "team" ? "Main DPS" : "Your Pokémon vs. Raid Boss";
   updateCadenceMode();
   updateBossAggro();
   updateDynPunch();
@@ -8461,7 +8498,7 @@ document.getElementById("ctModeTeam").addEventListener("change", updateCTMode);
 // the same way for each. Only the last added card can be removed, so the numbering has no gaps.
 // (a function rather than a top-level const: the shared-link loader can run before this part of
 // the script has been reached, and a const isn't usable until then)
-// Up to five kinds of catch tank - with the main DPSer, a full party of six
+// Up to five kinds of catch tank - with the main DPS, a full party of six
 const TEAM_TYPE_MAX = 5;
 function teamAllPrefixes(){ return ["ct", "ct2", "ct3", "ct4", "ct5"]; }
 // 0 = no catch tanks at all (hot swapping only); otherwise 1-5 catch tank cards
@@ -8537,8 +8574,8 @@ document.getElementById("ctAddType").addEventListener("click", () => {
   if(teamTypeCount() === 0 && !document.getElementById("ctName").value.trim()){ document.getElementById("ctQty").value = "1"; document.getElementById("ctCasts").value = "1"; }
   setTeamTypeCount(teamTypeCount() + 1); enforcePartyLimit(); updatePartyLimits(); renderTeamOrder(); });
 
-// ---- Hot swap: Support DPSers ----
-// Attackers come in one after another - the main DPSer, then Support DPSer 1, then 2 - and never
+// ---- Hot swap: Support DPS ----
+// Attackers come in one after another - the main DPS, then Support DPS 1, then 2 - and never
 // come back: one swaps out (hot swap) when it can't reach another charge move, its catch tanks
 // used and a sponge unsafe. A support card is a copy of the catch tank card (Pokemon, level, IVs,
 // moves) with the attacker's own settings in place of the catch tank ones.
@@ -8557,17 +8594,17 @@ function buildSupportCard(k){
     });
   });
   card.querySelector(".step-num").textContent = "S" + k;
-  card.querySelector(".team-card-name").textContent = "Support DPSer " + k;
+  card.querySelector(".team-card-name").textContent = "Support DPS " + k;
   const link = card.querySelector(".team-ct-link"); if(link) link.remove();
   const dcRow = card.querySelector(".dc-row"); if(dcRow) dcRow.remove();   // Double catch is a catch tank's
   [p + "Verdict", p + "Outcomes"].forEach(id => { const el = card.querySelector("#" + id); if(el) el.remove(); });
   // the catch tank's quantity / charge moves row becomes the support's own quantity: several
-  // identical support DPSers (e.g. five Zacian Crown) come in one after another
+  // identical support DPS (e.g. five Zacian Crown) come in one after another
   const row = card.querySelector(".team-type-row");
   if(row){
     row.className = "team-type-row support-qty-row";
     row.innerHTML = `<div class="field qty-field">
-        <label for="${p}Qty"># of support DPSers</label>
+        <label for="${p}Qty"># of support DPS</label>
         <div class="qty-stepper">
           <button type="button" id="${p}QtyMinus" aria-label="One fewer">&minus;</button>
           <input id="${p}Qty" type="number" min="1" max="${SUPPORT_MAX}" value="1" inputmode="numeric">
@@ -8582,15 +8619,15 @@ function buildSupportCard(k){
   ["Preview", "MovePreview", "BossPreview"].forEach(id => { const el = $c(id); if(el) el.innerHTML = ""; });
   return card;
 }
-// One lobby, one battle party: no more than six Pokemon in all - the main DPSer, each support DPSer
+// One lobby, one battle party: no more than six Pokemon in all - the main DPS, each support DPS
 // (copies counted) and each catch tank.
 const PARTY_MAX = 6;
 function teamPartySize(){ return 1 + supportCopies() + teamPlanTanks().length; }
 // The add buttons hide once the party is full
 function updatePartyLimits(){
   const size = teamPartySize(), full = size >= PARTY_MAX;
-  const fullTip = `The party is full (${PARTY_MAX} of ${PARTY_MAX}) - remove a catch tank or a support DPSer to add another`;
-  // the add buttons: hidden at their own limits (5 support DPSers, 3 kinds of catch tank); greyed
+  const fullTip = `The party is full (${PARTY_MAX} of ${PARTY_MAX}) - remove a catch tank or a support DPS to add another`;
+  // the add buttons: hidden at their own limits (5 support DPS, 3 kinds of catch tank); greyed
   // out - still in view, saying why - while the party is full
   const sd = document.getElementById("sdAdd"), ct = document.getElementById("ctAddType");
   [[sd, supportCount() >= SUPPORT_MAX || supportCopies() >= SUPPORT_MAX], [ct, teamTypeCount() >= TEAM_TYPE_MAX]].forEach(([btn, atLimit]) => {
@@ -8623,7 +8660,7 @@ function updatePartyLimits(){
     meter.title = full ? fullTip : `${PARTY_MAX - size} more Pokémon can join this party`;
   }
 }
-// Bring a party over six down to six - catch tanks first (the last kind first), then support DPSer
+// Bring a party over six down to six - catch tanks first (the last kind first), then support DPS
 // copies and cards. Returns what was left out, for the notice (setups and links from before the limit).
 function enforcePartyLimit(){
   const left = { tanks: 0, supports: 0 };
@@ -8644,8 +8681,8 @@ function enforcePartyLimit(){
   }
   return left;
 }
-// Support DPSers in all, counting each card's quantity - no more than SUPPORT_MAX (six attackers
-// with the main DPSer)
+// Support DPS in all, counting each card's quantity - no more than SUPPORT_MAX (six attackers
+// with the main DPS)
 function supportCopies(){
   return supportPrefixes().reduce((n, p) => n + Math.max(1, parseInt((document.getElementById(p + "Qty") || {}).value, 10) || 1), 0);
 }
@@ -8668,15 +8705,15 @@ function wireSupportCard(p){
   ["input", "change"].forEach(ev => document.getElementById(p + "Name")
     .addEventListener(ev, () => { updateMoveOptionsFor(p + "Name", p + "CM", p + "FM"); renderTeamOrder(); updateSupportRowNames(); }));
 }
-// The support DPSers' settings, one row each in "Support DPS behavior"
+// The support DPS' settings, one row each in "Support DPS behavior"
 function buildSupportRow(k){
   const p = "sd" + k, row = document.createElement("div");
   row.className = "sd-behavior-row"; row.id = "supportRow" + k;
   row.innerHTML = `
-    <span class="sd-row-name"><b>Support DPSer ${k}</b> <span id="${p}RowName"></span></span>
-    <label class="check-item" title="This support DPSer takes the boss's charge moves itself when it is safe: while it has catch tanks, only when it absorbs the energy (no more than 10% overflow) and it can fire again; with none left, whenever it can survive to its next charge move."><input type="checkbox" id="${p}Sponge" checked> Can sponge</label>
-    <label class="check-item" title="This support DPSer dodges the boss's charge move instead, when that is safe (as Main can dodge)."><input type="checkbox" id="${p}Dodge"> Can dodge</label>
-    <label class="check-item team-dodge-limit" title="Who takes the boss's charge moves first while this support DPSer is in">First
+    <span class="sd-row-name"><b>Support DPS ${k}</b> <span id="${p}RowName"></span></span>
+    <label class="check-item" title="This support DPS takes the boss's charge moves itself when it is safe: while it has catch tanks, only when it absorbs the energy (no more than 10% overflow) and it can fire again; with none left, whenever it can survive to its next charge move."><input type="checkbox" id="${p}Sponge" checked> Can sponge</label>
+    <label class="check-item" title="This support DPS dodges the boss's charge move instead, when that is safe (as Main can dodge)."><input type="checkbox" id="${p}Dodge"> Can dodge</label>
+    <label class="check-item team-dodge-limit" title="Who takes the boss's charge moves first while this support DPS is in">First
       <select id="${p}First"><option value="sponge" selected>Sponge, then catch tanks</option><option value="tanks">Catch tanks, then sponge</option></select>
     </label>`;
   return row;
@@ -8710,7 +8747,7 @@ function setSupportCount(n){
   renderTeamOrder();
   if(typeof updateTeamPreview === "function") updateTeamPreview();
 }
-// "Used by" on the catch tank cards: only offered once there is a support DPSer, listing those added
+// "Used by" on the catch tank cards: only offered once there is a support DPS, listing those added
 function updateOwnerOptions(){
   // "Used by" is no longer on the cards (Priority & hot swap order replaced it); its old value is
   // only kept to convert setups saved before the list - one naming a support that isn't there is "any"
@@ -8737,7 +8774,7 @@ function setTeamOrder(order){ document.getElementById("ctPriority").value = orde
 // ---- Priority & hot swap order ----
 // One list for the whole rotation: the attackers in the order they come in (blocks), and inside
 // each, who takes the boss's charge moves while it is in - its own catch tanks, one by one, and its
-// sponge ("s"). Kept in #ctPlan as "m:1.1,1.2,s|s1:s,1.3,1.4" (m = Main DPSer, s1 = Support DPSer 1;
+// sponge ("s"). Kept in #ctPlan as "m:1.1,1.2,s|s1:s,1.3,1.4" (m = Main DPS, s1 = Support DPS 1;
 // 1.3 = Catch Tank 1, #3). Soft assignment: an attacker uses its own catch tanks first and may
 // borrow unused ones before it hot swaps; strict: only its own.
 function teamPlanAttackers(){ return ["m"].concat(supportPrefixes().map((p, i) => "s" + (i + 1))); }
@@ -8757,7 +8794,7 @@ function teamPlanParse(str){
     return m ? { att: m[1], items: m[2].split(",").map(x => x.trim()).filter(Boolean) } : null;
   }).filter(Boolean);
 }
-// Setups saved before the list: the old Priority order (the main DPSer's place among the catch tank
+// Setups saved before the list: the old Priority order (the main DPS's place among the catch tank
 // types), each type's "Used by", and each support's "First" setting.
 function teamPlanLegacy(atts, tanks){
   const blocks = atts.map(a => ({ att: a, items: [] })), B = a => blocks.find(b => b.att === a);
@@ -8796,14 +8833,14 @@ function teamPlan(){
     if(!sp) b.items.unshift("s");
   });
   const mainB = blocks.find(b => b.att === "m");
-  tanks.forEach(t => { if(!used.has(t)) mainB.items.push(t); });   // a new catch tank joins the main DPSer's block
+  tanks.forEach(t => { if(!used.has(t)) mainB.items.push(t); });   // a new catch tank joins the main DPS's block
   el.value = blocks.map(b => b.att + ":" + b.items.join(",")).join("|");
   return blocks;
 }
 // ---- Party order ----
 // The battle party's slots, arranged on their own (not the catch tank priority): when a Pokemon
 // faints the game swaps to the first one still standing in this order. Kept in #ctParty as tokens:
-// "m.1" / "s2.3" = Main DPSer / Support DPSer 2 (copy 3); "t1.2" = Catch Tank 1, #2.
+// "m.1" / "s2.3" = Main DPS / Support DPS 2 (copy 3); "t1.2" = Catch Tank 1, #2.
 function teamPartyTokens(){
   const blocks = teamPlan(), atts = [], tanks = [];
   blocks.forEach(b => {
@@ -8834,7 +8871,7 @@ function renderPartyOrder(){
   const sel = box.dataset.sel !== undefined && box.dataset.sel !== "" ? +box.dataset.sel : -1;
   const slot = (tok, i) => {
     const name = teamPartyLabel(tok);
-    const role = tok[0] === "t" ? "Catch tank" : (tok[0] === "m" ? "Main DPSer" : "Support " + tok.split(".")[0].slice(1));
+    const role = tok[0] === "t" ? "Catch tank" : (tok[0] === "m" ? "Main DPS" : "Support " + tok.split(".")[0].slice(1));
     return `<div class="po-slot${i === sel ? " is-sel" : ""}${tok[0] === "t" ? " is-ct" : " is-att"}" draggable="true" data-slot="${i}" role="button" tabindex="0"
         aria-label="Slot ${i + 1}: ${esc(name)}, ${role}" title="Slot ${i + 1}: ${esc(name)} - ${role}">
         <span class="po-n">${i + 1}</span>
@@ -8891,7 +8928,7 @@ function teamPlanSet(blocks){ document.getElementById("ctPlan").value = blocks.m
 function teamAttInput(a, what){ return document.getElementById(a === "m" ? (what === "sponge" ? "ctMainAbsorb" : "ctMainDodge") : "sd" + a.slice(1) + (what === "sponge" ? "Sponge" : "Dodge")); }
 function teamAttName(a){
   const v = ((document.getElementById(a === "m" ? "pokemonName" : "sd" + a.slice(1) + "Name") || {}).value || "").trim();
-  return v || (a === "m" ? "Main DPSer" : "Support DPSer " + a.slice(1));
+  return v || (a === "m" ? "Main DPS" : "Support DPS " + a.slice(1));
 }
 function teamTankLabel(t){
   const [k, j] = t.split("."), p = k === "1" ? "ct" : "ct" + k;
@@ -8920,7 +8957,7 @@ function renderTeamOrder(){
   const tutLine = txt => tut ? `<span class="pl-tut">${txt}</span>` : "";
   setTimeout(renderPartyOrder, 0);   // the party order follows the attackers and catch tanks listed here
   list.innerHTML = blocks.map((b, bi) => {
-    const name = teamAttName(b.att), role = b.att === "m" ? "Main DPSer" : "Support DPSer " + b.att.slice(1);
+    const name = teamAttName(b.att), role = b.att === "m" ? "Main DPS" : "Support DPS " + b.att.slice(1);
     const copies = b.att === "m" ? 1 : Math.max(1, parseInt((document.getElementById("sd" + b.att.slice(1) + "Qty") || {}).value, 10) || 1);
     const spongeOn = (teamAttInput(b.att, "sponge") || {}).checked, dodgeOn = (teamAttInput(b.att, "dodge") || {}).checked;
     const flexible = spongeOn || dodgeOn, sIdx = b.items.indexOf("s");
@@ -9063,14 +9100,14 @@ function shareCardData(){
   // columns). Colours come from the card's own computed styles, so either theme matches.
   const pct = el => parseFloat(el.style.left) || 0;
   // Beta: Battle Party Simulator. Its card has no .loadout-pokemon panel (the image's top strip
-  // came out empty), so the party is read from the run itself - main DPSer, each catch tank type,
+  // came out empty), so the party is read from the run itself - main DPS, each catch tank type,
   // the boss - along with the timeline bar. Its sub-lines name Pokemon only by icon, so icons are
   // read as their names ("Shadow Dialga caught 1") rather than dropped ("caught 1").
   let team = null, teamTimeline = null;
   if(card.querySelector(".team-stat-table") && window.__teamSim){
     const { P } = window.__teamSim;
     const raid = raidTierFor(P.bossName);
-    team = [{ name: P.main.name, role: "Main DPSer", moves: `${P.main.fm.n} / ${P.main.cm.n}`, build: P.main.build || "" }]
+    team = [{ name: P.main.name, role: "Main DPS", moves: `${P.main.fm.n} / ${P.main.cm.n}`, build: P.main.build || "" }]
       .concat(P.tanks.map(tp => ({ name: tp.name, role: tp.qty > 1 ? `Catch tank \u00d7${tp.qty}` : "Catch tank", moves: `${tp.fm.n} / ${tp.cm.n}`, build: tp.build || "" })))
       .concat([{ name: P.bossName, role: "Raid boss", moves: `${P.bossFM.n} / ${P.bossCM.n}`, build: `${raid.name} \u00b7 ${raid.hp.toLocaleString()} HP`, boss: true }])
       .map(m => Object.assign(m, { sprite: spriteUrl(m.name) }));
@@ -9349,7 +9386,7 @@ async function buildResultShareImage(){
   y += 74 + paceH;
 
   if(d.teamTimeline){
-    // Beta: who was on the field when, as on the card - main DPSer, catch tanks, swaps, dodges,
+    // Beta: who was on the field when, as on the card - main DPS, catch tanks, swaps, dodges,
     // and a tick for each boss charge move
     const g = d.teamTimeline, bx = PAD + 60, bw = W - PAD * 2 - 120, bh = 18;
     const col = { main: "#3d9dff", tank: "#f5b94a", swap: "#8890a6", dodge: "#1b5fae" };
@@ -9367,7 +9404,7 @@ async function buildResultShareImage(){
       x.fillText(a, bx + bw * i / Math.max(1, g.axis.length - 1), y + bh + 13);
     });
     // legend
-    const legend = [[col.main, "Main DPSer"]]
+    const legend = [[col.main, "Main DPS"]]
       .concat(g.tankTypes ? g.tankTypes.map(tt => [tt.color, tt.name]) : [[col.tank, "Catch tanks"]])
       .concat([[col.swap, "Swap"]]).concat(g.dodges ? [[col.dodge, "Dodge"]] : []).concat([["#ff6b8a", "Boss charge move"]]);
     x.textAlign = "left"; x.font = "700 10.5px Manrope, sans-serif";
@@ -9946,7 +9983,7 @@ updateCTMode();
     .pp-back b{ display:block; font:800 13px 'Manrope',sans-serif; color:var(--text); } .pp-back small{ display:block; color:var(--text-dim); font:700 10.5px 'Manrope',sans-serif; }
     /* the priority list and the Party order box: the catch tank row and the party bar do their jobs */
     #ctPlanList{ display:none !important; }
-    /* Add to your party: the party bar's empty slots add catch tanks and support DPSers on a phone */
+    /* Add to your party: the party bar's empty slots add catch tanks and support DPS on a phone */
     #partyAddCard{ display:none !important; }
     /* (classes, not :has(): a browser without :has() drops the whole rule, and every card stayed) */
     body.ct-mode-team .mq-main-card{ display:none !important; }
@@ -10197,7 +10234,7 @@ updateCTMode();
     });
   }
   // which panel is the boss's: the boss's own sprite and name at the top of each of its damage panels
-  // (under the raid boss, and on every catch tank / support DPSer card)
+  // (under the raid boss, and on every catch tank / support DPS card)
   function tagBossPanels(){
     const boss = ((document.getElementById("bossName") || {}).value || "").trim();
     document.querySelectorAll('#bossMovePreview .boss-dmg-preview, [id$="BossPreview"] .boss-dmg-preview:not(.boss-mini)').forEach(box => {
@@ -10404,7 +10441,7 @@ updateCTMode();
     return document.getElementById(k === "1" ? "teamCard" : "teamCard" + k);
   }
   // ---------- desktop Battle Simulator: the battle party bar (2 rows of 3) ----------
-  // Empty slot: Main DPSer (while there is none) / Support DPSer / Catch tank, then the Pokemon - its
+  // Empty slot: Main DPS (while there is none) / Support DPS / Catch tank, then the Pokemon - its
   // card appears below. Filled slot: its card. Hold and drag to change the party order.
   function renderDtBar(){
     const box = document.getElementById("dtSlots"); if(!box || typeof teamParty !== "function") return;
@@ -10414,7 +10451,7 @@ updateCTMode();
     const label = t => teamPartyLabel(t), nm = t => label(t).replace(/ #\d+$/, "");
     const badge = t => t[0] === "m" ? "Main" : t[0] === "s" ? "Support" : "Catch tank";
     const html = [...Array(6)].map((_, i) => { const t = party[i];
-      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: jump to its card"><i>${i + 1}</i><img src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
+      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: jump to its card"><i>${i + 1}</i>${t[0] === "m" ? "" : `<span class="dt-rm" data-rm="${t}" role="button" aria-label="Remove ${esc(label(t))} from the party" title="Remove from the party">&minus;</span>`}<img src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
                : `<button type="button" class="dt-slot empty" data-slot="${i + 1}"><i>${i + 1}</i>+ Add</button>`; }).join("");
     if(box.dataset.html !== html){ box.dataset.html = html; box.innerHTML = html; }
     const meter = document.getElementById("dtPartyMeter"); const txt = `Party ${party.length} of 6`; if(meter && meter.textContent !== txt) meter.textContent = txt;
@@ -10428,16 +10465,16 @@ updateCTMode();
     btn.classList.add("on");
     const pop = document.createElement("div"); pop.className = "dt-pop";
     pop.innerHTML = `<h4>Slot ${btn.dataset.slot} - what's it for?</h4>
-      <button type="button" data-role="main" ${mainName ? "disabled" : ""}>&#11088;<span>Main DPSer<small>${mainName ? "Taken by " + esc(mainName) : "The attacker the party is built around"}</small></span></button>
-      <button type="button" data-role="sup" ${(typeof supportCount === "function" && supportCount() >= 5) ? "disabled" : ""}>&#9876;&#65039;<span>Support DPSer<small>Hot swaps in after the main DPSer</small></span></button>
-      <button type="button" data-role="ct">&#128737;&#65039;<span>Catch tank<small>Catches the boss's charge moves</small></span></button>`;
+      <button type="button" data-role="main" ${mainName ? "disabled" : ""}><span>Main DPS<small>${mainName ? "Taken by " + esc(mainName) : "The attacker the party is built around"}</small></span></button>
+      <button type="button" data-role="sup" ${(typeof supportCount === "function" && supportCount() >= 5) ? "disabled" : ""}><span>Support DPS<small>Hot swaps in after the main DPS</small></span></button>
+      <button type="button" data-role="ct"><span>Catch tank<small>Catches the boss's charge moves</small></span></button>`;
     const r = btn.getBoundingClientRect(), sr = slots.getBoundingClientRect();
     pop.style.left = Math.max(0, Math.min(r.left - sr.left, sr.width - 270)) + "px"; pop.style.top = (r.bottom - sr.top + 8) + "px";
     slots.appendChild(pop);
     pop.addEventListener("click", e => {
       const b = e.target.closest("[data-role]"); if(!b || b.disabled) return;
       closeDtPop();
-      if(b.dataset.role === "main") monSheet({ title: "Main DPSer", role: "main", sub: () => "Its card appears below",
+      if(b.dataset.role === "main") monSheet({ title: "Main DPS", role: "main", sub: () => "Its card appears below",
         onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => showCard("m.1"), 120); } });
       else openPicker(null, b.dataset.role, +btn.dataset.slot);
     });
@@ -10449,6 +10486,8 @@ updateCTMode();
     card.classList.remove("card-flash"); void card.offsetWidth; card.classList.add("card-flash");
   }
   document.addEventListener("click", e => {
+    const rm = e.target.closest && e.target.closest(".dt-rm");
+    if(rm){ e.stopPropagation(); closeDtPop(); editSetup(S => removeFrom(S, rm.dataset.rm)); return; }
     const slot = e.target.closest && e.target.closest(".dt-slot");
     if(slot){ if(slot.dataset.tok) showCard(slot.dataset.tok); else openDtRoles(slot); return; }
     if(!e.target.closest || !e.target.closest(".dt-pop")) closeDtPop();
@@ -10521,7 +10560,7 @@ updateCTMode();
     const S = captureSetup(); const r = fn(S); if(r === false) return false;
     const y = window.scrollY; applySetup(S); window.scrollTo(0, y); return true;
   }
-  // after removing catch tank kind k (1-5) or support DPSer k: the priority list and party order renumbered
+  // after removing catch tank kind k (1-5) or support DPS k: the priority list and party order renumbered
   function remap(S, kind, k){
     const plan = String(S.ctPlan || "").split("|").filter(Boolean).map(b => {
       const [att, its = ""] = b.split(":");
@@ -10596,7 +10635,10 @@ updateCTMode();
           const rows = parseCSV(t), head = (rows.shift() || []).map(h => String(h).trim()), bi = head.indexOf("Boss Name");
           if(bi < 0) return;
           const cols = head.map((h, i) => /^Pokemon \d$/.test(h) ? i : -1).filter(i => i >= 0);
-          rows.forEach(r => cols.forEach(i => { const mon = String(r[i] || "").trim(); if(mon) out.push({ boss: String(r[bi] || "").trim(), mon, role: String(r[i + 1] || "") }); }));
+          const bfi = head.indexOf("FM"), bci = head.indexOf("CM");   // the first FM / CM: the boss's
+          rows.forEach(r => cols.forEach(i => { const mon = String(r[i] || "").trim(); if(mon) out.push({ boss: String(r[bi] || "").trim(), mon, role: String(r[i + 1] || ""),
+            fm: String(r[i + 2] || "").trim(), cm: String(r[i + 3] || "").trim(),
+            bossFm: bfi >= 0 ? String(r[bfi] || "").trim() : "", bossCm: bci >= 0 ? String(r[bci] || "").trim() : "" }); }));
         });
         return out;
       });
@@ -10618,16 +10660,31 @@ updateCTMode();
     const runs = await loadRuns();
     const want = role === "ct" ? /catch\s*tank/i : /main dps|support dps|executor/i;
     const tally = new Map();
-    runs.filter(x => key(x.boss) === key(boss) && want.test(x.role)).forEach(x => { const k = key(x.mon); const e = tally.get(k) || { name: x.mon, runs: 0 }; e.runs++; tally.set(k, e); });
+    // (catch tanks: the movesets they caught with - the most used one is shown on the tile)
+    // each move as the calculator names it (the archive's typing varies: "Dragon tail", "Outrage++++")
+    const tidy = m => { m = String(m || "").trim().replace(/\+{2,}$/, ""); const mv = typeof findMove === "function" ? findMove(m) : null;
+      return mv && mv.n ? mv.n : m.replace(/\b([a-z])/g, c => c.toUpperCase()); };
+    const sets = new Map(), addSet = (k, mv) => { mv = String(mv || "").split("/").map(tidy).filter(Boolean).join(" / "); if(!mv) return; const m = sets.get(k) || new Map(); m.set(mv, (m.get(mv) || 0) + 1); sets.set(k, m); };
+    // catch tanks: the boss's movesets they were used against - each with how often, and the catch
+    // tank's own moveset in those entries
+    const used = new Map();   // mon key -> Map(boss moveset -> { n, ct: Map(own moveset -> n) })
+    const addUse = (k, bossMv, ownMv) => { const bm = String(bossMv || "").split("/").map(tidy).filter(Boolean).join(" / "); if(!bm) return;
+      const om = String(ownMv || "").split("/").map(tidy).filter(Boolean).join(" / ");
+      const m = used.get(k) || new Map(); const u = m.get(bm) || { n: 0, ct: new Map() }; u.n++; if(om) u.ct.set(om, (u.ct.get(om) || 0) + 1); m.set(bm, u); used.set(k, m); };
+    runs.filter(x => key(x.boss) === key(boss) && want.test(x.role)).forEach(x => { const k = key(x.mon); const e = tally.get(k) || { name: x.mon, runs: 0 }; e.runs++; tally.set(k, e);
+      if(role === "ct" && x.bossFm && x.bossCm) addUse(k, x.bossFm + " / " + x.bossCm.split(",")[0], x.fm && x.cm ? x.fm + " / " + x.cm.split(",")[0] : ""); });
     if(role === "ct" && typeof loadCtDatabase === "function"){
-      (await loadCtDatabase()).filter(e => key(e.boss) === key(boss)).forEach(e => { const k = key(e.mon); const t = tally.get(k) || { name: e.mon, runs: 0 }; t.best = Math.max(t.best || 0, e.ctDps); t.logged = (t.logged || 0) + 1; tally.set(k, t); });
+      (await loadCtDatabase()).filter(e => key(e.boss) === key(boss)).forEach(e => { const k = key(e.mon); const t = tally.get(k) || { name: e.mon, runs: 0 }; t.best = Math.max(t.best || 0, e.ctDps); t.dbRows = (t.dbRows || 0) + 1; addUse(k, e.bossMoves, e.moves); t.logged = (t.logged || 0) + 1; tally.set(k, t); });
     }
+    tally.forEach((e, k) => { const m = used.get(k); if(!m) return;
+      e.usage = [...m.entries()].map(([bm, u]) => ({ boss: bm, n: u.n, ct: [...u.ct.entries()].sort((x, y) => y[1] - x[1]).map(x => x[0])[0] || "" })).sort((x, y) => y.n - x.n);
+      e.vs = e.usage[0].boss; });
     const list = [...tally.values()].sort((a, b) => (b.runs + (b.logged || 0)) - (a.runs + (a.logged || 0))).slice(0, 8);
     return { boss, list };
   }
 
   // ---------- the Pokemon picker ----------
-  const ROLE_TXT = { main: "Main DPSer", sup: "Support DPSer", ct: "Catch tank" };
+  const ROLE_TXT = { main: "Main DPS", sup: "Support DPS", ct: "Catch tank" };
   const sprite = n => (typeof spriteUrl === "function" ? spriteUrl(n) : "");
   const tileHtml = (name, sub) => `<button type="button" class="mq-tile" data-pick="${esc(name)}"><img src="${esc(sprite(name))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(name)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
   function openSheetShell(html){
@@ -10637,15 +10694,15 @@ updateCTMode();
     document.body.appendChild(wrap); return wrap;
   }
   function partyFull(){ return typeof teamPartySize === "function" && teamPartySize() >= 6; }
-  // an empty slot: what's it for? (the main DPSer is always there)
+  // an empty slot: what's it for? (the main DPS is always there)
   function openRoleFirst(slotNo){
     const mainName = ((document.getElementById("pokemonName") || {}).value || "").trim();
     const sheetEl = openSheetShell(`<div class="mq-sheet-head"><div>What's slot ${slotNo} for?<small>Then pick the Pokémon</small></div><button type="button" class="done">Done</button></div>
-      <button type="button" class="mq-role" ${mainName ? "disabled" : 'data-role="main"'}><span class="ic">&#11088;</span><span><b>Main DPSer</b><small>${mainName ? "Taken by " + esc(mainName) + " &middot; tap its slot to replace it" : "The attacker the party is built around"}</small></span></button>
-      <button type="button" class="mq-role" data-role="sup"${(typeof supportCount === "function" && supportCount() >= 5) ? " disabled" : ""}><span class="ic">&#9876;&#65039;</span><span><b>Support DPSer</b><small>Hot swaps in after the main DPSer</small></span></button>
-      <button type="button" class="mq-role" data-role="ct"><span class="ic">&#128737;&#65039;</span><span><b>Catch tank</b><small>Catches the boss's charge moves</small></span></button>`);
+      <button type="button" class="mq-role" ${mainName ? "disabled" : 'data-role="main"'}><span><b>Main DPS</b><small>${mainName ? "Taken by " + esc(mainName) + " &middot; tap its slot to replace it" : "The attacker the party is built around"}</small></span></button>
+      <button type="button" class="mq-role" data-role="sup"${(typeof supportCount === "function" && supportCount() >= 5) ? " disabled" : ""}><span><b>Support DPS</b><small>Hot swaps in after the main DPS</small></span></button>
+      <button type="button" class="mq-role" data-role="ct"><span><b>Catch tank</b><small>Catches the boss's charge moves</small></span></button>`);
     sheetEl.addEventListener("click", e => { const b = e.target.closest("[data-role]"); if(!b) return; sheetEl.remove();
-      if(b.dataset.role === "main") monSheet({ title: "Main DPSer", role: "main", sub: () => "Then its level, IVs and moves",
+      if(b.dataset.role === "main") monSheet({ title: "Main DPS", role: "main", sub: () => "Then its level, IVs and moves",
         onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => openProfile("m.1"), 60); } });
       else openPicker(null, b.dataset.role, slotNo); });
   }
@@ -10663,7 +10720,16 @@ updateCTMode();
   const TYPE_ICON = t => "https://duiker101.github.io/pokemon-type-svg-icons/icons/" + t + ".svg";
   const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
   const typesOf = n => { try{ const r = typeof findPokemonTypes === "function" ? findPokemonTypes(n) : null; return r ? [r.t1, r.t2].filter(Boolean) : []; }catch(e){ return []; } };
-  const runsTxt = e => e.runs ? e.runs + " run" + (e.runs === 1 ? "" : "s") : e.best ? "CT DPS " + e.best.toFixed(1) : "";
+  const shortMv = mv => mv.length <= 30 ? mv : mv.split(" / ").map(m => { const w = m.split(" "); return w.length > 1 ? w.slice(0, -1).map(x => x[0] + ".").join(" ") + " " + w[w.length - 1] : m; }).join(" / ");
+  const runsTxt = e => e.vs ? "vs " + shortMv(e.vs) : e.runs ? e.runs + " run" + (e.runs === 1 ? "" : "s") : e.best ? "CT DPS " + e.best.toFixed(1) : "";
+  const mvType = n => { const m = typeof findMove === "function" ? findMove(n) : null; return m && m.elem ? String(m.elem).toLowerCase() : ""; };
+  const vsHtml = set => { const [fm, cm] = String(set || "").split(" / ");
+    const chip = n => { if(!n) return ""; const t = mvType(n);
+      return `<span class="mv" title="${esc(n)}"><span class="mvi"${t && TYPE[t] ? ` style="background:${TYPE[t]}"` : ""}>${t ? `<img src="${TYPE_ICON(t)}" alt="${cap(t)}" onerror="this.remove()">` : ""}</span><span class="mvn">${esc(n)}</span></span>`; };
+    return `<span class="mq-vs"><i>vs</i><span class="mvs">${chip(fm)}${chip(cm)}</span></span>`; };
+  // a suggested catch tank's tile: an (i) when it was used against more than one of the boss's movesets
+  const sugTile = e => (e.vs ? tileHtml(e.name, "").replace('class="mq-tile"', 'class="mq-tile has-vs"').replace(/<\/button>$/, vsHtml(e.vs) + "</button>") : tileHtml(e.name, runsTxt(e))).replace(/<\/button>$/, (e.usage && e.usage.length > 1 && e.dbRows
+    ? `<span class="mq-ti" data-ti="${esc(e.name)}" role="button" aria-label="Where ${esc(e.name)} was used as a catch tank">i</span>` : "") + "</button>");
   // bosses by tier, most-run first: Tier 5 (the boss list + its runs), Mega (Tier 4 runs), Tier 6
   let BOSS_LISTS = null;
   function loadBossLists(){
@@ -10712,7 +10778,7 @@ updateCTMode();
         const { boss, list } = await suggestionsFor(role); if(mine !== token) return;
         body.querySelector(".mq-sug-h").textContent = boss ? (role === "ct" ? "Top catch tanks vs " : "Top raiders vs ") + boss : "Suggestions";
         body.querySelector(".mq-sug").innerHTML = !boss ? '<div class="mq-none">Pick a raid boss first for suggestions - or browse by type.</div>'
-          : list.length ? `<div class="mq-grid4">${list.map(e => tileHtml(e.name, runsTxt(e))).join("")}</div>` : `<div class="mq-none">No verified runs for ${esc(boss)} yet - browse by type or search.</div>`;
+          : list.length ? `<div class="mq-grid4${role === "ct" ? " mq-grid-vs" : ""}">${list.map(sugTile).join("")}</div>` : `<div class="mq-none">No verified runs for ${esc(boss)} yet - browse by type or search.</div>`;
         return;
       }
       // a type: the ones used against this boss first, then every Pokemon of that type
@@ -10730,8 +10796,17 @@ updateCTMode();
       body.querySelector(".mq-all").innerHTML = `<div class="mq-grid4">${all.map(n => tileHtml(n, subOf(n))).join("")}</div>`;
       const { boss, list } = await suggestionsFor(role); if(mine !== token) return;
       const used = list.filter(e => typesOf(e.name).includes(type));
-      if(boss && used.length){ const h = body.querySelector(".mq-used-h"); h.hidden = false; h.textContent = "Used vs " + boss; body.querySelector(".mq-used").innerHTML = `<div class="mq-grid4">${used.map(e => tileHtml(e.name, runsTxt(e))).join("")}</div>`; }
+      if(boss && used.length){ const h = body.querySelector(".mq-used-h"); h.hidden = false; h.textContent = "Used vs " + boss; body.querySelector(".mq-used").innerHTML = `<div class="mq-grid4${role === "ct" ? " mq-grid-vs" : ""}">${used.map(sugTile).join("")}</div>`; }
     };
+    // A catch tank's uses against this boss: each of the boss's movesets it was used against, how many
+    // runs, and the catch tank's own moveset there - under its tile
+    // A catch tank's (i): the Top Catch Tanks page's pop-out table, with its entries against the current boss
+    async function showUsage(ti){
+      if(typeof loadCtDatabase !== "function" || typeof openBossCtTable !== "function") return;
+      const boss = ((document.getElementById("bossName") || {}).value || "").trim();
+      const rows = (await loadCtDatabase()).filter(x => key(x.boss) === key(boss) && key(x.mon) === key(ti.dataset.ti));
+      if(rows.length) openBossCtTable(rows);
+    }
     // search: the panel moves to the top of the screen, sized to what the keyboard leaves
     const paintResults = async () => {
       const q = input.value.trim(); if(!q){ results.innerHTML = '<div class="mq-none">Start typing a Pokémon\u2019s name.</div>'; return; }
@@ -10749,6 +10824,9 @@ updateCTMode();
     input.addEventListener("keydown", e => { if(e.key === "Enter"){ const f = results.querySelector("[data-pick]"); if(f){ e.preventDefault(); f.click(); } } });
     wrap.addEventListener("click", e => {
       if(e.target.closest(".done") && wrap.classList.contains("mq-top")){ e.stopImmediatePropagation(); input.blur(); toSearch(false); return; }
+      const ti = e.target.closest("[data-ti]");
+      if(ti){ e.stopPropagation(); e.preventDefault(); showUsage(ti); return; }
+      if(!e.target.closest(".mq-usage")) wrap.querySelectorAll(".mq-usage").forEach(x => x.remove());
       const tb = e.target.closest("[data-type]"); if(tb){ type = type === tb.dataset.type ? "" : tb.dataset.type; paint(); return; }
       const tr = e.target.closest("[data-tier]"); if(tr){ tier = tr.dataset.tier; paint(); return; }
       const so = e.target.closest("[data-sort]"); if(so){ sortBy = so.dataset.sort; paint(); return; }
@@ -10774,12 +10852,12 @@ updateCTMode();
     monSheet({
       title: "Slot " + slotNo, role: role || roleOf(tok), top,
       sub: r => ROLE_TXT[r],
-      // the main DPSer's slot stays the main DPSer; any other slot is a support DPSer or a catch tank
+      // the main DPS's slot stays the main DPS; any other slot is a support DPS or a catch tank
       seg: r => ["main", "sup", "ct"].map(x => `<button type="button" data-r="${x}" class="${x === r ? "on" : ""}" ${(isMain ? x !== "main" : x === "main") ? "disabled" : ""}>${ROLE_TXT[x]}</button>`).join(""),
       bottom: tok && !isMain ? '<div class="mq-acts"><button type="button" class="mq-act danger" data-act="remove">Remove from party</button></div>' : "",
       onPick: (name, r) => {
         if(!tok && partyFull()) return true;
-        if(putInSlot(tok, r, name) === false){ alert("That doesn't fit: a party holds six, with up to five support DPSers and five kinds of catch tank."); return false; }
+        if(putInSlot(tok, r, name) === false){ alert("That doesn't fit: a party holds six, with up to five support DPS and five kinds of catch tank."); return false; }
         if(!tok){   // a new one: its profile, to fill in the rest (the newest copy of it in that role)
           const want = r === "main" ? "m" : r === "ct" ? "t" : "s";
           const nt = r === "main" ? "m.1" : teamParty().filter(t => t[0] === want && teamPartyLabel(t).replace(/ #\d+$/, "") === name).pop();
@@ -10792,9 +10870,9 @@ updateCTMode();
   // the name boxes themselves: on phones a tap opens the picker instead of the keyboard
   function nameBoxRole(id){ return id === "bossName" ? "boss" : /^ct\d?Name$/.test(id) ? "ct" : id === "pokemonName" ? "main" : "sup"; }
   function nameBoxTitle(id){
-    if(id === "bossName") return "Raid Boss"; if(id === "pokemonName") return document.body.classList.contains("ct-mode-team") ? "Main DPSer" : "Your Pokémon";
+    if(id === "bossName") return "Raid Boss"; if(id === "pokemonName") return document.body.classList.contains("ct-mode-team") ? "Main DPS" : "Your Pokémon";
     const m = id.match(/^(ct|sd)(\d?)Name$/);
-    return m[1] === "ct" ? (typeof teamTypeCount === "function" && teamTypeCount() <= 1 ? "Catch Tank" : "Catch Tank " + (m[2] || "1")) : "Support DPSer " + m[2];
+    return m[1] === "ct" ? (typeof teamTypeCount === "function" && teamTypeCount() <= 1 ? "Catch Tank" : "Catch Tank " + (m[2] || "1")) : "Support DPS " + m[2];
   }
   function openNamePicker(inp){
     const role = nameBoxRole(inp.id);
@@ -10831,12 +10909,12 @@ updateCTMode();
         if(to) Object.keys(keep).forEach(f => { S[to + f] = keep[f]; });
       }
     });
-    if(ok === false){ alert("That doesn't fit: up to five support DPSers and five kinds of catch tank."); return null; }
+    if(ok === false){ alert("That doesn't fit: up to five support DPS and five kinds of catch tank."); return null; }
     const want = role === "ct" ? "t" : "s";
     return teamParty().find(t => t[0] === want && teamPartyLabel(t).replace(/ #\d+$/, "") === name) || null;
   }
   // Main <-> another role: the two Pokemon trade places, each keeping its level, IVs and moves. (A card
-  // holding several copies gives up one copy; the old main DPSer gets a card of its own in that role.)
+  // holding several copies gives up one copy; the old main DPS gets a card of its own in that role.)
   const MAIN_F = { Name: "pokemonName", Level: "pokemonLevel", IvAtk: "ivAtk", IvDef: "ivDef", IvHp: "ivHp", FM: "playerFM", CM: "playerCM" };
   function swapWithMain(tok){
     const role = roleOf(tok);
@@ -10852,11 +10930,11 @@ updateCTMode();
       if(!had){ const to = role === "ct" ? CT_P.find(x => norm(S[x + "Name"]) === norm(main.Name)) : ["sd1", "sd2", "sd3", "sd4", "sd5"].find(x => norm(S[x + "Name"]) === norm(main.Name));
         if(to) ["Level", "IvAtk", "IvDef", "IvHp", "FM", "CM"].forEach(f => { if(main[f] !== undefined) S[to + f] = main[f]; }); }
     });
-    if(ok === false){ alert("That doesn't fit: up to five support DPSers and five kinds of catch tank."); return false; }
+    if(ok === false){ alert("That doesn't fit: up to five support DPS and five kinds of catch tank."); return false; }
     return true;
   }
   function openMainChooser(){
-    monSheet({ title: "Main DPSer", role: "main", sub: () => "Choose the main attacker",
+    monSheet({ title: "Main DPS", role: "main", sub: () => "Choose the main attacker",
       onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => openProfile("m.1"), 50); } });
   }
   function openProfile(tok){
@@ -10881,13 +10959,13 @@ updateCTMode();
         const col = mv && mv.elem && typeof MC_TYPE_COLORS !== "undefined" ? (MC_TYPE_COLORS[String(mv.elem).toLowerCase()] || "") : "";
         return `<button type="button" class="pp-move" data-mv="${selId}"${col ? ` style="border-color:${col}"` : ""}><span class="n">${esc(nm || (selId === I.fm ? "Choose a fast move" : "Choose a charge move"))}${icons ? `<small class="pp-ic">${icons}</small>` : ""}</span>${dmg ? `<span class="d">${esc(dmg)}</span>` : ""}<span class="c">&#9662;</span></button>`;
       };
-      // the main DPSer trades places with the first Pokemon already in the role it picks; anyone else picking
-      // Main trades places with the main DPSer
+      // the main DPS trades places with the first Pokemon already in the role it picks; anyone else picking
+      // Main trades places with the main DPS
       const partner = r => teamParty().find(t => roleOf(t) === r);
       const canPick = r => r === role ? true : !name ? false : role === "main" ? !!partner(r) : true;
       const roles = ["main", "sup", "ct"].map(r => `<button type="button" data-pr="${r}" class="${r === role ? "on" : ""}" ${canPick(r) ? "" : "disabled"}>${{ main: "Main", sup: "Support", ct: "Catch tank" }[r]}</button>`).join("");
       const mainName = v("pokemonName");
-      const roleNote = role === "main" ? (partner("sup") || partner("ct") ? "Picking Support or Catch tank swaps places with the first one in that role." : "Add a support DPSer or catch tank to swap places with.")
+      const roleNote = role === "main" ? (partner("sup") || partner("ct") ? "Picking Support or Catch tank swaps places with the first one in that role." : "Add a support DPS or catch tank to swap places with.")
                                        : (mainName ? "Picking Main swaps places with " + esc(mainName) + "." : "");
       body.innerHTML = `
         <div class="pp-head"><img src="${esc(spriteUrl(name))}" alt="" onerror="this.style.visibility='hidden'"><div><div class="pp-name">${esc(name || "—")}</div>
@@ -10962,7 +11040,7 @@ updateCTMode();
       const back = `<button type="button" class="pp-back" data-act="back"><span class="a">&lsaquo;</span><img src="${esc(spriteUrl(name))}" alt="" onerror="this.style.visibility='hidden'"><span><b>Back to ${esc(name)}</b><small>${esc(slotSummary(tok))}</small></span></button>`;
       giveBack(); wrap.remove();
       monSheet({ title: "Change Pokémon", role, top: back, sub: () => ROLE_TXT[role] + " · slot " + (teamParty().indexOf(tok) + 1),
-        onPick: (pick) => { if(putInSlot(tok, role, pick) === false){ alert("That doesn't fit: a party holds six, with up to five support DPSers and five kinds of catch tank."); return false; }
+        onPick: (pick) => { if(putInSlot(tok, role, pick) === false){ alert("That doesn't fit: a party holds six, with up to five support DPS and five kinds of catch tank."); return false; }
           const want = role === "main" ? "m" : role === "ct" ? "t" : "s";
           const nt = role === "main" ? "m.1" : teamParty().find(t => t[0] === want && teamPartyLabel(t).replace(/ #\d+$/, "") === pick);
           if(nt) setTimeout(() => openProfile(nt), 50); },
@@ -10995,7 +11073,7 @@ updateCTMode();
       const old = document.getElementById("mqBossCard"); if(old) old.remove();   // the phone's section, left empty
       return;
     }
-    // desktop, other modes: back in the Main DPSer card
+    // desktop, other modes: back in the Main DPS card
     if(!MQ.matches && bossHome && col.closest("#dtBossCard")){
       bossHome.parent.insertBefore(col, bossHome.next && bossHome.next.parentNode === bossHome.parent ? bossHome.next : null);
       return;
@@ -11017,8 +11095,8 @@ updateCTMode();
     }
   }
 
-  // The main DPSer's DPS box: on desktop under the boss panel (the right column, as a support DPSer's
-  // card has it); on a phone - where the boss has its own section - under the main DPSer's moves
+  // The main DPS's DPS box: on desktop under the boss panel (the right column, as a support DPS's
+  // card has it); on a phone - where the boss has its own section - under the main DPS's moves
   function placeMainDps(){
     const box = document.getElementById("playerDpsBox"), bm = document.getElementById("bossMovePreview"), pm = document.getElementById("playerMovePreview");
     if(!box || !bm || !pm) return;
@@ -11048,7 +11126,7 @@ updateCTMode();
     ].filter(x => x && x[1]);
   }
   // Where each tab's content starts on the page. On a phone the raid boss block sits between the main
-  // DPSer and the catch tank / support DPSer cards, which are the party too: Party starts again there.
+  // DPS and the catch tank / support DPS cards, which are the party too: Party starts again there.
   function markers(){
     const list = sections(), out = list.map(([, node], i) => [i, node]);
     if(document.body.classList.contains("ct-mode-team")){
@@ -11143,7 +11221,7 @@ updateCTMode();
     });
     // the attackers, in hot swap order: whether each may dodge or sponge the boss's charge moves
     const atts = blocks.map((b, bi) => {
-      const att = teamAttName(b.att), role = b.att === "m" ? "Main DPSer" : "Support " + b.att.slice(1);
+      const att = teamAttName(b.att), role = b.att === "m" ? "Main DPS" : "Support " + b.att.slice(1);
       const dodge = (teamAttInput(b.att, "dodge") || {}).checked, sponge = (teamAttInput(b.att, "sponge") || {}).checked;
       return `<div class="mq-att" data-blk="${bi}"><img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">
         <span class="mq-att-n"><b>${esc(att)}</b><small>${bi + 1}. ${role}</small></span>
@@ -11308,7 +11386,7 @@ updateCTMode();
     (MQ.addEventListener ? MQ.addEventListener("change", placeMainDps) : MQ.addListener(placeMainDps));
     try{ renderPlanPreview(); decoratePlanList(); }catch(e){}
     const pl = document.getElementById("ctPlanList"); if(pl) pl.addEventListener("pointerdown", startDrag);
-    // cards added later (catch tanks, support DPSers) get the same treatment
+    // cards added later (catch tanks, support DPS) get the same treatment
     new MutationObserver(() => scan()).observe(document.body, { childList: true, subtree: true });
     new MutationObserver(syncBarMode).observe(document.body, { attributes: true, attributeFilter: ["class"] });
   }
