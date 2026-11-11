@@ -1432,6 +1432,21 @@ if ("serviceWorker" in navigator) {
   @media (max-width:360px){ .mini-strip .mini-preview-stats{ gap:8px; font-size:11px; } }
   .main-hp-row small{ font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim); margin-left:4px; }
   .mq-lvwrap{ display:contents; }   /* desktop: no wrapper as far as layout goes (phones: a box around the Level input and its - / +) */
+  /* Custom Modifiers on a phone: the effectiveness boxes two to a row; your Pokemon's Stab CM / Stab FM
+     only as wide as their words; Event boost's slider keeps the full width */
+  @media (max-width:560px){
+    .custom-type-col .mod-row.narrow{ display:grid !important; grid-template-columns:1fr 1fr; gap:8px; }
+    .custom-type-col .mod-row.narrow > .mod-cell{ min-width:0; width:auto; }
+    .custom-type-col .mod-row.narrow > .mod-cell:only-child, .custom-type-col .mod-row.narrow > .mod-cell:has(#eventBoost){ grid-column:1 / -1; }
+    .custom-type-col .mod-row.narrow select{ width:100%; min-width:0; font-size:12px !important; padding-left:8px !important; padding-right:20px !important; background-position:right 6px center; text-overflow:ellipsis; }
+    .custom-type-col .check-grid{ display:flex !important; gap:8px; flex-wrap:wrap; }
+    .custom-type-col .check-grid > .check-item{ flex:none; width:auto; padding-right:14px; }
+  }
+  /* Event boost's own section (phones): the heading shows the value; the slider has no title row of its own */
+  .mq-evhead{ display:flex; align-items:baseline; justify-content:space-between; }
+  .mq-evhead .mq-evval{ color:var(--accent, #ff8a3d); font-weight:800; }
+  .mq-evslider .mq-slider-top{ display:none !important; }
+  .mq-evsec .mod-row{ margin-top:4px; }
 </style>
 <script type="application/ld+json">
 {
@@ -2143,10 +2158,12 @@ if ("serviceWorker" in navigator) {
                 </select>
               </div>
             </div>
-            <div class="check-grid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
               <label class="check-item catch-tank-only"><input type="checkbox" id="bossStabCM">Stab CM</label>
               <label class="check-item"><input type="checkbox" id="bossStabFM">Stab FM</label>
-              <label class="check-item"><input type="checkbox" id="shadowDebuff">Shadow Debuff</label>
+              <!-- Shadow debuff: set from the Pokemon's name (autoSetEffectiveness), so it is not shown - picking a
+                   Shadow Pokemon is the setting. Kept, hidden, for the calculation and saved setups / links. -->
+              <label class="check-item" hidden style="display:none"><input type="checkbox" id="shadowDebuff">Shadow Debuff</label>
             </div>
         </div>
       </div>
@@ -9998,14 +10015,44 @@ updateCTMode();
     const eb = document.getElementById("eventBoost");
     if(eb && !eb._mq){
       eb._mq = true;
-      const box = slider("Event boost", 0, 100, 5, ["0", "25", "50", "75", "100"], () => Math.min(100, parseFloat(eb.value) || 0), v => { eb.value = v; fire(eb, "input", "change"); }, v => (+v ? "+" + v + "%" : "None"));
-      const presets = presetRow([0, 25, 40, 100], () => String(parseFloat(eb.value) || 0), v => { eb.value = v; fire(eb, "input", "change"); box._paint(); }, v => (+v ? "+" + v + "%" : "0%"));
-      presets.classList.add("mq-wide");
-      eb.classList.add("mq-hide"); eb.insertAdjacentElement("afterend", presets); eb.insertAdjacentElement("afterend", box);
+      // its own section at the bottom of Custom Modifiers: the heading carries the value ("+40%"; nothing at 0)
+      const evSec = el("div", "custom-type-col mq-evsec", "block");
+      evSec.innerHTML = '<div class="custom-type-head mq-evhead"><span>Event boost</span><b class="mq-evval"></b></div>';
+      const evVal = evSec.querySelector(".mq-evval");
+      const box = slider("", 0, 100, 5, ["0", "25", "50", "75", "100"], () => Math.min(100, parseFloat(eb.value) || 0), v => { eb.value = v; fire(eb, "input", "change"); },
+        v => { const t = +v ? "+" + v + "%" : ""; evVal.textContent = t; return t; });
+      box.classList.add("mq-evslider");
+      eb._mqEvSec = evSec;
+      eb.classList.add("mq-hide"); eb.insertAdjacentElement("afterend", box);   // the slider only (no preset buttons)
       const hint = document.getElementById("eventBoostHint"); if(hint) hint.classList.add("mq-hide");   // the slider says it already
       const lbl = document.querySelector('label[for="eventBoost"]'); if(lbl) lbl.classList.add("mq-hide");
-      eb.addEventListener("input", () => { box._paint(); presets._paint(); });
+      eb.addEventListener("input", () => { box._paint(); });
+      // where Event boost's row lives: its own section on a phone, back in Your Pokemon on desktop
+      const row = eb.closest(".mod-row"), home = row.parentElement, homeNext = row.nextElementSibling;
+      const body = eb.closest(".custom-type-body");
+      const placeEv = () => {
+        if(MQ.matches){ if(!evSec.isConnected) body.appendChild(evSec); if(row.parentElement !== evSec) evSec.appendChild(row); }
+        else if(row.parentElement !== home){ home.insertBefore(row, homeNext && homeNext.parentElement === home ? homeNext : null); }
+      };
+      placeEv(); (MQ.addEventListener ? MQ.addEventListener("change", placeEv) : MQ.addListener(placeEv));
     }
+    shortenModifiers();
+  }
+  // Custom Modifiers on a phone: shorter effectiveness options ("Super Eff - 1.6x") so each pair fits side
+  // by side, and the boss's "Charge Move -> You" / "Fast Move -> You" as just "Charge Move" / "Fast Move".
+  // Only the words shown change (values, saving and links are untouched); desktop keeps the full text.
+  function shortenModifiers(){
+    const swap = (node, short) => {
+      if(node.dataset.mqFull === undefined) node.dataset.mqFull = node.textContent;
+      const want = MQ.matches ? short(node.dataset.mqFull) : node.dataset.mqFull;
+      if(node.textContent !== want) node.textContent = want;
+    };
+    ["effCM", "effFM", "effBossCM", "effBossFM"].forEach(id => {
+      const sel = document.getElementById(id); if(!sel) return;
+      [...sel.options].forEach(o => swap(o, t => t.replace(/^Extremely /, "Ext. ").replace(/^Very /, "V. ").replace(/Effective/g, "Eff").replace(/\s*\u2014\s*/, " - ")));
+    });
+    ["effBossCM", "effBossFM"].forEach(id => { const l = document.querySelector('label[for="' + id + '"]'); if(l) swap(l, t => t.replace(/\s*\u2192\s*You\s*$/, "")); });
+    if(!shortenModifiers.on){ shortenModifiers.on = true; (MQ.addEventListener ? MQ.addEventListener("change", shortenModifiers) : MQ.addListener(shortenModifiers)); }
   }
 
   // ---------- the sticky party bar (Battle Party Simulator) ----------
