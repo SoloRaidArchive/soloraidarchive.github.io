@@ -1481,6 +1481,13 @@ if ("serviceWorker" in navigator) {
   .mod-cell.has-sel-ico > .mod-sel-ico[hidden]{ display:none; }
   .mod-cell.has-sel-ico > .mod-sel-ico[hidden] + select{ grid-column:1 / -1; }
   .mod-cell.has-sel-ico > select{ grid-column:2; min-width:0; }
+  /* Add to your party: under the main DPSer */
+  .party-add-card{ padding-top:16px !important; padding-bottom:16px !important; }
+  .party-add-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+  .party-add-head .step-title{ margin:0; }
+  .party-add-card .team-add-row{ display:grid !important; grid-template-columns:1fr 1fr; gap:12px; margin:0 !important; }
+  .party-add-card .team-add-btn{ width:100%; margin:0 !important; padding:14px 10px; }
+  .party-add-card .party-meter{ margin:0 !important; white-space:nowrap; }
 </style>
 <script type="application/ld+json">
 {
@@ -1848,6 +1855,12 @@ if ("serviceWorker" in navigator) {
       </div>
     </div>
   </div>
+  <!-- Building the party: right under the main DPSer - catch tanks and support DPSers are added here,
+       in the order a party is built; the count of six sits with it -->
+  <div class="step-card team-only party-add-card" id="partyAddCard">
+    <div class="party-add-head"><span class="step-title">Add to your party</span><span class="party-meter" id="ctPartyMeter" aria-live="polite"></span></div>
+    <div class="team-add-row"><button type="button" class="team-add-btn" id="ctAddType">+ Add a catch tank</button><button type="button" class="team-add-btn" id="sdAdd" title="Hot swap: when the attacker in can't reach another charge move (its catch tanks used and a sponge unsafe), it swaps out and the next support DPSer comes in.">+ Add a support DPSer</button></div>
+  </div>
 
   <!-- Beta: Battle Party Simulator - the catch tank, laid out like step 1: the tank on the left,
        what the boss does to it on the right (live previews), settings under the boss side. -->
@@ -1974,14 +1987,13 @@ if ("serviceWorker" in navigator) {
         <span class="info-wrap"><button type="button" class="info-i" aria-label="What Soft and Strict mean" aria-expanded="false">i</button><span class="info-pop" role="tooltip" id="ctAssignHint"></span></span>
       </div>
       <div id="ctPlanList"></div>
-      <div class="team-add-row"><button type="button" class="team-add-btn" id="sdAdd" title="Hot swap: when the attacker in can't reach another charge move (its catch tanks used and a sponge unsafe), it swaps out and the next support DPSer comes in.">+ Add a support DPSer</button><button type="button" class="team-add-btn" id="ctAddType">+ Add another catch tank</button><span class="party-meter" id="ctPartyMeter" aria-live="polite"></span></div>
       <!-- the plan, saved with setups and links: attackers in order, each with its catch tanks and its
            sponge ("s"), e.g. "m:1.1,1.2,s|s1:s,1.3,1.4"; and soft / strict assignment -->
       <input type="hidden" id="ctPlan" value="">
       <input type="hidden" id="ctAssign" value="soft">
       <!-- kept for setups and links saved before the list: the old Priority order, catch tank types -->
       <input type="hidden" id="ctPriority" value="main,1">
-      <input type="hidden" id="ctTypes" value="1">
+      <input type="hidden" id="ctTypes" value="0">
       <input type="hidden" id="sdCount" value="0">
       <div hidden>
         <label class="check-item" title="Safe = absorbs at least 90% of the charge move's energy, survives the hit, and can still fire its own charge move."><input type="checkbox" id="ctMainAbsorb" checked> Main can sponge</label><label class="check-item" title="The main DPSer dodges the boss's charge move instead of swapping out, when it is safe: it keeps at least 85% of the dodged hit's energy, survives the dodged hit, starts its own charge move before the boss's next one, and is still standing when that charge move lands. A dodge takes 25% of the damage and costs 1.0s."><input type="checkbox" id="ctMainDodge"> Main can dodge</label><input type="checkbox" id="ctCmBuffer" hidden tabindex="-1">
@@ -7002,7 +7014,11 @@ function restoreMoveSelection(baseId, savedMove){
 function applySetup(setup){
   // the Catch Tank 2/3 and Support DPSer cards have to exist before their fields can be filled in
   const savedTypes = parseInt(setup.ctTypes, 10);
-  setTeamTypeCount(isNaN(savedTypes) ? 1 : savedTypes);
+  // (before "no catch tanks" was its own setting, a support DPSer with the one catch tank card left
+  // empty meant a run without catch tanks - such a setup or link still means that)
+  const typesNow = isNaN(savedTypes) ? 1 : savedTypes;
+  const legacyNone = typesNow === 1 && (parseInt(setup.sdCount, 10) || 0) > 0 && !String(setup.ctName || "").trim();
+  setTeamTypeCount(legacyNone ? 0 : typesNow);
   setSupportCount(parseInt(setup.sdCount, 10) || 0);
   // a setup from before Priority & hot swap order has no plan: it is rebuilt below from its old
   // Priority order / Used by / First settings once those are loaded
@@ -8361,7 +8377,7 @@ function setTeamTypeCount(n){
   const add = document.getElementById("ctAddType");
   add.hidden = n >= TEAM_TYPE_MAX;
   updatePartyLimits();
-  add.dataset.label = n === 0 ? "+ Add a catch tank" : "+ Add another catch tank";
+  add.dataset.label = "+ Add a catch tank";
   add.textContent = add.dataset.label;
   // with no catch tanks, Soft / Strict and Catch tank behavior (Double catch) have nothing to act on
   const mode = document.querySelector("#teamBehaviorCard .pl-mode"); if(mode) mode.style.display = n === 0 ? "none" : "";
@@ -8372,7 +8388,9 @@ function setTeamTypeCount(n){
   if(typeof updateTeamPreview === "function") updateTeamPreview();
 }
 // (a new catch tank card can't take the party past six: its quantity is cut to what fits)
-document.getElementById("ctAddType").addEventListener("click", () => { setTeamTypeCount(teamTypeCount() + 1); enforcePartyLimit(); updatePartyLimits(); renderTeamOrder(); });
+document.getElementById("ctAddType").addEventListener("click", () => {
+  if(teamTypeCount() === 0 && !document.getElementById("ctName").value.trim()){ document.getElementById("ctQty").value = "1"; document.getElementById("ctCasts").value = "1"; }
+  setTeamTypeCount(teamTypeCount() + 1); enforcePartyLimit(); updatePartyLimits(); renderTeamOrder(); });
 
 // ---- Hot swap: Support DPSers ----
 // Attackers come in one after another - the main DPSer, then Support DPSer 1, then 2 - and never
@@ -8580,7 +8598,7 @@ function setTeamOrder(order){ document.getElementById("ctPriority").value = orde
 function teamPlanAttackers(){ return ["m"].concat(supportPrefixes().map((p, i) => "s" + (i + 1))); }
 function teamPlanTanks(){
   const $ = id => document.getElementById(id);
-  if(teamTypeCount() === 0 || (supportCount() > 0 && teamTypeCount() === 1 && !$("ctName").value.trim())) return [];   // no catch tanks
+  if(teamTypeCount() === 0) return [];   // no catch tanks (a card that is there counts, named or not)
   const out = [];
   teamPrefixes().forEach((p, i) => {
     const q = Math.max(1, Math.min(10, parseInt(($(p + "Qty") || {}).value, 10) || 1));
