@@ -4577,14 +4577,15 @@ function updateTeamPreviewFor(p, c){
   right.innerHTML = `<div class="boss-dmg-preview">${bossTagHtml()}${teamMoveRow(c.bossFMMove, T.bossFmDmg)}${teamMoveRow(c.bossCMMove, T.bossCmDmg)}</div>`;
   const mini = document.getElementById(p + "BossMini");
   if(mini) mini.innerHTML = bossMiniHtml([[c.bossFMMove.n, T.bossFmDmg], [c.bossCMMove.n, T.bossCmDmg]]);
-  if(p.startsWith("sd") && T.fm && T.cm && T.fmDmg !== undefined)
-    renderAttackerDps(p + "DpsBox", { fm: T.fm, cm: T.cm, fmDmg: T.fmDmg, cmDmg: T.cmDmg, bossFM: c.bossFMMove, bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg, hp: T.hp });
   // what the catch does for this Pokemon - the energy it banks and the HP it keeps - sits with its own moves
+  // (a support DPSer's Remaining HP is the one its DPS box works out, after its slider's charge moves)
   if(T.fmDmg !== undefined && T.cmDmg !== undefined) moves.innerHTML = `
     <div class="boss-dmg-preview">${teamMoveRow(T.fm, T.fmDmg)}${teamMoveRow(T.cm, T.cmDmg)}
       <div class="boss-dmg-row player-dmg energy-row"><span>Energy gained from ${c.bossCMMove.n}</span><b>+${gain} energy</b></div>
-      <div class="boss-dmg-row player-dmg"><span>Remaining HP</span><b>${Math.max(0, hpAfter)} / ${T.hp}</b></div>
+      ${p.startsWith("sd") ? "" : `<div class="boss-dmg-row player-dmg"><span>Remaining HP</span><b>${Math.max(0, hpAfter)} / ${T.hp}</b></div>`}
     </div>`;
+  if(p.startsWith("sd") && T.fm && T.cm && T.fmDmg !== undefined)
+    renderAttackerDps(p + "DpsBox", { fm: T.fm, cm: T.cm, fmDmg: T.fmDmg, cmDmg: T.cmDmg, bossFM: c.bossFMMove, bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg, hp: T.hp });
 }
 // (i) bubbles: a tap or click opens one (and closes any other); a click anywhere else, or Escape, closes it
 document.addEventListener("click", e => {
@@ -5471,8 +5472,9 @@ function renderAttackerDps(slotId, o){
   let dps = 0, secs = 0, taken = 0;
   for(let k = 1; k <= runs; k++){ const r = mdRotationCore(Object.assign({}, base, { seed: k * 7919 })); dps += r.dps; secs += r.seconds; taken += r.damageTaken; }
   dps /= runs; secs /= runs; taken /= runs;
-  // the main DPSer: its HP after this rotation, in its own damage box - it follows the slider
-  if(slotId === "playerDpsBox") showMainHpLeft(o.hp, taken, st.n);
+  // its HP after this rotation, in its own damage box - it follows the slider (main and support DPSers)
+  const panel = slotId === "playerDpsBox" ? "playerMovePreview" : slotId.replace(/DpsBox$/, "MovePreview");
+  showHpLeft(panel, o.hp, taken, st.n);
   slot.innerHTML = `<div class="att-dps">
       <div class="att-dps-figs">
         <div title="The boss uses only its fast move"><span>Fast moves only</span><b>${fmOnly.toFixed(1)}</b><small>${st.n} &times; ${esc0(o.cm.n)} &middot; ${fo.seconds.toFixed(1)}s</small></div>
@@ -5483,8 +5485,8 @@ function renderAttackerDps(slotId, o){
       </div></div>`;
 }
 const esc0 = v => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-function showMainHpLeft(hp, taken, n){
-  const box = document.querySelector("#playerMovePreview .boss-dmg-preview"); if(!box) return;
+function showHpLeft(panelId, hp, taken, n){
+  const box = document.querySelector("#" + panelId + " .boss-dmg-preview"); if(!box) return;
   let row = box.querySelector(".main-hp-row");
   if(!row){ row = document.createElement("div"); row.className = "boss-dmg-row player-dmg main-hp-row"; box.appendChild(row); }
   const left = Math.max(0, Math.round(hp - taken));
@@ -5495,6 +5497,10 @@ document.addEventListener("input", e => {
   ATT_DPS[id].n = +e.target.value;
   const b = e.target.closest(".att-dps-n").querySelector("b"); if(b) b.textContent = e.target.value;   // the number follows the thumb
 });
+["input", "change"].forEach(ev => document.addEventListener(ev, e => {
+  if(e.target.id !== "bossAggro") return;
+  Object.keys(ATT_DPS).forEach(id => { if(ATT_DPS[id].o) renderAttackerDps(id, ATT_DPS[id].o); });
+}));
 document.addEventListener("change", e => {
   const d = e.target.dataset || {};
   const id = d.attN || d.attAggro; if(!id || !ATT_DPS[id]) return;
