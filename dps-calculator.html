@@ -5439,11 +5439,17 @@ function renderAttackerDps(slotId, o){
   if(!o){ slot.innerHTML = ""; if(ATT_DPS[slotId]) ATT_DPS[slotId].o = null; return; }
   const st = ATT_DPS[slotId] || (ATT_DPS[slotId] = { n: 3, aggro: true });   // aggression: always on, at the simulator's %
   st.o = o;
-  const fmOnly = o.fmDmg / Math.max(o.fm.ad / 2, 0.1);
+  // Both are the attacker's own fast + charge move rotation (the slider's charge moves); what differs
+  // is the BOSS, as in Main DPS mode's two cadences:
+  //   Fast moves only     - the boss uses only its fast move (one fixed rotation)
+  //   Fast + charge moves - the boss may also use its charge move, at the simulator's aggression %
+  //                         (random, so averaged over many rotations)
   const aggroP = (parseInt((document.getElementById("bossAggro") || {}).value, 10) || 30) / 100;
   const base = { fm: o.fm, cm: o.cm, fastDamage: o.fmDmg, chargeDamage: o.cmDmg, bossFMMove: o.bossFM, bossFMDamage: o.bossFmDmg,
                  bossCMDamage: o.bossCmDmg || 0, playerHp: o.hp, numCM: st.n, resolveNerf: !!(document.getElementById("resolveNerf") || {}).checked,
                  dodgeCM: false, bossAggroOn: st.aggro && !!o.bossCmDmg, bossAggroP: aggroP, optimalDps: false };
+  const fo = mdRotationCore(Object.assign({}, base, { bossAggroOn: false, seed: 1 }));
+  const fmOnly = fo.dps;
   const runs = base.bossAggroOn ? 24 : 1;
   let dps = 0, secs = 0, taken = 0;
   for(let k = 1; k <= runs; k++){ const r = mdRotationCore(Object.assign({}, base, { seed: k * 7919 })); dps += r.dps; secs += r.seconds; taken += r.damageTaken; }
@@ -5452,8 +5458,8 @@ function renderAttackerDps(slotId, o){
   if(slotId === "playerDpsBox") showMainHpLeft(o.hp, taken, st.n);
   slot.innerHTML = `<div class="att-dps">
       <div class="att-dps-figs">
-        <div><span>Fast moves only</span><b>${fmOnly.toFixed(1)}</b><small>${esc0(o.fm.n)}</small></div>
-        <div><span>Fast + charge moves</span><b>${dps.toFixed(1)}</b><small>${st.n} &times; ${esc0(o.cm.n)} &middot; ${secs.toFixed(1)}s${runs > 1 ? " avg" : ""}</small></div>
+        <div title="The boss uses only its fast move"><span>Fast moves only</span><b>${fmOnly.toFixed(1)}</b><small>${st.n} &times; ${esc0(o.cm.n)} &middot; ${fo.seconds.toFixed(1)}s</small></div>
+        <div title="The boss also uses its charge move, at the aggression % set for the simulator (averaged over many rotations)"><span>Fast + charge moves</span><b>${dps.toFixed(1)}</b><small>${st.n} &times; ${esc0(o.cm.n)} &middot; ${secs.toFixed(1)}s${runs > 1 ? " avg" : ""}</small></div>
       </div>
       <div class="att-dps-ctrl">
         <label class="att-dps-n">Charge moves <b>${st.n}</b><input type="range" min="1" max="10" step="1" value="${st.n}" data-att-n="${slotId}" aria-label="How many charge moves it casts"></label>
