@@ -1491,6 +1491,43 @@ if ("serviceWorker" in navigator) {
   .party-add-card .party-meter{ margin:0 !important; white-space:nowrap; }
   .team-log td.team-en{ text-align:right; font-variant-numeric:tabular-nums; color:#ffd166; white-space:nowrap; padding-left:4px; }
   .beta-build{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin:0 0 6px; }
+  /* Desktop Battle Simulator: the battle party bar and the raid boss side by side; no default Main DPSer
+     card (it appears once one is chosen), no Add to your party card, no party order grid */
+  .dt-top{ display:none; }
+  .dt-main-right{ display:none; }
+  @media (min-width:561px){
+    body.ct-mode-team .dt-top{ display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:16px; align-items:stretch; margin-bottom:16px; }
+    body.ct-mode-team .dt-top > .step-card{ margin:0 !important; }
+    body.ct-mode-team .dt-main-right{ display:block; }
+    body.ct-mode-team #partyAddCard{ display:none !important; }
+    body.ct-mode-team .mq-po-group{ display:none !important; }
+    body.ct-mode-team.no-main .mq-main-card{ display:none !important; }
+  }
+  .dt-party{ display:flex; flex-direction:column; }
+  .dt-party-head{ display:flex; align-items:center; gap:10px; margin-bottom:4px; } .dt-party-head .step-title{ margin:0; } .dt-party-head .party-meter{ margin-left:auto; }
+  .dt-party-hint{ font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); margin:0 0 10px; }
+  .dt-slots{ position:relative; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); grid-auto-rows:1fr; gap:10px; flex:1; }
+  .dt-slot{ position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:12px 8px 10px; border-radius:14px;
+    border:2px solid var(--border); background:#161a28; min-height:104px; text-align:center; cursor:pointer; color:inherit; font:inherit; -webkit-user-select:none; user-select:none; }
+  [data-theme="light"] .dt-slot{ background:var(--card); }
+  .dt-slot:hover{ border-color:var(--accent, #ff8a3d); }
+  .dt-slot img{ width:52px; height:52px; object-fit:contain; pointer-events:none; -webkit-user-drag:none; }
+  .dt-slot b{ font:800 12.5px 'Manrope',sans-serif; line-height:1.2; color:var(--text); }
+  .dt-slot em{ font-style:normal; font:800 10px 'Manrope',sans-serif; background:var(--accent, #ff8a3d); color:#1a1312; border-radius:6px; padding:1px 7px; }
+  .dt-slot i{ position:absolute; top:6px; left:9px; font:800 10px 'Manrope',sans-serif; color:var(--text-dim); font-style:normal; }
+  .dt-slot.empty{ border-style:dashed; background:transparent; color:var(--accent, #ff8a3d); font:800 13px 'Manrope',sans-serif; }
+  .dt-slot.on{ border-color:var(--accent, #ff8a3d); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent, #ff8a3d) 25%, transparent); }
+  .dt-slot.mq-lift{ transform:scale(1.05); box-shadow:0 10px 24px rgba(0,0,0,.45); z-index:3; }
+  .dt-pop{ position:absolute; z-index:30; width:270px; padding:8px; border-radius:14px; border:1.5px solid var(--border); background:var(--card); box-shadow:0 14px 34px rgba(0,0,0,.5); }
+  .dt-pop h4{ margin:4px 6px 8px; font:800 12px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; }
+  .dt-pop button{ display:flex; align-items:center; gap:10px; width:100%; padding:9px 10px; border:0; border-radius:10px; background:transparent; font:800 13px 'Manrope',sans-serif; color:var(--text); text-align:left; cursor:pointer; }
+  .dt-pop button small{ display:block; font:700 11px 'Manrope',sans-serif; color:var(--text-dim); }
+  .dt-pop button:hover:not(:disabled){ background:color-mix(in srgb, var(--accent, #ff8a3d) 14%, transparent); }
+  .dt-pop button:disabled{ opacity:.4; cursor:default; }
+  .dt-boss .vs-col{ max-width:none; }
+  #playerBossPanel:not(:empty) + .att-dps-slot, #playerBossPanel:not(:empty) ~ .att-dps-slot{ margin-top:10px; }
+  .card-flash{ animation:cardFlash 1.2s ease; }
+  @keyframes cardFlash{ 0%{ box-shadow:0 0 0 3px var(--accent, #ff8a3d); } 100%{ box-shadow:0 0 0 0 transparent; } }
 </style>
 <script type="application/ld+json">
 {
@@ -1708,7 +1745,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · party profiles 3</p>
+      <p class="beta-build">Build 2026-11-11 · desktop party bar</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -1751,7 +1788,17 @@ if ("serviceWorker" in navigator) {
 
   
   <!-- STEP 1: SIDE BY SIDE -->
-  <div class="step-card">
+    <!-- Desktop Battle Simulator: the battle party bar (left) and the raid boss (right), side by side. The
+       boss's fields are moved in here by the page script (and back into the Main DPSer card in other modes). -->
+  <div class="dt-top" id="dtTop">
+    <div class="step-card dt-party" id="dtPartyCard">
+      <div class="dt-party-head"><span class="step-title">Battle party</span><span class="party-meter" id="dtPartyMeter"></span></div>
+      <div class="dt-party-hint" id="dtPartyHint"></div>
+      <div class="dt-slots" id="dtSlots"></div>
+    </div>
+    <div class="step-card dt-boss" id="dtBossCard"><div class="step-head"><div><div class="step-title">Raid Boss</div></div></div></div>
+  </div>
+<div class="step-card">
     <div class="step-head">
       <div class="step-num">1</div>
       <div>
@@ -1857,7 +1904,8 @@ if ("serviceWorker" in navigator) {
         <div id="bossMovePreview"></div>
 
       </div>
-    </div>
+      <div class="vs-col dt-main-right" id="mainRightCol"><div id="playerBossPanel"></div></div>
+      </div>
   </div>
   <!-- Building the party: right under the main DPSer - catch tanks and support DPSers are added here,
        in the order a party is built; the count of six sits with it -->
@@ -7370,8 +7418,12 @@ function updatePlayerMovePreview(){
   document.getElementById("playerMovePreview").innerHTML = playerMoveDamagePreviewHtml();
   renderMainDps();
 }
-// the Battle Simulator's main DPSer: its DPS box, once both its moves and the boss's are known
+// the Battle Simulator's main DPSer: its DPS box, once both its moves and the boss's are known (and,
+// on desktop, the boss's damage to it beside its own moves - the boss itself has its own section there)
 function renderMainDps(){
+  const bp = document.getElementById("playerBossPanel");
+  if(bp) bp.innerHTML = (document.body.classList.contains("ct-mode-team") && LAST_MAIN_BOSS && LAST_MAIN_BOSS.fm)
+    ? `<div class="boss-dmg-preview">${bossTagHtml()}${teamMoveRow(LAST_MAIN_BOSS.fm, LAST_MAIN_BOSS.fmDmg)}${LAST_MAIN_BOSS.cm ? teamMoveRow(LAST_MAIN_BOSS.cm, LAST_MAIN_BOSS.cmDmg) : ""}</div>` : "";
   if(!document.body.classList.contains("ct-mode-team") || !LAST_MAIN_PLAYER || !LAST_MAIN_BOSS){ renderAttackerDps("playerDpsBox", null); return; }
   const pk = findPokemon((document.getElementById("pokemonName").value || "").trim());
   const lvl = document.getElementById("pokemonLevel").value.trim(), ivHp = parseInt(document.getElementById("ivHp").value, 10);
@@ -10281,7 +10333,65 @@ updateCTMode();
     const k = tok.slice(1).split(".")[0];
     return document.getElementById(k === "1" ? "teamCard" : "teamCard" + k);
   }
+  // ---------- desktop Battle Simulator: the battle party bar (2 rows of 3) ----------
+  // Empty slot: Main DPSer (while there is none) / Support DPSer / Catch tank, then the Pokemon - its
+  // card appears below. Filled slot: its card. Hold and drag to change the party order.
+  function renderDtBar(){
+    const box = document.getElementById("dtSlots"); if(!box || typeof teamParty !== "function") return;
+    if(box.classList.contains("mq-sorting")) return;   // mid-move
+    const mainName = ((document.getElementById("pokemonName") || {}).value || "").trim();
+    const party = teamParty().filter(t => t !== "m.1" || mainName);
+    const label = t => teamPartyLabel(t), nm = t => label(t).replace(/ #\d+$/, "");
+    const badge = t => t[0] === "m" ? "Main" : t[0] === "s" ? "Support" : "Catch tank";
+    const html = [...Array(6)].map((_, i) => { const t = party[i];
+      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: jump to its card"><i>${i + 1}</i><img src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
+               : `<button type="button" class="dt-slot empty" data-slot="${i + 1}"><i>${i + 1}</i>+ Add</button>`; }).join("");
+    if(box.dataset.html !== html){ box.dataset.html = html; box.innerHTML = html; }
+    const meter = document.getElementById("dtPartyMeter"); const txt = `Party ${party.length} of 6`; if(meter && meter.textContent !== txt) meter.textContent = txt;
+    const hint = document.getElementById("dtPartyHint"); const h = party.length ? "Click a Pokémon to jump to its card · hold and drag to reorder" : "Click a slot to add a Pokémon";
+    if(hint && hint.textContent !== h) hint.textContent = h;
+  }
+  function closeDtPop(){ document.querySelectorAll(".dt-pop").forEach(x => x.remove()); document.querySelectorAll(".dt-slot.on").forEach(x => x.classList.remove("on")); }
+  function openDtRoles(btn){
+    closeDtPop();
+    const slots = document.getElementById("dtSlots"), mainName = ((document.getElementById("pokemonName") || {}).value || "").trim();
+    btn.classList.add("on");
+    const pop = document.createElement("div"); pop.className = "dt-pop";
+    pop.innerHTML = `<h4>Slot ${btn.dataset.slot} - what's it for?</h4>
+      <button type="button" data-role="main" ${mainName ? "disabled" : ""}>&#11088;<span>Main DPSer<small>${mainName ? "Taken by " + esc(mainName) : "The attacker the party is built around"}</small></span></button>
+      <button type="button" data-role="sup" ${(typeof supportCount === "function" && supportCount() >= 5) ? "disabled" : ""}>&#9876;&#65039;<span>Support DPSer<small>Hot swaps in after the main DPSer</small></span></button>
+      <button type="button" data-role="ct">&#128737;&#65039;<span>Catch tank<small>Catches the boss's charge moves</small></span></button>`;
+    const r = btn.getBoundingClientRect(), sr = slots.getBoundingClientRect();
+    pop.style.left = Math.max(0, Math.min(r.left - sr.left, sr.width - 270)) + "px"; pop.style.top = (r.bottom - sr.top + 8) + "px";
+    slots.appendChild(pop);
+    pop.addEventListener("click", e => {
+      const b = e.target.closest("[data-role]"); if(!b || b.disabled) return;
+      closeDtPop();
+      if(b.dataset.role === "main") monSheet({ title: "Main DPSer", role: "main", sub: () => "Its card appears below",
+        onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => showCard("m.1"), 120); } });
+      else openPicker(null, b.dataset.role, +btn.dataset.slot);
+    });
+  }
+  // a Pokemon's card: scrolled to and flashed (desktop)
+  function showCard(tok){
+    const card = cardFor(tok); if(!card) return;
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
+    card.classList.remove("card-flash"); void card.offsetWidth; card.classList.add("card-flash");
+  }
+  document.addEventListener("click", e => {
+    const slot = e.target.closest && e.target.closest(".dt-slot");
+    if(slot){ if(slot.dataset.tok) showCard(slot.dataset.tok); else openDtRoles(slot); return; }
+    if(!e.target.closest || !e.target.closest(".dt-pop")) closeDtPop();
+  });
+  document.addEventListener("keydown", e => { if(e.key === "Escape") closeDtPop(); });
+  holdToSort(() => document.getElementById("dtSlots"), { anyWidth: true, axis: "grid", drag: ".dt-slot[data-tok]", places: ".dt-slot[data-tok]", drop: slots => {
+    document.getElementById("ctParty").value = slots.map(x => x.dataset.tok).filter(Boolean).join(",");
+    if(typeof renderPartyOrder === "function") renderPartyOrder();
+    renderDtBar(); renderBar();
+  }});
+
   function renderBar(){
+    renderDtBar();
     if(!bar || typeof teamParty !== "function") return;
     if(bar.querySelector(".mq-slots.mq-sorting")) return;   // mid-move: left as the finger has it until it lets go
     const order = teamParty().slice(0, 6);
@@ -10602,7 +10712,7 @@ updateCTMode();
         if(!tok){   // a new one: its profile, to fill in the rest (the newest copy of it in that role)
           const want = r === "main" ? "m" : r === "ct" ? "t" : "s";
           const nt = r === "main" ? "m.1" : teamParty().filter(t => t[0] === want && teamPartyLabel(t).replace(/ #\d+$/, "") === name).pop();
-          if(nt) setTimeout(() => openProfile(nt), 60);
+          if(nt) setTimeout(() => MQ.matches ? openProfile(nt) : showCard(nt), 60);
         }
       },
       onAct: act => { if(act === "remove") editSetup(S => removeFrom(S, tok)); if(act === "edit") scrollToCard(cardFor(tok)); },
@@ -10805,10 +10915,24 @@ updateCTMode();
   function placeBoss(){
     const bn = document.getElementById("bossName"), pn = document.getElementById("pokemonName");
     const col = bn && bn.closest(".vs-col"); if(!col || !pn) return;
+    const mainCard0 = pn.closest(".step-card");
+    if(!bossHome && mainCard0 && mainCard0.contains(col)) bossHome = { parent: col.parentNode, next: col.nextSibling };
+    const team = document.body.classList.contains("ct-mode-team"), dt = document.getElementById("dtBossCard");
+    // desktop, Battle Simulator: its own section beside the battle party bar
+    if(!MQ.matches && team && dt){
+      if(col.parentNode !== dt) dt.appendChild(col);
+      const old = document.getElementById("mqBossCard"); if(old) old.remove();   // the phone's section, left empty
+      return;
+    }
+    // desktop, other modes: back in the Main DPSer card
+    if(!MQ.matches && bossHome && col.closest("#dtBossCard")){
+      bossHome.parent.insertBefore(col, bossHome.next && bossHome.next.parentNode === bossHome.parent ? bossHome.next : null);
+      return;
+    }
     if(MQ.matches){
       if(col.closest(".mq-boss-card")) return;
       const mainCard = pn.closest(".step-card"); if(!mainCard) return;
-      bossHome = { parent: col.parentNode, next: col.nextSibling };
+      if(!bossHome) bossHome = { parent: col.parentNode, next: col.nextSibling };
       let card = document.getElementById("mqBossCard");
       if(!card){
         card = el("div", "step-card mq-boss-card", "block"); card.id = "mqBossCard";
@@ -10827,11 +10951,18 @@ updateCTMode();
   function placeMainDps(){
     const box = document.getElementById("playerDpsBox"), bm = document.getElementById("bossMovePreview"), pm = document.getElementById("playerMovePreview");
     if(!box || !bm || !pm) return;
+    const right = document.getElementById("mainRightCol");
     if(MQ.matches){
       const after = pm.nextElementSibling && pm.nextElementSibling.classList.contains("mq-movebox") ? pm.nextElementSibling : pm;
       if(box.previousElementSibling !== after) after.insertAdjacentElement("afterend", box);
-    } else if(box.previousElementSibling !== bm) bm.insertAdjacentElement("afterend", box);
+    } else if(document.body.classList.contains("ct-mode-team") && right){   // desktop Battle Simulator: beside its moves
+      if(box.parentNode !== right) right.appendChild(box);
+    }
+    // other modes have no DPS box (it stays empty), so it is left where it is - moving it there would fight
+    // the move box that also sits after the boss panel, and each move would set the other off
   }
+  // a mode change moves the boss's fields and the DPS box to where that mode has them
+  document.addEventListener("change", e => { if(e.target && e.target.name === "ctMode") setTimeout(() => { placeBoss(); placeMainDps(); renderDtBar(); }, 0); });
 
   // ---------- section tabs ----------
   function sections(){
@@ -10877,7 +11008,7 @@ updateCTMode();
     const items = () => [...host().querySelectorAll(o.places)];
     const clear = () => { if(!st) return; clearTimeout(st.timer); if(st.lifted){ st.it.classList.remove("mq-lift"); host().classList.remove("mq-sorting"); } };
     document.addEventListener("pointerdown", e => {
-      const h = host(); if(!h || !MQ.matches) return;
+      const h = host(); if(!h || (!MQ.matches && !o.anyWidth)) return;
       const it = e.target.closest(o.drag); if(!it || !h.contains(it)) return;
       clear(); st = { it, x0: e.clientX, y0: e.clientY, lifted: false, moved: false };
       st.timer = setTimeout(() => { if(!st) return; st.lifted = true; it.classList.add("mq-lift"); host().classList.add("mq-sorting"); try{ navigator.vibrate && navigator.vibrate(12); }catch(_){} }, 350);
@@ -10888,7 +11019,10 @@ updateCTMode();
       st.moved = true;
       const pos = o.axis === "y" ? e.clientY : e.clientX;
       const others = items().filter(x => x !== st.it && x.offsetParent !== null);
-      const before = others.find(x => { const r = x.getBoundingClientRect(); return pos < (o.axis === "y" ? r.top + r.height / 2 : r.left + r.width / 2); });
+      // a grid reads in rows: the first one the pointer is above, or left of the middle of in its row
+      const before = o.axis === "grid"
+        ? others.find(x => { const r = x.getBoundingClientRect(); return e.clientY < r.top || (e.clientY <= r.bottom && e.clientX < r.left + r.width / 2); })
+        : others.find(x => { const r = x.getBoundingClientRect(); return pos < (o.axis === "y" ? r.top + r.height / 2 : r.left + r.width / 2); });
       const par = st.it.parentNode;
       if(before){ if(st.it.nextElementSibling !== before) par.insertBefore(st.it, before); }
       else { const last = others[others.length - 1]; if(last && last.nextElementSibling !== st.it) last.insertAdjacentElement("afterend", st.it); }
@@ -10908,7 +11042,7 @@ updateCTMode();
     window.addEventListener("touchmove", e => { if(st && st.lifted) e.preventDefault(); }, { passive: false });
     document.addEventListener("contextmenu", e => { if(st && e.target.closest(o.drag)) e.preventDefault(); });
     // the browser's own image drag (a sprite held and moved) would cancel the move
-    document.addEventListener("dragstart", e => { const h = host(); if(h && MQ.matches && e.target.closest && e.target.closest(o.drag) && h.contains(e.target)) e.preventDefault(); });
+    document.addEventListener("dragstart", e => { const h = host(); if(h && (MQ.matches || o.anyWidth) && e.target.closest && e.target.closest(o.drag) && h.contains(e.target)) e.preventDefault(); });
   }
 
   function renderPlanPreview(){
@@ -11065,6 +11199,10 @@ updateCTMode();
     document.querySelectorAll('#pokemonName, #bossName, input[id^="ct"][id$="Name"], input[id^="sd"][id$="Name"]').forEach(i => { if(/^(pokemonName|bossName|ct\d?Name|sd\dName)$/.test(i.id)) enhanceNameBox(i); });
     const mainCard = (document.getElementById("pokemonName") || {}).closest ? document.getElementById("pokemonName").closest(".step-card") : null;
     if(mainCard && !mainCard.classList.contains("mq-main-card")) mainCard.classList.add("mq-main-card");
+    const noMain = !((document.getElementById("pokemonName") || {}).value || "").trim();
+    if(document.body.classList.contains("no-main") !== noMain) document.body.classList.toggle("no-main", noMain);
+    if(!MQ.matches){ placeBoss(); placeMainDps(); }
+    renderDtBar();
     const wxCell = (document.getElementById("weatherSelect") || {}).closest ? document.getElementById("weatherSelect").closest(".mod-cell") : null;
     if(wxCell && !wxCell.classList.contains("mq-wx")) wxCell.classList.add("mq-wx");
     const poGroup = (document.getElementById("ctPartyList") || {}).closest ? document.getElementById("ctPartyList").closest(".tb-group") : null;
