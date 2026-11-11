@@ -1437,6 +1437,7 @@ if ("serviceWorker" in navigator) {
   @media (max-width:360px){ .mq-boss-tag .bt-stats{ gap:8px; font-size:10px; } .mq-boss-tag .bt-stats b{ font-size:10.5px; } }
   /* the raid boss's own stats card: its numbers are in the boss panel's header once that shows */
   .vs-col:has(#bossMovePreview .boss-dmg-preview) #bossPreview{ display:none; }
+  #bossPreview.is-folded{ display:none; }   /* the same, for browsers without :has() */
   /* the stats strip: icon, name, then the stats (on phones, a line of their own under the name) */
   .mini-strip{ flex-wrap:wrap; row-gap:2px; }
   .mini-strip .strip-name{ font:800 13.5px 'Manrope',sans-serif; color:var(--text); }
@@ -7448,6 +7449,7 @@ function updateBossPreview(){
   const el = document.getElementById("bossPreview");
   const dmgEl = document.getElementById("bossMovePreview");
   const mainMini = document.getElementById("playerBossMini"); if(mainMini) mainMini.innerHTML = "";   // refilled below when there's a boss
+  el.classList.remove("is-folded");   // set again below once the boss panel is drawn
   if(!name){ el.innerHTML = ""; if(dmgEl) dmgEl.innerHTML = ""; return; }
   if(!boss){ el.innerHTML = renderMiniPreview(name, null); if(dmgEl) dmgEl.innerHTML = ""; return; }
   const bossCPMVal = parseFloat(document.getElementById("bossTier").value);
@@ -7456,6 +7458,7 @@ function updateBossPreview(){
   let bAtk = _pv.atk, bDef = _pv.def, bHp = _pv.hp;
   el.innerHTML = renderMiniPreview(name, { atk: bAtk, def: bDef, hp: bHp });
   if(dmgEl) dmgEl.innerHTML = bossMoveDamagePreviewHtml(bAtk);
+  el.classList.toggle("is-folded", !!(dmgEl && dmgEl.querySelector(".boss-dmg-preview")));
   const mini = document.getElementById("playerBossMini"); if(mini) mini.innerHTML = LAST_MAIN_BOSS_HITS ? bossMiniHtml(LAST_MAIN_BOSS_HITS) : "";
   renderMainDps();
 }
@@ -9819,7 +9822,10 @@ updateCTMode();
     #ctPlanList{ display:none !important; }
     /* Add to your party: the party bar's empty slots add catch tanks and support DPSers on a phone */
     #partyAddCard{ display:none !important; }
-    body.ct-mode-team .step-card:has(#pokemonName), body.ct-mode-team .team-card, body.ct-mode-team .support-card{ display:none !important; }
+    /* (classes, not :has(): a browser without :has() drops the whole rule, and every card stayed) */
+    body.ct-mode-team .mq-main-card{ display:none !important; }
+    body.ct-mode-team .team-card{ display:none !important; }
+    body.ct-mode-team .support-card{ display:none !important; }
     /* the lent boxes, tightened for the profile */
     .pp-slot:empty{ display:none; }
     .pp-dps .att-dps{ border:0; padding:0; } .pp-dps .att-dps-figs b{ font-size:18px; }
@@ -9832,7 +9838,7 @@ updateCTMode();
     .pp-ct .team-type-row{ align-items:stretch !important; }
     .pp-ct .team-type-row > .field{ display:flex; flex-direction:column; justify-content:flex-end; }
     .pp-ct .team-type-row > .field > label{ margin:0 0 5px !important; min-height:13px; line-height:13px; white-space:nowrap; }
-    .tb-group:has(#ctPartyList){ display:none !important; }
+    .mq-po-group{ display:none !important; }
     /* tap and hold */
     .mq-slot, .mq-pc, .mq-att{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
     .mq-slot img, .mq-pc img, .mq-att img{ -webkit-user-drag:none; pointer-events:none; }
@@ -11030,6 +11036,10 @@ updateCTMode();
     convertStatLines();
     linkPanelMoves();
     document.querySelectorAll('#pokemonName, #bossName, input[id^="ct"][id$="Name"], input[id^="sd"][id$="Name"]').forEach(i => { if(/^(pokemonName|bossName|ct\d?Name|sd\dName)$/.test(i.id)) enhanceNameBox(i); });
+    const mainCard = (document.getElementById("pokemonName") || {}).closest ? document.getElementById("pokemonName").closest(".step-card") : null;
+    if(mainCard && !mainCard.classList.contains("mq-main-card")) mainCard.classList.add("mq-main-card");
+    const poGroup = (document.getElementById("ctPartyList") || {}).closest ? document.getElementById("ctPartyList").closest(".tb-group") : null;
+    if(poGroup && !poGroup.classList.contains("mq-po-group")) poGroup.classList.add("mq-po-group");
     document.querySelectorAll('select[id^="ct"][id$="Casts"]').forEach(x => { if(/^ct\d?Casts$/.test(x.id)){ enhanceCasts(x); if(x._mqPaint) x._mqPaint(); } });
     document.querySelectorAll('.iv-field input[id$="Level"]').forEach(enhanceLevel);
 
