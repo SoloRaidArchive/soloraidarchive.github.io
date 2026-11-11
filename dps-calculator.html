@@ -1490,6 +1490,7 @@ if ("serviceWorker" in navigator) {
   .party-add-card .team-add-btn{ width:100%; margin:0 !important; padding:14px 10px; }
   .party-add-card .party-meter{ margin:0 !important; white-space:nowrap; }
   .team-log td.team-en{ text-align:right; font-variant-numeric:tabular-nums; color:#ffd166; white-space:nowrap; padding-left:4px; }
+  .beta-build{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin:0 0 6px; }
 </style>
 <script type="application/ld+json">
 {
@@ -1707,6 +1708,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
+      <p class="beta-build">Build 2026-11-11 · party profiles</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -10290,7 +10292,7 @@ updateCTMode();
       const b = e.target.closest(".mq-slot"); if(!b) return;
       const slotNo = [...b.parentNode.children].indexOf(b) + 1;
       // a filled slot: the picker with its role; an empty one: the role first
-      if(b.dataset.tok === "m.1" && !((document.getElementById("pokemonName") || {}).value || "").trim()) openMainChooser();
+      if(b.dataset.tok === "m.1" && !((document.getElementById("pokemonName") || {}).value || "").trim()) openRoleFirst(1);
       else if(b.dataset.tok) openProfile(b.dataset.tok); else openRoleFirst(slotNo);
     });
     window.addEventListener("scroll", () => { if(!bar._tick){ bar._tick = true; requestAnimationFrame(() => { bar._tick = false; paintTabs(); }); } }, { passive: true });
@@ -10442,10 +10444,13 @@ updateCTMode();
   function openRoleFirst(slotNo){
     const mainName = ((document.getElementById("pokemonName") || {}).value || "").trim();
     const sheetEl = openSheetShell(`<div class="mq-sheet-head"><div>What's slot ${slotNo} for?<small>Then pick the Pokémon</small></div><button type="button" class="done">Done</button></div>
-      <button type="button" class="mq-role" disabled><span class="ic">&#11088;</span><span><b>Main DPSer</b><small>${mainName ? "Taken by " + esc(mainName) + " &middot; tap its slot to replace it" : "Slot 1"}</small></span></button>
+      <button type="button" class="mq-role" ${mainName ? "disabled" : 'data-role="main"'}><span class="ic">&#11088;</span><span><b>Main DPSer</b><small>${mainName ? "Taken by " + esc(mainName) + " &middot; tap its slot to replace it" : "The attacker the party is built around"}</small></span></button>
       <button type="button" class="mq-role" data-role="sup"${(typeof supportCount === "function" && supportCount() >= 5) ? " disabled" : ""}><span class="ic">&#9876;&#65039;</span><span><b>Support DPSer</b><small>Hot swaps in after the main DPSer</small></span></button>
       <button type="button" class="mq-role" data-role="ct"><span class="ic">&#128737;&#65039;</span><span><b>Catch tank</b><small>Catches the boss's charge moves</small></span></button>`);
-    sheetEl.addEventListener("click", e => { const b = e.target.closest("[data-role]"); if(b){ sheetEl.remove(); openPicker(null, b.dataset.role, slotNo); } });
+    sheetEl.addEventListener("click", e => { const b = e.target.closest("[data-role]"); if(!b) return; sheetEl.remove();
+      if(b.dataset.role === "main") monSheet({ title: "Main DPSer", role: "main", sub: () => "Then its level, IVs and moves",
+        onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => openProfile("m.1"), 60); } });
+      else openPicker(null, b.dataset.role, slotNo); });
   }
   // a filled slot's own details, read from its card: level, IVs, moves
   function slotSummary(tok){
@@ -10577,6 +10582,11 @@ updateCTMode();
       onPick: (name, r) => {
         if(!tok && partyFull()) return true;
         if(putInSlot(tok, r, name) === false){ alert("That doesn't fit: a party holds six, with up to five support DPSers and five kinds of catch tank."); return false; }
+        if(!tok){   // a new one: its profile, to fill in the rest (the newest copy of it in that role)
+          const want = r === "main" ? "m" : r === "ct" ? "t" : "s";
+          const nt = r === "main" ? "m.1" : teamParty().filter(t => t[0] === want && teamPartyLabel(t).replace(/ #\d+$/, "") === name).pop();
+          if(nt) setTimeout(() => openProfile(nt), 60);
+        }
       },
       onAct: act => { if(act === "remove") editSetup(S => removeFrom(S, tok)); if(act === "edit") scrollToCard(cardFor(tok)); },
     });
@@ -10666,12 +10676,12 @@ updateCTMode();
       const panel = I.p === "player" ? "playerMovePreview" : I.p + "MovePreview";
       const moveRow = selId => {
         const sel = document.getElementById(selId); if(!sel) return "";
-        const nm = curMoveName(sel), mv = (typeof findMove === "function" && nm) ? findMove(nm) : null;
+        const raw = curMoveName(sel), nm = /^__/.test(String(raw || "")) ? "" : raw, mv = (typeof findMove === "function" && nm) ? findMove(nm) : null;
         const row = document.querySelector(`#${panel} .boss-dmg-row[data-mq-sel="${selId}"]`);
         const dmg = row ? ((row.querySelector(":scope > b") || {}).textContent || "") : "";
         const icons = row && row.querySelector(".mq-st") ? row.querySelector(".mq-st").innerHTML : "";
         const col = mv && mv.elem && typeof MC_TYPE_COLORS !== "undefined" ? (MC_TYPE_COLORS[String(mv.elem).toLowerCase()] || "") : "";
-        return `<button type="button" class="pp-move" data-mv="${selId}"${col ? ` style="border-color:${col}"` : ""}><span class="n">${esc(nm || "Choose a move")}${icons ? `<small class="pp-ic">${icons}</small>` : ""}</span>${dmg ? `<span class="d">${esc(dmg)}</span>` : ""}<span class="c">&#9662;</span></button>`;
+        return `<button type="button" class="pp-move" data-mv="${selId}"${col ? ` style="border-color:${col}"` : ""}><span class="n">${esc(nm || (selId === I.fm ? "Choose a fast move" : "Choose a charge move"))}${icons ? `<small class="pp-ic">${icons}</small>` : ""}</span>${dmg ? `<span class="d">${esc(dmg)}</span>` : ""}<span class="c">&#9662;</span></button>`;
       };
       // the main DPSer trades places with the first Pokemon already in the role it picks; anyone else picking
       // Main trades places with the main DPSer
