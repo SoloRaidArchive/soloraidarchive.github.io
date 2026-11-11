@@ -1488,6 +1488,7 @@ if ("serviceWorker" in navigator) {
   .party-add-card .team-add-row{ display:grid !important; grid-template-columns:1fr 1fr; gap:12px; margin:0 !important; }
   .party-add-card .team-add-btn{ width:100%; margin:0 !important; padding:14px 10px; }
   .party-add-card .party-meter{ margin:0 !important; white-space:nowrap; }
+  .team-log td.team-en{ text-align:right; font-variant-numeric:tabular-nums; color:#ffd166; white-space:nowrap; padding-left:4px; }
 </style>
 <script type="application/ld+json">
 {
@@ -5194,15 +5195,22 @@ function renderTeamSim(P, S, R){
   // Time | Event | main icon | main HP | tank icon | tank HP. The main DPSer is on every row;
   // the tank column is empty when no tank is involved or in.
   const icoCell = who => `<td class="team-ico-col">${who === null || who === undefined ? "" : teamIcon(P, who)}</td>`;
-  const afterHead = `<tr class="team-after-head"><td colspan="6">After the results end &middot; until ${ATT[lastAtt].name} would faint (${(logEnd / 2).toFixed(1)}s)</td></tr>`;
+  // the attacker in: its energy once the moment resolves (as the HP beside it); with no catch tanks in
+  // the party there are no catch tank columns
+  const hasTanks = P.tanks.length > 0, cols = hasTanks ? 7 : 5;
+  const enCell = t => { let st = null; for(let k = t; k >= 0; k--){ if(R.state[k]){ st = R.state[k]; break; } }
+    const v = st && st[0] ? Math.round(st[0].energy) : null;
+    return `<td class="team-en">${v === null ? '<span class="team-dim">&mdash;</span>' : v}</td>`; };
+  const afterHead = `<tr class="team-after-head"><td colspan="${cols}">After the results end &middot; until ${ATT[lastAtt].name} would faint (${(logEnd / 2).toFixed(1)}s)</td></tr>`;
   const log = shown.map((e, i) => (e.t > E && (i === 0 || shown[i - 1].t <= E) ? afterHead : "")
       + withAtt(e.att, () => `<tr class="lr-${e.kind}${e.t > E ? " is-after" : ""}"><td>${(e.t / 2).toFixed(1)}s</td><td><span class="team-line">${teamLogLine(P, e)}</span></td>`
-      + icoCell(0) + hpCell(e.mainHp, P.main.hp))
-      + icoCell(e.tankWho || null) + (e.tankWho ? hpCell(e.tankHp, tankMaxHp(e.tankWho)) : hpCell(null))
+      + icoCell(0) + hpCell(e.mainHp, P.main.hp) + enCell(e.t))
+      + (hasTanks ? icoCell(e.tankWho || null) + (e.tankWho ? hpCell(e.tankHp, tankMaxHp(e.tankWho)) : hpCell(null)) : "")
       + `</tr>`).join("")
-    + (events.length > shown.length ? `<tr><td></td><td colspan="5">…and ${events.length - shown.length} more</td></tr>` : "");
+    + (events.length > shown.length ? `<tr><td></td><td colspan="${cols - 1}">…and ${events.length - shown.length} more</td></tr>` : "");
   const logHead = `<tr class="team-log-head"><th>Time</th><th>Event</th>`
-    + `<th class="team-ico-col">${attHeadIco}</th><th>HP</th><th class="team-ico-col">${tankIco}</th><th>HP</th></tr>`;
+    + `<th class="team-ico-col">${attHeadIco}</th><th>HP</th><th title="Energy">EN</th>`
+    + (hasTanks ? `<th class="team-ico-col">${tankIco}</th><th>HP</th>` : "") + `</tr>`;
 
   // Final reading at the end point: every Pokemon's HP and energy, and whether each tank was used.
   let st = null;
@@ -9767,6 +9775,8 @@ updateCTMode();
     .mq-slots{ display:flex; gap:6px; }
     /* level slider */
     .mq-lvl{ width:100%; margin:2px 0 10px; }
+    .mq-casts output{ min-width:34px; text-align:center; font:800 14px 'Manrope',sans-serif; color:var(--text); }
+    .mq-casts button:disabled{ opacity:.35; }
     /* the sort row in a type's full list */
     .mq-sort{ display:flex; gap:6px; align-items:center; margin:2px 0 8px; } .mq-sort span{ font:800 10.5px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; margin-right:2px; }
     .mq-sort button{ border:1.5px solid var(--border); border-radius:9px; padding:5px 10px; font:800 11.5px 'Manrope',sans-serif; color:var(--text); background:transparent; }
@@ -9809,6 +9819,19 @@ updateCTMode();
     #ctPlanList{ display:none !important; }
     /* Add to your party: the party bar's empty slots add catch tanks and support DPSers on a phone */
     #partyAddCard{ display:none !important; }
+    body.ct-mode-team .step-card:has(#pokemonName), body.ct-mode-team .team-card, body.ct-mode-team .support-card{ display:none !important; }
+    /* the lent boxes, tightened for the profile */
+    .pp-slot:empty{ display:none; }
+    .pp-dps .att-dps{ border:0; padding:0; } .pp-dps .att-dps-figs b{ font-size:18px; }
+    .pp-dps .support-qty-row, .pp-ct .team-type-row{ display:flex !important; gap:10px; align-items:flex-end; margin:8px 0 0 !important; }
+    .pp-dps .support-qty-row .field, .pp-ct .team-type-row .field{ margin:0 !important; }
+    .pp-ct [id$="Outcomes"] > *{ margin-top:0 !important; }
+    .pp-ct [id$="Outcomes"] > div{ border:0 !important; padding:0 !important; background:transparent !important; }   /* flat inside the section */
+    .pp-ct .pp-sec-h{ margin-bottom:4px; }
+    .pp-ct .dc-row{ margin-top:8px !important; flex-wrap:nowrap; }
+    .pp-ct .team-type-row{ align-items:stretch !important; }
+    .pp-ct .team-type-row > .field{ display:flex; flex-direction:column; justify-content:flex-end; }
+    .pp-ct .team-type-row > .field > label{ margin:0 0 5px !important; min-height:13px; line-height:13px; white-space:nowrap; }
     .tb-group:has(#ctPartyList){ display:none !important; }
     /* tap and hold */
     .mq-slot, .mq-pc, .mq-att{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
@@ -9816,6 +9839,7 @@ updateCTMode();
     .mq-lift{ transform:scale(1.08); box-shadow:0 8px 20px rgba(0,0,0,.45); z-index:3; position:relative; border-color:var(--accent, #ff8a3d) !important; transition:transform .12s; }
     .mq-sorting .mq-slot:not(.mq-lift), .mq-sorting .mq-pc:not(.mq-lift), .mq-sorting .mq-att:not(.mq-lift){ opacity:.75; }
     .mq-pc.is-off{ display:none !important; }
+    .mq-pc.sw.att-in{ width:52px; display:block; padding:4px 2px 3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); border-style:dashed; }   /* the incoming support, card-shaped */
     /* the attackers: Dodge / Sponge */
     .mq-atts{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
     .mq-att{ display:flex; align-items:center; gap:8px; padding:7px 10px; border:1.5px solid var(--border); border-radius:12px; background:var(--card); }
@@ -10105,6 +10129,19 @@ updateCTMode();
     paint(); row._paint = paint;
     return row;
   }
+  function enhanceCasts(sel){
+    if(sel._mqCasts) return; sel._mqCasts = true;
+    const box = el("div", "qty-stepper mq-casts", "flex");
+    box.innerHTML = '<button type="button" aria-label="One fewer charge move">&minus;</button><output></output><button type="button" aria-label="One more charge move">+</button>';
+    const out = box.querySelector("output"), [dn, , up] = box.children;
+    // only when something changed: the page watches for changes, and a write here would set it off again
+    const paint = () => { if(out.textContent !== sel.value) out.textContent = sel.value; const i = sel.selectedIndex;
+      if(dn.disabled !== (i <= 0)) dn.disabled = i <= 0; if(up.disabled !== (i >= sel.options.length - 1)) up.disabled = i >= sel.options.length - 1; };
+    const step = d => { const i = Math.max(0, Math.min(sel.options.length - 1, sel.selectedIndex + d)); if(i !== sel.selectedIndex){ sel.selectedIndex = i; fire(sel, "input", "change"); } paint(); };
+    dn.addEventListener("click", () => step(-1)); up.addEventListener("click", () => step(1));
+    sel.addEventListener("change", paint); sel._mqPaint = paint;
+    sel.classList.add("mq-hide"); sel.insertAdjacentElement("afterend", box); paint();
+  }
   function enhanceLevel(inp){
     if(inp._mq || !/Level$/.test(inp.id)) return; inp._mq = true;
     // phones: - and + around the Level box itself (it still takes anything typed); half a level a
@@ -10247,7 +10284,8 @@ updateCTMode();
       const b = e.target.closest(".mq-slot"); if(!b) return;
       const slotNo = [...b.parentNode.children].indexOf(b) + 1;
       // a filled slot: the picker with its role; an empty one: the role first
-      if(b.dataset.tok) openProfile(b.dataset.tok); else openRoleFirst(slotNo);
+      if(b.dataset.tok === "m.1" && !((document.getElementById("pokemonName") || {}).value || "").trim()) openMainChooser();
+      else if(b.dataset.tok) openProfile(b.dataset.tok); else openRoleFirst(slotNo);
     });
     window.addEventListener("scroll", () => { if(!bar._tick){ bar._tick = true; requestAnimationFrame(() => { bar._tick = false; paintTabs(); }); } }, { passive: true });
     // tap and hold a Pokemon to move it: the party order (who the game swaps to when one faints)
@@ -10583,6 +10621,30 @@ updateCTMode();
     const want = role === "ct" ? "t" : "s";
     return teamParty().find(t => t[0] === want && teamPartyLabel(t).replace(/ #\d+$/, "") === name) || null;
   }
+  // Main <-> another role: the two Pokemon trade places, each keeping its level, IVs and moves. (A card
+  // holding several copies gives up one copy; the old main DPSer gets a card of its own in that role.)
+  const MAIN_F = { Name: "pokemonName", Level: "pokemonLevel", IvAtk: "ivAtk", IvDef: "ivDef", IvHp: "ivHp", FM: "playerFM", CM: "playerCM" };
+  function swapWithMain(tok){
+    const role = roleOf(tok);
+    const ok = editSetup(S => {
+      const k = +tok.slice(1).split(".")[0], p = tok[0] === "t" ? CT_P[k - 1] : "sd" + k, q = parseInt(S[p + "Qty"], 10) || 1;
+      const card = {}, main = {};
+      Object.keys(MAIN_F).forEach(f => { card[f] = S[p + f]; main[f] = S[MAIN_F[f]]; });
+      Object.keys(MAIN_F).forEach(f => { if(card[f] !== undefined) S[MAIN_F[f]] = card[f]; else delete S[MAIN_F[f]]; });
+      if(q === 1){ Object.keys(MAIN_F).forEach(f => { if(main[f] !== undefined) S[p + f] = main[f]; else delete S[p + f]; }); return; }
+      S[p + "Qty"] = String(q - 1);
+      const had = role === "ct" ? CT_P.some(x => norm(S[x + "Name"]) === norm(main.Name)) : [1, 2, 3, 4, 5].some(i => norm(S["sd" + i + "Name"]) === norm(main.Name));
+      if(!addTo(S, role, main.Name)) return false;
+      if(!had){ const to = role === "ct" ? CT_P.find(x => norm(S[x + "Name"]) === norm(main.Name)) : ["sd1", "sd2", "sd3", "sd4", "sd5"].find(x => norm(S[x + "Name"]) === norm(main.Name));
+        if(to) ["Level", "IvAtk", "IvDef", "IvHp", "FM", "CM"].forEach(f => { if(main[f] !== undefined) S[to + f] = main[f]; }); }
+    });
+    if(ok === false){ alert("That doesn't fit: up to five support DPSers and five kinds of catch tank."); return false; }
+    return true;
+  }
+  function openMainChooser(){
+    monSheet({ title: "Main DPSer", role: "main", sub: () => "Choose the main attacker",
+      onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => openProfile("m.1"), 50); } });
+  }
   function openProfile(tok){
     const wrap = openSheetShell('<div class="pp-body"></div>'), body = wrap.querySelector(".pp-body");
     wrap.querySelector(".mq-sheet").classList.add("pp");
@@ -10605,7 +10667,14 @@ updateCTMode();
         const col = mv && mv.elem && typeof MC_TYPE_COLORS !== "undefined" ? (MC_TYPE_COLORS[String(mv.elem).toLowerCase()] || "") : "";
         return `<button type="button" class="pp-move" data-mv="${selId}"${col ? ` style="border-color:${col}"` : ""}><span class="n">${esc(nm || "Choose a move")}${icons ? `<small class="pp-ic">${icons}</small>` : ""}</span>${dmg ? `<span class="d">${esc(dmg)}</span>` : ""}<span class="c">&#9662;</span></button>`;
       };
-      const roles = ["main", "sup", "ct"].map(r => `<button type="button" data-pr="${r}" class="${r === role ? "on" : ""}" ${role === "main" ? (r === "main" ? "" : "disabled") : (r === "main" ? "disabled" : "")}>${{ main: "Main", sup: "Support", ct: "Catch tank" }[r]}</button>`).join("");
+      // the main DPSer trades places with the first Pokemon already in the role it picks; anyone else picking
+      // Main trades places with the main DPSer
+      const partner = r => teamParty().find(t => roleOf(t) === r);
+      const canPick = r => r === role ? true : !name ? false : role === "main" ? !!partner(r) : true;
+      const roles = ["main", "sup", "ct"].map(r => `<button type="button" data-pr="${r}" class="${r === role ? "on" : ""}" ${canPick(r) ? "" : "disabled"}>${{ main: "Main", sup: "Support", ct: "Catch tank" }[r]}</button>`).join("");
+      const mainName = v("pokemonName");
+      const roleNote = role === "main" ? (partner("sup") || partner("ct") ? "Picking Support or Catch tank swaps places with the first one in that role." : "Add a support DPSer or catch tank to swap places with.")
+                                       : (mainName ? "Picking Main swaps places with " + esc(mainName) + "." : "");
       body.innerHTML = `
         <div class="pp-head"><img src="${esc(spriteUrl(name))}" alt="" onerror="this.style.visibility='hidden'"><div><div class="pp-name">${esc(name || "—")}</div>
           <div class="pp-role"><b>${ROLE_TXT[role]}</b> slot ${slot}${qty > 1 ? " &middot; &times;" + qty : ""}</div></div><button type="button" class="done pp-done">Done</button></div>
@@ -10615,10 +10684,38 @@ updateCTMode();
           <div class="pp-ivw"><div class="pp-lab">IVs &middot; Atk / Def / HP</div><div class="pp-ivs">${I.ivs.map((id, k) => `<input inputmode="numeric" data-f="${id}" value="${esc(v(id))}" aria-label="${["Attack", "Defense", "HP"][k]} IV">`).join("")}</div></div>
         </div></div>
         <div class="pp-sec"><div class="pp-sec-h">Moves <em>${v("bossName") ? "vs " + esc(v("bossName")) + " &middot; " : ""}tap to change</em></div>${moveRow(I.fm)}${moveRow(I.cm)}</div>
-        <div class="pp-sec"><div class="pp-sec-h">Role in the party</div><div class="pp-seg">${roles}</div>${role === "main" ? '<div class="pp-note">The main DPSer stays the main DPSer - change its Pokémon below.</div>' : ""}</div>
+        ${role === "ct" ? '<div class="pp-sec pp-ct"><div class="pp-sec-h">Catch tank</div><div class="pp-slot" data-slot="out"></div><div class="pp-slot" data-slot="set"></div><div class="pp-slot" data-slot="dc"></div></div>'
+                         : '<div class="pp-sec pp-dps"><div class="pp-slot" data-slot="dps"></div>' + (role === "sup" ? '<div class="pp-slot" data-slot="qty"></div>' : "") + '</div>'}
+        <div class="pp-sec"><div class="pp-sec-h">Role in the party</div><div class="pp-seg">${roles}</div>${roleNote ? `<div class="pp-note">${roleNote}</div>` : ""}</div>
         <button type="button" class="pp-btn main" data-pa="change">Change Pokémon &rsaquo;</button>
         ${role === "main" ? "" : '<button type="button" class="pp-btn danger" data-pa="remove">Remove from party</button>'}`;
+      borrow();
     }
+    // The card's own DPS box / Catch Tank DPS box and its settings, lent to the profile while it's open (the
+    // cards are hidden on a phone) and handed back when it closes - the same controls, nothing copied.
+    const lent = new Map();
+    let parts = null, partsTok = null;   // found once per Pokemon (a redraw takes them out of the page for an instant)
+    function borrow(){
+      const I = idsOf(tok), card = cardFor(tok), role = roleOf(tok);
+      if(partsTok !== tok || !parts) parts = null;
+      partsTok = tok;
+      parts = parts || (role === "ct"
+        ? { out: document.getElementById(I.p + "Outcomes"), set: (document.getElementById(I.p + "Qty") || {}).closest ? document.getElementById(I.p + "Qty").closest(".team-type-row") : null,
+            dc: card && card.querySelector(".dc-row") }
+        : { dps: document.getElementById(I.p === "player" ? "playerDpsBox" : I.p + "DpsBox"),
+            qty: role === "sup" && document.getElementById(I.p + "Qty") ? document.getElementById(I.p + "Qty").closest(".team-type-row") : null });
+      Object.entries(parts).forEach(([k, el]) => {
+        const slot = body.querySelector(`.pp-slot[data-slot="${k}"]`); if(!slot || !el) return;
+        if(!lent.has(el) && !body.contains(el)) lent.set(el, { parent: el.parentNode, next: el.nextSibling });
+        slot.appendChild(el);
+      });
+    }
+    function giveBack(){
+      lent.forEach((home, el) => { if(home.parent && home.parent.isConnected) home.parent.insertBefore(el, home.next && home.next.parentNode === home.parent ? home.next : null); });
+      lent.clear(); parts = null; partsTok = null;
+    }
+    const closed = new MutationObserver(() => { if(!wrap.isConnected){ giveBack(); closed.disconnect(); } });
+    closed.observe(document.body, { childList: true });
     // edits go straight to the card's own fields (so saves, links and the simulation see them)
     body.addEventListener("click", e => {
       const lv = e.target.closest("[data-lv]");
@@ -10627,9 +10724,18 @@ updateCTMode();
         f.value = String(nv); inp.value = String(nv); fire(f, "input", "change"); later(); return; }
       const mv = e.target.closest("[data-mv]"); if(mv){ const sel = document.getElementById(mv.dataset.mv); if(sel) openMoveSheet(sel); return; }
       const pr = e.target.closest("[data-pr]");
-      if(pr && !pr.disabled && pr.dataset.pr !== roleOf(tok)){ const nt = switchRole(tok, pr.dataset.pr); if(nt){ tok = nt; paint(); } return; }
+      if(pr && !pr.disabled && pr.dataset.pr !== roleOf(tok)){
+        const r = pr.dataset.pr; giveBack();
+        if(r === "main"){ if(swapWithMain(tok)){ tok = "m.1"; } paint(); return; }
+        if(roleOf(tok) === "main"){
+          // the profile follows this Pokemon to its new role (its own card there, if the other card held copies)
+          const was = ((document.getElementById("pokemonName") || {}).value || "").trim(), other = teamParty().find(t => roleOf(t) === r);
+          if(other && swapWithMain(other)) tok = teamParty().find(t => roleOf(t) === r && teamPartyLabel(t).replace(/ #\d+$/, "") === was) || other;
+          paint(); return; }
+        const nt = switchRole(tok, r); if(nt) tok = nt; paint(); return; }
+      if(e.target.closest(".pp-slot")){ later(); return; }
       const pa = e.target.closest("[data-pa]"); if(!pa) return;
-      if(pa.dataset.pa === "remove"){ wrap.remove(); editSetup(S => removeFrom(S, tok)); return; }
+      if(pa.dataset.pa === "remove"){ giveBack(); wrap.remove(); editSetup(S => removeFrom(S, tok)); return; }
       if(pa.dataset.pa === "change") openChange();
     });
     body.addEventListener("input", e => { const f = e.target.dataset && e.target.dataset.f; if(!f) return; const el = document.getElementById(f); if(el){ el.value = e.target.value; fire(el, "input", "change"); } });
@@ -10640,7 +10746,7 @@ updateCTMode();
     function openChange(){
       const I = idsOf(tok), name = (document.getElementById(I.name).value || "").trim(), role = roleOf(tok);
       const back = `<button type="button" class="pp-back" data-act="back"><span class="a">&lsaquo;</span><img src="${esc(spriteUrl(name))}" alt="" onerror="this.style.visibility='hidden'"><span><b>Back to ${esc(name)}</b><small>${esc(slotSummary(tok))}</small></span></button>`;
-      wrap.remove();
+      giveBack(); wrap.remove();
       monSheet({ title: "Change Pokémon", role, top: back, sub: () => ROLE_TXT[role] + " · slot " + (teamParty().indexOf(tok) + 1),
         onPick: (pick) => { if(putInSlot(tok, role, pick) === false){ alert("That doesn't fit: a party holds six, with up to five support DPSers and five kinds of catch tank."); return false; }
           const want = role === "main" ? "m" : role === "ct" ? "t" : "s";
@@ -10701,10 +10807,10 @@ updateCTMode();
     const rot = team ? document.getElementById("teamBehaviorCard") : (document.getElementById("eventBoost") || {}).closest ? document.getElementById("eventBoost").closest(".step-card") : null;
     return [
       ["Boss", boss && (boss.closest(".mq-boss-card") || boss.closest(".vs-col") || boss.closest(".step-card"))],
-      [team ? "Party" : "Pokémon", main && main.closest(".step-card")],
+      (team && MQ.matches) ? null : [team ? "Party" : "Pokémon", main && main.closest(".step-card")],   // phones: the party bar is the party
       [team ? "Rotation" : "Settings", rot],
       ["Results", document.getElementById("resultsWrap") || document.getElementById("calcBtn")],
-    ].filter(x => x[1]);
+    ].filter(x => x && x[1]);
   }
   // Where each tab's content starts on the page. On a phone the raid boss block sits between the main
   // DPSer and the catch tank / support DPSer cards, which are the party too: Party starts again there.
@@ -10782,7 +10888,7 @@ updateCTMode();
     const cells = [];
     blocks.forEach((b, bi) => {
       const att = teamAttName(b.att);
-      if(bi > 0) cells.push(`<div class="mq-pc sw" title="Hot swap to ${esc(att)}">&#8644;</div>`);
+      if(bi > 0) cells.push(`<div class="mq-pc sw att-in" title="${esc(att)} comes in here"><img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">in</div>`);
       b.items.forEach((x, i) => {
         const at = `data-b="${bi}" data-i="${i}"`;
         if(x === "s"){
@@ -10807,7 +10913,7 @@ updateCTMode();
         <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label></div>`;
     }).join("");
     box.innerHTML = `<div class="mq-plan-row">${cells.join("") || '<div class="mq-none">No catch tanks - hot swaps and sponges only.</div>'}</div>
-      <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Tap and hold a card to move it; past &#8644; it catches for the next attacker.</div>
+      <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; after an attacker's \u201cin\u201d card it catches for that attacker" : ""}.</div>
       <div class="mq-atts">${atts}</div>${blocks.length > 1 ? '<div class="mq-plan-note">Tap and hold an attacker to change the hot swap order.</div>' : ""}`;
     if(!renderPlanPreview.wired){ renderPlanPreview.wired = true; wirePlanRow(); }
   }
@@ -10924,6 +11030,7 @@ updateCTMode();
     convertStatLines();
     linkPanelMoves();
     document.querySelectorAll('#pokemonName, #bossName, input[id^="ct"][id$="Name"], input[id^="sd"][id$="Name"]').forEach(i => { if(/^(pokemonName|bossName|ct\d?Name|sd\dName)$/.test(i.id)) enhanceNameBox(i); });
+    document.querySelectorAll('select[id^="ct"][id$="Casts"]').forEach(x => { if(/^ct\d?Casts$/.test(x.id)){ enhanceCasts(x); if(x._mqPaint) x._mqPaint(); } });
     document.querySelectorAll('.iv-field input[id$="Level"]').forEach(enhanceLevel);
 
     enhanceRotationControls();
