@@ -1708,7 +1708,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · party profiles</p>
+      <p class="beta-build">Build 2026-11-11 · party profiles 3</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -2013,7 +2013,9 @@ if ("serviceWorker" in navigator) {
       <div class="po-parties" id="ctPartyList"></div>
       <input type="hidden" id="ctParty" value="">
     </div>
-    <div class="tb-group">
+    <!-- Back-to-back charge moves (beta): switched off while its logic is reassessed. The section and its
+         checkbox stay in the page (hidden) so saved setups and links that carry it still load. -->
+    <div class="tb-group" hidden style="display:none">
       <div class="tb-group-head">Catch tank behavior</div>
       <div class="team-behavior-row">
 
@@ -4429,7 +4431,7 @@ function runTeamSim(c){
     tanks, monMeta, mainRank, assign: document.getElementById("ctAssign").value === "strict" ? "strict" : "soft",
     juice: !!(document.getElementById("ctJuice") || {}).checked,
     doubleBack: true,   // doubling back is part of every rotation with a support DPSer (no setting)
-    b2b: !!(document.getElementById("ctB2B") || {}).checked,
+    b2b: false,   // back-to-back charge moves: off while the logic is reassessed (the setting is ignored)
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
     cmBuffer: false,   // CM Buffer isn't part of the Beta any more (removed from its card); old links' value is ignored
     // Main allowed to dodge: how many charge moves it may dodge over the whole run (0 = no limit).
@@ -9841,6 +9843,18 @@ updateCTMode();
     .pp-ct .team-type-row > .field{ display:flex; flex-direction:column; justify-content:flex-end; }
     .pp-ct .team-type-row > .field > label{ margin:0 0 5px !important; min-height:13px; line-height:13px; white-space:nowrap; }
     .mq-po-group{ display:none !important; }
+    /* Rotation behavior: Tutorial mode explains the priority list, which a phone doesn't show */
+    .tut-toggle{ display:none !important; }
+    /* Additional Modifiers (Battle Simulator): Weather and Adventure Effect side by side, then the
+       boss's aggression across the full width - its value and hint on one line above the slider */
+    body.ct-mode-team .mod-consolidated-grid > *{ order:4; }
+    body.ct-mode-team .mod-consolidated-grid > .mq-wx{ order:1; }
+    body.ct-mode-team .mod-consolidated-grid > #adventureCell{ order:2; }
+    body.ct-mode-team .mod-consolidated-grid > .aggro-cell{ order:3; grid-column:1 / -1; display:grid !important; grid-template-columns:auto minmax(0, 1fr); column-gap:10px; align-items:baseline; row-gap:4px; }
+    body.ct-mode-team .aggro-cell > label{ grid-column:1; margin:0 !important; white-space:nowrap; }
+    body.ct-mode-team .aggro-cell > .aggro-hint{ grid-column:2; grid-row:1; text-align:right; margin:0 !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    body.ct-mode-team .aggro-cell > input[type=range]{ grid-column:1 / -1; width:100%; margin:2px 0 0 !important; }
+    body.ct-mode-team .mod-consolidated-grid > .mq-wx, body.ct-mode-team .mod-consolidated-grid > #adventureCell{ align-self:start; }
     /* tap and hold */
     .mq-slot, .mq-pc, .mq-att{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
     .mq-slot img, .mq-pc img, .mq-att img{ -webkit-user-drag:none; pointer-events:none; }
@@ -9946,6 +9960,9 @@ updateCTMode();
       background:color-mix(in srgb, var(--mq-c, var(--border)) 16%, var(--card)); color:var(--text); font:800 13px 'Manrope',sans-serif; text-align:left; cursor:pointer; }
     .mq-mrow.cur{ box-shadow:0 0 0 2px var(--mq-c, var(--border)); } .mq-mrow .cur-tag{ color:var(--accent, var(--blue)); font-size:10.5px; margin-left:4px; }
     .mq-mrow.plain{ --mq-c:var(--border); font-weight:700; color:var(--text-dim); }
+  }
+  @media (max-width:360px){   /* the narrowest phones: the aggression hint under the slider, in full */
+    body.ct-mode-team .aggro-cell > .aggro-hint{ grid-column:1 / -1; grid-row:3; text-align:left; white-space:normal; }
   }
 </style>
 <script>
@@ -11048,6 +11065,8 @@ updateCTMode();
     document.querySelectorAll('#pokemonName, #bossName, input[id^="ct"][id$="Name"], input[id^="sd"][id$="Name"]').forEach(i => { if(/^(pokemonName|bossName|ct\d?Name|sd\dName)$/.test(i.id)) enhanceNameBox(i); });
     const mainCard = (document.getElementById("pokemonName") || {}).closest ? document.getElementById("pokemonName").closest(".step-card") : null;
     if(mainCard && !mainCard.classList.contains("mq-main-card")) mainCard.classList.add("mq-main-card");
+    const wxCell = (document.getElementById("weatherSelect") || {}).closest ? document.getElementById("weatherSelect").closest(".mod-cell") : null;
+    if(wxCell && !wxCell.classList.contains("mq-wx")) wxCell.classList.add("mq-wx");
     const poGroup = (document.getElementById("ctPartyList") || {}).closest ? document.getElementById("ctPartyList").closest(".tb-group") : null;
     if(poGroup && !poGroup.classList.contains("mq-po-group")) poGroup.classList.add("mq-po-group");
     document.querySelectorAll('select[id^="ct"][id$="Casts"]').forEach(x => { if(/^ct\d?Casts$/.test(x.id)){ enhanceCasts(x); if(x._mqPaint) x._mqPaint(); } });
