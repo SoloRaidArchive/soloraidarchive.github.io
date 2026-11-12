@@ -1852,7 +1852,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · desktop party bar 6</p>
+      <p class="beta-build">Build 2026-11-11 · rotation behavior compact</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -10004,6 +10004,27 @@ updateCTMode();
     .mq-po-group{ display:none !important; }
     /* Rotation behavior: Tutorial mode explains the priority list, which a phone doesn't show */
     .tut-toggle{ display:none !important; }
+    /* Rotation behavior, consolidated: chips, rejoin on one line, the dodge stepper in the attacker's row, one (i) */
+    #ctDodgeLimitWrap{ display:none !important; }
+    #mqPlan .mq-plan-note{ display:none !important; }
+    #teamBehaviorCard .pl-mode .info-wrap{ display:none !important; }
+    .mq-setchips{ display:flex; flex-wrap:wrap; gap:6px; width:100%; }
+    .mq-setchip{ display:inline-flex; align-items:center; gap:7px; border:1.5px solid var(--border); border-radius:999px; padding:7px 12px; background:var(--card);
+      font:800 12px 'Manrope',sans-serif; color:var(--text); cursor:pointer; }
+    .mq-setchip i{ width:13px; height:13px; border-radius:50%; border:2px solid var(--text-dim); flex:none; }
+    .mq-setchip.on{ border-color:var(--accent, #ff8a3d); background:color-mix(in srgb, var(--accent, #ff8a3d) 18%, var(--card)); }
+    .mq-setchip.on i{ border-color:var(--accent, #ff8a3d); background:var(--accent, #ff8a3d); box-shadow:inset 0 0 0 2px var(--card); }
+    .mq-slider.mq-inline{ display:grid !important; grid-template-columns:auto minmax(0, 1fr) auto; align-items:center; gap:10px; }
+    .mq-slider.mq-inline .mq-slider-top{ display:contents; }
+    .mq-slider.mq-inline .mq-slider-top > span{ grid-column:1; grid-row:1; } .mq-slider.mq-inline .mq-slider-top > b{ grid-column:3; grid-row:1; }
+    .mq-slider.mq-inline input[type=range]{ grid-column:2; grid-row:1; margin:0; }
+    .mq-slider.mq-inline .mq-ticks{ display:none !important; }
+    .mq-att{ flex-wrap:wrap; }
+    .mq-att-dodge{ flex-basis:100%; display:flex; align-items:center; justify-content:space-between; margin:6px 0 0 40px; font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); }
+    .mq-att-dodge .mq-step{ display:inline-flex; align-items:center; border:1.5px solid var(--border); border-radius:9px; }
+    .mq-att-dodge .mq-step button{ width:26px; border:0; background:transparent; color:var(--accent, #ff8a3d); font:800 15px 'Manrope',sans-serif; padding:3px 0; }
+    .mq-att-dodge .mq-step b{ min-width:20px; text-align:center; font:800 12px 'Manrope',sans-serif; color:var(--text); }
+    .mq-ohi{ margin-left:8px; } .mq-ohi .info-pop{ text-transform:none; letter-spacing:0; font-weight:600; }
     /* Additional Modifiers (Battle Simulator): Weather and Adventure Effect side by side, then the
        boss's aggression across the full width - its value and hint on one line above the slider */
     body.ct-mode-team .mod-consolidated-grid > *{ order:4; }
@@ -10373,8 +10394,32 @@ updateCTMode();
       const vals = [...rj.options].map(o => parseFloat(o.value));
       const box = slider("Rejoin time", Math.min(...vals), Math.max(...vals), 0.5, [Math.min(...vals).toFixed(1) + "s", Math.max(...vals).toFixed(1) + "s"],
         () => rj.value, v => { rj.value = (+v).toFixed(1); fire(rj, "change"); }, v => (+v).toFixed(1) + "s");
+      box.classList.add("mq-inline");   // label, slider and value on one line
       const holder = rj.closest("label"); holder.classList.add("mq-hide"); holder.insertAdjacentElement("afterend", box);
       rj.addEventListener("change", () => box._paint());
+    }
+    // phones: the main behaviour switches as two chips (they set the same checkboxes), the group named "Settings"
+    const allIn = document.getElementById("ctAllIn"), juice = document.getElementById("ctJuice");
+    if(allIn && juice && !allIn._mqChip){
+      allIn._mqChip = true;
+      const chips = el("div", "mq-setchips", "flex");
+      const mk = (box, label) => { const b = document.createElement("button"); b.type = "button"; b.className = "mq-setchip"; b.innerHTML = `<i></i>${label}`;
+        const paint = () => { if(b.classList.contains("on") !== box.checked) b.classList.toggle("on", box.checked); b.setAttribute("aria-pressed", box.checked ? "true" : "false"); };
+        b.addEventListener("click", () => { box.checked = !box.checked; fire(box, "change"); paint(); });
+        box.addEventListener("change", paint); box._mqPaint = paint; paint();
+        box.closest("label").classList.add("mq-hide"); return b; };
+      chips.appendChild(mk(allIn, "All in final CM")); chips.appendChild(mk(juice, "Juice main DPS"));
+      const row = allIn.closest(".team-behavior-row"); row.insertBefore(chips, row.firstChild);
+      const head = row.closest(".tb-group").querySelector(".tb-group-head");
+      if(head){ head.dataset.mqFull = head.textContent; const sync = () => { const t = MQ.matches ? "Settings" : head.dataset.mqFull; if(head.textContent !== t) head.textContent = t; };
+        sync(); (MQ.addEventListener ? MQ.addEventListener("change", sync) : MQ.addListener(sync)); }
+    }
+    // "Priority & hot swap order" gets one (i): how the cards and attackers work, and Soft / Strict
+    const order = document.getElementById("ctPlanList"), ohead = order && order.closest(".tb-group") && order.closest(".tb-group").querySelector(".tb-group-head");
+    if(ohead && !ohead.querySelector(".mq-ohi")){
+      const w = el("span", "info-wrap mq-ohi", "inline-flex");
+      w.innerHTML = '<button type="button" class="info-i" aria-label="How the order works" aria-expanded="false">i</button><span class="info-pop" role="tooltip"></span>';
+      ohead.appendChild(w);
     }
     const dl = document.getElementById("ctDodgeLimit");
     if(dl && !dl._mq){
@@ -11219,6 +11264,10 @@ updateCTMode();
         cells.push(`<div class="mq-pc ct" ${at} title="${esc(nm)}"><img src="${esc(sprite(nm.replace(/ #\d+$/, "")))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${ordinal(n)}</b></div>`);
       });
     });
+    // Dodges before bailing: only once someone can dodge - inside the first attacker row that can
+    let dodgeShown = 0;
+    const dodgeLine = () => { const dl = document.getElementById("ctDodgeLimit"), o = dl && dl.selectedOptions[0];
+      return `<div class="mq-att-dodge"><span>Dodges before bailing</span><span class="mq-step"><button type="button" data-dodge-step="-1" aria-label="Fewer">&minus;</button><b>${o ? esc(o.text) : ""}</b><button type="button" data-dodge-step="1" aria-label="More">+</button></span></div>`; };
     // the attackers, in hot swap order: whether each may dodge or sponge the boss's charge moves
     const atts = blocks.map((b, bi) => {
       const att = teamAttName(b.att), role = b.att === "m" ? "Main DPS" : "Support " + b.att.slice(1);
@@ -11226,14 +11275,26 @@ updateCTMode();
       return `<div class="mq-att" data-blk="${bi}"><img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">
         <span class="mq-att-n"><b>${esc(att)}</b><small>${bi + 1}. ${role}</small></span>
         <label class="mq-att-t"><input type="checkbox" data-att-dodge="${b.att}" ${dodge ? "checked" : ""}><i></i>Dodge</label>
-        <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label></div>`;
+        <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label>${dodge && !dodgeShown++ ? dodgeLine() : ""}</div>`;
     }).join("");
     box.innerHTML = `<div class="mq-plan-row">${cells.join("") || '<div class="mq-none">No catch tanks - hot swaps and sponges only.</div>'}</div>
       <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; after an attacker's \u201cin\u201d card it catches for that attacker" : ""}.</div>
       <div class="mq-atts">${atts}</div>${blocks.length > 1 ? '<div class="mq-plan-note">Tap and hold an attacker to change the hot swap order.</div>' : ""}`;
     if(!renderPlanPreview.wired){ renderPlanPreview.wired = true; wirePlanRow(); }
+    const pop = document.querySelector(".mq-ohi .info-pop");
+    if(pop){ const hint = ((document.getElementById("ctAssignHint") || {}).textContent || "").trim();
+      const t = `Who takes each ${cm}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; after an attacker's \u201cin\u201d card it catches for that attacker" : ""}.`
+        + (blocks.length > 1 ? " Tap and hold an attacker to change the hot swap order." : "") + (hint ? " " + hint : "");
+      if(pop.textContent !== t) pop.textContent = t; }
   }
 
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-dodge-step]"); if(!b) return;
+    const dl = document.getElementById("ctDodgeLimit"); if(!dl) return;
+    const order = [...dl.options].map(o => o.value), i = order.indexOf(dl.value), j = Math.max(0, Math.min(order.length - 1, i + (+b.dataset.dodgeStep)));
+    if(j !== i){ dl.value = order[j]; fire(dl, "change"); }
+    const out = b.parentElement.querySelector("b"); if(out) out.textContent = dl.selectedOptions[0].text;
+  });
   function wirePlanRow(){
     const host = () => document.querySelector("#mqPlan .mq-plan-row");
     // the row's new order -> the plan: each ⇄ starts the next attacker's catch tanks; a sponge stays its own attacker's
