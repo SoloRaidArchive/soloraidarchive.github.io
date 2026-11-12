@@ -1621,6 +1621,54 @@ if ("serviceWorker" in navigator) {
     .team-r2-body{ grid-template-columns:minmax(0, 1fr); } .team-r2-body .team-r2-boss{ display:none; }
     .team-r2-boss-alt{ display:inline-flex !important; }
   }
+  .team-behavior-row > .dt-main-tg{ display:none !important; }   /* phones: the main DPS's switches stay in its row */
+  @media (min-width:561px){ body.ct-mode-team .team-behavior-row > .dt-main-tg{ display:inline-flex !important; } }
+  /* Main behavior (desktop, Battle Simulator): on/off switches with labels, no boxes; Max Dodges only
+     while someone can dodge; Rejoin time inline */
+  @media (min-width:561px){
+    body.ct-mode-team #mainBehaviorRow{ align-items:center; gap:6px 20px; }
+    body.ct-mode-team #mainBehaviorRow > .check-item{ border:0 !important; background:transparent !important; box-shadow:none !important; padding:2px 0 !important;
+      gap:8px; font:800 12.5px 'Manrope',sans-serif; color:var(--text); }
+    body.ct-mode-team #mainBehaviorRow > #ctDodgeLimitWrap.is-off{ display:none !important; }
+    body.ct-mode-team #mainBehaviorRow > .check-item select{ font:800 12.5px 'Manrope',sans-serif; }
+    body.ct-mode-team #mainBehaviorRow input[type=checkbox]{ -webkit-appearance:none; appearance:none; flex:none; margin:0; width:34px; height:20px; border-radius:999px; border:0; cursor:pointer;
+      background:#4a4f5c radial-gradient(circle at 10px 50%, #fff 6.5px, transparent 7px); transition:background .15s ease; }
+    body.ct-mode-team #mainBehaviorRow input[type=checkbox]:checked{ background:var(--accent, #ff8a3d) radial-gradient(circle at 24px 50%, #fff 6.5px, transparent 7px); }
+    body.ct-mode-team #mainBehaviorRow input[type=checkbox]:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
+    [data-theme="light"] body.ct-mode-team #mainBehaviorRow input[type=checkbox]:not(:checked){ background:#c9ced8 radial-gradient(circle at 10px 50%, #fff 6.5px, transparent 7px); }
+  }
+  /* Custom Modifiers: Event boost in its own section across the top; under it, each side's effectiveness
+     boxes and Stab boxes two to a row, the same width */
+  #eventBoostSec{ grid-column:1 / -1; }
+  #eventBoostSec label[for="eventBoost"]{ display:none; }   /* the section's heading names it */
+  @media (min-width:561px){
+    .custom-type-body > .custom-type-col:not(#eventBoostSec) .mod-row.narrow{ grid-template-columns:repeat(2, minmax(0, 1fr)) !important; gap:10px !important; }
+    .custom-type-body > .custom-type-col:not(#eventBoostSec) .mod-row.narrow select{ width:100%; }
+    .custom-type-body > .custom-type-col:not(#eventBoostSec) .check-grid{ grid-template-columns:repeat(2, minmax(0, 1fr)) !important; gap:10px !important; margin-top:10px; }
+  }
+  /* Custom Modifiers, each side as a table: Charge move / Fast move rows, Effectiveness and STAB columns */
+  .mod-tbl{ display:grid; grid-template-columns:auto minmax(0, 1fr) auto; gap:8px 12px; align-items:center; }
+  .mod-tbl .mt-row{ display:contents; }
+  .mod-tbl .mt-h{ font:800 10.5px 'Manrope',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); }
+  .mod-tbl .mt-c{ text-align:center; }
+  .mod-tbl .mt-name{ font:700 13px 'Manrope',sans-serif; color:var(--text); white-space:nowrap; margin:0; }
+  .mod-tbl select{ width:100%; min-width:0; background:var(--bg1); border:2px solid var(--border); border-radius:10px; padding:8px 10px;
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12px; color:var(--text); outline:none; }   /* (as the other modifier dropdowns) */
+  [data-theme="dark"] .mod-tbl select{ background:#161a28; }
+  .mod-tbl select:focus{ border-color:var(--blue); }
+  .mod-tbl .mt-stab{ display:flex; justify-content:center; align-items:center; margin:0; min-width:44px; cursor:pointer; }
+  .mod-tbl .mt-stab input{ width:18px; height:18px; margin:0; accent-color:var(--accent, #ff8a3d); cursor:pointer; }
+  /* Event boost: the slider (on every width), the value in the heading */
+  #eventBoostSec .mq-slider{ display:flex !important; flex-direction:column; gap:4px; width:100%; max-width:460px; }
+  #eventBoostSec .mq-slider input[type=range]{ width:100%; accent-color:var(--accent, var(--blue)); }
+  #eventBoostSec .mq-ticks{ display:flex; justify-content:space-between; font:700 9.5px 'Manrope',sans-serif; color:var(--text-dim); }
+  #eventBoostSec .custom-type-head{ display:flex; align-items:baseline; gap:10px; }
+  #eventBoostSec .mq-evval{ color:var(--accent, #ff8a3d); font-weight:800; }
+  /* Event Boost: the section's only setting, so its own heading inside is not needed; the value sits by the name */
+  #eventBoostSec > .custom-type-head{ display:none !important; }
+  #eventBoostSec{ grid-column:1 / -1; }
+  .custom-type-body:has(#eventBoostSec){ grid-template-columns:1fr; }
+  .mod-sum-val{ color:var(--accent, #ff8a3d); font-weight:800; margin-left:6px; text-transform:none; letter-spacing:0; }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -1692,6 +1740,7 @@ if ("serviceWorker" in navigator) {
   .mq-sorting .mq-slot:not(.mq-lift), .mq-sorting .mq-pc:not(.mq-lift), .mq-sorting .mq-att:not(.mq-lift){opacity:.75;}
   .mq-pc.is-off{display:none !important;}
   .mq-pc.sw.att-in{width:52px; display:block; padding:4px 2px 3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); border-style:dashed;}
+  .mq-pc.sw.att-in.has-sp{border-style:solid}
   .mq-atts{display:flex; flex-direction:column; gap:6px; margin-top:10px;}
   .mq-att{display:flex; align-items:center; gap:8px; padding:7px 10px; border:1.5px solid var(--border); border-radius:12px; background:var(--card);}
   .mq-att > img{width:32px; height:32px; object-fit:contain; flex:none;}
@@ -1711,14 +1760,19 @@ if ("serviceWorker" in navigator) {
   .mq-pc img{width:32px; height:32px; object-fit:contain; display:block; margin:0 auto 1px;}
   .mq-pc.ct{border-color:color-mix(in srgb, var(--accent, var(--blue)) 60%, var(--border));}
   .mq-pc.ct b{color:var(--accent, var(--blue));}
-  .mq-pc.sp svg{width:13px; height:13px; position:absolute; top:3px; right:4px; color:var(--accent, var(--blue));}
+  .mq-pc.sp svg, .mq-pc.sw svg{width:13px; height:13px; position:absolute; top:3px; right:4px; color:var(--accent, var(--blue));}
   .mq-pc.sw{width:auto; padding:4px 6px; display:flex; align-items:center; border-style:dashed; font-size:15px;}
   .mq-plan-note{font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim); margin-top:3px;}
   @media (min-width:561px){
     body.ct-mode-team #mqPlan{ display:block !important; }
     body.ct-mode-team #ctPlanList{ display:none !important; }
     body.ct-mode-team .tut-toggle{ display:none !important; }   /* its explanations were in the list */
-    .mq-att-dodge{ display:none !important; }                    /* desktop: Dodges before bailing stays in Main behavior */
+    .mq-att-dodge{ display:none !important; }                    /* desktop: Max Dodges stays in Main behavior */
+    #mqPlan .mq-att[data-att="m"] .mq-att-t{ display:none !important; }   /* the main DPS's Dodge / Sponge are in Main behavior */
+    @media (min-width:1000px){   /* one line where it fits; narrower windows wrap as before */
+      body.ct-mode-team .team-behavior-row{ flex-wrap:nowrap; }
+      body.ct-mode-team .team-behavior-row > .check-item{ white-space:nowrap; flex:0 1 auto; min-width:0; }
+    }
     #mqPlan .mq-plan-row{ flex-wrap:wrap; overflow:visible; }
     #mqPlan .mq-pc{ width:64px; } #mqPlan .mq-pc img{ width:40px; height:40px; }
     #mqPlan .mq-atts{ display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:8px; }
@@ -2012,7 +2066,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · desktop level steppers</p>
+      <p class="beta-build">Build 2026-11-12 · event boost only</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -2026,19 +2080,19 @@ if ("serviceWorker" in navigator) {
       </ul>
       <p class="beta-h">Who takes each charge move</p>
       <ul>
-        <li><b>Priority &amp; hot swap order</b> lists the attackers in the order they come in, and under each one, in order, who takes the boss's charge moves while it is in: its own catch tanks and its own sponge. <b>Soft</b> lets an attacker borrow an unused catch tank from another before it hot swaps; <b>Strict</b> keeps each to its own.</li>
+        <li><b>Catch Tank &amp; Hot Swap Order</b> lists the attackers in the order they come in, and under each one, in order, who takes the boss's charge moves while it is in: its own catch tanks and its own sponge. <b>Soft</b> lets an attacker borrow an unused catch tank from another before it hot swaps; <b>Strict</b> keeps each to its own.</li>
         <li><b>Sponging</b> follows the situation. While the attacker has catch tanks, it only sponges when it absorbs at least 90% of the hit's energy (no more than 10% overflow), survives, and can fire before the boss's next charge move - otherwise a catch tank takes it. With none left, it sponges whenever its HP covers another full rotation: the hit, then the boss's fast moves while it builds and casts its next charge move.</li>
-        <li><b>Can dodge</b> (on each attacker): it dodges instead, up to <b>Dodges before bailing</b>, when it keeps at least 85% of the dodged hit's energy, survives it, and can fire before the boss's next charge move. A dodge takes 25% of the damage and 1.0s.</li>
+        <li><b>Can dodge</b> (on each attacker): it dodges instead, up to <b>Max Dodges</b>, when it keeps at least 85% of the dodged hit's energy, survives it, and can fire before the boss's next charge move. A dodge takes 25% of the damage and 1.0s.</li>
       </ul>
       <p class="beta-h">Hot swaps</p>
       <ul>
         <li>An attacker hot swaps to the next one when it can't safely take the boss's next charge move (no catch tank left, and a sponge or dodge isn't safe), or when it can't live to land its next charge move. It fires the charge move it is building first if that lands in time - or stays in, takes the hit, and lands it, when it can survive to. The next attacker comes in with full HP and no energy; attackers never come back.</li>
         <li><b>Doubling back</b>: when an incoming charge move would make the attacker in overflow and a support DPS could absorb it fully, the simulator plays the fight forward both ways and swaps to the support if that deals more damage. The support is used until it is done, then the attacker comes back - with the HP and energy it left with - ahead of any new one.</li>
-        <li><b>Juice main DPS</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
+        <li><b>One more CM</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
       </ul>
       <p class="beta-h">The end of the run</p>
       <ul>
-        <li>The run ends when the last attacker can't continue. With <b>All in final charge move</b> it stays in on the energy it holds - dodging or taking the hit - and the run ends when that charge move lands (or the last one before it, if it faints first). Without it, it bails, and results stop at its last charge move.</li>
+        <li>The run ends when the last attacker can't continue. With <b>One more CM</b> it stays in on the energy it holds - dodging or taking the hit - and the run ends when that charge move lands, but only if that raises the result (the calculator runs it both ways and keeps the better). Otherwise it bails, and results stop at its last charge move.</li>
       </ul>
       <p class="beta-h">Rejoins and results</p>
       <ul>
@@ -2282,22 +2336,26 @@ if ("serviceWorker" in navigator) {
          the energy (no more than 10% overflow) and it can fire again; with none left, a health check. -->
     <div class="tb-group">
       <div class="tb-group-head">Main behavior</div>
-      <div class="team-behavior-row">
-      <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPS dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPS only bails (the run ends) when it can't safely continue even with them.">Dodges before bailing
+      <div class="team-behavior-row" id="mainBehaviorRow">
+      <!-- the main DPS's Dodge / Sponge (desktop): they set the same switches as its row under Catch Tank & Hot Swap Order -->
+      <label class="check-item dt-main-tg" title="The main DPS dodges the boss's charge moves (up to Max Dodges)"><input type="checkbox" data-main-toggle="dodge"> Dodge</label>
+      <label class="check-item dt-main-tg" title="The main DPS sponges a charge move when no catch tank is left for it"><input type="checkbox" data-main-toggle="sponge"> Sponge</label>
+      <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPS dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPS only bails (the run ends) when it can't safely continue even with them.">Max Dodges
         <select id="ctDodgeLimit">
           <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
           <option value="0" title="No limit">∞</option>
         </select>
       </label>
-      <label class="check-item" title="When no catch tank is left and the main DPS can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final charge move</label>
-      <label class="check-item" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
+      <label class="check-item" id="ctOneMoreWrap" title="Before leaving the fight - a hot swap, or bailing when nobody is left to swap to - the attacker goes for one more charge move: before a hot swap only when it will live to land it, as the last attacker only when that raises the result (the calculator runs it both ways). It never makes a run worse."><input type="checkbox" id="ctOneMore" checked> One more CM</label>
+      <label class="check-item" hidden style="display:none !important" title="When no catch tank is left and the main DPS can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final CM</label>
+      <label class="check-item" hidden style="display:none !important" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
       <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
         <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
       </label>
       </div>
     </div>
     <div class="tb-group">
-      <div class="tb-group-head">Priority &amp; hot swap order</div>
+      <div class="tb-group-head">Catch Tank &amp; Hot Swap Order</div>
       <div class="pl-mode">
         <span class="pl-mode-lbl">Catch tank assignment</span>
         <div class="pl-seg" role="group" aria-label="Catch tank assignment">
@@ -2457,52 +2515,58 @@ if ("serviceWorker" in navigator) {
          and STAB are set automatically from the types; this is where to override them. Same ids as
          before, so calculations, saved setups and shared links are unaffected. -->
     <details class="mod-details custom-type-details" id="customTypeDetails">
-      <summary class="mod-summary">Custom Modifiers</summary>
+      <summary class="mod-summary">Event Boost <span class="mod-sum-val" id="eventBoostSumVal"></span></summary>
       <div class="mod-details-body custom-type-body">
-        <div class="custom-type-col">
-          <div class="custom-type-head">Your Pokémon</div>
-            <div class="mod-row narrow">
-              <div class="mod-cell">
-                <label for="effCM">Charge Move Eff.</label>
-                <select id="effCM">
-                  <option value="0.39">Very Not Effective — 0.39x</option>
-                  <option value="0.625">Not Effective — 0.625x</option>
-                  <option value="1" selected>Effective — 1x</option>
-                  <option value="1.6">Super Effective — 1.6x</option>
-                  <option value="2.56">Very Super Effective — 2.56x</option>
-                </select>
-              </div>
-              <div class="mod-cell">
-                <label for="effFM">Fast Move Eff.</label>
-                <select id="effFM">
-                  <option value="0.39">Very Not Effective — 0.39x</option>
-                  <option value="0.625">Not Effective — 0.625x</option>
-                  <option value="1" selected>Effective — 1x</option>
-                  <option value="1.6">Super Effective — 1.6x</option>
-                  <option value="2.56">Very Super Effective — 2.56x</option>
-                </select>
-              </div>
-            </div>
-            <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
-              <label class="check-item"><input type="checkbox" id="stabCM"> Stab CM</label>
-              <label class="check-item"><input type="checkbox" id="stabFM"> Stab FM</label>
-            </div>
-            <!-- Event boost: an event's damage bonus as a percentage - 40 = x1.4 on every move of
-                 yours (attackers and catch tanks), in every mode; the boss's damage is unchanged -->
+        <!-- Event boost, its own section above the others: an event's damage bonus as a percentage - 40 =
+             x1.4 on every move of yours (attackers and catch tanks), in every mode; the boss's damage is unchanged -->
+        <div class="custom-type-col" id="eventBoostSec">
+          <div class="custom-type-head">Event boost</div>
             <div class="mod-row narrow">
               <div class="mod-cell">
                 <label for="eventBoost">Event boost %</label>
-                <input type="number" id="eventBoost" min="0" max="500" step="5" value="0" inputmode="decimal" placeholder="0">
+                <input type="number" id="eventBoost" min="0" max="500" step="5" value="0" inputmode="decimal" placeholder="0" aria-label="Event boost %">
                 <div class="event-boost-hint" id="eventBoostHint">No boost</div>
               </div>
             </div>
         </div>
-        <div class="custom-type-col">
+        <!-- Effectiveness and STAB are not shown (in any mode): they are always set from the Pokemon's and the
+             boss's types (autoSetEffectiveness - also after a saved setup or link loads). The fields stay, hidden,
+             for the calculation. -->
+        <div class="custom-type-col" hidden style="display:none">
+          <div class="custom-type-head">Your Pokémon</div>
+          <div class="mod-tbl">
+            <span></span><span class="mt-h">Effectiveness</span><span class="mt-h mt-c">STAB</span>
+            <div class="mt-row">
+              <label class="mt-name" for="effCM">Charge move</label>
+              <select id="effCM">
+                  <option value="0.39">Very Not Effective — 0.39x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              <label class="mt-stab" title="Same-type attack bonus: the move is the same type as the Pokemon (x1.2)"><input type="checkbox" id="stabCM" aria-label="Charge move STAB"></label>
+            </div>
+            <div class="mt-row">
+              <label class="mt-name" for="effFM">Fast move</label>
+              <select id="effFM">
+                  <option value="0.39">Very Not Effective — 0.39x</option>
+                  <option value="0.625">Not Effective — 0.625x</option>
+                  <option value="1" selected>Effective — 1x</option>
+                  <option value="1.6">Super Effective — 1.6x</option>
+                  <option value="2.56">Very Super Effective — 2.56x</option>
+                </select>
+              <label class="mt-stab" title="Same-type attack bonus: the move is the same type as the Pokemon (x1.2)"><input type="checkbox" id="stabFM" aria-label="Fast move STAB"></label>
+            </div>
+          </div>
+        </div>
+        <div class="custom-type-col" hidden style="display:none">
           <div class="custom-type-head">Raid Boss &rarr; You</div>
-            <div class="mod-row narrow">
-              <div class="mod-cell catch-tank-only">
-                <label for="effBossCM">Charge Move → You</label>
-                <select id="effBossCM">
+          <div class="mod-tbl">
+            <span></span><span class="mt-h">Effectiveness</span><span class="mt-h mt-c">STAB</span>
+            <div class="mt-row catch-tank-only">
+              <label class="mt-name" for="effBossCM">Charge move</label>
+              <select id="effBossCM">
                   <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
                   <option value="0.39">Immune — 0.39x</option>
                   <option value="0.390625">Very Not Effective — 0.390625x</option>
@@ -2511,10 +2575,11 @@ if ("serviceWorker" in navigator) {
                   <option value="1.6">Super Effective — 1.6x</option>
                   <option value="2.56">Very Super Effective — 2.56x</option>
                 </select>
-              </div>
-              <div class="mod-cell">
-                <label for="effBossFM">Fast Move → You</label>
-                <select id="effBossFM">
+              <label class="mt-stab" title="Same-type attack bonus: the move is the same type as the Pokemon (x1.2)"><input type="checkbox" id="bossStabCM" aria-label="Boss charge move STAB"></label>
+            </div>
+            <div class="mt-row">
+              <label class="mt-name" for="effBossFM">Fast move</label>
+              <select id="effBossFM">
                   <option value="0.24375">Extremely Not Effective x3 — 0.24375x</option>
                   <option value="0.39">Immune — 0.39x</option>
                   <option value="0.390625">Very Not Effective — 0.390625x</option>
@@ -2523,15 +2588,12 @@ if ("serviceWorker" in navigator) {
                   <option value="1.6">Super Effective — 1.6x</option>
                   <option value="2.56">Very Super Effective — 2.56x</option>
                 </select>
-              </div>
+              <label class="mt-stab" title="Same-type attack bonus: the move is the same type as the Pokemon (x1.2)"><input type="checkbox" id="bossStabFM" aria-label="Boss fast move STAB"></label>
             </div>
-            <div class="check-grid" style="grid-template-columns:repeat(2,1fr);">
-              <label class="check-item catch-tank-only"><input type="checkbox" id="bossStabCM">Stab CM</label>
-              <label class="check-item"><input type="checkbox" id="bossStabFM">Stab FM</label>
-              <!-- Shadow debuff: set from the Pokemon's name (autoSetEffectiveness), so it is not shown - picking a
-                   Shadow Pokemon is the setting. Kept, hidden, for the calculation and saved setups / links. -->
-              <label class="check-item" hidden style="display:none"><input type="checkbox" id="shadowDebuff">Shadow Debuff</label>
-            </div>
+          </div>
+          <!-- Shadow debuff: set from the Pokemon's name (autoSetEffectiveness), so it is not shown - picking a
+               Shadow Pokemon is the setting. Kept, hidden, for the calculation and saved setups / links. -->
+          <label class="check-item" hidden style="display:none"><input type="checkbox" id="shadowDebuff">Shadow Debuff</label>
         </div>
       </div>
     </details>
@@ -4007,7 +4069,7 @@ function teamStep(S, R, P, snap){
       if(!tanksLeft && P.allIn){
         // All in: nobody can safely take this one, but instead of bailing on the energy it holds
         // the main DPS stays in to finish the charge move it is building. If dodging is allowed it
-        // dodges whenever it is free in time - the "Dodges before bailing" count doesn't apply, as
+        // dodges whenever it is free in time - the "Max Dodges" count doesn't apply, as
         // this is the alternative to bailing, and there is no safety test: it's the last push.
         // Otherwise it takes the hit. The run ends when that charge move lands; if the main DPS faints first,
         // results stop at the last charge move that landed, exactly as a bail would.
@@ -4095,7 +4157,7 @@ function teamStep(S, R, P, snap){
         }
         const main = S.mons[0];
         if(P.mainDodges && (P.dodgeLimit === 0 || S.mainDodges < P.dodgeLimit) && main.hp > P.main.bossCmDmgDodged && free + TEAM_SWAP_TICKS + TEAM_DODGE_TICKS <= land){
-          S.mainDodges++;   // counts toward "Dodges before bailing", as any other dodge
+          S.mainDodges++;   // counts toward "Max Dodges", as any other dodge
           S.pendingSwap = { to: 0, latest: land - TEAM_DODGE_TICKS - TEAM_SWAP_TICKS, second: false };   // back just in time to dodge
           S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
           if(left > 0 && !S.returnTanks.includes(holder)){ S.returnTanks.push(holder); S.returnAfter = Math.max(S.returnAfter, land); }
@@ -4745,7 +4807,12 @@ function runTeamSim(c){
     // a new random stream for every run (window.__teamSeed, if set, repeats one - for testing)
     seed: Number.isInteger(window.__teamSeed) ? window.__teamSeed : crypto.getRandomValues(new Uint32Array(1))[0],
     tanks, monMeta, mainRank, assign: document.getElementById("ctAssign").value === "strict" ? "strict" : "soft",
-    juice: !!(document.getElementById("ctJuice") || {}).checked,
+    // One more CM (the old Juice main DPS + All in final charge move, as one setting): before leaving
+    // the fight the attacker goes for one more charge move - juicing when a hot swap is waiting (only
+    // when it will live to land it), going all in when nobody is left (only when that raises the result,
+    // below). Either old setting on - in a saved setup or link - turns it on.
+    oneMore: !!((document.getElementById("ctJuice") || {}).checked || (document.getElementById("ctAllIn") || {}).checked),
+    juice: !!((document.getElementById("ctJuice") || {}).checked || (document.getElementById("ctAllIn") || {}).checked),
     doubleBack: true,   // doubling back is part of every rotation with a support DPS (no setting)
     b2b: false,   // back-to-back charge moves: off while the logic is reassessed (the setting is ignored)
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
@@ -4756,7 +4823,7 @@ function runTeamSim(c){
     dodgeLimit: Math.max(0, parseInt($("ctDodgeLimit").value, 10) || 0),
     // All in on the last charge move: with no catch tank left, finish what it is building rather
     // than bail on it
-    allIn: $("ctAllIn").checked,
+    allIn: !!($("ctAllIn").checked || (document.getElementById("ctJuice") || {}).checked),
     // Double catch: each catch tank catches two of the boss's charge moves - after the first it
     // casts dcFirstFMs fast moves and swaps out without firing, keeping its energy ("primed"),
     // then comes back for the boss's next charge move and fires on the combined energy.
@@ -4825,9 +4892,13 @@ function runTeamSim(c){
     //     raises the DPS, until a full pass changes nothing (at most 3 passes).
     // So the result is never below any single timing, "early" and "late" included.
     const K = Math.max(0, P.bossCM.ad - TEAM_SWAP_TICKS);
+    // (with One more CM, each candidate is run with and without going all in at the end - all in only
+    // decides how the run ends - and the better kept, so going all in never lowers the result)
     const tryRun = offsets => {
-      const r = simulateTeam(Object.assign({}, P, { swapOffsets: offsets }));
-      return { S: r.S, R: r.R, dps: teamRunDps(r.S, r.R), offsets };
+      const sim = o => { const r = simulateTeam(o); return { S: r.S, R: r.R, dps: teamRunDps(r.S, r.R), offsets }; };
+      let best = sim(Object.assign({}, P, { swapOffsets: offsets }));
+      if(P.oneMore && P.allIn){ const alt = sim(Object.assign({}, P, { swapOffsets: offsets, allIn: false })); if(alt.dps > best.dps + 1e-9) best = alt; }
+      return best;
     };
     for(let k = 0; k <= K; k++){
       const r = tryRun({ def: k, list: [] });
@@ -7149,7 +7220,7 @@ function runCalculation(){
       <button type="button" class="submit-btn" onclick="submitSelectedRows()">Submit Selected to CT Database</button>
     </div>` : (eventBoosted && wouldQualify) ? `
     <div class="submit-panel submit-panel-disabled">
-      <div class="submit-note">Submissions are off while an <b>event boost</b> is set - the CT Database compares unboosted runs. Set Event boost to 0% (Custom Modifiers) to submit.</div>
+      <div class="submit-note">Submissions are off while an <b>event boost</b> is set - the CT Database compares unboosted runs. Set Event boost to 0% (Event Boost) to submit.</div>
     </div>` : (!doubleCT && bossName && !bossQualifies) ? `
     <div class="submit-panel submit-panel-disabled">
       <div class="submit-note">CT Database submissions are currently accepted for <b>Tier 5</b> and <b>Tier 4 Mega</b> raid bosses. "${bossName}" isn't on either list.</div>
@@ -8486,9 +8557,20 @@ document.getElementById("calcBtn").addEventListener("click", runCalculation);
   btn.textContent = "Copy as image"; btn.hidden = true;
   btn.addEventListener("click", () => shareResultImage(btn));
   wrap.parentNode.insertBefore(btn, wrap.nextSibling);
-  const sync = () => { btn.hidden = !wrap.querySelector(".dps-result-card"); };
+  // (a result card - or, in the Catch Tank modes, their results table)
+  const sync = () => { btn.hidden = !(wrap.querySelector(".dps-result-card") || wrap.querySelector(".results-table")); };
   new MutationObserver(sync).observe(wrap, { childList: true, subtree: true });
   sync();
+})();
+
+// Event Boost's value beside the section's name ("+40%"; nothing at 0)
+(function(){
+  const eb = document.getElementById("eventBoost"), out = document.getElementById("eventBoostSumVal");
+  if(!eb || !out) return;
+  const paint = () => { const v = parseFloat(eb.value) || 0, t = v ? "+" + v + "%" : ""; if(out.textContent !== t) out.textContent = t; };
+  eb.addEventListener("input", paint); eb.addEventListener("change", paint); paint();
+  // a saved setup or link sets it without an event: repaint after one loads
+  if(typeof window.applySetup === "function"){ const load = window.applySetup; window.applySetup = function(){ const r = load.apply(this, arguments); paint(); return r; }; }
 })();
 
 // ============ SHAREABLE SETUP URLS ============
@@ -9256,7 +9338,7 @@ function renderTeamOrder(){
 })();
 document.getElementById("ctMainAbsorb").addEventListener("change", renderTeamOrder);
 function updateMainRule(){}   // the sponge rule is no longer a setting (kept so callers needn't change)
-// "Dodges before bailing" only matters while dodging is allowed
+// "Max Dodges" only matters while dodging is allowed
 function updateDodgeLimit(){
   const on = document.getElementById("ctMainDodge").checked
     || supportPrefixes().some(p => (document.getElementById(p + "Dodge") || {}).checked);
@@ -9293,10 +9375,49 @@ updateCadenceMode();
 // the output is deterministic, and it can use a layout suited to a shared image (fixed width,
 // no controls) instead of the page's. Values are READ BACK from the rendered card rather than
 // recomputed, so the picture can never disagree with what is on screen.
+// Catch Tank and Double Catch Tank modes have no result card - a loadout and a table, a row per number
+// of boss fast moves tanked. Their image: the loadout, the best Catch Tank DPS as the headline, and a
+// line per row ("1 boss FM tanked: Catch Tank DPS 58.2 (9.50s, 4 rejoins) · Trailing DPS 61.4 (9.00s)").
+function shareCtCardData(wrap){
+  const tbl = wrap && wrap.querySelector(".results-table"); if(!tbl) return null;
+  const txt = el => (el ? el.textContent.replace(/\s+/g, " ").trim() : "");
+  const mons = [...wrap.querySelectorAll(".loadout-pokemon")].map(m => ({
+    name: txt(m.querySelector(".loadout-name")), role: txt(m.querySelector(".loadout-role")),
+    stats: [...m.querySelectorAll(".loadout-stats span, .loadout-stats div")].map(txt).filter(Boolean),
+    moves: [...m.querySelectorAll(".loadout-dmg-line")].map(txt), sprite: (m.querySelector("img") || {}).src || "",
+  }));
+  const heads = [...tbl.querySelectorAll("thead th, tr:first-child th")].map(txt);
+  const cellParts = td => { const c = td.cloneNode(true); const dur = txt(c.querySelector(".cell-duration")), badge = txt(c.querySelector(".rejoin-badge"));
+    const b = td.querySelector(".rejoin-badge"), bs = b ? getComputedStyle(b) : null;   // the badge's own colours ("solo" is grey)
+    c.querySelectorAll(".cell-duration, .rejoin-badge").forEach(x => x.remove()); return { val: txt(c), dur, badge, badgeBg: bs ? bs.backgroundColor : "", badgeTx: bs ? bs.color : "" }; };
+  const ctCol = heads.findIndex(h => /catch tank dps/i.test(h));
+  let best = null; const rows = [];
+  [...tbl.querySelectorAll("tbody tr")].forEach(tr => {
+    const tds = [...tr.children]; const n = txt(tr.querySelector(".row-label")); if(n === "") return;
+    const parts = tds.map((td, i) => ({ head: heads[i] || "", ...cellParts(td), i })).filter(p => p.i > 0 && !/submit-col|row-label/.test(tds[p.i].className));
+    parts.sort((a, b) => (b.i === ctCol) - (a.i === ctCol));   // Catch Tank DPS first
+    const v = parts.map(p => `${p.head} ${p.val.replace(/ dps$/i, "")}${p.dur || p.badge ? ` (${[p.dur, p.badge].filter(Boolean).join(", ")})` : ""}`).join(" \u00b7 ");
+    rows.push({ k: `${n} boss FM${n === "1" ? "" : "s"} tanked`, v });
+    const ct = ctCol >= 0 ? parseFloat(txt(tds[ctCol])) : NaN;
+    if(isFinite(ct) && (!best || ct > best.v)) best = { v: ct, n };
+  });
+  if(!rows.length) return null;
+  const conds = [...wrap.querySelectorAll(".loadout-cond")].map(c => { const img = c.querySelector("img"); return { label: txt(c), icon: img ? img.src : "" }; });
+  const dbl = document.body.classList.contains("ct-mode-double");
+  // the image mirrors the table as it is on the page: its columns, then a row per boss FMs tanked
+  const cols = heads.map((h, i) => ({ h, i })).filter(c => c.h);
+  const ctTable = { heads: cols.map(c => c.h), rows: [...tbl.querySelectorAll("tbody tr")].map(tr => {
+    const tds = [...tr.children];
+    return cols.map(c => { const td = tds[c.i]; if(!td) return { val: "" };
+      return td.classList.contains("row-label") ? { val: txt(td), label: true } : cellParts(td); });
+  }).filter(r => r[0] && r[0].val !== "") };
+  return { label: `${dbl ? "Double Catch Tank DPS" : "Catch Tank DPS"}${best ? ` \u00b7 best at ${best.n} boss FM${best.n === "1" ? "" : "s"} tanked` : ""}`,
+           dps: best ? best.v.toFixed(1) : "", pace: null, mons, rows, conds, team: null, teamTimeline: null, ctTable };
+}
 function shareCardData(){
   const wrap = document.getElementById("resultsWrap");
   const card = wrap && wrap.querySelector(".dps-result-card");
-  if(!card) return null;
+  if(!card) return shareCtCardData(wrap);
   const txt = el => (el ? el.textContent.replace(/\s+/g, " ").trim() : "");
   const mons = [...wrap.querySelectorAll(".loadout-pokemon")].map(m => ({
     name: txt(m.querySelector(".loadout-name")),
@@ -9497,7 +9618,9 @@ async function buildResultShareImage(){
   const bodyH = d.rows.reduce((s, r) => s + (r.group ? 32 : r.graph ? graphH : rowH + (r.lines.length - 1) * lineH + (r.sub ? subH : 0)), 0);
   const tlH = d.teamTimeline ? 62 : 0;   // Beta: the timeline bar under the headline
   const paceH = d.pace ? 22 : 0;          // Beta: solo pace under the big number
-  const H = PAD + headH + 74 + paceH + tlH + bodyH + PAD + 34;
+  const ctRowH = 50, ctHeadH = 34;
+  const H = d.ctTable ? PAD + headH + 18 + ctHeadH + d.ctTable.rows.length * ctRowH + PAD + 34
+                      : PAD + headH + 74 + paceH + tlH + bodyH + PAD + 34;
 
   const cv = document.createElement("canvas");
   const dpr = 2;
@@ -9579,6 +9702,36 @@ async function buildResultShareImage(){
       x.fillText(c.label, cx + 9 + iconW, cy + 3);
       cx += w + 6;
     });
+  }
+
+  // Catch Tank modes: the results table, as on the page - and nothing else
+  if(d.ctTable){
+    const tX = PAD, tW = W - PAD * 2, colX = [tX + 20, tX + tW * 0.42, tX + tW * 0.69];
+    let y = PAD + headH + 18;
+    x.fillStyle = C.dim; x.font = "800 11px Manrope, sans-serif";
+    d.ctTable.heads.forEach((h, i) => x.fillText(h.toUpperCase(), colX[i] || colX[colX.length - 1], y + 20));
+    y += ctHeadH;
+    const label = dark ? "#ff9a5c" : "#c65a1e", badgeBg = dark ? "rgba(28,122,67,0.32)" : "#dff3e6", badgeTx = dark ? "#6ee7a0" : "#1d7a46";
+    d.ctTable.rows.forEach(r => {
+      rr(tX, y + 3, tW, ctRowH - 6, 10); x.fillStyle = C.card; x.fill(); x.strokeStyle = C.line; x.lineWidth = 1; x.stroke();
+      r.forEach((c, i) => {
+        const cx = colX[i] || colX[colX.length - 1], mid = y + ctRowH / 2;
+        if(c.label){ x.fillStyle = label; x.font = "800 15px Manrope, sans-serif"; x.fillText(c.val, cx, mid + 5); return; }
+        const hasDur = !!c.dur;
+        x.fillStyle = C.text; x.font = "800 15px ui-monospace, Menlo, monospace";
+        x.fillText(c.val, cx, hasDur ? mid - 1 : mid + 5);
+        if(hasDur){ x.fillStyle = C.dim; x.font = "700 11px ui-monospace, Menlo, monospace"; x.fillText(c.dur, cx, mid + 14); }
+        if(c.badge){
+          const vw = (x.font = "800 15px ui-monospace, Menlo, monospace", x.measureText(c.val).width);
+          x.font = "800 10px Manrope, sans-serif"; const bw = x.measureText(c.badge).width + 14, bx = cx + vw + 8, by = (hasDur ? mid - 1 : mid + 5) - 12;
+          rr(bx, by, bw, 16, 8); x.fillStyle = c.badgeBg || badgeBg; x.fill(); x.fillStyle = c.badgeTx || badgeTx; x.fillText(c.badge, bx + 7, by + 11.5);
+        }
+      });
+      y += ctRowH;
+    });
+    x.fillStyle = C.dim; x.font = "600 11px Inter, sans-serif";
+    x.fillText("soloraidarchive.github.io", PAD, H - 16);
+    return cv;
   }
 
   // headline
@@ -10252,7 +10405,8 @@ updateCTMode();
     .mq-lift{ transform:scale(1.08); box-shadow:0 8px 20px rgba(0,0,0,.45); z-index:3; position:relative; border-color:var(--accent, #ff8a3d) !important; transition:transform .12s; }
     .mq-sorting .mq-slot:not(.mq-lift), .mq-sorting .mq-pc:not(.mq-lift), .mq-sorting .mq-att:not(.mq-lift){ opacity:.75; }
     .mq-pc.is-off{ display:none !important; }
-    .mq-pc.sw.att-in{ width:52px; display:block; padding:4px 2px 3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); border-style:dashed; }   /* the incoming support, card-shaped */
+    .mq-pc.sw.att-in{ width:52px; display:block; padding:4px 2px 3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); border-style:dashed; position:relative; }   /* the incoming support, card-shaped */
+    .mq-pc.sw.att-in.has-sp{ border-style:solid; }   /* it sponges first: a full card, with the sponge mark */
     /* the attackers: Dodge / Sponge */
     .mq-atts{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
     .mq-att{ display:flex; align-items:center; gap:8px; padding:7px 10px; border:1.5px solid var(--border); border-radius:12px; background:var(--card); }
@@ -10332,7 +10486,7 @@ updateCTMode();
     .mq-pc{ flex:none; width:52px; border-radius:10px; border:1.5px solid var(--border); background:var(--bg1, #1e1918); text-align:center; padding:4px 2px 3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); position:relative; }
     .mq-pc img{ width:32px; height:32px; object-fit:contain; display:block; margin:0 auto 1px; }
     .mq-pc.ct{ border-color:color-mix(in srgb, var(--accent, var(--blue)) 60%, var(--border)); } .mq-pc.ct b{ color:var(--accent, var(--blue)); }
-    .mq-pc.sp svg{ width:13px; height:13px; position:absolute; top:3px; right:4px; color:var(--accent, var(--blue)); }
+    .mq-pc.sp svg, .mq-pc.sw svg{ width:13px; height:13px; position:absolute; top:3px; right:4px; color:var(--accent, var(--blue)); }
     .mq-pc.sw{ width:auto; padding:4px 6px; display:flex; align-items:center; border-style:dashed; font-size:15px; }
     .mq-plan-note{ font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim); margin-top:3px; }
     /* drag handles on the priority list */
@@ -10620,7 +10774,8 @@ updateCTMode();
         b.addEventListener("click", () => { box.checked = !box.checked; fire(box, "change"); paint(); });
         box.addEventListener("change", paint); box._mqPaint = paint; paint();
         box.closest("label").classList.add("mq-hide"); return b; };
-      chips.appendChild(mk(allIn, "All in final CM")); chips.appendChild(mk(juice, "Juice main DPS"));
+      const oneMore = document.getElementById("ctOneMore");
+      if(oneMore) chips.appendChild(mk(oneMore, "One more CM")); else { chips.appendChild(mk(allIn, "All in final CM")); chips.appendChild(mk(juice, "Juice main DPS")); }
       const row = allIn.closest(".team-behavior-row"); row.insertBefore(chips, row.firstChild);
       const head = row.closest(".tb-group").querySelector(".tb-group-head");
       if(head){ head.dataset.mqFull = head.textContent; const sync = () => { const t = MQ.matches ? "Settings" : head.dataset.mqFull; if(head.textContent !== t) head.textContent = t; };
@@ -10648,26 +10803,21 @@ updateCTMode();
     const eb = document.getElementById("eventBoost");
     if(eb && !eb._mq){
       eb._mq = true;
-      // its own section at the bottom of Custom Modifiers: the heading carries the value ("+40%"; nothing at 0)
-      const evSec = el("div", "custom-type-col mq-evsec", "block");
-      evSec.innerHTML = '<div class="custom-type-head mq-evhead"><span>Event boost</span><b class="mq-evval"></b></div>';
-      const evVal = evSec.querySelector(".mq-evval");
+      // its own section, at the top of Custom Modifiers (in the page itself): on a phone the heading
+      // carries the value ("+40%"; nothing at 0)
+      const evSec = document.getElementById("eventBoostSec") || eb.closest(".custom-type-col");
+      const evHead = evSec.querySelector(".custom-type-head"); evHead.classList.add("mq-evhead");
+      if(!evHead.querySelector(".mq-evval")){ const v = el("b", "mq-evval", "inline"); v.classList.remove("mq-only"); evHead.appendChild(v); }
+      const evVal = evHead.querySelector(".mq-evval");
       const box = slider("", 0, 100, 5, ["0", "25", "50", "75", "100"], () => Math.min(100, parseFloat(eb.value) || 0), v => { eb.value = v; fire(eb, "input", "change"); },
         v => { const t = +v ? "+" + v + "%" : ""; evVal.textContent = t; return t; });
-      box.classList.add("mq-evslider");
+      box.classList.add("mq-evslider"); box.classList.remove("mq-only");   // (every width)
       eb._mqEvSec = evSec;
-      eb.classList.add("mq-hide"); eb.insertAdjacentElement("afterend", box);   // the slider only (no preset buttons)
-      const hint = document.getElementById("eventBoostHint"); if(hint) hint.classList.add("mq-hide");   // the slider says it already
+      eb.style.display = "none"; eb.insertAdjacentElement("afterend", box);   // the slider only, on every width
+      const hint = document.getElementById("eventBoostHint"); if(hint) hint.style.display = "none";   // the heading says it already
       const lbl = document.querySelector('label[for="eventBoost"]'); if(lbl) lbl.classList.add("mq-hide");
       eb.addEventListener("input", () => { box._paint(); });
-      // where Event boost's row lives: its own section on a phone, back in Your Pokemon on desktop
-      const row = eb.closest(".mod-row"), home = row.parentElement, homeNext = row.nextElementSibling;
-      const body = eb.closest(".custom-type-body");
-      const placeEv = () => {
-        if(MQ.matches){ if(!evSec.isConnected) body.appendChild(evSec); if(row.parentElement !== evSec) evSec.appendChild(row); }
-        else if(row.parentElement !== home){ home.insertBefore(row, homeNext && homeNext.parentElement === home ? homeNext : null); }
-      };
-      placeEv(); (MQ.addEventListener ? MQ.addEventListener("change", placeEv) : MQ.addListener(placeEv));
+      // (Event boost's section is in the page, at the top of Custom Modifiers, on every width)
     }
     shortenModifiers();
   }
@@ -10677,7 +10827,7 @@ updateCTMode();
   function shortenModifiers(){
     const swap = (node, short) => {
       if(node.dataset.mqFull === undefined) node.dataset.mqFull = node.textContent;
-      const want = MQ.matches ? short(node.dataset.mqFull) : node.dataset.mqFull;
+      const want = short(node.dataset.mqFull);   // (every width: the table names the move once)
       if(node.textContent !== want) node.textContent = want;
     };
     ["effCM", "effFM", "effBossCM", "effBossFM"].forEach(id => {
@@ -11462,9 +11612,14 @@ updateCTMode();
     const cells = [];
     blocks.forEach((b, bi) => {
       const att = teamAttName(b.att);
-      if(bi > 0) cells.push(`<div class="mq-pc sw att-in" title="${esc(att)} comes in here"><img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">in</div>`);
+      // a support: one card - where it comes in, and its sponge (first in its turn) when that is on
+      if(bi > 0){
+        const sp = (document.getElementById("sd" + b.att.slice(1) + "Sponge") || {}).checked;
+        cells.push(`<div class="mq-pc sw att-in${sp ? " has-sp" : ""}" data-blk="${bi}" title="${esc(att)} comes in here${sp ? " and sponges first" : ""} - hold and drag to change where">${sp ? SPONGE_SVG : ""}<img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">in</div>`);
+      }
       b.items.forEach((x, i) => {
         const at = `data-b="${bi}" data-i="${i}"`;
+        if(x === "s" && bi > 0) return;   // (on its card above)
         if(x === "s"){
           const on = (document.getElementById(b.att === "m" ? "ctMainAbsorb" : "sd" + b.att.slice(1) + "Sponge") || {}).checked;
           // off: kept as an invisible place, so moving the others around it keeps where it was
@@ -11477,26 +11632,31 @@ updateCTMode();
         cells.push(`<div class="mq-pc ct" ${at} title="${esc(nm)}"><img src="${esc(sprite(nm.replace(/ #\d+$/, "")))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${ordinal(n)}</b></div>`);
       });
     });
-    // Dodges before bailing: only once someone can dodge - inside the first attacker row that can
+    // Max Dodges: only once someone can dodge - inside the first attacker row that can
     let dodgeShown = 0;
     const dodgeLine = () => { const dl = document.getElementById("ctDodgeLimit"), o = dl && dl.selectedOptions[0];
-      return `<div class="mq-att-dodge"><span>Dodges before bailing</span><span class="mq-step"><button type="button" data-dodge-step="-1" aria-label="Fewer">&minus;</button><b>${o ? esc(o.text) : ""}</b><button type="button" data-dodge-step="1" aria-label="More">+</button></span></div>`; };
+      return `<div class="mq-att-dodge"><span>Max Dodges</span><span class="mq-step"><button type="button" data-dodge-step="-1" aria-label="Fewer">&minus;</button><b>${o ? esc(o.text) : ""}</b><button type="button" data-dodge-step="1" aria-label="More">+</button></span></div>`; };
     // the attackers, in hot swap order: whether each may dodge or sponge the boss's charge moves
     const atts = blocks.map((b, bi) => {
       const att = teamAttName(b.att), role = b.att === "m" ? "Main DPS" : "Support " + b.att.slice(1);
       const dodge = (teamAttInput(b.att, "dodge") || {}).checked, sponge = (teamAttInput(b.att, "sponge") || {}).checked;
-      return `<div class="mq-att" data-blk="${bi}"><img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">
+      return `<div class="mq-att" data-blk="${bi}" data-att="${b.att}"><img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">
         <span class="mq-att-n"><b>${esc(att)}</b><small>${bi + 1}. ${role}</small></span>
         <label class="mq-att-t"><input type="checkbox" data-att-dodge="${b.att}" ${dodge ? "checked" : ""}><i></i>Dodge</label>
         <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label>${dodge && !dodgeShown++ ? dodgeLine() : ""}</div>`;
     }).join("");
     box.innerHTML = `<div class="mq-plan-row">${cells.join("") || '<div class="mq-none">No catch tanks - hot swaps and sponges only.</div>'}</div>
-      <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; after an attacker's \u201cin\u201d card it catches for that attacker" : ""}.</div>
+      <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; a support's card is where it comes in (and sponges first), and catch tanks after it catch for it" : ""}.</div>
       <div class="mq-atts">${atts}</div>${blocks.length > 1 ? '<div class="mq-plan-note">Tap and hold an attacker to change the hot swap order.</div>' : ""}`;
     if(!renderPlanPreview.wired){ renderPlanPreview.wired = true; wirePlanRow(); }
+    document.querySelectorAll("[data-main-toggle]").forEach(i => { const el = teamAttInput("m", i.dataset.mainToggle); if(el && i.checked !== el.checked) i.checked = el.checked; });
+    const om = document.getElementById("ctOneMore"), ai = document.getElementById("ctAllIn"), jc = document.getElementById("ctJuice");
+    if(om && ai && jc){ const on = ai.checked || jc.checked; if(om.checked !== on) om.checked = on; if(on && !(ai.checked && jc.checked)){ ai.checked = jc.checked = true; } if(om._mqPaint) om._mqPaint(); }
+    const dlw = document.getElementById("ctDodgeLimitWrap"), dls = document.getElementById("ctDodgeLimit");
+    if(dlw && dls && dlw.classList.contains("is-off") !== dls.disabled) dlw.classList.toggle("is-off", dls.disabled);
     const pop = document.querySelector(".mq-ohi .info-pop");
     if(pop){ const hint = ((document.getElementById("ctAssignHint") || {}).textContent || "").trim();
-      const t = `Who takes each ${cm}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; after an attacker's \u201cin\u201d card it catches for that attacker" : ""}.`
+      const t = `Who takes each ${cm}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; a support's card is where it comes in (and sponges first), and catch tanks after it catch for it" : ""}.`
         + (blocks.length > 1 ? " Tap and hold an attacker to change the hot swap order." : "") + (hint ? " " + hint : "");
       if(pop.textContent !== t) pop.textContent = t; }
   }
@@ -11511,21 +11671,35 @@ updateCTMode();
   function wirePlanRow(){
     const host = () => document.querySelector("#mqPlan .mq-plan-row");
     // the row's new order -> the plan: each ⇄ starts the next attacker's catch tanks; a sponge stays its own attacker's
-    holdToSort(host, { anyWidth: true, drag: ".mq-pc.ct, .mq-pc.sp:not(.is-off)", places: ".mq-pc", scroller: host, get axis(){ return MQ.matches ? "x" : "grid"; }, drop: cells => {
-      const old = teamPlan(), blocks = old.map(b => ({ att: b.att, items: [] })), sponges = [];
+    holdToSort(host, { anyWidth: true, drag: ".mq-pc.ct, .mq-pc.sp:not(.is-off), .mq-pc.sw", places: ".mq-pc", scroller: host, get axis(){ return MQ.matches ? "x" : "grid"; }, drop: cells => {
+      const old = teamPlan(), order = [0], items = { 0: [] };
       let k = 0;
       cells.forEach(c => {
-        if(c.classList.contains("sw")){ k = Math.min(k + 1, blocks.length - 1); return; }
-        const x = old[+c.dataset.b] && old[+c.dataset.b].items[+c.dataset.i]; if(x === undefined) return;
-        if(x === "s" && +c.dataset.b !== k) sponges.push([+c.dataset.b, x]); else blocks[k].items.push(x);
+        if(c.classList.contains("sw")){ k = +c.dataset.blk; if(!order.includes(k)) order.push(k); items[k] = items[k] || []; return; }
+        const b = +c.dataset.b, x = old[b] && old[b].items[+c.dataset.i]; if(x === undefined) return;
+        if(x === "s"){ (items[b] = items[b] || []).push(x); return; }   // the main DPS's sponge stays the main DPS's
+        (items[k] = items[k] || []).push(x);
       });
-      sponges.forEach(([bi, x]) => blocks[bi].items.push(x));
-      teamPlanSet(blocks);
+      old.forEach((b, bi) => { if(!order.includes(bi)) order.push(bi); });
+      teamPlanSet(order.map(bi => ({ att: old[bi].att,
+        items: (bi > 0 && old[bi].items.includes("s") ? ["s"] : []).concat((items[bi] || []).filter(x => x !== "s" || bi === 0)) })));
     }});
     // the attackers' rows: hot swap order
     holdToSort(() => document.querySelector("#mqPlan .mq-atts"), { anyWidth: true, drag: ".mq-att", places: ".mq-att", get axis(){ return MQ.matches ? "y" : "grid"; }, drop: rows => {
       const old = teamPlan(); teamPlanSet(rows.map(r => old[+r.dataset.blk]).filter(Boolean));
     }});
+    // One more CM: sets both of the settings it replaced
+    document.addEventListener("change", e => {
+      if(!e.target || e.target.id !== "ctOneMore") return;
+      ["ctAllIn", "ctJuice"].forEach(id => { const x = document.getElementById(id); if(x && x.checked !== e.target.checked){ x.checked = e.target.checked; x.dispatchEvent(new Event("change", { bubbles: true })); } });
+    });
+    // the Main behavior row's Dodge / Sponge (desktop): the main DPS's own switches
+    document.addEventListener("change", e => {
+      const w = e.target && e.target.dataset && e.target.dataset.mainToggle; if(!w) return;
+      const el = teamAttInput("m", w); if(el){ el.checked = e.target.checked; el.dispatchEvent(new Event("change", { bubbles: true })); }
+      if(w === "dodge" && typeof updateDodgeLimit === "function") updateDodgeLimit();
+      renderTeamOrder();
+    });
     // their switches: the same settings the list's Can dodge / sponges on set
     document.addEventListener("change", e => {
       const t = e.target, d = t.dataset || {};
