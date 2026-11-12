@@ -1,0 +1,12 @@
+{
+  "_howto": "Suggested counters for a boss's collection page. Key each boss by its page name (collections/<slug>.html, e.g. mega-gardevoir). 'counters' are attackers, 'catchTanks' catch tanks; each needs a name, and can have fm (fast move), cm (charge move - two as \"A, B\") and a note shown on hover. They fill in when the archive has fewer than 6 attackers or 4 catch tanks; add \"always\": true to show them even when it has more. Pokemon and move names as on the site, e.g. \"Shadow Mewtwo\", \"Psycho Cut\".",
+  "_example": {
+    "mega-gardevoir": {
+      "counters": [
+        { "name": "Mega Rayquaza", "fm": "Dragon Tail", "cm": "Dragon Ascent", "note": "Example entry - copy into bosses" }
+      ],
+      "catchTanks": []
+    }
+  },
+  "bosses": {}
+}
