@@ -1,11 +1,22 @@
 {
-  "_howto": "Suggested counters for a boss's collection page. Key each boss by its page name (collections/<slug>.html, e.g. mega-gardevoir). 'counters' are attackers, 'catchTanks' catch tanks; each needs a name, and can have fm (fast move), cm (charge move - two as \"A, B\") and a note shown on hover. They fill in when the archive has fewer than 6 attackers or 4 catch tanks; add \"always\": true to show them even when it has more. Pokemon and move names as on the site, e.g. \"Shadow Mewtwo\", \"Psycho Cut\".",
+  "_howto": "Settings for a boss's Top counters. Key each boss by its page name (collections/<slug>.html, e.g. mega-gardevoir). 'counters' are suggested attackers and 'catchTanks' suggested catch tanks; each needs a name, and can have role (main / support / exec, attackers only), fm, cm (two charge moves as \"A, B\"), weather (a weather it needs, e.g. \"Cloudy\") and a note. They fill in when the archive has fewer than 6 attackers or 4 catch tanks; add \"always\": true to show them anyway. 'order' sets the order of a role's row: {\"main\": [...], \"support\": [...], \"exec\": [...], \"ct\": [...]} - the Pokemon you list come first, as written, and the rest follow (Main DPS by their lowest star rating, the other roles by runs). Names as on the site, e.g. \"Shadow Mewtwo\", \"Psycho Cut\".",
   "_example": {
     "mega-gardevoir": {
       "counters": [
-        { "name": "Mega Rayquaza", "fm": "Dragon Tail", "cm": "Dragon Ascent", "note": "Example entry - copy into bosses" }
+        {
+          "name": "Mega Rayquaza",
+          "fm": "Dragon Tail",
+          "cm": "Dragon Ascent",
+          "note": "Example entry - copy into bosses",
+          "weather": "Windy"
+        }
       ],
-      "catchTanks": []
+      "catchTanks": [],
+      "order": {
+        "main": [
+          "Mega Rayquaza"
+        ]
+      }
     }
   },
   "bosses": {}
