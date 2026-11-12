@@ -1609,6 +1609,11 @@ if ("serviceWorker" in navigator) {
   .team-r2-body .team-g3 .cm-how svg{ width:12px; height:12px; }
   .team-r2-boss{ height:28px; display:flex; align-items:center; padding-right:10px; border-right:1px solid var(--border); font-weight:700; color:var(--text); }
   .team-r2-boss .team-head-total{ display:inline-flex; align-items:center; gap:4px; margin:0; padding:0; border:0; }
+  .team-r2-boss-alt{ display:none !important; }
+  @media (min-width:900px) and (max-width:1099px){   /* narrow three-column desktop: the grid gets the column's full width */
+    .team-r2-body{ grid-template-columns:minmax(0, 1fr); } .team-r2-body .team-r2-boss{ display:none; }
+    .team-r2-boss-alt{ display:inline-flex !important; }
+  }
 </style>
 <style>
   /* Desktop Battle Simulator: the priority order as the phone's row - catch tank and sponge cards in
@@ -1942,7 +1947,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · boss totals left</p>
+      <p class="beta-build">Build 2026-11-11 · long results tested</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -5147,6 +5152,27 @@ const TEAM_FOLD_KEY = "teamSimFoldedSections";
 function teamFolded(){
   try{ return new Set(JSON.parse(localStorage.getItem(TEAM_FOLD_KEY) || "[]")); }catch(e){ return new Set(); }
 }
+// Going-all-in tags above the timeline: tags that would overlap (two close together, or a narrow
+// screen) stack on a second level, and the strip grows to hold them. Run after the results draw and
+// on resize.
+function stackAllInTags(){
+  document.querySelectorAll(".tl-allin").forEach(strip => {
+    const tags = [...strip.querySelectorAll(".tl-allin-m")]; if(!tags.length) return;
+    tags.forEach(t => { t.style.bottom = ""; });
+    const levels = [];
+    tags.map(t => ({ t, r: t.getBoundingClientRect() })).sort((a, b) => a.r.left - b.r.left).forEach(({ t, r }) => {
+      let lv = levels.findIndex(right => r.left >= right + 4);
+      if(lv < 0){ lv = levels.length; levels.push(0); }
+      levels[lv] = r.right; t.style.bottom = (5 + lv * 24) + "px";
+    });
+    const h = (26 + (levels.length - 1) * 24) + "px"; if(strip.style.height !== h) strip.style.height = h;
+  });
+}
+(function(){
+  const wrap = document.getElementById("resultsWrap");
+  if(wrap) new MutationObserver(() => { if(wrap.querySelector(".tl-allin")) requestAnimationFrame(stackAllInTags); }).observe(wrap, { childList: true, subtree: false });
+  window.addEventListener("resize", () => requestAnimationFrame(stackAllInTags));
+})();
 function teamGroupHead(key, title){
   const folded = teamFolded().has(key);
   return `<tbody class="team-grp${folded ? " is-folded" : ""}" data-grp="${key}">
@@ -5360,10 +5386,14 @@ function renderTeamSim(P, S, R){
   // attacker) on the first line - no zero counts; going all in and too-late swaps on a line of
   // their own beneath, so a long tail doesn't squeeze the rest
   const attPairs = pred => (multi ? ATT : [P.main]).map((A, k) => [multi ? attIco(k) : teamIcon(P, 0), decs.filter(d => pred(d.outcome) && (multi ? (d.att || 0) === k : true)).length]);
-  const cmHowItems = P.tanks.map((tp, i) => [typeIcos[i], "caught", caughtByType[i]])
-    .concat(attPairs(o => o === "main").map(([ico, c]) => [ico, "sponged", c]))
-    .concat(P.mainDodges || (P.attackers || []).some(A => A.dodges) ? attPairs(o => o === "main-dodge" || o === "all-in-dodge").map(([ico, c]) => [ico, "dodged", c]) : [])
-    .filter(([, , c]) => c > 0).map(([ico, how, c]) => `<span class="team-sub-item">${ico} ${teamHow(how, c)}</span>`).join(" &middot; ");
+  // (one item per Pokemon - an attacker that sponged and dodged shows both counts together - so a party
+  // of six still fits two rows of three)
+  const anyDodges = P.mainDodges || (P.attackers || []).some(A => A.dodges);
+  const sponged = attPairs(o => o === "main"), dodgedBy = anyDodges ? attPairs(o => o === "main-dodge" || o === "all-in-dodge") : [];
+  const cmHowItems = P.tanks.map((tp, i) => caughtByType[i] > 0 ? `<span class="team-sub-item">${typeIcos[i]} ${teamHow("caught", caughtByType[i])}</span>` : "")
+    .concat(sponged.map(([ico, c], k) => { const dg = dodgedBy[k] ? dodgedBy[k][1] : 0; if(!c && !dg) return "";
+      return `<span class="team-sub-item">${ico} ${c ? teamHow("sponged", c) : ""}${c && dg ? " " : ""}${dg ? teamHow("dodged", dg) : ""}</span>`; }))
+    .filter(Boolean).join(" &middot; ");
   // the icons' key, in the "i" beside the row's label - only the ways this run's charge moves were handled
   const howMeaning = { caught: "a catch tank took it", sponged: "the attacker took it, for its energy", dodged: "the attacker dodged it" };
   const cmLegend = ["caught", "sponged", "dodged"].filter(h => cmHowItems.includes(`title="${h}"`))
@@ -5378,7 +5408,7 @@ function renderTeamSim(P, S, R){
   // row - so six Pokemon fill two rows and the column stays narrow
   const g3 = items => `<div class="team-g3">${String(items || "").split(" &middot; ").join("")}</div>`;
   const row2 = (label, totalHtml, items, cls) => `<tr class="team-2row${cls ? " " + cls : ""}"><td colspan="2"><div class="team-r2-head"><span class="lbl">${label}</span>${totalHtml ? `<span class="tot">${totalHtml}</span>` : ""}</div>${items ? g3(items) : ""}</td></tr>`;
-  const row2boss = (label, bossHtml, items) => `<tr class="team-2row"><td colspan="2"><div class="team-r2-head"><span class="lbl">${label}</span></div><div class="team-r2-body"><span class="team-r2-boss">${bossHtml}</span>${g3(items)}</div></td></tr>`;
+  const row2boss = (label, bossHtml, items) => `<tr class="team-2row"><td colspan="2"><div class="team-r2-head"><span class="lbl">${label}</span><span class="tot team-r2-boss-alt">${bossHtml}</span></div><div class="team-r2-body"><span class="team-r2-boss">${bossHtml}</span>${g3(items)}</div></td></tr>`;
   // Boss Rotation rows open with the boss's icon and its total, spaced off from who took them
   const bossTotal = n => `<span class="team-head-total">${teamIcon(P, "boss")}<b class="team-total">${n}</b></span>`;
   // the boss's fast moves that landed within the results, and how many each Pokemon tanked
