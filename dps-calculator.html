@@ -2071,7 +2071,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · click and drag</p>
+      <p class="beta-build">Build 2026-11-12 · all in final move</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -2093,11 +2093,11 @@ if ("serviceWorker" in navigator) {
       <ul>
         <li>An attacker hot swaps to the next one when it can't safely take the boss's next charge move (no catch tank left, and a sponge or dodge isn't safe), or when it can't live to land its next charge move. It fires the charge move it is building first if that lands in time - or stays in, takes the hit, and lands it, when it can survive to. The next attacker comes in with full HP and no energy; attackers never come back.</li>
         <li><b>Doubling back</b>: when an incoming charge move would make the attacker in overflow and a support DPS could absorb it fully, the simulator plays the fight forward both ways and swaps to the support if that deals more damage. The support is used until it is done, then the attacker comes back - with the HP and energy it left with - ahead of any new one.</li>
-        <li><b>One more CM</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
+        <li><b>All in final move</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
       </ul>
       <p class="beta-h">The end of the run</p>
       <ul>
-        <li>The run ends when the last attacker can't continue. With <b>One more CM</b> it stays in on the energy it holds - dodging or taking the hit - and the run ends when that charge move lands, but only if that raises the result (the calculator runs it both ways and keeps the better). Otherwise it bails, and results stop at its last charge move.</li>
+        <li>The run ends when the last attacker can't continue. With <b>All in final move</b> it stays in on the energy it holds - dodging or taking the hit - and the run ends when that charge move lands, but only if that raises the result (the calculator runs it both ways and keeps the better). Otherwise it bails, and results stop at its last charge move.</li>
       </ul>
       <p class="beta-h">Rejoins and results</p>
       <ul>
@@ -2351,7 +2351,7 @@ if ("serviceWorker" in navigator) {
           <option value="0" title="No limit">∞</option>
         </select>
       </label>
-      <label class="check-item" id="ctOneMoreWrap" title="Before leaving the fight - a hot swap, or bailing when nobody is left to swap to - the attacker goes for one more charge move: before a hot swap only when it will live to land it, as the last attacker only when that raises the result (the calculator runs it both ways). It never makes a run worse."><input type="checkbox" id="ctOneMore" checked> One more CM</label>
+      <label class="check-item" id="ctOneMoreWrap" title="Before leaving the fight - a hot swap, or bailing when nobody is left to swap to - the attacker goes for one more charge move: before a hot swap only when it will live to land it, as the last attacker only when that raises the result (the calculator runs it both ways). It never makes a run worse."><input type="checkbox" id="ctOneMore" checked> All in final move</label>
       <label class="check-item" hidden style="display:none !important" title="When no catch tank is left and the main DPS can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final CM</label>
       <label class="check-item" hidden style="display:none !important" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
       <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
@@ -4812,7 +4812,7 @@ function runTeamSim(c){
     // a new random stream for every run (window.__teamSeed, if set, repeats one - for testing)
     seed: Number.isInteger(window.__teamSeed) ? window.__teamSeed : crypto.getRandomValues(new Uint32Array(1))[0],
     tanks, monMeta, mainRank, assign: document.getElementById("ctAssign").value === "strict" ? "strict" : "soft",
-    // One more CM (the old Juice main DPS + All in final charge move, as one setting): before leaving
+    // All in final move (the old Juice main DPS + All in final charge move, as one setting): before leaving
     // the fight the attacker goes for one more charge move - juicing when a hot swap is waiting (only
     // when it will live to land it), going all in when nobody is left (only when that raises the result,
     // below). Either old setting on - in a saved setup or link - turns it on.
@@ -4897,7 +4897,7 @@ function runTeamSim(c){
     //     raises the DPS, until a full pass changes nothing (at most 3 passes).
     // So the result is never below any single timing, "early" and "late" included.
     const K = Math.max(0, P.bossCM.ad - TEAM_SWAP_TICKS);
-    // (with One more CM, each candidate is run with and without going all in at the end - all in only
+    // (with All in final move, each candidate is run with and without going all in at the end - all in only
     // decides how the run ends - and the better kept, so going all in never lowers the result)
     const tryRun = offsets => {
       const sim = o => { const r = simulateTeam(o); return { S: r.S, R: r.R, dps: teamRunDps(r.S, r.R), offsets }; };
@@ -10780,7 +10780,7 @@ updateCTMode();
         box.addEventListener("change", paint); box._mqPaint = paint; paint();
         box.closest("label").classList.add("mq-hide"); return b; };
       const oneMore = document.getElementById("ctOneMore");
-      if(oneMore) chips.appendChild(mk(oneMore, "One more CM")); else { chips.appendChild(mk(allIn, "All in final CM")); chips.appendChild(mk(juice, "Juice main DPS")); }
+      if(oneMore) chips.appendChild(mk(oneMore, "All in final move")); else { chips.appendChild(mk(allIn, "All in final CM")); chips.appendChild(mk(juice, "Juice main DPS")); }
       const row = allIn.closest(".team-behavior-row"); row.insertBefore(chips, row.firstChild);
       const head = row.closest(".tb-group").querySelector(".tb-group-head");
       if(head){ head.dataset.mqFull = head.textContent; const sync = () => { const t = MQ.matches ? "Settings" : head.dataset.mqFull; if(head.textContent !== t) head.textContent = t; };
@@ -11698,7 +11698,7 @@ updateCTMode();
     holdToSort(() => document.querySelector("#mqPlan .mq-atts"), { anyWidth: true, drag: ".mq-att", places: ".mq-att", get axis(){ return MQ.matches ? "y" : "grid"; }, drop: rows => {
       const old = teamPlan(); teamPlanSet(rows.map(r => old[+r.dataset.blk]).filter(Boolean));
     }});
-    // One more CM: sets both of the settings it replaced
+    // All in final move: sets both of the settings it replaced
     document.addEventListener("change", e => {
       if(!e.target || e.target.id !== "ctOneMore") return;
       ["ctAllIn", "ctJuice"].forEach(id => { const x = document.getElementById(id); if(x && x.checked !== e.target.checked){ x.checked = e.target.checked; x.dispatchEvent(new Event("change", { bubbles: true })); } });
