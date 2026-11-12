@@ -1446,7 +1446,14 @@ if ("serviceWorker" in navigator) {
   @media (max-width:560px){ .mini-strip .strip-name{ display:none; } .mini-strip .mini-preview-stats{ flex-basis:auto; margin-left:0; gap:14px; } }   /* phones: icon and stats only */
   @media (max-width:360px){ .mini-strip .mini-preview-stats{ gap:8px; font-size:11px; } }
   .main-hp-row small{ font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim); margin-left:4px; }
-  .mq-lvwrap{ display:contents; }   /* desktop: no wrapper as far as layout goes (phones: a box around the Level input and its - / +) */
+  /* Level: - and + around the box at every width (half a level a step; typing and the arrow keys still work) */
+  .mq-lvwrap{ display:block; position:relative; }
+  .mq-lvbtn{ display:flex !important; position:absolute; top:0; bottom:0; width:28px; border:0; background:transparent; color:var(--accent, #ff8a3d);
+    font:800 17px/1 'Manrope',sans-serif; align-items:center; justify-content:center; cursor:pointer; z-index:1; padding:0; }
+  .mq-lvbtn.dn{ left:2px; } .mq-lvbtn.up{ right:2px; }
+  .mq-lvbtn:hover{ filter:brightness(1.2); }
+  .mq-lvfield input{ padding-left:28px !important; padding-right:28px !important; text-align:center; }
+  @media (min-width:561px){ .name-iv-row > .mq-lvfield{ flex:0 0 112px !important; width:112px !important; min-width:112px; } .mq-lvfield input{ width:100% !important; } }
   /* Custom Modifiers on a phone: the effectiveness boxes two to a row; your Pokemon's Stab CM / Stab FM
      only as wide as their words; Event boost's slider keeps the full width */
   @media (max-width:560px){
@@ -1615,6 +1622,64 @@ if ("serviceWorker" in navigator) {
     .team-r2-boss-alt{ display:inline-flex !important; }
   }
 </style>
+<style>
+  /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
+     battle party, to set its level, IVs and moves there (copied from the phone stylesheet) */
+  .pp-head{display:flex; align-items:center; gap:12px; margin:2px 0 10px;}
+  .pp-head > img{width:64px; height:64px; object-fit:contain; background:color-mix(in srgb, var(--text) 6%, transparent); border-radius:16px; padding:4px; flex:none;}
+  .pp-name{font:800 19px 'Manrope',sans-serif; color:var(--text); line-height:1.15;}
+  .pp-role{display:inline-flex; align-items:center; gap:6px; margin-top:4px; font:800 11px 'Manrope',sans-serif; color:var(--text-dim);}
+  .pp-role b{background:var(--accent, #ff8a3d); color:#1a1312; border-radius:7px; padding:2px 7px; font-size:10.5px;}
+  .pp-done{margin-left:auto; align-self:flex-start; background:transparent; border:0; color:var(--accent, #ff8a3d); font:800 14px 'Manrope',sans-serif;}
+  .pp-stats{display:flex; gap:16px; padding:8px 12px; border-radius:12px; background:#161a28; border:1.5px solid var(--border); font:700 11.5px ui-monospace,Menlo,monospace; color:var(--text-dim); margin-bottom:12px;}
+  .pp-stats b{color:var(--text); font-size:12.5px;}
+  .pp-sec{border:1.5px solid var(--border); border-radius:14px; padding:10px 12px 12px; margin-bottom:10px;}
+  .pp-sec-h{display:flex; justify-content:space-between; align-items:baseline; font:800 10.5px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); margin-bottom:8px;}
+  .pp-sec-h em{font-style:normal; text-transform:none; letter-spacing:0; color:var(--accent, #ff8a3d); font-size:11px;}
+  .pp-lviv{display:flex; gap:10px; align-items:flex-end;}
+  .pp-ivw{flex:1; min-width:0;}
+  .pp-lab{font:800 10px 'Manrope',sans-serif; color:var(--text-dim); margin-bottom:4px;}
+  .pp-step{display:flex; align-items:center; border:2px solid var(--border); border-radius:10px; background:var(--card);}
+  .pp-step button{width:30px; border:0; background:transparent; color:var(--accent, #ff8a3d); font:800 18px 'Manrope',sans-serif; padding:6px 0;}
+  .pp-step input, .pp-ivs input{border:0 !important; background:transparent !important; text-align:center; font:800 14px 'Manrope',sans-serif; color:var(--text); padding:8px 0 !important; min-width:0; box-shadow:none !important;}
+  .pp-step input{width:44px;}
+  .pp-ivs{display:grid; grid-template-columns:repeat(3, 1fr); border:2px solid var(--border); border-radius:10px; overflow:hidden; background:var(--card);}
+  .pp-ivs input{width:100%; border-left:1px solid var(--border) !important;}
+  .pp-ivs input:first-child{border-left:0 !important;}
+  .pp-move{display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:9px 12px; border-radius:11px; background:#161a28; border:2px solid var(--border); margin-bottom:6px; color:inherit;}
+  .pp-move .n{flex:1; min-width:0; font:800 13.5px 'Manrope',sans-serif; color:var(--text);}
+  .pp-ic{display:flex !important; gap:10px; align-items:center; margin-top:3px; font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim);}
+  .pp-ic span{display:inline-flex; align-items:center; gap:3px;}
+  .pp-ic svg{width:12px; height:12px;}
+  .pp-move .d{font:800 13px ui-monospace,Menlo,monospace; color:#ff6b6b; white-space:nowrap;}
+  .pp-move .c{color:var(--accent, #ff8a3d); font-size:13px;}
+  .pp-seg{display:flex; gap:3px; background:var(--bg1, #1e1918); border:1.5px solid var(--border); border-radius:12px; padding:3px;}
+  .pp-seg button{flex:1; border:0; background:transparent; padding:8px 0; border-radius:9px; font:800 12px 'Manrope',sans-serif; color:var(--text);}
+  .pp-seg button.on{background:var(--accent, #ff8a3d); color:#1a1312;}
+  .pp-seg button:disabled:not(.on){opacity:.35;}
+  .pp-note{font:700 11px 'Manrope',sans-serif; color:var(--text-dim); margin-top:6px;}
+  .pp-btn{display:flex; align-items:center; justify-content:center; width:100%; padding:13px; border-radius:13px; font:800 14px 'Manrope',sans-serif; margin-top:10px; background:transparent;}
+  .pp-btn.main{border:2px solid var(--accent, #ff8a3d); color:var(--accent, #ff8a3d);}
+  .pp-btn.danger{border:1.5px solid color-mix(in srgb, #ff6b6b 55%, var(--border)); color:#ff6b6b;}
+  .pp-back{display:flex; align-items:center; gap:10px; width:100%; text-align:left; background:transparent; border:0; border-bottom:1px solid var(--border); padding:4px 0 10px; margin-bottom:8px; color:inherit;}
+  .pp-back .a{color:var(--accent, #ff8a3d); font:800 18px 'Manrope',sans-serif;}
+  .pp-back img{width:34px; height:34px; object-fit:contain;}
+  .pp-back b{display:block; font:800 13px 'Manrope',sans-serif; color:var(--text);}
+  .pp-back small{display:block; color:var(--text-dim); font:700 10.5px 'Manrope',sans-serif;}
+  .pp-slot:empty{display:none;}
+  .pp-dps .att-dps{border:0; padding:0;}
+  .pp-dps .att-dps-figs b{font-size:18px;}
+  .pp-dps .support-qty-row, .pp-ct .team-type-row{display:flex !important; gap:10px; align-items:flex-end; margin:8px 0 0 !important;}
+  .pp-dps .support-qty-row .field, .pp-ct .team-type-row .field{margin:0 !important;}
+  .pp-ct [id$="Outcomes"] > *{margin-top:0 !important;}
+  .pp-ct [id$="Outcomes"] > div{border:0 !important; padding:0 !important; background:transparent !important;}
+  .pp-ct .pp-sec-h{margin-bottom:4px;}
+  .pp-ct .dc-row{margin-top:8px !important; flex-wrap:nowrap;}
+  .pp-ct .team-type-row{align-items:stretch !important;}
+  .pp-ct .team-type-row > .field{display:flex; flex-direction:column; justify-content:flex-end;}
+  .pp-ct .team-type-row > .field > label{margin:0 0 5px !important; min-height:13px; line-height:13px; white-space:nowrap;}
+</style>
+
 <style>
   /* Desktop Battle Simulator: the priority order as the phone's row - catch tank and sponge cards in
      one row (a support's own "in" card where it takes over), then the attackers with Dodge / Sponge -
@@ -1947,7 +2012,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · long results tested</p>
+      <p class="beta-build">Build 2026-11-11 · desktop level steppers</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -10497,16 +10562,17 @@ updateCTMode();
     if(inp._mq || !/Level$/.test(inp.id)) return; inp._mq = true;
     // phones: - and + around the Level box itself (it still takes anything typed); half a level a
     // step (levels go in halves), within 1-55
-    if(inp.hasAttribute("list")){ inp.dataset.mqList = inp.getAttribute("list"); if(MQ.matches) inp.removeAttribute("list"); }
+    if(inp.hasAttribute("list")){ inp.dataset.mqList = inp.getAttribute("list"); inp.removeAttribute("list"); }   // the stepper replaces the dropdown (any width)
     const field = inp.closest(".field"); if(!field) return;
     field.classList.add("mq-lvfield");
-    const mk = (txt, d, label) => { const btn = el("button", "mq-lvbtn " + (d < 0 ? "dn" : "up"), "flex"); btn.type = "button"; btn.textContent = txt; btn.setAttribute("aria-label", label);
+    const mk = (txt, d, label) => { const btn = el("button", "mq-lvbtn " + (d < 0 ? "dn" : "up"), "flex"); btn.classList.remove("mq-only");   /* every width */ btn.type = "button"; btn.textContent = txt; btn.setAttribute("aria-label", label);
       btn.addEventListener("click", () => { const v = parseFloat(inp.value); const nv = Math.max(1, Math.min(55, (isFinite(v) ? v : 50) + d)); inp.value = String(nv); fire(inp, "input", "change"); });
       return btn; };
     // the box and its two buttons share a wrapper the height of the box, so the signs centre on it
     // (no effect on desktop: the wrapper is display:contents there); a copied card brings one along
     let wrap = inp.parentElement.classList.contains("mq-lvwrap") ? inp.parentElement : null;
     if(!wrap){ wrap = document.createElement("span"); wrap.className = "mq-lvwrap"; inp.insertAdjacentElement("beforebegin", wrap); wrap.appendChild(inp); }
+    wrap.querySelectorAll(".mq-lvbtn").forEach(x => x.remove());   // a copied card's buttons (without their handlers)
     wrap.insertBefore(mk("\u2212", -0.5, "Half a level lower"), inp);
     wrap.appendChild(mk("+", 0.5, "Half a level higher"));
   }
@@ -10666,7 +10732,7 @@ updateCTMode();
       const b = e.target.closest("[data-role]"); if(!b || b.disabled) return;
       closeDtPop();
       if(b.dataset.role === "main") monSheet({ title: "Main DPS", role: "main", sub: () => "Its card appears below",
-        onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => showCard("m.1"), 120); } });
+        onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => openProfile("m.1"), 60); } });
       else openPicker(null, b.dataset.role, +btn.dataset.slot);
     });
   }
@@ -11052,7 +11118,7 @@ updateCTMode();
         if(!tok){   // a new one: its profile, to fill in the rest (the newest copy of it in that role)
           const want = r === "main" ? "m" : r === "ct" ? "t" : "s";
           const nt = r === "main" ? "m.1" : teamParty().filter(t => t[0] === want && teamPartyLabel(t).replace(/ #\d+$/, "") === name).pop();
-          if(nt) setTimeout(() => MQ.matches ? openProfile(nt) : showCard(nt), 60);
+          if(nt) setTimeout(() => openProfile(nt), 60);   // its level, IVs and moves, right there (the page stays put)
         }
       },
       onAct: act => { if(act === "remove") editSetup(S => removeFrom(S, tok)); if(act === "edit") scrollToCard(cardFor(tok)); },
@@ -11291,6 +11357,7 @@ updateCTMode();
   function placeMainDps(){
     const box = document.getElementById("playerDpsBox"), bm = document.getElementById("bossMovePreview"), pm = document.getElementById("playerMovePreview");
     if(!box || !bm || !pm) return;
+    if(box.closest(".pp")) return;   // lent to an open profile: it comes back when the profile closes
     const right = document.getElementById("mainRightCol");
     if(MQ.matches){
       const after = pm.nextElementSibling && pm.nextElementSibling.classList.contains("mq-movebox") ? pm.nextElementSibling : pm;
