@@ -1669,6 +1669,11 @@ if ("serviceWorker" in navigator) {
   #eventBoostSec{ grid-column:1 / -1; }
   .custom-type-body:has(#eventBoostSec){ grid-template-columns:1fr; }
   .mod-sum-val{ color:var(--accent, #ff8a3d); font-weight:800; margin-left:6px; text-transform:none; letter-spacing:0; }
+  /* with a mouse: the things you can move show it, and dragging them doesn't select text */
+  @media (hover:hover) and (pointer:fine){
+    #mqPlan .mq-pc.ct, #mqPlan .mq-pc.sp, #mqPlan .mq-pc.sw, #mqPlan .mq-att, #dtSlots .dt-slot:not(.empty){ cursor:grab; user-select:none; -webkit-user-select:none; }
+    .mq-sorting, .mq-sorting *{ cursor:grabbing !important; }
+  }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2066,7 +2071,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · event boost only</p>
+      <p class="beta-build">Build 2026-11-12 · click and drag</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -11567,12 +11572,17 @@ updateCTMode();
     document.addEventListener("pointerdown", e => {
       const h = host(); if(!h || (!MQ.matches && !o.anyWidth)) return;
       const it = e.target.closest(o.drag); if(!it || !h.contains(it)) return;
-      clear(); st = { it, x0: e.clientX, y0: e.clientY, lifted: false, moved: false };
+      clear(); st = { it, x0: e.clientX, y0: e.clientY, lifted: false, moved: false, mouse: e.pointerType === "mouse" };
+      if(st.mouse){ if(e.button !== 0){ st = null; return; } return; }   // a mouse: lifted by dragging it (below), not by holding
       st.timer = setTimeout(() => { if(!st) return; st.lifted = true; it.classList.add("mq-lift"); host().classList.add("mq-sorting"); try{ navigator.vibrate && navigator.vibrate(12); }catch(_){} }, 350);
     });
     window.addEventListener("pointermove", e => {
       if(!st) return;
-      if(!st.lifted){ if(Math.hypot(e.clientX - st.x0, e.clientY - st.y0) > 8){ clearTimeout(st.timer); st = null; } return; }
+      if(!st.lifted){
+        const d = Math.hypot(e.clientX - st.x0, e.clientY - st.y0);
+        if(st.mouse){ if(d < 4) return; st.lifted = true; st.it.classList.add("mq-lift"); host().classList.add("mq-sorting"); }   // click and drag: it moves at once
+        else { if(d > 8){ clearTimeout(st.timer); st = null; } return; }
+      }
       st.moved = true;
       const pos = o.axis === "y" ? e.clientY : e.clientX;
       const others = items().filter(x => x !== st.it && x.offsetParent !== null);
@@ -11646,8 +11656,8 @@ updateCTMode();
         <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label>${dodge && !dodgeShown++ ? dodgeLine() : ""}</div>`;
     }).join("");
     box.innerHTML = `<div class="mq-plan-row">${cells.join("") || '<div class="mq-none">No catch tanks - hot swaps and sponges only.</div>'}</div>
-      <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; a support's card is where it comes in (and sponges first), and catch tanks after it catch for it" : ""}.</div>
-      <div class="mq-atts">${atts}</div>${blocks.length > 1 ? '<div class="mq-plan-note">Tap and hold an attacker to change the hot swap order.</div>' : ""}`;
+      <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Click or tap and hold a Pok\u00e9mon to move it.</div>
+      <div class="mq-atts">${atts}</div>`;
     if(!renderPlanPreview.wired){ renderPlanPreview.wired = true; wirePlanRow(); }
     document.querySelectorAll("[data-main-toggle]").forEach(i => { const el = teamAttInput("m", i.dataset.mainToggle); if(el && i.checked !== el.checked) i.checked = el.checked; });
     const om = document.getElementById("ctOneMore"), ai = document.getElementById("ctAllIn"), jc = document.getElementById("ctJuice");
@@ -11656,8 +11666,8 @@ updateCTMode();
     if(dlw && dls && dlw.classList.contains("is-off") !== dls.disabled) dlw.classList.toggle("is-off", dls.disabled);
     const pop = document.querySelector(".mq-ohi .info-pop");
     if(pop){ const hint = ((document.getElementById("ctAssignHint") || {}).textContent || "").trim();
-      const t = `Who takes each ${cm}, in order. Tap and hold a card to move it${blocks.length > 1 ? "; a support's card is where it comes in (and sponges first), and catch tanks after it catch for it" : ""}.`
-        + (blocks.length > 1 ? " Tap and hold an attacker to change the hot swap order." : "") + (hint ? " " + hint : "");
+      const t = `Who takes each ${cm}, in order. Click or tap and hold a Pok\u00e9mon to move it${blocks.length > 1 ? "; a support's card is where it comes in (and sponges first), and catch tanks after it catch for it" : ""}.`
+        + (blocks.length > 1 ? " Move an attacker the same way to change the hot swap order." : "") + (hint ? " " + hint : "");
       if(pop.textContent !== t) pop.textContent = t; }
   }
 
