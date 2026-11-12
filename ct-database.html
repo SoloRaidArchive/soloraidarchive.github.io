@@ -954,6 +954,21 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .ctg-main{ font:700 11px 'Manrope',sans-serif; color:var(--text-dim, #8a93a6); } .ctg-main b{ font-size:14px; color:var(--text, inherit); }
   .ctg-sub{ font:800 11px 'Manrope',sans-serif; color:var(--accent, var(--blue, #3d9dff)); }
   @media (max-width:520px){ .ctg-grid{ grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; } }
+  /* Type filter on phones: icons only, nine to a row - all 18 types in two rows. (The type's name is
+     the chip's label and tooltip.) */
+  @media (max-width:600px){
+    .type-filter{ grid-template-columns: repeat(9, minmax(0, 1fr)) !important; gap:5px !important; padding:0 12px 10px !important; }
+    .type-chip{ padding:0 !important; height:34px; border-radius:9px; }
+    .type-chip span{ display:none; }
+    .type-chip img{ width:17px; height:17px; }
+  }
+  /* the reserved height (so the late-filled grid can't push the page down), re-measured without the
+     "All types" row, with the site's fonts: 18 chips at 6 / 5 / 4 to a row, and two rows of nine on phones */
+  .type-filter{ min-height:113px; }
+  @media (max-width:900px){ .type-filter{ min-height:148px; } }
+  @media (max-width:700px){ .type-filter{ min-height:183px; } }
+  @media (max-width:600px){ .type-filter{ min-height:83px !important; } }
+  .tf-measure .type-filter{ min-height:0 !important; }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
@@ -2809,12 +2824,11 @@ function renderTypeFilter(){
 
   // "All types" first, spanning the grid's full width - the same reset as on Top Raiders
   el.innerHTML =
-    `<button type="button" class="type-chip all${activeTypes.size ? "" : " on"}" data-type=""
-             aria-pressed="${activeTypes.size ? "false" : "true"}"><span>All types</span></button>` +
+    // (no "All types" chip: a selected type is cleared by tapping it again)
     types.map(t => `
       <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
               style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown};"
-              aria-pressed="${activeTypes.has(t) ? "true" : "false"}">
+              aria-pressed="${activeTypes.has(t) ? "true" : "false"}" title="${t}" aria-label="${t}">
         <img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"><span>${t}</span>
       </button>`).join("");
 
