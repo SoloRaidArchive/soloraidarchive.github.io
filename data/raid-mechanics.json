@@ -102,6 +102,18 @@
           "desc": "A Catch Tank intercepts two charge moves on separate ocassions. During the second swap the sum of the energy gained, paired with fast moves, is used to quickly fire back a heavy hitting charge move.",
           "clip": ""
         },
+         {
+          "name": "Drive By Catch Tank",
+          "abbr": "Drive By CT",
+          "desc": "A Catch Tank intercepts a charge move inside a hot-swap. Essentially if the boss times a charge move just before a hotswap, a drive by catch tank will intercept it, fire its charge move, and then switch to the next support DPSer. This similar to catch tanking however it 0.5s faster resulting in convenient DPS..",
+          "clip": ""
+        },
+        {
+          "name": "Enrage Setup",
+          "abbr": "Setup",
+          "desc": "Storing a powerful charge move prior to enrage threshold; casting it at threshold to gain full passthrough damage.",
+          "clip": ""
+        },
         {
           "name": "Substitute",
           "abbr": "Sub",

@@ -1,5 +1,7 @@
 const CACHE_PREFIX = "solo-raid-archive-";
-const CACHE_NAME = `${CACHE_PREFIX}v1`;
+// v2: pages are always checked with the server (v1 could hand a phone an old copy of a page for a
+// long time after an update); bumping the name also clears the v1 cache when this worker activates
+const CACHE_NAME = `${CACHE_PREFIX}v2`;
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -32,7 +34,9 @@ async function cacheFirst(request) {
 
 async function networkFirst(request) {
   try {
-    const response = await fetch(request);
+    // "no-cache": ask the server every time (a cheap 304 when nothing changed) rather than taking the
+    // browser's stored copy - the page itself is never older than the site
+    const response = await fetch(request, { cache: "no-cache" });
     if (response.ok) {
       const cache = await caches.open(CACHE_NAME);
       await cache.put(request, response.clone());

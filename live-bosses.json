@@ -1,58 +1,15 @@
 {
-  "generatedAt": "2026-11-03T18:44:21.405112+00:00",
+  "generatedAt": "2026-11-11T21:37:19.918309+00:00",
   "sources": {
-    "pokebattlerSchedule": 39,
-    "pokebattlerScheduleWindows": 45,
+    "pokebattlerSchedule": 32,
+    "pokebattlerScheduleWindows": 32,
     "scrapedDuck": 1,
-    "pokebattlerApiStartDates": 5,
+    "pokebattlerApiStartDates": 16,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 37
+    "pokebattlerApi": 40
   },
   "dateGroups": [
-    {
-      "startDate": "Nov 4, 2026",
-      "endDate": "Nov 8, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Giratina Altered",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "6 \u2b50",
-          "weather": "Fog"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Oct 28, 2026",
-      "endDate": "Nov 3, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Giratina Origin",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Windy"
-        }
-      ],
-      "status": "active"
-    },
-    {
-      "startDate": "Nov 5, 2026",
-      "endDate": "Nov 9, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Zacian Crown",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "7 \u2b50",
-          "weather": "Clear"
-        }
-      ],
-      "label": "In-person",
-      "status": "future"
-    },
     {
       "startDate": "Nov 16, 2026",
       "endDate": "Nov 24, 2026",
@@ -69,6 +26,60 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "3 \u2b50",
           "weather": "Extreme"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 15, 2026",
+      "endDate": "Nov 15, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Reshiram",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5.5 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Kyurem Black",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Cloudy"
+        }
+      ],
+      "status": "future"
+    },
+    {
+      "startDate": "Nov 9, 2026",
+      "endDate": "Nov 13, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zacian Crown",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "7 \u2b50",
+          "weather": "Clear"
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "startDate": "Nov 14, 2026",
+      "endDate": "Nov 14, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zekrom",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Kyurem White",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Cloudy"
         }
       ],
       "status": "future"
@@ -100,60 +111,6 @@
       "status": "future"
     },
     {
-      "startDate": "Nov 15, 2026",
-      "endDate": "Nov 15, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Reshiram",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "5.5 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Kyurem Black",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Cloudy"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Nov 14, 2026",
-      "endDate": "Nov 14, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Zekrom",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Kyurem White",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Cloudy"
-        }
-      ],
-      "status": "future"
-    },
-    {
-      "startDate": "Oct 28, 2026",
-      "endDate": "Nov 8, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Mega Sableye",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "Cloudy"
-        }
-      ],
-      "status": "active"
-    },
-    {
       "startDate": "Nov 24, 2026",
       "endDate": "Nov 30, 2026",
       "category": "rotation",
@@ -171,16 +128,16 @@
           "weather": "Extreme"
         },
         {
+          "name": "Mega Sableye",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        },
+        {
           "name": "Mega Beedrill",
           "archivePage": "tier4-raids.html",
           "difficulty": "1 \u2b50",
           "weather": "Extreme"
-        },
-        {
-          "name": "Mega Sableye",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "5 \u2b50",
-          "weather": "Cloudy"
         }
       ],
       "status": "future"
@@ -197,11 +154,11 @@
           "weather": "Snow"
         }
       ],
-      "status": "active"
+      "status": "passed"
     },
     {
-      "startDate": "Nov 9, 2026",
-      "endDate": "Nov 13, 2026",
+      "startDate": "Nov 5, 2026",
+      "endDate": "Nov 9, 2026",
       "category": "event",
       "bosses": [
         {
@@ -211,7 +168,50 @@
           "weather": "Clear"
         }
       ],
-      "status": "future"
+      "label": "In-person",
+      "status": "passed"
+    },
+    {
+      "startDate": "Nov 4, 2026",
+      "endDate": "Nov 8, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Giratina Altered",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "6 \u2b50",
+          "weather": "Fog"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "startDate": "Oct 28, 2026",
+      "endDate": "Nov 8, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Mega Sableye",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "startDate": "Oct 28, 2026",
+      "endDate": "Nov 3, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Giratina Origin",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
+        }
+      ],
+      "status": "passed"
     }
   ]
 }
