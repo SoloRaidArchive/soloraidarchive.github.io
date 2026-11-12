@@ -1674,6 +1674,89 @@ if ("serviceWorker" in navigator) {
     #mqPlan .mq-pc.ct, #mqPlan .mq-pc.sp, #mqPlan .mq-pc.sw, #mqPlan .mq-att, #dtSlots .dt-slot:not(.empty){ cursor:grab; user-select:none; -webkit-user-select:none; }
     .mq-sorting, .mq-sorting *{ cursor:grabbing !important; }
   }
+  /* the Main DPS section's Remove: Battle Simulator only (in the other modes it is the Pokemon being calculated) */
+  body:not(.ct-mode-team) #mainRemoveBtn{ display:none !important; }
+  /* the battle party nav (desktop, Battle Simulator): a rail on the left, or a strip across the top */
+  .dt-nav{ position:fixed; z-index:45; display:flex; gap:8px; padding:8px; box-sizing:border-box;
+    background:color-mix(in srgb, var(--card) 94%, transparent); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    border:1.5px solid var(--border); border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.3); }
+  .dt-nav[hidden]{ display:none !important; }
+  .dt-nav.is-rail{ flex-direction:column; align-items:center; width:84px; max-height:calc(100vh - 140px); overflow-y:auto; }
+  .dt-nav.is-top{ flex-direction:row; align-items:center; justify-content:center; }
+  .dt-nav-t{ display:flex; flex-direction:column; align-items:center; gap:4px; padding:0; border:0; background:none; cursor:pointer; color:inherit; font:inherit; }
+  .dt-nav-t .sq{ width:48px; height:48px; border:1.5px solid var(--border); border-radius:11px; display:flex; align-items:center; justify-content:center;
+    background:var(--bg1, rgba(0,0,0,.12)); box-sizing:border-box; transition:border-color .12s ease; }
+  .dt-nav-t .sq img{ width:40px; height:40px; object-fit:contain; }
+  .dt-nav-t:hover .sq, .dt-nav-t:focus-visible .sq{ border-color:var(--blue); }
+  .dt-nav-t:focus-visible{ outline:none; }
+  .dt-nav-t.add .sq{ border-style:dashed; color:var(--text-dim); font:800 22px 'Manrope',sans-serif; }
+  .dt-nav-t i{ font-style:normal; font:800 9px/1 'Manrope',sans-serif; border-radius:999px; padding:3px 7px; white-space:nowrap; }
+  .dt-nav-t .r-main{ background:#ffe1e1; color:#c62828; } .dt-nav-t .r-sup{ background:#dff5f3; color:#00897b; }
+  .dt-nav-t .r-ct{ background:#f2ebff; color:#7d4fd6; } .dt-nav-t .r-boss{ background:#e9e9eb; color:#292929; } .dt-nav-t .r-none{ background:none; }
+  [data-theme="dark"] .dt-nav-t .r-main{ background:rgba(220,53,69,0.22); color:#ff9494; } [data-theme="dark"] .dt-nav-t .r-sup{ background:rgba(0,150,136,0.22); color:#5eded4; }
+  [data-theme="dark"] .dt-nav-t .r-ct{ background:rgba(155,123,240,0.2); color:#c1a8ff; } [data-theme="dark"] .dt-nav-t .r-boss{ background:rgba(255,255,255,0.14); color:#e4e4e6; }
+  .dt-nav-div{ background:var(--border); flex:none; }
+  .dt-nav.is-rail .dt-nav-div{ width:48px; height:1px; } .dt-nav.is-top .dt-nav-div{ width:1px; align-self:stretch; margin:0 2px; }
+  .dt-nav-pop{ position:fixed !important; z-index:60; }
+  @media (max-width:560px){ .dt-nav{ display:none !important; } }
+  /* the main buttons: one row */
+  .main-btns{ display:flex; gap:10px; align-items:stretch; margin-top:10px; }
+  .main-btns > button{ margin:0 !important; width:auto !important; min-width:0; white-space:nowrap; }
+  .main-btns > .calc-btn{ flex:1.4; }
+  .main-btns > .share-btn{ flex:1; }
+  .main-btns > .db-btn{ flex:1.2; }
+  .main-btns > button[hidden]{ display:none !important; }
+  .db-btn{ display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Manrope', sans-serif; font-weight:800; font-size:14px;
+    color:#1d7a46; background:transparent; border:2px solid #2e9e62; border-radius:14px; padding:12px; cursor:pointer; transition:background .12s ease; }
+  .db-btn:hover{ background:color-mix(in srgb, #2e9e62 12%, transparent); }
+  [data-theme="dark"] .db-btn{ color:#6ee7a0; }
+  .db-btn b{ background:#2e9e62; color:#fff; border-radius:999px; padding:1px 7px; font-size:11px; }
+  .db-btn .db-short{ display:none; }
+  @media (max-width:560px){
+    .main-btns{ gap:6px; }
+    .main-btns > .calc-btn{ font-size:15px; padding:12px 6px; }
+    .main-btns > .share-btn, .main-btns > .db-btn{ font-size:12px; padding:10px 6px; gap:5px; }
+    .main-btns > .share-btn svg{ width:13px; height:13px; }
+    .db-btn .db-long{ display:none; } .db-btn .db-short{ display:inline; }
+  }
+  /* "Add CTs to Database": which catch tank (when more than one qualifies), and the bar while submitting one */
+  .db-pick{ position:fixed; z-index:60; width:290px; padding:8px; border-radius:14px; border:1.5px solid var(--border); background:var(--card); box-shadow:0 14px 34px rgba(0,0,0,.45); }
+  .db-pick h4{ margin:2px 6px 6px; font:800 10.5px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); }
+  .db-pick button{ display:flex; align-items:center; gap:10px; width:100%; padding:6px 8px; border:0; border-radius:10px; background:none; color:var(--text); cursor:pointer; text-align:left; font:800 13px 'Manrope',sans-serif; }
+  .db-pick button:hover{ background:color-mix(in srgb, var(--blue) 12%, transparent); }
+  .db-pick img{ width:36px; height:36px; object-fit:contain; } .db-pick small{ display:block; font:700 11px 'Manrope',sans-serif; color:var(--text-dim); }
+  .db-pick em{ margin-left:auto; font-style:normal; color:#6ee7a0; }
+  .db-bar{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:12px 0 0; padding:10px 14px; border:1.5px solid #2e9e62; border-radius:14px;
+    background:color-mix(in srgb, #2e9e62 10%, transparent); font:700 13px 'Manrope',sans-serif; color:var(--text); }
+  .db-bar button{ margin-left:auto; font:800 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border); border-radius:10px; padding:7px 12px; cursor:pointer; }
+  /* the three main buttons: the same size, shape and lettering (Calculate keeps its colour) */
+  .main-btns > button{ flex:1 1 0 !important; height:52px; padding:0 12px !important; border-radius:14px !important; box-shadow:none !important;
+    font:800 15px 'Manrope',sans-serif !important; display:flex !important; align-items:center; justify-content:center; gap:8px; }
+  .main-btns > .share-btn, .main-btns > .db-btn{ color:var(--text) !important; background:var(--card) !important; border:2px solid var(--border) !important; }
+  .main-btns > .share-btn:hover, .main-btns > .db-btn:hover{ border-color:var(--blue) !important; }
+  .main-btns > .calc-btn{ border:2px solid transparent !important; }
+  @media (max-width:560px){ .main-btns > button{ height:46px; font-size:12.5px !important; padding:0 6px !important; gap:5px; } }
+  /* Add CTs to Database: the panel */
+  .db-overlay{ position:fixed; inset:0; z-index:90; background:rgba(20,24,38,.5); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .db-modal{ width:min(720px, 100%); max-height:88vh; overflow:auto; background:var(--card); border:2px solid var(--border); border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,.35); padding:14px 16px 16px; }
+  .db-head{ display:flex; align-items:center; justify-content:space-between; } .db-head h3{ margin:0; font:800 16px 'Manrope',sans-serif; color:var(--text); }
+  .db-x{ border:0; background:none; color:var(--text-dim); font:800 26px/1 'Manrope',sans-serif; cursor:pointer; }
+  .db-sub{ font:600 12px 'Manrope',sans-serif; color:var(--text-dim); margin:2px 0 10px; }
+  .db-rows{ display:flex; flex-direction:column; gap:8px; }
+  .db-row{ display:grid; grid-template-columns:auto 44px minmax(0,1fr) auto auto; gap:10px; align-items:center; padding:8px 10px; border:1.5px solid var(--border); border-radius:12px; }
+  .db-row.is-none{ opacity:.65; grid-template-columns:auto 44px minmax(0,1fr); }
+  .db-row img{ width:44px; height:44px; object-fit:contain; }
+  .db-chk input{ width:18px; height:18px; accent-color:var(--accent, #ff8a3d); }
+  .db-who b{ display:block; font:800 13.5px 'Manrope',sans-serif; color:var(--text); } .db-who small{ display:block; font:600 11.5px 'Manrope',sans-serif; color:var(--text-dim); }
+  .db-warn{ margin-top:3px; font:700 11px 'Manrope',sans-serif; color:#e8a33a; }
+  .db-sel{ font:700 12px 'Manrope',sans-serif; padding:6px 8px; border-radius:9px; border:1.5px solid var(--border); background:var(--bg1); color:var(--text); }
+  [data-theme="dark"] .db-sel{ background:#161a28; }
+  .db-open, .db-all{ font:800 12.5px 'Manrope',sans-serif; padding:8px 12px; border-radius:10px; border:1.5px solid var(--border); background:var(--card); color:var(--text); cursor:pointer; white-space:nowrap; }
+  .db-open:hover, .db-all:hover{ border-color:var(--blue); } .db-open.done{ color:#6ee7a0; border-color:#2e9e62; }
+  .db-foot{ display:flex; align-items:center; gap:12px; margin-top:12px; } .db-msg{ font:700 12px 'Manrope',sans-serif; color:var(--text-dim); flex:1; }
+  .db-all{ background:var(--accent, #ff8a3d); color:#fff; border-color:transparent; padding:9px 18px; }
+  @media (max-width:560px){ .db-overlay{ padding:0; } .db-modal{ max-height:100dvh; height:100dvh; border-radius:0; border:0; }
+    .db-row{ grid-template-columns:auto 40px minmax(0,1fr); } .db-row .db-sel{ grid-column:2 / -1; } .db-row .db-open{ grid-column:2 / -1; } }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2071,7 +2154,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · all in final move</p>
+      <p class="beta-build">Build 2026-11-12 · add cts multi</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -2130,6 +2213,8 @@ if ("serviceWorker" in navigator) {
       <div>
         <div class="step-title" id="step1Title">Your Pokémon vs. Raid Boss</div>
       </div>
+      <!-- Battle Simulator: the main DPS can be removed too (as the catch tanks and support DPS can) -->
+      <button type="button" class="team-remove-btn" id="mainRemoveBtn" onclick="window.__partyRemove && window.__partyRemove('m')">Remove</button>
     </div>
 
     <div id="movepoolLoadError" style="display:none; margin:0 0 14px; padding:10px 14px; border-radius:10px; background:#fdecec; color:#b23c3c; font-weight:700; font-size:12.5px; border:2px solid #f3c9c9;">
@@ -2604,11 +2689,16 @@ if ("serviceWorker" in navigator) {
     </details>
   </div>
 
+  <!-- the main buttons, side by side: Calculate | Share link | Add CTs to Database (Battle Simulator, when a
+       catch tank in the party qualifies for the CT Database) -->
+  <div class="main-btns" id="mainBtns">
   <button class="calc-btn" id="calcBtn">Calculate</button>
   <button class="share-btn" id="shareBtn" type="button">
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg>
-    <span id="shareBtnLabel">Copy Shareable Link</span>
+    <span id="shareBtnLabel">Share link</span>
   </button>
+  <button type="button" class="db-btn" id="ctDbBtn" hidden><span class="db-long">Add CTs to Database</span><span class="db-short">Add CTs</span> <b id="ctDbCount"></b></button>
+  </div>
 
   <div class="duration-unit-toggle" id="durationUnitToggle">
     <span class="duration-unit-label">Show time as</span>
@@ -7389,13 +7479,21 @@ async function submitSelectedRows(){
     if(!confirm(msg)) return;
   }
 
+  window.open(ctFormUrl(f, lastCalcContext.bossName, n, r, trailingDPSText), "_blank");
+}
+// The CT Database form, pre-filled for one row of a Catch Tank mode calculation (f: its fields, n: boss
+// fast moves tanked, r: that row). Used by Submit Selected (Catch Tank mode) and by Add CTs to Database
+// (Battle Simulator), so both send exactly the same thing.
+function ctFormUrl(f, bossName, n, r, trailingDPSText){
+  const dodges = (f.dodgeCM && f.dodgeFM) ? "Both" : f.dodgeCM ? "CM" : f.dodgeFM ? "FM" : "None";
+  const timingMods = (f.cmBuffer && f.resolveNerf) ? "Both" : f.cmBuffer ? "CM Buffer" : f.resolveNerf ? "Resolve Nerf" : "None";
   const params = new URLSearchParams();
   params.set(`entry.${CT_FORM_ENTRIES.pokemon}`, f.pokemonName);
   params.set(`entry.${CT_FORM_ENTRIES.level}`, f.level);
   params.set(`entry.${CT_FORM_ENTRIES.ivs}`, `${f.ivAtk}/${f.ivDef}/${f.ivHp}`);
   params.set(`entry.${CT_FORM_ENTRIES.playerMoveset}`, `${f.playerFM} / ${f.playerCM}`);
   params.set(`entry.${CT_FORM_ENTRIES.zacianBlade}`, f.zacianBlade ? "Yes" : "No");
-  params.set(`entry.${CT_FORM_ENTRIES.boss}`, lastCalcContext.bossName);
+  params.set(`entry.${CT_FORM_ENTRIES.boss}`, bossName);
   params.set(`entry.${CT_FORM_ENTRIES.weather}`, f.weather);
   params.set(`entry.${CT_FORM_ENTRIES.bossMoveset}`, `${f.bossFM} / ${f.bossCM}`);
   params.set(`entry.${CT_FORM_ENTRIES.shieldAE}`, f.shieldAE ? "Yes" : "No");
@@ -7409,8 +7507,9 @@ async function submitSelectedRows(){
   params.set(`entry.${CT_FORM_ENTRIES.ctDPS}`, r.ctDPS.toFixed(1));
   params.set(`entry.${CT_FORM_ENTRIES.risky}`, r.risky ? "Yes" : "No");
 
-  window.open(`${CT_FORM_BASE}?${params.toString()}`, "_blank");
+  return `${CT_FORM_BASE}?${params.toString()}`;
 }
+
 
 // ============ SETUP HISTORY (saved via localStorage on this device/browser) ============
 const SETUP_FIELD_IDS = [
@@ -8578,6 +8677,118 @@ document.getElementById("calcBtn").addEventListener("click", runCalculation);
   if(typeof window.applySetup === "function"){ const load = window.applySetup; window.applySetup = function(){ const r = load.apply(this, arguments); paint(); return r; }; }
 })();
 
+// ============ ADD CTs TO DATABASE (Battle Simulator) ============
+// A catch tank in the party qualifies as Catch Tank mode's submissions do: the boss takes submissions
+// (Tier 5 / Tier 4 Mega), its best Catch Tank DPS on its card clears the bar (50, or 30 for a Tier 4 Mega)
+// and no event boost is set. Submitting goes through Catch Tank mode itself - that catch tank, with this
+// boss and these settings - so the rows, the duplicate check and the form are the ones it already uses;
+// a bar there brings the whole party back.
+function ctDbCandidates(){
+  const mode = document.querySelector('input[name="ctMode"]:checked'); if(!mode || mode.value !== "team") return [];
+  const boss = (document.getElementById("bossName").value || "").trim();
+  if(!boss || !bossAcceptsSubmissions(boss) || eventBoostMult() > 1) return [];
+  const bar = submitThresholdFor(boss), out = [];
+  const n = parseInt((document.getElementById("ctTypes") || {}).value, 10) || 0;
+  for(let k = 1; k <= n; k++){
+    const p = k === 1 ? "ct" : "ct" + k, card = document.getElementById(k === 1 ? "teamCard" : "teamCard" + k);
+    const name = ((document.getElementById(p + "Name") || {}).value || "").trim(); if(!name || !card) continue;
+    const vals = [...card.querySelectorAll(".team-outcome .val")].map(v => parseFloat(v.textContent)).filter(isFinite);
+    const best = vals.length ? Math.max(...vals) : 0;
+    if(best >= bar) out.push({ k, p, name, best });
+  }
+  return out;
+}
+function updateCtDbBtn(){
+  const btn = document.getElementById("ctDbBtn"); if(!btn) return;
+  let list = []; try{ list = ctDbCandidates(); }catch(e){ list = []; }   // (never in the way of the page)
+  btn.hidden = !list.length;
+  const c = document.getElementById("ctDbCount"); if(c) c.textContent = list.length ? String(list.length) : "";
+  btn.title = list.length ? "Submit " + list.map(x => x.name).join(", ") + " to the CT Database (opens it in Catch Tank mode)" : "";
+}
+// Each qualifying catch tank, worked out as Catch Tank mode would (its own calculation, run behind the
+// scenes - the party and the page are put back after), with its rows that clear the bar.
+function ctDbPrepare(){
+  const party = captureSetup(), y = scrollY, wrap = document.getElementById("resultsWrap"), before = wrap ? wrap.innerHTML : "";
+  const out = [];
+  try{
+    ctDbCandidates().forEach(x => {
+      const p = x.p, S = Object.assign({}, party);
+      Object.assign(S, { ctMode: party[p + "DoubleCatch"] ? "double" : "single", pokemonName: party[p + "Name"], pokemonLevel: party[p + "Level"],
+        ivAtk: party[p + "IvAtk"], ivDef: party[p + "IvDef"], ivHp: party[p + "IvHp"], playerFM: party[p + "FM"], playerCM: party[p + "CM"] });
+      if(party[p + "Casts"]) S.numCM = party[p + "Casts"];
+      applySetup(S); runCalculation();
+      const c = lastCalcContext; if(!c) return;
+      const bar = submitThresholdFor(c.bossName);
+      const rows = Object.entries(c.rowsByN || {}).map(([n, r]) => ({ n: +n, r })).filter(o => o.r && !o.r.fainted && o.r.ctDPS >= bar).sort((a2, b2) => b2.r.ctDPS - a2.r.ctDPS);
+      out.push({ x, f: c.fields, boss: c.bossName, rows, pick: 0 });
+    });
+  } finally {
+    applySetup(party);
+    if(wrap) wrap.innerHTML = before;   // the results as they were
+    window.scrollTo({ top: y, behavior: "instant" }); setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 30);
+  }
+  return out;
+}
+function ctDbRowUrl(e){ const o = e.rows[e.pick]; return ctFormUrl(e.f, e.boss, o.n, o.r, e.f.doubleCT ? "N/A (Double CT)" : o.r.trailingDPS.toFixed(1)); }
+function ctDbOpenPanel(){
+  const list = ctDbPrepare(); if(!list.length) return;
+  document.querySelectorAll(".db-overlay").forEach(x => x.remove());
+  const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ov = document.createElement("div"); ov.className = "db-overlay";
+  const rowHtml = (e, i) => e.rows.length ? `
+    <div class="db-row" data-i="${i}">
+      <label class="db-chk"><input type="checkbox" checked></label>
+      <img src="${spriteUrl(e.x.name)}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="db-who"><b>${esc(e.x.name)}</b><small>Catch Tank ${e.x.k} &middot; Lv ${esc(e.f.level)} &middot; ${esc(e.f.playerFM)} / ${esc(e.f.playerCM)}</small>
+        <div class="db-warn" hidden></div></div>
+      <select class="db-sel" aria-label="Which row">${e.rows.map((o, j) => `<option value="${j}">${o.n} FM${o.n === 1 ? "" : "s"} tanked &middot; ${o.r.ctDPS.toFixed(1)}${o.r.risky ? " &#9888;" : ""}</option>`).join("")}</select>
+      <button type="button" class="db-open">Open form</button>
+    </div>` : `
+    <div class="db-row is-none"><span></span><img src="${spriteUrl(e.x.name)}" alt=""><div class="db-who"><b>${esc(e.x.name)}</b><small>No row clears the bar in Catch Tank mode - nothing to submit</small></div></div>`;
+  ov.innerHTML = `<div class="db-modal" role="dialog" aria-modal="true" aria-label="Add catch tanks to the CT Database">
+      <div class="db-head"><h3>Add catch tanks to the CT Database</h3><button type="button" class="db-x" aria-label="Close">&times;</button></div>
+      <div class="db-sub">vs ${esc(list[0].boss)} &middot; each opens the CT Database form, filled in - check it there and send it.</div>
+      <div class="db-rows">${list.map(rowHtml).join("")}</div>
+      <div class="db-foot"><span class="db-msg"></span><button type="button" class="db-all">Open all</button></div>
+    </div>`;
+  document.body.appendChild(ov);
+  const msg = ov.querySelector(".db-msg");
+  const showWarn = async (e, el) => {   // the duplicate check Catch Tank mode does, and its risky flag
+    const o = e.rows[e.pick], w = el.querySelector(".db-warn"); const notes = [];
+    if(o.r.risky) notes.push("\u26a0\ufe0f Risky: " + (o.r.riskyNote || "flagged for the reviewer"));
+    try{ const d = await duplicateWarnings(e.f, e.boss, o.n, o.r, e.f.doubleCT ? "N/A (Double CT)" : o.r.trailingDPS.toFixed(1)); d.forEach(t => notes.push("Possible duplicate: " + t)); }catch(err){}
+    w.hidden = !notes.length; w.textContent = notes.join("  \u00b7  ");
+  };
+  ov.querySelectorAll(".db-row[data-i]").forEach(el => {
+    const e = list[+el.dataset.i];
+    showWarn(e, el);
+    el.querySelector(".db-sel").addEventListener("change", ev => { e.pick = +ev.target.value; showWarn(e, el); });
+    el.querySelector(".db-open").addEventListener("click", ev => { const w = window.open(ctDbRowUrl(e), "_blank"); if(w){ ev.target.textContent = "Opened \u2713"; ev.target.classList.add("done"); } });
+  });
+  const close = () => ov.remove();
+  ov.addEventListener("click", ev => { if(ev.target === ov || ev.target.closest(".db-x")) close(); });
+  document.addEventListener("keydown", function k(ev){ if(ev.key === "Escape"){ close(); document.removeEventListener("keydown", k); } });
+  ov.querySelector(".db-all").addEventListener("click", () => {
+    const rows = [...ov.querySelectorAll(".db-row[data-i]")].filter(el => el.querySelector("input[type=checkbox]").checked);
+    let opened = 0;
+    rows.forEach(el => { const w = window.open(ctDbRowUrl(list[+el.dataset.i]), "_blank"); if(w){ opened++; const b = el.querySelector(".db-open"); b.textContent = "Opened \u2713"; b.classList.add("done"); } });
+    msg.textContent = !rows.length ? "Tick at least one." : opened === rows.length ? `Opened ${opened} form${opened === 1 ? "" : "s"}.`
+      : `Opened ${opened} of ${rows.length} - your browser blocked the rest; use Open form on each.`;
+  });
+}
+(function(){
+  const btn = document.getElementById("ctDbBtn"); if(!btn) return;
+  btn.addEventListener("click", () => {
+    if(ctDbCandidates().length) ctDbOpenPanel();
+  });
+  // kept current: whenever a catch tank card is redrawn, and on the boss, mode or event boost changing
+  ["updateTeamPreview", "updateTeamPreviewFor"].forEach(fn => { if(typeof window[fn] === "function"){ const draw = window[fn]; window[fn] = function(){ const r = draw.apply(this, arguments); updateCtDbBtn(); return r; }; } });
+  document.querySelectorAll('input[name="ctMode"]').forEach(r => r.addEventListener("change", () => setTimeout(updateCtDbBtn, 0)));
+  ["bossName", "eventBoost", "ctTypes"].forEach(id => { const el = document.getElementById(id); if(el){ el.addEventListener("change", () => setTimeout(updateCtDbBtn, 0)); el.addEventListener("input", () => setTimeout(updateCtDbBtn, 0)); } });
+  if(typeof window.applySetup === "function"){ const load = window.applySetup; window.applySetup = function(){ const r = load.apply(this, arguments); setTimeout(updateCtDbBtn, 0); return r; }; }
+  setTimeout(updateCtDbBtn, 0);   // once the page's script has finished loading
+})();
+
 // ============ SHAREABLE SETUP URLS ============
 // Reuses the exact same captureSetup()/applySetup() machinery already used for the local
 // "Recent Setups" history feature - the only difference is where the setup object is stored
@@ -8852,7 +9063,7 @@ function setTeamTypeCount(n){
   // only the last card offers Remove - Catch Tank 1 too, for a run with no catch tanks
   for(let k = 1; k <= TEAM_TYPE_MAX; k++){
     const c = document.getElementById(k === 1 ? "teamCard" : "teamCard" + k);
-    if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = (k !== n); btn.onclick = () => setTeamTypeCount(n - 1); }
+    if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = false; btn.onclick = () => window.__partyRemove ? window.__partyRemove("t" + k) : setTeamTypeCount(n - 1); }
   }
   const add = document.getElementById("ctAddType");
   add.hidden = n >= TEAM_TYPE_MAX;
@@ -9038,7 +9249,7 @@ function setSupportCount(n){
   document.getElementById("sdCount").value = String(n);
   for(let k = 1; k <= SUPPORT_MAX; k++){   // only the last support card offers Remove
     const c = document.getElementById("supportCard" + k);
-    if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = (k !== n); btn.onclick = () => setSupportCount(n - 1); }
+    if(c){ const btn = c.querySelector(".team-remove-btn"); btn.hidden = false; btn.onclick = () => window.__partyRemove ? window.__partyRemove("s" + k) : setSupportCount(n - 1); }
   }
   document.getElementById("sdAdd").hidden = n >= SUPPORT_MAX || supportCopies() >= SUPPORT_MAX;
   updateOwnerOptions();
@@ -10863,12 +11074,82 @@ updateCTMode();
     const label = t => teamPartyLabel(t), nm = t => label(t).replace(/ #\d+$/, "");
     const badge = t => t[0] === "m" ? "Main" : t[0] === "s" ? "Support" : "Catch tank";
     const html = [...Array(6)].map((_, i) => { const t = party[i];
-      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: jump to its card"><i>${i + 1}</i>${t[0] === "m" ? "" : `<span class="dt-rm" data-rm="${t}" role="button" aria-label="Remove ${esc(label(t))} from the party" title="Remove from the party">&minus;</span>`}<img src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
+      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: edit"><i>${i + 1}</i>${`<span class="dt-rm" data-rm="${t}" role="button" aria-label="Remove ${esc(label(t))} from the party" title="Remove from the party">&minus;</span>`}<img src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
                : `<button type="button" class="dt-slot empty" data-slot="${i + 1}"><i>${i + 1}</i>+ Add</button>`; }).join("");
     if(box.dataset.html !== html){ box.dataset.html = html; box.innerHTML = html; }
     const meter = document.getElementById("dtPartyMeter"); const txt = `Party ${party.length} of 6`; if(meter && meter.textContent !== txt) meter.textContent = txt;
-    const hint = document.getElementById("dtPartyHint"); const h = party.length ? "Click a Pokémon to jump to its card · hold and drag to reorder" : "Click a slot to add a Pokémon";
+    renderDtNav(party);
+    const hint = document.getElementById("dtPartyHint"); const h = party.length ? "Click a Pokémon to edit it · hold and drag to reorder" : "Click a slot to add a Pokémon";
     if(hint && hint.textContent !== h) hint.textContent = h;
+  }
+  // ---------- desktop Battle Simulator: the battle party nav, following the page ----------
+  // The boss, then the party - square pictures with their role, no names - then +. A Pokemon opens its
+  // profile; + offers Main / Support / Catch tank; the boss jumps to Raid Boss. A rail on the left where
+  // the window leaves room for it; otherwise a strip across the top, lined up with the sections, once
+  // the party bar has scrolled away.
+  const NAV_ROLE = t => t[0] === "m" ? ["main", "Main"] : t[0] === "s" ? ["sup", "Support"] : ["ct", "CT"];
+  function renderDtNav(party){
+    let nav = document.getElementById("dtNav");
+    if(!nav){
+      nav = document.createElement("nav"); nav.id = "dtNav"; nav.className = "dt-nav"; nav.setAttribute("aria-label", "Battle party"); document.body.appendChild(nav);
+      nav.addEventListener("click", e => {
+        const b = e.target.closest("[data-nav]"); if(!b) return;
+        if(b.dataset.nav === "boss"){   // Raid Boss, just below the header
+          const c = document.getElementById("dtBossCard"), head = document.querySelector(".sticky-header");
+          if(c) window.scrollTo({ top: c.getBoundingClientRect().top + scrollY - (head ? head.getBoundingClientRect().bottom : 0) - 12, behavior: "smooth" });
+          return;
+        }
+        if(b.dataset.nav === "add"){ setTimeout(() => openNavRoles(b), 0); return; }   // after this click (the party bar's click-away closes menus)
+        openProfile(b.dataset.nav);
+      });
+      ["scroll", "resize"].forEach(ev => window.addEventListener(ev, placeDtNav, { passive: true }));
+    }
+    const boss = ((document.getElementById("bossName") || {}).value || "").trim();
+    const tile = (key, name, rc, role) => `<button type="button" class="dt-nav-t" data-nav="${key}" title="${esc(name)}${key === "boss" ? " - Raid Boss" : ": edit"}">
+      <span class="sq">${name ? `<img src="${esc(sprite(name))}" alt="${esc(name)}" draggable="false" onerror="this.style.visibility='hidden'">` : ""}</span><i class="r-${rc}">${role}</i></button>`;
+    const html = (boss ? tile("boss", boss, "boss", "Boss") + '<span class="dt-nav-div"></span>' : "")
+      + party.map(t => { const [rc, role] = NAV_ROLE(t); return tile(t, teamPartyLabel(t).replace(/ #\d+$/, ""), rc, role); }).join("")
+      + (party.length < 6 ? '<button type="button" class="dt-nav-t add" data-nav="add" title="Add a Pokémon"><span class="sq">+</span><i class="r-none">&nbsp;</i></button>' : "");
+    if(nav.dataset.html !== html){ nav.dataset.html = html; nav.innerHTML = html; }
+    placeDtNav();
+  }
+  function placeDtNav(){
+    const nav = document.getElementById("dtNav"); if(!nav) return;
+    const on = !MQ.matches && document.body.classList.contains("ct-mode-team") && nav.querySelector("[data-nav]");
+    const top = document.getElementById("dtTop"), ref = document.getElementById("teamBehaviorCard") || document.getElementById("dtPartyCard");
+    if(!on || !top || !ref){ nav.hidden = true; return; }
+    const head = document.querySelector(".sticky-header"), hb = head ? Math.max(0, head.getBoundingClientRect().bottom) : 0;
+    const box = ref.getBoundingClientRect(), RAIL = 84;
+    const rail = box.left >= RAIL + 28;   // room on the left for the rail
+    nav.classList.toggle("is-rail", rail); nav.classList.toggle("is-top", !rail);
+    if(rail){ nav.hidden = false; nav.style.top = (hb + 16) + "px"; nav.style.left = Math.max(12, box.left - RAIL - 18) + "px"; nav.style.width = ""; return; }
+    // the strip: once the party bar has gone up past the header
+    const gone = top.getBoundingClientRect().bottom < hb + 4;
+    nav.hidden = !gone; if(!gone) return;
+    nav.style.top = (hb + 8) + "px"; nav.style.left = box.left + "px"; nav.style.width = box.width + "px";
+  }
+  function openNavRoles(btn){
+    closeDtPop();
+    const party = teamParty().filter(t => t !== "m.1" || ((document.getElementById("pokemonName") || {}).value || "").trim());
+    const slot = document.querySelector("#dtSlots .dt-slot.empty"); if(!slot) return;
+    const mainName = ((document.getElementById("pokemonName") || {}).value || "").trim();
+    const pop = document.createElement("div"); pop.className = "dt-pop dt-nav-pop";
+    pop.innerHTML = `<h4>Add to the party</h4>
+      <button type="button" data-role="main" ${mainName ? "disabled" : ""}><span>Main DPS<small>${mainName ? "Taken by " + esc(mainName) : "The attacker the party is built around"}</small></span></button>
+      <button type="button" data-role="sup" ${(typeof supportCount === "function" && supportCount() >= 5) ? "disabled" : ""}><span>Support DPS<small>Hot swaps in after the main DPS</small></span></button>
+      <button type="button" data-role="ct"><span>Catch tank<small>Catches the boss's charge moves</small></span></button>`;
+    document.body.appendChild(pop);
+    const r = btn.getBoundingClientRect(), nav = document.getElementById("dtNav");
+    if(nav.classList.contains("is-rail")){ pop.style.left = (nav.getBoundingClientRect().right + 10) + "px"; pop.style.top = Math.min(r.top, innerHeight - pop.offsetHeight - 10) + "px"; }
+    else { pop.style.left = Math.max(8, Math.min(r.left, innerWidth - pop.offsetWidth - 8)) + "px"; pop.style.top = (r.bottom + 8) + "px"; }
+    pop.addEventListener("click", e => {
+      const b = e.target.closest("[data-role]"); if(!b || b.disabled) return;
+      closeDtPop();
+      if(b.dataset.role === "main") monSheet({ title: "Main DPS", role: "main", sub: () => "Its card appears below",
+        onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => openProfile("m.1"), 60); } });
+      else openPicker(null, b.dataset.role, party.length + 1);
+    });
+    setTimeout(() => document.addEventListener("click", function off(e){ if(!e.target.closest(".dt-nav-pop") && !e.target.closest("[data-nav=add]")){ closeDtPop(); document.removeEventListener("click", off); } }), 0);
   }
   function closeDtPop(){ document.querySelectorAll(".dt-pop").forEach(x => x.remove()); document.querySelectorAll(".dt-slot.on").forEach(x => x.classList.remove("on")); }
   function openDtRoles(btn){
@@ -10901,7 +11182,7 @@ updateCTMode();
     const rm = e.target.closest && e.target.closest(".dt-rm");
     if(rm){ e.stopPropagation(); closeDtPop(); editSetup(S => removeFrom(S, rm.dataset.rm)); return; }
     const slot = e.target.closest && e.target.closest(".dt-slot");
-    if(slot){ if(slot.dataset.tok) showCard(slot.dataset.tok); else openDtRoles(slot); return; }
+    if(slot){ if(slot.dataset.tok) openProfile(slot.dataset.tok); else openDtRoles(slot); return; }   // a Pokemon: its profile, to edit
     if(!e.target.closest || !e.target.closest(".dt-pop")) closeDtPop();
   });
   document.addEventListener("keydown", e => { if(e.key === "Escape") closeDtPop(); });
@@ -11004,6 +11285,7 @@ updateCTMode();
     return true;
   }
   function removeFrom(S, tok){
+    if(tok[0] === "m"){ S.pokemonName = ""; delete S.playerFM; delete S.playerCM; return; }   // the main DPS: as on a fresh page
     if(tok[0] === "t"){
       const k = +tok.slice(1).split(".")[0], p = CT_P[k - 1], q = parseInt(S[p + "Qty"], 10) || 1;
       if(q > 1){ S[p + "Qty"] = String(q - 1); return; }
@@ -11021,6 +11303,12 @@ updateCTMode();
     }
   }
   const roleOf = tok => !tok ? null : tok[0] === "m" ? "main" : tok[0] === "s" ? "sup" : "ct";
+  // a section's Remove: the whole of it ("t2" - every copy of Catch Tank 2; "s1"; "m" - the main DPS)
+  window.__partyRemove = key => editSetup(S => {
+    if(key === "m"){ removeFrom(S, "m"); return; }
+    const k = +key.slice(1); if(key[0] === "t") S[CT_P[k - 1] + "Qty"] = "1"; else S["sd" + k + "Qty"] = "1";
+    removeFrom(S, key + ".1");
+  });
   function putInSlot(tok, role, name){
     return editSetup(S => {
       if(role === "main"){ S.pokemonName = name; delete S.playerFM; delete S.playerCM; return; }
@@ -11392,7 +11680,7 @@ updateCTMode();
                          : '<div class="pp-sec pp-dps"><div class="pp-slot" data-slot="dps"></div>' + (role === "sup" ? '<div class="pp-slot" data-slot="qty"></div>' : "") + '</div>'}
         <div class="pp-sec"><div class="pp-sec-h">Role in the party</div><div class="pp-seg">${roles}</div>${roleNote ? `<div class="pp-note">${roleNote}</div>` : ""}</div>
         <button type="button" class="pp-btn main" data-pa="change">Change Pokémon &rsaquo;</button>
-        ${role === "main" ? "" : '<button type="button" class="pp-btn danger" data-pa="remove">Remove from party</button>'}`;
+        <button type="button" class="pp-btn danger" data-pa="remove">Remove from party</button>`;
       borrow();
     }
     // The card's own DPS box / Catch Tank DPS box and its settings, lent to the profile while it's open (the
