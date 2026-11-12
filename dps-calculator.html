@@ -1565,7 +1565,97 @@ if ("serviceWorker" in navigator) {
     .mq-grid-vs .mq-tile span.mq-vs span.mv{ font-size:8.5px; gap:3px; } .mq-vs .mvi, .mq-tile span.mq-vs span.mvi{ width:11px; height:11px; } .mq-vs .mvi img{ width:7px; height:7px; }
     .mq-grid-vs .mq-tile span.mq-vs{ column-gap:2px; } .mq-grid-vs .mq-tile{ padding-left:2px !important; padding-right:2px !important; }
   }
+  /* how the run ended: beneath the timeline's last entry */
+  .team-log-ended{ display:flex; gap:12px; align-items:baseline; margin:10px 2px 2px; padding:10px 12px; border-radius:10px; border:1.5px solid var(--border);
+    background:color-mix(in srgb, var(--text) 4%, transparent); font-size:13px; color:var(--text); }
+  .team-log-ended b{ flex:none; font:800 11px 'Manrope',sans-serif; text-transform:uppercase; letter-spacing:.07em; color:var(--text-dim); }
+  /* the results' figures in three columns on desktop: Attackers | DPS & Rejoins | Boss Rotation */
+  @media (min-width:900px){
+    .team-stat-table{ display:grid !important; grid-template-columns:repeat(3, minmax(0, 1fr)); column-gap:22px; row-gap:10px; max-width:none !important; width:100%; align-items:start; }
+    .team-stat-table > tbody{ display:table; width:100%; border-collapse:collapse; }
+    .team-stat-table > tbody tr:first-child th{ border-top:none; }
+    .team-stat-table > tbody[data-grp=main]{ order:1; } .team-stat-table > tbody[data-grp=rejoins]{ order:2; } .team-stat-table > tbody[data-grp=rotation]{ order:3; }
+    /* the right-hand column's hover notes open leftwards, so they stay inside the window */
+    .team-stat-table > tbody[data-grp=rotation] .team-tip-html .tip-pop, .team-stat-table > tbody[data-grp=rotation] .team-tip::after{ left:auto; right:-6px; }
+  }
+  /* DPS & Rejoins: each attacker's DPS the strongest, This Cycle DPS bold, Minimum DPS plain */
+  .dps-stat-table tr.team-row-cycle td{ font-weight:800; color:var(--text); }
+  .dps-stat-table tr.team-row-min td:last-child, .dps-stat-table tr.team-row-min .team-min-btn{ font-weight:500; }
+  /* two-row rows: label (and total) on top, the figures three to a row beneath */
+  .dps-stat-table tr.team-2row td{ text-align:left; }   /* (team-2row: "team-row2" is already the catch tank cards' settings layout) */
+  .team-r2-head{ display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--text-dim); font-weight:600; }
+  .team-r2-head .tot{ display:inline-flex; align-items:center; gap:4px; color:var(--text); font-weight:700; }
+  .team-r2-head .tot .team-head-total{ margin:0; padding:0; border:0; }
+  .team-g3{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); grid-auto-rows:28px; gap:4px 10px; margin-top:4px; font-weight:700; color:var(--text); align-items:center; }
+  .team-r2-head{ min-height:26px; }
+  .team-stat-table > tbody > tr:first-child th{ padding-top:7px !important; }   /* the first section's header matched the others */
+  .team-g3 .team-sub-item{ display:inline-flex; align-items:center; gap:4px; white-space:nowrap; min-width:0; }
+  .team-g3 .team-g3-wide{ grid-column:1 / -1; white-space:normal; }
+  .dps-stat-table tr.team-row-att-dps .team-r2-head{ color:var(--text); font-weight:800; }
+  .dps-stat-table tr.team-row-att-dps .team-g3{ font-weight:800; }
+  /* going all in: marked above the timeline where it happened */
+  .tl-allin{ position:relative; height:26px; margin-top:6px; }
+  .tl-allin-m{ position:absolute; bottom:5px; transform:translateX(-50%); display:inline-flex; align-items:center; gap:4px; padding:1px 8px 1px 2px; border-radius:999px;
+    border:1.5px solid #ff6b81; background:var(--card); font:800 10.5px 'Manrope',sans-serif; color:#ff8a9a; white-space:nowrap; z-index:2; }
+  .tl-allin-m .team-ico{ width:18px !important; height:18px !important; min-width:18px; }
+  .tl-allin-m::after{ content:""; position:absolute; left:50%; top:100%; border:5px solid transparent; border-top-color:#ff6b81; transform:translateX(-50%); }
+  .tl-allin-m.end{ transform:translateX(-100%); } .tl-allin-m.end::after{ left:auto; right:-5px; transform:none; }
+  .tl-allin-m.start{ transform:none; } .tl-allin-m.start::after{ left:-5px; transform:none; }
+  /* boss casts: the boss's total in a column of its own at the left, level with the first row of who took them */
+  .team-r2-body{ display:grid; grid-template-columns:auto minmax(0, 1fr); column-gap:10px; align-items:start; margin-top:4px; }
+  .team-r2-body .team-g3{ margin-top:0; column-gap:6px; }
+  .team-r2-body .team-g3 .team-sub-item{ gap:2px; }
+  .team-r2-body .team-g3 .team-ico{ width:22px !important; height:22px !important; min-width:22px; }
+  .team-r2-body .team-g3 .cm-how svg{ width:12px; height:12px; }
+  .team-r2-boss{ height:28px; display:flex; align-items:center; padding-right:10px; border-right:1px solid var(--border); font-weight:700; color:var(--text); }
+  .team-r2-boss .team-head-total{ display:inline-flex; align-items:center; gap:4px; margin:0; padding:0; border:0; }
 </style>
+<style>
+  /* Desktop Battle Simulator: the priority order as the phone's row - catch tank and sponge cards in
+     one row (a support's own "in" card where it takes over), then the attackers with Dodge / Sponge -
+     in place of the vertical list. Hold and drag to move. (The row's styles, copied from the phone
+     stylesheet so they apply at every width.) */
+  .mq-att{flex-wrap:wrap;}
+  .mq-slot, .mq-pc, .mq-att{-webkit-touch-callout:none; -webkit-user-select:none; user-select:none;}
+  .mq-slot img, .mq-pc img, .mq-att img{-webkit-user-drag:none; pointer-events:none;}
+  .mq-lift{transform:scale(1.08); box-shadow:0 8px 20px rgba(0,0,0,.45); z-index:3; position:relative; border-color:var(--accent, #ff8a3d) !important; transition:transform .12s;}
+  .mq-sorting .mq-slot:not(.mq-lift), .mq-sorting .mq-pc:not(.mq-lift), .mq-sorting .mq-att:not(.mq-lift){opacity:.75;}
+  .mq-pc.is-off{display:none !important;}
+  .mq-pc.sw.att-in{width:52px; display:block; padding:4px 2px 3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); border-style:dashed;}
+  .mq-atts{display:flex; flex-direction:column; gap:6px; margin-top:10px;}
+  .mq-att{display:flex; align-items:center; gap:8px; padding:7px 10px; border:1.5px solid var(--border); border-radius:12px; background:var(--card);}
+  .mq-att > img{width:32px; height:32px; object-fit:contain; flex:none;}
+  .mq-att-n{flex:1; min-width:0; display:flex; flex-direction:column;}
+  .mq-att-n b{font:800 13px 'Manrope',sans-serif; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .mq-att-n small{font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim);}
+  .mq-att-t{display:flex; flex-direction:column; align-items:center; gap:3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); text-transform:uppercase; letter-spacing:.04em; cursor:pointer; flex:none;}
+  .mq-att-t input{position:absolute; opacity:0; pointer-events:none;}
+  .mq-att-t i{width:36px; height:21px; border-radius:11px; background:color-mix(in srgb, var(--text) 22%, transparent); position:relative; transition:background .15s;}
+  .mq-att-t i::after{content:""; position:absolute; top:2.5px; left:2.5px; width:16px; height:16px; border-radius:50%; background:#fff; transition:transform .15s;}
+  .mq-att-t input:checked + i{background:var(--accent, #ff8a3d);}
+  .mq-att-t input:checked + i::after{transform:translateX(15px);}
+  .mq-plan{margin:0 0 12px;}
+  .mq-plan-row{display:flex; gap:5px; overflow-x:auto; padding-bottom:4px; scrollbar-width:none;}
+  .mq-plan-row::-webkit-scrollbar{display:none;}
+  .mq-pc{flex:none; width:52px; border-radius:10px; border:1.5px solid var(--border); background:var(--bg1, #1e1918); text-align:center; padding:4px 2px 3px; font:800 9.5px 'Manrope',sans-serif; color:var(--text-dim); position:relative;}
+  .mq-pc img{width:32px; height:32px; object-fit:contain; display:block; margin:0 auto 1px;}
+  .mq-pc.ct{border-color:color-mix(in srgb, var(--accent, var(--blue)) 60%, var(--border));}
+  .mq-pc.ct b{color:var(--accent, var(--blue));}
+  .mq-pc.sp svg{width:13px; height:13px; position:absolute; top:3px; right:4px; color:var(--accent, var(--blue));}
+  .mq-pc.sw{width:auto; padding:4px 6px; display:flex; align-items:center; border-style:dashed; font-size:15px;}
+  .mq-plan-note{font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim); margin-top:3px;}
+  @media (min-width:561px){
+    body.ct-mode-team #mqPlan{ display:block !important; }
+    body.ct-mode-team #ctPlanList{ display:none !important; }
+    body.ct-mode-team .tut-toggle{ display:none !important; }   /* its explanations were in the list */
+    .mq-att-dodge{ display:none !important; }                    /* desktop: Dodges before bailing stays in Main behavior */
+    #mqPlan .mq-plan-row{ flex-wrap:wrap; overflow:visible; }
+    #mqPlan .mq-pc{ width:64px; } #mqPlan .mq-pc img{ width:40px; height:40px; }
+    #mqPlan .mq-atts{ display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:8px; }
+    #mqPlan .mq-att{ cursor:grab; } #mqPlan .mq-pc[data-place]{ cursor:grab; }
+  }
+</style>
+
 <style>
   /* The picker sheets' contents at every width (they were in the phone stylesheet only, so on desktop the
      Pokemon browser - type grid, tiles, search - came out unstyled). Copied as they are; phone-only
@@ -1852,7 +1942,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-11 · calculate in place</p>
+      <p class="beta-build">Build 2026-11-11 · boss totals left</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -4075,7 +4165,7 @@ function teamStep(S, R, P, snap){
     const dmg = mv.cm ? (dodged ? (who === 0 ? P.main.bossCmDmgDodged : Math.floor(side.bossCmDmg * 0.25)) : side.bossCmDmg) : side.bossFmDmg;
     m.hp -= dmg;
     const over = teamBank(m, energyFromDamage(dmg));
-    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged, att: who === 0 ? S.att : undefined });
+    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged, att: who === 0 ? S.att : undefined, elig: !!mv.elig });
     R.hp.push({ t, who, hp: m.hp, att: who === 0 ? S.att : undefined });
     if(mv.cm){
       R.events.push({ t, kind: m.tank ? "ct" : "main",
@@ -4122,12 +4212,13 @@ function teamStep(S, R, P, snap){
     // copies S, rng included - plays out the same boss as the run.
     const roll = teamRand(S) < P.aggro;
     const cmCost = P.bossCM.cost || 100;
-    const cm = (P.b2b || !B.lastWasCM) && B.energy >= cmCost && roll;   // Back-to-back: allowed when switched on
+    const elig = (P.b2b || !B.lastWasCM) && B.energy >= cmCost;   // could it use its charge move now? (Boss Cadence)
+    const cm = elig && roll;   // Back-to-back: allowed when switched on
     B.acc = roll ? 1 : 0;   // this move's roll (shown in the CSV)
     if(cm) B.energy -= cmCost;
     else B.energy = Math.min(100, B.energy + P.bossFM.energyGain);
     const mv = cm ? P.bossCM : P.bossFM;
-    B.inFlight = { cm, cast: t, land: t + mv.ad };
+    B.inFlight = { cm, cast: t, land: t + mv.ad, elig };
     B.lastWasCM = cm;
     if(cm){ onBossCM(t + mv.ad); if(S.ended || (S.probe && S.probe.done)) return; }
   }
@@ -5132,10 +5223,22 @@ function renderTeamSim(P, S, R){
   const bossCast = R.bossMoves.filter(b => b.cast <= E);
   const bossFmN = bossCast.filter(b => !b.cm).length, bossCmN = bossCast.filter(b => b.cm).length;
   const plural = n => /s$/i.test(n) ? n : n + "s";
-  const bossCadence = bossCmN ? (bossFmN / bossCmN).toFixed(1) : "&mdash;";
+  // Two cadences, both fast moves per charge move:
+  //  - Overall: every fast move it used, per charge move
+  //  - Charge Move: only the turns where it could have used its charge move (it could afford it and
+  //    hadn't just used it) - the fast moves it chose on those turns, per charge move. The aggression
+  //    setting predicts (1 - aggression) / aggression on average, e.g. 2.3 at 30%.
+  const bossEligN = bossCast.filter(b => b.elig).length, bossEligFmN = bossCast.filter(b => b.elig && !b.cm).length;
+  const per = (a, b) => b ? (a / b).toFixed(1) : "&mdash;";
+  const bossCadence = per(bossFmN, bossCmN), bossCmCadence = per(bossEligFmN, bossCmN);
+  const fmPl = c => c === 1 ? P.bossFM.n : plural(P.bossFM.n), cmPl = c => c === 1 ? P.bossCM.n : plural(P.bossCM.n);
   const bossCadenceTip = bossCmN
-    ? `Boss Cadence: how many fast moves the boss uses per charge move. Here ${(bossFmN / bossCmN).toFixed(1)} ${plural(P.bossFM.n)} per ${P.bossCM.n} (${bossFmN} ${bossFmN === 1 ? P.bossFM.n : plural(P.bossFM.n)} and ${bossCmN} ${bossCmN === 1 ? P.bossCM.n : plural(P.bossCM.n)} over this run).`
-    : `Boss Cadence: how many fast moves the boss uses per charge move. It used no ${P.bossCM.n} in this run.`;
+    ? `Overall Cadence: how many fast moves the boss uses per charge move over the run. Here ${bossFmN} ${fmPl(bossFmN)} and ${bossCmN} ${cmPl(bossCmN)}: ${(bossFmN / bossCmN).toFixed(1)} per ${P.bossCM.n}.`
+    : `Overall Cadence: how many fast moves the boss uses per charge move. It used no ${P.bossCM.n} in this run.`;
+  const aggroPct = Math.round(P.aggro * 100), expected = P.aggro > 0 ? ((1 - P.aggro) / P.aggro).toFixed(1) : "";
+  const bossCmCadenceTip = bossCmN
+    ? `Charge Move Cadence: the same, counting only the turns where the boss could use ${P.bossCM.n} (it had the energy and hadn't just used it). It had ${bossEligN} such turn${bossEligN === 1 ? "" : "s"}: ${bossEligFmN} ${fmPl(bossEligFmN)} and ${bossCmN} ${cmPl(bossCmN)}, so ${(bossEligFmN / bossCmN).toFixed(1)} per ${P.bossCM.n}.${expected ? ` At ${aggroPct}% aggression it averages about ${expected}.` : ""}`
+    : `Charge Move Cadence: fast moves per charge move, counting only turns where the boss could use ${P.bossCM.n}. It used no ${P.bossCM.n} in this run.`;
   const allInTaken = n("all-in");
   // dodges up to the end point, and the time they took (from when the main DPS stopped attacking)
   const dodges = R.dodges.filter(d => d.t < E);
@@ -5265,8 +5368,17 @@ function renderTeamSim(P, S, R){
   const howMeaning = { caught: "a catch tank took it", sponged: "the attacker took it, for its energy", dodged: "the attacker dodged it" };
   const cmLegend = ["caught", "sponged", "dodged"].filter(h => cmHowItems.includes(`title="${h}"`))
     .map(h => `<span class="tip-key"><span class="cm-how">${TEAM_HOW_SVG[h]}</span><b>${h}</b>&nbsp;&middot; ${howMeaning[h]}</span>`).join("");
-  const cmExtraItems = attPairs(o => o === "all-in").filter(([, c]) => c > 0).map(([ico, c]) => `<span class="team-sub-item">${ico} took ${c} going all in</span>`)
-    .concat(late ? [`<span class="team-sub-item">${late} too late to swap</span>`] : []).join(" &middot; ");
+  const cmExtraItems = late ? `<span class="team-sub-item team-g3-wide">${late} too late to swap</span>` : "";
+  // going all in, marked above the timeline where it happened (the boss's charge move it took)
+  const allIns = decs.filter(d => d.outcome === "all-in" && d.cast <= E);
+  const allInMarks = allIns.map(d => { const pct = d.cast / span * 100, side = pct > 70 ? " end" : pct < 30 ? " start" : "";
+    const ico = multi ? attIco(d.att || 0) : teamIcon(P, 0), who = multi ? (ATT[d.att || 0] || P.main).name : P.main.name;
+    return `<span class="tl-allin-m${side}" style="left:${pct.toFixed(2)}%" title="${who} took the ${P.bossCM.n} going all in at ${sec(d.cast)}">${ico}<span>${allIns.length > 1 ? "all in" : `took the ${P.bossCM.n} going all in`}</span></span>`; }).join("");
+  // Rows in two parts: the label (and any total) on the first line, the figures beneath, three to a
+  // row - so six Pokemon fill two rows and the column stays narrow
+  const g3 = items => `<div class="team-g3">${String(items || "").split(" &middot; ").join("")}</div>`;
+  const row2 = (label, totalHtml, items, cls) => `<tr class="team-2row${cls ? " " + cls : ""}"><td colspan="2"><div class="team-r2-head"><span class="lbl">${label}</span>${totalHtml ? `<span class="tot">${totalHtml}</span>` : ""}</div>${items ? g3(items) : ""}</td></tr>`;
+  const row2boss = (label, bossHtml, items) => `<tr class="team-2row"><td colspan="2"><div class="team-r2-head"><span class="lbl">${label}</span></div><div class="team-r2-body"><span class="team-r2-boss">${bossHtml}</span>${g3(items)}</div></td></tr>`;
   // Boss Rotation rows open with the boss's icon and its total, spaced off from who took them
   const bossTotal = n => `<span class="team-head-total">${teamIcon(P, "boss")}<b class="team-total">${n}</b></span>`;
   // the boss's fast moves that landed within the results, and how many each Pokemon tanked
@@ -5424,6 +5536,7 @@ function renderTeamSim(P, S, R){
         <div class="team-meta-head">${secs.toFixed(1)}s duration &middot; ${rj.rejoins === null ? "&mdash;" : rj.rejoins === 0 ? "no rejoins needed" : `${rj.rejoins} expected rejoin${rj.rejoins === 1 ? "" : "s"}`}</div>
         ${activeConditionsHtml()}
       </div>
+      ${allInMarks ? `<div class="tl-allin">${allInMarks}</div>` : ""}
       <div class="tl-cms">${cmMarks}</div>
       <div class="team-tl">${bar}</div>
       <div class="team-tl-axis">${axis}</div>
@@ -5431,23 +5544,25 @@ function renderTeamSim(P, S, R){
       <div class="team-tl-legend"><span><i class="tl-cm-key"></i>Charge move</span><span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
       <table class="dps-stat-table team-stat-table">
         ${teamGroupHead("rejoins", "DPS &amp; Rejoins")}
-          <tr><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-hp="${rj.hp}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">${rj.rejoins === null ? "Minimum DPS" : `Minimum DPS for ${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"}`}</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
-          <tr><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
+          ${row2("DPS", "", dpsItems, "team-row-att-dps")}
+          <tr class="team-row-cycle"><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
+          <tr class="team-row-min"><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-hp="${rj.hp}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">${rj.rejoins === null ? "Minimum DPS" : `Minimum DPS for ${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"}`}</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
+          <tr><td>Cumulative DPS${teamTip(teamCumulativeTip(P.rejoinSecs))}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - P.rejoinSecs * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
+          <tr><td>Rejoin time</td><td>${rejoinSecsText(P.rejoinSecs)}</td></tr>
         </tbody>
         ${teamGroupHead("rotation", "Boss Rotation")}
-          <tr><td>${P.bossCM.n} casts${cmLegend ? teamTipHtml(cmLegend, "What the icons mean") : ""}</td><td><span class="team-sub team-inline">${bossTotal(decs.length)}${cmHowItems}</span>${cmExtraItems ? `<div class="team-extra">${cmExtraItems}</div>` : ""}</td></tr>
-          <tr><td>${P.bossFM.n} casts</td><td><span class="team-sub team-inline">${bossTotal(bossFmHits.length)}${fmTankedItems}</span></td></tr>
-          <tr><td>Boss Cadence${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
+          ${row2boss(`${P.bossCM.n} casts${cmLegend ? teamTipHtml(cmLegend, "What the icons mean") : ""}`, bossTotal(decs.length), cmHowItems + cmExtraItems)}
+          ${row2boss(`${P.bossFM.n} casts`, bossTotal(bossFmHits.length), fmTankedItems)}
+          <tr><td>Overall Cadence${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
+          <tr><td>Charge Move Cadence${teamTip(bossCmCadenceTip)}</td><td>${bossCmCadence}</td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
         </tbody>
         ${teamGroupHead("main", "Attackers")}
-          <tr><td>DPS</td><td><span class="team-sub team-inline">${dpsItems}</span></td></tr>
-          <tr><td>Damage</td><td><span class="team-sub team-inline"><span class="team-head-total"><b class="team-total">${total.toLocaleString()}</b></span>${(multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`) : [`${mainIco} ${mainDmg.toLocaleString()}`])
-            .concat(P.tanks.map((tp, i) => `${typeIcos[i]} ${dmgByType[i].toLocaleString()}`)).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; ")}</span></td></tr>
-          <tr><td>Uptime</td><td><span class="team-sub team-inline">${uptimeItems}</span></td></tr>
+          ${row2("Damage", `<b class="team-total">${total.toLocaleString()}</b>`, (multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`) : [`${mainIco} ${mainDmg.toLocaleString()}`])
+            .concat(P.tanks.map((tp, i) => `${typeIcos[i]} ${dmgByType[i].toLocaleString()}`)).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; "))}
+          ${row2("Uptime", "", uptimeItems)}
           ${multi ? `<tr class="team-wide"><td>Hot swaps</td><td>${R.attSpans.filter(x => x.to <= E).length ? R.attSpans.filter(x => x.to <= E).map(x => `<span class="team-sub-item">${attIco(x.att)} &rarr; ${attIco(x.toAtt ?? x.att + 1)} at ${(x.to / 2).toFixed(1)}s${x.hp <= 0 ? " (fainted)" : ` &middot; ${x.hp} HP left`}</span>`).join("<br>") : "none"}</td></tr>` : ""}
           <tr><td>HP left${multi ? ` <span class="dps-stat-sub">${ATT[lastAtt].name}</span>` : ""}</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${ATT[lastAtt].hp}</td></tr>
-          <tr class="team-wide team-ended"><td><span class="ended-lbl">Ended</span><details class="ended-m"><summary>Ended</summary><div class="ended-txt">${reasons[S.ended.reason] || S.ended.reason}</div></details></td><td>${reasons[S.ended.reason] || S.ended.reason}</td></tr>
         </tbody>
       </table>
       <div class="team-csv-row">
@@ -5457,6 +5572,7 @@ function renderTeamSim(P, S, R){
       <details class="team-log" open>
         <summary class="mod-summary">Timeline</summary>
         <table><thead>${logHead}</thead><tbody>${log}</tbody></table>
+        <div class="team-log-ended"><b>Ended</b><span>${reasons[S.ended.reason] || S.ended.reason}</span></div>
       </details>
       <div class="team-final">
         <div class="team-final-title">Final reading &middot; at ${secs.toFixed(1)}s</div>
@@ -11298,7 +11414,7 @@ updateCTMode();
   function wirePlanRow(){
     const host = () => document.querySelector("#mqPlan .mq-plan-row");
     // the row's new order -> the plan: each ⇄ starts the next attacker's catch tanks; a sponge stays its own attacker's
-    holdToSort(host, { drag: ".mq-pc.ct, .mq-pc.sp:not(.is-off)", places: ".mq-pc", scroller: host, drop: cells => {
+    holdToSort(host, { anyWidth: true, drag: ".mq-pc.ct, .mq-pc.sp:not(.is-off)", places: ".mq-pc", scroller: host, get axis(){ return MQ.matches ? "x" : "grid"; }, drop: cells => {
       const old = teamPlan(), blocks = old.map(b => ({ att: b.att, items: [] })), sponges = [];
       let k = 0;
       cells.forEach(c => {
@@ -11310,7 +11426,7 @@ updateCTMode();
       teamPlanSet(blocks);
     }});
     // the attackers' rows: hot swap order
-    holdToSort(() => document.querySelector("#mqPlan .mq-atts"), { drag: ".mq-att", places: ".mq-att", axis: "y", drop: rows => {
+    holdToSort(() => document.querySelector("#mqPlan .mq-atts"), { anyWidth: true, drag: ".mq-att", places: ".mq-att", get axis(){ return MQ.matches ? "y" : "grid"; }, drop: rows => {
       const old = teamPlan(); teamPlanSet(rows.map(r => old[+r.dataset.blk]).filter(Boolean));
     }});
     // their switches: the same settings the list's Can dodge / sponges on set
