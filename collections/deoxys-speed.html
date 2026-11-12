@@ -607,6 +607,11 @@ body{ background:#20263a; color: var(--text-muted); }
   .head img{width:64px;height:64px;object-fit:contain}
   .bname{font-size:22px;font-weight:800;line-height:1.15}
   .bsub{font-size:12.5px;color:var(--ink-dim);margin-top:4px}
+  .head-text{min-width:0}
+  .bname-row{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}
+  .bname-row .bname{display:flex;align-items:center}
+  #bossTypes{display:flex;align-items:center}
+  #bossTypes .tb-badges{align-items:center}
   .filters{display:flex;gap:8px;flex-wrap:wrap;padding:13px 0;border-bottom:1px solid var(--border)}
   .fbtn{font-size:12px;font-weight:700;padding:6px 11px;border-radius:99px;cursor:pointer;
         border:1px solid var(--border);background:var(--card);color:var(--ink-muted)}
@@ -978,13 +983,18 @@ body{ background:#20263a; color: var(--text-muted); }
   <div class="head">
     <div class="head-main">
       <img id="bossSprite" alt="" onerror="this.style.visibility='hidden'">
-      <div>
-        <div class="bname" id="bossName">Loading…</div>
+      <div class="head-text">
+        <div class="bname-row">
+          <div class="bname" id="bossName">Loading…</div>
+          <span id="bossTypes"></span>
+        </div>
         <div class="bsub" id="bossSub"></div>
       </div>
     </div>
     <span id="guideSlot"></span>
   </div>
+  <div id="bossMatchups"></div>
+  <div id="bossCounters" hidden></div>
   <div class="filters" id="filters"></div>
   <div class="coll-count" id="collCount"></div>
   <div class="submit-row">
@@ -994,6 +1004,8 @@ body{ background:#20263a; color: var(--text-muted); }
 <div id="cards" class="cards-grid"></div>
 </div>
 
+<script src="../assets/type-badges.js"></script>
+<script src="../assets/boss-counters.js"></script>
 <script>
 // ---- Theme, restored ----
 // This block was dropped when the page became an index, so it always rendered light regardless
@@ -1317,8 +1329,14 @@ async function load(){
   // mobile and squeezed the See guide button; the tier is in the breadcrumb and the adventure
   // effect shows on each card that has one.
   document.getElementById("bossSub").textContent = `${ROWS.length} strateg${ROWS.length===1?"y":"ies"}`;
+  // Typing + weaknesses/resistances. Not awaited: the page renders without them if the stats CSV is slow.
+  TypeBadges.mount({ name: boss, badges: document.getElementById("bossTypes"),
+                     matchups: document.getElementById("bossMatchups") });
   injectGuideLink(boss);
   buildFilters(); render();
+  // Top counters (assets/boss-counters.js): the attackers and catch tanks its runs use most, topped
+  // up with suggestions (data/suggested-counters.json) where the archive has only a few
+  if(window.BossCounters) BossCounters.mount({ boss, slug: PAGE_SLUG, rows: ROWS });
 }
 
 function buildFilters(){

@@ -994,6 +994,7 @@ body{ background:#20263a; color: var(--text-muted); }
     <span id="guideSlot"></span>
   </div>
   <div id="bossMatchups"></div>
+  <div id="bossCounters" hidden></div>
   <div class="filters" id="filters"></div>
   <div class="coll-count" id="collCount"></div>
   <div class="submit-row">
@@ -1004,6 +1005,7 @@ body{ background:#20263a; color: var(--text-muted); }
 </div>
 
 <script src="../assets/type-badges.js"></script>
+<script src="../assets/boss-counters.js"></script>
 <script>
 // ---- Theme, restored ----
 // This block was dropped when the page became an index, so it always rendered light regardless
@@ -1332,6 +1334,9 @@ async function load(){
                      matchups: document.getElementById("bossMatchups") });
   injectGuideLink(boss);
   buildFilters(); render();
+  // Top counters (assets/boss-counters.js): the attackers and catch tanks its runs use most, topped
+  // up with suggestions (data/suggested-counters.json) where the archive has only a few
+  if(window.BossCounters) BossCounters.mount({ boss, slug: PAGE_SLUG, rows: ROWS });
 }
 
 function buildFilters(){
