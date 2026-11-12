@@ -720,7 +720,18 @@ body{ background:#20263a; color: var(--text-muted); }
      expand control, up to eight total (two rows). */
   .party{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 16px;margin-top:11px;
          grid-auto-rows:1fr}
-  @media (max-width:520px){ .party{grid-template-columns:repeat(2,1fr)} }
+  /* phones: three Pokemon to a row - a smaller sprite and pills, so most parties fit one row */
+  @media (max-width:520px){
+    .party{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 10px}
+    /* (".party .slot ..." - the general slot rules come later in this sheet and would win otherwise) */
+    .party .slot .sprite-wrap > img{width:36px;height:36px}
+    .party .slot .sname{font-size:10px}
+    .party .slot .slot-moves,.party .slot .slot-roles{gap:2px}
+    .party .slot .slot-moves > *,.party .slot .slot-roles > *{font-size:8.5px;padding:1px 5px}
+    /* a long move name wraps inside its column rather than running into the next Pokemon */
+    .party .slot{min-width:0}
+    .party .slot .slot-moves > *{max-width:100%;white-space:normal;overflow-wrap:anywhere;line-height:1.25}
+  }
   .slot.extra{display:none}
   .party.expanded .slot.extra{display:flex}
   .party-more{background:none;border:none;padding:6px 0 0;cursor:pointer;
