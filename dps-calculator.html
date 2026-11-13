@@ -1854,6 +1854,64 @@ if ("serviceWorker" in navigator) {
   .tour-b .tour-skip{ border:0; background:none; color:var(--text-dim); padding-left:0; }
   .tour-b button:disabled{ opacity:.4; cursor:default; }
   .tour-link{ font:800 13px 'Manrope',sans-serif; border:1.5px solid var(--accent, #ff8a3d); color:var(--accent, #ff8a3d); background:transparent; border-radius:10px; padding:7px 14px; cursor:pointer; }
+  /* the nav: each tile's picture and role, its figures beside them */
+  .dt-nav.is-rail{ width:84px !important; align-items:center !important; }
+  .dt-nav-t{ display:grid !important; grid-template-columns:48px; grid-template-rows:auto auto; row-gap:4px; justify-items:center; }
+  .dt-nav-t .sq{ grid-column:1; grid-row:1; } .dt-nav-t > i{ grid-column:1; grid-row:2; justify-self:center; }
+  .dt-nav-t .dt-nav-x{ grid-column:2; grid-row:1 / span 2; display:flex; flex-direction:column; gap:1px; min-width:0; }
+  .dt-nav-x b{ font:800 15px/1.1 'Manrope',sans-serif; color:var(--accent, #ff8a3d); }
+  .dt-nav-x small{ font:700 10.5px/1.25 'Manrope',sans-serif; color:var(--text-dim); }
+  .dt-nav-x.is-note small{ font-size:9.5px; }
+  .dt-nav-t[data-nav="boss"], .dt-nav-t.add{ grid-template-columns:48px; justify-content:center; }
+  .dt-nav.is-rail .dt-nav-t{ align-self:center; }   /* (every picture, the boss and the + in one column) */
+  .dt-nav.is-rail .dt-nav-div{ width:48px !important; }
+  .dt-nav.is-top{ flex-wrap:wrap; row-gap:8px; }
+  /* About this beta | Quick tour */
+  .beta-row, body.ct-mode-team .beta-row{ display:flex !important; align-items:flex-start; gap:10px; }   /* (over the Battle-Simulator-only rule's block) */
+  .beta-row > .beta-about{ flex:1 1 auto; min-width:0; margin-top:0 !important; }
+  .tour-btn{ flex:none; font:800 13px 'Manrope',sans-serif; border:1.5px solid var(--accent, #ff8a3d); color:var(--accent, #ff8a3d); background:transparent;
+    border-radius:12px; padding:0 16px; height:var(--beta-sum-h, 36px); cursor:pointer; white-space:nowrap; }
+  .dt-nav-x b em{ font-style:normal; font-size:11px; }
+  .tour-btn:hover{ background:color-mix(in srgb, var(--accent, #ff8a3d) 12%, transparent); }
+  body:not(.ct-mode-team) .beta-row{ display:none !important; }
+  /* a support DPS's Max dodges, in its row (every width) */
+  .mq-att-sdl{ display:flex; align-items:center; gap:6px; margin-top:3px; font:700 10.5px 'Manrope',sans-serif; color:var(--text-dim); }
+  .mq-att-sdl .mq-step{ display:inline-flex; align-items:center; border:1.5px solid var(--border); border-radius:9px; }
+  .mq-att-sdl .mq-step button{ width:22px; border:0; background:transparent; color:var(--accent, #ff8a3d); font:800 14px/1 'Manrope',sans-serif; padding:2px 0; cursor:pointer; }
+  .mq-att-sdl .mq-step b{ min-width:20px; text-align:center; font:800 12px 'Manrope',sans-serif; color:var(--text); }
+  #mqPlan .mq-att, #mainAttSlot .mq-att{ flex-wrap:wrap; }
+  /* the main DPS's row, up in Main behavior: compact; the section's spacing trimmed to make room */
+  #mainAttSlot{ margin-top:8px; }
+  #mainAttSlot .mq-att{ max-width:340px; padding-top:4px !important; padding-bottom:4px !important; min-height:0 !important; }
+  #mainAttSlot .mq-att > img{ width:30px !important; height:30px !important; }
+  @media (min-width:561px){
+    #mainAttSlot .mq-att .mq-att-t, #mainAttSlot .mq-att .mq-att-dodge{ display:none !important; }   /* (its switches are the row above) */
+    #teamBehaviorCard .tb-group + .tb-group{ margin-top:8px !important; padding-top:10px !important; }
+    #teamBehaviorCard .tb-group{ padding-top:8px !important; padding-bottom:2px !important; }
+    #teamBehaviorCard .step-head{ margin-bottom:8px !important; }
+    #mainBehaviorRow > .check-item{ min-height:0 !important; height:auto !important; padding-top:0 !important; padding-bottom:0 !important; }
+    #mainBehaviorRow{ min-height:0; }
+    #teamBehaviorCard .pl-mode{ margin-bottom:6px !important; }
+    #mqPlan{ margin-bottom:0 !important; }
+    #mqPlan .mq-atts{ margin-top:6px !important; }
+    #teamBehaviorCard .tb-group-head{ margin-bottom:8px !important; }
+    #teamBehaviorCard .team-behavior-row{ margin-bottom:0 !important; }
+    #mqPlan .mq-plan-note{ margin:6px 0 8px !important; }
+    #teamBehaviorCard{ padding-top:16px !important; padding-bottom:14px !important; }
+  }
+  /* the main DPS's Max Dodges, as a stepper (desktop: in Main behavior) */
+  #ctDodgeLimitWrap select#ctDodgeLimit{ display:none !important; }
+  .mb-dl-step{ display:inline-flex; align-items:center; border:1.5px solid var(--border); border-radius:9px; margin-left:4px; }
+  .mb-dl-step button{ width:24px; border:0; background:transparent; color:var(--accent, #ff8a3d); font:800 15px/1 'Manrope',sans-serif; padding:3px 0; cursor:pointer; }
+  .mb-dl-step b{ min-width:20px; text-align:center; font:800 12.5px 'Manrope',sans-serif; color:var(--text); }
+  /* phones: the Max Dodges steppers in the attacker rows, shorter */
+  @media (max-width:560px){
+    .mq-att-dodge .mq-step, .mq-att-sdl .mq-step{ height:22px; border-radius:7px; }
+    .mq-att-dodge .mq-step button, .mq-att-sdl .mq-step button{ width:22px; height:100%; padding:0 !important; font-size:13px !important; line-height:1; }
+    .mq-att-dodge .mq-step b, .mq-att-sdl .mq-step b{ min-width:16px; font-size:11.5px; }
+    .mq-att-dodge{ margin-top:2px !important; font-size:11px !important; }
+    .mq-att-sdl{ margin-top:2px; }
+  }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2248,11 +2306,11 @@ if ("serviceWorker" in navigator) {
     <label for="ctModeDouble">Double Catch Tank</label>
   </div>
   <!-- Beta: Battle Party Simulator - what it does and doesn't model. Shown in that mode only. -->
+  <div class="beta-row team-only">
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p><button type="button" class="tour-link" onclick="startTour()">Take the quick tour</button></p>
-      <p class="beta-build">Build 2026-11-12 · quick tour</p>
+      <p class="beta-build">Build 2026-11-12 · small steppers</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -2292,6 +2350,8 @@ if ("serviceWorker" in navigator) {
       </ul>
     </div>
   </details>
+  <button type="button" class="tour-btn" onclick="startTour()" title="A tutorial tour of the Battle Simulator">Tutorial Tour</button>
+  </div>
 
   
   <!-- STEP 1: SIDE BY SIDE -->
@@ -2529,6 +2589,7 @@ if ("serviceWorker" in navigator) {
       <label class="check-item dt-main-tg" title="The main DPS dodges the boss's charge moves (up to Max Dodges)"><input type="checkbox" data-main-toggle="dodge"> Dodge</label>
       <label class="check-item dt-main-tg" title="The main DPS sponges a charge move when no catch tank is left for it"><input type="checkbox" data-main-toggle="sponge"> Sponge</label>
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPS dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPS only bails (the run ends) when it can't safely continue even with them.">Max Dodges
+        <span class="mq-step mb-dl-step"><button type="button" data-dodge-step="-1" aria-label="Fewer">&minus;</button><b id="ctDodgeLimitOut">1</b><button type="button" data-dodge-step="1" aria-label="More">+</button></span>
         <select id="ctDodgeLimit">
           <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>
           <option value="0" title="No limit">∞</option>
@@ -3908,6 +3969,8 @@ function teamApplyAttacker(P, S){
   const A = P.attackers[S.att || 0];
   if(P.main === A) return;
   P.main = A; P.mainAbsorbs = A.absorbs; P.mainDodges = A.dodges; P.spongeRule = A.rule;
+  if(P.dodgeLimitMain === undefined) P.dodgeLimitMain = P.dodgeLimit;
+  P.dodgeLimit = A.dodgeLimit !== undefined ? A.dodgeLimit : P.dodgeLimitMain;   // its own Max dodges (a support's), else the main DPS's
 }
 
 // The run's random numbers (mulberry32): small, fast, and its whole state is one number in S, so
@@ -5052,7 +5115,8 @@ function runTeamSim(c){
     const pre = "sd" + (i + 1), $s = id => document.getElementById(pre + id);
     return { name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, fmDmg: T.fmDmg, cmDmg: T.cmDmg,
              bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg, bossCmDmgDodged: Math.floor(T.bossCmDmg * 0.25),
-             absorbs: $s("Sponge").checked, dodges: $s("Dodge").checked, rule: "keep", support: i + 1 };
+             absorbs: $s("Sponge").checked, dodges: $s("Dodge").checked, rule: "keep", support: i + 1,
+             dodgeLimit: ($s("DodgeLimit") && $s("DodgeLimit").value !== "") ? Math.max(0, parseInt($s("DodgeLimit").value, 10) || 0) : undefined };
   });
   // a support card's quantity: that many copies, one after another, all using the card's block in
   // the list (its catch tanks, its sponge's place) - "block" is that block's index
@@ -7634,11 +7698,11 @@ const SETUP_FIELD_IDS = [
   "ct5Name","ct5Level","ct5IvAtk","ct5IvDef","ct5IvHp","ct5CM","ct5FM","ct5Qty","ct5Casts",
   // Hot swap: which attacker each catch tank type serves, and the support DPS
   "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign","ctJuice","ctB2B","ctParty",
-  "sd1Name","sd1Qty","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge",
-  "sd2Name","sd2Qty","sd2Level","sd2IvAtk","sd2IvDef","sd2IvHp","sd2CM","sd2FM","sd2Sponge","sd2First","sd2Rule","sd2Dodge",
-  "sd3Name","sd3Qty","sd3Level","sd3IvAtk","sd3IvDef","sd3IvHp","sd3CM","sd3FM","sd3Sponge","sd3First","sd3Rule","sd3Dodge",
-  "sd4Name","sd4Qty","sd4Level","sd4IvAtk","sd4IvDef","sd4IvHp","sd4CM","sd4FM","sd4Sponge","sd4First","sd4Rule","sd4Dodge",
-  "sd5Name","sd5Qty","sd5Level","sd5IvAtk","sd5IvDef","sd5IvHp","sd5CM","sd5FM","sd5Sponge","sd5First","sd5Rule","sd5Dodge",
+  "sd1Name","sd1Qty","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge","sd1DodgeLimit",
+  "sd2Name","sd2Qty","sd2Level","sd2IvAtk","sd2IvDef","sd2IvHp","sd2CM","sd2FM","sd2Sponge","sd2First","sd2Rule","sd2Dodge","sd2DodgeLimit",
+  "sd3Name","sd3Qty","sd3Level","sd3IvAtk","sd3IvDef","sd3IvHp","sd3CM","sd3FM","sd3Sponge","sd3First","sd3Rule","sd3Dodge","sd3DodgeLimit",
+  "sd4Name","sd4Qty","sd4Level","sd4IvAtk","sd4IvDef","sd4IvHp","sd4CM","sd4FM","sd4Sponge","sd4First","sd4Rule","sd4Dodge","sd4DodgeLimit",
+  "sd5Name","sd5Qty","sd5Level","sd5IvAtk","sd5IvDef","sd5IvHp","sd5CM","sd5FM","sd5Sponge","sd5First","sd5Rule","sd5Dodge","sd5DodgeLimit",
 ];
 function captureSetup(){
   const setup = {};
@@ -8883,7 +8947,7 @@ function ctDbOpenPanel(){
     if(ctDbCandidates().length) ctDbOpenPanel();
   });
   // kept current: whenever a catch tank card is redrawn, and on the boss, mode or event boost changing
-  ["updateTeamPreview", "updateTeamPreviewFor"].forEach(fn => { if(typeof window[fn] === "function"){ const draw = window[fn]; window[fn] = function(){ const r = draw.apply(this, arguments); updateCtDbBtn(); return r; }; } });
+  ["updateTeamPreview", "updateTeamPreviewFor"].forEach(fn => { if(typeof window[fn] === "function"){ const draw = window[fn]; window[fn] = function(){ const r = draw.apply(this, arguments); updateCtDbBtn(); if(window.__dtNavRefresh) window.__dtNavRefresh(); return r; }; } });
   document.querySelectorAll('input[name="ctMode"]').forEach(r => r.addEventListener("change", () => setTimeout(updateCtDbBtn, 0)));
   ["bossName", "eventBoost", "ctTypes"].forEach(id => { const el = document.getElementById(id); if(el){ el.addEventListener("change", () => setTimeout(updateCtDbBtn, 0)); el.addEventListener("input", () => setTimeout(updateCtDbBtn, 0)); } });
   if(typeof window.applySetup === "function"){ const load = window.applySetup; window.applySetup = function(){ const r = load.apply(this, arguments); setTimeout(updateCtDbBtn, 0); return r; }; }
@@ -8892,9 +8956,8 @@ function ctDbOpenPanel(){
 
 // ============ QUICK TOUR (Battle Simulator) ============
 // Six stops, each zoomed in on: the page dims, a spotlight moves to that part (scrolled into view) and a
-// bubble says what it's for - Back / Next / Skip, or the arrow keys and Esc. It starts by itself the first
-// time someone opens the Battle Simulator (once per browser); "Take the quick tour" in About this beta
-// replays it.
+// bubble says what it's for - Back / Next / Skip, or the arrow keys and Esc. Started from the Quick tour
+// button beside About this beta.
 const TOUR_STEPS = [
   { find: () => ["#dtBossCard", "#mqBossCard"], text: "Search for a raid boss!" },
   { find: () => ["#dtPartyCard", ".mq-party"], text: "Create and customize your battle party." },
@@ -8959,13 +9022,6 @@ function startTour(){
   window.addEventListener("resize", place); window.addEventListener("scroll", place, { passive: true }); document.addEventListener("keydown", keys);
   go(0);
 }
-// the first visit to the Battle Simulator: the tour, once the page has settled
-(function(){
-  const first = () => { let done = false; try{ done = !!localStorage.getItem("dpsTourDone"); }catch(e){ done = true; }
-    const team = document.getElementById("ctModeTeam");
-    if(!done && team && team.checked && !/[?&#](s|setup)=/.test(location.href)) setTimeout(startTour, 900); };
-  if(document.readyState === "complete") first(); else window.addEventListener("load", first);
-})();
 
 // ============ SHAREABLE SETUP URLS ============
 // Reuses the exact same captureSetup()/applySetup() machinery already used for the local
@@ -8991,11 +9047,11 @@ const SETUP_SHORT_KEYS = {
   ct4Name:"t4n", ct4Level:"t4l", ct4IvAtk:"t4a", ct4IvDef:"t4d", ct4IvHp:"t4h", ct4CM:"t4c", ct4FM:"t4f", ct4Qty:"t4q", ct4Casts:"t4x",
   ct5Name:"t5n", ct5Level:"t5l", ct5IvAtk:"t5a", ct5IvDef:"t5d", ct5IvHp:"t5h", ct5CM:"t5c", ct5FM:"t5f", ct5Qty:"t5q", ct5Casts:"t5x",
   ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas", ctJuice:"tju", ctB2B:"tbb", ctParty:"tpo",
-  sd1Name:"h1n", sd1Qty:"h1q", sd1Level:"h1l", sd1IvAtk:"h1a", sd1IvDef:"h1d", sd1IvHp:"h1h", sd1CM:"h1c", sd1FM:"h1f", sd1Sponge:"h1s", sd1First:"h1p", sd1Rule:"h1r", sd1Dodge:"h1g",
-  sd2Name:"h2n", sd2Qty:"h2q", sd2Level:"h2l", sd2IvAtk:"h2a", sd2IvDef:"h2d", sd2IvHp:"h2h", sd2CM:"h2c", sd2FM:"h2f", sd2Sponge:"h2s", sd2First:"h2p", sd2Rule:"h2r", sd2Dodge:"h2g",
-  sd3Name:"h3n", sd3Qty:"h3q", sd3Level:"h3l", sd3IvAtk:"h3a", sd3IvDef:"h3d", sd3IvHp:"h3h", sd3CM:"h3c", sd3FM:"h3f", sd3Sponge:"h3s", sd3First:"h3p", sd3Rule:"h3r", sd3Dodge:"h3g",
-  sd4Name:"h4n", sd4Qty:"h4q", sd4Level:"h4l", sd4IvAtk:"h4a", sd4IvDef:"h4d", sd4IvHp:"h4h", sd4CM:"h4c", sd4FM:"h4f", sd4Sponge:"h4s", sd4First:"h4p", sd4Rule:"h4r", sd4Dodge:"h4g",
-  sd5Name:"h5n", sd5Qty:"h5q", sd5Level:"h5l", sd5IvAtk:"h5a", sd5IvDef:"h5d", sd5IvHp:"h5h", sd5CM:"h5c", sd5FM:"h5f", sd5Sponge:"h5s", sd5First:"h5p", sd5Rule:"h5r", sd5Dodge:"h5g",
+  sd1Name:"h1n", sd1Qty:"h1q", sd1Level:"h1l", sd1IvAtk:"h1a", sd1IvDef:"h1d", sd1IvHp:"h1h", sd1CM:"h1c", sd1FM:"h1f", sd1Sponge:"h1s", sd1First:"h1p", sd1Rule:"h1r", sd1Dodge:"h1g", sd1DodgeLimit:"h1x",
+  sd2Name:"h2n", sd2Qty:"h2q", sd2Level:"h2l", sd2IvAtk:"h2a", sd2IvDef:"h2d", sd2IvHp:"h2h", sd2CM:"h2c", sd2FM:"h2f", sd2Sponge:"h2s", sd2First:"h2p", sd2Rule:"h2r", sd2Dodge:"h2g", sd2DodgeLimit:"h2x",
+  sd3Name:"h3n", sd3Qty:"h3q", sd3Level:"h3l", sd3IvAtk:"h3a", sd3IvDef:"h3d", sd3IvHp:"h3h", sd3CM:"h3c", sd3FM:"h3f", sd3Sponge:"h3s", sd3First:"h3p", sd3Rule:"h3r", sd3Dodge:"h3g", sd3DodgeLimit:"h3x",
+  sd4Name:"h4n", sd4Qty:"h4q", sd4Level:"h4l", sd4IvAtk:"h4a", sd4IvDef:"h4d", sd4IvHp:"h4h", sd4CM:"h4c", sd4FM:"h4f", sd4Sponge:"h4s", sd4First:"h4p", sd4Rule:"h4r", sd4Dodge:"h4g", sd4DodgeLimit:"h4x",
+  sd5Name:"h5n", sd5Qty:"h5q", sd5Level:"h5l", sd5IvAtk:"h5a", sd5IvDef:"h5d", sd5IvHp:"h5h", sd5CM:"h5c", sd5FM:"h5f", sd5Sponge:"h5s", sd5First:"h5p", sd5Rule:"h5r", sd5Dodge:"h5g", sd5DodgeLimit:"h5x",
 };
 const SETUP_LONG_KEYS = Object.fromEntries(Object.entries(SETUP_SHORT_KEYS).map(([k,v]) => [v,k]));
 function encodeSetupForUrl(setup){
@@ -9400,6 +9456,8 @@ function buildSupportRow(k){
     <span class="sd-row-name"><b>Support DPS ${k}</b> <span id="${p}RowName"></span></span>
     <label class="check-item" title="This support DPS takes the boss's charge moves itself when it is safe: while it has catch tanks, only when it absorbs the energy (no more than 10% overflow) and it can fire again; with none left, whenever it can survive to its next charge move."><input type="checkbox" id="${p}Sponge" checked> Can sponge</label>
     <label class="check-item" title="This support DPS dodges the boss's charge move instead, when that is safe (as Main can dodge)."><input type="checkbox" id="${p}Dodge"> Can dodge</label>
+    <label class="check-item" title="How many of the boss's charge moves this support DPS dodges while it's in">Max dodges
+      <select id="${p}DodgeLimit"><option value="" selected>Same as main DPS</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="0" title="No limit">&infin;</option></select></label>
     <label class="check-item team-dodge-limit" title="Who takes the boss's charge moves first while this support DPS is in">First
       <select id="${p}First"><option value="sponge" selected>Sponge, then catch tanks</option><option value="tanks">Catch tanks, then sponge</option></select>
     </label>`;
@@ -9734,12 +9792,13 @@ document.getElementById("ctMainAbsorb").addEventListener("change", renderTeamOrd
 function updateMainRule(){}   // the sponge rule is no longer a setting (kept so callers needn't change)
 // "Max Dodges" only matters while dodging is allowed
 function updateDodgeLimit(){
-  const on = document.getElementById("ctMainDodge").checked
-    || supportPrefixes().some(p => (document.getElementById(p + "Dodge") || {}).checked);
+  const on = document.getElementById("ctMainDodge").checked;   // (each support DPS has its own Max dodges)
   document.getElementById("ctDodgeLimitWrap").classList.toggle("is-off", !on);
   document.getElementById("ctDodgeLimit").disabled = !on;
 }
 document.getElementById("ctMainDodge").addEventListener("change", updateDodgeLimit);
+document.getElementById("ctDodgeLimit").addEventListener("change", () => { const o = document.getElementById("ctDodgeLimitOut"), d = document.getElementById("ctDodgeLimit"); if(o && d.selectedOptions[0]) o.textContent = d.selectedOptions[0].text;
+  renderTeamOrder(); });   // (a support set to "same as main DPS" shows the new number)
 // Double catch: the "Fast moves on 1st swap" dropdown only applies with it on
 // Double catch is set on each catch tank card: its "Fast moves on 1st swap" only counts while it's on
 function updateDoubleCatch(p){
@@ -11283,14 +11342,29 @@ updateCTMode();
       ["scroll", "resize"].forEach(ev => window.addEventListener(ev, placeDtNav, { passive: true }));
     }
     const boss = ((document.getElementById("bossName") || {}).value || "").trim();
+    // beside each Pokemon: a catch tank's ideal Catch Tank DPS and how long it takes (the best of its
+    // 0 / 1 / 2 FM outcomes); an attacker's depends on how it's played
+    const ideal = t => {
+      const k = parseInt(t.slice(1), 10) || 1, card = document.getElementById(k === 1 ? "teamCard" : "teamCard" + k);
+      let best = null;
+      if(card) card.querySelectorAll(".team-outcome").forEach(o => { const t = (o.querySelector(".val") || {}).textContent || "", v = parseFloat(t);
+        if(isFinite(v) && (!best || v > best.v)) best = { v, s: ((o.querySelector(".sub") || {}).textContent || "").trim(), risky: /\u26a0/.test(t) }; });
+      return best;
+    };
+    const fig = t => { if(t === "boss") return "";
+      if(t[0] === "t"){ const b = ideal(t); return b ? `<span class="dt-nav-x"><b>${b.v.toFixed(1)}${b.risky ? ' <em title="Risky - see its outcomes">&#9888;&#65039;</em>' : ""}</b>${b.s ? `<small>${esc(b.s)}</small>` : ""}</span>` : '<span class="dt-nav-x"><small>&mdash;</small></span>'; }
+      return '<span class="dt-nav-x is-note"><small>Varies</small></span>'; };
     const tile = (key, name, rc, role) => `<button type="button" class="dt-nav-t" data-nav="${key}" title="${esc(name)}${key === "boss" ? " - Raid Boss" : ": edit"}">
       <span class="sq">${name ? `<img src="${esc(sprite(name))}" alt="${esc(name)}" draggable="false" onerror="this.style.visibility='hidden'">` : ""}</span><i class="r-${rc}">${role}</i></button>`;
     const html = (boss ? tile("boss", boss, "boss", "Boss") + '<span class="dt-nav-div"></span>' : "")
       + party.map(t => { const [rc, role] = NAV_ROLE(t); return tile(t, teamPartyLabel(t).replace(/ #\d+$/, ""), rc, role); }).join("")
       + (party.length < 6 ? '<button type="button" class="dt-nav-t add" data-nav="add" title="Add a Pokémon"><span class="sq">+</span><i class="r-none">&nbsp;</i></button>' : "");
     if(nav.dataset.html !== html){ nav.dataset.html = html; nav.innerHTML = html; }
+    navParty = party;
     placeDtNav();
   }
+  let navParty = [];
+  window.__dtNavRefresh = () => { if(document.getElementById("dtNav")) renderDtNav(navParty); };   // (a catch tank's figures changed)
   function placeDtNav(){
     const nav = document.getElementById("dtNav"); if(!nav) return;
     const on = !MQ.matches && document.body.classList.contains("ct-mode-team") && nav.querySelector("[data-nav]");
@@ -12134,23 +12208,33 @@ updateCTMode();
     let dodgeShown = 0;
     const dodgeLine = () => { const dl = document.getElementById("ctDodgeLimit"), o = dl && dl.selectedOptions[0];
       return `<div class="mq-att-dodge"><span>Max Dodges</span><span class="mq-step"><button type="button" data-dodge-step="-1" aria-label="Fewer">&minus;</button><b>${o ? esc(o.text) : ""}</b><button type="button" data-dodge-step="1" aria-label="More">+</button></span></div>`; };
+    // a support DPS's own Max dodges ("Same as main DPS" shows the main DPS's number)
+    const supDodgeLine = a => { const sel = document.getElementById("sd" + a.slice(1) + "DodgeLimit"), dl = document.getElementById("ctDodgeLimit");
+      const txt = !sel ? "" : sel.value === "" ? (dl && dl.selectedOptions[0] ? dl.selectedOptions[0].text : "") : sel.selectedOptions[0].text;
+      return `<div class="mq-att-sdl"><span>Max dodges</span><span class="mq-step"><button type="button" data-sdl="${a.slice(1)}" data-d="-1" aria-label="Fewer">&minus;</button><b>${esc(txt)}</b><button type="button" data-sdl="${a.slice(1)}" data-d="1" aria-label="More">+</button></span></div>`; };
     // the attackers, in hot swap order: whether each may dodge or sponge the boss's charge moves
     const atts = blocks.map((b, bi) => {
-      const att = teamAttName(b.att), role = b.att === "m" ? "Main DPS" : "Support " + b.att.slice(1);
+      const att = teamAttName(b.att), role = b.att === "m" ? "Main DPS" : "Support DPS";
       const dodge = (teamAttInput(b.att, "dodge") || {}).checked, sponge = (teamAttInput(b.att, "sponge") || {}).checked;
       return `<div class="mq-att" data-blk="${bi}" data-att="${b.att}"><img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">
-        <span class="mq-att-n"><b>${esc(att)}</b><small>${bi + 1}. ${role}</small></span>
+        <span class="mq-att-n"><b>${esc(att)}</b><small>${role}</small>${b.att !== "m" && dodge ? supDodgeLine(b.att) : ""}</span>
         <label class="mq-att-t"><input type="checkbox" data-att-dodge="${b.att}" ${dodge ? "checked" : ""}><i></i>Dodge</label>
-        <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label>${dodge && !dodgeShown++ ? dodgeLine() : ""}</div>`;
+        <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label>${b.att === "m" && dodge ? dodgeLine() : ""}</div>`;
     }).join("");
     box.innerHTML = `<div class="mq-plan-row">${cells.join("") || '<div class="mq-none">No catch tanks - hot swaps and sponges only.</div>'}</div>
       <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Click or tap and hold a Pok\u00e9mon to move it.</div>
       <div class="mq-atts">${atts}</div>`;
+    // the main DPS's row: up in Main behavior, just below its switches (it keeps its place in the hot swap order)
+    const mainRow = box.querySelector('.mq-att[data-att="m"]'), mrow = document.getElementById("mainBehaviorRow");
+    if(mainRow && mrow){ let slot = document.getElementById("mainAttSlot");
+      if(!slot){ slot = document.createElement("div"); slot.id = "mainAttSlot"; mrow.insertAdjacentElement("afterend", slot); }
+      slot.innerHTML = ""; mainRow.classList.add("is-main-up"); slot.appendChild(mainRow); }
     if(!renderPlanPreview.wired){ renderPlanPreview.wired = true; wirePlanRow(); }
     document.querySelectorAll("[data-main-toggle]").forEach(i => { const el = teamAttInput("m", i.dataset.mainToggle); if(el && i.checked !== el.checked) i.checked = el.checked; });
     const om = document.getElementById("ctOneMore"), ai = document.getElementById("ctAllIn"), jc = document.getElementById("ctJuice");
     if(om && ai && jc){ const on = ai.checked || jc.checked; if(om.checked !== on) om.checked = on; if(on && !(ai.checked && jc.checked)){ ai.checked = jc.checked = true; } if(om._mqPaint) om._mqPaint(); }
-    const dlw = document.getElementById("ctDodgeLimitWrap"), dls = document.getElementById("ctDodgeLimit");
+    const dlw = document.getElementById("ctDodgeLimitWrap"), dls = document.getElementById("ctDodgeLimit"), dlo = document.getElementById("ctDodgeLimitOut");
+    if(dls && dlo && dls.selectedOptions[0] && dlo.textContent !== dls.selectedOptions[0].text) dlo.textContent = dls.selectedOptions[0].text;
     if(dlw && dls && dlw.classList.contains("is-off") !== dls.disabled) dlw.classList.toggle("is-off", dls.disabled);
     const pop = document.querySelector(".mq-ohi .info-pop");
     if(pop){ const hint = ((document.getElementById("ctAssignHint") || {}).textContent || "").trim();
@@ -12159,6 +12243,15 @@ updateCTMode();
       if(pop.textContent !== t) pop.textContent = t; }
   }
 
+  // a support DPS's Max dodges: through 1-5 and no limit (from "Same as main DPS", starting at the main DPS's number)
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest("[data-sdl]"); if(!b) return;
+    const sel = document.getElementById("sd" + b.dataset.sdl + "DodgeLimit"), dl = document.getElementById("ctDodgeLimit"); if(!sel) return;
+    const order = ["1", "2", "3", "4", "5", "0"], cur = sel.value === "" ? (dl ? dl.value : "1") : sel.value;
+    const j = Math.max(0, Math.min(order.length - 1, order.indexOf(cur) + (+b.dataset.d)));
+    sel.value = order[j]; fire(sel, "change");
+    const out = b.parentElement.querySelector("b"); if(out) out.textContent = sel.selectedOptions[0].text;
+  });
   document.addEventListener("click", e => {
     const b = e.target.closest && e.target.closest("[data-dodge-step]"); if(!b) return;
     const dl = document.getElementById("ctDodgeLimit"); if(!dl) return;
@@ -12184,7 +12277,10 @@ updateCTMode();
     }});
     // the attackers' rows: hot swap order
     holdToSort(() => document.querySelector("#mqPlan .mq-atts"), { anyWidth: true, drag: ".mq-att", places: ".mq-att", get axis(){ return MQ.matches ? "y" : "grid"; }, drop: rows => {
-      const old = teamPlan(); teamPlanSet(rows.map(r => old[+r.dataset.blk]).filter(Boolean));
+      const old = teamPlan(), mi = old.findIndex(b => b.att === "m");
+      const next = rows.filter(r => r.dataset.att !== "m").map(r => old[+r.dataset.blk]).filter(Boolean);
+      if(mi >= 0) next.splice(Math.min(mi, next.length), 0, old[mi]);   // the main DPS keeps its place (its row is up in Main behavior)
+      teamPlanSet(next);
     }});
     // All in final move: sets both of the settings it replaced
     document.addEventListener("change", e => {
