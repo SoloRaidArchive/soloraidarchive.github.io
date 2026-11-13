@@ -1838,7 +1838,8 @@ if ("serviceWorker" in navigator) {
   }
   /* the quick tour */
   .tour{ position:fixed; inset:0; z-index:200; }
-  .tour-spot{ position:fixed; border-radius:18px; box-shadow:0 0 0 9999px rgba(10,12,20,.66), 0 0 0 3px var(--accent, #ff8a3d), 0 0 26px 4px color-mix(in srgb, var(--accent, #ff8a3d) 45%, transparent);
+  .tour-dim{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; }
+  .tour-spot{ position:fixed; border-radius:18px; box-shadow:0 0 0 3px var(--accent, #ff8a3d), 0 0 26px 4px color-mix(in srgb, var(--accent, #ff8a3d) 45%, transparent);
     transition:left .45s ease, top .45s ease, width .45s ease, height .45s ease, transform .35s ease; transform:scale(1.04); pointer-events:none; }
   .tour-spot.is-in{ transform:scale(1); }   /* settles in: the zoom */
   .tour-bub{ position:fixed; z-index:1; background:var(--card); color:var(--text); border:2px solid var(--accent, #ff8a3d); border-radius:16px; padding:14px 16px 12px;
@@ -1912,6 +1913,16 @@ if ("serviceWorker" in navigator) {
     .mq-att-dodge{ margin-top:2px !important; font-size:11px !important; }
     .mq-att-sdl{ margin-top:2px; }
   }
+  /* Recent Setups: each Pokemon as its sprite */
+  .history-label{ display:flex; align-items:center; flex-wrap:wrap; gap:4px 6px; }
+  .hist-mons{ display:inline-flex; align-items:center; flex-wrap:wrap; gap:2px 4px; }
+  .hist-mon{ display:inline-flex; align-items:center; gap:2px; position:relative; }
+  .hist-sp{ width:34px; height:34px; object-fit:contain; vertical-align:middle; }
+  .hist-mon em{ position:absolute; right:-4px; bottom:-1px; font-style:normal; font:800 8.5px/1 'Manrope',sans-serif; color:var(--text-dim);
+    background:color-mix(in srgb, var(--border) 85%, var(--card)); border-radius:999px; padding:1px 4px; box-shadow:0 0 0 1.5px var(--card); }   /* x4: small and muted, on the sprite's corner */
+  .hist-plus{ font:800 12px 'Manrope',sans-serif; color:var(--text-dim); margin:0 2px; }
+  .hist-vs{ font:800 11px 'Manrope',sans-serif; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim); margin:0 2px; }
+  .hist-tag{ font:800 10.5px 'Manrope',sans-serif; color:var(--accent, #ff8a3d); border:1.5px solid currentColor; border-radius:999px; padding:1px 7px; }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2310,7 +2321,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · small steppers</p>
+      <p class="beta-build">Build 2026-11-12 · muted count badge</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -7833,13 +7844,38 @@ function loadHistory(){
 function saveHistoryList(history){
   try{ localStorage.setItem("ctCalcHistory", JSON.stringify(history)); }catch(e){}
 }
+// A setup as its line in Recent Setups: who is in it (as the setup has them - the Battle Simulator's main DPS,
+// then each catch tank and each support DPS with how many) vs the boss, and the mode where it isn't the
+// Battle Simulator. Built from the setup each time, so older entries (saved with a text label that read
+// "+ 3x ?" for a party without catch tanks) show correctly too.
+function historyParts(setup){
+  const nm = k => String(setup[k] || "").trim(), qty = k => Math.max(1, parseInt(setup[k], 10) || 1);
+  const mons = [], mode = setup.ctMode || "single";
+  if(nm("pokemonName")) mons.push({ name: nm("pokemonName") });
+  if(mode === "team"){
+    const types = Math.max(0, parseInt(setup.ctTypes, 10) || 0);
+    for(let k = 1; k <= types; k++){ const p = k === 1 ? "ct" : "ct" + k; if(nm(p + "Name")) mons.push({ name: nm(p + "Name"), n: qty(p + "Qty") }); }
+    const sups = Math.max(0, parseInt(setup.sdCount, 10) || 0);
+    for(let k = 1; k <= sups; k++){ if(nm("sd" + k + "Name")) mons.push({ name: nm("sd" + k + "Name"), n: qty("sd" + k + "Qty") }); }
+  }
+  const tag = { team: "Sim", single: "CT", double: "Double CT", maindps: "Main DPS" }[mode] || "";
+  return { mons, boss: nm("bossName"), tag };
+}
+function historyText(setup){
+  const h = historyParts(setup);
+  return `${h.mons.map(m => m.name + (m.n > 1 ? ` \u00d7${m.n}` : "")).join(" + ") || "?"} vs ${h.boss || "?"}${h.tag ? ` (${h.tag})` : ""}`;
+}
+function historyHtml(setup){
+  const h = historyParts(setup), esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const sp = name => `<img class="hist-sp" src="${esc(spriteUrl(name))}" alt="${esc(name)}" title="${esc(name)}" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.alt))">`;
+  return `<span class="hist-mons">${h.mons.map(m => `<span class="hist-mon">${sp(m.name)}${m.n > 1 ? `<em title="${m.n} of them">&times;${m.n}</em>` : ""}</span>`).join('<span class="hist-plus">+</span>') || "?"}</span>`
+    + `<span class="hist-vs">vs</span>${h.boss ? `<span class="hist-mon">${sp(h.boss)}</span>` : "?"}${h.tag ? `<span class="hist-tag">${esc(h.tag)}</span>` : ""}`;
+}
 function addToHistory(setup){
   let history = loadHistory();
   const setupStr = JSON.stringify(setup);
   history = history.filter(h => JSON.stringify(h.setup) !== setupStr);
-  const label = setup.ctMode === "team"
-    ? `${setup.pokemonName || "?"} + ${setup.ctQty || "?"}× ${setup.ctName || "?"} vs ${setup.bossName || "?"} (sim)`
-    : `${setup.pokemonName || "?"} vs ${setup.bossName || "?"}`;
+  const label = historyText(setup);
   history.unshift({ setup, label, time: Date.now() });
   history = history.slice(0, 10);
   saveHistoryList(history);
@@ -7865,9 +7901,9 @@ function renderHistory(){
     return;
   }
   el.innerHTML = `<div class="history-list">${history.map((h,i) => `
-    <div class="history-item" onclick="restoreSetup(${i})" title="${h.label}" role="button" tabindex="0" onkeydown="if(event.key==='Enter') restoreSetup(${i})">
+    <div class="history-item" onclick="restoreSetup(${i})" title="${historyText(h.setup || {}).replace(/"/g, "&quot;")}" aria-label="${historyText(h.setup || {}).replace(/"/g, "&quot;")}" role="button" tabindex="0" onkeydown="if(event.key==='Enter') restoreSetup(${i})">
       <button type="button" class="history-remove" onclick="removeHistoryItem(${i}, event)" aria-label="Remove">✕</button>
-      <span class="history-label">${h.label}</span>
+      <span class="history-label">${h.setup ? historyHtml(h.setup) : h.label}</span>
       <span class="history-time">${new Date(h.time).toLocaleString([], {month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"})}</span>
     </div>
   `).join("")}</div>`;
@@ -8960,15 +8996,27 @@ function ctDbOpenPanel(){
 // button beside About this beta.
 const TOUR_STEPS = [
   { find: () => ["#dtBossCard", "#mqBossCard"], text: "Search for a raid boss!" },
-  { find: () => ["#dtPartyCard", ".mq-party"], text: "Create and customize your battle party." },
+  { find: () => ["#dtPartyCard", ".mq-party"], also: () => ["#dtNav"], prep: tourShowNav, text: "Create and customize your battle party." },
   { find: () => ["#mainBehaviorRow"], group: true, text: "Choose the way your main DPS should attack." },
   { find: () => ["#mqPlan"], group: true, text: "Prioritize who in your party should respond to charge moves first." },
   { find: () => [".mod-consolidated-grid"], card: true, text: "Customize weather, adventure effects & how aggressive the boss should be." },
   { find: () => ["#mainBtns", "#calcBtn"], text: "See your results!" },
 ];
+// the battle party nav, shown alongside the party grid: a rail is always there; the strip normally waits
+// for the party bar to scroll away, so for this step it is asked to show (and the page leaves room below it)
+function tourShowNav(){
+  const nav = document.getElementById("dtNav");
+  if(!nav || window.matchMedia("(max-width:560px)").matches || !nav.querySelector("[data-nav]")) return;
+  nav.classList.add("tour-force"); window.dispatchEvent(new Event("scroll"));
+}
+function tourTargets(st){   // the main part, then any shown with it
+  const main = tourTarget(st); if(!main) return [];
+  const extra = (st.also ? st.also() : []).map(q => document.querySelector(q)).filter(e => e && !e.hidden && e !== main && getComputedStyle(e).display !== "none");
+  return [main].concat(extra);
+}
 function tourTarget(st){
   for(const sel of st.find()){
-    let el = document.querySelector(sel); if(!el) continue;
+    let el = document.querySelector(sel); if(!el || el.hidden) continue;
     if(st.group) el = el.closest(".tb-group") || el;
     if(st.card) el = el.closest(".step-card") || el;
     if(el.offsetParent !== null || getComputedStyle(el).position === "fixed") return el;
@@ -8980,14 +9028,18 @@ function startTour(){
   if(team && !team.checked){ team.checked = true; team.dispatchEvent(new Event("change", { bubbles: true })); }
   document.querySelectorAll(".tour").forEach(x => x.remove());
   const ov = document.createElement("div"); ov.className = "tour"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Quick tour");
-  ov.innerHTML = '<div class="tour-spot"></div><div class="tour-bub"><div class="tour-n"></div><div class="tour-t"></div><div class="tour-b"><button type="button" class="tour-skip">Skip tour</button><span></span><button type="button" class="tour-back">Back</button><button type="button" class="tour-next">Next</button></div></div>';
+  ov.innerHTML = '<svg class="tour-dim" aria-hidden="true"><defs><mask id="tourHoles"><rect x="0" y="0" width="100%" height="100%" fill="white"/><g class="tour-holes"></g></mask></defs><rect x="0" y="0" width="100%" height="100%" fill="rgba(10,12,20,.66)" mask="url(#tourHoles)"/></svg><div class="tour-rings"></div><div class="tour-bub"><div class="tour-n"></div><div class="tour-t"></div><div class="tour-b"><button type="button" class="tour-skip">Skip tour</button><span></span><button type="button" class="tour-back">Back</button><button type="button" class="tour-next">Next</button></div></div>';
   document.body.appendChild(ov);
-  const spot = ov.querySelector(".tour-spot"), bub = ov.querySelector(".tour-bub");
-  let k = 0, el = null;
+  const holes = ov.querySelector(".tour-holes"), rings = ov.querySelector(".tour-rings"), bub = ov.querySelector(".tour-bub");
+  let k = 0, el = null, els = [];
   const place = () => {
     if(!el) return;
-    const r = el.getBoundingClientRect(), pad = 8;
-    spot.style.left = (r.left - pad) + "px"; spot.style.top = (r.top - pad) + "px"; spot.style.width = (r.width + pad * 2) + "px"; spot.style.height = (r.height + pad * 2) + "px";
+    const pad = 8, rs = els.map(e => e.getBoundingClientRect());
+    holes.innerHTML = rs.map(q => `<rect x="${q.left - pad}" y="${q.top - pad}" width="${q.width + pad * 2}" height="${q.height + pad * 2}" rx="18" fill="black"/>`).join("");
+    while(rings.children.length < rs.length){ const d = document.createElement("div"); d.className = "tour-spot"; rings.appendChild(d); }
+    [...rings.children].forEach((d, i) => { const q = rs[i]; d.hidden = !q; if(!q) return;
+      d.style.left = (q.left - pad) + "px"; d.style.top = (q.top - pad) + "px"; d.style.width = (q.width + pad * 2) + "px"; d.style.height = (q.height + pad * 2) + "px"; });
+    const r = rs[0];
     const bw = Math.min(340, innerWidth - 24); bub.style.width = bw + "px";
     const bh = bub.offsetHeight, below = r.bottom + pad + 14, above = r.top - pad - 14 - bh;
     const top = below + bh <= innerHeight - 8 ? below : above >= 8 ? above : Math.max(8, innerHeight - bh - 8);
@@ -8995,26 +9047,29 @@ function startTour(){
     bub.style.top = top + "px"; bub.style.left = Math.max(12, Math.min(r.left + r.width / 2 - bw / 2, innerWidth - bw - 12)) + "px";
     const ax = Math.max(18, Math.min(r.left + r.width / 2 - parseFloat(bub.style.left), bw - 18)); bub.style.setProperty("--ax", ax + "px");
   };
-  const go = n => {
+  const go = (n, prepped) => {
     k = Math.max(0, Math.min(TOUR_STEPS.length - 1, n));
-    el = tourTarget(TOUR_STEPS[k]);
+    if(TOUR_STEPS[k].prep && !prepped){ TOUR_STEPS[k].prep(); setTimeout(() => go(k, true), 120); return; }   // (what it needs on screen first)
+    els = tourTargets(TOUR_STEPS[k]); el = els[0] || null;
+    if(!TOUR_STEPS[k].prep){ const nv = document.getElementById("dtNav"); if(nv && nv.classList.contains("tour-force")){ nv.classList.remove("tour-force"); window.dispatchEvent(new Event("scroll")); } }
     if(!el){ if(n > k || k === TOUR_STEPS.length - 1) return end(); return go(k + 1); }
     ov.querySelector(".tour-n").textContent = `Step ${k + 1} of ${TOUR_STEPS.length}`;
     ov.querySelector(".tour-t").textContent = TOUR_STEPS[k].text;
     ov.querySelector(".tour-back").disabled = k === 0;
     ov.querySelector(".tour-next").textContent = k === TOUR_STEPS.length - 1 ? "Done" : "Next";
-    bub.classList.remove("is-in"); spot.classList.remove("is-in");
+    bub.classList.remove("is-in"); [...rings.children].forEach(d => d.classList.remove("is-in"));
     // the part, in the middle of the screen (a fixed bar is where it is)
     if(getComputedStyle(el).position !== "fixed" && getComputedStyle(el).position !== "sticky"){
       // below whatever is pinned to the top (the header; the party bar on a phone)
-      const pinned = Math.max(0, ...[".sticky-header", ".mq-party"].map(q => { const e = document.querySelector(q); if(!e) return 0;
+      const pinned = Math.max(0, ...[".sticky-header", ".mq-party", "#dtNav.is-top:not([hidden])"].map(q => { const e = document.querySelector(q); if(!e) return 0;
         const ps = getComputedStyle(e).position; return ps === "sticky" || ps === "fixed" ? e.getBoundingClientRect().bottom : 0; })) + 14;
       const r = el.getBoundingClientRect(), y = r.top + scrollY - Math.max(pinned, (innerHeight - r.height) / 2 - 40);
       window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
     }
-    setTimeout(() => { place(); spot.classList.add("is-in"); bub.classList.add("is-in"); }, 420);
+    setTimeout(() => { place(); [...rings.children].forEach(d => d.classList.add("is-in")); bub.classList.add("is-in"); }, 420);
   };
-  const end = () => { try{ localStorage.setItem("dpsTourDone", "1"); }catch(e){} ov.remove(); window.removeEventListener("resize", place); window.removeEventListener("scroll", place); document.removeEventListener("keydown", keys); };
+  const end = () => { try{ localStorage.setItem("dpsTourDone", "1"); }catch(e){} ov.remove();
+    const nv = document.getElementById("dtNav"); if(nv && nv.classList.contains("tour-force")){ nv.classList.remove("tour-force"); window.dispatchEvent(new Event("scroll")); } window.removeEventListener("resize", place); window.removeEventListener("scroll", place); document.removeEventListener("keydown", keys); };
   const keys = e => { if(e.key === "Escape") end(); else if(e.key === "ArrowRight") (k === TOUR_STEPS.length - 1 ? end() : go(k + 1)); else if(e.key === "ArrowLeft") go(k - 1); };
   ov.querySelector(".tour-next").addEventListener("click", () => k === TOUR_STEPS.length - 1 ? end() : go(k + 1));
   ov.querySelector(".tour-back").addEventListener("click", () => go(k - 1));
@@ -11376,7 +11431,7 @@ updateCTMode();
     nav.classList.toggle("is-rail", rail); nav.classList.toggle("is-top", !rail);
     if(rail){ nav.hidden = false; nav.style.top = (hb + 16) + "px"; nav.style.left = Math.max(12, box.left - RAIL - 18) + "px"; nav.style.width = ""; return; }
     // the strip: once the party bar has gone up past the header
-    const gone = top.getBoundingClientRect().bottom < hb + 4;
+    const gone = nav.classList.contains("tour-force") || top.getBoundingClientRect().bottom < hb + 4;   // (or the tour is showing it)
     nav.hidden = !gone; if(!gone) return;
     nav.style.top = (hb + 8) + "px"; nav.style.left = box.left + "px"; nav.style.width = box.width + "px";
   }
@@ -12187,7 +12242,7 @@ updateCTMode();
       // a support: one card - where it comes in, and its sponge (first in its turn) when that is on
       if(bi > 0){
         const sp = (document.getElementById("sd" + b.att.slice(1) + "Sponge") || {}).checked;
-        cells.push(`<div class="mq-pc sw att-in${sp ? " has-sp" : ""}" data-blk="${bi}" title="${esc(att)} comes in here${sp ? " and sponges first" : ""} - hold and drag to change where">${sp ? SPONGE_SVG : ""}<img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">in</div>`);
+        cells.push(`<div class="mq-pc sw att-in${sp ? " has-sp" : ""}" data-blk="${bi}" title="${esc(att)} comes in here${sp ? " and sponges first" : ""} - hold and drag to change where">${sp ? SPONGE_SVG : ""}<img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"></div>`);
       }
       b.items.forEach((x, i) => {
         const at = `data-b="${bi}" data-i="${i}"`;
@@ -12195,7 +12250,7 @@ updateCTMode();
         if(x === "s"){
           const on = (document.getElementById(b.att === "m" ? "ctMainAbsorb" : "sd" + b.att.slice(1) + "Sponge") || {}).checked;
           // off: kept as an invisible place, so moving the others around it keeps where it was
-          cells.push(on ? `<div class="mq-pc sp" ${at} title="${esc(att)} sponges when it absorbs the energy">${SPONGE_SVG}<img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">sponge</div>`
+          cells.push(on ? `<div class="mq-pc sp" ${at} title="${esc(att)} sponges when it absorbs the energy">${SPONGE_SVG}<img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"></div>`
                         : `<div class="mq-pc sp is-off" ${at} hidden></div>`);
           return;
         }
