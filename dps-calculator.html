@@ -2345,7 +2345,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · separate modes</p>
+      <p class="beta-build">Build 2026-11-12 · nav taps to change</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -11527,8 +11527,7 @@ updateCTMode();
           return;
         }
         if(b.dataset.nav === "add"){ setTimeout(() => openNavRoles(b), 0); return; }   // after this click (the party bar's click-away closes menus)
-        if(e.target.closest("[data-ed]")){ openProfile(b.dataset.nav); return; }   // the pencil: its profile
-        selectPartyMon(b.dataset.nav);
+        openProfile(b.dataset.nav);   // the nav: a tap changes it (its panel)
       });
       ["scroll", "resize"].forEach(ev => window.addEventListener(ev, placeDtNav, { passive: true }));
     }
@@ -11545,8 +11544,8 @@ updateCTMode();
     const fig = t => { if(t === "boss") return "";
       if(t[0] === "t"){ const b = ideal(t); return b ? `<span class="dt-nav-x"><b>${b.v.toFixed(1)}${b.risky ? ' <em title="Risky - see its outcomes">&#9888;&#65039;</em>' : ""}</b>${b.s ? `<small>${esc(b.s)}</small>` : ""}</span>` : '<span class="dt-nav-x"><small>&mdash;</small></span>'; }
       return '<span class="dt-nav-x is-note"><small>Varies</small></span>'; };
-    const tile = (key, name, rc, role) => `<button type="button" class="dt-nav-t" data-nav="${key}" title="${esc(name)}${key === "boss" ? " - Raid Boss" : ": the boss's damage to it"}">
-      <span class="sq">${key !== "boss" && key !== "add" ? `<span class="dt-nav-ed" data-ed="${key}" role="button" aria-label="Edit" title="Edit"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 2.3l2.4 2.4-8.2 8.2-3 .6.6-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>` : ""}${name ? `<img${shadowCls(name)} src="${esc(sprite(name))}" alt="${esc(name)}" draggable="false" onerror="this.style.visibility='hidden'">` : ""}</span><i class="r-${rc}">${role}</i></button>`;
+    const tile = (key, name, rc, role) => `<button type="button" class="dt-nav-t" data-nav="${key}" title="${esc(name)}${key === "boss" ? " - Raid Boss" : ": edit"}">
+      <span class="sq">${name ? `<img${shadowCls(name)} src="${esc(sprite(name))}" alt="${esc(name)}" draggable="false" onerror="this.style.visibility='hidden'">` : ""}</span><i class="r-${rc}">${role}</i></button>`;
     const html = (boss ? tile("boss", boss, "boss", "Boss") + '<span class="dt-nav-div"></span>' : "")
       + party.map(t => { const [rc, role] = NAV_ROLE(t); return tile(t, teamPartyLabel(t).replace(/ #\d+$/, ""), rc, role); }).join("")
       + (party.length < 6 ? '<button type="button" class="dt-nav-t add" data-nav="add" title="Add a Pokémon"><span class="sq">+</span><i class="r-none">&nbsp;</i></button>' : "");
@@ -11598,7 +11597,7 @@ updateCTMode();
   function selectPartyMon(tok){ window.__partySel = tok; markPartySel(); if(typeof updateBossPreview === "function") updateBossPreview(); }
   function markPartySel(){
     const t = window.__partySel || "m.1";
-    document.querySelectorAll(".dt-slot[data-tok], .mq-slot[data-tok], #dtNav [data-nav]").forEach(el => el.classList.toggle("is-sel", (el.dataset.tok || el.dataset.nav) === t));
+    document.querySelectorAll(".dt-slot[data-tok], .mq-slot[data-tok]").forEach(el => el.classList.toggle("is-sel", el.dataset.tok === t));   // (not the nav: there a tap changes the Pokemon)
   }
   window.__markPartySel = markPartySel;
   function closeDtPop(){ document.querySelectorAll(".dt-pop").forEach(x => x.remove()); document.querySelectorAll(".dt-slot.on").forEach(x => x.classList.remove("on")); }
