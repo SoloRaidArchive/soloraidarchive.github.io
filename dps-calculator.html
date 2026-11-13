@@ -1947,6 +1947,10 @@ if ("serviceWorker" in navigator) {
   .sel-sp{ width:26px; height:26px; object-fit:contain; }
   .sel-role{ font-style:normal; font:800 9.5px/1 'Manrope',sans-serif; border-radius:999px; padding:3px 7px; }
   .sel-main{ background:rgba(220,53,69,0.18); color:#e05561; } .sel-support{ background:rgba(0,150,136,0.18); color:#1aa595; } .sel-ct{ background:rgba(155,123,240,0.18); color:#8a63e6; }
+  /* Boss aggression's box: the same height as its neighbours (slider and its one-line hint, a little tighter) */
+  .mod-consolidated-grid > .aggro-cell > .mod-box{ min-height:50px !important; padding:5px 12px !important; gap:1px !important; }
+  .mod-consolidated-grid > .aggro-cell > .mod-box input[type=range]{ height:16px; }
+  .mod-consolidated-grid > .aggro-cell .aggro-hint{ font-size:10.5px !important; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0 !important; }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2345,7 +2349,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · nav taps to change</p>
+      <p class="beta-build">Build 2026-11-12 · all in fights on</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -2367,11 +2371,11 @@ if ("serviceWorker" in navigator) {
       <ul>
         <li>An attacker hot swaps to the next one when it can't safely take the boss's next charge move (no catch tank left, and a sponge or dodge isn't safe), or when it can't live to land its next charge move. It fires the charge move it is building first if that lands in time - or stays in, takes the hit, and lands it, when it can survive to. The next attacker comes in with full HP and no energy; attackers never come back.</li>
         <li><b>Doubling back</b>: when an incoming charge move would make the attacker in overflow and a support DPS could absorb it fully, the simulator plays the fight forward both ways and swaps to the support if that deals more damage. The support is used until it is done, then the attacker comes back - with the HP and energy it left with - ahead of any new one.</li>
-        <li><b>All in final move</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
+        <li><b>Juice main DPS</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
       </ul>
       <p class="beta-h">The end of the run</p>
       <ul>
-        <li>The run ends when the last attacker can't continue. With <b>All in final move</b> it stays in on the energy it holds - dodging or taking the hit - and the run ends when that charge move lands, but only if that raises the result (the calculator runs it both ways and keeps the better). Otherwise it bails, and results stop at its last charge move.</li>
+        <li>The run ends when the last attacker can't continue. With <b>All in final move</b> it keeps fighting once no catch tank is left - dodging or taking the boss's charge moves - until it faints; results stop at its last charge move that landed. Without it, it bails, and results stop at its last charge move.</li>
       </ul>
       <p class="beta-h">Rejoins and results</p>
       <ul>
@@ -2630,9 +2634,9 @@ if ("serviceWorker" in navigator) {
           <option value="0" title="No limit">∞</option>
         </select>
       </label>
-      <label class="check-item" id="ctOneMoreWrap" title="Before leaving the fight - a hot swap, or bailing when nobody is left to swap to - the attacker goes for one more charge move: before a hot swap only when it will live to land it, as the last attacker only when that raises the result (the calculator runs it both ways). It never makes a run worse."><input type="checkbox" id="ctOneMore" checked> All in final move</label>
+      <label class="check-item" id="ctOneMoreWrap" title="When no catch tank is left and nobody is left to swap to, the last attacker keeps fighting - taking (or dodging) the boss's charge moves - until it faints, instead of bailing."><input type="checkbox" id="ctOneMore" checked> All in final move</label>
       <label class="check-item" hidden style="display:none !important" title="When no catch tank is left and the main DPS can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final CM</label>
-      <label class="check-item" hidden style="display:none !important" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
+      <label class="check-item" id="ctJuiceWrap" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
       </div>
     </div>
     <div class="tb-group">
@@ -2721,7 +2725,7 @@ if ("serviceWorker" in navigator) {
       <div class="mod-cell maindps-fmcm-aggro aggro-cell">
         <label for="bossAggro">Boss aggression <span id="bossAggroOut">30%</span></label>
         <div class="mod-box"><input type="range" id="bossAggro" min="10" max="60" step="5" value="30">
-        <div class="aggro-hint" id="bossAggroHint">~1 charge per 2.3 fast moves</div></div>
+        <div class="aggro-hint" id="bossAggroHint" title="About 1 charge move per 2.3 fast moves">~1 CM per 2.3 FMs</div></div>
       </div>
       <label class="check-item maindps-fmcm-aggro optimal-item" title="Optimal DPS: the boss times its charge moves for you - it casts one only when it has the energy AND your Pokémon can sponge at least 85% of the energy that hit gives (no more than 15% lost over 100). Replaces the aggression setting."><input type="checkbox" id="optimalDps"> Optimal DPS</label>
       <!-- Rejoin time (Battle Simulator): how long one rejoin takes, in 0.5s steps - for Minimum DPS and
@@ -4202,7 +4206,8 @@ function teamStep(S, R, P, snap){
       // A fainted tank's move in progress never lands; the next Pokemon comes in.
       S.hits = S.hits.filter(h => h.who !== who);
       S.gains = S.gains.filter(g => g.who !== who);
-      if(noTankLeft() && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs && !P.mainDodges && !hasNext()) S.finishing = true; }
+      // (with All in final move it fights on instead of finishing here - the boss's next charge move decides)
+      if(noTankLeft() && !S.pendingSwap){ S.safePoint = t; if(!P.mainAbsorbs && !P.mainDodges && !hasNext() && !P.allIn) S.finishing = true; }
       const next = S.pendingSwap ? S.pendingSwap.to : 0;
       S.pendingSwap = null;
       // The game swaps to the first Pokemon still standing in party order; the player then swaps on
@@ -4804,7 +4809,10 @@ function teamStep(S, R, P, snap){
         // The last tank is done. Rather than ending here - which left Eternatus benched on a full
         // 100 energy whenever the swap for the last tank had cut its Dynamax Cannon off - the main
         // DPS comes back and fires what it has built (see finishing).
-        if(noTankLeft() && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges && !hasNext()) S.finishing = true;
+        // With All in final move it doesn't stop here: it keeps attacking, and the boss's next charge move
+        // is the all-in decision (take it or dodge it, carry on while it stands) - Mega Mewtwo X was
+        // ending the run on 135 HP after its last Shadow Regigigas, against a 58-damage Focus Blast.
+        if(noTankLeft() && !S.pendingSwap && !P.mainAbsorbs && !P.mainDodges && !hasNext() && !P.allIn) S.finishing = true;
         if(P.b2b && S.pendingSwap && S.pendingSwap.to !== who){
           // Back-to-back: the next catch tank is booked for the 2nd charge move - straight to it
           const to = S.pendingSwap.to; S.pendingSwap = null; startSwap(who, to);
@@ -5136,8 +5144,11 @@ function runTeamSim(c){
     // the fight the attacker goes for one more charge move - juicing when a hot swap is waiting (only
     // when it will live to land it), going all in when nobody is left (only when that raises the result,
     // below). Either old setting on - in a saved setup or link - turns it on.
-    oneMore: !!((document.getElementById("ctJuice") || {}).checked || (document.getElementById("ctAllIn") || {}).checked),
-    juice: !!((document.getElementById("ctJuice") || {}).checked || (document.getElementById("ctAllIn") || {}).checked),
+    // All in final move and Juice main DPS: two settings again (they do different things). All in final
+    // move only goes all in when that raises the result (the search runs it both ways); Juice main DPS
+    // stays in for one more charge move before a hot swap when it will live to land it.
+    oneMore: !!(document.getElementById("ctAllIn") || {}).checked,
+    juice: !!(document.getElementById("ctJuice") || {}).checked,
     doubleBack: true,   // doubling back is part of every rotation with a support DPS (no setting)
     b2b: false,   // back-to-back charge moves: off while the logic is reassessed (the setting is ignored)
     qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
@@ -5148,7 +5159,7 @@ function runTeamSim(c){
     dodgeLimit: Math.max(0, parseInt($("ctDodgeLimit").value, 10) || 0),
     // All in on the last charge move: with no catch tank left, finish what it is building rather
     // than bail on it
-    allIn: !!($("ctAllIn").checked || (document.getElementById("ctJuice") || {}).checked),
+    allIn: !!$("ctAllIn").checked,
     // Double catch: each catch tank catches two of the boss's charge moves - after the first it
     // casts dcFirstFMs fast moves and swaps out without firing, keeping its energy ("primed"),
     // then comes back for the boss's next charge move and fires on the combined energy.
@@ -5240,8 +5251,9 @@ function runTeamSim(c){
         const r = simulateTeam(o);
         return { S: r.S, R: r.R, dps: teamRunDps(r.S, r.R), offsets, cps: o._cps, cond: !!o._allInCond, allInOff: allIn === false };
       };
-      let best = sim();
-      if(P.oneMore && P.allIn && best.cond){ const alt = sim(false); if(alt.dps > best.dps + 1e-9) best = alt; }
+      // (All in final move fights on to the end: no comparison with bailing - that stopped Mega Mewtwo X on
+      // 135 HP whenever fighting on dipped the run's average DPS, though it dealt 600+ more damage)
+      const best = sim();
       memo.set(key, best);
       return best;
     };
@@ -9397,8 +9409,9 @@ function updateBossAggro(){
   // hint: at p aggression the boss casts once per p of its decisions, i.e. (1-p)/p fast moves
   // between charge moves.
   const perFm = (100 - pct) / pct;
-  document.getElementById("bossAggroHint").textContent =
-    `~1 charge per ${perFm.toFixed(1)} fast moves`;
+  const hintEl = document.getElementById("bossAggroHint");   // (short, so it fits on one line in the narrowest box)
+  hintEl.textContent = `~1 CM per ${perFm.toFixed(1)} FMs`;
+  hintEl.title = `About 1 charge move per ${perFm.toFixed(1)} fast moves`;
 }
 
 ["bossAggroOn", "bossAggro"].forEach(id => {
@@ -11418,7 +11431,7 @@ updateCTMode();
         box.addEventListener("change", paint); box._mqPaint = paint; paint();
         box.closest("label").classList.add("mq-hide"); return b; };
       const oneMore = document.getElementById("ctOneMore");
-      if(oneMore) chips.appendChild(mk(oneMore, "All in final move")); else { chips.appendChild(mk(allIn, "All in final CM")); chips.appendChild(mk(juice, "Juice main DPS")); }
+      if(oneMore){ chips.appendChild(mk(oneMore, "All in final move")); chips.appendChild(mk(juice, "Juice main DPS")); } else { chips.appendChild(mk(allIn, "All in final CM")); chips.appendChild(mk(juice, "Juice main DPS")); }
       const row = allIn.closest(".team-behavior-row"); row.insertBefore(chips, row.firstChild);
       const head = row.closest(".tb-group").querySelector(".tb-group-head");
       if(head){ head.dataset.mqFull = head.textContent; const sync = () => { const t = MQ.matches ? "Settings" : head.dataset.mqFull; if(head.textContent !== t) head.textContent = t; };
@@ -12432,7 +12445,8 @@ updateCTMode();
     if(!renderPlanPreview.wired){ renderPlanPreview.wired = true; wirePlanRow(); }
     document.querySelectorAll("[data-main-toggle]").forEach(i => { const el = teamAttInput("m", i.dataset.mainToggle); if(el && i.checked !== el.checked) i.checked = el.checked; });
     const om = document.getElementById("ctOneMore"), ai = document.getElementById("ctAllIn"), jc = document.getElementById("ctJuice");
-    if(om && ai && jc){ const on = ai.checked || jc.checked; if(om.checked !== on) om.checked = on; if(on && !(ai.checked && jc.checked)){ ai.checked = jc.checked = true; } if(om._mqPaint) om._mqPaint(); }
+    if(om && ai){ if(om.checked !== ai.checked) om.checked = ai.checked; if(om._mqPaint) om._mqPaint(); }   // (All in final move; Juice main DPS is its own switch)
+    if(jc && jc._mqPaint) jc._mqPaint();   // (its phone chip, after a setup or link sets it)
     const dlw = document.getElementById("ctDodgeLimitWrap"), dls = document.getElementById("ctDodgeLimit"), dlo = document.getElementById("ctDodgeLimitOut");
     if(dls && dlo && dls.selectedOptions[0] && dlo.textContent !== dls.selectedOptions[0].text) dlo.textContent = dls.selectedOptions[0].text;
     if(dlw && dls && dlw.classList.contains("is-off") !== dls.disabled) dlw.classList.toggle("is-off", dls.disabled);
@@ -12485,7 +12499,7 @@ updateCTMode();
     // All in final move: sets both of the settings it replaced
     document.addEventListener("change", e => {
       if(!e.target || e.target.id !== "ctOneMore") return;
-      ["ctAllIn", "ctJuice"].forEach(id => { const x = document.getElementById(id); if(x && x.checked !== e.target.checked){ x.checked = e.target.checked; x.dispatchEvent(new Event("change", { bubbles: true })); } });
+      ["ctAllIn"].forEach(id => { const x = document.getElementById(id); if(x && x.checked !== e.target.checked){ x.checked = e.target.checked; x.dispatchEvent(new Event("change", { bubbles: true })); } });
     });
     // the Main behavior row's Dodge / Sponge (desktop): the main DPS's own switches
     document.addEventListener("change", e => {
