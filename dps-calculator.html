@@ -1757,6 +1757,103 @@ if ("serviceWorker" in navigator) {
   .db-all{ background:var(--accent, #ff8a3d); color:#fff; border-color:transparent; padding:9px 18px; }
   @media (max-width:560px){ .db-overlay{ padding:0; } .db-modal{ max-height:100dvh; height:100dvh; border-radius:0; border:0; }
     .db-row{ grid-template-columns:auto 40px minmax(0,1fr); } .db-row .db-sel{ grid-column:2 / -1; } .db-row .db-open{ grid-column:2 / -1; } }
+  /* the Pokemon panel, tightened */
+  .pp .pp-lab{ font:800 10.5px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); margin-bottom:6px; }   /* (as a section heading) */
+  .pp .team-outcomes-head{ display:none !important; }   /* "Catch tank DPS · 1 x ..." - the section says it */
+  .pp .pp-ctrow{ display:flex; flex-wrap:wrap; align-items:flex-end; gap:8px 10px; margin-top:10px; }
+  .pp .pp-ctrow > .pp-slot, .pp .pp-ctrow .team-type-row, .pp .pp-ctrow .dc-row{ display:contents !important; }
+  .pp .pp-ctrow .field{ margin:0 !important; flex:0 0 112px; min-width:0; }
+  .pp .pp-ctrow .field label{ font:800 10px 'Manrope',sans-serif !important; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px; white-space:nowrap; }
+  .pp .pp-ctrow select, .pp .pp-ctrow .qty-stepper{ height:40px !important; width:100% !important; box-sizing:border-box; }
+  .pp .pp-ctrow .qty-stepper{ display:flex; align-items:center; }
+  .pp .pp-ctrow .qty-stepper input{ min-width:0; width:100%; }
+  .pp .pp-ctrow .dc-check{ height:40px; box-sizing:border-box; margin:0 !important; flex:0 0 auto; display:flex; align-items:center; white-space:nowrap; }
+  .pp .pp-ctrow .dc-fms{ flex:0 0 100%; margin:0 !important; display:flex !important; align-items:center; gap:8px; font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); }   /* Fast moves on 1st swap: the row below */
+  .pp .pp-ctrow .dc-fms select{ width:72px !important; flex:none; height:34px !important; }
+  @media (max-width:560px){ .pp .pp-ctrow .field{ flex:1 1 0; } .pp .pp-ctrow .dc-check{ padding-left:8px; padding-right:8px; } }
+  .pp .pp-roleseg{ margin-top:12px; }
+  .pp .pp-acts{ display:flex; gap:10px; margin-top:12px; }
+  .pp .pp-acts .pp-btn{ margin-top:0; flex:1 1 0; }
+  .pp .pp-btn.ok{ background:var(--accent, #ff8a3d); color:#fff; border:1.5px solid transparent; }
+  /* the picker's Back, beside Search by name */
+  .mq-btnrow{ display:flex; gap:10px; margin-top:14px; }
+  .mq-btnrow .mq-searchbtn{ margin-top:0 !important; flex:1 1 0; }
+  .mq-backbtn{ flex:1 1 0; border:2px solid var(--accent, #ff8a3d); border-radius:12px; padding:11px; background:transparent; color:var(--accent, #ff8a3d); font:800 13px 'Manrope',sans-serif; cursor:pointer; }
+  /* Battle Simulator, every width: no Main DPS / Catch Tank / Support DPS sections - the battle party bar,
+     the nav and each Pokemon's panel do their jobs (the sections stay in the page, hidden: the panel borrows
+     their boxes, and the calculation reads their fields) */
+  body.ct-mode-team .mq-main-card, body.ct-mode-team .team-card, body.ct-mode-team .support-card{ display:none !important; }
+  /* the panel: IV and Charge moves steppers; a shorter catch tank section */
+  .pp .pp-ivs{ display:grid !important; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; border:0 !important; background:none !important; padding:0 !important; }
+  .pp .pp-ivstep{ display:flex; align-items:center; height:40px; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; background:var(--bg1, rgba(0,0,0,.15)); }
+  .pp .pp-ivstep button{ flex:0 0 26px; height:100%; border:0; background:none; color:var(--accent, #ff8a3d); font:800 16px 'Manrope',sans-serif; cursor:pointer; padding:0; }
+  .pp .pp-ivstep input{ flex:1 1 0; min-width:0; width:100%; height:100%; border:0 !important; background:none !important; text-align:center; font:800 14px 'Manrope',sans-serif; color:var(--text); padding:0 !important; }
+  .pp .pp-cmstep{ display:none; }
+  .pp .pp-ctrow .pp-cmstep{ display:flex !important; align-items:center; }
+  .pp .pp-ctrow select[id$="Casts"]{ display:none !important; }
+  .pp .pp-cmstep input{ text-align:center; }
+  html .pp .pp-ctrow .mq-casts{ display:none !important; }   /* (a phone's own Charge moves stepper - the panel has one) */
+  .pp-cmstep{ display:none; }
+  .pp .pp-ct{ padding-top:10px !important; padding-bottom:10px !important; }
+  .pp .pp-ct .pp-sec-h{ margin-bottom:2px !important; }
+  .pp .pp-ct .team-outcome .val{ font-size:17px !important; line-height:1.15; }
+  .pp .pp-ct .team-outcome .lbl, .pp .pp-ct .team-outcome .sub{ font-size:10px !important; line-height:1.2; }
+  .pp .pp-ct .team-outcomes-grid{ gap:4px !important; margin:0 !important; }
+  .pp .pp-ctrow{ margin-top:8px !important; gap:6px 10px !important; }
+  .pp .pp-ctrow .dc-fms{ min-height:0; }
+  /* phones: Level and the three IVs still on one line - tighter steppers */
+  @media (max-width:560px){
+    .pp .pp-lviv{ gap:6px !important; }
+    .pp .pp-lviv .pp-step{ width:86px !important; flex:0 0 86px; height:40px; }
+    .pp .pp-lviv .pp-step button{ width:24px !important; min-width:0; padding:0; }
+    .pp .pp-lviv .pp-step input{ min-width:0; width:100%; font-size:14px; }
+    .pp .pp-ivs{ gap:4px !important; }
+    .pp .pp-ivstep button{ flex:0 0 20px; font-size:15px; }
+    .pp .pp-ivstep input{ font-size:13px; }
+    .pp .pp-lab{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  }
+  /* Additional Modifiers: each item's heading above its box (every mode); Rejoin time is the Battle
+     Simulator's alone */
+  .mod-consolidated-grid > .mod-cell:not(.adv-mech){ border:0 !important; background:none !important; box-shadow:none !important; padding:0 !important;
+    display:flex; flex-direction:column; justify-content:flex-start; gap:6px; min-height:0 !important; height:auto !important; }
+  .mod-consolidated-grid > .mod-cell:not(.adv-mech) > label{ margin:0 !important; font:800 11px 'Manrope',sans-serif; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); }
+  .mod-consolidated-grid > .mod-cell:not(.adv-mech) > select,
+  .mod-consolidated-grid > .mod-cell:not(.adv-mech) > .mod-box{ width:100%; box-sizing:border-box; min-height:50px; border:2px solid var(--border) !important; border-radius:12px;
+    background:var(--card) !important; padding:8px 12px !important; margin:0 !important; font:700 13px 'Manrope',sans-serif; color:var(--text); }
+  .mod-consolidated-grid > .mod-cell:not(.adv-mech) > .mod-box{ display:flex; flex-direction:column; justify-content:center; gap:2px; }
+  .mod-consolidated-grid > .mod-cell:not(.adv-mech) > .mod-box input[type=range]{ width:100%; margin:0; }
+  body:not(.ct-mode-team) #rejoinCell{ display:none !important; }
+  .pp .pp-ctrow .dc-fms{ display:none !important; }
+  .pp .pp-ctrow:has(.dc-check input:checked) .dc-fms{ display:flex !important; }
+  .pp .pp-ctrow.dc-on .dc-fms{ display:flex !important; }   /* (the same, where :has() isn't supported) */
+  /* Weather / Adventure Effect: their icon inside the box, at its left */
+  .mod-consolidated-grid > .mod-cell.has-sel-ico{ position:relative; }
+  .mod-consolidated-grid > .mod-cell.has-sel-ico > .mod-sel-ico{ position:absolute; left:14px; bottom:15px; width:20px; height:20px; margin:0 !important; z-index:1; pointer-events:none; object-fit:contain; }
+  .mod-consolidated-grid > .mod-cell.has-sel-ico > .mod-sel-ico.is-sprite{ width:28px; height:28px; bottom:11px; left:10px; }
+  .mod-consolidated-grid > .mod-cell.has-sel-ico > select{ padding-left:42px !important; }
+  /* phones: Boss aggression's heading above its box too */
+  @media (max-width:560px){
+    html body.ct-mode-team .mod-consolidated-grid > .aggro-cell{ display:flex !important; flex-direction:column; }   /* (over the phone layer's grid, which loads later) */
+    body.ct-mode-team .aggro-cell > .mod-box .aggro-hint{ text-align:left; white-space:normal; }
+  }
+  /* the quick tour */
+  .tour{ position:fixed; inset:0; z-index:200; }
+  .tour-spot{ position:fixed; border-radius:18px; box-shadow:0 0 0 9999px rgba(10,12,20,.66), 0 0 0 3px var(--accent, #ff8a3d), 0 0 26px 4px color-mix(in srgb, var(--accent, #ff8a3d) 45%, transparent);
+    transition:left .45s ease, top .45s ease, width .45s ease, height .45s ease, transform .35s ease; transform:scale(1.04); pointer-events:none; }
+  .tour-spot.is-in{ transform:scale(1); }   /* settles in: the zoom */
+  .tour-bub{ position:fixed; z-index:1; background:var(--card); color:var(--text); border:2px solid var(--accent, #ff8a3d); border-radius:16px; padding:14px 16px 12px;
+    box-shadow:0 14px 34px rgba(0,0,0,.45); opacity:0; transform:translateY(6px) scale(.97); transition:opacity .25s ease, transform .25s ease, top .45s ease, left .45s ease; }
+  .tour-bub.is-in{ opacity:1; transform:none; }
+  .tour-bub::before{ content:""; position:absolute; left:calc(var(--ax, 50%) - 8px); top:-9px; width:14px; height:14px; background:var(--card); border-left:2px solid var(--accent, #ff8a3d); border-top:2px solid var(--accent, #ff8a3d); transform:rotate(45deg); }
+  .tour-bub.is-above::before{ top:auto; bottom:-9px; transform:rotate(225deg); }
+  .tour-n{ font:800 10.5px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--accent, #ff8a3d); }
+  .tour-t{ font:800 16px/1.35 'Manrope',sans-serif; margin:4px 0 12px; }
+  .tour-b{ display:flex; align-items:center; gap:8px; } .tour-b span{ flex:1; }
+  .tour-b button{ font:800 12.5px 'Manrope',sans-serif; border-radius:10px; padding:8px 14px; cursor:pointer; border:1.5px solid var(--border); background:var(--card); color:var(--text); }
+  .tour-b .tour-next{ background:var(--accent, #ff8a3d); border-color:transparent; color:#fff; }
+  .tour-b .tour-skip{ border:0; background:none; color:var(--text-dim); padding-left:0; }
+  .tour-b button:disabled{ opacity:.4; cursor:default; }
+  .tour-link{ font:800 13px 'Manrope',sans-serif; border:1.5px solid var(--accent, #ff8a3d); color:var(--accent, #ff8a3d); background:transparent; border-radius:10px; padding:7px 14px; cursor:pointer; }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2154,7 +2251,8 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · add cts multi</p>
+      <p><button type="button" class="tour-link" onclick="startTour()">Take the quick tour</button></p>
+      <p class="beta-build">Build 2026-11-12 · quick tour</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -2394,7 +2492,7 @@ if ("serviceWorker" in navigator) {
           <!-- Double catch, for THIS catch tank: it catches two of the boss's charge moves (after the first
                it casts the set fast moves and swaps out, then comes back for the second and fires) -->
           <div class="dc-row">
-            <label class="check-item dc-check" title="Each catch tank catches two of the boss's charge moves. After its first catch it casts the set number of fast moves and swaps out without firing, keeping its energy; it comes back for the boss's next charge move and fires on the combined energy."><input type="checkbox" id="ctDoubleCatch"> Double catch</label>
+            <label class="check-item dc-check" title="Each catch tank catches two of the boss's charge moves. After its first catch it casts the set number of fast moves and swaps out without firing, keeping its energy; it comes back for the boss's next charge move and fires on the combined energy."><input type="checkbox" id="ctDoubleCatch"> Double CT</label>
             <label class="dc-fms is-off" id="ctDcFMsWrap" title="How many fast moves the catch tank casts after its first catch, before it swaps out to wait for the second">Fast moves on 1st swap
         <select id="ctDcFMs" disabled><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
       </label>
@@ -2439,9 +2537,6 @@ if ("serviceWorker" in navigator) {
       <label class="check-item" id="ctOneMoreWrap" title="Before leaving the fight - a hot swap, or bailing when nobody is left to swap to - the attacker goes for one more charge move: before a hot swap only when it will live to land it, as the last attacker only when that raises the result (the calculator runs it both ways). It never makes a run worse."><input type="checkbox" id="ctOneMore" checked> All in final move</label>
       <label class="check-item" hidden style="display:none !important" title="When no catch tank is left and the main DPS can't safely sponge or dodge the boss's next charge move, it stays in to finish the charge move it is building instead of bailing: it dodges the hit if dodging is allowed and there's time (the dodge count doesn't apply to this last push), otherwise takes it. If it faints first, results stop at the last charge move that landed - the same as bailing."><input type="checkbox" id="ctAllIn" checked> All in final CM</label>
       <label class="check-item" hidden style="display:none !important" title="Before a hot swap, the attacker goes in for one more charge move if the boss's moves let it live to land it - the gamble a run needing every last charge move takes (e.g. Palkia, where four Dynamax Cannons a cycle is the minimum). When the boss would knock it out first, it hot swaps where it would have, as if it never tried."><input type="checkbox" id="ctJuice"> Juice main DPS</label>
-      <label class="check-item team-dodge-limit" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">Rejoin time
-        <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
-      </label>
       </div>
     </div>
     <div class="tb-group">
@@ -2528,11 +2623,17 @@ if ("serviceWorker" in navigator) {
       </div>
       <label class="check-item maindps-fmcm-aggro" title="How often the boss takes its charge move when it can afford one."><input type="checkbox" id="bossAggroOn"> Boss aggression</label>
       <div class="mod-cell maindps-fmcm-aggro aggro-cell">
-        <label for="bossAggro">Aggression <span id="bossAggroOut">30%</span></label>
-        <input type="range" id="bossAggro" min="10" max="60" step="5" value="30">
-        <div class="aggro-hint" id="bossAggroHint">~1 charge per 2.3 fast moves</div>
+        <label for="bossAggro">Boss aggression <span id="bossAggroOut">30%</span></label>
+        <div class="mod-box"><input type="range" id="bossAggro" min="10" max="60" step="5" value="30">
+        <div class="aggro-hint" id="bossAggroHint">~1 charge per 2.3 fast moves</div></div>
       </div>
       <label class="check-item maindps-fmcm-aggro optimal-item" title="Optimal DPS: the boss times its charge moves for you - it casts one only when it has the energy AND your Pokémon can sponge at least 85% of the energy that hit gives (no more than 15% lost over 100). Replaces the aggression setting."><input type="checkbox" id="optimalDps"> Optimal DPS</label>
+      <!-- Rejoin time (Battle Simulator): how long one rejoin takes, in 0.5s steps - for Minimum DPS and
+           Cumulative DPS; 5.5s at the fastest -->
+      <div class="mod-cell" id="rejoinCell" title="How long one rejoin takes, in 0.5s steps. Used for Minimum DPS and Cumulative DPS; 5.5s at the fastest.">
+        <label for="ctRejoinSecs">Rejoin time</label>
+        <select id="ctRejoinSecs"><option value="5.5">5.5s</option><option value="6.0">6.0s</option><option value="6.5">6.5s</option><option value="7.0" selected>7.0s</option><option value="7.5">7.5s</option><option value="8.0">8.0s</option><option value="8.5">8.5s</option><option value="9.0">9.0s</option><option value="9.5">9.5s</option><option value="10.0">10.0s</option><option value="10.5">10.5s</option><option value="11.0">11.0s</option><option value="11.5">11.5s</option><option value="12.0">12.0s</option><option value="12.5">12.5s</option><option value="13.0">13.0s</option><option value="13.5">13.5s</option><option value="14.0">14.0s</option><option value="14.5">14.5s</option><option value="15.0">15.0s</option></select>
+      </div>
       <!-- Adventure effects: one at a time, so one dropdown. It drives the three checkboxes below
            (kept, hidden, so every calculation, saved setup and shared link reads them unchanged). -->
       <div class="mod-cell" id="adventureCell">
@@ -5778,7 +5879,7 @@ function renderTeamSim(P, S, R){
     const pct = (dps / rj.dps - 1) * 100, ahead = pct >= 0;
     const need = dps > 0 ? rj.hp / dps + P.rejoinSecs * rj.rejoins : Infinity;
     const secsOff = Math.abs(RAID_SECS - need);
-    const text = `${Math.abs(pct).toFixed(1)}%${isFinite(secsOff) ? ` \u00b7 ${secsOff.toFixed(1)}s` : ""} ${ahead ? "ahead of" : "behind"} pace`;
+    const text = `This lobby is ${Math.abs(pct).toFixed(1)}%${isFinite(secsOff) ? ` \u00b7 ${secsOff.toFixed(1)}s` : ""} ${ahead ? "ahead of" : "behind"} pace`;
     const title = `${dps.toFixed(1)} / ${rj.dps.toFixed(2)} Minimum DPS \u00b7 needs ~${isFinite(need) ? need.toFixed(1) + "s" : "\u2014"} of the ${RAID_SECS}s timer (${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"} of ${rejoinSecsText(P.rejoinSecs)}) \u00b7 ${rj.tier}, ${rj.hp.toLocaleString()} HP`;
     return { ahead, text, title };
   })();
@@ -8789,6 +8890,83 @@ function ctDbOpenPanel(){
   setTimeout(updateCtDbBtn, 0);   // once the page's script has finished loading
 })();
 
+// ============ QUICK TOUR (Battle Simulator) ============
+// Six stops, each zoomed in on: the page dims, a spotlight moves to that part (scrolled into view) and a
+// bubble says what it's for - Back / Next / Skip, or the arrow keys and Esc. It starts by itself the first
+// time someone opens the Battle Simulator (once per browser); "Take the quick tour" in About this beta
+// replays it.
+const TOUR_STEPS = [
+  { find: () => ["#dtBossCard", "#mqBossCard"], text: "Search for a raid boss!" },
+  { find: () => ["#dtPartyCard", ".mq-party"], text: "Create and customize your battle party." },
+  { find: () => ["#mainBehaviorRow"], group: true, text: "Choose the way your main DPS should attack." },
+  { find: () => ["#mqPlan"], group: true, text: "Prioritize who in your party should respond to charge moves first." },
+  { find: () => [".mod-consolidated-grid"], card: true, text: "Customize weather, adventure effects & how aggressive the boss should be." },
+  { find: () => ["#mainBtns", "#calcBtn"], text: "See your results!" },
+];
+function tourTarget(st){
+  for(const sel of st.find()){
+    let el = document.querySelector(sel); if(!el) continue;
+    if(st.group) el = el.closest(".tb-group") || el;
+    if(st.card) el = el.closest(".step-card") || el;
+    if(el.offsetParent !== null || getComputedStyle(el).position === "fixed") return el;
+  }
+  return null;
+}
+function startTour(){
+  const team = document.getElementById("ctModeTeam");
+  if(team && !team.checked){ team.checked = true; team.dispatchEvent(new Event("change", { bubbles: true })); }
+  document.querySelectorAll(".tour").forEach(x => x.remove());
+  const ov = document.createElement("div"); ov.className = "tour"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-label", "Quick tour");
+  ov.innerHTML = '<div class="tour-spot"></div><div class="tour-bub"><div class="tour-n"></div><div class="tour-t"></div><div class="tour-b"><button type="button" class="tour-skip">Skip tour</button><span></span><button type="button" class="tour-back">Back</button><button type="button" class="tour-next">Next</button></div></div>';
+  document.body.appendChild(ov);
+  const spot = ov.querySelector(".tour-spot"), bub = ov.querySelector(".tour-bub");
+  let k = 0, el = null;
+  const place = () => {
+    if(!el) return;
+    const r = el.getBoundingClientRect(), pad = 8;
+    spot.style.left = (r.left - pad) + "px"; spot.style.top = (r.top - pad) + "px"; spot.style.width = (r.width + pad * 2) + "px"; spot.style.height = (r.height + pad * 2) + "px";
+    const bw = Math.min(340, innerWidth - 24); bub.style.width = bw + "px";
+    const bh = bub.offsetHeight, below = r.bottom + pad + 14, above = r.top - pad - 14 - bh;
+    const top = below + bh <= innerHeight - 8 ? below : above >= 8 ? above : Math.max(8, innerHeight - bh - 8);
+    bub.classList.toggle("is-above", top < r.top);
+    bub.style.top = top + "px"; bub.style.left = Math.max(12, Math.min(r.left + r.width / 2 - bw / 2, innerWidth - bw - 12)) + "px";
+    const ax = Math.max(18, Math.min(r.left + r.width / 2 - parseFloat(bub.style.left), bw - 18)); bub.style.setProperty("--ax", ax + "px");
+  };
+  const go = n => {
+    k = Math.max(0, Math.min(TOUR_STEPS.length - 1, n));
+    el = tourTarget(TOUR_STEPS[k]);
+    if(!el){ if(n > k || k === TOUR_STEPS.length - 1) return end(); return go(k + 1); }
+    ov.querySelector(".tour-n").textContent = `Step ${k + 1} of ${TOUR_STEPS.length}`;
+    ov.querySelector(".tour-t").textContent = TOUR_STEPS[k].text;
+    ov.querySelector(".tour-back").disabled = k === 0;
+    ov.querySelector(".tour-next").textContent = k === TOUR_STEPS.length - 1 ? "Done" : "Next";
+    bub.classList.remove("is-in"); spot.classList.remove("is-in");
+    // the part, in the middle of the screen (a fixed bar is where it is)
+    if(getComputedStyle(el).position !== "fixed" && getComputedStyle(el).position !== "sticky"){
+      // below whatever is pinned to the top (the header; the party bar on a phone)
+      const pinned = Math.max(0, ...[".sticky-header", ".mq-party"].map(q => { const e = document.querySelector(q); if(!e) return 0;
+        const ps = getComputedStyle(e).position; return ps === "sticky" || ps === "fixed" ? e.getBoundingClientRect().bottom : 0; })) + 14;
+      const r = el.getBoundingClientRect(), y = r.top + scrollY - Math.max(pinned, (innerHeight - r.height) / 2 - 40);
+      window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+    }
+    setTimeout(() => { place(); spot.classList.add("is-in"); bub.classList.add("is-in"); }, 420);
+  };
+  const end = () => { try{ localStorage.setItem("dpsTourDone", "1"); }catch(e){} ov.remove(); window.removeEventListener("resize", place); window.removeEventListener("scroll", place); document.removeEventListener("keydown", keys); };
+  const keys = e => { if(e.key === "Escape") end(); else if(e.key === "ArrowRight") (k === TOUR_STEPS.length - 1 ? end() : go(k + 1)); else if(e.key === "ArrowLeft") go(k - 1); };
+  ov.querySelector(".tour-next").addEventListener("click", () => k === TOUR_STEPS.length - 1 ? end() : go(k + 1));
+  ov.querySelector(".tour-back").addEventListener("click", () => go(k - 1));
+  ov.querySelector(".tour-skip").addEventListener("click", end);
+  window.addEventListener("resize", place); window.addEventListener("scroll", place, { passive: true }); document.addEventListener("keydown", keys);
+  go(0);
+}
+// the first visit to the Battle Simulator: the tour, once the page has settled
+(function(){
+  const first = () => { let done = false; try{ done = !!localStorage.getItem("dpsTourDone"); }catch(e){ done = true; }
+    const team = document.getElementById("ctModeTeam");
+    if(!done && team && team.checked && !/[?&#](s|setup)=/.test(location.href)) setTimeout(startTour, 900); };
+  if(document.readyState === "complete") first(); else window.addEventListener("load", first);
+})();
+
 // ============ SHAREABLE SETUP URLS ============
 // Reuses the exact same captureSetup()/applySetup() machinery already used for the local
 // "Recent Setups" history feature - the only difference is where the setup object is stored
@@ -10971,13 +11149,13 @@ updateCTMode();
   }
   function enhanceRotationControls(){
     const rj = document.getElementById("ctRejoinSecs");
-    if(rj && !rj._mq){
+    if(rj && !rj._mq && !document.getElementById("rejoinCell")){   // (in Additional Modifiers it's a dropdown like its neighbours)
       rj._mq = true;
       const vals = [...rj.options].map(o => parseFloat(o.value));
       const box = slider("Rejoin time", Math.min(...vals), Math.max(...vals), 0.5, [Math.min(...vals).toFixed(1) + "s", Math.max(...vals).toFixed(1) + "s"],
         () => rj.value, v => { rj.value = (+v).toFixed(1); fire(rj, "change"); }, v => (+v).toFixed(1) + "s");
       box.classList.add("mq-inline");   // label, slider and value on one line
-      const holder = rj.closest("label"); holder.classList.add("mq-hide"); holder.insertAdjacentElement("afterend", box);
+      const holder = rj.closest("#rejoinCell") || rj.closest("label"); holder.classList.add("mq-hide"); holder.insertAdjacentElement("afterend", box);
       rj.addEventListener("change", () => box._paint());
     }
     // phones: the main behaviour switches as two chips (they set the same checkboxes), the group named "Settings"
@@ -11457,7 +11635,8 @@ updateCTMode();
     let role = opts.role, type = "", tier = "t5", token = 0, sortBy = "used";
     const wrap = openSheetShell(`<div class="mq-sheet-head"><div><span class="mq-title">${opts.title}</span><small class="mq-sub"></small></div><button type="button" class="done">Done</button></div>
       <div class="mq-browse">${opts.top || ""}<div class="mq-seg"${opts.seg ? "" : " hidden"}></div><div class="mq-body"></div>
-        <button type="button" class="mq-searchbtn" data-search="1">Search by name instead</button>${opts.bottom || ""}</div>
+        ${opts.back ? `<div class="mq-btnrow"><button type="button" class="mq-backbtn" data-act="back">&lsaquo; Back</button><button type="button" class="mq-searchbtn" data-search="1">Search by name</button></div>`
+                    : '<button type="button" class="mq-searchbtn" data-search="1">Search by name instead</button>'}${opts.bottom || ""}</div>
       <div class="mq-searchview" hidden><input class="mq-search" type="text" placeholder="Type a name…" autocomplete="off" autocapitalize="words" enterkeyhint="search"><div class="mq-results"></div></div>`);
     const sheetEl = wrap.querySelector(".mq-sheet"), body = wrap.querySelector(".mq-body"), seg = wrap.querySelector(".mq-seg"), sub = wrap.querySelector(".mq-sub");
     sheetEl.classList.add("mq-pick");
@@ -11475,8 +11654,9 @@ updateCTMode();
       }
       if(!type){
         body.innerHTML = `<div class="mq-h">Browse by type</div>${typeGrid()}<div class="mq-h mq-sug-h">Suggestions</div><div class="mq-sug"><div class="mq-none">Loading…</div></div>`;
-        const { boss, list } = await suggestionsFor(role); if(mine !== token) return;
-        body.querySelector(".mq-sug-h").textContent = boss ? (role === "ct" ? "Top catch tanks vs " : "Top raiders vs ") + boss : "Suggestions";
+        const own = await suggestionsFor(role), other = await suggestionsFor(role === "ct" ? "main" : "ct"); if(mine !== token) return;
+        const boss = own.boss, list = own.list.concat(other.list.filter(e => !own.list.some(o => key(o.name) === key(e.name))));
+        body.querySelector(".mq-sug-h").textContent = boss ? "Top counters vs " + boss : "Suggestions";
         body.querySelector(".mq-sug").innerHTML = !boss ? '<div class="mq-none">Pick a raid boss first for suggestions - or browse by type.</div>'
           : list.length ? `<div class="mq-grid4${role === "ct" ? " mq-grid-vs" : ""}">${list.map(sugTile).join("")}</div>` : `<div class="mq-none">No verified runs for ${esc(boss)} yet - browse by type or search.</div>`;
         return;
@@ -11669,19 +11849,19 @@ updateCTMode();
                                        : (mainName ? "Picking Main swaps places with " + esc(mainName) + "." : "");
       body.innerHTML = `
         <div class="pp-head"><img src="${esc(spriteUrl(name))}" alt="" onerror="this.style.visibility='hidden'"><div><div class="pp-name">${esc(name || "—")}</div>
-          <div class="pp-role"><b>${ROLE_TXT[role]}</b> slot ${slot}${qty > 1 ? " &middot; &times;" + qty : ""}</div></div><button type="button" class="done pp-done">Done</button></div>
+          <div class="pp-role"><b>${ROLE_TXT[role]}</b></div></div><button type="button" class="done pp-done">Done</button></div>
         ${stats ? `<div class="pp-stats">${stats}</div>` : ""}
-        <div class="pp-sec"><div class="pp-sec-h">Level &amp; IVs</div><div class="pp-lviv">
+        <div class="pp-sec"><div class="pp-lviv">
           <div><div class="pp-lab">Level</div><div class="pp-step"><button type="button" data-lv="-0.5" aria-label="Half a level lower">&minus;</button><input inputmode="decimal" data-f="${I.level}" value="${esc(v(I.level))}" aria-label="Level"><button type="button" data-lv="0.5" aria-label="Half a level higher">+</button></div></div>
-          <div class="pp-ivw"><div class="pp-lab">IVs &middot; Atk / Def / HP</div><div class="pp-ivs">${I.ivs.map((id, k) => `<input inputmode="numeric" data-f="${id}" value="${esc(v(id))}" aria-label="${["Attack", "Defense", "HP"][k]} IV">`).join("")}</div></div>
+          <div class="pp-ivw"><div class="pp-lab">IVs &middot; Atk / Def / HP</div><div class="pp-ivs">${I.ivs.map((id, k) => `<div class="pp-ivstep"><button type="button" data-iv="${k}" data-d="-1" aria-label="${["Attack", "Defense", "HP"][k]} IV lower">&minus;</button><input inputmode="numeric" data-f="${id}" value="${esc(v(id))}" aria-label="${["Attack", "Defense", "HP"][k]} IV"><button type="button" data-iv="${k}" data-d="1" aria-label="${["Attack", "Defense", "HP"][k]} IV higher">+</button></div>`).join("")}</div></div>
         </div></div>
-        <div class="pp-sec"><div class="pp-sec-h">Moves <em>${v("bossName") ? "vs " + esc(v("bossName")) + " &middot; " : ""}tap to change</em></div>${moveRow(I.fm)}${moveRow(I.cm)}</div>
-        ${role === "ct" ? '<div class="pp-sec pp-ct"><div class="pp-sec-h">Catch tank</div><div class="pp-slot" data-slot="out"></div><div class="pp-slot" data-slot="set"></div><div class="pp-slot" data-slot="dc"></div></div>'
+        <div class="pp-sec"><div class="pp-sec-h">Moves</div>${moveRow(I.fm)}${moveRow(I.cm)}</div>
+        ${role === "ct" ? '<div class="pp-sec pp-ct"><div class="pp-sec-h">Catch tank</div><div class="pp-slot" data-slot="out"></div><div class="pp-ctrow"><div class="pp-slot" data-slot="set"></div><div class="pp-slot" data-slot="dc"></div></div></div>'
                          : '<div class="pp-sec pp-dps"><div class="pp-slot" data-slot="dps"></div>' + (role === "sup" ? '<div class="pp-slot" data-slot="qty"></div>' : "") + '</div>'}
-        <div class="pp-sec"><div class="pp-sec-h">Role in the party</div><div class="pp-seg">${roles}</div>${roleNote ? `<div class="pp-note">${roleNote}</div>` : ""}</div>
-        <button type="button" class="pp-btn main" data-pa="change">Change Pokémon &rsaquo;</button>
+        <div class="pp-seg pp-roleseg" title="${esc(roleNote.replace(/<[^>]+>/g, ""))}">${roles}</div>
+        <div class="pp-acts"><button type="button" class="pp-btn ok" data-pa="confirm">Confirm</button><button type="button" class="pp-btn main" data-pa="change">Change Pokémon &rsaquo;</button></div>
         <button type="button" class="pp-btn danger" data-pa="remove">Remove from party</button>`;
-      borrow();
+      borrow(); castsStepper();
     }
     // The card's own DPS box / Catch Tank DPS box and its settings, lent to the profile while it's open (the
     // cards are hidden on a phone) and handed back when it closes - the same controls, nothing copied.
@@ -11702,6 +11882,17 @@ updateCTMode();
         slot.appendChild(el);
       });
     }
+    // Charge moves as a - / + stepper, in place of its dropdown (which stays, hidden, as the setting)
+    function castsStepper(){
+      const sel = body.querySelector('.pp-ctrow select[id$="Casts"]'); if(!sel) return;
+      let st = sel.parentNode.querySelector(".pp-cmstep");
+      if(!st){ st = document.createElement("div"); st.className = "qty-stepper pp-cmstep";
+        st.innerHTML = '<button type="button" data-cms="-1" aria-label="One fewer charge move">&minus;</button><input class="pp-cmsval" readonly tabindex="-1" aria-label="Charge moves"><button type="button" data-cms="1" aria-label="One more charge move">+</button>';
+        sel.insertAdjacentElement("afterend", st); }
+      st.querySelector(".pp-cmsval").value = sel.value;
+      const row = body.querySelector(".pp-ctrow"), dc = row && row.querySelector(".dc-check input");
+      if(row && dc){ row.classList.toggle("dc-on", dc.checked); if(!dc._ppDc){ dc._ppDc = true; dc.addEventListener("change", () => { const r = dc.closest(".pp-ctrow"); if(r) r.classList.toggle("dc-on", dc.checked); }); } }
+    }
     function giveBack(){
       lent.forEach((home, el) => { if(home.parent && home.parent.isConnected) home.parent.insertBefore(el, home.next && home.next.parentNode === home.parent ? home.next : null); });
       lent.clear(); parts = null; partsTok = null;
@@ -11710,6 +11901,15 @@ updateCTMode();
     closed.observe(document.body, { childList: true });
     // edits go straight to the card's own fields (so saves, links and the simulation see them)
     body.addEventListener("click", e => {
+      const ivb = e.target.closest("[data-iv]");
+      if(ivb){ const id = idsOf(tok).ivs[+ivb.dataset.iv], f = document.getElementById(id), inp = body.querySelector(`input[data-f="${id}"]`);
+        const cur = parseInt(f.value, 10), nv = Math.max(0, Math.min(15, (isFinite(cur) ? cur : 15) + parseInt(ivb.dataset.d, 10)));
+        f.value = String(nv); if(inp) inp.value = String(nv); fire(f, "input", "change"); later(); return; }
+      const cms = e.target.closest("[data-cms]");
+      if(cms){ const sel = body.querySelector('.pp-ctrow select[id$="Casts"]'); if(sel){
+          const vals = [...sel.options].map(o => o.value), k = Math.max(0, Math.min(vals.length - 1, vals.indexOf(sel.value) + parseInt(cms.dataset.cms, 10)));
+          if(sel.value !== vals[k]){ sel.value = vals[k]; fire(sel, "input", "change"); } const out = body.querySelector(".pp-cmsval"); if(out) out.value = sel.value; }
+        return; }
       const lv = e.target.closest("[data-lv]");
       if(lv){ const inp = body.querySelector(`input[data-f="${idsOf(tok).level}"]`), f = document.getElementById(idsOf(tok).level);
         const cur = parseFloat(f.value), nv = Math.max(1, Math.min(55, (isFinite(cur) ? cur : 50) + parseFloat(lv.dataset.lv)));
@@ -11729,6 +11929,7 @@ updateCTMode();
       const pa = e.target.closest("[data-pa]"); if(!pa) return;
       if(pa.dataset.pa === "remove"){ giveBack(); wrap.remove(); editSetup(S => removeFrom(S, tok)); return; }
       if(pa.dataset.pa === "change") openChange();
+      if(pa.dataset.pa === "confirm"){ wrap.remove(); return; }   // (its edits are already in; closing hands the borrowed parts back)
     });
     body.addEventListener("input", e => { const f = e.target.dataset && e.target.dataset.f; if(!f) return; const el = document.getElementById(f); if(el){ el.value = e.target.value; fire(el, "input", "change"); } });
     body.addEventListener("change", later);
@@ -11737,9 +11938,8 @@ updateCTMode();
     // Change Pokemon: browse by type, suggestions and search - with the way back to the profile on top
     function openChange(){
       const I = idsOf(tok), name = (document.getElementById(I.name).value || "").trim(), role = roleOf(tok);
-      const back = `<button type="button" class="pp-back" data-act="back"><span class="a">&lsaquo;</span><img src="${esc(spriteUrl(name))}" alt="" onerror="this.style.visibility='hidden'"><span><b>Back to ${esc(name)}</b><small>${esc(slotSummary(tok))}</small></span></button>`;
       giveBack(); wrap.remove();
-      monSheet({ title: "Change Pokémon", role, top: back, sub: () => ROLE_TXT[role] + " · slot " + (teamParty().indexOf(tok) + 1),
+      monSheet({ title: "Change Pokémon", role, back: true,
         onPick: (pick) => { if(putInSlot(tok, role, pick) === false){ alert("That doesn't fit: a party holds six, with up to five support DPS and five kinds of catch tank."); return false; }
           const want = role === "main" ? "m" : role === "ct" ? "t" : "s";
           const nt = role === "main" ? "m.1" : teamParty().find(t => t[0] === want && teamPartyLabel(t).replace(/ #\d+$/, "") === pick);
