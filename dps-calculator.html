@@ -1923,6 +1923,15 @@ if ("serviceWorker" in navigator) {
   .hist-plus{ font:800 12px 'Manrope',sans-serif; color:var(--text-dim); margin:0 2px; }
   .hist-vs{ font:800 11px 'Manrope',sans-serif; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim); margin:0 2px; }
   .hist-tag{ font:800 10.5px 'Manrope',sans-serif; color:var(--accent, #ff8a3d); border:1.5px solid currentColor; border-radius:999px; padding:1px 7px; }
+  /* Additional Modifiers' dropdowns (Advanced Mechanics, Multi-player Buffs): the heading above, the value in the box */
+  .mod-consolidated-grid > .mod-cell.adv-mech{ border:0 !important; background:none !important; box-shadow:none !important; padding:0 !important; min-height:0 !important; height:auto !important; }
+  .mod-consolidated-grid > .mod-cell.adv-mech > summary{ gap:6px; }
+  .mod-consolidated-grid > .mod-cell.adv-mech .adv-mech-label{ font:800 11px 'Manrope',sans-serif; letter-spacing:.05em; text-transform:uppercase; color:var(--text-dim); }
+  .mod-consolidated-grid > .mod-cell.adv-mech .adv-mech-value{ position:relative; display:flex; align-items:center; box-sizing:border-box; min-height:50px; padding:8px 30px 8px 12px;
+    border:2px solid var(--border); border-radius:12px; background:var(--card); font:700 13px 'Manrope',sans-serif; }
+  .mod-consolidated-grid > .mod-cell.adv-mech .adv-mech-value::after{ right:12px; top:50%; transform:translateY(-50%); }
+  .mod-consolidated-grid > .mod-cell.adv-mech[open] .adv-mech-value{ border-color:var(--blue); }
+  html .mod-consolidated-grid{ align-items:start !important; }   /* (each item's heading on one line across the row) */
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2321,7 +2330,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · panel without dps box</p>
+      <p class="beta-build">Build 2026-11-12 · shadow mist</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -3078,6 +3087,9 @@ function trySpriteShadowFallback(img, name){
 function needsShadowMist(name){
   return /^shadow\s+/i.test(name.trim());
 }
+// ' class="shadow-mist"' for a Shadow Pokemon (the purple mist behind its sprite), else nothing - for the
+// sprites the battle party, nav, panels and pickers draw
+function shadowCls(name){ return needsShadowMist(String(name || "").replace(/ #\d+$/, "")) ? ' class="shadow-mist"' : ""; }
 
 let POKEMON_TYPES = [];
 // ============ TYPE EFFECTIVENESS (PoGo-specific tiers: 1.6 / 1 / 0.625 / 0.390625) ============
@@ -7867,7 +7879,7 @@ function historyText(setup){
 }
 function historyHtml(setup){
   const h = historyParts(setup), esc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const sp = name => `<img class="hist-sp" src="${esc(spriteUrl(name))}" alt="${esc(name)}" title="${esc(name)}" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.alt))">`;
+  const sp = name => `<img class="hist-sp${needsShadowMist(name) ? " shadow-mist" : ""}" src="${esc(spriteUrl(name))}" alt="${esc(name)}" title="${esc(name)}" loading="lazy" onerror="this.replaceWith(document.createTextNode(this.alt))">`;
   return `<span class="hist-mons">${h.mons.map(m => `<span class="hist-mon">${sp(m.name)}${m.n > 1 ? `<em title="${m.n} of them">&times;${m.n}</em>` : ""}</span>`).join('<span class="hist-plus">+</span>') || "?"}</span>`
     + `<span class="hist-vs">vs</span>${h.boss ? `<span class="hist-mon">${sp(h.boss)}</span>` : "?"}${h.tag ? `<span class="hist-tag">${esc(h.tag)}</span>` : ""}`;
 }
@@ -8070,7 +8082,7 @@ function playerMoveDamagePreviewHtml(){
   // energy gained from tanking (sponging) the boss's charge move: 50% of damage received, rounded up
   let energyLine = "";
   const ivDefRaw = document.getElementById("ivDef").value.trim();
-  if(validateIV(ivDefRaw)){
+  if(validateIV(ivDefRaw) && !document.body.classList.contains("cadence-fm-only")){   // (fast moves only: the boss never casts one)
     const playerDef = calcStat(pkmn.def, parseInt(ivDefRaw), level);
     // Fourth stat site - routed through bossStats() like the others so the shadow modifiers
     // apply here too. Computing it inline meant this path silently ignored them.
@@ -9184,6 +9196,10 @@ function updateCTMode(){
   updateBossAggro();
   updateDynPunch();
   if(typeof syncCombinedModifiers === "function") syncCombinedModifiers();
+  // another mode's results don't apply to this one (its boss charge move casts, its parties): cleared on a
+  // change of mode - Calculate shows this mode's
+  if(updateCTMode.last && updateCTMode.last !== mode){ const w = document.getElementById("resultsWrap"); if(w) w.innerHTML = ""; }
+  updateCTMode.last = mode;
 }
 // In Main DPS mode the boss's charge move only matters for the "Fast & Charge" cadence, so its
 // inputs are hidden when "Fast Only" is selected. Every other mode always needs them.
@@ -9280,6 +9296,7 @@ function updateCadenceMode(){
   // the boss damage preview hides its charge-move rows in the fast-only cadence, so it has to
   // re-render when the toggle flips (not just when a move/boss changes)
   if(typeof updateBossPreview === "function") updateBossPreview();
+  if(typeof updatePlayerMovePreview === "function") updatePlayerMovePreview();   // (its "Energy gained from" line, too)
 }
 document.getElementById("ctModeMainDPS").addEventListener("change", updateCTMode);
 document.getElementById("ctModeSingle").addEventListener("change", updateCTMode);
@@ -11174,7 +11191,8 @@ updateCTMode();
     const nameId = base === "player" ? "pokemonName" : base === "boss" ? "bossName" : base + "Name";
     const named = ((document.getElementById(nameId) || {}).value || "").trim();
     let box = panel.nextElementSibling && panel.nextElementSibling.classList.contains("mq-movebox") && OWN.has(panel.nextElementSibling) ? panel.nextElementSibling : null;
-    const missing = named ? [["fm", fm, linked.fm], ["cm", cm, linked.cm]].filter(x => !x[2]) : [];
+    const bossFmOnly = base === "boss" && document.body.classList.contains("cadence-fm-only");   // its charge move is left out on purpose
+    const missing = named ? [["fm", fm, linked.fm], ["cm", cm, linked.cm]].filter(x => !x[2] && !(bossFmOnly && x[0] === "cm")) : [];
     if(!missing.length){ if(box) box.remove(); return; }
     // every width (not a phones-only element): desktop needs it as much
     if(!box){ box = document.createElement("div"); box.className = "boss-dmg-preview mq-movebox"; OWN.add(box); panel.insertAdjacentElement("afterend", box); }
@@ -11366,7 +11384,7 @@ updateCTMode();
     const label = t => teamPartyLabel(t), nm = t => label(t).replace(/ #\d+$/, "");
     const badge = t => t[0] === "m" ? "Main" : t[0] === "s" ? "Support" : "Catch tank";
     const html = [...Array(6)].map((_, i) => { const t = party[i];
-      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: edit"><i>${i + 1}</i>${`<span class="dt-rm" data-rm="${t}" role="button" aria-label="Remove ${esc(label(t))} from the party" title="Remove from the party">&minus;</span>`}<img src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
+      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: edit"><i>${i + 1}</i>${`<span class="dt-rm" data-rm="${t}" role="button" aria-label="Remove ${esc(label(t))} from the party" title="Remove from the party">&minus;</span>`}<img${shadowCls(nm(t))} src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
                : `<button type="button" class="dt-slot empty" data-slot="${i + 1}"><i>${i + 1}</i>+ Add</button>`; }).join("");
     if(box.dataset.html !== html){ box.dataset.html = html; box.innerHTML = html; }
     const meter = document.getElementById("dtPartyMeter"); const txt = `Party ${party.length} of 6`; if(meter && meter.textContent !== txt) meter.textContent = txt;
@@ -11410,7 +11428,7 @@ updateCTMode();
       if(t[0] === "t"){ const b = ideal(t); return b ? `<span class="dt-nav-x"><b>${b.v.toFixed(1)}${b.risky ? ' <em title="Risky - see its outcomes">&#9888;&#65039;</em>' : ""}</b>${b.s ? `<small>${esc(b.s)}</small>` : ""}</span>` : '<span class="dt-nav-x"><small>&mdash;</small></span>'; }
       return '<span class="dt-nav-x is-note"><small>Varies</small></span>'; };
     const tile = (key, name, rc, role) => `<button type="button" class="dt-nav-t" data-nav="${key}" title="${esc(name)}${key === "boss" ? " - Raid Boss" : ": edit"}">
-      <span class="sq">${name ? `<img src="${esc(sprite(name))}" alt="${esc(name)}" draggable="false" onerror="this.style.visibility='hidden'">` : ""}</span><i class="r-${rc}">${role}</i></button>`;
+      <span class="sq">${name ? `<img${shadowCls(name)} src="${esc(sprite(name))}" alt="${esc(name)}" draggable="false" onerror="this.style.visibility='hidden'">` : ""}</span><i class="r-${rc}">${role}</i></button>`;
     const html = (boss ? tile("boss", boss, "boss", "Boss") + '<span class="dt-nav-div"></span>' : "")
       + party.map(t => { const [rc, role] = NAV_ROLE(t); return tile(t, teamPartyLabel(t).replace(/ #\d+$/, ""), rc, role); }).join("")
       + (party.length < 6 ? '<button type="button" class="dt-nav-t add" data-nav="add" title="Add a Pokémon"><span class="sq">+</span><i class="r-none">&nbsp;</i></button>' : "");
@@ -11506,7 +11524,7 @@ updateCTMode();
     const order = teamParty().slice(0, 6);
     const slots = order.map((tok, i) => {
       const name = teamPartyLabel(tok), role = tok[0] === "t" ? "CT" : tok[0] === "m" ? "Main" : "Sup";
-      return `<button type="button" class="mq-slot" data-tok="${esc(tok)}" aria-label="Slot ${i + 1}: ${esc(name)}"><span class="n">${i + 1}</span><img src="${esc(spriteUrl(name.replace(/ #\d+$/, "")))}" alt="" onerror="this.style.visibility='hidden'"><span class="r">${role}</span></button>`;
+      return `<button type="button" class="mq-slot" data-tok="${esc(tok)}" aria-label="Slot ${i + 1}: ${esc(name)}"><span class="n">${i + 1}</span><img${shadowCls(name)} src="${esc(spriteUrl(name.replace(/ #\d+$/, "")))}" alt="" onerror="this.style.visibility='hidden'"><span class="r">${role}</span></button>`;
     });
     for(let i = order.length; i < 6; i++) slots.push(`<button type="button" class="mq-slot empty" data-tok="" aria-label="Slot ${i + 1}: empty"><span class="n">${i + 1}</span>+</button>`);
     let row = bar.querySelector(".mq-slots");
@@ -11693,7 +11711,7 @@ updateCTMode();
   // ---------- the Pokemon picker ----------
   const ROLE_TXT = { main: "Main DPS", sup: "Support DPS", ct: "Catch tank" };
   const sprite = n => (typeof spriteUrl === "function" ? spriteUrl(n) : "");
-  const tileHtml = (name, sub) => `<button type="button" class="mq-tile" data-pick="${esc(name)}"><img src="${esc(sprite(name))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(name)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
+  const tileHtml = (name, sub) => `<button type="button" class="mq-tile" data-pick="${esc(name)}"><img${shadowCls(name)} src="${esc(sprite(name))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(name)}</span>${sub ? `<small>${esc(sub)}</small>` : ""}</button>`;
   function openSheetShell(html){
     const wrap = document.createElement("div"); wrap.className = "mq-sheet-wrap";
     wrap.innerHTML = `<div class="mq-sheet" role="dialog" aria-modal="true"><div class="mq-grab"></div>${html}</div>`;
@@ -11821,7 +11839,7 @@ updateCTMode();
       const q = input.value.trim(); if(!q){ results.innerHTML = '<div class="mq-none">Start typing a Pokémon\u2019s name.</div>'; return; }
       const names = (typeof pokemonNameMatches === "function" ? pokemonNameMatches(q) : []).slice(0, 30);
       const sug = role === "boss" ? [] : (await suggestionsFor(role)).list;
-      results.innerHTML = names.length ? names.map(n => { const e = sug.find(x => key(x.name) === key(n)); return `<button type="button" class="mq-res" data-pick="${esc(n)}"><img src="${esc(sprite(n))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(n)}</span>${e ? `<small>${esc(runsTxt(e))}</small>` : ""}</button>`; }).join("") : '<div class="mq-none">No Pokémon match that.</div>';
+      results.innerHTML = names.length ? names.map(n => { const e = sug.find(x => key(x.name) === key(n)); return `<button type="button" class="mq-res" data-pick="${esc(n)}"><img${shadowCls(n)} src="${esc(sprite(n))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><span>${esc(n)}</span>${e ? `<small>${esc(runsTxt(e))}</small>` : ""}</button>`; }).join("") : '<div class="mq-none">No Pokémon match that.</div>';
     };
     const toSearch = on => {
       browse.hidden = on; sview.hidden = !on; wrap.classList.toggle("mq-top", on);
@@ -11853,7 +11871,7 @@ updateCTMode();
     // a filled slot opens on its own details - editing is the usual reason to tap it; changing it to
     // another Pokemon comes after, and Remove last
     const top = tok ? `<button type="button" class="mq-editcard" data-act="edit">
-        <img src="${esc(sprite(curName))}" alt="" onerror="this.style.visibility='hidden'">
+        <img${shadowCls(curName)} src="${esc(sprite(curName))}" alt="" onerror="this.style.visibility='hidden'">
         <span class="mq-ec-text"><b>${esc(teamPartyLabel(tok))}</b><small>${esc(slotSummary(tok))}</small></span>
         <span class="mq-ec-go">Edit level, IVs &amp; moves &rsaquo;</span></button>
       <div class="mq-h mq-or">Or change this slot</div>` : "";
@@ -11977,7 +11995,7 @@ updateCTMode();
       const roleNote = role === "main" ? (partner("sup") || partner("ct") ? "Picking Support or Catch tank swaps places with the first one in that role." : "Add a support DPS or catch tank to swap places with.")
                                        : (mainName ? "Picking Main swaps places with " + esc(mainName) + "." : "");
       body.innerHTML = `
-        <div class="pp-head"><img src="${esc(spriteUrl(name))}" alt="" onerror="this.style.visibility='hidden'"><div><div class="pp-name">${esc(name || "—")}</div>
+        <div class="pp-head"><img${shadowCls(name)} src="${esc(spriteUrl(name))}" alt="" onerror="this.style.visibility='hidden'"><div><div class="pp-name">${esc(name || "—")}</div>
           <div class="pp-role"><b>${ROLE_TXT[role]}</b></div></div><button type="button" class="done pp-done">Done</button></div>
         ${stats ? `<div class="pp-stats">${stats}</div>` : ""}
         <div class="pp-sec"><div class="pp-lviv">
@@ -12242,7 +12260,7 @@ updateCTMode();
       // a support: one card - where it comes in, and its sponge (first in its turn) when that is on
       if(bi > 0){
         const sp = (document.getElementById("sd" + b.att.slice(1) + "Sponge") || {}).checked;
-        cells.push(`<div class="mq-pc sw att-in${sp ? " has-sp" : ""}" data-blk="${bi}" title="${esc(att)} comes in here${sp ? " and sponges first" : ""} - hold and drag to change where">${sp ? SPONGE_SVG : ""}<img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"></div>`);
+        cells.push(`<div class="mq-pc sw att-in${sp ? " has-sp" : ""}" data-blk="${bi}" title="${esc(att)} comes in here${sp ? " and sponges first" : ""} - hold and drag to change where">${sp ? SPONGE_SVG : ""}<img${shadowCls(att)} src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"></div>`);
       }
       b.items.forEach((x, i) => {
         const at = `data-b="${bi}" data-i="${i}"`;
@@ -12250,13 +12268,13 @@ updateCTMode();
         if(x === "s"){
           const on = (document.getElementById(b.att === "m" ? "ctMainAbsorb" : "sd" + b.att.slice(1) + "Sponge") || {}).checked;
           // off: kept as an invisible place, so moving the others around it keeps where it was
-          cells.push(on ? `<div class="mq-pc sp" ${at} title="${esc(att)} sponges when it absorbs the energy">${SPONGE_SVG}<img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"></div>`
+          cells.push(on ? `<div class="mq-pc sp" ${at} title="${esc(att)} sponges when it absorbs the energy">${SPONGE_SVG}<img${shadowCls(att)} src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"></div>`
                         : `<div class="mq-pc sp is-off" ${at} hidden></div>`);
           return;
         }
         n++;
         const nm = teamTankLabel(x);
-        cells.push(`<div class="mq-pc ct" ${at} title="${esc(nm)}"><img src="${esc(sprite(nm.replace(/ #\d+$/, "")))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${ordinal(n)}</b></div>`);
+        cells.push(`<div class="mq-pc ct" ${at} title="${esc(nm)}"><img${shadowCls(nm.replace(/ #\d+$/, ""))} src="${esc(sprite(nm.replace(/ #\d+$/, "")))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${ordinal(n)}</b></div>`);
       });
     });
     // Max Dodges: only once someone can dodge - inside the first attacker row that can
@@ -12271,7 +12289,7 @@ updateCTMode();
     const atts = blocks.map((b, bi) => {
       const att = teamAttName(b.att), role = b.att === "m" ? "Main DPS" : "Support DPS";
       const dodge = (teamAttInput(b.att, "dodge") || {}).checked, sponge = (teamAttInput(b.att, "sponge") || {}).checked;
-      return `<div class="mq-att" data-blk="${bi}" data-att="${b.att}"><img src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">
+      return `<div class="mq-att" data-blk="${bi}" data-att="${b.att}"><img${shadowCls(att)} src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">
         <span class="mq-att-n"><b>${esc(att)}</b><small>${role}</small>${b.att !== "m" && dodge ? supDodgeLine(b.att) : ""}</span>
         <label class="mq-att-t"><input type="checkbox" data-att-dodge="${b.att}" ${dodge ? "checked" : ""}><i></i>Dodge</label>
         <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label>${b.att === "m" && dodge ? dodgeLine() : ""}</div>`;
