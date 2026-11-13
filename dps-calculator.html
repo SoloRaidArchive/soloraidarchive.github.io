@@ -1932,6 +1932,21 @@ if ("serviceWorker" in navigator) {
   .mod-consolidated-grid > .mod-cell.adv-mech .adv-mech-value::after{ right:12px; top:50%; transform:translateY(-50%); }
   .mod-consolidated-grid > .mod-cell.adv-mech[open] .adv-mech-value{ border-color:var(--blue); }
   html .mod-consolidated-grid{ align-items:start !important; }   /* (each item's heading on one line across the row) */
+  /* the battle party: the picked Pokemon (the boss card shows its numbers); a pencil to edit */
+  .dt-slot.is-sel, .mq-slot.is-sel{ box-shadow:0 0 0 2px var(--accent, #ff8a3d) !important; border-color:var(--accent, #ff8a3d) !important; }
+  #dtNav .dt-nav-t.is-sel .sq{ border-color:var(--accent, #ff8a3d); box-shadow:0 0 0 2px var(--accent, #ff8a3d); }
+  .dt-ed, .mq-ed, .dt-nav-ed{ position:absolute; display:flex; align-items:center; justify-content:center; border-radius:50%; cursor:pointer; z-index:2;
+    background:var(--card); color:var(--accent, #ff8a3d); border:1.5px solid var(--border); }
+  .dt-ed:hover, .mq-ed:hover, .dt-nav-ed:hover{ border-color:var(--accent, #ff8a3d); }
+  .dt-ed svg, .mq-ed svg, .dt-nav-ed svg{ width:62%; height:62%; }
+  .dt-ed{ top:5px; right:30px; width:20px; height:20px; }
+  .mq-slot{ position:relative; } .mq-ed{ top:-5px; right:-5px; width:18px; height:18px; }
+  .dt-nav-t .sq{ position:relative; } .dt-nav-ed{ top:-6px; right:-6px; width:17px; height:17px; }
+  .sel-target{ display:flex; align-items:center; gap:6px; margin:4px 0 6px; font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); }
+  .sel-target b{ color:var(--text); font-weight:800; }
+  .sel-sp{ width:26px; height:26px; object-fit:contain; }
+  .sel-role{ font-style:normal; font:800 9.5px/1 'Manrope',sans-serif; border-radius:999px; padding:3px 7px; }
+  .sel-main{ background:rgba(220,53,69,0.18); color:#e05561; } .sel-support{ background:rgba(0,150,136,0.18); color:#1aa595; } .sel-ct{ background:rgba(155,123,240,0.18); color:#8a63e6; }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2330,7 +2345,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · shadow mist</p>
+      <p class="beta-build">Build 2026-11-12 · separate modes</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -3906,7 +3921,27 @@ function teamRejoinTarget(cycleSecs, bossName, rejoinSecs = REJOIN_SECS){
   return { rejoins, dps, tier: raid.name, hp: raid.hp };
 }
 
+// A run can start part-way through (P.resume: another run's checkpoint - its state at the start of the
+// tick where a catch's timing was read, and how long each of its record lists was then), and can
+// collect its own checkpoints (P._cps), one per catch. The search uses them: a candidate that differs
+// only from the i-th catch on plays exactly the same fight up to there, so it carries on from there.
+// A copy of a run's state - its plain objects, arrays, numbers, strings, booleans and nulls - the same as
+// structuredClone gives (the state holds nothing else, never the same object twice, and no gaps in its
+// arrays), several times faster: the simulation copies its state every tick, for its look-aheads.
+function teamClone(v){
+  if(v === null || typeof v !== "object") return v;
+  if(Array.isArray(v)){ const a = new Array(v.length); for(let i = 0; i < v.length; i++) a[i] = teamClone(v[i]); return a; }
+  const o = {}; for(const k in v) o[k] = teamClone(v[k]); return o;
+}
+function teamRecorderUpTo(R, lens){
+  const out = {}; Object.keys(R).forEach(k => { out[k] = R[k].slice(0, lens[k]); }); return out;   // (record entries are never changed once written)
+}
 function simulateTeam(P){
+  if(P.resume){
+    const S = teamClone(P.resume.S), R = teamRecorderUpTo(P.resume.R, P.resume.lens);
+    P._allInCond = P.resume.cond;
+    return teamRunFrom(P, S, R);
+  }
   const S = {
     t: 0,
     // The boss starts the fight with an EMPTY bar (as Main DPS mode now does too), so its first
@@ -3949,16 +3984,22 @@ function simulateTeam(P){
     catchNo: 0,   // swaps to a catch tank booked so far - which catch's timing to use (Best timing)
     ended: null, probe: null,
   };
-  const R = newTeamRecorder();
+  return teamRunFrom(P, S, newTeamRecorder());
+}
+function teamRunFrom(P, S, R){
   while(!S.ended){
     teamApplyAttacker(P, S);
     const attNow = S.att;
-    const snap = (P.mainAbsorbs || P.mainDodges || P.juice || (P.attackers && P.attackers.length > 1)) ? structuredClone(S) : null;   // state at the start of this tick
+    const snap = (P.mainAbsorbs || P.mainDodges || P.juice || (P.attackers && P.attackers.length > 1)) ? teamClone(S) : null;   // state at the start of this tick
+    const cpSnap = P._cps ? snap : null;   // (checkpoints reuse that copy; a run that needs none - no look-aheads - offers none, and its candidates start over)
+    let lens = null, cond0 = false;
+    if(P._cps){ lens = {}; Object.keys(R).forEach(k => { lens[k] = R[k].length; }); cond0 = !!P._allInCond; P._cpMark = undefined; }
     const before = { hits: new Set(S.hits), dmg: R.dmg.length, boss: R.bossMoves.length, swaps: R.swaps.length,
                      events: R.events.length, flight: S.boss.inFlight, dodges: R.dodges.length };
     teamStep(S, R, P, snap);
+    if(cpSnap && P._cpMark !== undefined && !P._cps[P._cpMark]) P._cps[P._cpMark] = { S: cpSnap, lens, cond: cond0, allIn: !!P.allIn };
     R.mainEnergy[S.t] = S.mons[0].energy;
-    R.ticks.push(teamTickRecord(P, S, R, before));
+    if(!P._noTicks) R.ticks.push(teamTickRecord(P, S, R, before));   // (the CSV's rows - the chosen run gets them on demand)
     // Every Pokemon's HP and energy after this tick, for the final reading at the end point.
     R.state[S.t] = S.mons.map(m => ({ hp: m.hp, energy: m.energy }));
     // HP alongside each log entry: the main DPS's, and the catch tank's - the one the entry is
@@ -4240,6 +4281,7 @@ function teamStep(S, R, P, snap){
       const to = pr || nextFresh();
       if(pr) S.mons[pr].primed = false;
       S.mons[to].used = true;
+      if(P._cps && !S.probe && !S.shadow) P._cpMark = S.catchNo;   // (the search can resume a run here)
       S.pendingSwap = { to, latest: teamSwapLatest(P, t, land, freeAt, S.catchNo++), second: !!pr };
       S.mons[to].waitCatch = land;
     };
@@ -4348,6 +4390,7 @@ function teamStep(S, R, P, snap){
           ev: { type: "bossCM", to: 0, how: greed ? "hotswap-greed" : "hotswap", toAtt: nextAttIdx() } });
         return;
       }
+      if(!tanksLeft) P._allInCond = true;   // (where going all in comes up - noted for the search, whatever the setting)
       if(!tanksLeft && P.allIn){
         // All in: nobody can safely take this one, but instead of bailing on the energy it holds
         // the main DPS stays in to finish the charge move it is building. If dodging is allowed it
@@ -4842,7 +4885,7 @@ function teamRunDps(S, R){
 // starts its next charge move after it lands without fainting and without another boss charge move
 // arriving first. With no catch tank left, teamMainCanKeepGoing decides instead.
 function teamMainCanAbsorb(snap, P, cast, land){
-  const L = structuredClone(snap);
+  const L = teamClone(snap);
   L.probe = { cast, land, done: null };
   const R = newTeamRecorder();
   for(let k = 0; k < 400 && !L.probe.done && !L.ended; k++){
@@ -4887,12 +4930,12 @@ function teamMainCanKeepGoing(S, P, t, land){
 // 40 seconds. Later decisions inside such a run use the simple rule, so runs don't nest.
 const TEAM_SHADOW_TICKS = 80;
 function teamShadowDamage(snap, P, choice){
-  const L = structuredClone(snap);
+  const L = teamClone(snap);
   L.shadow = { cast: snap.t, choice };
   const R = newTeamRecorder(), t0 = snap.t, tEnd = t0 + TEAM_SHADOW_TICKS;
   while(!L.ended && L.t <= tEnd){
     teamApplyAttacker(P, L);
-    const sn = (P.mainAbsorbs || P.mainDodges || P.juice || (P.attackers && P.attackers.length > 1)) ? structuredClone(L) : null;
+    const sn = (P.mainAbsorbs || P.mainDodges || P.juice || (P.attackers && P.attackers.length > 1)) ? teamClone(L) : null;
     teamStep(L, R, P, sn);
     if(L.ended) break;
     L.t++;
@@ -4903,7 +4946,7 @@ function teamShadowDamage(snap, P, choice){
 }
 function teamJuiceProbe(snap, P){
   if(!snap) return false;
-  const L = structuredClone(snap);
+  const L = teamClone(snap);
   L.juice = true;
   L.probe = { juice: true, done: null, skip: L.hits.filter(h => h.who === 0 && h.cm).length };
   const R = newTeamRecorder();
@@ -4950,7 +4993,7 @@ function teamMainCanFinishCM(S, P, t, land){
 // energy (TEAM_DODGE_KEEP) rather than 90%, and that charge move has to LAND before the main DPS
 // faints, not just start.
 function teamMainCanDodge(snap, P, cast, land){
-  const L = structuredClone(snap);
+  const L = teamClone(snap);
   L.probe = { cast, land, done: null, dodge: true };
   const R = newTeamRecorder();
   for(let k = 0; k < 400 && !L.probe.done && !L.ended; k++){
@@ -5177,14 +5220,35 @@ function runTeamSim(c){
     const K = Math.max(0, P.bossCM.ad - TEAM_SWAP_TICKS);
     // (with All in final move, each candidate is run with and without going all in at the end - all in only
     // decides how the run ends - and the better kept, so going all in never lowers the result)
-    const tryRun = offsets => {
-      const sim = o => { const r = simulateTeam(o); return { S: r.S, R: r.R, dps: teamRunDps(r.S, r.R), offsets }; };
-      let best = sim(Object.assign({}, P, { swapOffsets: offsets }));
-      if(P.oneMore && P.allIn){ const alt = sim(Object.assign({}, P, { swapOffsets: offsets, allIn: false })); if(alt.dps > best.dps + 1e-9) best = alt; }
+    // Faster, same results:
+    //  - a timing already tried isn't simulated again (the same fight: catches set to the default timing
+    //    and catches left at it are one timing), so its result is reused;
+    //  - the not-all-in variant is run only if going all in ever came up (in the fight, or in a juice
+    //    look-ahead): if it never did, that variant would be the very same fight, move for move.
+    //  - a candidate that only changes the i-th catch (or later) carries on from the best run's checkpoint
+    //    at that catch - the fight before it is the same move for move - instead of starting over. A
+    //    checkpoint taken before going all in ever came up serves both variants; otherwise only its own.
+    const memo = new Map();
+    const keyOf = o => { const d = []; o.list.forEach((v, i) => { const e = v ?? o.def; if(e !== o.def) d.push(i + "=" + e); }); return o.def + ":" + d.join(","); };
+    const tryRun = (offsets, from, at) => {
+      const key = keyOf(offsets);
+      if(memo.has(key)) return Object.assign({}, memo.get(key), { offsets });
+      const sim = (allIn) => {
+        const o = Object.assign({}, P, { swapOffsets: offsets, _cps: [], _noTicks: true }); if(allIn === false) o.allIn = false;
+        const cp = from && from.cps && from.cps[at];
+        if(cp && (!cp.cond || cp.allIn === !!o.allIn)) o.resume = { S: cp.S, R: from.R, lens: cp.lens, cond: cp.cond };
+        const r = simulateTeam(o);
+        return { S: r.S, R: r.R, dps: teamRunDps(r.S, r.R), offsets, cps: o._cps, cond: !!o._allInCond, allInOff: allIn === false };
+      };
+      let best = sim();
+      if(P.oneMore && P.allIn && best.cond){ const alt = sim(false); if(alt.dps > best.dps + 1e-9) best = alt; }
+      memo.set(key, best);
       return best;
     };
+    let first = null;
     for(let k = 0; k <= K; k++){
-      const r = tryRun({ def: k, list: [] });
+      const r = tryRun({ def: k, list: [] }, first, 0);   // (all of them play the same fight up to the first catch)
+      if(!first) first = r;
       if(!run || r.dps >= run.dps - 1e-9) run = r;
     }
     for(let pass = 0; pass < 3; pass++){
@@ -5194,7 +5258,7 @@ function runTeamSim(c){
         for(let k = 0; k <= K; k++){
           if(k === cur) continue;
           const list = run.offsets.list.slice(); list[i] = k;
-          const r = tryRun({ def: run.offsets.def, list });
+          const r = tryRun({ def: run.offsets.def, list }, run, i);
           if(r.dps > run.dps + 1e-9){ run = r; improved = true; }
         }
       }
@@ -5203,7 +5267,8 @@ function runTeamSim(c){
     P.swapOffsets = run.offsets;
   }
   const { S, R } = run;
-  window.__teamSim = { P, S, R };   // the last run: read by the CSV download, and handy to inspect
+  // (the CSV's per-tick rows: the chosen run again, from the start with its timings - the same fight - when asked for)
+  window.__teamSim = { P, S, R, rerun: () => simulateTeam(Object.assign({}, P, { swapOffsets: run.offsets }, run.allInOff ? { allIn: false } : {})) };   // the last run: read by the CSV download, and handy to inspect
   return renderTeamSim(P, S, R);
 }
 
@@ -5401,6 +5466,7 @@ function teamTickRecord(P, S, R, before){
 function downloadTeamCsv(){
   const run = window.__teamSim;
   if(!run) return;
+  if(!run.R.ticks.length && run.rerun) run.R.ticks = run.rerun().R.ticks;   // (the search's runs skip the per-tick rows)
   const { P, S, R } = run, E = S.ended.t;
   const main = P.main.name, tank = P.tanks.length > 1 ? "Catch tank" : P.tanks[0].name, boss = P.bossName;
   const head = ["Tick", "Time (s)", "On field", "Player move started", "Player damage landed",
@@ -7761,7 +7827,12 @@ function restoreMoveSelection(baseId, savedMove){
   document.getElementById(baseId).value = savedMove;
 }
 
+// (a setup being loaded - a link, a recent setup, Add CTs: its mode change is part of it, not a switch of mode)
 function applySetup(setup){
+  window.__applyingSetup = (window.__applyingSetup || 0) + 1;
+  try{ return applySetupNow(setup); } finally { window.__applyingSetup--; }
+}
+function applySetupNow(setup){
   // the Catch Tank 2/3 and Support DPS cards have to exist before their fields can be filled in
   const savedTypes = parseInt(setup.ctTypes, 10);
   // (before "no catch tanks" was its own setting, a support DPS with the one catch tank card left
@@ -8204,7 +8275,40 @@ function bossMoveDamagePreviewHtml(bAtk){
     </div>`;
 }
 
+// Battle Simulator: the party Pokemon picked in the battle party (the main DPS unless another is) - the
+// Raid Boss card shows the boss's damage to it, and the energy it gains from taking the charge move.
+window.__partySel = "m.1";
+function partySelBossHtml(){
+  if(!document.body.classList.contains("ct-mode-team")) return null;
+  let tok = window.__partySel || "m.1";
+  try{
+    const c = teamBossContextFromDom(); if(!c || !c.bossFMMove) return null;
+    let name, fmD, cmD;
+    if(tok !== "m.1"){
+      const k = parseInt(tok.slice(1), 10) || 1, p = tok[0] === "t" ? (k === 1 ? "ct" : "ct" + k) : "sd" + k;
+      const on = tok[0] === "t" ? k <= (parseInt((document.getElementById("ctTypes") || {}).value, 10) || 0) : k <= (parseInt((document.getElementById("sdCount") || {}).value, 10) || 0);
+      const T = on ? teamTankNumbers(c, p) : null;
+      if(T && T.name){ name = T.name; fmD = T.bossFmDmg; cmD = T.bossCmDmg; } else { tok = window.__partySel = "m.1"; }
+    }
+    if(tok === "m.1"){
+      if(!LAST_MAIN_BOSS_HITS) return null;
+      name = (document.getElementById("pokemonName").value || "").trim(); fmD = LAST_MAIN_BOSS_HITS[0][1]; cmD = LAST_MAIN_BOSS_HITS[1] ? LAST_MAIN_BOSS_HITS[1][1] : null;
+    }
+    const role = tok[0] === "m" ? "Main" : tok[0] === "s" ? "Support" : "CT";
+    const sp = `<img class="sel-sp${needsShadowMist(name) ? " shadow-mist" : ""}" src="${spriteUrl(name)}" alt="" onerror="this.style.visibility='hidden'">`;
+    const gain = c.bossCMMove && cmD != null ? Math.ceil(0.5 * cmD) : null;
+    return `<div class="boss-dmg-preview">${bossTagHtml()}
+      <div class="sel-target">Damage to ${sp}<b>${name}</b><i class="sel-role sel-${role.toLowerCase()}">${role}</i></div>
+      ${teamMoveRow(c.bossFMMove, fmD)}${c.bossCMMove && cmD != null ? teamMoveRow(c.bossCMMove, cmD) : ""}
+      ${gain != null ? `<div class="boss-dmg-row player-dmg energy-row"><span>Energy gained from ${c.bossCMMove.n}</span><b>+${Math.min(100, gain)} energy</b></div>` : ""}</div>`;
+  }catch(e){ return null; }
+}
 function updateBossPreview(){
+  updateBossPreviewNow();
+  const html = partySelBossHtml(), el = document.getElementById("bossMovePreview");
+  if(html && el) el.innerHTML = html;   // (the selected party Pokemon's, in place of the main DPS's)
+}
+function updateBossPreviewNow(){
   updateBossCtLink();
   const name = document.getElementById("bossName").value.trim();
   const boss = findPokemon(name);
@@ -9090,6 +9194,8 @@ function startTour(){
   go(0);
 }
 
+try{ window.__modeBlank = captureSetup(); }catch(e){ window.__modeBlank = null; }   // (a fresh setup, as the page starts)
+
 // ============ SHAREABLE SETUP URLS ============
 // Reuses the exact same captureSetup()/applySetup() machinery already used for the local
 // "Recent Setups" history feature - the only difference is where the setup object is stored
@@ -9185,6 +9291,8 @@ document.addEventListener("DOMContentLoaded", function applySharedSetupFromUrl()
   }
 });
 
+// window.__modeState: each calculator mode's own setup, while the page is open; window.__modeBlank: a fresh
+// setup (as the page starts), for a mode's first visit. (On window: this runs while the page is starting.)
 function updateCTMode(){
   const mode = document.querySelector('input[name="ctMode"]:checked').value;
   document.body.classList.toggle("ct-mode-double", mode === "double");
@@ -9199,7 +9307,16 @@ function updateCTMode(){
   // another mode's results don't apply to this one (its boss charge move casts, its parties): cleared on a
   // change of mode - Calculate shows this mode's
   if(updateCTMode.last && updateCTMode.last !== mode){ const w = document.getElementById("resultsWrap"); if(w) w.innerHTML = ""; }
+  // Each mode keeps its own setup: switching away saves this one's, switching to a mode brings back its
+  // own (a fresh one the first time). A setup being loaded brings its own mode along - left alone.
+  const was = updateCTMode.last;
   updateCTMode.last = mode;
+  if(was && was !== mode && !window.__applyingSetup && typeof captureSetup === "function"){
+    const MS = window.__modeState || (window.__modeState = {});
+    try{ MS[was] = Object.assign(captureSetup(), { ctMode: was }); }catch(e){}
+    const st = MS[mode] || window.__modeBlank;
+    if(st){ try{ applySetup(Object.assign({}, st, { ctMode: mode })); }catch(e){} }
+  }
 }
 // In Main DPS mode the boss's charge move only matters for the "Fast & Charge" cadence, so its
 // inputs are hidden when "Fast Only" is selected. Every other mode always needs them.
@@ -11384,12 +11501,12 @@ updateCTMode();
     const label = t => teamPartyLabel(t), nm = t => label(t).replace(/ #\d+$/, "");
     const badge = t => t[0] === "m" ? "Main" : t[0] === "s" ? "Support" : "Catch tank";
     const html = [...Array(6)].map((_, i) => { const t = party[i];
-      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: edit"><i>${i + 1}</i>${`<span class="dt-rm" data-rm="${t}" role="button" aria-label="Remove ${esc(label(t))} from the party" title="Remove from the party">&minus;</span>`}<img${shadowCls(nm(t))} src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
+      return t ? `<button type="button" class="dt-slot" data-tok="${t}" title="${esc(label(t))}: the boss's damage to it"><i>${i + 1}</i><span class="dt-ed" data-ed="${t}" role="button" aria-label="Edit ${esc(label(t))}" title="Edit"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 2.3l2.4 2.4-8.2 8.2-3 .6.6-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>${`<span class="dt-rm" data-rm="${t}" role="button" aria-label="Remove ${esc(label(t))} from the party" title="Remove from the party">&minus;</span>`}<img${shadowCls(nm(t))} src="${esc(sprite(nm(t)))}" alt="" draggable="false" onerror="this.style.visibility='hidden'"><b>${esc(label(t))}</b><em>${badge(t)}</em></button>`
                : `<button type="button" class="dt-slot empty" data-slot="${i + 1}"><i>${i + 1}</i>+ Add</button>`; }).join("");
     if(box.dataset.html !== html){ box.dataset.html = html; box.innerHTML = html; }
     const meter = document.getElementById("dtPartyMeter"); const txt = `Party ${party.length} of 6`; if(meter && meter.textContent !== txt) meter.textContent = txt;
-    renderDtNav(party);
-    const hint = document.getElementById("dtPartyHint"); const h = party.length ? "Click a Pokémon to edit it · hold and drag to reorder" : "Click a slot to add a Pokémon";
+    renderDtNav(party); markPartySel();
+    const hint = document.getElementById("dtPartyHint"); const h = party.length ? "Click a Pokémon for the boss's damage to it · ✎ to edit · hold and drag to reorder" : "Click a slot to add a Pokémon";
     if(hint && hint.textContent !== h) hint.textContent = h;
   }
   // ---------- desktop Battle Simulator: the battle party nav, following the page ----------
@@ -11410,7 +11527,8 @@ updateCTMode();
           return;
         }
         if(b.dataset.nav === "add"){ setTimeout(() => openNavRoles(b), 0); return; }   // after this click (the party bar's click-away closes menus)
-        openProfile(b.dataset.nav);
+        if(e.target.closest("[data-ed]")){ openProfile(b.dataset.nav); return; }   // the pencil: its profile
+        selectPartyMon(b.dataset.nav);
       });
       ["scroll", "resize"].forEach(ev => window.addEventListener(ev, placeDtNav, { passive: true }));
     }
@@ -11427,12 +11545,12 @@ updateCTMode();
     const fig = t => { if(t === "boss") return "";
       if(t[0] === "t"){ const b = ideal(t); return b ? `<span class="dt-nav-x"><b>${b.v.toFixed(1)}${b.risky ? ' <em title="Risky - see its outcomes">&#9888;&#65039;</em>' : ""}</b>${b.s ? `<small>${esc(b.s)}</small>` : ""}</span>` : '<span class="dt-nav-x"><small>&mdash;</small></span>'; }
       return '<span class="dt-nav-x is-note"><small>Varies</small></span>'; };
-    const tile = (key, name, rc, role) => `<button type="button" class="dt-nav-t" data-nav="${key}" title="${esc(name)}${key === "boss" ? " - Raid Boss" : ": edit"}">
-      <span class="sq">${name ? `<img${shadowCls(name)} src="${esc(sprite(name))}" alt="${esc(name)}" draggable="false" onerror="this.style.visibility='hidden'">` : ""}</span><i class="r-${rc}">${role}</i></button>`;
+    const tile = (key, name, rc, role) => `<button type="button" class="dt-nav-t" data-nav="${key}" title="${esc(name)}${key === "boss" ? " - Raid Boss" : ": the boss's damage to it"}">
+      <span class="sq">${key !== "boss" && key !== "add" ? `<span class="dt-nav-ed" data-ed="${key}" role="button" aria-label="Edit" title="Edit"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 2.3l2.4 2.4-8.2 8.2-3 .6.6-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>` : ""}${name ? `<img${shadowCls(name)} src="${esc(sprite(name))}" alt="${esc(name)}" draggable="false" onerror="this.style.visibility='hidden'">` : ""}</span><i class="r-${rc}">${role}</i></button>`;
     const html = (boss ? tile("boss", boss, "boss", "Boss") + '<span class="dt-nav-div"></span>' : "")
       + party.map(t => { const [rc, role] = NAV_ROLE(t); return tile(t, teamPartyLabel(t).replace(/ #\d+$/, ""), rc, role); }).join("")
       + (party.length < 6 ? '<button type="button" class="dt-nav-t add" data-nav="add" title="Add a Pokémon"><span class="sq">+</span><i class="r-none">&nbsp;</i></button>' : "");
-    if(nav.dataset.html !== html){ nav.dataset.html = html; nav.innerHTML = html; }
+    if(nav.dataset.html !== html){ nav.dataset.html = html; nav.innerHTML = html; if(window.__markPartySel) window.__markPartySel(); }
     navParty = party;
     placeDtNav();
   }
@@ -11476,6 +11594,13 @@ updateCTMode();
     });
     setTimeout(() => document.addEventListener("click", function off(e){ if(!e.target.closest(".dt-nav-pop") && !e.target.closest("[data-nav=add]")){ closeDtPop(); document.removeEventListener("click", off); } }), 0);
   }
+  // a party Pokemon picked: marked in the bar, the phone bar and the nav; the boss card shows its numbers
+  function selectPartyMon(tok){ window.__partySel = tok; markPartySel(); if(typeof updateBossPreview === "function") updateBossPreview(); }
+  function markPartySel(){
+    const t = window.__partySel || "m.1";
+    document.querySelectorAll(".dt-slot[data-tok], .mq-slot[data-tok], #dtNav [data-nav]").forEach(el => el.classList.toggle("is-sel", (el.dataset.tok || el.dataset.nav) === t));
+  }
+  window.__markPartySel = markPartySel;
   function closeDtPop(){ document.querySelectorAll(".dt-pop").forEach(x => x.remove()); document.querySelectorAll(".dt-slot.on").forEach(x => x.classList.remove("on")); }
   function openDtRoles(btn){
     closeDtPop();
@@ -11507,7 +11632,9 @@ updateCTMode();
     const rm = e.target.closest && e.target.closest(".dt-rm");
     if(rm){ e.stopPropagation(); closeDtPop(); editSetup(S => removeFrom(S, rm.dataset.rm)); return; }
     const slot = e.target.closest && e.target.closest(".dt-slot");
-    if(slot){ if(slot.dataset.tok) openProfile(slot.dataset.tok); else openDtRoles(slot); return; }   // a Pokemon: its profile, to edit
+    const ed = e.target.closest && e.target.closest("[data-ed]");
+    if(ed){ e.stopPropagation(); closeDtPop(); openProfile(ed.dataset.ed); return; }   // the pencil: its profile, to edit
+    if(slot){ if(slot.dataset.tok) selectPartyMon(slot.dataset.tok); else openDtRoles(slot); return; }   // a Pokemon: picked - the boss card shows its numbers
     if(!e.target.closest || !e.target.closest(".dt-pop")) closeDtPop();
   });
   document.addEventListener("keydown", e => { if(e.key === "Escape") closeDtPop(); });
@@ -11524,12 +11651,12 @@ updateCTMode();
     const order = teamParty().slice(0, 6);
     const slots = order.map((tok, i) => {
       const name = teamPartyLabel(tok), role = tok[0] === "t" ? "CT" : tok[0] === "m" ? "Main" : "Sup";
-      return `<button type="button" class="mq-slot" data-tok="${esc(tok)}" aria-label="Slot ${i + 1}: ${esc(name)}"><span class="n">${i + 1}</span><img${shadowCls(name)} src="${esc(spriteUrl(name.replace(/ #\d+$/, "")))}" alt="" onerror="this.style.visibility='hidden'"><span class="r">${role}</span></button>`;
+      return `<button type="button" class="mq-slot" data-tok="${esc(tok)}" aria-label="Slot ${i + 1}: ${esc(name)}"><span class="n">${i + 1}</span>${tok ? `<span class="mq-ed" data-ed="${esc(tok)}" role="button" aria-label="Edit ${esc(name)}"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 2.3l2.4 2.4-8.2 8.2-3 .6.6-3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span>` : ""}<img${shadowCls(name)} src="${esc(spriteUrl(name.replace(/ #\d+$/, "")))}" alt="" onerror="this.style.visibility='hidden'"><span class="r">${role}</span></button>`;
     });
     for(let i = order.length; i < 6; i++) slots.push(`<button type="button" class="mq-slot empty" data-tok="" aria-label="Slot ${i + 1}: empty"><span class="n">${i + 1}</span>+</button>`);
     let row = bar.querySelector(".mq-slots");
     if(!row){ bar.innerHTML = '<div class="mq-tabs"></div><div class="mq-slots"></div>'; row = bar.querySelector(".mq-slots"); }
-    row.innerHTML = slots.join("");
+    row.innerHTML = slots.join(""); if(window.__markPartySel) window.__markPartySel();
     row.style.display = document.body.classList.contains("ct-mode-team") ? "" : "none";
     paintTabs();
   }
@@ -11543,11 +11670,12 @@ updateCTMode();
     bar.addEventListener("click", e => {
       const t = e.target.closest(".mq-tab");
       if(t){ const sec = sections()[+t.dataset.sec]; if(sec) scrollToCard(sec[1]); return; }
+      const ed = e.target.closest("[data-ed]"); if(ed){ openProfile(ed.dataset.ed); return; }   // the pencil: its profile
       const b = e.target.closest(".mq-slot"); if(!b) return;
       const slotNo = [...b.parentNode.children].indexOf(b) + 1;
       // a filled slot: the picker with its role; an empty one: the role first
       if(b.dataset.tok === "m.1" && !((document.getElementById("pokemonName") || {}).value || "").trim()) openRoleFirst(1);
-      else if(b.dataset.tok) openProfile(b.dataset.tok); else openRoleFirst(slotNo);
+      else if(b.dataset.tok) selectPartyMon(b.dataset.tok); else openRoleFirst(slotNo);   // a Pokemon: picked (the boss card shows its numbers)
     });
     window.addEventListener("scroll", () => { if(!bar._tick){ bar._tick = true; requestAnimationFrame(() => { bar._tick = false; paintTabs(); }); } }, { passive: true });
     // tap and hold a Pokemon to move it: the party order (who the game swaps to when one faints)
