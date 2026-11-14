@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T03:48:28.109536+00:00",
+  "generatedAt": "2026-11-14T12:36:46.688991+00:00",
   "sources": {
     "pokebattlerSchedule": 32,
     "pokebattlerScheduleWindows": 32,
@@ -7,7 +7,7 @@
     "pokebattlerApiStartDates": 13,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 39
+    "pokebattlerApi": 36
   },
   "dateGroups": [
     {
@@ -51,20 +51,6 @@
       "status": "future"
     },
     {
-      "startDate": "Nov 9, 2026",
-      "endDate": "Nov 13, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Zacian Crown",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "7 \u2b50",
-          "weather": "Clear"
-        }
-      ],
-      "status": "active"
-    },
-    {
       "startDate": "Nov 14, 2026",
       "endDate": "Nov 14, 2026",
       "category": "event",
@@ -82,7 +68,7 @@
           "weather": "Cloudy"
         }
       ],
-      "status": "future"
+      "status": "active"
     },
     {
       "startDate": "Nov 25, 2026",
@@ -152,6 +138,20 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "5.5 \u2b50",
           "weather": "Snow"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "startDate": "Nov 9, 2026",
+      "endDate": "Nov 13, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Zacian Crown",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "7 \u2b50",
+          "weather": "Clear"
         }
       ],
       "status": "passed"
