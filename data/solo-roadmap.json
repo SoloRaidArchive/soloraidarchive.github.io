@@ -70,35 +70,39 @@
       "types": {
         "Fire": [
           {
-            "name": "Shadow Reshiram",
-            "count": "3",
+            "name": "Mega Blaziken",
+            "count": "1",
             "tier": "core"
           },
           {
-            "name": "Mega Blaziken",
+            "name": "Mega Charizard",
             "count": "1",
+            "tier": "core"
+          },
+          {
+            "name": "Reshiram",
+            "count": "1-3x",
+            "tier": "optional"
+          }
+          {
+            "name": "Shadow Heatran",
+            "count": "1-2x",
             "tier": "optional"
           }
         ],
         "Ice": [
           {
             "name": "Kyurem White",
-            "count": "3",
-            "tier": "optional"
+            "count": "1",
+            "tier": "core"
           },
           {
             "name": "Kyurem Black",
-            "count": "2",
+            "count": "2-3x",
             "tier": "core"
           }
         ],
         "Normal": [
-          {
-            "name": "Shadow Regigigas",
-            "count": "3",
-            "tier": "core",
-            "role": "Catch Tank"
-          }
         ],
         "Dragon": [
           {
