@@ -1,0 +1,292 @@
+{
+  "_help": "Solo Roadmap data. stages: name, and its Pokemon by type (the page sorts the types). An entry: name (as written elsewhere on the site), count (\"5\", \"2-5\", \"3-5+\"), tier (core / optional / low-roi), and optional role (Main DPS / Support DPS / Catch Tank / Executor) and note (shown in the type's window). A type shows its first four on the page - put the most important first. Sample data - replace with the real lists.",
+  "updated": "2026-11-14",
+  "stages": [
+    {
+      "id": "starting-off",
+      "name": "Starting Off",
+      "types": {
+        "Fire": [
+          {
+            "name": "Shadow Reshiram",
+            "count": "1",
+            "tier": "core"
+          },
+          {
+            "name": "Mega Blaziken",
+            "count": "1",
+            "tier": "optional",
+            "note": "One Mega at a time"
+          }
+        ],
+        "Ice": [
+          {
+            "name": "Kyurem White",
+            "count": "2",
+            "tier": "optional"
+          }
+        ],
+        "Normal": [
+          {
+            "name": "Shadow Regigigas",
+            "count": "1",
+            "tier": "core",
+            "role": "Catch Tank"
+          }
+        ],
+        "Dragon": [
+          {
+            "name": "Mega Rayquaza",
+            "count": "1",
+            "tier": "optional"
+          }
+        ],
+        "Fighting": [
+          {
+            "name": "Terrakion",
+            "count": "2",
+            "tier": "core"
+          }
+        ],
+        "Ground": [
+          {
+            "name": "Primal Groudon",
+            "count": "1",
+            "tier": "optional"
+          }
+        ],
+        "Water": [
+          {
+            "name": "Primal Kyogre",
+            "count": "1",
+            "tier": "optional"
+          }
+        ]
+      }
+    },
+    {
+      "id": "mid-game",
+      "name": "Mid-Game",
+      "types": {
+        "Fire": [
+          {
+            "name": "Shadow Reshiram",
+            "count": "3",
+            "tier": "core"
+          },
+          {
+            "name": "Mega Blaziken",
+            "count": "1",
+            "tier": "optional"
+          }
+        ],
+        "Ice": [
+          {
+            "name": "Kyurem White",
+            "count": "3",
+            "tier": "optional"
+          },
+          {
+            "name": "Kyurem Black",
+            "count": "2",
+            "tier": "core"
+          }
+        ],
+        "Normal": [
+          {
+            "name": "Shadow Regigigas",
+            "count": "3",
+            "tier": "core",
+            "role": "Catch Tank"
+          }
+        ],
+        "Dragon": [
+          {
+            "name": "Mega Rayquaza",
+            "count": "1",
+            "tier": "optional"
+          },
+          {
+            "name": "Eternatus",
+            "count": "2",
+            "tier": "core"
+          }
+        ],
+        "Fighting": [
+          {
+            "name": "Terrakion",
+            "count": "3",
+            "tier": "core"
+          },
+          {
+            "name": "Keldeo",
+            "count": "2",
+            "tier": "optional"
+          }
+        ],
+        "Ground": [
+          {
+            "name": "Primal Groudon",
+            "count": "1",
+            "tier": "optional"
+          },
+          {
+            "name": "Shadow Groudon",
+            "count": "2",
+            "tier": "core"
+          }
+        ],
+        "Water": [
+          {
+            "name": "Primal Kyogre",
+            "count": "1",
+            "tier": "optional"
+          },
+          {
+            "name": "Shadow Kyogre",
+            "count": "2",
+            "tier": "core"
+          }
+        ],
+        "Steel": [
+          {
+            "name": "Necrozma Dusk Mane",
+            "count": "2",
+            "tier": "core"
+          }
+        ],
+        "Ghost": [
+          {
+            "name": "Necrozma Dawn Wings",
+            "count": "2",
+            "tier": "low-roi"
+          }
+        ]
+      }
+    },
+    {
+      "id": "end-game",
+      "name": "End-Game",
+      "types": {
+        "Ice": [
+          {
+            "name": "Kyurem Black",
+            "count": "5",
+            "tier": "core"
+          },
+          {
+            "name": "Kyurem White",
+            "count": "2-5",
+            "tier": "optional"
+          }
+        ],
+        "Normal": [
+          {
+            "name": "Shadow Regigigas",
+            "count": "3-5+",
+            "tier": "core",
+            "role": "Catch Tank"
+          }
+        ],
+        "Fire": [
+          {
+            "name": "Shadow Reshiram",
+            "count": "1-5",
+            "tier": "core"
+          },
+          {
+            "name": "Mega Blaziken",
+            "count": "1",
+            "tier": "optional"
+          }
+        ],
+        "Dragon": [
+          {
+            "name": "Mega Rayquaza",
+            "count": "1",
+            "tier": "optional"
+          },
+          {
+            "name": "Eternatus",
+            "count": "3-5",
+            "tier": "core"
+          }
+        ],
+        "Fighting": [
+          {
+            "name": "Terrakion",
+            "count": "5",
+            "tier": "core"
+          },
+          {
+            "name": "Keldeo",
+            "count": "3",
+            "tier": "optional"
+          }
+        ],
+        "Ground": [
+          {
+            "name": "Primal Groudon",
+            "count": "1",
+            "tier": "optional"
+          },
+          {
+            "name": "Shadow Groudon",
+            "count": "5",
+            "tier": "core"
+          }
+        ],
+        "Water": [
+          {
+            "name": "Primal Kyogre",
+            "count": "1",
+            "tier": "optional"
+          },
+          {
+            "name": "Shadow Kyogre",
+            "count": "5",
+            "tier": "core"
+          }
+        ],
+        "Steel": [
+          {
+            "name": "Necrozma Dusk Mane",
+            "count": "3-5",
+            "tier": "core"
+          },
+          {
+            "name": "Zacian Crown",
+            "count": "1",
+            "tier": "low-roi"
+          }
+        ],
+        "Ghost": [
+          {
+            "name": "Necrozma Dawn Wings",
+            "count": "3-5",
+            "tier": "low-roi"
+          }
+        ],
+        "Psychic": [
+          {
+            "name": "Shadow Mewtwo",
+            "count": "3-5",
+            "tier": "core"
+          }
+        ],
+        "Electric": [
+          {
+            "name": "Zekrom",
+            "count": "3-5",
+            "tier": "optional"
+          },
+          {
+            "name": "Xurkitree",
+            "count": "2",
+            "tier": "low-roi"
+          }
+        ]
+      }
+    }
+  ]
+}
