@@ -202,7 +202,6 @@ if ("serviceWorker" in navigator) {
   .rg-role.catchtank{ background:#f2ebff; color:#7d4fd6; } .rg-role.executor{ background:#e9e9eb; color:#292929; }
   [data-theme="dark"] .rg-role.main{ background:rgba(220,53,69,0.22); color:#ff9494; } [data-theme="dark"] .rg-role.support{ background:rgba(0,150,136,0.22); color:#5eded4; }
   [data-theme="dark"] .rg-role.catchtank{ background:rgba(155,123,240,0.2); color:#c1a8ff; } [data-theme="dark"] .rg-role.executor{ background:rgba(255,255,255,0.14); color:#e4e4e6; }
-  .rg-foot{ font-size:12px; font-weight:600; color:var(--text-dim); text-align:center; margin:-8px 0 20px; }
   /* a type's whole list, in a window over the page - the Top Catch Tanks page's look */
   .rg-overlay{ position:fixed; inset:0; background:rgba(20,24,38,0.45); z-index:80; display:flex; align-items:center; justify-content:center; padding:20px; }
   .rg-modal{ background:var(--card); border:2px solid var(--border); border-radius:16px; width:min(640px, 100%); max-height:88vh; display:flex; flex-direction:column;
@@ -435,7 +434,6 @@ if ("serviceWorker" in navigator) {
 <div class="page-wrap">
   <div class="rg-stages" role="tablist" aria-label="Stage" id="rgStages"></div>
   <div class="rg-card" id="rgStageCard"><p class="rg-lede">Loading…</p></div>
-  <p class="rg-foot" id="rgFoot"></p>
 </div>
 
 <script>
@@ -622,20 +620,29 @@ function spriteUrl(name){
   return url;
 }
 </script>
+<script src="/csv/csv-utils.js"></script>
 <script>
-// Solo Roadmap: everything on the page comes from data/solo-roadmap.json. Each stage lists its
-// Pokemon by type; the page puts the types in the usual order and tags each Pokemon's tier (core /
-// optional / low ROI). A type with more than four opens its full list in a window.
+// Solo Roadmap: each stage's Pokemon come from its own CSV in csv/ (see STAGES), one row per
+// Pokemon: Type, Pokemon, Copies, Tier, Role, Note. The page groups them by type, puts the types in
+// the usual order, keeps each type's rows in the order written, and tags each Pokemon's tier (Core /
+// Optional / Low ROI). A type with more than four opens its full list in a window.
+// To rename a stage, add one, or point it at another file, edit STAGES.
 (function(){
   const TYPES = ["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
   const COLORS = { normal:"#9199A1", fire:"#FF9C54", water:"#4D90D5", electric:"#F3D23B", grass:"#63BB5B", ice:"#74CEC0", fighting:"#CE4069", poison:"#AB6AC8", ground:"#D97746",
     flying:"#8FA8DD", psychic:"#F97176", bug:"#90C12C", rock:"#C7B78B", ghost:"#5269AC", dragon:"#0A6DC4", dark:"#5A5366", steel:"#5A8EA1", fairy:"#EC8FE6" };
   const ICON = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
   const ROLE_CLS = { "main dps": "main", "support dps": "support", "catch tank": "catchtank", "executor": "executor" };
+  const STAGES = [
+    { id: "starting-off", name: "Starting Off", file: "csv/roadmap-starting-off.csv" },
+    { id: "mid-game",     name: "Mid-Game",     file: "csv/roadmap-mid-game.csv" },
+    { id: "end-game",     name: "End-Game",     file: "csv/roadmap-end-game.csv" },
+  ];
   const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const key = n => String(n || "").trim().toLowerCase();
   // "5" -> 5×, "2-5" -> 2–5×, "3-5+" -> 3–5×+
-  const countText = c => { const s = String(c == null ? "" : c).trim(); if(!s) return ""; const plus = s.endsWith("+");
+  // "5" -> 5×, "2-5" -> 2–5×, "3-5+" -> 3–5×+ (also written "5x", "2–5" or "2 to 5" - a spreadsheet can turn "2-5" into a date, "2 to 5" can't be)
+  const countText = c => { const s = String(c == null ? "" : c).trim().replace(/\s*[x×]\s*(\+?)$/i, "$1").replace(/\s*(?:to|–|—)\s*/i, "-"); if(!s) return ""; const plus = s.endsWith("+");
     return s.replace(/\+$/, "").replace(/\s*-\s*/, "–") + "×" + (plus ? "+" : ""); };
   const countMax = c => Math.max(0, ...String(c || "").match(/\d+/g)?.map(Number) || [0]);
   const typeOrder = types => Object.keys(types || {}).sort((a, b) => (TYPES.indexOf(a) + 1 || 99) - (TYPES.indexOf(b) + 1 || 99));
@@ -655,7 +662,7 @@ function spriteUrl(name){
   function closeWin(){ document.querySelectorAll(".rg-overlay").forEach(x => x.remove()); document.body.style.overflow = ""; }
   function openWin(t){
     closeWin();
-    const s = DATA.stages[stageIx], list = (s.types || {})[t] || [];
+    const s = STAGES[stageIx], list = (s.types || {})[t] || [];
     // Role and Note only when some Pokemon of this type has one
     const hasRole = list.some(e => e.role), hasNote = list.some(e => e.note), dash = '<span class="rg-dim">&mdash;</span>';
     const rows = list.map(e => `<tr><td><span class="rg-w-mon">${pic(e.name)}<b>${esc(e.name)}</b></span></td><td class="c"><b>${esc(countText(e.count)) || "&mdash;"}</b></td>`
@@ -672,14 +679,15 @@ function spriteUrl(name){
   document.addEventListener("keydown", ev => { if(ev.key === "Escape") closeWin(); });
   const roleChip = r => r ? `<span class="rg-role ${ROLE_CLS[key(r)] || ""}">${esc(r)}</span>` : "";
 
-  let DATA = null, stageIx = 0;
+  let stageIx = 0;
 
   function renderStages(){
-    document.getElementById("rgStages").innerHTML = DATA.stages.map((s, i) =>
+    document.getElementById("rgStages").innerHTML = STAGES.map((s, i) =>
       `<button type="button" role="tab" class="rg-stage${i < stageIx ? " done" : ""}" aria-selected="${i === stageIx}" data-i="${i}"><span class="num">${i + 1}</span><span><b>${esc(s.name)}</b></span></button>`).join("");
   }
   function renderStage(){
-    const s = DATA.stages[stageIx];
+    const s = STAGES[stageIx];
+    if(!s.types){ document.getElementById("rgStageCard").innerHTML = `<div class="rg-card-head"><h2>Stage ${stageIx + 1} · ${esc(s.name)}</h2></div><p class="rg-lede">${s.failed ? "This stage's list couldn't be loaded. Try refreshing the page." : "Loading…"}</p>`; return; }
     const tile = e => { const t = tierOf(e);
       return `<div class="rg-mon" title="${esc([e.name, countText(e.count), t ? TIERS[t].label + " - " + TIERS[t].desc : "", e.role, e.note].filter(Boolean).join(" · "))}">`
         + `${pic(e.name).replace("</span>", "")}<span class="rg-n">${esc(countText(e.count))}</span></span><div class="rg-name">${esc(e.name)}</div><div class="rg-sub">${tierTag(e)}${e.role ? roleChip(e.role) : ""}</div></div>`; };
@@ -687,15 +695,25 @@ function spriteUrl(name){
     document.getElementById("rgStageCard").innerHTML = `<div class="rg-card-head"><h2>Stage ${stageIx + 1} · ${esc(s.name)}</h2></div><div class="rg-types">${rows}</div>`;
   }
   document.addEventListener("click", ev => {
-    const st = ev.target.closest(".rg-stage"); if(st){ stageIx = +st.dataset.i; renderStages(); renderStage(); history.replaceState(null, "", "#" + (DATA.stages[stageIx].id || "")); return; }
+    const st = ev.target.closest(".rg-stage"); if(st){ stageIx = +st.dataset.i; renderStages(); renderStage(); history.replaceState(null, "", "#" + STAGES[stageIx].id); return; }
     const mo = ev.target.closest(".rg-more"); if(mo) openWin(mo.dataset.type);
   });
-  fetch("data/solo-roadmap.json", { cache: "no-cache" }).then(r => r.json()).then(d => {
-    DATA = d;
-    const m = /^#([\w-]+)$/.exec(location.hash), at = m ? DATA.stages.findIndex(s => s.id === m[1]) : -1; if(at >= 0) stageIx = at;
-    renderStages(); renderStage();
-    if(d.updated) document.getElementById("rgFoot").textContent = `Last updated ${d.updated}`;
-  }).catch(err => { console.error(err); document.getElementById("rgStageCard").innerHTML = `<p class="rg-lede">The guide couldn't be loaded. Try refreshing the page.</p>`; });
+  // a stage's CSV -> { Type: [entries in the order written] }; the header's case and spacing don't matter
+  function toTypes(text){
+    const types = {};
+    parseCSV(text).forEach(r => {
+      const f = {}; Object.keys(r).forEach(k => f[key(k)] = String(r[k] || "").trim());
+      const type = f.type ? f.type.charAt(0).toUpperCase() + f.type.slice(1).toLowerCase() : "", name = f.pokemon || f.name;
+      if(!type || !name) return;   // (blank lines and half-filled rows are skipped)
+      (types[type] = types[type] || []).push({ name, count: f.copies || f.count, tier: f.tier, role: f.role, note: f.note });
+    });
+    return types;
+  }
+  const m = /^#([\w-]+)$/.exec(location.hash), at = m ? STAGES.findIndex(s => s.id === m[1]) : -1; if(at >= 0) stageIx = at;
+  renderStages(); renderStage();
+  STAGES.forEach((s, i) => fetch(s.file, { cache: "no-cache" }).then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
+    .then(text => { s.types = toTypes(text); }).catch(err => { console.error(s.file, err); s.failed = true; })
+    .then(() => { if(i === stageIx) renderStage(); }));
 })();
 </script>
 
