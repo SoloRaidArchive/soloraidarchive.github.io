@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-15T00:28:01.066691+00:00",
+  "generatedAt": "2026-11-15T10:01:37.824421+00:00",
   "sources": {
     "pokebattlerSchedule": 28,
     "pokebattlerScheduleWindows": 28,
@@ -51,26 +51,6 @@
       "status": "future"
     },
     {
-      "startDate": "Nov 14, 2026",
-      "endDate": "Nov 14, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Zekrom",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Kyurem White",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Cloudy"
-        }
-      ],
-      "status": "active"
-    },
-    {
       "startDate": "Nov 25, 2026",
       "endDate": "Dec 1, 2026",
       "category": "rotation",
@@ -95,6 +75,26 @@
         }
       ],
       "status": "future"
+    },
+    {
+      "startDate": "Nov 14, 2026",
+      "endDate": "Nov 14, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Kyurem White",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Zekrom",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
+        }
+      ],
+      "status": "active"
     },
     {
       "startDate": "Nov 24, 2026",
