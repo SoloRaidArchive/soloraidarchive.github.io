@@ -645,7 +645,8 @@ function spriteUrl(name){
 // Each chart groups its rows by type, puts the types in the usual order, keeps each type's rows in the
 // order written, and tags each one's tier (Core / Optional / Low ROI). Tapping a Pokemon, or a type's
 // "+N more", opens the type's full list in a window.
-// To rename a stage, add one, or point it at other files, edit STAGES.
+// The files are named as Google Sheets exports a tab of the "Progression-Chart" sheet. To rename a
+// stage, add one, or point it at other files, edit STAGES.
 (function(){
   const TYPES = ["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
   const COLORS = { normal:"#9199A1", fire:"#FF9C54", water:"#4D90D5", electric:"#F3D23B", grass:"#63BB5B", ice:"#74CEC0", fighting:"#CE4069", poison:"#AB6AC8", ground:"#D97746",
@@ -653,9 +654,9 @@ function spriteUrl(name){
   const ICON = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
   const ROLE_CLS = { "main dps": "main", "support dps": "support", "catch tank": "catchtank", "executor": "executor" };
   const STAGES = [
-    { id: "starting-off", name: "Starting Off", file: "csv/roadmap-starting-off.csv", catchFile: "csv/catching-starting-off.csv" },
-    { id: "mid-game",     name: "Mid-Game",     file: "csv/roadmap-mid-game.csv",     catchFile: "csv/catching-mid-game.csv" },
-    { id: "end-game",     name: "End-Game",     file: "csv/roadmap-end-game.csv",     catchFile: "csv/catching-end-game.csv" },
+    { id: "starting-off", name: "Starting Off", file: "csv/Progression-Chart - roadmap-starting-off.csv", catchFile: "csv/Progression-Chart - catching-starting-off.csv" },
+    { id: "mid-game",     name: "Mid-Game",     file: "csv/Progression-Chart - roadmap-mid-game.csv",     catchFile: "csv/Progression-Chart - catching-mid-game.csv" },
+    { id: "end-game",     name: "End-Game",     file: "csv/Progression-Chart - roadmap-late-game.csv",    catchFile: "csv/Progression-Chart - catching-late-game.csv" },
   ];
   const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const key = n => String(n || "").trim().toLowerCase();
@@ -769,7 +770,8 @@ function spriteUrl(name){
     parseCSV(text).forEach(r => { if(r.name && r.type) MOVE_TYPES[key(r.name)] = r.type; });
   }).catch(() => {});
   STAGES.forEach((s, i) => { s.data = {}; s.failed = {};
-    Object.keys(KINDS).forEach(kind => fetch(KINDS[kind].file(s), { cache: "no-cache" }).then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
+    Object.keys(KINDS).forEach(kind => fetch(encodeURI(KINDS[kind].file(s)), { cache: "no-cache" })   // (the names have spaces)
+     .then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
       .then(text => { s.data[kind] = toTypes(text, kind); }).catch(err => { console.error(KINDS[kind].file(s), err); s.failed[kind] = true; })
       .then(() => { if(i === stageIx) renderChart(kind); })); });
 })();
