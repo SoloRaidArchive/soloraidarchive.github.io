@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-11-16T10:15:56.986952+00:00",
+  "generatedAt": "2026-11-16T21:20:10.183112+00:00",
   "sources": {
     "pokebattlerSchedule": 33,
     "pokebattlerScheduleWindows": 33,
     "scrapedDuck": 1,
-    "pokebattlerApiStartDates": 0,
+    "pokebattlerApiStartDates": 7,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 28
+    "pokebattlerApi": 35
   },
   "dateGroups": [
     {
@@ -28,7 +28,7 @@
           "weather": "Extreme"
         }
       ],
-      "status": "future"
+      "status": "active"
     },
     {
       "startDate": "Nov 25, 2026",
@@ -74,7 +74,7 @@
           "weather": "Windy"
         }
       ],
-      "status": "active"
+      "status": "passed"
     },
     {
       "startDate": "Nov 24, 2026",
