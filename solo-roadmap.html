@@ -217,9 +217,10 @@ if ("serviceWorker" in navigator) {
   .rg-rlegend{ display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; font:700 12px 'Manrope',sans-serif; color:var(--text-muted); }
   .rg-rlegend > span, .rg-rlist > span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
   .rg-rlist{ display:flex; flex-direction:column; gap:3px; font-weight:700; }
+  .rg-rn{ font-style:normal; }
   /* a type's whole list, in a window over the page - the Top Catch Tanks page's look */
   .rg-overlay{ position:fixed; inset:0; background:rgba(20,24,38,0.45); z-index:80; display:flex; align-items:center; justify-content:center; padding:20px; }
-  .rg-modal{ background:var(--card); border:2px solid var(--border); border-radius:16px; width:min(640px, 100%); max-height:88vh; display:flex; flex-direction:column;
+  .rg-modal{ background:var(--card); border:2px solid var(--border); border-radius:16px; width:min(880px, 100%); max-height:88vh; display:flex; flex-direction:column;
     box-shadow:0 12px 40px rgba(20,24,38,0.25); overflow:hidden; }
   .rg-m-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0; }
   .rg-m-title{ display:flex; align-items:center; gap:10px; min-width:0; }
@@ -232,6 +233,8 @@ if ("serviceWorker" in navigator) {
   .rg-m-table th{ position:sticky; top:0; background:var(--card); text-align:left; font-family:'Manrope', sans-serif; font-weight:800; font-size:10px; text-transform:uppercase;
     letter-spacing:0.04em; color:var(--text-dim); padding:8px 12px; white-space:nowrap; z-index:3; box-shadow:inset 0 -1px 0 var(--border); }
   .rg-m-table td{ padding:5px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .rg-m-table td.rg-note{ min-width:220px; line-height:1.4; }
+  .rg-m-table tr.rg-note-row{ display:none; }
   .rg-m-table tr:hover td{ background:rgba(61,157,255,.08); }
   .rg-m-table .c{ text-align:center; white-space:nowrap; }
   .rg-w-mon{ display:flex; align-items:center; gap:8px; font-family:'Manrope',sans-serif; white-space:nowrap; }
@@ -249,7 +252,16 @@ if ("serviceWorker" in navigator) {
     .rg-overlay{ padding:0; }
     .rg-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; } .rg-modal{ max-height:100dvh; height:100dvh; }
     .rg-m-close{ min-width:44px; min-height:44px; }
-    .rg-m-table th, .rg-m-table td{ padding-left:8px; padding-right:8px; }
+    .rg-m-table th, .rg-m-table td{ padding-left:6px; padding-right:6px; }
+    .rg-m-table .rg-note{ display:none; }
+    .rg-m-table .rg-rn{ display:none; }   /* roles as icons only (the page's legend names them) */
+    .rg-m-table .rg-rlist{ flex-direction:row; gap:2px; }
+    .rg-m-table .rg-mv{ font-size:11px; gap:4px; } .rg-m-table .rg-mi{ width:13px; height:13px; }
+    .rg-m-table th{ font-size:9px; letter-spacing:.02em; }
+    .rg-w-mon b{ font-size:11.5px; }
+    .rg-m-table tr.rg-note-row{ display:table-row; }
+    .rg-m-table tr.has-note td{ border-bottom:0; padding-bottom:2px; }
+    .rg-m-table tr.rg-note-row td{ padding:0 8px 8px 50px; font-size:11.5px; line-height:1.4; color:var(--text-muted); font-weight:600; white-space:normal; }
     .rg-w-mon{ white-space:normal; gap:6px; } .rg-w-mon .rg-pic{ width:32px; height:32px; } .rg-w-mon .rg-pic img{ width:30px; height:30px; }
   }
   @media (max-width:640px){
@@ -728,11 +740,14 @@ function spriteUrl(name){
     // Moveset, Role and Note only when some Pokemon of this type has one
     const has = k => list.some(e => e[k]), hasMoves = list.some(e => e.fm || e.cm);
     const cols = kind === "catch"
-      ? [["Catch", e => monCell(e.name)], ["Builds into", e => { const I = intoOf(e); return I.mons.length ? `<span class="rg-intos">${I.mons.map(monCell).join("")}</span>` : dash; }], ["Tier", e => tierTag(e) || dash, "c"], has("note") && ["Note", e => e.note ? esc(e.note) : dash]]
+      ? [["Catch", e => monCell(e.name)], ["Builds into", e => { const I = intoOf(e); return I.mons.length ? `<span class="rg-intos">${I.mons.map(monCell).join("")}</span>` : dash; }], ["Tier", e => tierTag(e) || dash, "c"], has("note") && ["Note", e => e.note ? esc(e.note) : dash, "rg-note"]]
       : [["Pokémon", e => monCell(e.name)], hasMoves && ["Moveset", e => `<span class="rg-mvs">${movesHtml(e) || dash}</span>`], ["Copies", e => `<b>${esc(countText(e.count)) || "&mdash;"}</b>`, "c"],
-         ["Tier", e => tierTag(e) || dash, "c"], list.some(e => rolesOf(e).length) && ["Role", e => roleCell(e) || dash], has("note") && ["Note", e => e.note ? esc(e.note) : dash]];
+         ["Tier", e => tierTag(e) || dash, "c"], list.some(e => rolesOf(e).length) && ["Role", e => roleCell(e) || dash], has("note") && ["Note", e => e.note ? esc(e.note) : dash, "rg-note"]];
     const C = cols.filter(Boolean);
-    const rows = list.map((e, i) => `<tr${i === pick ? ' class="on"' : ""}>${C.map(([, f, c]) => `<td${c ? ` class="${c}"` : ""}>${f(e)}</td>`).join("")}</tr>`).join("");
+    // On phones the Note column gives way to the note on its own full-width line under its row
+    const span = C.filter(([, , c]) => c !== "rg-note").length;
+    const rows = list.map((e, i) => `<tr class="${i === pick ? "on" : ""}${e.note ? " has-note" : ""}">${C.map(([, f, c]) => `<td${c ? ` class="${c}"` : ""}>${f(e)}</td>`).join("")}</tr>`
+      + (e.note ? `<tr class="rg-note-row${i === pick ? " on" : ""}"><td colspan="${span}">${esc(e.note)}</td></tr>` : "")).join("");
     const ov = document.createElement("div"); ov.className = "rg-overlay";
     ov.innerHTML = `<div class="rg-modal" role="dialog" aria-modal="true" aria-label="${esc(t)}" style="--tc:${COLORS[key(t)] || "#888"}">`
       + `<div class="rg-m-head"><div class="rg-m-title"><span class="rg-type-ico"><img src="${ICON}${key(t)}.svg" alt=""></span><div><h3>${esc(t)}${kind === "catch" ? " · Catch for Candy" : ""}</h3>`
@@ -758,7 +773,7 @@ function spriteUrl(name){
   const rolesOf = e => String(e.role || "").split(/[\/,;]/).map(r => ROLE_CLS[key(r).replace(/\s+/g, " ")] || (/tank/i.test(r) ? "catchtank" : /exec/i.test(r) ? "executor" : /support/i.test(r) ? "support" : /main/i.test(r) ? "main" : "")).filter((r, i, a) => r && a.indexOf(r) === i);
   const roleIco = r => `<span class="rg-ri ${r}" title="${ROLE_NAME[r]}"><svg viewBox="0 0 16 16" aria-hidden="true">${ROLE_SVG[r]}</svg></span>`;
   const roleIcons = e => rolesOf(e).map(roleIco).join("");
-  const roleCell = e => { const rs = rolesOf(e); return rs.length ? `<span class="rg-rlist">${rs.map(r => `<span>${roleIco(r)}${ROLE_NAME[r]}</span>`).join("")}</span>` : ""; };
+  const roleCell = e => { const rs = rolesOf(e); return rs.length ? `<span class="rg-rlist">${rs.map(r => `<span>${roleIco(r)}<em class="rg-rn">${ROLE_NAME[r]}</em></span>`).join("")}</span>` : ""; };
   const roleLegend = types => { const used = new Set(Object.values(types).flat().flatMap(rolesOf));
     return used.size ? `<div class="rg-rlegend">${Object.keys(ROLE_NAME).filter(r => used.has(r)).map(r => `<span>${roleIco(r)}${ROLE_NAME[r]}</span>`).join("")}</div>` : ""; };
 
@@ -786,9 +801,11 @@ function spriteUrl(name){
     const types = {};
     parseCSV(text).forEach(r => {
       const f = {}; Object.keys(r).forEach(k => f[key(k)] = String(r[k] || "").trim());
-      const type = f.type ? f.type.charAt(0).toUpperCase() + f.type.slice(1).toLowerCase() : "", e = KINDS[kind].row(f);
-      if(!type || !e.name) return;   // (blank lines and half-filled rows are skipped)
-      (types[type] = types[type] || []).push(e);
+      // several types ("Dragon, Ground" - or split by "/", ";", "&" or "+") put the Pokemon in each type's box
+      const tlist = (f.type || "").split(/\s*[,\/;&+]\s*/).map(t => t.trim()).filter(Boolean).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase())
+        .filter((t, i, a) => a.indexOf(t) === i), e = KINDS[kind].row(f);
+      if(!tlist.length || !e.name) return;   // (blank lines and half-filled rows are skipped)
+      tlist.forEach(type => (types[type] = types[type] || []).push(e));
     });
     return types;
   }
