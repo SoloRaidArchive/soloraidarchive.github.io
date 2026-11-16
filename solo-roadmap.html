@@ -168,7 +168,7 @@ if ("serviceWorker" in navigator) {
   .rg-stage[aria-selected="true"] .num{ background:var(--blue); color:#fff; }
   .rg-stage.done .num{ background:color-mix(in srgb, var(--blue) 25%, var(--card)); color:var(--blue-dark); }
   .rg-card{ background:var(--card); border:2px solid var(--border); border-radius:18px; padding:18px 20px 6px; margin-bottom:22px; }
-  .rg-card-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:8px; }
+  .rg-card-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:8px; }
   .rg-card-head h2{ margin:0 0 4px; font:800 18px 'Manrope',sans-serif; }
   .rg-card-head p{ margin:0; font-size:13.5px; font-weight:600; color:var(--text-muted); line-height:1.45; max-width:560px; }
   /* types as small panels in a grid: the type's icon and name, then its Pokemon */
@@ -183,7 +183,7 @@ if ("serviceWorker" in navigator) {
   .rg-type-h{ display:flex; align-items:center; gap:8px; font:800 13.5px 'Manrope',sans-serif; color:var(--text); margin-bottom:6px; }
   .rg-type-ico{ flex:0 0 24px; height:24px; border-radius:50%; display:grid; place-items:center; background:var(--tc); box-shadow:0 0 8px color-mix(in srgb, var(--tc) 45%, transparent); }
   .rg-type-ico img{ width:14px; height:14px; filter:brightness(0) invert(1); }
-  .rg-mons{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px 2px; }
+  .rg-mons{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px 2px; padding-top:7px; }   /* (room for the copies badge over the sprites) */
   .rg-mon{ min-width:0; display:flex; flex-direction:column; align-items:center; text-align:center; gap:2px; position:relative; }
   .rg-pic{ position:relative; width:54px; height:54px; display:grid; place-items:center; border-radius:50%; transition:box-shadow .15s; }
   .rg-pic img{ width:48px; height:48px; object-fit:contain; }
@@ -193,20 +193,31 @@ if ("serviceWorker" in navigator) {
   .rg-into img{ width:24px !important; height:24px !important; object-fit:contain; }
   .rg-candy-tag{ position:absolute; right:-12px; bottom:-2px; font:800 10px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border); border-radius:99px; padding:1px 6px; line-height:1.3; }
   .rg-candy{ font-family:'Manrope',sans-serif; }
-  .rg-n{ position:absolute; right:-8px; bottom:-2px; font:800 11.5px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border); border-radius:99px; padding:1px 6px; line-height:1.3; white-space:nowrap; }
+  .rg-n{ position:absolute; right:-10px; top:-6px; font:800 11.5px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border); border-radius:99px; padding:1px 6px; line-height:1.3; white-space:nowrap; }
   .rg-name{ font:700 11px 'Manrope',sans-serif; letter-spacing:-.15px; color:var(--text); line-height:1.2; margin-top:3px; min-height:2.4em; display:flex; align-items:flex-start; justify-content:center; }   /* two lines kept for every name, so the tags line up */   /* (a long single word - Blacephalon - runs into the gap rather than breaking) */
-  .rg-sub{ min-height:16px; display:flex; flex-wrap:wrap; justify-content:center; gap:3px; }
+  .rg-sub{ min-height:18px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:3px; }
   .rg-tier{ font:800 9.5px 'Manrope',sans-serif; letter-spacing:.03em; border-radius:99px; padding:2px 6px; line-height:1.2; white-space:nowrap; border:1px solid transparent; }
   .rg-tier.core{ background:#fff1c7; color:#9a6a00; border-color:#f0cf6a; }
   .rg-tier.optional{ background:#e3f0ff; color:#2b6cb0; border-color:#b5d4f4; }
   .rg-tier.lowroi{ background:transparent; color:var(--text-dim); border-color:var(--border); border-style:dashed; }
   [data-theme="dark"] .rg-tier.core{ background:rgba(240,190,60,.16); color:#ffd36b; border-color:rgba(240,190,60,.45); }
   [data-theme="dark"] .rg-tier.optional{ background:rgba(90,169,255,.16); color:#8cc7ff; border-color:rgba(90,169,255,.4); }
-  .rg-role{ font:800 9.5px 'Manrope',sans-serif; border-radius:99px; padding:2px 6px; line-height:1.2; white-space:nowrap; }
-  .rg-role.main{ background:#ffe1e1; color:#c62828; } .rg-role.support{ background:#dff5f3; color:#00897b; }
-  .rg-role.catchtank{ background:#f2ebff; color:#7d4fd6; } .rg-role.executor{ background:#e9e9eb; color:#292929; }
-  [data-theme="dark"] .rg-role.main{ background:rgba(220,53,69,0.22); color:#ff9494; } [data-theme="dark"] .rg-role.support{ background:rgba(0,150,136,0.22); color:#5eded4; }
-  [data-theme="dark"] .rg-role.catchtank{ background:rgba(155,123,240,0.2); color:#c1a8ff; } [data-theme="dark"] .rg-role.executor{ background:rgba(255,255,255,0.14); color:#e4e4e6; }
+  /* roles: small icons in the role's colour (the Roles page's colours), a legend at the top of the card */
+  .rg-ri{ display:inline-grid; place-items:center; width:18px; height:18px; border-radius:50%; flex:none; vertical-align:middle; }
+  .rg-ri svg{ width:12px; height:12px; display:block; }
+  .rg-ri.main{ background:#ffe1e1; color:#c62828; } .rg-ri.support{ background:#dff5f3; color:#00897b; }
+  .rg-ri.catchtank{ background:#f2ebff; color:#7d4fd6; } .rg-ri.executor{ background:#e9e9eb; color:#292929; }
+  [data-theme="dark"] .rg-ri.main{ background:rgba(220,53,69,0.22); color:#ff9494; } [data-theme="dark"] .rg-ri.support{ background:rgba(0,150,136,0.22); color:#5eded4; }
+  [data-theme="dark"] .rg-ri.catchtank{ background:rgba(155,123,240,0.2); color:#c1a8ff; } [data-theme="dark"] .rg-ri.executor{ background:rgba(255,255,255,0.14); color:#e4e4e6; }
+  /* on a tile: in a row centred under the sprite (the copies badge is on its top right); a stage with
+     any roles keeps that row's space under every sprite, so the names stay level */
+  .rg-roles{ position:absolute; left:50%; bottom:-10px; transform:translateX(-50%); display:flex; gap:2px; }
+  .has-roles .rg-mon .rg-name{ margin-top:13px; }
+  .rg-roles .rg-ri{ width:17px; height:17px; box-shadow:0 0 0 1.5px var(--card); }
+  .rg-roles .rg-ri svg{ width:11px; height:11px; }
+  .rg-rlegend{ display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; font:700 12px 'Manrope',sans-serif; color:var(--text-muted); }
+  .rg-rlegend > span, .rg-rlist > span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
+  .rg-rlist{ display:flex; flex-direction:column; gap:3px; font-weight:700; }
   /* a type's whole list, in a window over the page - the Top Catch Tanks page's look */
   .rg-overlay{ position:fixed; inset:0; background:rgba(20,24,38,0.45); z-index:80; display:flex; align-items:center; justify-content:center; padding:20px; }
   .rg-modal{ background:var(--card); border:2px solid var(--border); border-radius:16px; width:min(640px, 100%); max-height:88vh; display:flex; flex-direction:column;
@@ -656,7 +667,7 @@ function spriteUrl(name){
   const STAGES = [
     { id: "starting-off", name: "Starting Off", file: "csv/Progression-Chart - roadmap-starting-off.csv", catchFile: "csv/Progression-Chart - catching-starting-off.csv" },
     { id: "mid-game",     name: "Mid-Game",     file: "csv/Progression-Chart - roadmap-mid-game.csv",     catchFile: "csv/Progression-Chart - catching-mid-game.csv" },
-    { id: "end-game",     name: "End-Game",     file: "csv/Progression-Chart - roadmap-late-game.csv",    catchFile: "csv/Progression-Chart - catching-late-game.csv" },
+    { id: "end-game",     name: "End-Game",     file: "csv/Progression-Chart - roadmap-end-game.csv",    catchFile: "csv/Progression-Chart - catching-end-game.csv" },
   ];
   const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const key = n => String(n || "").trim().toLowerCase();
@@ -700,7 +711,7 @@ function spriteUrl(name){
   // a Pokemon in a chart: its sprite (with how many copies, or the small sprite of what it builds into), name and tags
   const TILES = {
     roster: (e, i) => `<button type="button" class="rg-mon" data-i="${i}" aria-haspopup="dialog" title="${esc([e.name, movesText(e), countText(e.count), tipOf(e), e.role, e.note].filter(Boolean).join(" · "))}">`
-      + `${pic(e.name).replace("</span>", "")}<span class="rg-n">${esc(countText(e.count))}</span></span><span class="rg-name">${esc(e.name)}</span><span class="rg-sub">${tierTag(e)}${e.role ? roleChip(e.role) : ""}</span></button>`,
+      + `${pic(e.name).replace("</span>", "")}<span class="rg-n">${esc(countText(e.count))}</span>${rolesOf(e).length ? `<span class="rg-roles">${roleIcons(e)}</span>` : ""}</span><span class="rg-name">${esc(e.name)}</span><span class="rg-sub">${tierTag(e)}</span></button>`,
     catch: (e, i) => `<button type="button" class="rg-mon" data-i="${i}" aria-haspopup="dialog" title="${esc(["Catch " + e.name, isCandy(e) ? "for its candy" : e.into ? "builds into " + e.into : "", tipOf(e), e.note].filter(Boolean).join(" · "))}">`
       + `${pic(e.name).replace("</span>", "")}${isCandy(e) ? `<span class="rg-candy-tag">Candy</span>`
         : e.into ? `<span class="rg-into"><img src="${esc(spriteUrl(e.into))}" alt="${esc(e.into)}" loading="lazy"></span>` : ""}</span>`
@@ -716,7 +727,7 @@ function spriteUrl(name){
     const cols = kind === "catch"
       ? [["Catch", e => monCell(e.name)], ["Builds into", e => isCandy(e) ? `<b class="rg-candy">Candy</b>` : e.into ? monCell(e.into) : dash], ["Tier", e => tierTag(e) || dash, "c"], has("note") && ["Note", e => e.note ? esc(e.note) : dash]]
       : [["Pokémon", e => monCell(e.name)], hasMoves && ["Moveset", e => `<span class="rg-mvs">${movesHtml(e) || dash}</span>`], ["Copies", e => `<b>${esc(countText(e.count)) || "&mdash;"}</b>`, "c"],
-         ["Tier", e => tierTag(e) || dash, "c"], has("role") && ["Role", e => e.role ? roleChip(e.role) : dash, "c"], has("note") && ["Note", e => e.note ? esc(e.note) : dash]];
+         ["Tier", e => tierTag(e) || dash, "c"], list.some(e => rolesOf(e).length) && ["Role", e => roleCell(e) || dash], has("note") && ["Note", e => e.note ? esc(e.note) : dash]];
     const C = cols.filter(Boolean);
     const rows = list.map((e, i) => `<tr${i === pick ? ' class="on"' : ""}>${C.map(([, f, c]) => `<td${c ? ` class="${c}"` : ""}>${f(e)}</td>`).join("")}</tr>`).join("");
     const ov = document.createElement("div"); ov.className = "rg-overlay";
@@ -731,7 +742,22 @@ function spriteUrl(name){
     const on = ov.querySelector("tr.on"); if(on) on.scrollIntoView({ block: "nearest" });
   }
   document.addEventListener("keydown", ev => { if(ev.key === "Escape") closeWin(); });
-  const roleChip = r => r ? `<span class="rg-role ${ROLE_CLS[key(r)] || ""}">${esc(r)}</span>` : "";
+  // Roles as small icons, drawn like the calculator's caught / sponged / dodged marks (16px line art,
+  // round caps, in the role's colour) - a Pokemon can have several, split by "/", "," or ";"
+  // (Main DPS / Catch Tank). The card's legend names the ones it uses; each icon's tooltip names it.
+  const ROLE_SVG = {
+    main: `<path d="M13.6 2.4 6.2 9.8M13.6 2.4l-.5 3.1M13.6 2.4l-3.1.5M4.2 8.6l3.2 3.2M5.8 10.2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
+    support: `<path d="M2.4 2.4l7.4 7.4M13.6 2.4 6.2 9.8M8.6 11.8l3.2-3.2M7.4 11.8 4.2 8.6M10.2 10.2l3.4 3.4M5.8 10.2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`,
+    catchtank: `<circle cx="10.2" cy="9.4" r="4.4" fill="currentColor"/><path d="M1.2 2.4l4.3 3.4M5.5 5.8l-.4-2.6M5.5 5.8l-2.6.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`,
+    executor: `<circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="8" r="1.7" fill="currentColor"/><path d="M8 .9v2.4M8 12.7v2.4M.9 8h2.4M12.7 8h2.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>`,
+  };
+  const ROLE_NAME = { main: "Main DPS", support: "Support DPS", catchtank: "Catch Tank", executor: "Executor" };
+  const rolesOf = e => String(e.role || "").split(/[\/,;]/).map(r => ROLE_CLS[key(r).replace(/\s+/g, " ")] || (/tank/i.test(r) ? "catchtank" : /exec/i.test(r) ? "executor" : /support/i.test(r) ? "support" : /main/i.test(r) ? "main" : "")).filter((r, i, a) => r && a.indexOf(r) === i);
+  const roleIco = r => `<span class="rg-ri ${r}" title="${ROLE_NAME[r]}"><svg viewBox="0 0 16 16" aria-hidden="true">${ROLE_SVG[r]}</svg></span>`;
+  const roleIcons = e => rolesOf(e).map(roleIco).join("");
+  const roleCell = e => { const rs = rolesOf(e); return rs.length ? `<span class="rg-rlist">${rs.map(r => `<span>${roleIco(r)}${ROLE_NAME[r]}</span>`).join("")}</span>` : ""; };
+  const roleLegend = types => { const used = new Set(Object.values(types).flat().flatMap(rolesOf));
+    return used.size ? `<div class="rg-rlegend">${Object.keys(ROLE_NAME).filter(r => used.has(r)).map(r => `<span>${roleIco(r)}${ROLE_NAME[r]}</span>`).join("")}</div>` : ""; };
 
   let stageIx = 0;
 
@@ -741,9 +767,9 @@ function spriteUrl(name){
   }
   function renderChart(kind){
     const s = STAGES[stageIx], K = KINDS[kind], el = document.getElementById(K.card), types = (s.data || {})[kind];
-    const head = `<div class="rg-card-head"><h2>${K.title(s)}</h2></div>`;
+    const head = `<div class="rg-card-head"><h2>${K.title(s)}</h2>${types ? roleLegend(types) : ""}</div>`;
     if(!types){ el.innerHTML = head + `<p class="rg-lede">${(s.failed || {})[kind] ? "This list couldn't be loaded. Try refreshing the page." : "Loading…"}</p>`; return; }
-    el.innerHTML = head + `<div class="rg-types">${typeOrder(types).map(t => panel(kind, t, types[t], TILES[kind])).join("")}</div>`;
+    el.innerHTML = head + `<div class="rg-types${Object.values(types).flat().some(e => rolesOf(e).length) ? " has-roles" : ""}">${typeOrder(types).map(t => panel(kind, t, types[t], TILES[kind])).join("")}</div>`;
   }
   const renderStage = () => { renderChart("roster"); renderChart("catch"); };
   document.addEventListener("click", ev => {
