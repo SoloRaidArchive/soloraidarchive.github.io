@@ -1188,6 +1188,10 @@ if ("serviceWorker" in navigator) {
   .hp-bar{ position:relative; height:10px; margin-top:3px; border-radius:999px; overflow:hidden;
     background:color-mix(in srgb, var(--text) 12%, transparent); }
   .hp-fill{ height:100%; border-radius:999px; transition:width .35s ease, background-color .35s ease; }
+  .en-bar-block{ margin-top:6px; }
+  .en-fill{ height:100%; border-radius:999px; background:linear-gradient(90deg, #f2c94c, #ffd84d); box-shadow:0 0 6px rgba(255,216,77,.45); transition:width .35s ease; }
+  .en-bar > i{ position:absolute; top:0; bottom:0; width:2px; margin-left:-1px; background:var(--card); opacity:.9; }
+  .en-bar-block .hp-bar-label b{ color:#e8b923; }
   .hp-green{ background:#3cbf68; } .hp-yellow{ background:#f2c230; } .hp-red{ background:#e5484d; }
   /* the chunk one rotation takes off the boss */
   .hp-chunk{ position:absolute; top:0; bottom:0; min-width:3px; background:#e5484d; box-shadow:0 0 0 1px rgba(255,255,255,.6) inset; }
@@ -1965,6 +1969,10 @@ if ("serviceWorker" in navigator) {
   .dt-nav-t .sq{ position:relative; } .dt-nav-ed{ top:-6px; right:-6px; width:17px; height:17px; }
   .sel-target{ display:flex; align-items:center; gap:6px; margin:4px 0 6px; font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); }
   .sel-target b{ color:var(--text); font-weight:800; }
+  .sel-hp{ margin-left:auto; white-space:nowrap; font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); }
+  .sel-hp b{ font:800 13px 'IBM Plex Mono',monospace; }
+  @media (max-width:560px){ .sel-hp-w{ display:none; } .sel-target{ white-space:nowrap; } .sel-target b{ overflow:hidden; text-overflow:ellipsis; min-width:0; } }
+  .sel-hp.ok b{ color:#3fbf6f; } .sel-hp.mid b{ color:#e0b43a; } .sel-hp.low b, .sel-hp.low{ color:#ff6b6b; }
   .sel-sp{ width:26px; height:26px; object-fit:contain; }
   .sel-role{ font-style:normal; font:800 9.5px/1 'Manrope',sans-serif; border-radius:999px; padding:3px 7px; }
   .sel-main{ background:rgba(220,53,69,0.18); color:#e05561; } .sel-support{ background:rgba(0,150,136,0.18); color:#1aa595; } .sel-ct{ background:rgba(155,123,240,0.18); color:#8a63e6; }
@@ -2373,7 +2381,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-15 · aggression checkbox</p>
+      <p class="beta-build">Build 2026-11-16 · energy bar</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -7456,6 +7464,7 @@ function runCalculation(){
   lastCalcContext = {
     bossQualifies,
     bossName,
+    energy: { fromCM: energyFromCM, fromFM: energyFromBossFM, cmHits: doubleCT ? 2 : 1, cost: cmEnergyCost, cmName: bossCMMove.n, fmName: bossFMMove.n },
     fields: {
       pokemonName: pkmnName, level, ivAtk, ivDef, ivHp,
       playerFM: fm.n, playerCM: cm.n,
@@ -8320,22 +8329,28 @@ function partySelBossHtml(){
   let tok = window.__partySel || "m.1";
   try{
     const c = teamBossContextFromDom(); if(!c || !c.bossFMMove) return null;
-    let name, fmD, cmD;
+    let name, fmD, cmD, hp = 0;
     if(tok !== "m.1"){
       const k = parseInt(tok.slice(1), 10) || 1, p = tok[0] === "t" ? (k === 1 ? "ct" : "ct" + k) : "sd" + k;
       const on = tok[0] === "t" ? k <= (parseInt((document.getElementById("ctTypes") || {}).value, 10) || 0) : k <= (parseInt((document.getElementById("sdCount") || {}).value, 10) || 0);
       const T = on ? teamTankNumbers(c, p) : null;
-      if(T && T.name){ name = T.name; fmD = T.bossFmDmg; cmD = T.bossCmDmg; } else { tok = window.__partySel = "m.1"; }
+      if(T && T.name){ name = T.name; fmD = T.bossFmDmg; cmD = T.bossCmDmg; hp = T.hp || 0; } else { tok = window.__partySel = "m.1"; }
     }
     if(tok === "m.1"){
       if(!LAST_MAIN_BOSS_HITS) return null;
       name = (document.getElementById("pokemonName").value || "").trim(); fmD = LAST_MAIN_BOSS_HITS[0][1]; cmD = LAST_MAIN_BOSS_HITS[1] ? LAST_MAIN_BOSS_HITS[1][1] : null;
+      const pk = findPokemon(name), lvl = document.getElementById("pokemonLevel").value.trim(), ivHp = parseInt(document.getElementById("ivHp").value, 10);
+      hp = pk && validateLevel(lvl) && validateIV(String(ivHp)) ? Math.floor(calcStat(pk.hp, ivHp, lvl)) : 0;
     }
+    // its HP left after one of the boss's charge moves (or, fast moves only, one fast move), on the right
+    const hit = c.bossCMMove && cmD != null ? cmD : fmD, hitName = c.bossCMMove && cmD != null ? c.bossCMMove.n : c.bossFMMove.n;
+    const left = Math.max(0, hp - (hit || 0)), lf = hp ? left / hp : 0;
+    const hpHtml = hp ? `<span class="sel-hp ${lf > 0.5 ? "ok" : lf > 0.25 ? "mid" : "low"}" title="HP left after one ${hitName}">${left === 0 ? "Faints" : `<b>${left}</b> / ${hp} HP<span class="sel-hp-w"> left</span>`}</span>` : "";
     const role = tok[0] === "m" ? "Main" : tok[0] === "s" ? "Support" : "CT";
     const sp = `<img class="sel-sp${needsShadowMist(name) ? " shadow-mist" : ""}" src="${spriteUrl(name)}" alt="" onerror="this.style.visibility='hidden'">`;
     const gain = c.bossCMMove && cmD != null ? Math.ceil(0.5 * cmD) : null;
     return `<div class="boss-dmg-preview">${bossTagHtml()}
-      <div class="sel-target">Damage to ${sp}<b>${name}</b><i class="sel-role sel-${role.toLowerCase()}">${role}</i></div>
+      <div class="sel-target">Damage to ${sp}<b>${name}</b><i class="sel-role sel-${role.toLowerCase()}">${role}</i>${hpHtml}</div>
       ${teamMoveRow(c.bossFMMove, fmD)}${c.bossCMMove && cmD != null ? teamMoveRow(c.bossCMMove, cmD) : ""}
       ${gain != null ? `<div class="boss-dmg-row player-dmg energy-row"><span>Energy gained from ${c.bossCMMove.n}</span><b>+${Math.min(100, gain)} energy</b></div>` : ""}</div>`;
   }catch(e){ return null; }
@@ -10800,6 +10815,20 @@ function updateHealthBars(n){
     <div class="hp-bar-label"><span>Remaining HP</span><b>${F.left} / ${F.maxHp}</b></div>
     <div class="hp-bar"><div class="hp-fill ${hpBarColor(frac)}" style="width:${(frac * 100).toFixed(2)}%"></div></div>
     <div class="hp-bar-note">${F.fainted ? "Faints - " : ""}takes ${F.taken} damage (${fm})</div></div>`);
+  // Energy absorbed: what the boss's charge move(s) and the tanked fast moves give the catch tank
+  // (half the damage each hit deals). The bar runs to 100, or on in steps of the catch tank's own
+  // charge move cost when it takes more - its lines mark one charge move's worth each.
+  const E = lastCalcContext.energy;
+  if(E && !row.fainted){
+    const total = E.cmHits * E.fromCM + row.n * E.fromFM, step = E.cost || 100;
+    const span = Math.max(100, Math.ceil(total / step) * step);
+    const lines = []; for(let v = step; v < span; v += step) lines.push(`<i style="left:${(v / span * 100).toFixed(2)}%"></i>`);
+    const parts = [`${E.cmHits > 1 ? E.cmHits + " × " : ""}${E.fromCM} from ${E.cmName}`].concat(row.n ? [`${row.n > 1 ? row.n + " × " : ""}${E.fromFM} from ${E.fmName}`] : []);
+    mons[0].insertAdjacentHTML("beforeend", `<div class="hp-bar-block en-bar-block">
+    <div class="hp-bar-label"><span>Energy absorbed</span><b>+${total}</b></div>
+    <div class="hp-bar en-bar"><div class="en-fill" style="width:${(Math.min(1, total / span) * 100).toFixed(2)}%"></div>${lines.join("")}</div>
+    <div class="hp-bar-note">${parts.join(" + ")}</div></div>`);
+  }
   const leftFrac = (F.bossHp - F.dealt) / F.bossHp;
   mons[1].insertAdjacentHTML("beforeend", `<div class="hp-bar-block">
     <div class="hp-bar-label"><span>This rotation</span><b>&minus;${F.dealt.toLocaleString()} HP</b></div>
