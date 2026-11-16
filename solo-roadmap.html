@@ -188,6 +188,11 @@ if ("serviceWorker" in navigator) {
   .rg-pic{ position:relative; width:54px; height:54px; display:grid; place-items:center; border-radius:50%; transition:box-shadow .15s; }
   .rg-pic img{ width:48px; height:48px; object-fit:contain; }
   .rg-pic img.shadow-mist{ border-radius:50%; background:radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow:0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+  /* Catch for Candy: the small sprite of what it builds into, where the roster's copies badge sits */
+  .rg-into{ position:absolute; right:-10px; bottom:-4px; width:28px; height:28px; border-radius:50%; background:var(--card); border:1.5px solid var(--border); display:grid; place-items:center; }
+  .rg-into img{ width:24px !important; height:24px !important; object-fit:contain; }
+  .rg-candy-tag{ position:absolute; right:-12px; bottom:-2px; font:800 10px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border); border-radius:99px; padding:1px 6px; line-height:1.3; }
+  .rg-candy{ font-family:'Manrope',sans-serif; }
   .rg-n{ position:absolute; right:-8px; bottom:-2px; font:800 11.5px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border); border-radius:99px; padding:1px 6px; line-height:1.3; white-space:nowrap; }
   .rg-name{ font:700 11px 'Manrope',sans-serif; letter-spacing:-.15px; color:var(--text); line-height:1.2; margin-top:3px; min-height:2.4em; display:flex; align-items:flex-start; justify-content:center; }   /* two lines kept for every name, so the tags line up */   /* (a long single word - Blacephalon - runs into the gap rather than breaking) */
   .rg-sub{ min-height:16px; display:flex; flex-wrap:wrap; justify-content:center; gap:3px; }
@@ -221,12 +226,21 @@ if ("serviceWorker" in navigator) {
   .rg-m-table .c{ text-align:center; white-space:nowrap; }
   .rg-w-mon{ display:flex; align-items:center; gap:8px; font-family:'Manrope',sans-serif; white-space:nowrap; }
   .rg-w-mon .rg-pic{ width:38px; height:38px; flex:none; } .rg-w-mon .rg-pic img{ width:34px; height:34px; }
+  .rg-mvs{ display:flex; flex-direction:column; gap:3px; }
+  .rg-mv{ display:inline-flex; align-items:center; gap:5px; font-weight:700; white-space:nowrap; }
+  .rg-mi{ width:15px; height:15px; border-radius:50%; flex:none; display:inline-flex; align-items:center; justify-content:center; }
+  .rg-mi img{ width:9px; height:9px; filter:brightness(0) invert(1); }
+  .rg-m-table tr.on td{ background:color-mix(in srgb, var(--blue) 12%, transparent); }
+  button.rg-mon{ background:none; border:0; padding:0; font:inherit; color:inherit; cursor:pointer; }
+  button.rg-mon:hover .rg-pic{ box-shadow:0 0 0 2px color-mix(in srgb, var(--tc) 70%, transparent), 0 0 10px color-mix(in srgb, var(--tc) 40%, transparent); }
+  button.rg-mon:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:10px; }
   .rg-dim{ color:var(--text-muted); opacity:.6; }
   @media (max-width:600px){
     .rg-overlay{ padding:0; }
     .rg-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; } .rg-modal{ max-height:100dvh; height:100dvh; }
     .rg-m-close{ min-width:44px; min-height:44px; }
     .rg-m-table th, .rg-m-table td{ padding-left:8px; padding-right:8px; }
+    .rg-w-mon{ white-space:normal; gap:6px; } .rg-w-mon .rg-pic{ width:32px; height:32px; } .rg-w-mon .rg-pic img{ width:30px; height:30px; }
   }
   @media (max-width:640px){
     .rg-overlay{ padding:0; }
@@ -434,6 +448,7 @@ if ("serviceWorker" in navigator) {
 <div class="page-wrap">
   <div class="rg-stages" role="tablist" aria-label="Stage" id="rgStages"></div>
   <div class="rg-card" id="rgStageCard"><p class="rg-lede">Loading…</p></div>
+  <div class="rg-card" id="rgCatchCard"></div>
 </div>
 
 <script>
@@ -622,11 +637,15 @@ function spriteUrl(name){
 </script>
 <script src="/csv/csv-utils.js"></script>
 <script>
-// Solo Roadmap: each stage's Pokemon come from its own CSV in csv/ (see STAGES), one row per
-// Pokemon: Type, Pokemon, Copies, Tier, Role, Note. The page groups them by type, puts the types in
-// the usual order, keeps each type's rows in the order written, and tags each Pokemon's tier (Core /
-// Optional / Low ROI). A type with more than four opens its full list in a window.
-// To rename a stage, add one, or point it at another file, edit STAGES.
+// Solo Roadmap: two charts per stage, each from its own CSV in csv/ (see STAGES).
+//  - Roster: one row per Pokemon to build - Type, Pokemon, Fast Moves, Charge Moves, Copies, Tier, Role, Note.
+//  - Catch for Candy: one row per Pokemon to start catching - Type, Catch, Builds Into, Tier, Note
+//    (e.g. Rock, Shadow Cranidos, Shadow Rampardos, Core). Builds Into "Candy" marks one caught for its
+//    candy - Cranidos, for the candy that powers up Shadow Rampardos.
+// Each chart groups its rows by type, puts the types in the usual order, keeps each type's rows in the
+// order written, and tags each one's tier (Core / Optional / Low ROI). Tapping a Pokemon, or a type's
+// "+N more", opens the type's full list in a window.
+// To rename a stage, add one, or point it at other files, edit STAGES.
 (function(){
   const TYPES = ["Normal","Fire","Water","Electric","Grass","Ice","Fighting","Poison","Ground","Flying","Psychic","Bug","Rock","Ghost","Dragon","Dark","Steel","Fairy"];
   const COLORS = { normal:"#9199A1", fire:"#FF9C54", water:"#4D90D5", electric:"#F3D23B", grass:"#63BB5B", ice:"#74CEC0", fighting:"#CE4069", poison:"#AB6AC8", ground:"#D97746",
@@ -634,13 +653,12 @@ function spriteUrl(name){
   const ICON = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
   const ROLE_CLS = { "main dps": "main", "support dps": "support", "catch tank": "catchtank", "executor": "executor" };
   const STAGES = [
-    { id: "starting-off", name: "Starting Off", file: "csv/roadmap-starting-off.csv" },
-    { id: "mid-game",     name: "Mid-Game",     file: "csv/roadmap-mid-game.csv" },
-    { id: "end-game",     name: "End-Game",     file: "csv/roadmap-end-game.csv" },
+    { id: "starting-off", name: "Starting Off", file: "csv/roadmap-starting-off.csv", catchFile: "csv/catching-starting-off.csv" },
+    { id: "mid-game",     name: "Mid-Game",     file: "csv/roadmap-mid-game.csv",     catchFile: "csv/catching-mid-game.csv" },
+    { id: "end-game",     name: "End-Game",     file: "csv/roadmap-end-game.csv",     catchFile: "csv/catching-end-game.csv" },
   ];
   const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const key = n => String(n || "").trim().toLowerCase();
-  // "5" -> 5×, "2-5" -> 2–5×, "3-5+" -> 3–5×+
   // "5" -> 5×, "2-5" -> 2–5×, "3-5+" -> 3–5×+ (also written "5x", "2–5" or "2 to 5" - a spreadsheet can turn "2-5" into a date, "2 to 5" can't be)
   const countText = c => { const s = String(c == null ? "" : c).trim().replace(/\s*[x×]\s*(\+?)$/i, "$1").replace(/\s*(?:to|–|—)\s*/i, "-"); if(!s) return ""; const plus = s.endsWith("+");
     return s.replace(/\+$/, "").replace(/\s*-\s*/, "–") + "×" + (plus ? "+" : ""); };
@@ -648,33 +666,68 @@ function spriteUrl(name){
   const typeOrder = types => Object.keys(types || {}).sort((a, b) => (TYPES.indexOf(a) + 1 || 99) - (TYPES.indexOf(b) + 1 || 99));
   const pic = (name, size) => `<span class="rg-pic"><img src="${esc(spriteUrl(name))}" alt="${esc(name)}" loading="lazy" class="${needsShadowMist(name) ? "shadow-mist" : ""}"${size ? ` width="${size}" height="${size}"` : ""}></span>`;
   const typeHead = t => `<div class="rg-type-h" style="--tc:${COLORS[key(t)] || "#888"}"><span class="rg-type-ico"><img src="${ICON}${key(t)}.svg" alt=""></span>${esc(t)}</div>`;
+  // Moves, each with its type's icon (types from csv/moves.csv, loaded below). A Pokemon's charge moves
+  // can be more than one, split by "/", "," or ";".
+  const MOVE_TYPES = {};
+  const splitMoves = s => String(s || "").split(/[\/,;]/).map(x => x.trim()).filter(Boolean);
+  const moveChip = n => { const t = MOVE_TYPES[key(n)];
+    return `<span class="rg-mv"><span class="rg-mi" style="background:${t ? COLORS[key(t)] || "#9199A1" : "transparent"}"${t ? ` title="${esc(t)}"` : ""}>${t ? `<img src="${ICON}${key(t)}.svg" alt="">` : ""}</span>${esc(n)}</span>`; };
+  const movesHtml = e => [e.fm].concat(splitMoves(e.cm)).filter(Boolean).map(moveChip).join("");
+  const movesText = e => [e.fm, splitMoves(e.cm).join(", ")].filter(Boolean).join(" / ");
   // a Pokemon's tier: how much it matters for solos
   const TIERS = { core: { label: "Core", desc: "core to solos" }, optional: { label: "Optional", desc: "good pivots" }, lowroi: { label: "Low ROI", desc: "use at your discretion" } };
   const tierOf = e => { const t = key(e.tier).replace(/[^a-z]/g, ""); return TIERS[t] ? t : ""; };
   const tierTag = e => { const t = tierOf(e); return t ? `<span class="rg-tier ${t}">${TIERS[t].label}</span>` : ""; };
-  // Every type's panel is the same size: up to four Pokemon, and a "+N more" button that opens the
+  // The two charts: where each draws, its heading, and how its CSV's rows read
+  const KINDS = {
+    roster: { card: "rgStageCard", file: s => s.file, title: s => `Stage ${STAGES.indexOf(s) + 1} · ${esc(s.name)}`,
+      row: f => ({ name: f.pokemon || f.name, fm: f["fast moves"] || f["fast move"] || f.fm, cm: f["charge moves"] || f["charge move"] || f.cm,
+        count: f.copies || f.count, tier: f.tier, role: f.role, note: f.note }) },
+    catch: { card: "rgCatchCard", file: s => s.catchFile, title: () => "Catch for Candy",
+      row: f => ({ name: f.catch || f.pokemon || f.name, into: f["builds into"] || f["evolves into"] || f.into || f.for, tier: f.tier, note: f.note }) },
+  };
+  // Every type's panel is the same size: up to four Pokemon, and a "+N more" button. Either opens the
   // type's whole list in a window over the page (as the Top Catch Tanks page's tables do)
   const SHOW = 4;
-  const panel = (t, list, tile) => { const extra = list.length - SHOW;
-    return `<div class="rg-type" style="--tc:${COLORS[key(t)] || "#888"}">`
-      + `<div class="rg-type-top">${typeHead(t)}${extra > 0 ? `<button type="button" class="rg-more" data-type="${esc(t)}" aria-haspopup="dialog">+${extra} more</button>` : ""}</div>`
+  const panel = (kind, t, list, tile) => { const extra = list.length - SHOW;
+    return `<div class="rg-type" data-kind="${kind}" data-type="${esc(t)}" style="--tc:${COLORS[key(t)] || "#888"}">`
+      + `<div class="rg-type-top">${typeHead(t)}${extra > 0 ? `<button type="button" class="rg-more" aria-haspopup="dialog">+${extra} more</button>` : ""}</div>`
       + `<div class="rg-mons">${list.slice(0, SHOW).map(tile).join("")}</div></div>`; };
+  // "Candy" under Builds Into: caught for its candy
+  const isCandy = e => /^candy$/i.test(String(e.into || "").trim());
+  const tipOf = e => { const t = tierOf(e); return t ? TIERS[t].label + " - " + TIERS[t].desc : ""; };
+  // a Pokemon in a chart: its sprite (with how many copies, or the small sprite of what it builds into), name and tags
+  const TILES = {
+    roster: (e, i) => `<button type="button" class="rg-mon" data-i="${i}" aria-haspopup="dialog" title="${esc([e.name, movesText(e), countText(e.count), tipOf(e), e.role, e.note].filter(Boolean).join(" · "))}">`
+      + `${pic(e.name).replace("</span>", "")}<span class="rg-n">${esc(countText(e.count))}</span></span><span class="rg-name">${esc(e.name)}</span><span class="rg-sub">${tierTag(e)}${e.role ? roleChip(e.role) : ""}</span></button>`,
+    catch: (e, i) => `<button type="button" class="rg-mon" data-i="${i}" aria-haspopup="dialog" title="${esc(["Catch " + e.name, isCandy(e) ? "for its candy" : e.into ? "builds into " + e.into : "", tipOf(e), e.note].filter(Boolean).join(" · "))}">`
+      + `${pic(e.name).replace("</span>", "")}${isCandy(e) ? `<span class="rg-candy-tag">Candy</span>`
+        : e.into ? `<span class="rg-into"><img src="${esc(spriteUrl(e.into))}" alt="${esc(e.into)}" loading="lazy"></span>` : ""}</span>`
+      + `<span class="rg-name">${esc(e.name)}</span><span class="rg-sub">${tierTag(e)}</span></button>`,
+  };
   function closeWin(){ document.querySelectorAll(".rg-overlay").forEach(x => x.remove()); document.body.style.overflow = ""; }
-  function openWin(t){
+  function openWin(kind, t, pick){
     closeWin();
-    const s = STAGES[stageIx], list = (s.types || {})[t] || [];
-    // Role and Note only when some Pokemon of this type has one
-    const hasRole = list.some(e => e.role), hasNote = list.some(e => e.note), dash = '<span class="rg-dim">&mdash;</span>';
-    const rows = list.map(e => `<tr><td><span class="rg-w-mon">${pic(e.name)}<b>${esc(e.name)}</b></span></td><td class="c"><b>${esc(countText(e.count)) || "&mdash;"}</b></td>`
-        + `<td class="c">${tierTag(e) || dash}</td>${hasRole ? `<td class="c">${e.role ? roleChip(e.role) : dash}</td>` : ""}${hasNote ? `<td>${e.note ? esc(e.note) : dash}</td>` : ""}</tr>`).join("");
+    const s = STAGES[stageIx], list = ((s.data || {})[kind] || {})[t] || [];
+    const dash = '<span class="rg-dim">&mdash;</span>', monCell = n => `<span class="rg-w-mon">${pic(n)}<b>${esc(n)}</b></span>`;
+    // Moveset, Role and Note only when some Pokemon of this type has one
+    const has = k => list.some(e => e[k]), hasMoves = list.some(e => e.fm || e.cm);
+    const cols = kind === "catch"
+      ? [["Catch", e => monCell(e.name)], ["Builds into", e => isCandy(e) ? `<b class="rg-candy">Candy</b>` : e.into ? monCell(e.into) : dash], ["Tier", e => tierTag(e) || dash, "c"], has("note") && ["Note", e => e.note ? esc(e.note) : dash]]
+      : [["Pokémon", e => monCell(e.name)], hasMoves && ["Moveset", e => `<span class="rg-mvs">${movesHtml(e) || dash}</span>`], ["Copies", e => `<b>${esc(countText(e.count)) || "&mdash;"}</b>`, "c"],
+         ["Tier", e => tierTag(e) || dash, "c"], has("role") && ["Role", e => e.role ? roleChip(e.role) : dash, "c"], has("note") && ["Note", e => e.note ? esc(e.note) : dash]];
+    const C = cols.filter(Boolean);
+    const rows = list.map((e, i) => `<tr${i === pick ? ' class="on"' : ""}>${C.map(([, f, c]) => `<td${c ? ` class="${c}"` : ""}>${f(e)}</td>`).join("")}</tr>`).join("");
     const ov = document.createElement("div"); ov.className = "rg-overlay";
     ov.innerHTML = `<div class="rg-modal" role="dialog" aria-modal="true" aria-label="${esc(t)}" style="--tc:${COLORS[key(t)] || "#888"}">`
-      + `<div class="rg-m-head"><div class="rg-m-title"><span class="rg-type-ico"><img src="${ICON}${key(t)}.svg" alt=""></span><div><h3>${esc(t)}</h3><div class="rg-m-sub">Stage ${stageIx + 1} &middot; ${esc(s.name)} &middot; ${list.length} Pokémon</div></div></div>`
+      + `<div class="rg-m-head"><div class="rg-m-title"><span class="rg-type-ico"><img src="${ICON}${key(t)}.svg" alt=""></span><div><h3>${esc(t)}${kind === "catch" ? " · Catch for Candy" : ""}</h3>`
+      + `<div class="rg-m-sub">Stage ${stageIx + 1} &middot; ${esc(s.name)} &middot; ${list.length} Pokémon</div></div></div>`
       + `<button type="button" class="rg-m-close" aria-label="Close">&times;</button></div>`
-      + `<div class="rg-m-scroll"><table class="rg-m-table"><thead><tr><th>Pokémon</th><th class="c">Copies</th><th class="c">Tier</th>${hasRole ? `<th class="c">Role</th>` : ""}${hasNote ? "<th>Note</th>" : ""}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
+      + `<div class="rg-m-scroll"><table class="rg-m-table"><thead><tr>${C.map(([h, , c]) => `<th${c ? ` class="${c}"` : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
     ov.addEventListener("click", ev => { if(ev.target === ov || ev.target.closest(".rg-m-close")) closeWin(); });
     document.body.appendChild(ov); document.body.style.overflow = "hidden";
     ov.querySelector(".rg-m-close").focus();
+    const on = ov.querySelector("tr.on"); if(on) on.scrollIntoView({ block: "nearest" });
   }
   document.addEventListener("keydown", ev => { if(ev.key === "Escape") closeWin(); });
   const roleChip = r => r ? `<span class="rg-role ${ROLE_CLS[key(r)] || ""}">${esc(r)}</span>` : "";
@@ -685,35 +738,40 @@ function spriteUrl(name){
     document.getElementById("rgStages").innerHTML = STAGES.map((s, i) =>
       `<button type="button" role="tab" class="rg-stage${i < stageIx ? " done" : ""}" aria-selected="${i === stageIx}" data-i="${i}"><span class="num">${i + 1}</span><span><b>${esc(s.name)}</b></span></button>`).join("");
   }
-  function renderStage(){
-    const s = STAGES[stageIx];
-    if(!s.types){ document.getElementById("rgStageCard").innerHTML = `<div class="rg-card-head"><h2>Stage ${stageIx + 1} · ${esc(s.name)}</h2></div><p class="rg-lede">${s.failed ? "This stage's list couldn't be loaded. Try refreshing the page." : "Loading…"}</p>`; return; }
-    const tile = e => { const t = tierOf(e);
-      return `<div class="rg-mon" title="${esc([e.name, countText(e.count), t ? TIERS[t].label + " - " + TIERS[t].desc : "", e.role, e.note].filter(Boolean).join(" · "))}">`
-        + `${pic(e.name).replace("</span>", "")}<span class="rg-n">${esc(countText(e.count))}</span></span><div class="rg-name">${esc(e.name)}</div><div class="rg-sub">${tierTag(e)}${e.role ? roleChip(e.role) : ""}</div></div>`; };
-    const rows = typeOrder(s.types).map(t => panel(t, s.types[t], tile)).join("");
-    document.getElementById("rgStageCard").innerHTML = `<div class="rg-card-head"><h2>Stage ${stageIx + 1} · ${esc(s.name)}</h2></div><div class="rg-types">${rows}</div>`;
+  function renderChart(kind){
+    const s = STAGES[stageIx], K = KINDS[kind], el = document.getElementById(K.card), types = (s.data || {})[kind];
+    const head = `<div class="rg-card-head"><h2>${K.title(s)}</h2></div>`;
+    if(!types){ el.innerHTML = head + `<p class="rg-lede">${(s.failed || {})[kind] ? "This list couldn't be loaded. Try refreshing the page." : "Loading…"}</p>`; return; }
+    el.innerHTML = head + `<div class="rg-types">${typeOrder(types).map(t => panel(kind, t, types[t], TILES[kind])).join("")}</div>`;
   }
+  const renderStage = () => { renderChart("roster"); renderChart("catch"); };
   document.addEventListener("click", ev => {
     const st = ev.target.closest(".rg-stage"); if(st){ stageIx = +st.dataset.i; renderStages(); renderStage(); history.replaceState(null, "", "#" + STAGES[stageIx].id); return; }
-    const mo = ev.target.closest(".rg-more"); if(mo) openWin(mo.dataset.type);
+    const p = ev.target.closest(".rg-type"); if(!p) return;
+    const mo = ev.target.closest(".rg-more"), mn = ev.target.closest(".rg-mon");
+    if(mo || mn) openWin(p.dataset.kind, p.dataset.type, mn ? +mn.dataset.i : undefined);
   });
-  // a stage's CSV -> { Type: [entries in the order written] }; the header's case and spacing don't matter
-  function toTypes(text){
+  // a chart's CSV -> { Type: [rows in the order written] }; the header's case and spacing don't matter
+  function toTypes(text, kind){
     const types = {};
     parseCSV(text).forEach(r => {
       const f = {}; Object.keys(r).forEach(k => f[key(k)] = String(r[k] || "").trim());
-      const type = f.type ? f.type.charAt(0).toUpperCase() + f.type.slice(1).toLowerCase() : "", name = f.pokemon || f.name;
-      if(!type || !name) return;   // (blank lines and half-filled rows are skipped)
-      (types[type] = types[type] || []).push({ name, count: f.copies || f.count, tier: f.tier, role: f.role, note: f.note });
+      const type = f.type ? f.type.charAt(0).toUpperCase() + f.type.slice(1).toLowerCase() : "", e = KINDS[kind].row(f);
+      if(!type || !e.name) return;   // (blank lines and half-filled rows are skipped)
+      (types[type] = types[type] || []).push(e);
     });
     return types;
   }
   const m = /^#([\w-]+)$/.exec(location.hash), at = m ? STAGES.findIndex(s => s.id === m[1]) : -1; if(at >= 0) stageIx = at;
   renderStages(); renderStage();
-  STAGES.forEach((s, i) => fetch(s.file, { cache: "no-cache" }).then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
-    .then(text => { s.types = toTypes(text); }).catch(err => { console.error(s.file, err); s.failed = true; })
-    .then(() => { if(i === stageIx) renderStage(); }));
+  // the moves' types, for their icons - the charts don't wait on it
+  fetch("csv/moves.csv").then(r => r.ok ? r.text() : "").then(text => {
+    parseCSV(text).forEach(r => { if(r.name && r.type) MOVE_TYPES[key(r.name)] = r.type; });
+  }).catch(() => {});
+  STAGES.forEach((s, i) => { s.data = {}; s.failed = {};
+    Object.keys(KINDS).forEach(kind => fetch(KINDS[kind].file(s), { cache: "no-cache" }).then(r => { if(!r.ok) throw new Error(r.status); return r.text(); })
+      .then(text => { s.data[kind] = toTypes(text, kind); }).catch(err => { console.error(KINDS[kind].file(s), err); s.failed[kind] = true; })
+      .then(() => { if(i === stageIx) renderChart(kind); })); });
 })();
 </script>
 
