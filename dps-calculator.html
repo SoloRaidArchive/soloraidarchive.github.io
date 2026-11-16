@@ -1600,6 +1600,25 @@ if ("serviceWorker" in navigator) {
   .team-g3 .team-g3-wide{ grid-column:1 / -1; white-space:normal; }
   .dps-stat-table tr.team-row-att-dps .team-r2-head{ color:var(--text); font-weight:800; }
   .dps-stat-table tr.team-row-att-dps .team-g3{ font-weight:800; }
+  /* Roster tables (Attackers, Boss Rotation): each Pokemon's icon once, its figures in labelled columns */
+  .team-stat-table tr.team-ro-row > td{ padding-top:8px; padding-bottom:8px; }
+  .team-stat-table table.team-ro{ display:table; width:100%; table-layout:fixed; border-collapse:collapse; font-weight:700; color:var(--text); }
+  .team-stat-table table.team-ro thead{ display:table-header-group; } .team-stat-table table.team-ro tbody{ display:table-row-group; }
+  .team-stat-table table.team-ro tr{ display:table-row; border:0; }
+  .team-stat-table table.team-ro tr th, .team-stat-table table.team-ro tr td{ display:table-cell; width:auto; flex:none; max-width:none; border:0; padding:3px 0 3px 6px;
+    text-align:right; vertical-align:middle; white-space:nowrap; font-variant-numeric:tabular-nums; color:var(--text); font-weight:700; }
+  .team-stat-table table.team-ro tr th{ font:700 10px 'Manrope',sans-serif; letter-spacing:.06em; text-transform:uppercase; color:var(--text-dim); padding-bottom:4px; overflow:hidden; text-overflow:ellipsis; }
+  .team-stat-table table.team-ro tr th .team-tip{ text-transform:none; letter-spacing:0; }
+  .team-stat-table table.team-ro tr td:first-child, .team-stat-table table.team-ro tr th:first-child{ width:32px; padding-left:0; text-align:left; }
+  .team-stat-table table.team-ro .team-ico{ width:26px; height:26px; vertical-align:middle; }
+  .team-stat-table table.team-ro td .cm-how{ vertical-align:-1px; margin:0 2px 0 4px; }
+  .team-stat-table table.team-ro tr.team-ro-boss-row td{ border-bottom:1px solid var(--border); padding-bottom:5px; }
+  .team-stat-table table.team-ro tr.team-ro-boss-row + tr td{ padding-top:6px; }
+  .team-stat-table table.team-ro tr.team-ro-tot td{ border-top:1px solid var(--border); padding-top:6px; color:var(--text-dim); font-weight:600; }
+  .team-stat-table table.team-ro tr.team-ro-tot td:first-child{ width:auto; }
+  .team-stat-table table.team-ro tr.team-ro-note td{ text-align:left; color:var(--text-dim); font-weight:600; white-space:normal; padding-top:6px; }
+  .team-stat-table table.team-ro .team-dim{ font-weight:600; }
+  @media (max-width: 560px){ .team-stat-table tr.team-ro-row:not(.dps-stat-group) > td:only-child{ flex:1 1 100%; } }
   /* going all in: marked above the timeline where it happened */
   .tl-allin{ position:relative; height:26px; margin-top:6px; }
   .tl-allin-m{ position:absolute; bottom:5px; transform:translateX(-50%); display:inline-flex; align-items:center; gap:4px; padding:1px 8px 1px 2px; border-radius:999px;
@@ -1620,6 +1639,8 @@ if ("serviceWorker" in navigator) {
   @media (min-width:900px) and (max-width:1099px){   /* narrow three-column desktop: the grid gets the column's full width */
     .team-r2-body{ grid-template-columns:minmax(0, 1fr); } .team-r2-body .team-r2-boss{ display:none; }
     .team-r2-boss-alt{ display:inline-flex !important; }
+    .team-stat-table tr.team-wide td:first-child{ width:1%; }   /* hot swaps: the label as narrow as it goes, the swaps wrap after the icons - so Attackers keeps its third of the width */
+    .team-stat-table tr.team-wide .team-sub-item{ white-space:normal; display:inline; }
   }
   .team-behavior-row > .dt-main-tg{ display:none !important; }   /* phones: the main DPS's switches stay in its row */
   @media (min-width:561px){ body.ct-mode-team .team-behavior-row > .dt-main-tg{ display:inline-flex !important; } }
@@ -1951,6 +1972,9 @@ if ("serviceWorker" in navigator) {
   .mod-consolidated-grid > .aggro-cell > .mod-box{ min-height:50px !important; padding:5px 12px !important; gap:1px !important; }
   .mod-consolidated-grid > .aggro-cell > .mod-box input[type=range]{ height:16px; }
   .mod-consolidated-grid > .aggro-cell .aggro-hint{ font-size:10.5px !important; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin:0 !important; }
+  /* Main DPS's Boss aggression and Optimal DPS checkboxes: the height of a box, level with the boxes
+     beside them (under where a heading would be), not the full height of a heading and its box */
+  body.ct-mode-maindps .mod-consolidated-grid > label.check-item.maindps-fmcm-aggro{ height:50px !important; min-height:0 !important; align-self:end; box-sizing:border-box; padding-top:0; padding-bottom:0; }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2349,7 +2373,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-12 · all in fights on</p>
+      <p class="beta-build">Build 2026-11-15 · aggression checkbox</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -5895,25 +5919,13 @@ function renderTeamSim(P, S, R){
   const howMeaning = { caught: "a catch tank took it", sponged: "the attacker took it, for its energy", dodged: "the attacker dodged it" };
   const cmLegend = ["caught", "sponged", "dodged"].filter(h => cmHowItems.includes(`title="${h}"`))
     .map(h => `<span class="tip-key"><span class="cm-how">${TEAM_HOW_SVG[h]}</span><b>${h}</b>&nbsp;&middot; ${howMeaning[h]}</span>`).join("");
-  const cmExtraItems = late ? `<span class="team-sub-item team-g3-wide">${late} too late to swap</span>` : "";
   // going all in, marked above the timeline where it happened (the boss's charge move it took)
   const allIns = decs.filter(d => d.outcome === "all-in" && d.cast <= E);
   const allInMarks = allIns.map(d => { const pct = d.cast / span * 100, side = pct > 70 ? " end" : pct < 30 ? " start" : "";
     const ico = multi ? attIco(d.att || 0) : teamIcon(P, 0), who = multi ? (ATT[d.att || 0] || P.main).name : P.main.name;
     return `<span class="tl-allin-m${side}" style="left:${pct.toFixed(2)}%" title="${who} took the ${P.bossCM.n} going all in at ${sec(d.cast)}">${ico}<span>${allIns.length > 1 ? "all in" : `took the ${P.bossCM.n} going all in`}</span></span>`; }).join("");
-  // Rows in two parts: the label (and any total) on the first line, the figures beneath, three to a
-  // row - so six Pokemon fill two rows and the column stays narrow
-  const g3 = items => `<div class="team-g3">${String(items || "").split(" &middot; ").join("")}</div>`;
-  const row2 = (label, totalHtml, items, cls) => `<tr class="team-2row${cls ? " " + cls : ""}"><td colspan="2"><div class="team-r2-head"><span class="lbl">${label}</span>${totalHtml ? `<span class="tot">${totalHtml}</span>` : ""}</div>${items ? g3(items) : ""}</td></tr>`;
-  const row2boss = (label, bossHtml, items) => `<tr class="team-2row"><td colspan="2"><div class="team-r2-head"><span class="lbl">${label}</span><span class="tot team-r2-boss-alt">${bossHtml}</span></div><div class="team-r2-body"><span class="team-r2-boss">${bossHtml}</span>${g3(items)}</div></td></tr>`;
-  // Boss Rotation rows open with the boss's icon and its total, spaced off from who took them
-  const bossTotal = n => `<span class="team-head-total">${teamIcon(P, "boss")}<b class="team-total">${n}</b></span>`;
-  // the boss's fast moves that landed within the results, and how many each Pokemon tanked
+  // the boss's fast moves that landed within the results
   const bossFmHits = R.bossMoves.filter(b => !b.cm && b.t <= E);
-  const fmTankedItems = (multi ? ATT.map((A, k) => [attIco(k), bossFmHits.filter(b => b.who === 0 && (b.att || 0) === k).length])
-                               : [[teamIcon(P, 0), bossFmHits.filter(b => b.who === 0).length]])
-    .concat(P.tanks.map((tp, i) => [typeIcos[i], bossFmHits.filter(b => b.who > 0 && typeOf(b.who) === i).length]))
-    .filter(([, n]) => n > 0).map(([ico, n]) => `<span class="team-sub-item">${ico} ${n}</span>`).join(" &middot; ");
   const tankColor = i => TEAM_TANK_COLORS[i % TEAM_TANK_COLORS.length];
   const cmMarks = dmg.filter(d => {
     if(d.who === 0){ const A = ATT[d.att || 0] || P.main; return d.mv === A.cm.n; }
@@ -5927,16 +5939,33 @@ function renderTeamSim(P, S, R){
   // The legend as stat chips: each Pokemon's (or catch tank type's) own DPS and time in; hover for
   // its damage and charge moves. (These used to be rows under DPS & Rejoins.)
   const pctIn = ticks => E > 0 ? Math.round(ticks / E * 100) : 0;
-  // Attackers: each Pokemon's (and catch tank type's) own DPS - its damage over its own time in -
-  // as the rows under DPS & Rejoins used to show it
-  const dpsItems = (multi ? ATT.map((A, k) => [attIco(k), attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;"])
-                          : [[teamIcon(P, 0), (fieldTicks.get(0) || 0) ? ownDps(mainDmg, fieldTicks.get(0) || 0) : "&mdash;"]])
-    .concat(P.tanks.map((tp, i) => { let ticks = 0; fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; }); return [typeIcos[i], ticks ? ownDps(dmgByType[i], ticks) : "&mdash;"]; }))
-    .map(([ico, v]) => `<span class="team-sub-item">${ico} ${v}</span>`).join(" &middot; ");
-  // Attackers: each Pokemon's (and catch tank type's) share of the time in
-  const uptimeItems = (multi ? ATT.map((A, k) => [attIco(k), pctIn(attTicks[k])]) : [[teamIcon(P, 0), pctIn(onField.get(0) || 0)]])
-    .concat(P.tanks.map((tp, i) => { let up = 0; onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; }); return [typeIcos[i], pctIn(up)]; }))
-    .map(([ico, v]) => `<span class="team-sub-item">${ico} ${v}%</span>`).join(" &middot; ");
+  // Roster tables: each Pokemon's (or catch tank type's) icon once, its figures in labelled columns.
+  // Attackers: DPS | Damage | Uptime. Boss Rotation: the boss's own row (its totals), then how many
+  // of each move every Pokemon took - the charge move with how it was handled (caught / sponged /
+  // dodged). Pokemon that took neither are left out of the boss's table.
+  const roster = (() => {
+    const fmOf = (pred) => bossFmHits.filter(pred).length;
+    const att = (multi ? ATT.map((A, k) => ({ ico: attIco(k), dps: attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;", dmg: attDmg[k], up: pctIn(attTicks[k]),
+        fm: fmOf(b => b.who === 0 && (b.att || 0) === k), cmC: 0, sp: sponged[k][1], dg: dodgedBy[k] ? dodgedBy[k][1] : 0 }))
+      : [{ ico: teamIcon(P, 0), dps: (fieldTicks.get(0) || 0) ? ownDps(mainDmg, fieldTicks.get(0) || 0) : "&mdash;", dmg: mainDmg, up: pctIn(onField.get(0) || 0),
+        fm: fmOf(b => b.who === 0), cmC: 0, sp: sponged[0][1], dg: dodgedBy[0] ? dodgedBy[0][1] : 0 }]);
+    const tanks = P.tanks.map((tp, i) => { let ticks = 0, up = 0;
+      fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
+      onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; });
+      return { ico: typeIcos[i], dps: ticks ? ownDps(dmgByType[i], ticks) : "&mdash;", dmg: dmgByType[i], up: pctIn(up),
+        fm: fmOf(b => b.who > 0 && typeOf(b.who) === i), cmC: caughtByType[i] || 0, sp: 0, dg: 0 }; });
+    return att.concat(tanks);
+  })();
+  const zero = `<span class="team-dim">&ndash;</span>`;
+  const attRoster = `<table class="team-ro team-ro-att"><thead><tr><th></th><th>DPS</th><th>Damage</th><th>Uptime</th></tr></thead><tbody>`
+    + roster.map(m => `<tr><td>${m.ico}</td><td>${m.dps}</td><td>${m.dmg.toLocaleString()}</td><td>${m.up}%</td></tr>`).join("")
+    + `<tr class="team-ro-tot"><td colspan="2">Total</td><td><b class="team-total">${total.toLocaleString()}</b></td><td></td></tr></tbody></table>`;
+  const cmCell = m => [m.cmC ? teamHow("caught", m.cmC) : "", m.sp ? teamHow("sponged", m.sp) : "", m.dg ? teamHow("dodged", m.dg) : ""].filter(Boolean).join(" ") || zero;
+  const bossRoster = `<table class="team-ro team-ro-boss"><thead><tr><th></th><th>${P.bossFM.n}</th><th>${P.bossCM.n}${cmLegend ? teamTipHtml(cmLegend, "What the icons mean") : ""}</th></tr></thead><tbody>`
+    + `<tr class="team-ro-boss-row"><td>${teamIcon(P, "boss")}</td><td><b class="team-total">${bossFmHits.length}</b></td><td><b class="team-total">${decs.length}</b></td></tr>`
+    + roster.filter(m => m.fm || m.cmC || m.sp || m.dg).map(m => `<tr><td>${m.ico}</td><td>${m.fm || zero}</td><td>${cmCell(m)}</td></tr>`).join("")
+    + (late ? `<tr class="team-ro-note"><td colspan="3">${late} too late to swap</td></tr>` : "")
+    + `</tbody></table>`;
   const chip = (col, ico, dpsTxt, inPct, tip) => `<span class="tl-chip"${tipAttr(tip)}><em style="background:${col}"></em>${ico}<b>${dpsTxt}</b><small>DPS &middot; ${inPct}%</small></span>`;
   const attChips = (multi ? ATT : [P.main]).map((A, k) => {
     const ticks = multi ? attTicks[k] : (fieldTicks.get(0) || 0), upT = multi ? attTicks[k] : (onField.get(0) || 0);
@@ -6071,23 +6100,19 @@ function renderTeamSim(P, S, R){
       <div class="team-tl-legend"><span><i class="tl-cm-key"></i>Charge move</span><span><em style="background:#8890a6"></em>${teamSym("swap", "Swap")}Swap</span>${P.mainDodges ? `<span><em style="background:repeating-linear-gradient(-45deg,#1b5fae 0 2px,#3d9dff 2px 4px)"></em>Dodge</span>` : ""}<span><em style="background:#ff6b8a"></em>${P.bossCM.n}</span></div>
       <table class="dps-stat-table team-stat-table">
         ${teamGroupHead("rejoins", "DPS &amp; Rejoins")}
-          ${row2("DPS", "", dpsItems, "team-row-att-dps")}
           <tr class="team-row-cycle"><td>This Cycle DPS${teamTip(teamCycleTip())}</td><td>${dps.toFixed(1)}</td></tr>
           <tr class="team-row-min"><td><button type="button" class="team-min-btn" aria-haspopup="dialog" data-hp="${rj.hp}" data-rejoins="${rj.rejoins === null ? "" : rj.rejoins}" data-rejoin-secs="${P.rejoinSecs}">${rj.rejoins === null ? "Minimum DPS" : `Minimum DPS for ${rj.rejoins} rejoin${rj.rejoins === 1 ? "" : "s"}`}</button></td><td>${rj.dps === null ? "&mdash;" : rj.dps.toFixed(2)}</td></tr>
           <tr><td>Cumulative DPS${teamTip(teamCumulativeTip(P.rejoinSecs))}</td><td>${rj.rejoins === null ? "&mdash;" : (dps * Math.max(0, RAID_SECS - P.rejoinSecs * rj.rejoins) / RAID_SECS).toFixed(1)}</td></tr>
           <tr><td>Rejoin time</td><td>${rejoinSecsText(P.rejoinSecs)}</td></tr>
         </tbody>
         ${teamGroupHead("rotation", "Boss Rotation")}
-          ${row2boss(`${P.bossCM.n} casts${cmLegend ? teamTipHtml(cmLegend, "What the icons mean") : ""}`, bossTotal(decs.length), cmHowItems + cmExtraItems)}
-          ${row2boss(`${P.bossFM.n} casts`, bossTotal(bossFmHits.length), fmTankedItems)}
+          <tr class="team-ro-row"><td colspan="2">${bossRoster}</td></tr>
           <tr><td>Overall Cadence${teamTip(bossCadenceTip)}</td><td>${bossCadence}</td></tr>
           <tr><td>Charge Move Cadence${teamTip(bossCmCadenceTip)}</td><td>${bossCmCadence}</td></tr>
           ${P.mainDodges ? `<tr><td>Dodges</td><td>${dodged}</td></tr>` : ""}
         </tbody>
         ${teamGroupHead("main", "Attackers")}
-          ${row2("Damage", `<b class="team-total">${total.toLocaleString()}</b>`, (multi ? ATT.map((A, k) => `${attIco(k)} ${attDmg[k].toLocaleString()}`) : [`${mainIco} ${mainDmg.toLocaleString()}`])
-            .concat(P.tanks.map((tp, i) => `${typeIcos[i]} ${dmgByType[i].toLocaleString()}`)).map(x => `<span class="team-sub-item">${x}</span>`).join(" &middot; "))}
-          ${row2("Uptime", "", uptimeItems)}
+          <tr class="team-ro-row"><td colspan="2">${attRoster}</td></tr>
           ${multi ? `<tr class="team-wide"><td>Hot swaps</td><td>${R.attSpans.filter(x => x.to <= E).length ? R.attSpans.filter(x => x.to <= E).map(x => `<span class="team-sub-item">${attIco(x.att)} &rarr; ${attIco(x.toAtt ?? x.att + 1)} at ${(x.to / 2).toFixed(1)}s${x.hp <= 0 ? " (fainted)" : ` &middot; ${x.hp} HP left`}</span>`).join("<br>") : "none"}</td></tr>` : ""}
           <tr><td>HP left${multi ? ` <span class="dps-stat-sub">${ATT[lastAtt].name}</span>` : ""}</td><td class="${mainHp <= 0 ? "dps-hp-dead" : pct < 25 ? "dps-hp-low" : ""}">${Math.max(0, mainHp)} / ${ATT[lastAtt].hp}</td></tr>
         </tbody>
