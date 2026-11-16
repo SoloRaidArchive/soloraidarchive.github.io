@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-11-16T00:29:19.632554+00:00",
+  "generatedAt": "2026-11-16T10:15:56.986952+00:00",
   "sources": {
-    "pokebattlerSchedule": 35,
-    "pokebattlerScheduleWindows": 35,
+    "pokebattlerSchedule": 33,
+    "pokebattlerScheduleWindows": 33,
     "scrapedDuck": 1,
     "pokebattlerApiStartDates": 0,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 30
+    "pokebattlerApi": 28
   },
   "dateGroups": [
     {
@@ -29,26 +29,6 @@
         }
       ],
       "status": "future"
-    },
-    {
-      "startDate": "Nov 15, 2026",
-      "endDate": "Nov 15, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Reshiram",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "5.5 \u2b50",
-          "weather": "Windy"
-        },
-        {
-          "name": "Kyurem Black",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Cloudy"
-        }
-      ],
-      "status": "active"
     },
     {
       "startDate": "Nov 25, 2026",
@@ -77,24 +57,24 @@
       "status": "future"
     },
     {
-      "startDate": "Nov 14, 2026",
-      "endDate": "Nov 14, 2026",
+      "startDate": "Nov 15, 2026",
+      "endDate": "Nov 15, 2026",
       "category": "event",
       "bosses": [
         {
-          "name": "Kyurem White",
+          "name": "Kyurem Black",
           "archivePage": "tier5-raids.html",
           "difficulty": "4 \u2b50",
           "weather": "Cloudy"
         },
         {
-          "name": "Zekrom",
+          "name": "Reshiram",
           "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
+          "difficulty": "5.5 \u2b50",
           "weather": "Windy"
         }
       ],
-      "status": "passed"
+      "status": "active"
     },
     {
       "startDate": "Nov 24, 2026",
@@ -138,6 +118,26 @@
           "archivePage": "tier5-raids.html",
           "difficulty": "5.5 \u2b50",
           "weather": "Snow"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "startDate": "Nov 14, 2026",
+      "endDate": "Nov 14, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Kyurem White",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Zekrom",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Windy"
         }
       ],
       "status": "passed"
