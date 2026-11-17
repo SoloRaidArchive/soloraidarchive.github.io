@@ -419,6 +419,7 @@ if ("serviceWorker" in navigator) {
     <a href="../../move-data.html">Move Data</a>
     <a href="../../pokemon-stats.html">Pokémon Stats</a>
     <a href="../../reference.html">Difficulty &amp; Role Reference</a>
+    <a href="../../progression.html">Progression</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Raid Archives</div>
@@ -1115,6 +1116,7 @@ if ("serviceWorker" in navigator) {
     <a href="../move-data.html">Move Data</a>
     <a href="../pokemon-stats.html">Pokémon Stats</a>
     <a href="../reference.html">Difficulty &amp; Role Reference</a>
+    <a href="../progression.html">Progression</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Raid Archives</div>
