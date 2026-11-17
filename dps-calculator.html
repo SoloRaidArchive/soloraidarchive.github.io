@@ -2216,7 +2216,7 @@ if ("serviceWorker" in navigator) {
   #quickLinks.qlinks-standalone{ padding:12px 64px 4px; }
   @media (max-width:600px){
     .qlinks{ justify-content:space-between; gap:0; }
-    #quickLinks a{ font-size:11.5px; padding:5px 7px; }
+    #quickLinks a{ font-size:11.5px; padding:5px 4px; letter-spacing:-0.01em; }
     .qlinks .ql-full{ display:none; } .qlinks .ql-short{ display:inline; }
     /* Header rows whose menu button is pinned to the right (raid guides, CT Calculator) were only as
        tall as the title, so the 44px button hung down over the links. */
@@ -2230,14 +2230,15 @@ if ("serviceWorker" in navigator) {
      corners on that side. Every page positions it from a full-width header or the window. */
   body .hamburger-panel{ right:0 !important; border-right:none !important;
     border-top-right-radius:0 !important; border-bottom-right-radius:0 !important; }
-  /* the narrowest phones (320px): all five still fit without cutting off "Mechanics" */
-  @media (max-width:360px){
-    #quickLinks a{ font-size:10.5px; padding:5px 3px; letter-spacing:-0.01em; }
+  /* phones up to 380px wide, down to 320px: all six still fit without cutting off "Mechanics" */
+  @media (max-width:380px){
+    #quickLinks a{ font-size:10px; padding:5px 2px; letter-spacing:-0.02em; }
     #quickLinks.qlinks-standalone{ padding:62px 6px 4px; }
   }
 </style>
 <nav class="qlinks" id="quickLinks" aria-label="Shortcuts" hidden>
   <a href="/"><span class="ql-full">Home</span><span class="ql-short">Home</span></a>
+  <a href="progression.html"><span class="ql-full">Progression</span><span class="ql-short">Progress</span></a>
   <a href="dps-calculator.html" class="current"><span class="ql-full">DPS Calculator</span><span class="ql-short">DPS Calc</span></a>
   <a href="research.html"><span class="ql-full">Top Raiders</span><span class="ql-short">Raiders</span></a>
   <a href="ct-database.html"><span class="ql-full">Top Catch Tanks</span><span class="ql-short">Catch Tanks</span></a>
