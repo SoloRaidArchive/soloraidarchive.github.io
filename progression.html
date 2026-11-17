@@ -906,7 +906,8 @@ function spriteUrl(name){
     .then(r => { if(!r.ok){ const err = new Error(r.status); err.status = r.status; throw err; } return r.text(); });
   STAGES.forEach((s, i) => { s.data = {}; s.failed = {};
     const done = () => { if(i === stageIx) renderStage(); };
-    getText(s.sheet).then(text => { const S = splitSections(text); Object.keys(KINDS).forEach(k => s.data[k] = toTypes(S[k], k)); done(); })
+    // (also found under the name a download or chat upload gives it, with "_" for the spaces)
+    getText(s.sheet).catch(err => { if(err.status !== 404) throw err; return getText(s.sheet.replace(/ /g, "_")); }).then(text => { const S = splitSections(text); Object.keys(KINDS).forEach(k => s.data[k] = toTypes(S[k], k)); done(); })
       .catch(err => {
         if(err.status !== 404){ console.error(s.sheet, err); Object.keys(KINDS).forEach(k => s.failed[k] = true); return done(); }
         // no combined sheet for this stage yet: its old separate files
