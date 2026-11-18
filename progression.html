@@ -34,7 +34,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Progression — Solo Raid Archive</title>
+<title>Raid Budget Advice — Solo Raid Archive</title>
 <link rel="icon" href="assets/icons/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
@@ -154,143 +154,59 @@ if ("serviceWorker" in navigator) {
   }
   .ref-title{ font-family:'Manrope', sans-serif; font-weight:700; font-size:17px; margin-bottom:16px; }
 
-  /* ---- Solo Roadmap ---- */
-  .page-wrap{ max-width:980px; }
-  @media (min-width:1200px){ .page-wrap{ max-width:min(1240px, 90vw); } .rg-types{ gap:14px; } .rg-type{ padding:12px 14px 8px; } .rg-mons{ gap:10px 6px; } }   /* wider screens: wider boxes, more room around the Pokémon */
-  .rg-lede{ text-align:center; color:var(--text-muted); font-size:14px; font-weight:600; line-height:1.5; max-width:620px; margin:0 auto 18px; }
-  .rg-intro{ text-align:center; color:var(--text-muted); font-size:14px; font-weight:600; line-height:1.55; max-width:720px; margin:2px auto 16px; text-wrap:balance; }
-  /* the three stages, as steps */
-  .rg-stages{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin:6px 0 14px; position:relative; }
-  .rg-stage{ display:flex; align-items:center; gap:10px; text-align:left; padding:10px 12px; border-radius:14px; background:var(--card); border:2px solid var(--border);
-    cursor:pointer; color:var(--text); font-family:'Manrope',sans-serif; min-width:0; }
-  .rg-stage .num{ flex:0 0 auto; width:30px; height:30px; border-radius:50%; display:grid; place-items:center; font:800 14px 'Manrope',sans-serif; background:var(--border); color:var(--text-muted); }
-  .rg-stage b{ display:block; font-size:14.5px; font-weight:800; }
-  .rg-stage > span:last-child{ min-width:0; }
-  .rg-stage[aria-selected="true"]{ border-color:var(--blue); box-shadow:0 0 0 3px color-mix(in srgb, var(--blue) 18%, transparent); }
-  .rg-stage[aria-selected="true"] .num{ background:var(--blue); color:#fff; }
-  .rg-stage.done .num{ background:color-mix(in srgb, var(--blue) 25%, var(--card)); color:var(--blue-dark); }
-  .rg-card{ background:var(--card); border:2px solid var(--border); border-radius:18px; padding:18px 20px 6px; margin-bottom:22px; }
-  .rg-card-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:8px; }
-  .rg-card-head p.rg-info{ margin:2px 0 0; font-size:13px; font-weight:600; color:var(--text-muted); line-height:1.45; max-width:640px; }
-  .rg-card-head h2{ margin:0 0 4px; font:800 18px 'Manrope',sans-serif; }
-  .rg-card-head p{ margin:0; font-size:13.5px; font-weight:600; color:var(--text-muted); line-height:1.45; max-width:560px; }
-  /* types as small panels in a grid: the type's icon and name, then its Pokemon */
-  .rg-types{ display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin:10px 0 14px; }   /* panels in a row share one height */
-  @media (max-width:900px) and (min-width:641px){ .rg-types{ grid-template-columns:repeat(2, minmax(0, 1fr)); } }
-  .rg-type-top{ display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:6px; }
-  .rg-type-top .rg-type-h{ margin:0; }
-  .rg-more{ font:800 11.5px 'Manrope',sans-serif; color:var(--blue-dark); background:color-mix(in srgb, var(--blue) 12%, transparent); border:1.5px solid color-mix(in srgb, var(--blue) 35%, transparent);
-    border-radius:99px; padding:3px 9px; cursor:pointer; white-space:nowrap; }
-  .rg-more:hover{ background:color-mix(in srgb, var(--blue) 22%, transparent); }
-  .rg-type{ border:1.5px solid var(--border); border-radius:14px; padding:10px 10px 6px; background:color-mix(in srgb, var(--tc) 6%, transparent); border-color:color-mix(in srgb, var(--tc) 30%, var(--border)); }
-  .rg-type-h{ display:flex; align-items:center; gap:8px; font:800 13.5px 'Manrope',sans-serif; color:var(--text); margin-bottom:6px; }
-  .rg-type-ico{ flex:0 0 24px; height:24px; border-radius:50%; display:grid; place-items:center; background:var(--tc); box-shadow:0 0 8px color-mix(in srgb, var(--tc) 45%, transparent); }
-  .rg-type-ico img{ width:14px; height:14px; filter:brightness(0) invert(1); }
-  .rg-mons{ display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:8px 2px; padding-top:7px; }   /* (room for the copies badge over the sprites) */
-  .rg-mon{ min-width:0; display:flex; flex-direction:column; align-items:center; text-align:center; gap:2px; position:relative; }
-  .rg-pic{ position:relative; width:54px; height:54px; display:grid; place-items:center; border-radius:50%; transition:box-shadow .15s; }
-  .rg-pic img{ width:48px; height:48px; object-fit:contain; }
-  .rg-pic img.shadow-mist{ border-radius:50%; background:radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow:0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
-  /* Catch for Candy: the small sprite of what it builds into, where the roster's copies badge sits */
-  .rg-into{ position:absolute; right:-10px; bottom:-4px; width:28px; height:28px; border-radius:50%; background:var(--card); border:1.5px solid var(--border); display:grid; place-items:center; }
-  .rg-into img{ width:24px !important; height:24px !important; object-fit:contain; }
-  .rg-intos{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; }
-  .rg-n{ position:absolute; right:-10px; top:-6px; font:800 11.5px 'Manrope',sans-serif; color:var(--text); background:var(--card); border:1.5px solid var(--border); border-radius:99px; padding:1px 6px; line-height:1.3; white-space:nowrap; }
-  .rg-name{ font:700 11px 'Manrope',sans-serif; letter-spacing:-.15px; color:var(--text); line-height:1.2; margin-top:3px; min-height:2.4em; display:flex; align-items:flex-start; justify-content:center; }   /* two lines kept for every name, so the tags line up */   /* (a long single word - Blacephalon - runs into the gap rather than breaking) */
-  .rg-sub{ min-height:18px; display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:3px; }
-  .rg-tier{ font:800 9.5px 'Manrope',sans-serif; letter-spacing:.03em; border-radius:99px; padding:2px 6px; line-height:1.2; white-space:nowrap; border:1px solid transparent; }
-  .rg-tier.core{ background:#fff1c7; color:#9a6a00; border-color:#f0cf6a; }
-  .rg-tier.niche{ background:#e3f0ff; color:#2b6cb0; border-color:#b5d4f4; }
-  .rg-tier.lowroi{ background:transparent; color:var(--text-dim); border-color:var(--border); border-style:dashed; }
-  [data-theme="dark"] .rg-tier.core{ background:rgba(240,190,60,.16); color:#ffd36b; border-color:rgba(240,190,60,.45); }
-  [data-theme="dark"] .rg-tier.niche{ background:rgba(90,169,255,.16); color:#8cc7ff; border-color:rgba(90,169,255,.4); }
-  /* roles: small icons in the role's colour (the Roles page's colours), a legend at the top of the card */
-  .rg-ri{ display:inline-grid; place-items:center; width:18px; height:18px; border-radius:50%; flex:none; vertical-align:middle; }
-  .rg-ri svg{ width:12px; height:12px; display:block; }
-  .rg-ri.main{ background:#ffe1e1; color:#c62828; } .rg-ri.support{ background:#dff5f3; color:#00897b; }
-  .rg-ri.catchtank{ background:#f2ebff; color:#7d4fd6; } .rg-ri.executor{ background:#e9e9eb; color:#292929; }
-  [data-theme="dark"] .rg-ri.main{ background:rgba(220,53,69,0.22); color:#ff9494; } [data-theme="dark"] .rg-ri.support{ background:rgba(0,150,136,0.22); color:#5eded4; }
-  [data-theme="dark"] .rg-ri.catchtank{ background:rgba(155,123,240,0.2); color:#c1a8ff; } [data-theme="dark"] .rg-ri.executor{ background:rgba(255,255,255,0.14); color:#e4e4e6; }
-  /* on a tile: in a row centred under the sprite (the copies badge is on its top right); a stage with
-     any roles keeps that row's space under every sprite, so the names stay level */
-  .rg-roles{ position:absolute; left:50%; bottom:-10px; transform:translateX(-50%); display:flex; gap:2px; }
-  .has-roles .rg-mon .rg-name{ margin-top:13px; }
-  .rg-roles .rg-ri{ width:17px; height:17px; box-shadow:0 0 0 1.5px var(--card); }
-  .rg-roles .rg-ri svg{ width:11px; height:11px; }
-  .rg-rlegend{ display:flex; flex-wrap:wrap; gap:6px 14px; align-items:center; font:700 12px 'Manrope',sans-serif; color:var(--text-muted); }
-  .rg-rlegend > span, .rg-rlist > span{ display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
-  .rg-rlist > span{ white-space:normal; }
-  .rg-rlist{ display:flex; flex-direction:column; gap:3px; font-weight:700; }
-  .rg-rn{ font-style:normal; }
-  /* a type's whole list, in a window over the page - the Top Catch Tanks page's look */
-  .rg-overlay{ position:fixed; inset:0; background:rgba(20,24,38,0.45); z-index:80; display:flex; align-items:center; justify-content:center; padding:20px; }
-  .rg-modal{ background:var(--card); border:2px solid var(--border); border-radius:16px; width:min(880px, 100%); max-height:88vh; display:flex; flex-direction:column;
-    box-shadow:0 12px 40px rgba(20,24,38,0.25); overflow:hidden; }
-  .rg-m-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0; }
-  .rg-m-title{ display:flex; align-items:center; gap:10px; min-width:0; }
-  .rg-m-title .rg-type-ico{ flex-basis:34px; height:34px; } .rg-m-title .rg-type-ico img{ width:19px; height:19px; }
-  .rg-m-title h3{ font-family:'Manrope', sans-serif; font-size:16px; margin:0; color:var(--text); }
-  .rg-m-sub{ font-size:11.5px; color:var(--text-dim); font-weight:600; margin-top:1px; }
-  .rg-m-close{ background:none; border:none; font-size:26px; line-height:1; cursor:pointer; color:var(--text-dim); padding:0 4px; }
-  .rg-m-scroll{ overflow:auto; flex:1; }
-  .rg-m-table{ width:100%; border-collapse:separate; border-spacing:0; font-size:12px; color:var(--text); }
-  .rg-m-table th{ position:sticky; top:0; background:var(--card); text-align:left; font-family:'Manrope', sans-serif; font-weight:800; font-size:10px; text-transform:uppercase;
-    letter-spacing:0.04em; color:var(--text-dim); padding:8px 12px; white-space:nowrap; z-index:3; box-shadow:inset 0 -1px 0 var(--border); }
-  .rg-m-table td{ padding:5px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
-  .rg-m-table td.rg-note{ width:32%; line-height:1.4; }
-  .rg-m-table tr.rg-note-row{ display:none; }
-  .rg-m-table tr:hover td{ background:rgba(61,157,255,.08); }
-  .rg-m-table .c{ text-align:center; white-space:nowrap; }
-  .rg-w-mon{ display:flex; align-items:center; gap:8px; font-family:'Manrope',sans-serif; }
-  .rg-w-mon .rg-pic{ width:38px; height:38px; flex:none; } .rg-w-mon .rg-pic img{ width:34px; height:34px; }
-  .rg-mvs{ display:flex; flex-direction:column; gap:3px; }
-  .rg-mvs-in{ display:none; margin:4px 0 0 38px; }
-  /* the smallest phones: the moveset under the Pokemon's name, in place of its own column */
-  @media (max-width:440px){ .rg-m-table .rg-mvcol{ display:none; } .rg-m-table .rg-mvs-in{ display:flex; } }
-  .rg-mv{ display:inline-flex; align-items:center; gap:5px; font-weight:700; }
-  .rg-mi{ width:15px; height:15px; border-radius:50%; flex:none; display:inline-flex; align-items:center; justify-content:center; }
-  .rg-mi img{ width:9px; height:9px; filter:brightness(0) invert(1); }
-  .rg-m-table tr.on td{ background:color-mix(in srgb, var(--blue) 12%, transparent); }
-  button.rg-mon{ background:none; border:0; padding:0; font:inherit; color:inherit; cursor:pointer; }
-  button.rg-mon:hover .rg-pic{ box-shadow:0 0 0 2px color-mix(in srgb, var(--tc) 70%, transparent), 0 0 10px color-mix(in srgb, var(--tc) 40%, transparent); }
-  button.rg-mon:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; border-radius:10px; }
-  .rg-dim{ color:var(--text-muted); opacity:.6; }
-  @media (max-width:600px){
-    .rg-overlay{ padding:0; }
-    .rg-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; } .rg-modal{ max-height:100dvh; height:100dvh; }
-    .rg-m-close{ min-width:44px; min-height:44px; }
-  }
-  /* narrower windows: notes on their own line under each row, roles as icons, tighter type */
-  @media (max-width:820px){
-    .rg-m-table th, .rg-m-table td{ padding-left:6px; padding-right:6px; }
-    .rg-m-table .rg-note{ display:none; }
-    .rg-m-table .rg-rn{ display:none; }   /* roles as icons only (the page's legend names them) */
-    .rg-m-table .rg-rlist{ flex-direction:row; gap:2px; }
-    .rg-m-table .rg-mv{ font-size:11px; gap:4px; } .rg-m-table .rg-mi{ width:13px; height:13px; }
-    .rg-m-table th{ font-size:9px; letter-spacing:.02em; }
-    .rg-w-mon b{ font-size:11.5px; }
-    .rg-m-table tr.rg-note-row{ display:table-row; }
-    .rg-m-table tr.has-note td{ border-bottom:0; padding-bottom:2px; }
-    .rg-m-table tr.rg-note-row td{ padding:0 8px 8px 44px; font-size:11.5px; line-height:1.4; color:var(--text-muted); font-weight:600; white-space:normal; }
-    .rg-w-mon{ white-space:normal; gap:6px; } .rg-w-mon .rg-pic{ width:32px; height:32px; } .rg-w-mon .rg-pic img{ width:30px; height:30px; }
-  }
-  @media (max-width:640px){
-    .rg-overlay{ padding:0; }
-    .rg-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; } .rg-modal{ max-height:100dvh; height:100dvh; }
-    .rg-m-close{ min-width:44px; min-height:44px; }
+  /* ---- Raid Budget Advice ---- */
+  .page-wrap{ max-width:1080px; }
+  .rg-intro{ color:var(--text-muted); font-size:14px; font-weight:600; line-height:1.55; max-width:720px; margin:2px 0 12px; }
+  .rg-lede{ color:var(--text-muted); font-size:13.5px; font-weight:600; margin:4px 0; }
+  /* the stages, as plain tabs */
+  .rg-tabs{ display:flex; border-bottom:1px solid var(--border); margin-bottom:16px; overflow-x:auto; scrollbar-width:none; }
+  .rg-tab{ font:700 14px 'Manrope',sans-serif; color:var(--text-muted); background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-1px; padding:9px 14px; cursor:pointer; white-space:nowrap; }
+  .rg-tab:hover{ color:var(--text); }
+  .rg-tab[aria-selected="true"]{ color:var(--text); border-bottom-color:var(--text); }
+  /* a section: a plain card of rows */
+  .rg-card{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px 16px; margin-bottom:18px; }
+  .rg-sec-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+  .rg-sec-head h2{ font:800 15px 'Manrope',sans-serif; color:var(--text); margin:0; }
+  .rg-info{ font-size:12.5px; font-weight:600; color:var(--text-muted); margin:2px 0 0; line-height:1.45; }
+  .rg-copy{ font:700 11.5px/1.2 'Manrope',sans-serif; letter-spacing:0; text-transform:none; color:var(--text-muted); background:none; border:1px solid var(--border); border-radius:6px; padding:4px 10px; cursor:pointer; white-space:nowrap; flex:none; }
+  .rg-gh .rg-copy{ margin-left:auto; }
+  /* the lineup's button: as far from the card's top as from the line under it */
+  #rgStageCard{ padding-top:8px; }
+  .rg-sec-head > div{ min-width:0; }
+  .rg-copy:hover{ color:var(--text); border-color:color-mix(in srgb, var(--text) 30%, var(--border)); }
+  .rg-copy:disabled{ opacity:.7; cursor:default; }
+  /* the lineup's role groups */
+  .rg-grp + .rg-grp{ margin-top:18px; }
+  .rg-gh{ display:flex; align-items:center; gap:7px; font:800 12px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text); margin:0 0 2px; padding:0 0 8px; min-height:26px; border-bottom:1px solid var(--border); }
+  .rg-ri{ width:20px; height:20px; border-radius:50%; display:inline-grid; place-items:center; flex:none; }
+  .rg-ri svg{ width:13px; height:13px; display:block; }
+  .rg-ri.main{ background:#ffe1e1; color:#c62828; } .rg-ri.support{ background:#dff5f3; color:#00897b; } .rg-ri.catchtank{ background:#f2ebff; color:#7d4fd6; } .rg-ri.executor{ background:#e9e9eb; color:#292929; }
+  [data-theme="dark"] .rg-ri.main{ background:rgba(220,53,69,.22); color:#ff9494; } [data-theme="dark"] .rg-ri.support{ background:rgba(0,150,136,.22); color:#5eded4; }
+  [data-theme="dark"] .rg-ri.catchtank{ background:rgba(155,123,240,.2); color:#c1a8ff; } [data-theme="dark"] .rg-ri.executor{ background:rgba(255,255,255,.14); color:#e4e4e6; }
+  /* rows, read down two columns: type · sprite · name (moves, or what it builds into, under it) · prio · copies */
+  .rg-rows{ columns:2; column-gap:36px; }
+  .rg-row{ break-inside:avoid; display:grid; grid-template-columns:16px 32px minmax(0,1fr) 54px 34px; gap:9px; align-items:center; padding:5px 0;
+    border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); font-size:13.5px; }
+  .rg-ti{ width:16px; height:16px; border-radius:50%; display:grid; place-items:center; }
+  .rg-ti img{ width:10px; height:10px; filter:brightness(0) invert(1); }
+  .rg-spr{ width:32px; height:32px; object-fit:contain; }
+  .rg-spr.sh{ border-radius:50%; background:rgba(58,12,92,.55); }
+  .rg-nm{ display:flex; flex-direction:column; min-width:0; line-height:1.3; }
+  .rg-nm b{ font-weight:700; color:var(--text); }
+  .rg-sub2{ font-size:12px; color:var(--text-muted); font-weight:500; }
+  .rg-note{ font-size:11.5px; color:var(--text-dim); font-style:italic; font-weight:500; }
+  .rg-prio{ font:700 11px 'Manrope',sans-serif; letter-spacing:.02em; text-align:right; }
+  .rg-prio.core{ color:#c98a00; } .rg-prio.niche{ color:var(--blue-dark); } .rg-prio.lowroi{ color:var(--text-dim); }
+  [data-theme="dark"] .rg-prio.core{ color:#f0c24c; }
+  .rg-n{ font:700 12.5px 'IBM Plex Mono',monospace; color:var(--text); text-align:right; white-space:nowrap; }
+  @media (min-width:1200px){ .page-wrap{ max-width:min(1180px, 90vw); } }
+  @media (max-width:700px){
     .page-wrap{ padding:16px 12px 48px; }
-    .rg-stages{ gap:6px; }
-    .rg-stage{ flex-direction:column; text-align:center; gap:4px; padding:8px 4px; }
-    .rg-stage b{ font-size:13px; }
-    .rg-card{ padding:14px 12px 4px; border-radius:16px; }
-    .rg-types{ grid-template-columns:minmax(0, 1fr); gap:8px; }
-    .rg-type{ padding:8px 8px 4px; }
+    .rg-card{ padding:12px 12px 14px; border-radius:8px; }
+    .rg-rows{ columns:1; }
+    .rg-row{ grid-template-columns:14px 30px minmax(0,1fr) 50px 30px; gap:7px; }
+    .rg-tab{ padding:9px 11px; font-size:13.5px; }
   }
-
-  /* no sprite found (a brand-new form, or a misspelt name): a plain "?" rather than another Pokemon's picture */
-  .rg-pic.no-sprite::before, .rg-into.no-sprite::before{ content:"?"; font:800 20px 'Manrope',sans-serif; color:var(--text-dim); }
-  .rg-pic.no-sprite{ box-shadow:inset 0 0 0 1.5px var(--border); }
-  .rg-into.no-sprite::before{ font-size:13px; }
 </style>
 
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
@@ -302,7 +218,7 @@ if ("serviceWorker" in navigator) {
      heading down in the page. -->
 <div class="sticky-header">
   <div class="sticky-header-title-row">
-    <h1 class="page-title-sm">Progression</h1>
+    <h1 class="page-title-sm">Raid Budget Advice</h1>
     <div class="header-buttons">
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
         <span></span><span></span><span></span>
@@ -345,30 +261,33 @@ if ("serviceWorker" in navigator) {
   /* pages without a header bar (Home, Difficulty & Roles, the Guide Editor): a row at the top */
   #quickLinks.qlinks-standalone{ padding:12px 64px 4px; }
   @media (max-width:600px){
-    .qlinks{ justify-content:space-between; gap:0; }
-    #quickLinks a{ font-size:11.5px; padding:5px 4px; letter-spacing:-0.01em; }
-    .qlinks .ql-full{ display:none; } .qlinks .ql-short{ display:inline; }
+    /* phones: two even rows of three (the landing page's eight: two rows of four), the links in
+       columns spaced evenly across, so the rows read as a tidy grid rather than a squeezed line */
+    .qlinks{ display:grid; grid-template-columns:repeat(3, auto); justify-content:space-evenly; gap:2px 4px; }
+    #quickLinks a{ font-size:11.5px; padding:5px 4px; letter-spacing:-0.01em; text-align:center; overflow:hidden; text-overflow:ellipsis; }
     /* Header rows whose menu button is pinned to the right (raid guides, CT Calculator) were only as
        tall as the title, so the 44px button hung down over the links. */
     body .sticky-header .sticky-header-row{ min-height:44px; }
     /* no header bar: the menu button floats at the top right, so the row goes just below it */
     #quickLinks.qlinks-standalone{ padding:62px 8px 4px; }
-    /* the landing page's seven links don't fit one phone row: centred, wrapping onto a second */
-    #quickLinks.qlinks-home{ justify-content:center; row-gap:2px; }
+    #quickLinks.qlinks-home{ grid-template-columns:repeat(4, auto); justify-content:space-evenly; }   /* (columns as wide as their names: "Raid Budget Advice" needs more room than "Home") */
+    /* the landing page's four to a row: the short names */
+    #quickLinks.qlinks-home .ql-full{ display:none; } #quickLinks.qlinks-home .ql-short{ display:inline; }
   }
   /* The menu opens flush against the right edge of the screen: no gap, no border or rounded
      corners on that side. Every page positions it from a full-width header or the window. */
   body .hamburger-panel{ right:0 !important; border-right:none !important;
     border-top-right-radius:0 !important; border-bottom-right-radius:0 !important; }
-  /* phones up to 380px wide, down to 320px: all six still fit without cutting off "Mechanics" */
+  /* the narrowest phones (up to 380px): the short names, a little smaller */
   @media (max-width:380px){
-    #quickLinks a{ font-size:10px; padding:5px 2px; letter-spacing:-0.02em; }
+    .qlinks .ql-full{ display:none !important; } .qlinks .ql-short{ display:inline !important; }
+    #quickLinks a{ font-size:10.5px; padding:5px 2px; letter-spacing:-0.02em; }
     #quickLinks.qlinks-standalone{ padding:62px 6px 4px; }
   }
 </style>
 <nav class="qlinks" id="quickLinks" aria-label="Shortcuts" hidden>
   <a href="/"><span class="ql-full">Home</span><span class="ql-short">Home</span></a>
-  <a href="progression.html" class="current"><span class="ql-full">Progression</span><span class="ql-short">Progress</span></a>
+  <a href="progression.html" class="current"><span class="ql-full">Raid Budget Advice</span><span class="ql-short">Raid Budget Advice</span></a>
   <a href="dps-calculator.html"><span class="ql-full">DPS Calculator</span><span class="ql-short">DPS Calc</span></a>
   <a href="research.html"><span class="ql-full">Top Raiders</span><span class="ql-short">Raiders</span></a>
   <a href="ct-database.html"><span class="ql-full">Top Catch Tanks</span><span class="ql-short">Catch Tanks</span></a>
@@ -419,7 +338,7 @@ if ("serviceWorker" in navigator) {
     <a href="move-data.html">Move Stats</a>
     <a href="pokemon-stats.html">Pokémon Stats</a>
     <a href="reference.html">Difficulty &amp; Roles</a>
-    <a href="progression.html" class="current">Progression</a>
+    <a href="progression.html" class="current">Raid Budget Advice</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Archives</div>
@@ -487,10 +406,10 @@ if ("serviceWorker" in navigator) {
 
 <div class="page-wrap">
   <p class="rg-intro">These are the recommended Pokémon to raid with or catch for candy at different stages of budget, from just getting started in solo raiding to mid-game teams and finally to full-sized end-game raid lineups.</p>
-  <div class="rg-stages" role="tablist" aria-label="Stage" id="rgStages"></div>
-  <div class="rg-card" id="rgStageCard"><p class="rg-lede">Loading…</p></div>
-  <div class="rg-card" id="rgCatchCard"></div>
-  <div class="rg-card" id="rgRaidCard"></div>
+  <div class="rg-tabs" role="tablist" aria-label="Stage" id="rgStages"></div>
+  <section class="rg-card" id="rgStageCard"><p class="rg-lede">Loading…</p></section>
+  <section class="rg-card" id="rgCatchCard"></section>
+  <section class="rg-card" id="rgRaidCard"></section>
 </div>
 
 <script>
@@ -684,9 +603,9 @@ function spriteUrl(name){
 //    Builds Into, Prio, Note
 //    (e.g. Rock, Shadow Cranidos, Shadow Rampardos, Core). Builds Into "Candy" marks one caught for its
 //    candy - Cranidos, for the candy that powers up Shadow Rampardos.
-// Each chart groups its rows by type, puts the types in the usual order, keeps each type's rows in the
-// order written, and tags each one's tier (Core / Niche / Low ROI). Tapping a Pokemon, or a type's
-// "+N more", opens the type's full list in a window.
+// The lineup is grouped by role (a Pokemon with two roles is listed in both); every list reads down in
+// type order (Normal, Fire, Water ...), keeping the order written within a type, with each Pokemon's
+// Prio (Core / Niche / Low ROI) and, in the lineup, how many copies.
 // The files are named as Google Sheets exports a tab of the "Progression-Chart" sheet. To rename a
 // stage, add one, or point it at other files, edit STAGES.
 (function(){
@@ -711,90 +630,30 @@ function spriteUrl(name){
     return s.replace(/\+$/, "").replace(/\s*-\s*/, "–") + "×" + (plus ? "+" : ""); };
   const countMax = c => Math.max(0, ...String(c || "").match(/\d+/g)?.map(Number) || [0]);
   const typeOrder = types => Object.keys(types || {}).sort((a, b) => (TYPES.indexOf(a) + 1 || 99) - (TYPES.indexOf(b) + 1 || 99));
-  const pic = (name, size) => `<span class="rg-pic"><img src="${esc(spriteUrl(name))}" alt="${esc(name)}" loading="lazy" onerror="this.parentNode.classList.add('no-sprite');this.style.display='none'" class="${needsShadowMist(name) ? "shadow-mist" : ""}"${size ? ` width="${size}" height="${size}"` : ""}></span>`;
-  const typeHead = t => `<div class="rg-type-h" style="--tc:${COLORS[key(t)] || "#888"}"><span class="rg-type-ico"><img src="${ICON}${key(t)}.svg" alt=""></span>${esc(t)}</div>`;
-  // Moves, each with its type's icon (types from csv/moves.csv, loaded below). Fast and charge moves
-  // can each be several, split by "/", "," or ";". A trailing "+" (an Elite TM move, say) is shown but
-  // ignored when looking up the move's type.
-  const MOVE_TYPES = {};
+  // Fast and charge moves can each be several, split by "/", "," or ";"
   const splitMoves = s => String(s || "").split(/[\/,;]/).map(x => x.trim()).filter(Boolean);
-  const mkey = n => key(n).replace(/[^a-z0-9]/g, "");   // "Mud Slap" finds "Mud-Slap"; "Surf+" finds "Surf"
-  const moveChip = n => { const t = MOVE_TYPES[mkey(n)];
-    return `<span class="rg-mv"><span class="rg-mi" style="background:${t ? COLORS[key(t)] || "#9199A1" : "transparent"}"${t ? ` title="${esc(t)}"` : ""}>${t ? `<img src="${ICON}${key(t)}.svg" alt="">` : ""}</span>${esc(n)}</span>`; };
-  const movesHtml = e => splitMoves(e.fm).concat(splitMoves(e.cm)).map(moveChip).join("");
-  const movesText = e => [splitMoves(e.fm).join(", "), splitMoves(e.cm).join(", ")].filter(Boolean).join(" / ");
   // a Pokemon's tier: how much it matters for solos
   const TIERS = { core: { label: "Core", desc: "core to solos" }, niche: { label: "Niche", desc: "good pivots" }, lowroi: { label: "Low ROI", desc: "use at your discretion" } };
   const tierOf = e => { let t = key(e.tier).replace(/[^a-z]/g, ""); if(t === "optional") t = "niche";   // (sheets not yet updated from "Optional")
     return TIERS[t] ? t : ""; };
-  const tierTag = e => { const t = tierOf(e); return t ? `<span class="rg-tier ${t}">${TIERS[t].label}</span>` : ""; };
   const catchRow = f => ({ name: f.catch || f.pokemon || f.name, into: f["builds into"] || f["evolves into"] || f.into || f.for, tier: f.prio || f.priority || f.tier, note: f.note });
   // The charts, in page order: where each draws, its heading (and a line about it), and how its CSV's rows read
   const KINDS = {
     roster: { card: "rgStageCard", match: /road\s*map|roster|build/i, title: s => `Stage ${STAGES.indexOf(s) + 1} · ${esc(s.name)}`,
       row: f => ({ name: f.pokemon || f.name, fm: f["fast moves"] || f["fast move"] || f.fm, cm: f["charge moves"] || f["charge move"] || f.cm,
         count: f.copies || f.count, tier: f.prio || f.priority || f.tier, role: f.role, note: f.note }) },
-    catch: { card: "rgCatchCard", match: /wild/i, title: () => "Catch from the Wild", row: catchRow,
-      info: "Pokémon worth catching in the wild for their candy, and to evolve into the counters they build into." },
+    catch: { card: "rgCatchCard", match: /wild/i, title: () => "Catch in the Wild or Hatch", row: catchRow,
+      info: "Caught for their candy, and to evolve into the counters above." },
     raids: { card: "rgRaidCard", match: /raid|rocket/i, title: () => "Catch from Raids &amp; Rocket", row: catchRow,
-      info: "Pokémon to invest in for the future, or stronger, more evolved variants of the counters above. These are also caught for their candy." },
+      info: "Investments for the future, or stronger variants of the counters above. Also caught for their candy." },
   };
-  // Every type's panel is the same size: up to four Pokemon, and a "+N more" button. Either opens the
-  // type's whole list in a window over the page (as the Top Catch Tanks page's tables do)
-  const SHOW = 4;
-  const panel = (kind, t, list, tile) => { const extra = list.length - SHOW;
-    return `<div class="rg-type" data-kind="${kind}" data-type="${esc(t)}" style="--tc:${COLORS[key(t)] || "#888"}">`
-      + `<div class="rg-type-top">${typeHead(t)}${extra > 0 ? `<button type="button" class="rg-more" aria-haspopup="dialog">+${extra} more</button>` : ""}</div>`
-      + `<div class="rg-mons">${list.slice(0, SHOW).map(tile).join("")}</div></div>`; };
-  // "Candy" under Builds Into: caught for its candy
-  // Builds Into: the Pokemon it evolves into. "Candy" (alone, or with an evolution - "Mega Blaziken +
-  // Candy") isn't shown - the chart's title already says it's for candy - but is kept in the hover text.
-  // Split by "+", "&", "/", "," or ";" ("and" too); the first Pokemon named is shown on the tile.
+  // Builds Into: the Pokemon it evolves into, and/or "Candy" when it's caught for its candy ("Mega
+  // Blaziken + Candy"). Split by "+", "&", "/", "," or ";" ("and" too). The Pokemon itself ("Shadow
+  // Groudon" for Shadow Groudon) or a blank cell shows nothing.
   const intoOf = e => { const parts = String(e.into || "").split(/\s*(?:[+&\/,;]|\band\b)\s*/i).map(x => x.trim()).filter(Boolean);
-    // (blank, or the Pokemon itself - "Shadow Groudon" for Shadow Groudon - shows no badge)
     return { candy: parts.some(x => /^candy$/i.test(x)), mons: parts.filter(x => !/^candy$/i.test(x) && key(x) !== key(e.name)) }; };
-  const intoText = e => { const I = intoOf(e); return [I.mons.length ? "builds into " + I.mons.join(", ") : "", I.candy ? (I.mons.length ? "and for its candy" : "for its candy") : ""].filter(Boolean).join(" "); };
-  const tipOf = e => { const t = tierOf(e); return t ? TIERS[t].label + " - " + TIERS[t].desc : ""; };
-  // a Pokemon in a chart: its sprite (with how many copies, or the small sprite of what it builds into), name and tags
-  const TILES = {
-    roster: (e, i) => `<button type="button" class="rg-mon" data-i="${i}" aria-haspopup="dialog" title="${esc([e.name, movesText(e), countText(e.count), tipOf(e), e.role, e.note].filter(Boolean).join(" · "))}">`
-      + `${pic(e.name).replace("</span>", "")}<span class="rg-n">${esc(countText(e.count))}</span>${rolesOf(e).length ? `<span class="rg-roles">${roleIcons(e)}</span>` : ""}</span><span class="rg-name">${esc(e.name)}</span><span class="rg-sub">${tierTag(e)}</span></button>`,
-    raids: (e, i) => TILES.catch(e, i),
-    catch: (e, i) => `<button type="button" class="rg-mon" data-i="${i}" aria-haspopup="dialog" title="${esc(["Catch " + e.name, intoText(e), tipOf(e), e.note].filter(Boolean).join(" · "))}">`
-      + `${pic(e.name).replace("</span>", "")}${(I => ((I.mons.length ? `<span class="rg-into"><img src="${esc(spriteUrl(I.mons[0]))}" alt="${esc(I.mons[0])}" loading="lazy" onerror="this.parentNode.classList.add('no-sprite');this.style.display='none'"></span>` : "")))(intoOf(e))}</span>`
-      + `<span class="rg-name">${esc(e.name)}</span><span class="rg-sub">${tierTag(e)}</span></button>`,
-  };
-  function closeWin(){ document.querySelectorAll(".rg-overlay").forEach(x => x.remove()); document.body.style.overflow = ""; }
-  function openWin(kind, t, pick){
-    closeWin();
-    const s = STAGES[stageIx], list = ((s.data || {})[kind] || {})[t] || [];
-    const dash = '<span class="rg-dim">&mdash;</span>', monCell = n => `<span class="rg-w-mon">${pic(n)}<b>${esc(n)}</b></span>`;
-    // Moveset, Role and Note only when some Pokemon of this type has one
-    const has = k => list.some(e => e[k]), hasMoves = list.some(e => e.fm || e.cm);
-    const cols = kind !== "roster"
-      ? [["Catch", e => monCell(e.name)], ["Builds into", e => { const I = intoOf(e); return I.mons.length ? `<span class="rg-intos">${I.mons.map(monCell).join("")}</span>` : dash; }], ["Prio", e => tierTag(e) || dash, "c"], has("note") && ["Note", e => e.note ? esc(e.note) : dash, "rg-note"]]
-      : [["Pokémon", e => monCell(e.name) + (hasMoves && movesHtml(e) ? `<span class="rg-mvs rg-mvs-in">${movesHtml(e)}</span>` : "")], hasMoves && ["Moveset", e => `<span class="rg-mvs">${movesHtml(e) || dash}</span>`, "rg-mvcol"], ["Copies", e => `<b>${esc(countText(e.count)) || "&mdash;"}</b>`, "c"],
-         ["Prio", e => tierTag(e) || dash, "c"], list.some(e => rolesOf(e).length) && ["Role", e => roleCell(e) || dash], has("note") && ["Note", e => e.note ? esc(e.note) : dash, "rg-note"]];
-    const C = cols.filter(Boolean);
-    // On phones the Note column gives way to the note on its own full-width line under its row
-    const span = C.filter(([, , c]) => c !== "rg-note").length;
-    const rows = list.map((e, i) => `<tr class="${i === pick ? "on" : ""}${e.note ? " has-note" : ""}">${C.map(([, f, c]) => `<td${c ? ` class="${c}"` : ""}>${f(e)}</td>`).join("")}</tr>`
-      + (e.note ? `<tr class="rg-note-row${i === pick ? " on" : ""}"><td colspan="${span}">${esc(e.note)}</td></tr>` : "")).join("");
-    const ov = document.createElement("div"); ov.className = "rg-overlay";
-    ov.innerHTML = `<div class="rg-modal" role="dialog" aria-modal="true" aria-label="${esc(t)}" style="--tc:${COLORS[key(t)] || "#888"}">`
-      + `<div class="rg-m-head"><div class="rg-m-title"><span class="rg-type-ico"><img src="${ICON}${key(t)}.svg" alt=""></span><div><h3>${esc(t)}${kind !== "roster" ? " · " + KINDS[kind].title(s) : ""}</h3>`
-      + `<div class="rg-m-sub">Stage ${stageIx + 1} &middot; ${esc(s.name)} &middot; ${list.length} Pokémon</div></div></div>`
-      + `<button type="button" class="rg-m-close" aria-label="Close">&times;</button></div>`
-      + `<div class="rg-m-scroll"><table class="rg-m-table"><thead><tr>${C.map(([h, , c]) => `<th${c ? ` class="${c}"` : ""}>${h}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div></div>`;
-    ov.addEventListener("click", ev => { if(ev.target === ov || ev.target.closest(".rg-m-close")) closeWin(); });
-    document.body.appendChild(ov); document.body.style.overflow = "hidden";
-    ov.querySelector(".rg-m-close").focus();
-    const on = ov.querySelector("tr.on"); if(on) on.scrollIntoView({ block: "nearest" });
-  }
-  document.addEventListener("keydown", ev => { if(ev.key === "Escape") closeWin(); });
-  // Roles as small icons, drawn like the calculator's caught / sponged / dodged marks (16px line art,
-  // round caps, in the role's colour) - a Pokemon can have several, split by "/", "," or ";"
-  // (Main DPS / Catch Tank). The card's legend names the ones it uses; each icon's tooltip names it.
+  const intoLine = e => { const I = intoOf(e); return [I.mons.length ? "→ " + I.mons.join(", ") : "", I.candy ? (I.mons.length ? "and candy" : "For candy") : ""].filter(Boolean).join(" "); };
+  // Roles: the line-art marks the DPS Calculator uses, by each group's heading
   const ROLE_SVG = {
     main: `<path d="M13.6 2.4 6.2 9.8M13.6 2.4l-.5 3.1M13.6 2.4l-3.1.5M4.2 8.6l3.2 3.2M5.8 10.2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
     support: `<path d="M2.4 2.4l7.4 7.4M13.6 2.4 6.2 9.8M8.6 11.8l3.2-3.2M7.4 11.8 4.2 8.6M10.2 10.2l3.4 3.4M5.8 10.2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`,
@@ -803,32 +662,48 @@ function spriteUrl(name){
   };
   const ROLE_NAME = { main: "Main DPS", support: "Support DPS", catchtank: "Catch Tank", executor: "Executor" };
   const rolesOf = e => String(e.role || "").split(/[\/,;]/).map(r => ROLE_CLS[key(r).replace(/\s+/g, " ")] || (/tank/i.test(r) ? "catchtank" : /exec/i.test(r) ? "executor" : /support/i.test(r) ? "support" : /main/i.test(r) ? "main" : "")).filter((r, i, a) => r && a.indexOf(r) === i);
-  const roleIco = r => `<span class="rg-ri ${r}" title="${ROLE_NAME[r]}"><svg viewBox="0 0 16 16" aria-hidden="true">${ROLE_SVG[r]}</svg></span>`;
-  const roleIcons = e => rolesOf(e).map(roleIco).join("");
-  const roleCell = e => { const rs = rolesOf(e); return rs.length ? `<span class="rg-rlist">${rs.map(r => `<span>${roleIco(r)}<em class="rg-rn">${ROLE_NAME[r]}</em></span>`).join("")}</span>` : ""; };
-  const roleLegend = types => { const used = new Set(Object.values(types).flat().flatMap(rolesOf));
-    return used.size ? `<div class="rg-rlegend">${Object.keys(ROLE_NAME).filter(r => used.has(r)).map(r => `<span>${roleIco(r)}${ROLE_NAME[r]}</span>`).join("")}</div>` : ""; };
+  const roleIco = r => `<span class="rg-ri ${r}" aria-hidden="true"><svg viewBox="0 0 16 16">${ROLE_SVG[r]}</svg></span>`;
+  // counts as written, without the ×: "5+", "2–3", "1" ("2 to 3" and "2x" read the same)
+  const num = c => { const s = String(c == null ? "" : c).trim().replace(/\s*[x×]\s*/gi, "").replace(/\s*(?:to|–|—|-)\s*/i, "–"); return s; };
+  const typeTag = e => { const ts = String(e.types || "").split(/\s*,\s*/).filter(Boolean), t = ts[0] || "";
+    return t ? `<span class="rg-ti" style="background:${COLORS[key(t)] || "#888"}" title="${esc(ts.join(", "))}"><img src="${ICON}${key(t)}.svg" alt=""></span>` : `<span></span>`; };
+  const spr = n => `<img class="rg-spr${needsShadowMist(n) ? " sh" : ""}" src="${esc(spriteUrl(n))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+  const prioTag = e => { const t = tierOf(e); return `<span class="rg-prio ${t}">${t ? TIERS[t].label : ""}</span>`; };
+  // a section's Pokemon, each once, in the order of the first type written for it (then the order written)
+  const tIx = e => { const i = TYPES.indexOf(String(e.types || "").split(/\s*,\s*/)[0]); return i < 0 ? 99 : i; };
+  const flat = types => [...new Set(Object.values(types).flat())].sort((a, b) => tIx(a) - tIx(b) || a.at - b.at);
+  const row = (e, sub, n) => `<div class="rg-row">${typeTag(e)}${spr(e.name)}<span class="rg-nm"><b>${esc(e.name)}</b>${sub ? `<span class="rg-sub2">${sub}</span>` : ""}${e.note ? `<span class="rg-note">${esc(e.note)}</span>` : ""}</span>${prioTag(e)}<span class="rg-n">${n || ""}</span></div>`;
+  const moveLine = e => [splitMoves(e.fm).join(", "), splitMoves(e.cm).join(", ")].filter(Boolean).map(esc).join(" / ");
 
   let stageIx = 0;
 
   function renderStages(){
     document.getElementById("rgStages").innerHTML = STAGES.map((s, i) =>
-      `<button type="button" role="tab" class="rg-stage${i < stageIx ? " done" : ""}" aria-selected="${i === stageIx}" data-i="${i}"><span class="num">${i + 1}</span><span><b>${esc(s.name)}</b></span></button>`).join("");
+      `<button type="button" role="tab" class="rg-tab" aria-selected="${i === stageIx}" data-i="${i}">${esc(s.name)}</button>`).join("");
   }
+  // The lineup: a group per role (a Pokemon with two roles is in both), each read down by type.
+  // The catch sections: one list each, read down by type.
   function renderChart(kind){
     const s = STAGES[stageIx], K = KINDS[kind], el = document.getElementById(K.card), types = (s.data || {})[kind];
-    const head = `<div class="rg-card-head"><div><h2>${K.title(s)}</h2>${K.info ? `<p class="rg-info">${K.info}</p>` : ""}</div>${types ? roleLegend(types) : ""}</div>`;
-    const failed = (s.failed || {})[kind];
-    // (a stage whose sheet isn't uploaded yet, or has no rows, says so rather than showing an error)
-    if(!types || !Object.keys(types).length){ el.innerHTML = head + `<p class="rg-lede">${failed === 404 || (types && !failed) ? "Nothing listed for this stage yet." : failed ? "This list couldn't be loaded. Try refreshing the page." : "Loading…"}</p>`; return; }
-    el.innerHTML = head + `<div class="rg-types${Object.values(types).flat().some(e => rolesOf(e).length) ? " has-roles" : ""}">${typeOrder(types).map(t => panel(kind, t, types[t], TILES[kind])).join("")}</div>`;
+    const list = types ? flat(types) : [], failed = (s.failed || {})[kind];
+    const copy = list.length ? `<button type="button" class="rg-copy" data-kind="${kind}">Share infographic</button>` : "";
+    // (the lineup has no title: its button sits in the first group's heading row)
+    const head = kind === "roster" ? ""
+
+      : `<div class="rg-sec-head"><div><h2>${K.title(s)}</h2>${K.info ? `<p class="rg-info">${K.info}</p>` : ""}</div>${copy}</div>`;
+    if(!list.length){ el.innerHTML = (head || `<div class="rg-sec-head"><div></div></div>`) + `<p class="rg-lede">${failed === 404 || (types && !failed) ? "Nothing listed for this stage yet." : failed ? "This list couldn't be loaded. Try refreshing the page." : "Loading…"}</p>`; return; }
+    if(kind === "roster"){
+      const groups = Object.keys(ROLE_NAME).map(r => [r, ROLE_NAME[r], list.filter(e => rolesOf(e).includes(r))])
+        .concat([["", "Other", list.filter(e => !rolesOf(e).length)]]).filter(g => g[2].length);
+      el.innerHTML = head + groups.map(([r, name, L], gi) => `<div class="rg-grp"><h3 class="rg-gh">${r ? roleIco(r) : ""}${name}${gi === 0 ? copy : ""}</h3><div class="rg-rows">${L.map(e => row(e, moveLine(e), esc(num(e.count)))).join("")}</div></div>`).join("");
+    } else {
+      el.innerHTML = head + `<div class="rg-rows">${list.map(e => row(e, esc(intoLine(e)))).join("")}</div>`;
+    }
   }
   const renderStage = () => Object.keys(KINDS).forEach(renderChart);
   document.addEventListener("click", ev => {
-    const st = ev.target.closest(".rg-stage"); if(st){ stageIx = +st.dataset.i; renderStages(); renderStage(); history.replaceState(null, "", "#" + STAGES[stageIx].id); return; }
-    const p = ev.target.closest(".rg-type"); if(!p) return;
-    const mo = ev.target.closest(".rg-more"), mn = ev.target.closest(".rg-mon");
-    if(mo || mn) openWin(p.dataset.kind, p.dataset.type, mn ? +mn.dataset.i : undefined);
+    const st = ev.target.closest(".rg-tab"); if(st){ stageIx = +st.dataset.i; renderStages(); renderStage(); history.replaceState(null, "", "#" + STAGES[stageIx].id); return; }
+    const cp = ev.target.closest(".rg-copy"); if(cp){ copySectionImage(cp, cp.dataset.kind); return; }
   });
   // CSV text -> rows of cells (quoted cells may hold commas, quotes and line breaks)
   function csvRows(text){
@@ -887,22 +762,19 @@ function spriteUrl(name){
   }
   // a section's rows -> { Type: [rows in the order written] }; the header's case and spacing don't matter
   function toTypes(rows, kind){
-    const types = {};
+    const types = {}; let n = 0;
     rows.forEach(f => {
       // several types ("Dragon, Ground" - or split by "/", ";", "&" or "+") put the Pokemon in each type's box
       const tlist = (f.type || "").split(/\s*[,\/;&+]\s*/).map(t => t.trim()).filter(Boolean).map(t => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase())
         .filter((t, i, a) => a.indexOf(t) === i), e = KINDS[kind].row(f);
       if(!tlist.length || !e.name) return;   // (blank lines and half-filled rows are skipped)
+      e.types = tlist.join(", "); e.at = n++;
       tlist.forEach(type => (types[type] = types[type] || []).push(e));
     });
     return types;
   }
   const m = /^#([\w-]+)$/.exec(location.hash), at = m ? STAGES.findIndex(s => s.id === m[1]) : -1; if(at >= 0) stageIx = at;
   renderStages(); renderStage();
-  // the moves' types, for their icons - the charts don't wait on it
-  fetch("csv/moves.csv").then(r => r.ok ? r.text() : "").then(text => {
-    parseCSV(text).forEach(r => { if(r.name && r.type) MOVE_TYPES[mkey(r.name)] = r.type; });
-  }).catch(() => {});
   const getText = url => fetch(encodeURI(url), { cache: "no-cache" })   // (the names have spaces)
     .then(r => { if(!r.ok){ const err = new Error(r.status); err.status = r.status; throw err; } return r.text(); });
   STAGES.forEach((s, i) => { s.data = {}; s.failed = {};
@@ -916,6 +788,115 @@ function spriteUrl(name){
           .catch(e => { if(e.status !== 404) console.error(oldFile(s, k), e); s.failed[k] = e.status || true; }).then(() => { if(i === stageIx) renderChart(k); }));
       });
   });
+  // ============ COPY AS IMAGE ============
+  // Each section drawn on a canvas (as the DPS Calculator's Copy as image does - no screenshot
+  // library): the stage and section as a title, then the same groups and rows as the page in two
+  // columns, the Prio key and the site's address. Colours follow the page's light or dark theme.
+  const IMG = new Map();
+  const loadImg = src => { if(!src) return Promise.resolve(null); if(IMG.has(src)) return IMG.get(src);
+    const p = new Promise(res => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = () => res(null); im.src = src; });
+    IMG.set(src, p); return p; };
+  // a sprite, through the site's fallback host when the first fails
+  const loadSprite = async name => { const u = spriteUrl(name); return (await loadImg(u)) || (SPRITE_FALLBACK[u] ? await loadImg(SPRITE_FALLBACK[u]) : null); };
+  // an icon in one colour: the type icons are drawn white, the role marks in the role's colour
+  const tintCache = new Map();
+  const tinted = (im, color, size) => { const k = im.src + color + size; if(tintCache.has(k)) return tintCache.get(k);
+    const c = document.createElement("canvas"); c.width = c.height = size; const x = c.getContext("2d");
+    x.drawImage(im, 0, 0, size, size); x.globalCompositeOperation = "source-in"; x.fillStyle = color; x.fillRect(0, 0, size, size);
+    tintCache.set(k, c); return c; };
+  const svgImg = (inner, color) => loadImg("data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" style="color:${color}">${inner.replace(/currentColor/g, color)}</svg>`));
+  const PAL = dark => dark ? {
+      bg: "#151827", card: "#1c2030", line: "#323850", text: "#eef1f7", muted: "#a7afc0", dim: "#767f96", accent: "#5aa9ff",
+      tier: { core: ["rgba(240,190,60,.16)", "#ffd36b", "rgba(240,190,60,.45)"], niche: ["rgba(90,169,255,.16)", "#8cc7ff", "rgba(90,169,255,.4)"], lowroi: ["rgba(0,0,0,0)", "#767f96", "#323850"] },
+      role: { main: ["rgba(220,53,69,.22)", "#ff9494"], support: ["rgba(0,150,136,.22)", "#5eded4"], catchtank: ["rgba(155,123,240,.2)", "#c1a8ff"], executor: ["rgba(255,255,255,.14)", "#e4e4e6"] } }
+    : { bg: "#fff6ee", card: "#ffffff", line: "#e7edf5", text: "#2d3142", muted: "#6b7280", dim: "#5f6675", accent: "#3d9dff",
+      tier: { core: ["#fff1c7", "#9a6a00", "#f0cf6a"], niche: ["#e3f0ff", "#2b6cb0", "#b5d4f4"], lowroi: ["rgba(0,0,0,0)", "#5f6675", "#d5dbe5"] },
+      role: { main: ["#ffe1e1", "#c62828"], support: ["#dff5f3", "#00897b"], catchtank: ["#f2ebff", "#7d4fd6"], executor: ["#e9e9eb", "#292929"] } };
+
+  async function buildSectionImage(kind){
+    const s = STAGES[stageIx], K = KINDS[kind], types = (s.data || {})[kind]; if(!types) return null;
+    const list = flat(types); if(!list.length) return null;
+    const dark = document.documentElement.getAttribute("data-theme") === "dark", C = PAL(dark), roster = kind === "roster";
+    await (document.fonts ? document.fonts.ready : Promise.resolve());
+    // the same groups and rows as the page, in two columns read downwards
+    const groups = roster ? Object.keys(ROLE_NAME).map(r => [r, ROLE_NAME[r], list.filter(e => rolesOf(e).includes(r))]).concat([["", "Other", list.filter(e => !rolesOf(e).length)]]).filter(g => g[2].length)
+      : [["", "", list]];
+    const W = 1200, PAD = 40, GAP = 36, colW = (W - PAD * 2 - GAP) / 2, RH = 46, GH = roster ? 40 : 0, GG = 20;
+    const meas = document.createElement("canvas").getContext("2d");
+    const info = roster ? "" : String(K.info || "").replace(/&amp;/g, "&");
+    const top = PAD + 16 + 42 + (info ? 24 : 0) + 18;
+    const gh = groups.map(g => GH + Math.ceil(g[2].length / 2) * RH);
+    const H = top + gh.reduce((a, b) => a + b, 0) + GG * (groups.length - 1) + 64;
+    const all = groups.flatMap(g => g[2]);
+    const sprites = new Map(); await Promise.all([...new Set(all.map(e => e.name))].map(async n => sprites.set(n, await loadSprite(n))));
+    const tNames = [...new Set(all.map(e => String(e.types || "").split(/\s*,\s*/)[0]).filter(Boolean))];
+    const tIcons = new Map(); await Promise.all(tNames.map(async t => tIcons.set(t, await loadImg(`${ICON}${key(t)}.svg`))));
+    const rIcons = new Map(); if(roster) await Promise.all(Object.keys(ROLE_SVG).map(async r => rIcons.set(r, await svgImg(ROLE_SVG[r], C.role[r][1]))));
+    const DPR = 2, cv = document.createElement("canvas"); cv.width = W * DPR; cv.height = H * DPR;
+    const x = cv.getContext("2d"); x.scale(DPR, DPR); x.textBaseline = "alphabetic";
+    x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
+    x.fillStyle = C.accent; x.font = "800 13px Manrope, sans-serif"; x.fillText(`RAID BUDGET ADVICE · ${s.name.toUpperCase()}`, PAD, PAD + 12);
+    x.fillStyle = C.text; x.font = "800 30px Manrope, sans-serif"; x.fillText(roster ? "Lineup" : K.title(s).replace(/&amp;/g, "&"), PAD, PAD + 16 + 32);
+    if(info){ x.fillStyle = C.muted; x.font = "600 14px Inter, sans-serif"; x.fillText(info, PAD, PAD + 16 + 42 + 16); }
+    const PRIO = { core: dark ? "#f0c24c" : "#c98a00", niche: C.accent, lowroi: C.dim };
+    const fit = (t, w) => { if(x.measureText(t).width <= w) return t; while(t.length > 2 && x.measureText(t + "…").width > w) t = t.slice(0, -1); return t + "…"; };
+    let y = top;
+    groups.forEach(([r, name, L], gi) => {
+      if(roster){
+        x.beginPath(); x.arc(PAD + 10, y + 14, 10, 0, Math.PI * 2); x.fillStyle = C.role[r] ? C.role[r][0] : C.line; x.fill();
+        const ri = rIcons.get(r); if(ri) x.drawImage(ri, PAD + 3.5, y + 7.5, 13, 13);
+        x.fillStyle = C.text; x.font = "800 13px Manrope, sans-serif"; x.fillText(name.toUpperCase(), PAD + 28, y + 19);
+        x.fillStyle = C.line; x.fillRect(PAD, y + GH - 8, W - PAD * 2, 1);
+      }
+      const y0 = y + GH, half = Math.ceil(L.length / 2);
+      L.forEach((e, i) => {
+        const col = i < half ? 0 : 1, X = PAD + col * (colW + GAP), Y = y0 + (col ? i - half : i) * RH;
+        x.fillStyle = C.line; x.globalAlpha = .6; x.fillRect(X, Y + RH - 1, colW, 1); x.globalAlpha = 1;
+        const t = String(e.types || "").split(/\s*,\s*/)[0], tc = COLORS[key(t)] || "#888888";
+        x.beginPath(); x.arc(X + 8, Y + RH / 2, 8, 0, Math.PI * 2); x.fillStyle = tc; x.fill();
+        const ti = tIcons.get(t); if(ti) x.drawImage(tinted(ti, "#ffffff", 40), X + 3, Y + RH / 2 - 5, 10, 10);
+        const sx = X + 26, sy = Y + (RH - 34) / 2;
+        if(needsShadowMist(e.name)){ x.beginPath(); x.arc(sx + 17, sy + 17, 17, 0, Math.PI * 2); x.fillStyle = "rgba(58,12,92,.55)"; x.fill(); }
+        const im = sprites.get(e.name); if(im){ const sc = Math.min(34 / im.naturalWidth, 34 / im.naturalHeight), w = im.naturalWidth * sc, h = im.naturalHeight * sc; x.drawImage(im, sx + (34 - w) / 2, sy + (34 - h) / 2, w, h); }
+        const nx = X + 70, rightW = roster ? 96 : 60, tw = colW - 70 - rightW;
+        const sub = roster ? [splitMoves(e.fm).join(", "), splitMoves(e.cm).join(", ")].filter(Boolean).join(" / ") : intoLine(e);
+        x.fillStyle = C.text; x.font = "700 14px Manrope, sans-serif"; x.fillText(fit(e.name, tw), nx, Y + (sub ? 20 : 28));
+        if(sub){ x.fillStyle = C.muted; x.font = "500 12px Inter, sans-serif"; x.fillText(fit(sub, tw), nx, Y + 36); }
+        const tr = tierOf(e); x.textAlign = "right";
+        if(tr){ x.fillStyle = PRIO[tr]; x.font = "700 11.5px Manrope, sans-serif"; x.fillText(TIERS[tr].label, X + colW - (roster ? 40 : 0), Y + 28); }
+        if(roster){ x.fillStyle = C.text; x.font = "700 13px 'IBM Plex Mono', monospace"; x.fillText(num(e.count), X + colW, Y + 28); }
+        x.textAlign = "left";
+      });
+      y = y0 + Math.ceil(L.length / 2) * RH + GG;
+    });
+    const fy = H - 26; x.font = "600 12px Inter, sans-serif"; let fx = PAD;
+    ["core", "niche", "lowroi"].filter(t => all.some(e => tierOf(e) === t)).forEach(t => {
+      x.fillStyle = PRIO[t]; x.font = "700 12px Manrope, sans-serif"; x.fillText(TIERS[t].label, fx, fy); fx += x.measureText(TIERS[t].label).width + 6;
+      x.fillStyle = C.muted; x.font = "600 12px Inter, sans-serif"; x.fillText(TIERS[t].desc, fx, fy); fx += x.measureText(TIERS[t].desc).width + 20; });
+    x.fillStyle = C.dim; x.textAlign = "right"; x.fillText("soloraidarchive.github.io/progression.html", W - PAD, fy); x.textAlign = "left";
+    return cv;
+  }
+  // copy to the clipboard (the image built inside the click, as Safari needs), or download it
+  async function copySectionImage(btn, kind){
+    const old = btn.textContent, name = `progression-${STAGES[stageIx].id}-${kind === "roster" ? "lineup" : kind === "catch" ? "wild" : "raids-rocket"}.png`;
+    btn.disabled = true; btn.textContent = "Copying…";
+    try{
+      if(typeof ClipboardItem !== "undefined" && navigator.clipboard && navigator.clipboard.write){
+        const blob = (async () => { const cv = await buildSectionImage(kind); if(!cv) throw new Error("nothing to copy"); return await new Promise(r => cv.toBlob(r, "image/png")); })();
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        btn.textContent = "Copied"; return;
+      }
+      const cv = await buildSectionImage(kind); const b = await new Promise(r => cv.toBlob(r, "image/png"));
+      const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      btn.textContent = "Downloaded";
+    }catch(err){
+      // (a clipboard the browser won't write to: hand over the file instead)
+      try{ const cv = await buildSectionImage(kind); const b = await new Promise(r => cv.toBlob(r, "image/png"));
+        const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); btn.textContent = "Downloaded"; }
+      catch(e2){ console.error("Could not make the image:", err, e2); btn.textContent = "Couldn’t copy"; }
+    }finally{ setTimeout(() => { btn.textContent = old; btn.disabled = false; }, 1800); }
+  }
+  window.__progressionImage = buildSectionImage;   // (for checking the drawing)
 })();
 </script>
 
