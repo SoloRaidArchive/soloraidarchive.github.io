@@ -671,7 +671,10 @@ function spriteUrl(name){
   const prioTag = e => { const t = tierOf(e); return `<span class="rg-prio ${t}">${t ? TIERS[t].label : ""}</span>`; };
   // a section's Pokemon, each once, in the order of the first type written for it (then the order written)
   const tIx = e => { const i = TYPES.indexOf(String(e.types || "").split(/\s*,\s*/)[0]); return i < 0 ? 99 : i; };
-  const flat = types => [...new Set(Object.values(types).flat())].sort((a, b) => tIx(a) - tIx(b) || a.at - b.at);
+  // ...and within a type, Core before Niche before Low ROI
+  const PIX = { core: 0, niche: 1, lowroi: 2 };
+  const pIx = e => { const t = tierOf(e); return t in PIX ? PIX[t] : 3; };
+  const flat = types => [...new Set(Object.values(types).flat())].sort((a, b) => tIx(a) - tIx(b) || pIx(a) - pIx(b) || a.at - b.at);
   const row = (e, sub, n) => `<div class="rg-row">${typeTag(e)}${spr(e.name)}<span class="rg-nm"><b>${esc(e.name)}</b>${sub ? `<span class="rg-sub2">${sub}</span>` : ""}${e.note ? `<span class="rg-note">${esc(e.note)}</span>` : ""}</span>${prioTag(e)}<span class="rg-n">${n || ""}</span></div>`;
   const moveLine = e => [splitMoves(e.fm).join(", "), splitMoves(e.cm).join(", ")].filter(Boolean).map(esc).join(" / ");
 
