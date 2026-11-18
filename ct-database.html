@@ -969,6 +969,84 @@ header{ padding: 12px 24px 10px; text-align:center; }
   @media (max-width:700px){ .type-filter{ min-height:183px; } }
   @media (max-width:600px){ .type-filter{ min-height:83px !important; } }
   .tf-measure .type-filter{ min-height:0 !important; }
+
+  /* ---- Layout: a 2x9 type grid, one control bar, and the two lists side by side as ranked rows ---- */
+  .type-filter, .controls, .view-tabs{ max-width:1180px; box-sizing:border-box; }
+  .container{ max-width:1180px; overflow-x:visible; padding-top:12px; }
+  .type-filter{ margin:12px auto 0; grid-template-columns:repeat(9, minmax(0,1fr)) !important; gap:6px !important; padding:0 20px !important; min-height:0 !important; }
+  .type-filter .type-chip{ justify-content:flex-start; gap:6px; height:28px; padding:0 8px 0 3px; border-radius:999px;
+    border:1px solid var(--border); background:none !important; color:var(--ink-dim); font:700 12px 'Manrope',sans-serif;
+    box-shadow:none; transform:none; filter:none; }
+  .type-filter .type-chip i{ width:20px; height:20px; border-radius:50%; display:grid; place-items:center; flex:none; background:var(--tc); }
+  .type-filter .type-chip i img{ width:11px; height:11px; filter:brightness(0) invert(1); }
+  .type-filter .type-chip:hover{ color:var(--ink); border-color:color-mix(in srgb, var(--ink) 35%, var(--border)); }
+  .type-filter .type-chip.on{ background:var(--tc) !important; color:#fff; border-color:transparent; box-shadow:none; transform:none; }
+  .type-filter .type-chip.off{ opacity:.35; cursor:default; pointer-events:none; }
+  @media (max-width:980px){ .type-filter{ grid-template-columns:repeat(6, minmax(0,1fr)) !important; } }
+  @media (max-width:600px){
+    .type-filter{ grid-template-columns:repeat(9, minmax(0,1fr)) !important; gap:6px !important; padding:0 12px !important; }
+    .type-filter .type-chip{ height:auto; aspect-ratio:1; padding:0; border:0; border-radius:50%; justify-content:center; background:none !important; }
+    .type-filter .type-chip i{ width:100%; height:100%; }
+    .type-filter .type-chip i img{ width:16px; height:16px; }
+    .type-filter .type-chip span{ display:none; }
+    .type-filter .type-chip.on{ box-shadow:0 0 0 2px var(--bg1), 0 0 0 3.5px var(--ink); }
+  }
+
+  .controls{ margin:12px auto 0; gap:8px; }
+  #tierFilter, #sortSelect, .view-intro{ display:none !important; }
+  .ct-seg{ display:inline-flex; border:1px solid var(--border); border-radius:7px; overflow:hidden; }
+  .ct-seg button{ appearance:none; border:0; background:none; cursor:pointer; font:700 12.5px 'Manrope',sans-serif; color:var(--ink-dim); padding:0 12px; height:32px; }
+  .ct-seg button + button{ border-left:1px solid var(--border); }
+  .ct-seg button.on{ background:color-mix(in srgb, var(--ink) 10%, transparent); color:var(--ink); }
+
+  /* phone: underline tabs switch the two lists; wider screens show both and hide the tabs */
+  .view-tabs{ margin:6px auto 0; padding:0 12px; }
+  .view-tabs-inner{ background:none !important; border:0; border-bottom:1px solid var(--border); border-radius:0; padding:0; max-width:none; flex-wrap:nowrap; }
+  .view-tabs label{ min-width:0; padding:8px 6px; border-radius:0; margin-bottom:-1px; border-bottom:2px solid transparent;
+    font:700 13px 'Manrope',sans-serif; line-height:1.25; color:var(--ink-dim); }
+  .view-tabs input:checked + label{ background:none; color:var(--ink); border-bottom-color:var(--ink); }
+  @media (min-width:901px){
+    .view-tabs{ display:none; }
+    .views-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); align-items:start; }
+    body #col-byboss, body #col-best{ display:block !important; }
+    .view-col-title{ display:block; }
+    .view-col-head{ justify-content:space-between; }
+  }
+  .view-col{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 18px 14px; }
+  .view-col-head{ margin-bottom:8px; align-items:baseline; }
+  .view-col-title{ font:800 15px 'Manrope',sans-serif; }
+  .col-sort{ display:none; }
+  .ct-sorts{ display:flex; gap:12px; }
+  .ct-sorts button{ appearance:none; border:0; background:none; padding:0; cursor:pointer; font:700 12px 'Manrope',sans-serif; color:var(--ink-dim); }
+  .ct-sorts button.on{ color:var(--ink); text-decoration:underline; text-underline-offset:3px; }
+
+  .cr-h, .cr-row{ display:grid; gap:9px; align-items:center; }
+  .cr-best{ grid-template-columns:24px 32px minmax(0,1fr) 52px 48px; }
+  .cr-boss{ grid-template-columns:16px 32px minmax(0,1fr) 44px; }
+  .cr-h{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); padding:0 0 6px; border-bottom:1px solid var(--border); }
+  .cr-h span:nth-last-child(-n+2):not(:nth-child(-n+3)){ text-align:right; }
+  .cr-boss.cr-h span:last-child{ text-align:right; }
+  button.cr-row{ all:unset; box-sizing:border-box; cursor:pointer; display:grid; gap:9px; align-items:center; width:100%; padding:5px 0;
+    border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); font-size:13.5px; }
+  button.cr-row.cr-best{ grid-template-columns:24px 32px minmax(0,1fr) 52px 48px; }
+  button.cr-row.cr-boss{ grid-template-columns:16px 32px minmax(0,1fr) 44px; }
+  button.cr-row:hover{ background:color-mix(in srgb, var(--ink) 4%, transparent); }
+  button.cr-row:focus-visible{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .cr-rk{ font:700 12px 'IBM Plex Mono',monospace; color:var(--ink-dim); text-align:right; }
+  .cr-rk.t1{ color:#ffb300; } .cr-rk.t2{ color:#9aa3b2; } .cr-rk.t3{ color:#c97b3d; }
+  .cr-ti{ width:16px; height:16px; border-radius:50%; display:grid; place-items:center; }
+  .cr-ti img{ width:10px; height:10px; filter:brightness(0) invert(1); }
+  .cr-sp, .cr-sp img{ display:block; width:32px; height:32px; object-fit:contain; }
+  .cr-nm{ display:flex; flex-direction:column; min-width:0; line-height:1.3; }
+  .cr-nm b{ font-weight:700; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cr-nm span{ font-size:12px; font-weight:500; color:var(--ink-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .cr-v{ font:600 12px 'IBM Plex Mono',monospace; color:var(--ink-muted); text-align:right; }
+  .cr-n{ font:700 12.5px 'IBM Plex Mono',monospace; color:var(--ink); text-align:right; }
+  @media (max-width:700px){
+    .view-col{ padding:8px 12px 10px; border-radius:8px; }
+    .view-col-head{ justify-content:flex-end; }
+    .cr-nm span{ white-space:normal; }
+  }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
@@ -1173,19 +1251,19 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <!-- A sibling of .container, not a child: render() replaces container.innerHTML on every
      keystroke, which would destroy this element. Sized to match .container so the grid still
      lines up with the rows below. -->
+<div class="view-tabs">
+  <div class="view-tabs-inner">
+    <input type="radio" name="dbView" id="viewBest" value="best" checked>
+    <label for="viewBest">Most Used Catch Tanks</label>
+    <input type="radio" name="dbView" id="viewByBoss" value="byboss">
+    <label for="viewByBoss">Bosses with Most Catch Tanks</label>
+  </div>
+</div>
 <div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
 
 <!-- (#4) Moved below the type grid and above the controls row. It was the first thing on the
      page, which put a mode switch ahead of the filters it applies to; here it reads in the order
      you use it - pick types, pick the view, then sort and search. -->
-<div class="view-tabs">
-  <div class="view-tabs-inner">
-    <input type="radio" name="dbView" id="viewByBoss" value="byboss" checked>
-    <label for="viewByBoss">By Raid Boss</label>
-    <input type="radio" name="dbView" id="viewBest" value="best">
-    <label for="viewBest">By Total Usage</label>
-  </div>
-</div>
 <div class="view-intro" id="viewIntro"></div>
 
 <div class="controls">
@@ -1196,7 +1274,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     <option value="legendary">Legendary</option>
     <option value="mega">Tier 4 Mega</option>
   </select>
-  <input id="searchInput" type="text" placeholder="Search by Pokémon or Boss…" autocomplete="off">
+  <span class="ct-seg" id="poolSeg"><button type="button" data-pool="legendary" class="on" aria-pressed="true">Legendary</button><button type="button" data-pool="mega" aria-pressed="false">Tier 4 Mega</button></span>
   <select id="sortSelect">
     <option value="ctdps">Sort: CT DPS (High–Low)</option>
     <option value="boss">Sort: Boss (A–Z)</option>
@@ -1205,28 +1283,30 @@ header{ padding: 12px 24px 10px; text-align:center; }
 </div>
 <div class="container">
   <div class="views-grid">
-    <section class="view-col" id="col-byboss">
-      <div class="view-col-head">
-        <h2 class="view-col-title">Catch Tanks by Raid Boss</h2>
-        <select class="col-sort" id="sortByBoss" aria-label="Sort raid bosses">
-          <option value="tanks">Most catch tanks</option>
-          <option value="az">A–Z</option>
-          <option value="za">Z–A</option>
-        </select>
-      </div>
-      <div id="byBossView"></div>
-    </section>
     <section class="view-col" id="col-best">
       <div class="view-col-head">
-        <h2 class="view-col-title">Catch Tanks by Total Usage</h2>
+        <h2 class="view-col-title">Most Used Catch Tanks</h2>
         <select class="col-sort" id="sortBest" aria-label="Sort catch tanks">
           <option value="entries" selected>Most entries</option>
           <option value="dps">Highest avg CT DPS</option>
           <option value="az">A–Z</option>
           <option value="za">Z–A</option>
         </select>
+        <span class="ct-sorts" data-for="sortBest"><button type="button" data-v="entries" class="on">Entries</button><button type="button" data-v="dps">Avg DPS</button><button type="button" data-v="az">A–Z</button></span>
       </div>
       <div id="bestView"></div>
+    </section>
+    <section class="view-col" id="col-byboss">
+      <div class="view-col-head">
+        <h2 class="view-col-title">Bosses with Most Catch Tanks</h2>
+        <select class="col-sort" id="sortByBoss" aria-label="Sort raid bosses">
+          <option value="tanks">Most catch tanks</option>
+          <option value="az">A–Z</option>
+          <option value="za">Z–A</option>
+        </select>
+        <span class="ct-sorts" data-for="sortByBoss"><button type="button" data-v="tanks" class="on">Most tanks</button><button type="button" data-v="az">A–Z</button></span>
+      </div>
+      <div id="byBossView"></div>
     </section>
   </div>
   <div class="count" id="count"></div>
@@ -2112,7 +2192,7 @@ const grid = document.getElementById("grid");
 const cardGrid = document.getElementById("cardGrid");
 const cardGridMobile = document.getElementById("cardGridMobile");
 const countEl = document.getElementById("count");
-const searchInput = document.getElementById("searchInput");
+
 const sortSelect = document.getElementById("sortSelect");
 
 // Standard type palette lifted ~18% toward white - the source colours read muddy as solid
@@ -2360,16 +2440,20 @@ function renderByBoss(list){
 
   if(!groups.length) return `<div class="empty">No submissions match your search yet.</div>`;
 
-  // A grid of tiles, like Top Raiders: boss sprite and how many catch tanks have been logged for
-  // it. Clicking opens the boss's entries table (toggleBossGroup -> openBossEntriesTable).
-  return `<div class="ctg-grid">${groups.map((g, gi) => {
-    const entries = g.scenarios.reduce((n, sc) => n + sc.entries.length, 0);
-    return `<button type="button" class="ctg-tile boss-group" id="bossGroup-${gi}" onclick="toggleBossGroup(${gi})" aria-haspopup="dialog"
-        title="${escapeHtml(g.boss)} - ${g.tankCount} catch tank${g.tankCount !== 1 ? "s" : ""}, ${entries} ${entries === 1 ? "entry" : "entries"}">
-      <span class="ctg-icon"><img class="${needsShadowMist(g.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(g.boss)}" alt="" loading="lazy" onerror="this.remove();"></span>
-      <span class="ctg-main"><b>${g.tankCount}</b> tank${g.tankCount !== 1 ? "s" : ""}</span>
+  // Ranked rows: boss, its best catch tank and that CT DPS, and how many catch tanks have been logged
+  // for it. Clicking opens the boss's entries table (toggleBossGroup -> openBossEntriesTable).
+  const head = `<div class="cr-h cr-boss"><span></span><span></span><span>Boss</span><span>Tanks</span></div>`;
+  return head + groups.map((g, gi) => {
+    const best = g.scenarios.flatMap(sc => sc.entries).sort((a, b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS))[0];
+    const t = ((typesOf(g.boss) || [])[0] || "").toLowerCase();
+    const dps = best ? parseFloat(best.ctDPS) : NaN;
+    return `<button type="button" class="cr-row cr-boss" id="bossGroup-${gi}" onclick="toggleBossGroup(${gi})" aria-haspopup="dialog">
+      <span class="cr-ti" style="background:${TYPE_COLORS[t] || "#888"}" title="${t}">${t ? `<img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();">` : ""}</span>
+      <span class="cr-sp"><img class="${needsShadowMist(g.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(g.boss)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></span>
+      <span class="cr-nm"><b>${escapeHtml(g.boss)}</b>${best ? `<span>Best: ${escapeHtml(best.pokemon)} · ${isFinite(dps) ? dps.toFixed(1) : "–"}</span>` : ""}</span>
+      <span class="cr-n">${g.tankCount}</span>
     </button>`;
-  }).join("")}</div>`;
+  }).join("");
 }
 
 // Move name -> small colored type icon, matching the raid archive pages' type-icon treatment
@@ -2497,20 +2581,24 @@ function renderBest(list){
 
   if(!ranked.length) return `<div class="empty">No submissions match your search yet.</div>`;
 
-  // A grid of tiles, like Top Raiders: rank, sprite and entries. Clicking opens the
-  // Pokemon's entries table (toggleLeaderGroup -> openEntriesTable), as the rows did. (The rows'
-  // inline expanding body is gone: it was never reachable - every click opened the table - but
-  // was built for every Pokemon on every render.)
-  return `<div class="ctg-grid">${ranked.map((m, i) => {
-    const n = m.entries.length;
-    const rankClass = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
-    return `<button type="button" class="ctg-tile leader-group" id="leaderGroup-${i}" onclick="toggleLeaderGroup(${i})" aria-haspopup="dialog"
-        title="${escapeHtml(m.pokemon)} - ${n} ${n === 1 ? "entry" : "entries"} against ${m.bossCount} boss${m.bossCount !== 1 ? "es" : ""}">
-      <span class="ctg-rank ${rankClass}">${i + 1}</span>
-      <span class="ctg-icon"><img class="${needsShadowMist(m.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(m.pokemon)}" alt="" loading="lazy" onerror="this.remove();"></span>
-      <span class="ctg-main"><b>${n}</b> ${n === 1 ? "entry" : "entries"}</span>
+  // Ranked rows: the tank, the moveset it is most often logged with, its average CT DPS and its
+  // entries. Clicking opens the Pokemon's entries table (toggleLeaderGroup -> openEntriesTable).
+  const usual = m => {
+    const c = new Map();
+    m.entries.forEach(e => { const k = (e.playerMoveset || "").trim(); if(k) c.set(k, (c.get(k) || 0) + 1); });
+    return ([...c.entries()].sort((a, b) => b[1] - a[1])[0] || [""])[0];
+  };
+  const head = `<div class="cr-h cr-best"><span>#</span><span></span><span>Catch tank</span><span>Avg DPS</span><span>Entries</span></div>`;
+  return head + ranked.map((m, i) => {
+    const n = m.entries.length, mv = usual(m);
+    return `<button type="button" class="cr-row cr-best" id="leaderGroup-${i}" onclick="toggleLeaderGroup(${i})" aria-haspopup="dialog">
+      <span class="cr-rk${i < 3 ? " t" + (i + 1) : ""}">${i + 1}</span>
+      <span class="cr-sp"><img class="${needsShadowMist(m.pokemon) ? 'shadow-mist' : ''}" src="${spriteUrl(m.pokemon)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></span>
+      <span class="cr-nm"><b>${escapeHtml(m.pokemon)}</b>${mv ? `<span>${escapeHtml(mv)}</span>` : ""}</span>
+      <span class="cr-v">${isFinite(m.avg) ? m.avg.toFixed(1) : "–"}</span>
+      <span class="cr-n">${n}</span>
     </button>`;
-  }).join("")}</div>`;
+  }).join("");
 }
 
 // Dense, scannable view of every entry for one Pokemon. The inline expansion is deliberately
@@ -2808,38 +2896,28 @@ function matchesTypeFilter(nameOrRow){
 function renderTypeFilter(){
   const el = document.getElementById("typeFilter");
   if(!el) return;
-  // Only offer types that actually appear in the current results - an empty Fairy filter is a
-  // dead end, not a feature.
-  // Tested with the real predicate, not typing alone - otherwise a chip can appear for a type
-  // whose only candidates fail the charge-move half, and clicking it returns nothing.
+  // All 18 types, always, so the grid stays two rows of nine. A type with no results is dimmed and
+  // can't be pressed (tested with the real predicate, so a chip never leads to an empty list).
   const saved = activeTypes;
-  const types = TYPE_ORDER.filter(t => {
+  const has = new Set(TYPE_ORDER.filter(t => {
     activeTypes = new Set([t]);
     try { return SUBMISSIONS.some(r => matchesTypeFilter(r)); }
     finally { activeTypes = saved; }
-  });
-  if(!types.length){ el.style.display = "none"; return; }
-  // Clear the inline value rather than setting one: this was "flex" from the earlier scrolling
-  // strip, and an inline style beats the stylesheet - so the grid rules were being applied and
-  // then silently overridden, leaving all 18 chips on one line at every width.
+  }));
+  if(!has.size){ el.style.display = "none"; return; }
   el.style.display = "";
-
-  // "All types" first, spanning the grid's full width - the same reset as on Top Raiders
-  el.innerHTML =
-    // (no "All types" chip: a selected type is cleared by tapping it again)
-    types.map(t => `
-      <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
-              style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown};"
-              aria-pressed="${activeTypes.has(t) ? "true" : "false"}" title="${t}" aria-label="${t}">
-        <img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"><span>${t}</span>
-      </button>`).join("");
-
-  const chips = [...el.querySelectorAll(".type-chip")];
-  chips.forEach(btn => {
+  el.innerHTML = TYPE_ORDER.map(t => {
+    const on = activeTypes.has(t), off = !has.has(t) && !on;
+    return `<button type="button" class="type-chip${on ? " on" : ""}${off ? " off" : ""}" data-type="${t}"
+              style="--tc:${TYPE_COLORS[t] || TYPE_COLORS.unknown};" ${off ? 'disabled aria-disabled="true"' : ""}
+              aria-pressed="${on ? "true" : "false"}" title="${t}" aria-label="${t}">
+        <i><img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"></i><span>${t}</span>
+      </button>`;
+  }).join("");
+  el.querySelectorAll(".type-chip:not(.off)").forEach(btn => {
     btn.addEventListener("click", () => {
       const t = btn.dataset.type;
-      if(!t) activeTypes.clear();                                   // "All types" resets
-      else activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
+      activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
       renderTypeFilter();
       render();
     });
@@ -2847,11 +2925,9 @@ function renderTypeFilter(){
 }
 
 function render(){
-  const q = searchInput.value.trim().toLowerCase();
   // Pool first: the two boss tiers have different DPS bars and are never shown together.
   let list = SUBMISSIONS.filter(inCurrentPool)
-    .filter(s => matchesTypeFilter(s))
-    .filter(s => !q || s.pokemon.toLowerCase().includes(q) || s.boss.toLowerCase().includes(q));
+    .filter(s => matchesTypeFilter(s));
 
   const sort = sortSelect.value;
   if(sort === "ctdps") list.sort((a,b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS));
@@ -2892,11 +2968,6 @@ function render(){
 // Debounce: render() rebuilds three separate layouts (desktop table + two card grids). Firing
 // that on every keystroke made search laggy; coalescing a burst of typing into one render keeps
 // it responsive.
-let searchDebounceTimer = null;
-searchInput.addEventListener("input", () => {
-  clearTimeout(searchDebounceTimer);
-  searchDebounceTimer = setTimeout(render, 140);
-});
 sortSelect.addEventListener("change", render);
 const tierFilter = document.getElementById("tierFilter");
 // render() already rebuilds every view from the filtered list, so calling the sub-renderers
@@ -2909,6 +2980,21 @@ document.querySelectorAll('input[name="dbView"]').forEach(el => el.addEventListe
 
 document.getElementById("sortByBoss").addEventListener("change", render);
 document.getElementById("sortBest").addEventListener("change", render);
+document.getElementById("poolSeg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-pool]");
+  if(!b || !tierFilter || tierFilter.value === b.dataset.pool) return;
+  tierFilter.value = b.dataset.pool;
+  document.querySelectorAll("#poolSeg button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", String(x === b)); });
+  tierFilter.dispatchEvent(new Event("change"));
+});
+document.querySelectorAll(".ct-sorts").forEach(box => box.addEventListener("click", e => {
+  const b = e.target.closest("button[data-v]");
+  if(!b) return;
+  const sel = document.getElementById(box.dataset.for);
+  sel.value = b.dataset.v;
+  box.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  sel.dispatchEvent(new Event("change"));
+}));
 loadSubmissionsFromCSV();
 
 const themeToggle = document.getElementById("themeToggle");
@@ -3024,7 +3110,7 @@ function initSearchAutocomplete(inputId, getNames){
   });
 }
 
-initSearchAutocomplete('searchInput', () => (typeof SUBMISSIONS!=='undefined'?SUBMISSIONS.flatMap(s=>[s.pokemon,s.boss,s.name]):[]));
+
 </script>
 </body>
 </html>

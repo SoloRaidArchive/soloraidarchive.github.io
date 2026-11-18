@@ -1089,6 +1089,94 @@ if ("serviceWorker" in navigator) {
   @media (max-width:700px){ .type-filter{ min-height:183px; } }
   @media (max-width:600px){ .type-filter{ min-height:83px !important; } }
   .tf-measure .type-filter{ min-height:0 !important; }
+
+  /* ---- Layout: tabs, a 2x9 type grid, one control bar, and ranked rows in two columns ---- */
+  .view-switch-row, .type-filter, .rb-bar, #container{ max-width:1120px; box-sizing:border-box; }
+  .view-switch-row{ margin:4px auto 0; }
+  .view-switch{ flex:1; background:none; border:0; border-bottom:1px solid var(--border); border-radius:0; padding:0; gap:0; }
+  .view-btn{ border-radius:0; padding:9px 14px; min-height:0; margin-bottom:-1px; border-bottom:2px solid transparent;
+    color:var(--text-dim); font:700 14px 'Manrope',sans-serif; background:none; }
+  .view-btn.on{ background:none; color:var(--text); border-bottom-color:var(--text); }
+
+  .type-filter{ grid-template-columns:repeat(9, minmax(0,1fr)) !important; gap:6px !important; padding:12px 20px !important; min-height:0 !important; }
+  .type-filter .type-chip{ justify-content:flex-start; gap:6px; height:28px; padding:0 8px 0 3px; border-radius:999px;
+    border:1px solid var(--border); background:none !important; color:var(--text-dim); font:700 12px 'Manrope',sans-serif;
+    box-shadow:none; transform:none; filter:none; }
+  .type-filter .type-chip i{ width:20px; height:20px; border-radius:50%; display:grid; place-items:center; flex:none; background:var(--tc); }
+  .type-filter .type-chip i img{ width:11px; height:11px; filter:brightness(0) invert(1); }
+  .type-filter .type-chip:hover{ color:var(--text); border-color:color-mix(in srgb, var(--text) 35%, var(--border)); }
+  .type-filter .type-chip.on{ background:var(--tc) !important; color:#fff; border-color:transparent; box-shadow:none; transform:none; }
+  .type-filter .type-chip.off{ opacity:.35; cursor:default; pointer-events:none; }
+  @media (max-width:980px){ .type-filter{ grid-template-columns:repeat(6, minmax(0,1fr)) !important; } }
+  @media (max-width:600px){
+    .type-filter{ grid-template-columns:repeat(9, minmax(0,1fr)) !important; gap:6px !important; padding:10px 12px !important; }
+    .type-filter .type-chip{ height:auto; aspect-ratio:1; padding:0; border:0; border-radius:50%; justify-content:center; background:none !important; }
+    .type-filter .type-chip i{ width:100%; height:100%; }
+    .type-filter .type-chip i img{ width:16px; height:16px; }
+    .type-filter .type-chip span{ display:none; }
+    .type-filter .type-chip.on{ box-shadow:0 0 0 2px var(--bg1), 0 0 0 3.5px var(--text); }
+  }
+
+  .rb-bar{ margin:0 auto; padding:0 20px; display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+  .rb-bar[hidden]{ display:none; }
+  .rb-seg{ display:inline-flex; border:1px solid var(--border); border-radius:7px; overflow:hidden; flex:none; }
+  .rb-seg button{ appearance:none; border:0; background:none; cursor:pointer; font:700 12.5px 'Manrope',sans-serif; color:var(--text-dim); padding:0 12px; height:32px; }
+  .rb-seg button + button{ border-left:1px solid var(--border); }
+  .rb-seg button.on{ background:color-mix(in srgb, var(--text) 10%, transparent); color:var(--text); }
+  .rb-roles{ display:flex; flex-wrap:wrap; gap:6px; }
+  .rb-rc{ appearance:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 11px 0 5px; border-radius:999px;
+    border:1px solid var(--border); background:none; font:700 12px 'Manrope',sans-serif; color:var(--text-dim); white-space:nowrap; }
+  .rb-rc:hover{ color:var(--text); }
+  .rb-rc.on{ color:var(--text); border-color:color-mix(in srgb, var(--text) 45%, var(--border)); background:color-mix(in srgb, var(--text) 7%, transparent); }
+  .rb-sp{ flex:1; }
+  #container{ padding-top:12px; }
+
+  .rr-ri{ width:20px; height:20px; border-radius:50%; display:inline-grid; place-items:center; flex:none; }
+  .rr-ri svg{ width:13px; height:13px; display:block; }
+  .rr-ri.main{ background:#ffe1e1; color:#c62828; } .rr-ri.support{ background:#dff5f3; color:#00897b; }
+  .rr-ri.catchtank{ background:#f2ebff; color:#7d4fd6; } .rr-ri.executor{ background:#e9e9eb; color:#292929; }
+  [data-theme="dark"] .rr-ri.main{ background:rgba(220,53,69,.22); color:#ff9494; } [data-theme="dark"] .rr-ri.support{ background:rgba(0,150,136,.22); color:#5eded4; }
+  [data-theme="dark"] .rr-ri.catchtank{ background:rgba(155,123,240,.2); color:#c1a8ff; } [data-theme="dark"] .rr-ri.executor{ background:rgba(255,255,255,.14); color:#e4e4e6; }
+
+  .rr-card{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 18px 14px; }
+  .rr-cols{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); grid-auto-flow:column; column-gap:36px; }
+  .rr-h{ display:grid; grid-template-columns:24px 16px 32px minmax(0,1fr) auto 40px; gap:9px; align-items:center; }
+  .rr-h{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); padding:0 0 6px; border-bottom:1px solid var(--border); }
+  .rr-h span:nth-child(5), .rr-h span:nth-child(6){ text-align:right; }
+  .lbg-x .lb-row.rr-row{ all:unset; box-sizing:border-box; cursor:pointer; display:grid; padding:5px 0; min-width:0;
+    border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); font-size:13.5px;
+    grid-template-columns:24px 16px 32px minmax(0,1fr) auto 40px; gap:9px; align-items:center; }
+  .lbg-x .lb-row.rr-row.rr-noroles{ grid-template-columns:24px 16px 32px minmax(0,1fr) 40px; }
+  .lbg-x .lb-row.rr-row:hover{ background:color-mix(in srgb, var(--text) 4%, transparent); }
+  .lbg-x .lb-row.rr-row:focus-visible{ outline:2px solid var(--blue); outline-offset:-2px; }
+  .rr-rk{ font:700 12px 'IBM Plex Mono',monospace; color:var(--text-dim); text-align:right; }
+  .rr-rk.t1{ color:#ffb300; } .rr-rk.t2{ color:#9aa3b2; } .rr-rk.t3{ color:#c97b3d; }
+  .rr-ti{ width:16px; height:16px; border-radius:50%; display:grid; place-items:center; }
+  .rr-ti img{ width:10px; height:10px; filter:brightness(0) invert(1); }
+  .rr-sp, .rr-sp img{ display:block; width:32px; height:32px; object-fit:contain; }
+  .rr-nm{ display:flex; flex-direction:column; min-width:0; line-height:1.3; }
+  .rr-nm b{ font-weight:700; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rr-nm span{ font-size:12px; font-weight:500; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rr-ris{ display:flex; gap:3px; justify-content:flex-end; }
+  .rr-ris .rr-ri{ width:18px; height:18px; } .rr-ris .rr-ri svg{ width:11px; height:11px; }
+  .rr-ris .rr-ri.minor{ opacity:.45; }
+  .rr-n{ font:700 12.5px 'IBM Plex Mono',monospace; color:var(--text); text-align:right; }
+  .rr-grp + .rr-grp{ margin-top:18px; }
+  .rr-gh{ display:flex; align-items:center; gap:7px; margin:0 0 2px; padding:0 0 8px; border-bottom:1px solid var(--border);
+    font:800 12px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text); }
+  @media (max-width:900px){
+    .rr-cols{ grid-template-columns:minmax(0,1fr); grid-auto-flow:row; grid-template-rows:none !important; }
+    .rr-h2{ display:none !important; }
+  }
+  @media (max-width:700px){
+    .rr-card{ padding:8px 12px 10px; border-radius:8px; }
+    .rr-h, .lbg-x .lb-row.rr-row{ grid-template-columns:22px 32px minmax(0,1fr) auto 32px; gap:8px; }
+    .lbg-x .lb-row.rr-row.rr-noroles{ grid-template-columns:22px 32px minmax(0,1fr) 32px; }
+    .rr-ti, .rr-h span:nth-child(2){ display:none; }
+    .rr-nm span{ white-space:normal; }
+    .rb-bar{ padding:0 12px; }
+    .rb-rc{ padding:0 5px; } .rb-rc > span:not(.rr-ri){ display:none; }
+  }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
@@ -1319,12 +1407,6 @@ if ("serviceWorker" in navigator) {
 <!-- A sibling of .container, not a child: render() replaces container.innerHTML on every
      keystroke, which would destroy this element. Sized to match .container so the grid still
      lines up with the rows below. -->
-<div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
-
-<div class="page-search-row">
-  <input id="pokemonSearch" type="text" placeholder="Search Pokémon…" autocomplete="off">
-</div>
-
 <div class="view-switch-row">
   <div class="view-switch" role="tablist" aria-label="What to show">
     <button type="button" class="view-btn on" id="viewUsage" role="tab" aria-selected="true">Most Used Raiders</button>
@@ -1340,6 +1422,10 @@ if ("serviceWorker" in navigator) {
     <span>Share Tier List</span>
   </button>
 </div>
+
+<div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
+
+<div class="rb-bar" id="lbBar"></div>
 
 <div class="container" id="tierContainer" hidden></div>
 <div class="container" id="container">
@@ -2489,6 +2575,8 @@ function setView(view){
     if(view !== "tier") closeTierInfo();
   }
   document.getElementById("container").hidden = view !== "usage";
+  const lbBar = document.getElementById("lbBar");
+  if(lbBar) lbBar.hidden = view !== "usage";
   document.getElementById("tierContainer").hidden = view !== "tier";
   const foot = document.querySelector(".footer-desc");
   if(foot) foot.style.display = view === "usage" ? "" : "none";
@@ -2782,38 +2870,28 @@ function matchesTypeFilter(nameOrRow){
 function renderTypeFilter(){
   const el = document.getElementById("typeFilter");
   if(!el) return;
-  // Only offer types that actually appear in the current results - an empty Fairy filter is a
-  // dead end, not a feature.
-  // Presence is tested with the real predicate, not typing alone. Now that a chip also requires a
-  // matching charge move, typing-only presence would re-create the dead-end chip this guards
-  // against: Fighting would appear for a Steel/Fighting raider that never fired a Fighting move,
-  // then return nothing when clicked.
+  // All 18 types, always, so the grid stays two rows of nine. A type with no results is dimmed and
+  // can't be pressed (tested with the real predicate, so a chip never leads to an empty list).
   const saved = activeTypes;
-  const types = TYPE_ORDER.filter(t => {
+  const has = new Set(TYPE_ORDER.filter(t => {
     activeTypes = new Set([t]);
     try { return ALL_RESULTS.some(r => matchesTypeFilter(r)); }
     finally { activeTypes = saved; }
-  });
-  if(!types.length){ el.style.display = "none"; return; }
-  // Clear the inline value rather than setting one: this was "flex" from the earlier scrolling
-  // strip, and an inline style beats the stylesheet - so the grid rules were being applied and
-  // then silently overridden, leaving all 18 chips on one line at every width.
+  }));
+  if(!has.size){ el.style.display = "none"; return; }
   el.style.display = "";
-
-  el.innerHTML =
-    // (no "All types" chip: a selected type is cleared by tapping it again)
-    types.map(t => `
-      <button type="button" class="type-chip${activeTypes.has(t) ? " on" : ""}" data-type="${t}"
-              style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown};"
-              aria-pressed="${activeTypes.has(t) ? "true" : "false"}" title="${t}" aria-label="${t}">
-        <img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"><span>${t}</span>
-      </button>`).join("");
-
-  el.querySelectorAll(".type-chip").forEach(btn => {
+  el.innerHTML = TYPE_ORDER.map(t => {
+    const on = activeTypes.has(t), off = !has.has(t) && !on;
+    return `<button type="button" class="type-chip${on ? " on" : ""}${off ? " off" : ""}" data-type="${t}"
+              style="--tc:${TYPE_COLORS[t] || TYPE_COLORS.unknown};" ${off ? 'disabled aria-disabled="true"' : ""}
+              aria-pressed="${on ? "true" : "false"}" title="${t}" aria-label="${t}">
+        <i><img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();"></i><span>${t}</span>
+      </button>`;
+  }).join("");
+  el.querySelectorAll(".type-chip:not(.off)").forEach(btn => {
     btn.addEventListener("click", () => {
       const t = btn.dataset.type;
-      if(!t) activeTypes.clear();                                   // "All types" resets
-      else activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
+      activeTypes.has(t) ? activeTypes.delete(t) : activeTypes.add(t);
       renderTypeFilter();
       renderLeaderboard();
       if(VIEW === "tier") renderTierList();   // chips drive both views
@@ -3043,78 +3121,116 @@ function lazySpriteImg(cls, url, name, extraAttrs){
     onerror="if(!trySpriteShadowFallback(this, '${esc}')) { this.style.display='none'; }">`;
 }
 
+// Most Used Raiders: ranked rows in two columns that line up row for row (the grid fills each
+// column top to bottom). "Overall" ranks everything, optionally for one role; "By role" lists each
+// role's top raiders in its own section. Clicking a row opens the same usage popup as before.
+const RR_ROLES = ["Main DPS", "Support DPS", "Catch Tank", "Executor"];
+const RR_KEY = { "Main DPS": "main", "Support DPS": "support", "Catch Tank": "catchtank", "Executor": "executor" };
+const RR_SVG = {
+  main: '<path d="M13.6 2.4 6.2 9.8M13.6 2.4l-.5 3.1M13.6 2.4l-3.1.5M4.2 8.6l3.2 3.2M5.8 10.2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>',
+  support: '<path d="M2.4 2.4l7.4 7.4M13.6 2.4 6.2 9.8M8.6 11.8l3.2-3.2M7.4 11.8 4.2 8.6M10.2 10.2l3.4 3.4M5.8 10.2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  catchtank: '<circle cx="10.2" cy="9.4" r="4.4" fill="currentColor"/><path d="M1.2 2.4l4.3 3.4M5.5 5.8l-.4-2.6M5.5 5.8l-2.6.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+  executor: '<circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="8" cy="8" r="1.7" fill="currentColor"/><path d="M8 .9v2.4M8 12.7v2.4M.9 8h2.4M12.7 8h2.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>'
+};
+let LB_MODE = "overall";   // "overall" | "role"
+let ROLE_LIMIT = 10;       // rows per role in the By role view (0 = all)
+
+function rrIcon(role, extra){
+  const k = RR_KEY[role];
+  return `<span class="rr-ri ${k}${extra ? " " + extra : ""}" title="${role}"><svg viewBox="0 0 16 16" aria-hidden="true">${RR_SVG[k]}</svg></span>`;
+}
+function rrRoleN(r, role){ return role === "Executor" ? (r.executorCount || 0) : ((r.roleUsageCounts || {})[role] || 0); }
+function rrAtkType(r, set){
+  const cm = set ? splitMoves(set.charge)[0] : "";
+  const ty = cm ? getMoveType(cm) : null;
+  const t = ty ? (typeof ty === "string" ? ty : ty.type) : "";
+  return t || ((typesOf(r.name) || [])[0]) || "";
+}
+function rrRow(r, i, idx, n, withRoles){
+  const set = movesetsFor(r.instances || [])[0];
+  const t = rrAtkType(r, set);
+  let roles = "";
+  if(withRoles){
+    const rs = RR_ROLES.map(x => [x, rrRoleN(r, x)]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+    const top = rs.length ? rs[0][1] : 0;
+    roles = `<span class="rr-ris">${rs.map(([x, c]) => rrIcon(x, c < top * .25 ? "minor" : "")).join("")}</span>`;
+  }
+  return `<button type="button" class="lb-row rr-row${withRoles ? "" : " rr-noroles"}" data-idx="${idx}" aria-haspopup="dialog">
+    <span class="rr-rk${i < 3 ? " t" + (i + 1) : ""}">${i + 1}</span>
+    <span class="rr-ti" style="background:${TYPE_COLORS[t] || TYPE_COLORS.unknown}" title="${t}">${t ? `<img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();">` : ""}</span>
+    <span class="rr-sp">${lazySpriteImg(needsShadowMist(r.name) ? "shadow-mist" : "", spriteUrl(r.name), r.name, 'width="32" height="32"')}</span>
+    <span class="rr-nm"><b>${escapeHtml(displayName(r.name))}</b>${set ? `<span>${escapeHtml(set.fast)} / ${escapeHtml(set.charge)}</span>` : ""}</span>
+    ${roles}<span class="rr-n">${n}</span></button>`;
+}
+// Two columns that line up: the first half fills the left column, the rest the right, and the
+// heading repeats over the right column (hidden on phones, where it is one column).
+function rrCols(rows, head){
+  const half = Math.ceil(rows.length / 2);
+  const right = rows.slice(half);
+  const items = (head ? [head] : []).concat(rows.slice(0, half), head && right.length ? [head.replace('class="rr-h"', 'class="rr-h rr-h2"')] : [], right);
+  return `<div class="rr-cols" style="grid-template-rows:repeat(${half + (head ? 1 : 0)}, auto)">${items.join("")}</div>`;
+}
+function renderLbBar(){
+  const bar = document.getElementById("lbBar");
+  if(!bar) return;
+  const seg = (items, cur, attr) => `<span class="rb-seg">${items.map(([v, l]) =>
+    `<button type="button" data-${attr}="${v}" class="${String(v) === String(cur) ? "on" : ""}" aria-pressed="${String(v) === String(cur)}">${l}</button>`).join("")}</span>`;
+  const overall = LB_MODE === "overall";
+  bar.innerHTML = seg([["overall", "Overall"], ["role", "By role"]], LB_MODE, "mode")
+    + (overall ? `<span class="rb-roles">${RR_ROLES.map(x => `<button type="button" class="rb-rc${currentRole === x ? " on" : ""}" data-role="${x}" aria-pressed="${currentRole === x}" title="${x}">${rrIcon(x)}<span>${x}</span></button>`).join("")}</span>` : "")
+    + `<span class="rb-sp"></span>`
+    + (overall ? seg([[20, "Top 20"], [50, "Top 50"], [0, "All"]], currentLimit, "n") : seg([[10, "Top 10"], [25, "Top 25"], [0, "All"]], ROLE_LIMIT, "rn"));
+}
+
 function renderLeaderboard(){
-  // Most Used Raiders as a grid of tiles: rank, icon and uses. Each tile's faint border is the
-  // colour of the role that Pokemon is used in most (from its per-role counts; Executor included;
-  // a tie goes Main DPS -> Support DPS -> Catch Tank -> Executor), with a legend above - the same
-  // role colours as the Reference page. With a role filter on, every tile takes that role's colour.
-  // Clicking a tile opens the detail popup (class lb-row + data-idx, as the rows had).
-  const query = document.getElementById("pokemonSearch").value.trim().toLowerCase();
-  let filtered = ALL_RESULTS
-    .filter(r => !query || r.name.toLowerCase().includes(query))
-    .filter(r => matchesTypeFilter(r));
-
-  // When a role filter is active, each Pokemon's relevant count reflects ONLY how many times
-  // it was used in that specific role for that entry — not its total usage across all roles.
-  function roleSpecificCount(r){
-    if(currentRole === "Executor") return r.executorCount;
-    if(currentRole) return r.roleUsageCounts[currentRole] || 0;
-    return r.count;
-  }
-
-  if(currentRole === "Executor"){
-    filtered = filtered.filter(r => r.executorCount > 0);
-  } else if(currentRole){
-    filtered = filtered.filter(r => (r.roleUsageCounts[currentRole] || 0) > 0);
-  }
-  if(currentRole){
-    filtered = [...filtered].sort((a,b) => roleSpecificCount(b) - roleSpecificCount(a));
-  }
-  if(currentLimit > 0) filtered = filtered.slice(0, currentLimit);
-
+  renderLbBar();
   const container = document.getElementById("container");
-  if(filtered.length === 0){
-    container.innerHTML = `<div class="loading-msg">No Pokémon match your search.</div>`;
-    return;
+  if(!ALL_RESULTS.length) return;   // still loading: keep the loading message
+  const base = ALL_RESULTS.filter(r => matchesTypeFilter(r));
+  LAST_RENDERED = [];
+  let html = "";
+  if(LB_MODE === "overall"){
+    let list = base;
+    if(currentRole) list = list.filter(r => rrRoleN(r, currentRole) > 0).sort((a, b) => rrRoleN(b, currentRole) - rrRoleN(a, currentRole));
+    if(currentLimit > 0) list = list.slice(0, currentLimit);
+    LAST_RENDERED = list;   // data-idx indexes into this
+    if(list.length){
+      const head = `<div class="rr-h"><span>#</span><span></span><span></span><span>Pokémon</span><span>Roles</span><span>Uses</span></div>`;
+      html = `<div class="rr-card">${rrCols(list.map((r, i) => rrRow(r, i, i, currentRole ? rrRoleN(r, currentRole) : r.count, true)), head)}</div>`;
+    }
+  } else {
+    html = RR_ROLES.map(x => {
+      let list = base.filter(r => rrRoleN(r, x) > 0).sort((a, b) => rrRoleN(b, x) - rrRoleN(a, x));
+      if(ROLE_LIMIT > 0) list = list.slice(0, ROLE_LIMIT);
+      if(!list.length) return "";
+      const start = LAST_RENDERED.length;
+      LAST_RENDERED.push(...list);
+      return `<section class="rr-grp"><h3 class="rr-gh">${rrIcon(x)}${x}</h3>${rrCols(list.map((r, i) => rrRow(r, i, start + i, rrRoleN(r, x), false)))}</section>`;
+    }).join("");
+    if(html) html = `<div class="rr-card">${html}</div>`;
   }
-
-  const ROLES = ["Main DPS", "Support DPS", "Catch Tank", "Executor"];
-  const ROLE_CLASS = { "Main DPS": "r-main", "Support DPS": "r-support", "Catch Tank": "r-tank", "Executor": "r-exec" };
-  function mainRole(r){
-    if(currentRole) return currentRole;
-    const counts = ROLES.map(x => x === "Executor" ? (r.executorCount || 0) : ((r.roleUsageCounts || {})[x] || 0));
-    return ROLES[counts.indexOf(Math.max(...counts))];
-  }
-
-  LAST_RENDERED = filtered;   // data-idx indexes into this, so it must match what was rendered
-  // The legend doubles as the role filter: a chip shows only that role (again, or "All roles",
-  // clears it). It presses the filter panel's own role buttons, so the two always agree.
-  const legend = `<div class="lbg-legend${currentRole ? " filtering" : ""}" role="group" aria-label="Border colour: the role each Pokémon is used in most. Click a role to filter.">
-    <button type="button" class="role-key r-all${currentRole ? "" : " active"}" data-role="" aria-pressed="${!currentRole}">All roles</button>
-    ${ROLES.map(x => `<button type="button" class="role-key ${ROLE_CLASS[x]}${currentRole === x ? " active" : ""}" data-role="${x}" aria-pressed="${currentRole === x}" title="${currentRole === x ? "Show all roles" : "Show only " + x}"><i></i>${x}</button>`).join("")}</div>`;
-  container.innerHTML = `<div class="lbg">${legend}<div class="lbg-grid">${filtered.map((r, i) => {
-    const rankClass = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
-    const role = mainRole(r);
-    const n = roleSpecificCount(r);
-    return `<button type="button" class="lb-row lbg-tile ${ROLE_CLASS[role]}" data-idx="${i}" aria-haspopup="dialog" title="${displayName(r.name)} - mostly ${role}">
-      <span class="lbg-rank ${rankClass}">${i+1}</span>
-      <span class="lbg-icon">${lazySpriteImg(needsShadowMist(r.name) ? 'shadow-mist' : '', spriteUrl(r.name), r.name, 'width="56" height="56"')}</span>
-      <span class="lbg-uses"><b>${n}</b> use${n === 1 ? "" : "s"}</span>
-    </button>`;
-  }).join("")}</div></div>`;
-
-  // Re-observe after every render: filtering and searching rebuild these tiles, so sprites that
-  // were never loaded must be picked up again by the observer.
+  container.innerHTML = html ? `<div class="lbg-x">${html}</div>` : `<div class="loading-msg">No Pokémon match these filters.</div>`;
+  // Re-observe after every render: filtering rebuilds the rows, so sprites that were never
+  // loaded must be picked up again by the observer.
   observeSprites(container);
 }
 
-document.getElementById("pokemonSearch").addEventListener("input", renderLeaderboard);
-document.getElementById("container").addEventListener("click", e => {
-  const chip = e.target.closest(".lbg-legend .role-key");
-  if(!chip) return;
-  const role = chip.dataset.role === currentRole ? "" : chip.dataset.role;   // the active chip again clears it
-  const btn = document.querySelector(`#roleFilterList .hamburger-item[data-role="${role}"]`);
-  if(btn) btn.click();
+// The bar's controls. Role and Top N press the filter panel's own buttons, so the two always agree.
+document.getElementById("lbBar").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if(!b) return;
+  if(b.dataset.mode){ LB_MODE = b.dataset.mode; renderLeaderboard(); return; }
+  if(b.dataset.rn !== undefined){ ROLE_LIMIT = parseInt(b.dataset.rn, 10); renderLeaderboard(); return; }
+  if(b.dataset.n !== undefined){
+    const g = document.querySelector(`#viewToggleList .hamburger-item[data-n="${b.dataset.n}"]`);
+    if(g) g.click(); else { currentLimit = parseInt(b.dataset.n, 10); renderLeaderboard(); }
+    return;
+  }
+  if(b.dataset.role !== undefined){
+    const role = b.dataset.role === currentRole ? "" : b.dataset.role;   // pressing the active role again shows all roles
+    const g = document.querySelector(`#roleFilterList .hamburger-item[data-role="${role}"]`);
+    if(g) g.click(); else { currentRole = role; renderLeaderboard(); }
+  }
 });
 document.querySelectorAll("#viewToggleList .hamburger-item").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -3275,7 +3391,7 @@ function initSearchAutocomplete(inputId, getNames){
   });
 }
 
-initSearchAutocomplete('pokemonSearch', () => (typeof ALL_RESULTS!=='undefined'?ALL_RESULTS.map(r=>r.name):[]));
+
 </script>
 </body>
 </html>

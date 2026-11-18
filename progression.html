@@ -823,10 +823,9 @@ function spriteUrl(name){
       : [["", "", list]];
     const W = 1200, PAD = 40, GAP = 36, colW = (W - PAD * 2 - GAP) / 2, RH = 46, GH = roster ? 40 : 0, GG = 20;
     const meas = document.createElement("canvas").getContext("2d");
-    const info = roster ? "" : String(K.info || "").replace(/&amp;/g, "&");
-    const top = PAD + 16 + 42 + (info ? 24 : 0) + 18;
+    const top = PAD + 16 + 42 + 18;
     const gh = groups.map(g => GH + Math.ceil(g[2].length / 2) * RH);
-    const H = top + gh.reduce((a, b) => a + b, 0) + GG * (groups.length - 1) + 64;
+    const H = top + gh.reduce((a, b) => a + b, 0) + GG * (groups.length - 1) + PAD - 4;
     const all = groups.flatMap(g => g[2]);
     const sprites = new Map(); await Promise.all([...new Set(all.map(e => e.name))].map(async n => sprites.set(n, await loadSprite(n))));
     const tNames = [...new Set(all.map(e => String(e.types || "").split(/\s*,\s*/)[0]).filter(Boolean))];
@@ -837,7 +836,6 @@ function spriteUrl(name){
     x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
     x.fillStyle = C.accent; x.font = "800 13px Manrope, sans-serif"; x.fillText(`RAID BUDGET ADVICE · ${s.name.toUpperCase()}`, PAD, PAD + 12);
     x.fillStyle = C.text; x.font = "800 30px Manrope, sans-serif"; x.fillText(roster ? "Lineup" : K.title(s).replace(/&amp;/g, "&"), PAD, PAD + 16 + 32);
-    if(info){ x.fillStyle = C.muted; x.font = "600 14px Inter, sans-serif"; x.fillText(info, PAD, PAD + 16 + 42 + 16); }
     const PRIO = { core: dark ? "#f0c24c" : "#c98a00", niche: C.accent, lowroi: C.dim };
     const fit = (t, w) => { if(x.measureText(t).width <= w) return t; while(t.length > 2 && x.measureText(t + "…").width > w) t = t.slice(0, -1); return t + "…"; };
     let y = top;
@@ -869,11 +867,6 @@ function spriteUrl(name){
       });
       y = y0 + Math.ceil(L.length / 2) * RH + GG;
     });
-    const fy = H - 26; x.font = "600 12px Inter, sans-serif"; let fx = PAD;
-    ["core", "niche", "lowroi"].filter(t => all.some(e => tierOf(e) === t)).forEach(t => {
-      x.fillStyle = PRIO[t]; x.font = "700 12px Manrope, sans-serif"; x.fillText(TIERS[t].label, fx, fy); fx += x.measureText(TIERS[t].label).width + 6;
-      x.fillStyle = C.muted; x.font = "600 12px Inter, sans-serif"; x.fillText(TIERS[t].desc, fx, fy); fx += x.measureText(TIERS[t].desc).width + 20; });
-    x.fillStyle = C.dim; x.textAlign = "right"; x.fillText("soloraidarchive.github.io/progression.html", W - PAD, fy); x.textAlign = "left";
     return cv;
   }
   // copy to the clipboard (the image built inside the click, as Safari needs), or download it
