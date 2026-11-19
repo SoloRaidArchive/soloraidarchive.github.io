@@ -1047,6 +1047,48 @@ header{ padding: 12px 24px 10px; text-align:center; }
     .view-col-head{ justify-content:flex-end; }
     .cr-nm span{ white-space:normal; }
   }
+
+  /* ---- One list in one card. The title is the view switch; the tier switch and sorting sit beside it. ---- */
+  .view-tabs, .controls{ display:none !important; }
+  .views-grid{ display:block !important; }
+  body:not(.view-best) .c1 #col-best, body:not(.view-byboss) .c1 #col-byboss{ display:none !important; }
+  .view-col{ background:none; border:0; border-radius:0; padding:0; }
+  .view-col-head{ display:none !important; }
+  .c1{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 18px 14px; position:relative; }
+  .c1-head{ display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding-bottom:10px; }
+  .c1-title{ appearance:none; border:0; background:none; padding:0; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+    font:800 17px 'Manrope',sans-serif; color:var(--ink); }
+  .c1-title svg{ width:12px; height:12px; color:var(--ink-dim); transition:transform .15s; }
+  .c1-title[aria-expanded="true"] svg{ transform:rotate(180deg); }
+  .c1-title:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; border-radius:4px; }
+  .c1-menu{ position:absolute; top:44px; left:14px; z-index:20; background:var(--card); border:1px solid var(--border); border-radius:8px;
+    box-shadow:0 8px 24px rgba(0,0,0,.3); padding:4px; min-width:250px; }
+  .c1-menu[hidden]{ display:none; }
+  .c1-menu button{ display:block; width:100%; text-align:left; appearance:none; border:0; background:none; cursor:pointer;
+    font:700 13.5px 'Manrope',sans-serif; color:var(--ink-dim); padding:8px 10px; border-radius:6px; }
+  .c1-menu button:hover{ color:var(--ink); }
+  .c1-menu button.on{ color:var(--ink); background:color-mix(in srgb, var(--ink) 8%, transparent); }
+  .c1-sp{ flex:1; }
+  .c1 .t-boss, body.view-byboss .c1 .t-best{ display:none; }
+  body.view-byboss .c1 .t-boss{ display:inline; }
+  body.view-byboss .c1 .ct-sorts[data-for="sortBest"], body:not(.view-byboss) .c1 .ct-sorts[data-for="sortByBoss"]{ display:none; }
+  .c1-cols{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); grid-auto-flow:column; column-gap:36px; }
+  @media (max-width:900px){ .c1-cols{ grid-template-columns:minmax(0,1fr); grid-auto-flow:row; grid-template-rows:none !important; } .c1-h2{ display:none !important; } }
+  @media (max-width:700px){ .c1{ padding:10px 12px 12px; border-radius:8px; } .c1-title{ font-size:15.5px; } .c1-sp{ display:none; } }
+
+  /* ---- Source switch: the catch tank database, or the catch tanks in the boss pages' solo runs ---- */
+  .c1-src{ display:inline-flex; align-items:center; gap:8px; }
+  .c1-src em{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); font-style:normal; }
+  .c1 .ct-sorts[data-for="soloBestSort"], .c1 .ct-sorts[data-for="soloBossSort"]{ display:none; }
+  body.src-solo .c1 .ct-sorts[data-for="sortBest"], body.src-solo .c1 .ct-sorts[data-for="sortByBoss"]{ display:none !important; }
+  body.src-solo:not(.view-byboss) .c1 .ct-sorts[data-for="soloBestSort"]{ display:flex; }
+  body.src-solo.view-byboss .c1 .ct-sorts[data-for="soloBossSort"]{ display:flex; }
+  .cr-h.cr-best.so, div.cr-row.cr-best.so{ grid-template-columns:24px 32px minmax(0,1fr) 52px 48px; }
+  .cr-h.cr-boss.so, div.cr-row.cr-boss.so{ grid-template-columns:16px 32px minmax(0,1fr) 52px 44px; }
+  .cr-h.so span:nth-child(n+4){ text-align:right; }
+  div.cr-row.so{ display:grid; gap:9px; align-items:center; padding:5px 0; min-width:0;
+    border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); font-size:13.5px; }
+  @media (max-width:700px){ .c1-src em{ display:none; } }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 </head>
@@ -1274,7 +1316,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
     <option value="legendary">Legendary</option>
     <option value="mega">Tier 4 Mega</option>
   </select>
-  <span class="ct-seg" id="poolSeg"><button type="button" data-pool="legendary" class="on" aria-pressed="true">Legendary</button><button type="button" data-pool="mega" aria-pressed="false">Tier 4 Mega</button></span>
+  
   <select id="sortSelect">
     <option value="ctdps">Sort: CT DPS (High–Low)</option>
     <option value="boss">Sort: Boss (A–Z)</option>
@@ -1282,6 +1324,20 @@ header{ padding: 12px 24px 10px; text-align:center; }
   </select>
 </div>
 <div class="container">
+<div class="c1">
+  <div class="c1-head">
+    <button type="button" class="c1-title" id="viewTitle" aria-haspopup="menu" aria-expanded="false"><span class="t-best">Most Used Catch Tanks</span><span class="t-boss">Bosses with Most Catch Tanks</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <span class="c1-sp"></span>
+    <span class="c1-src"><em>Source</em><span class="ct-seg" id="srcSeg"><button type="button" data-src="db" class="on" aria-pressed="true">Database</button><button type="button" data-src="solo" aria-pressed="false">Solo runs</button></span></span>
+    <span class="ct-seg" id="poolSeg"><button type="button" data-pool="legendary" class="on" aria-pressed="true">Legendary</button><button type="button" data-pool="mega" aria-pressed="false">Mega</button></span>
+    <span class="ct-sorts" data-for="sortBest"><button type="button" data-v="entries" class="on">Entries</button><button type="button" data-v="dps">Avg DPS</button><button type="button" data-v="az">A–Z</button></span>
+    <span class="ct-sorts" data-for="soloBestSort"><button type="button" data-v="runs" class="on">Runs</button><button type="button" data-v="bosses">Bosses</button><button type="button" data-v="az">A–Z</button></span>
+    <span class="ct-sorts" data-for="soloBossSort"><button type="button" data-v="tanks" class="on">Most tanks</button><button type="button" data-v="runs">Runs</button><button type="button" data-v="az">A–Z</button></span>
+    <select id="soloBestSort" hidden><option value="runs">Runs</option><option value="bosses">Bosses</option><option value="az">A–Z</option></select>
+    <select id="soloBossSort" hidden><option value="tanks">Most tanks</option><option value="runs">Runs</option><option value="az">A–Z</option></select>
+    <span class="ct-sorts" data-for="sortByBoss"><button type="button" data-v="tanks" class="on">Most tanks</button><button type="button" data-v="az">A–Z</button></span>
+  </div>
+  <div class="c1-menu" id="viewMenu" role="menu" hidden><button type="button" role="menuitemradio" data-view="best">Most Used Catch Tanks</button><button type="button" role="menuitemradio" data-view="byboss">Bosses with Most Catch Tanks</button></div>
   <div class="views-grid">
     <section class="view-col" id="col-best">
       <div class="view-col-head">
@@ -1292,7 +1348,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
           <option value="az">A–Z</option>
           <option value="za">Z–A</option>
         </select>
-        <span class="ct-sorts" data-for="sortBest"><button type="button" data-v="entries" class="on">Entries</button><button type="button" data-v="dps">Avg DPS</button><button type="button" data-v="az">A–Z</button></span>
+        
       </div>
       <div id="bestView"></div>
     </section>
@@ -1304,10 +1360,11 @@ header{ padding: 12px 24px 10px; text-align:center; }
           <option value="az">A–Z</option>
           <option value="za">Z–A</option>
         </select>
-        <span class="ct-sorts" data-for="sortByBoss"><button type="button" data-v="tanks" class="on">Most tanks</button><button type="button" data-v="az">A–Z</button></span>
+        
       </div>
       <div id="byBossView"></div>
     </section>
+  </div>
   </div>
   <div class="count" id="count"></div>
   <table class="sub-table">
@@ -2395,6 +2452,78 @@ function currentView(){
   return el ? el.value : "byboss";
 }
 
+
+function ctCols(head, rows){
+  const half = Math.ceil(rows.length / 2), right = rows.slice(half);
+  const items = [head].concat(rows.slice(0, half), right.length ? [head.replace('class="cr-h ', 'class="cr-h c1-h2 ')] : [], right);
+  return `<div class="c1-cols" style="grid-template-rows:repeat(${half + 1}, auto)">${items.join("")}</div>`;
+}
+
+// ============ SOLO RUNS: catch tanks in the boss pages' strategies ============
+// Read from the same raid archive sheets the boss pages use. One run is one strategy row; a tank
+// listed twice in the same row counts once. These rows carry no CT DPS, so this source only ever
+// shows counts - never the database's averages.
+let SOURCE = "db";
+let SOLO = null, SOLO_LOADING = null;
+const SOLO_SHEETS = ["csv/tier4-data.csv", "csv/tier5-merged.csv", "csv/tier6-data.csv"];
+function soloTitle(s){ return String(s || "").trim().replace(/(^|[\s-])([a-z])/g, (x, p, c) => p + c.toUpperCase()); }
+function loadSolo(){
+  if(SOLO_LOADING) return SOLO_LOADING;
+  SOLO_LOADING = Promise.all(SOLO_SHEETS.map(u => fetch(u).then(r => r.ok ? r.text() : "").catch(() => ""))).then(texts => {
+    const out = [];
+    texts.forEach((t, si) => {
+      if(!t) return;
+      const R = parseCSV(t); if(!R.length) return;
+      const h = R[0].map(x => String(x).trim());
+      const bi = h.indexOf("Boss Name"), p1 = h.indexOf("Pokemon 1");
+      if(bi < 0 || p1 < 0) return;
+      R.slice(1).forEach((r, ri) => {
+        const boss = String(r[bi] || "").trim(); if(!boss) return;
+        const seen = new Set();
+        for(let j = 0; j < 6; j++){
+          const i = p1 + 4 * j, n = String(r[i] || "").trim();
+          if(!n || !/catch/i.test(r[i + 1] || "") || seen.has(n.toLowerCase())) continue;
+          seen.add(n.toLowerCase());
+          const fm = soloTitle(r[i + 2]), cm = soloTitle(r[i + 3]);
+          out.push({ id: si + ":" + ri, boss, pokemon: n, playerMoveset: fm && cm ? `${fm} / ${cm}` : (fm || cm) });
+        }
+      });
+    });
+    SOLO = out;
+  });
+  return SOLO_LOADING;
+}
+function soloRows(){ return (SOLO || []).filter(inCurrentPool).filter(r => matchesTypeFilter(r)); }
+function soloMost(arr, key){ const c = new Map(); arr.forEach(x => { const v = key(x); if(v) c.set(v, (c.get(v) || 0) + 1); }); return ([...c.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0] || [""])[0]; }
+function soloSprite(n){ return `<span class="cr-sp"><img class="${needsShadowMist(n) ? 'shadow-mist' : ''}" src="${spriteUrl(n)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></span>`; }
+function renderSoloBest(){
+  if(!SOLO) return `<div class="empty">Loading solo runs…</div>`;
+  const by = new Map();
+  soloRows().forEach(r => { const k = r.pokemon.toLowerCase(); if(!by.has(k)) by.set(k, { name: r.pokemon, runs: [], bosses: new Set() }); const t = by.get(k); t.runs.push(r); t.bosses.add(r.boss.toLowerCase()); });
+  const sort = document.getElementById("soloBestSort").value;
+  const list = [...by.values()].sort(sort === "az" ? (a, b) => a.name.localeCompare(b.name)
+    : sort === "bosses" ? (a, b) => b.bosses.size - a.bosses.size || b.runs.length - a.runs.length || a.name.localeCompare(b.name)
+    : (a, b) => b.runs.length - a.runs.length || b.bosses.size - a.bosses.size || a.name.localeCompare(b.name));
+  if(!list.length) return `<div class="empty">No solo runs match these filters.</div>`;
+  const head = `<div class="cr-h cr-best so"><span>#</span><span></span><span>Catch tank</span><span>Bosses</span><span>Runs</span></div>`;
+  return ctCols(head, list.map((t, i) => { const mv = soloMost(t.runs, r => r.playerMoveset);
+    return `<div class="cr-row cr-best so"><span class="cr-rk${i < 3 ? " t" + (i + 1) : ""}">${i + 1}</span>${soloSprite(t.name)}<span class="cr-nm"><b>${escapeHtml(t.name)}</b>${mv ? `<span>${escapeHtml(mv)}</span>` : ""}</span><span class="cr-v">${t.bosses.size}</span><span class="cr-n">${t.runs.length}</span></div>`; }));
+}
+function renderSoloBoss(){
+  if(!SOLO) return `<div class="empty">Loading solo runs…</div>`;
+  const by = new Map();
+  soloRows().forEach(r => { const k = r.boss.toLowerCase(); if(!by.has(k)) by.set(k, { boss: r.boss, runs: new Set(), tanks: new Map() }); const g = by.get(k); g.runs.add(r.id); g.tanks.set(r.pokemon.toLowerCase(), r.pokemon); g.all = (g.all || []).concat(r); });
+  const sort = document.getElementById("soloBossSort").value;
+  const list = [...by.values()].sort(sort === "az" ? (a, b) => a.boss.localeCompare(b.boss)
+    : sort === "runs" ? (a, b) => b.runs.size - a.runs.size || b.tanks.size - a.tanks.size || a.boss.localeCompare(b.boss)
+    : (a, b) => b.tanks.size - a.tanks.size || b.runs.size - a.runs.size || a.boss.localeCompare(b.boss));
+  if(!list.length) return `<div class="empty">No solo runs match these filters.</div>`;
+  const head = `<div class="cr-h cr-boss so"><span></span><span></span><span>Boss</span><span>Tanks</span><span>Runs</span></div>`;
+  return ctCols(head, list.map(g => {
+    const t = ((typesOf(g.boss) || [])[0] || "").toLowerCase(), mu = soloMost(g.all, r => r.pokemon);
+    return `<div class="cr-row cr-boss so"><span class="cr-ti" style="background:${TYPE_COLORS[t] || "#888"}" title="${t}">${t ? `<img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();">` : ""}</span>${soloSprite(g.boss)}<span class="cr-nm"><b>${escapeHtml(g.boss)}</b>${mu ? `<span>Most used: ${escapeHtml(mu)}</span>` : ""}</span><span class="cr-v">${g.tanks.size}</span><span class="cr-n">${g.runs.size}</span></div>`; }));
+}
+
 // ============ VIEW 1: BY RAID BOSS ============
 // "Which catch tanks are good against the boss I'm about to fight?" - groups every submission
 // under its boss, best DPS first, so the answer is one scan rather than a sort-and-filter task.
@@ -2443,7 +2572,7 @@ function renderByBoss(list){
   // Ranked rows: boss, its best catch tank and that CT DPS, and how many catch tanks have been logged
   // for it. Clicking opens the boss's entries table (toggleBossGroup -> openBossEntriesTable).
   const head = `<div class="cr-h cr-boss"><span></span><span></span><span>Boss</span><span>Tanks</span></div>`;
-  return head + groups.map((g, gi) => {
+  return ctCols(head, groups.map((g, gi) => {
     const best = g.scenarios.flatMap(sc => sc.entries).sort((a, b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS))[0];
     const t = ((typesOf(g.boss) || [])[0] || "").toLowerCase();
     const dps = best ? parseFloat(best.ctDPS) : NaN;
@@ -2453,7 +2582,7 @@ function renderByBoss(list){
       <span class="cr-nm"><b>${escapeHtml(g.boss)}</b>${best ? `<span>Best: ${escapeHtml(best.pokemon)} · ${isFinite(dps) ? dps.toFixed(1) : "–"}</span>` : ""}</span>
       <span class="cr-n">${g.tankCount}</span>
     </button>`;
-  }).join("");
+  }));
 }
 
 // Move name -> small colored type icon, matching the raid archive pages' type-icon treatment
@@ -2589,7 +2718,7 @@ function renderBest(list){
     return ([...c.entries()].sort((a, b) => b[1] - a[1])[0] || [""])[0];
   };
   const head = `<div class="cr-h cr-best"><span>#</span><span></span><span>Catch tank</span><span>Avg DPS</span><span>Entries</span></div>`;
-  return head + ranked.map((m, i) => {
+  return ctCols(head, ranked.map((m, i) => {
     const n = m.entries.length, mv = usual(m);
     return `<button type="button" class="cr-row cr-best" id="leaderGroup-${i}" onclick="toggleLeaderGroup(${i})" aria-haspopup="dialog">
       <span class="cr-rk${i < 3 ? " t" + (i + 1) : ""}">${i + 1}</span>
@@ -2598,7 +2727,7 @@ function renderBest(list){
       <span class="cr-v">${isFinite(m.avg) ? m.avg.toFixed(1) : "–"}</span>
       <span class="cr-n">${n}</span>
     </button>`;
-  }).join("");
+  }));
 }
 
 // Dense, scannable view of every entry for one Pokemon. The inline expansion is deliberately
@@ -2901,7 +3030,7 @@ function renderTypeFilter(){
   const saved = activeTypes;
   const has = new Set(TYPE_ORDER.filter(t => {
     activeTypes = new Set([t]);
-    try { return SUBMISSIONS.some(r => matchesTypeFilter(r)); }
+    try { return (SOURCE === "solo" && SOLO ? SOLO : SUBMISSIONS).some(r => matchesTypeFilter(r)); }
     finally { activeTypes = saved; }
   }));
   if(!has.size){ el.style.display = "none"; return; }
@@ -2949,6 +3078,12 @@ function render(){
   countEl.style.display = "none";
   sortSelect.style.display = "none";   // both views have their own deliberate ordering
 
+  document.body.classList.toggle("src-solo", SOURCE === "solo");
+  if(SOURCE === "solo"){
+    document.getElementById("byBossView").innerHTML = renderSoloBoss();
+    document.getElementById("bestView").innerHTML = renderSoloBest();
+    return;
+  }
   document.getElementById("byBossView").innerHTML = renderByBoss(list);
   document.getElementById("bestView").innerHTML = renderBest(list);
   return;
@@ -2980,6 +3115,31 @@ document.querySelectorAll('input[name="dbView"]').forEach(el => el.addEventListe
 
 document.getElementById("sortByBoss").addEventListener("change", render);
 document.getElementById("sortBest").addEventListener("change", render);
+(function(){
+  const btn = document.getElementById("viewTitle"), menu = document.getElementById("viewMenu");
+  const mark = () => menu.querySelectorAll("button").forEach(b => { const on = b.dataset.view === currentView(); b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
+  const setOpen = open => { menu.hidden = !open; btn.setAttribute("aria-expanded", String(open)); if(open){ mark(); (menu.querySelector(".on") || menu.querySelector("button")).focus(); } };
+  btn.addEventListener("click", e => { e.stopPropagation(); setOpen(menu.hidden); });
+  menu.addEventListener("click", e => {
+    const b = e.target.closest("button[data-view]"); if(!b) return;
+    const radio = document.querySelector(`input[name="dbView"][value="${b.dataset.view}"]`);
+    if(radio && !radio.checked){ radio.checked = true; radio.dispatchEvent(new Event("change")); }
+    setOpen(false); btn.focus();
+  });
+  document.addEventListener("click", e => { if(!menu.hidden && !menu.contains(e.target)) setOpen(false); });
+  document.addEventListener("keydown", e => { if(e.key === "Escape" && !menu.hidden){ setOpen(false); btn.focus(); } });
+})();
+document.getElementById("srcSeg").addEventListener("click", e => {
+  const b = e.target.closest("button[data-src]");
+  if(!b || b.dataset.src === SOURCE) return;
+  SOURCE = b.dataset.src;
+  document.querySelectorAll("#srcSeg button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", String(x === b)); });
+  if(SOURCE === "solo" && !SOLO) loadSolo().then(() => { renderTypeFilter(); render(); });
+  renderTypeFilter();
+  render();
+});
+document.getElementById("soloBestSort").addEventListener("change", render);
+document.getElementById("soloBossSort").addEventListener("change", render);
 document.getElementById("poolSeg").addEventListener("click", e => {
   const b = e.target.closest("button[data-pool]");
   if(!b || !tierFilter || tierFilter.value === b.dataset.pool) return;
