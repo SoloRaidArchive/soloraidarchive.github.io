@@ -6180,7 +6180,7 @@ function doubleCtRow(n, x){
   const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMLandingTicks(bossFMAD_ticks, n)[n - 1];
   let ticks = swap1FMTicks + Math.max(swap2Ticks, bossFMFloor);
   ticks = Math.max(bossFMAD_ticks + 1, ticks);
-  if(x.dodgeOneFM && n > 0) ticks += 2;   // Battle Simulator Dodge FM: one fast move dodged
+  if(x.dodgeOneFM) ticks += 2;   // Battle Simulator Dodge FM: the chained fast move dodged (1.0s, as the modes count it even with none taken)
   const battleTicks = ticks;
   ticks += 4;   // 2 round trips: 4 one-way swaps x 0.5s
   const seconds = ticks / 2;
@@ -6326,7 +6326,7 @@ function singleCtRow(n, x){
 
     // dodge terms (in ticks); FM dodge is asymmetric per confirmed sheet behavior
     const dodgeCMTicks = dodgeCM ? 2 : 0;
-    const dodgeFMTicks = dodgeFM ? dodgeFMTicksFor(n) : (x.dodgeOneFM && n > 0 ? 2 : 0);   // (the simulator's Dodge FM: one fast move)
+    const dodgeFMTicks = dodgeFM ? dodgeFMTicksFor(n) : (x.dodgeOneFM ? 2 : 0);   // (the simulator's Dodge FM: the chained fast move - 1.0s, as dodgeFMTicksFor counts n = 0 and 1)
     ticks += dodgeCMTicks + dodgeFMTicks;
 
     // energy resolve nerf: 1 tick of dead time per nerfed cast, plus that cast's wasted fast move
@@ -9103,7 +9103,8 @@ function ctDbPrepare(){
     ctDbCandidates().forEach(x => {
       const p = x.p, S = Object.assign({}, party);
       Object.assign(S, { ctMode: party[p + "DoubleCatch"] ? "double" : "single", pokemonName: party[p + "Name"], pokemonLevel: party[p + "Level"],
-        ivAtk: party[p + "IvAtk"], ivDef: party[p + "IvDef"], ivHp: party[p + "IvHp"], playerFM: party[p + "FM"], playerCM: party[p + "CM"] });
+        ivAtk: party[p + "IvAtk"], ivDef: party[p + "IvDef"], ivHp: party[p + "IvHp"], playerFM: party[p + "FM"], playerCM: party[p + "CM"],
+        dodgeFM: !!party[p + "DodgeFM"], dodgeCM: false });
       if(party[p + "Casts"]) S.numCM = party[p + "Casts"];
       applySetup(S); runCalculation();
       const c = lastCalcContext; if(!c) return;
