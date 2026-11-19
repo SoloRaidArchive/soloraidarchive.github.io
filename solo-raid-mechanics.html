@@ -819,7 +819,7 @@ async function loadMechanics(){
     <div class="section-head">
       <span class="section-title">${sec.title}</span>
     </div>
-    <div class="section-sub" style="margin-bottom:16px;">${sec.sub}</div>
+    ${sec.sub ? `<div class="section-sub" style="margin-bottom:16px;">${sec.sub}</div>` : ""}
     ${sec.entries.map((e,ei) => entryHtml(e, si, ei)).join("")}
   </div>
 `).join("");
