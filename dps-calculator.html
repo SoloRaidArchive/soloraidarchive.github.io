@@ -4115,7 +4115,7 @@ function teamStep(S, R, P, snap){
     const tp = P.tanks[m.type];
     const windowTicks = tp.fm.ad + tp.cm.ad * Math.max(1, tp.casts);
     const bossFms = Math.ceil(windowTicks / (P.bossFM.ad + 4));
-    return m.hp > tp.bossCmDmg + bossFms * tp.bossFmDmg;
+    return m.hp > tp.bossCmDmg + (tp.dodgeFM && bossFms > 0 ? Math.floor(tp.bossFmDmg * 0.25) + (bossFms - 1) * tp.bossFmDmg : bossFms * tp.bossFmDmg);
   };
   // Priority & hot swap order: each catch tank serves the attacker whose list it is in. Strict: only
   // that one may use it. Soft: an attacker uses its own first, then borrows unused ones - from the end
@@ -6198,7 +6198,7 @@ function doubleCatchSafe(T, bossFMAD_ticks){
   const hpAfter1 = T.hp - T.bossCmDmg;
   const windowTicks = T.fm.ad + T.cm.ad * Math.max(1, T.casts);
   const bossFms = Math.ceil(windowTicks / (bossFMAD_ticks + 4));
-  return hpAfter1 > T.bossCmDmg + bossFms * T.bossFmDmg;
+  return hpAfter1 > T.bossCmDmg + (T.dodgeFM && bossFms > 0 ? Math.floor(T.bossFmDmg * 0.25) + (bossFms - 1) * T.bossFmDmg : bossFms * T.bossFmDmg);
 }
 
 // n boss fast moves taken: their energy and damage. With the Battle Simulator's Dodge FM, one of them
