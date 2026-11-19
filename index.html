@@ -360,7 +360,7 @@ if ("serviceWorker" in navigator) {
      was this page's entire 0.464 CLS. Reserving the slot up front means the content lands in
      space already allocated. Heights are the measured rendered values, applied as a floor
      because the list is data-driven and its exact length changes with the rotation. */
-  #liveBossWrap{ min-height: 804px; }
+  #liveBossWrap{ min-height: 500px; }
   #liveBossWrap.is-empty{ min-height:0; }
   @media (min-width:701px){ #liveBossWrap{ min-height: 300px; } }
   .weather-icon-wrap{
@@ -466,6 +466,98 @@ if ("serviceWorker" in navigator) {
     letter-spacing:.02em; color:var(--blue, #3d9dff); background:color-mix(in srgb, var(--blue, #3d9dff) 14%, transparent); white-space:nowrap; }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
+<style id="home-layout">
+  /* ---- Home layout: egg chips, search beside the raids heading, flat boss tiles ---- */
+  h1.site-title, [data-theme] h1.site-title{
+    font-size:clamp(34px, 5vw, 54px); letter-spacing:-0.02em; margin:30px 0 14px; gap:16px;
+    text-shadow:0 2px 0 rgba(0,0,0,.25), 0 0 28px rgba(240,138,60,.35);
+  }
+  .site-title-icon{ width:56px; height:56px; }
+
+  .archive-chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:820px; margin:0 auto 6px; padding:0 12px; }
+  .archive-chips .archive-pill{ width:auto; display:inline-flex; align-items:center; gap:8px; height:40px; box-sizing:border-box;
+    padding:0 14px 0 6px; border-radius:999px; border:1px solid var(--border); background:color-mix(in srgb, var(--card) 85%, transparent);
+    font:700 13.5px 'Manrope',sans-serif; color:var(--text); text-decoration:none; }
+  .archive-chips .archive-pill:hover{ transform:none; border-color:color-mix(in srgb, var(--text) 40%, var(--border)); }
+  .archive-chips .archive-pill-icon{ width:28px; height:28px; background:none; }
+  .archive-chips .archive-pill-icon img{ padding:0; }
+  .archive-chips .archive-pill-label{ flex:none; }
+  .archive-chips .archive-pill-pct{ background:none; padding:0; font:700 11.5px 'IBM Plex Mono',monospace; color:#f08a3c; }
+
+  /* the search: top right of the raids card on desktop, under the egg chips on phones */
+  main{ position:relative; }
+  main > .boss-search-wrap{ position:absolute; top:12px; right:14px; width:260px; max-width:none; margin:0; padding:0; z-index:6; }
+  main > .boss-search-wrap .boss-search-box{ padding:5px 12px; border-width:1px; }
+  main > .boss-search-wrap #bossSearch{ font-size:13px; }
+  main > .boss-search-wrap .boss-search-results{ left:0; right:0; }
+
+  /* panels: thin borders, no box behind each boss */
+  .live-boss-panel{ border-width:1px; border-radius:10px; }
+  html[data-season] body .live-boss-icon, html[data-season][data-theme] body .live-boss-icon, body .live-boss-icon{
+    background:none !important; border:0 !important; box-shadow:none !important; overflow:visible; width:44px; height:44px; }
+  .live-boss-icon img.shadow-mist{ border-radius:50%; }
+  .live-boss-item:hover .live-boss-icon{ transform:translateY(-2px); }
+  .live-boss-section-label{ border-bottom-width:1px; font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); }
+
+  /* Recently Published: the announcement on top, the month's guides underneath */
+  .new-entries-panel .announcement{ display:block; padding:8px 0 10px; margin:8px 0 0; border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent);
+    font:700 13px/1.4 'Manrope',sans-serif; color:var(--text); }
+  .new-entries-panel .announcement-label{ margin-right:8px; }
+  .new-entries-panel .announcement-text{ font-size:13px; }
+  .home-guides{ margin-top:14px; }
+  .home-guides-h{ font:800 10.5px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); margin:0 0 6px; }
+  .home-guides #monthlyGuidesWrap{ margin-top:0; }
+  .home-guides .guide-pill-row{ display:flex; flex-wrap:wrap; gap:4px 18px; }
+  .home-guides .guide-pill{ background:none; border:0; border-radius:0; padding:4px 0; gap:10px; font:700 14px 'Manrope',sans-serif; transform:none; }
+  .home-guides .guide-pill:hover{ transform:none; }
+  .home-guides .guide-pill:hover .guide-pill-label{ text-decoration:underline; text-underline-offset:3px; }
+  .home-guides .guide-pill-icon{ width:30px; height:30px; background:none; border-radius:0; overflow:visible; }
+  .home-guides .panel-empty{ text-align:left; padding:4px 0; }
+
+  /* phones: two rows, then a list (see capRows) */
+  .boss-list, .grid-toggle{ display:none; }
+  @media (max-width:700px){
+    .live-boss-row-grid.is-capped > .live-boss-item:nth-child(n+9){ display:none; }
+    .live-boss-row-grid.as-list{ display:none; }
+    .live-boss-row-grid.as-list + .boss-list{ display:block; }
+    .grid-toggle{ display:block; width:100%; margin:6px 0 4px; padding:8px 0; background:none; border:0;
+      border-top:1px solid color-mix(in srgb, var(--border) 55%, transparent);
+      font:700 12.5px 'Manrope',sans-serif; color:#f08a3c; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    .boss-list .bl-row{ display:flex; align-items:center; gap:10px; padding:6px 0; min-width:0; text-decoration:none; color:var(--text);
+      border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+    .boss-list .bl-row:last-child{ border-bottom:0; }
+    .bl-sp{ width:36px; height:36px; flex:none; display:grid; place-items:center; }
+    .bl-sp img{ width:36px; height:36px; object-fit:contain; }
+    .bl-sp img.shadow-mist{ border-radius:50%; }
+    .bl-nm{ flex:1; min-width:0; display:flex; flex-direction:column; }
+    .bl-nm b{ font:700 13.5px 'Manrope',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bl-nm small{ font:600 11px Inter,sans-serif; color:var(--text-dim); }
+    .bl-row .live-boss-tag{ margin:0; flex:none; }
+    .bl-row .live-boss-star{ flex:none; font-size:10.5px; }
+    .bl-w{ width:22px; flex:none; display:grid; place-items:center; }
+  }
+
+  /* contributors behind a toggle */
+  .credits-toggle{ margin-top:6px; }
+  .credits-toggle summary{ cursor:pointer; list-style:none; display:inline-flex; align-items:center; gap:6px; font:700 12px 'Manrope',sans-serif;
+    color:var(--text-dim); padding:4px 10px; border-radius:999px; border:1px solid var(--border); }
+  .credits-toggle summary::-webkit-details-marker{ display:none; }
+  .credits-toggle summary::after{ content:""; width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor;
+    transform:rotate(45deg) translateY(-2px); transition:transform .15s; }
+  .credits-toggle[open] summary::after{ transform:rotate(-135deg) translateY(-1px); }
+  .credits-toggle .credits-list{ margin-top:8px; }
+
+  @media (max-width:700px){
+    h1.site-title, [data-theme] h1.site-title{ font-size:clamp(22px, 7.4vw, 29px); gap:8px; margin:22px 0 12px; padding:0; }
+    .site-title-icon{ width:clamp(24px, 7.7vw, 30px); height:clamp(24px, 7.7vw, 30px); }
+    .archive-chips .archive-pill{ height:36px; font-size:12.5px; padding:0 11px 0 4px; }
+    .archive-chips .archive-pill-icon{ width:24px; height:24px; }
+    main > .boss-search-wrap{ position:relative; top:auto; right:auto; width:auto; }
+    main > .boss-search-wrap .boss-search-box{ padding:7px 13px; }
+    .live-boss-row-grid{ grid-template-columns:repeat(4, 1fr); gap:10px 6px; }
+    .live-boss-row-grid .live-boss-item{ width:auto; }
+  }
+</style>
 </head>
 <body>
 
@@ -504,6 +596,11 @@ if ("serviceWorker" in navigator) {
   #quickLinks .ql-home-only{ display:none; }
   #quickLinks.qlinks-home .ql-home-only{ display:inline-block; }
   #quickLinks.qlinks-home{ flex-wrap:wrap; }
+  #quickLinks.qlinks-home{ align-items:center; }
+  #quickLinks.qlinks-home a.ql-discord{ display:inline-grid; place-items:center; width:26px; height:26px; padding:0; margin-left:4px; border-radius:50%;
+    background:#5865F2; color:#fff; flex:none; }
+  #quickLinks.qlinks-home a.ql-discord:hover{ background:#6d78f5; color:#fff; }
+  #quickLinks a.ql-discord svg{ width:15px; height:12px; }
   /* pages without a header bar (Home, Difficulty & Roles, the Guide Editor): a row at the top */
   #quickLinks.qlinks-standalone{ padding:12px 64px 4px; }
   @media (max-width:600px){
@@ -538,6 +635,7 @@ if ("serviceWorker" in navigator) {
   <!-- the landing page only: its old Submit buttons now live here, as plain links like the rest -->
   <a href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" class="ql-home-only" target="_blank" rel="noopener noreferrer"><span class="ql-full">Submit a VOD</span><span class="ql-short">Submit VOD</span></a>
   <a href="editor.html" class="ql-home-only" title="Requires a GitHub account"><span class="ql-full">Submit a Guide</span><span class="ql-short">Submit Guide</span></a>
+  <a href="https://discord.gg/mt3EVv6CTP" class="ql-home-only ql-discord" target="_blank" rel="noopener noreferrer" aria-label="Join the Discord" title="Join the Discord"><svg viewBox="0 0 127 96" aria-hidden="true" focusable="false"><path fill="#fff" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15ZM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69Zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69Z"/></svg></a>
 </nav>
 <script>
 (function(){
@@ -653,55 +751,7 @@ if ("serviceWorker" in navigator) {
   <img src="assets/icons/favicon-192.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
 </h1>
 
-<div class="boss-search-wrap">
-  <div class="boss-search-box">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input id="bossSearch" type="text" placeholder="Search a boss" autocomplete="off">
-  </div>
-  <div id="bossSearchResults" class="boss-search-results"></div>
-</div>
-
-<div class="discord-row">
-  <a class="discord-link discord-icon" href="https://discord.gg/mt3EVv6CTP" target="_blank" rel="noopener noreferrer"
-     aria-label="Join the Solo Raid Archive Discord" data-tip="Join the Discord">
-    <svg class="discord-mark" viewBox="0 0 127 96" aria-hidden="true" focusable="false">
-      <path fill="currentColor" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15ZM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69Zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69Z"/>
-    </svg>
-  </a>
-  <!-- ANNOUNCEMENT: replace the text in .announcement-text to post a new one. -->
-  <p class="announcement">
-    <span class="announcement-label">Announcement</span>
-    <span class="announcement-text">Congratulations to InfluenceYT & DarKnight for clearing the 7 ⭐ Palkia Aqua Tail Route</span>
-  </p>
-</div>
-
-<div class="page-layout">
-<main>
-  <details class="live-boss-panel" open>
-    <summary class="live-boss-summary">
-      <h2 class="patch-title" id="liveBossHeading" style="font-size:16px; margin-bottom:-4px;">Raids</h2>
-    </summary>
-    <div id="liveBossWrap"></div>
-  </details>
-
-  <details class="live-boss-panel new-entries-panel" id="newEntriesPanel" style="display:none;" open>
-    <summary class="live-boss-summary">
-      <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Recently Published Raids</h2>
-    </summary>
-    <div id="newEntriesWrap"></div>
-  </details>
-
-  <div class="new-entries-archives-grid">
-  <details class="live-boss-panel new-entries-panel" id="monthlyGuidesPanel" style="display:none;" open>
-    <summary class="live-boss-summary">
-      <h2 class="patch-title" id="monthlyGuidesHeading" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Monthly Guides</h2>
-    </summary>
-    <div id="monthlyGuidesWrap"></div>
-  </details>
-
-  <div class="archive-list">
-  <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Raid Archives</h2>
-    <div class="archive-pill-row">
+<nav class="archive-chips" aria-label="Raid archives">
       <a class="archive-pill" href="tier4-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Mega</span>
@@ -717,26 +767,57 @@ if ("serviceWorker" in navigator) {
         <span class="archive-pill-label">Mega Legendary &amp; Elite</span>
         <span class="archive-pill-pct" id="pct-tier6-elite-raids.html">…</span>
       </a>
+</nav>
+
+<div class="page-layout">
+<main>
+  <div class="boss-search-wrap">
+    <div class="boss-search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="bossSearch" type="text" placeholder="Search a boss" autocomplete="off">
     </div>
-
+    <div id="bossSearchResults" class="boss-search-results"></div>
   </div>
-  </div>
 
+  <details class="live-boss-panel" open>
+    <summary class="live-boss-summary">
+      <h2 class="patch-title" id="liveBossHeading" style="font-size:16px; margin-bottom:-4px;">Raids</h2>
+    </summary>
+    <div id="liveBossWrap"></div>
+  </details>
+
+  <details class="live-boss-panel new-entries-panel" id="newEntriesPanel" open>
+    <summary class="live-boss-summary">
+      <h2 class="patch-title" style="font-size:16px; margin-bottom:-4px; margin-top:0;">Recently Published Raids</h2>
+    </summary>
+    <!-- ANNOUNCEMENT: replace the text in .announcement-text to post a new one. -->
+    <p class="announcement">
+      <span class="announcement-label">Announcement</span>
+      <span class="announcement-text">Congratulations to InfluenceYT & DarKnight for clearing the 7 ⭐ Palkia Aqua Tail Route</span>
+    </p>
+    <div id="newEntriesWrap"></div>
+    <div class="home-guides" id="monthlyGuidesPanel">
+      <h3 class="home-guides-h" id="monthlyGuidesHeading">Monthly Guides</h3>
+      <div id="monthlyGuidesWrap"></div>
+    </div>
+  </details>
   </main>
 </div>
 
 <footer>
   <div class="footer-credit">Created by Spiritedbloom</div>
-  Pokémon icons from JorMxDOS (DeviantArt)
   <div class="special-appreciation">
     Special appreciation to CreatorBeastGD (PokéChespin), KoalaMauve (Dev Contributor), Celandro (Pokebattler) & Lead Contributors
   </div>
-  <div class="credits-list">
-    Contributors: Boltblades12, Lazyboy0337, Jay258, itsTanah, DarKnight, Nikaidou_Shinku, x.Rage7243, Spiritedbloom,
+  <details class="credits-toggle">
+    <summary>Contributors</summary>
+    <div class="credits-list">
+    Boltblades12, Lazyboy0337, Jay258, itsTanah, DarKnight, Nikaidou_Shinku, x.Rage7243, Spiritedbloom,
     theAaronGaming, Mission-Cancel, Makoto, Storm (JP), FreedomxHei8 (JP), LatiosUltima, HowBoutDemAp1es, DJShivaShivaUA,
     Pogo_Raids_Gameplay (PoGoRaids Disc), PokeRaidRetos, 3v4battler, Corneal Hook, Ch1hu, CometYTT, HwangOkHone, hehexdlol, Alien13,
     HydreigontheBest, NiKkOoTin, Wowtastic, Franazor, Origami777, Apatheia, ChrisJA10, PogoRaidHighlights, and more! 
-  </div>
+    </div>
+  </details>
 </footer>
 
 <script>
@@ -861,10 +942,10 @@ async function buildSearchIndexAndCompletionStats(){
 
       if(pctEl){
         if(total === 0){
-          pctEl.textContent = "0% done";
+          pctEl.textContent = "0%";
         }else{
           const pct = Math.round((withVod / total) * 100);
-          pctEl.textContent = `${pct}% done`;
+          pctEl.textContent = `${pct}%`;
           pctEl.classList.toggle("done", pct === 100);
         }
       }
@@ -1321,7 +1402,8 @@ async function loadLiveBosses(){
       const bigGroups = eventGroups.filter(g => g.bosses.length >= EVENT_BLOCK_MIN);
       const smallGroups = eventGroups.filter(g => g.bosses.length < EVENT_BLOCK_MIN);
       html += bigGroups.map(renderGroup).join("");
-      if(smallGroups.length) html += renderFlatRow(smallGroups, isMobile ? MAX_SHOWN : 0);
+      // no cap here: on phones capRows() shows two rows and a "Show all" list
+      if(smallGroups.length) html += renderFlatRow(smallGroups, 0);
     }
     if(rotationGroups.length){
       html += `<div class="live-boss-section-label">Monthly rotation</div>`;
@@ -1329,9 +1411,39 @@ async function loadLiveBosses(){
     }
     html += `<div class="live-boss-credit">Boss availability data from <a href="https://www.pokebattler.com/raids" target="_blank" rel="noopener noreferrer">Pokebattler</a></div>`;
     wrap.innerHTML = html;
+    capRows(wrap);
   }catch(e){
     console.error("Could not load live boss data:", e);
   }
+}
+// Phones: a boss grid with more than two rows (8 bosses) shows the first two, and "Show all"
+// swaps it for a list of every boss - sprite, name, dates, tier, weather. CSS does the
+// hiding, so desktop always shows the full grid whatever was tapped.
+const CAP_ITEMS = 8;
+function capRows(root){
+  root.querySelectorAll(".live-boss-row-grid").forEach(grid => {
+    const items = [...grid.querySelectorAll(":scope > .live-boss-item")];
+    if(items.length <= CAP_ITEMS) return;
+    grid.classList.add("is-capped");
+    const html = node => node ? node.outerHTML : "";
+    const rows = items.map(a => {
+      const date = a.querySelector(".live-boss-date");
+      return `<a class="bl-row" href="${a.getAttribute("href")}">
+        <span class="bl-sp">${html(a.querySelector(".live-boss-icon img"))}</span>
+        <span class="bl-nm"><b>${a.getAttribute("title") || ""}</b>${date ? `<small>${date.textContent}</small>` : ""}</span>
+        ${html(a.querySelector(".live-boss-tag"))}
+        ${html(a.querySelector(".live-boss-star"))}
+        <span class="bl-w">${html(a.querySelector(".weather-icon-wrap"))}</span>
+      </a>`;
+    }).join("");
+    grid.insertAdjacentHTML("afterend", `<div class="boss-list">${rows}</div><button type="button" class="grid-toggle" aria-expanded="false">Show all ${items.length}</button>`);
+    const btn = grid.nextElementSibling.nextElementSibling;
+    btn.addEventListener("click", () => {
+      const open = grid.classList.toggle("as-list");
+      btn.setAttribute("aria-expanded", String(open));
+      btn.textContent = open ? "Show less" : `Show all ${items.length}`;
+    });
+  });
 }
 // ============ MONTHLY GUIDES ============
 // Cross-references live-bosses.json (this month's active/rotating raids) against
@@ -1477,6 +1589,7 @@ async function loadNewEntries(){
         </div>
         <div class="live-boss-date">${formatPushDate(entry.pushDate)}</div>
       </a>`).join("")}</div>`;
+    capRows(wrap);
 
     panel.style.display = "";
   }catch(e){
