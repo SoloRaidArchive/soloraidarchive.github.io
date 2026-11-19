@@ -1415,7 +1415,8 @@ if ("serviceWorker" in navigator) {
   #ctMovePreview:not(:empty), [id^="ct"][id$="MovePreview"]:not(:empty), [id^="sd"][id$="MovePreview"]:not(:empty){ margin-top:10px; }
   /* Double catch: its own row under Charge moves / # of catch tanks, the two side by side */
   .dc-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:10px; }
-  .dc-row .dc-check{ margin:0; flex:none; width:auto; }
+  .dc-row .dc-check, .dc-row .dfm-check{ margin:0; flex:none; width:auto; }
+  .pp .pp-ctrow .dfm-check{ height:40px; box-sizing:border-box; margin:0 !important; flex:0 0 auto; display:flex; align-items:center; white-space:nowrap; }
   .dc-row .dc-fms{ flex:none; white-space:nowrap; }
   @media (max-width:560px){ .dc-row{ flex-wrap:nowrap; gap:10px; } .dc-row .dc-check{ padding-left:10px; padding-right:10px; } }
   @media (max-width:370px){ .dc-row{ flex-wrap:wrap; } }   /* the narrowest phones: two lines rather than a sideways scroll */
@@ -1796,6 +1797,7 @@ if ("serviceWorker" in navigator) {
   .pp .pp-ctrow .dc-fms{ flex:0 0 100%; margin:0 !important; display:flex !important; align-items:center; gap:8px; font:700 11.5px 'Manrope',sans-serif; color:var(--text-dim); }   /* Fast moves on 1st swap: the row below */
   .pp .pp-ctrow .dc-fms select{ width:72px !important; flex:none; height:34px !important; }
   @media (max-width:560px){ .pp .pp-ctrow .field{ flex:1 1 0; } .pp .pp-ctrow .dc-check{ padding-left:8px; padding-right:8px; } }
+  @media (max-width:560px){ .pp .pp-ctrow .field{ min-width:96px; } .pp .pp-ctrow .dfm-check{ padding-left:8px; padding-right:8px; } }   /* the steppers keep their width; Dodge FM goes to the next line */
   .pp .pp-roleseg{ margin-top:12px; }
   .pp .pp-acts{ display:flex; gap:10px; margin-top:12px; }
   .pp .pp-acts .pp-btn{ margin-top:0; flex:1 1 0; }
@@ -2383,7 +2385,7 @@ if ("serviceWorker" in navigator) {
   <details class="mod-details team-only beta-about" id="betaAbout">
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
-      <p class="beta-build">Build 2026-11-16 · energy bar</p>
+      <p class="beta-build">Build 2026-11-18 · catch tank Dodge FM, phone Double CT</p>
       <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
       <p class="beta-h">Your party</p>
       <ul>
@@ -2626,6 +2628,7 @@ if ("serviceWorker" in navigator) {
                it casts the set fast moves and swaps out, then comes back for the second and fires) -->
           <div class="dc-row">
             <label class="check-item dc-check" title="Each catch tank catches two of the boss's charge moves. After its first catch it casts the set number of fast moves and swaps out without firing, keeping its energy; it comes back for the boss's next charge move and fires on the combined energy."><input type="checkbox" id="ctDoubleCatch"> Double CT</label>
+            <label class="check-item dfm-check" title="After each catch, this catch tank dodges one of the boss's fast moves (usually the one chained after the charge move) before carrying on: 25% of its damage and the energy that gives, and 1.0s of its time."><input type="checkbox" id="ctDodgeFM"> Dodge FM</label>
             <label class="dc-fms is-off" id="ctDcFMsWrap" title="How many fast moves the catch tank casts after its first catch, before it swaps out to wait for the second">Fast moves on 1st swap
         <select id="ctDcFMs" disabled><option value="0">0</option><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select>
       </label>
@@ -4637,7 +4640,7 @@ function teamStep(S, R, P, snap){
     // tap singleCtRow charges in Single Catch Tank mode. With CM Buffer it can fire straight away.
     // (Until this was added the simulator always behaved as if buffered, while the CT DPS block
     // never did, so the two disagreed - e.g. Shadow Tapu Lele read 4.0s there either way.)
-    if(S.mons[to].tank) S.mons[to].owesTap = !P.cmBuffer;
+    if(S.mons[to].tank){ S.mons[to].owesTap = !P.cmBuffer; S.mons[to].fmDodge = !!(P.tanks[S.mons[to].type] || {}).dodgeFM; }
     R.segs.push(to === 0 ? { t, who: 0, att: S.att } : { t, who: to });
     if(to === 0 && S.mons[from].tank) S.lastTankDoneAt = t;
     R.events.push({ t, kind: S.mons[to].tank ? "ct" : "main", text: `${teamLabel(P, from)} out, ${teamLabel(P, to)} in`, ev: { type: "swap", who: to, from } });
@@ -4658,10 +4661,15 @@ function teamStep(S, R, P, snap){
     if(mv.cm && S.tankDodge && S.tankDodge.cast === mv.cast) S.tankDodge = null;
     const dodged = tankDodged || (mv.cm && who === 0 && S.dodging !== null && S.dodging.cast === mv.cast);
     if(dodged && who === 0) S.dodging = null;
-    const dmg = mv.cm ? (dodged ? (who === 0 ? P.main.bossCmDmgDodged : Math.floor(side.bossCmDmg * 0.25)) : side.bossCmDmg) : side.bossFmDmg;
+    // Dodge FM: the first boss fast move to land on a catch tank since it came in is dodged
+    const fmDodged = !mv.cm && m.tank && m.fmDodge && !S.swap && m.hp > 0;
+    if(fmDodged) m.fmDodge = false;
+    const dmg = mv.cm ? (dodged ? (who === 0 ? P.main.bossCmDmgDodged : Math.floor(side.bossCmDmg * 0.25)) : side.bossCmDmg)
+      : fmDodged ? Math.floor(side.bossFmDmg * 0.25) : side.bossFmDmg;
     m.hp -= dmg;
+    if(fmDodged) m.busyUntil = Math.max(m.busyUntil || 0, t) + TEAM_DODGE_TICKS;   // 1.0s spent dodging
     const over = teamBank(m, energyFromDamage(dmg));
-    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged, att: who === 0 ? S.att : undefined, elig: !!mv.elig });
+    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged: dodged || fmDodged, att: who === 0 ? S.att : undefined, elig: !!mv.elig });
     R.hp.push({ t, who, hp: m.hp, att: who === 0 ? S.att : undefined });
     if(mv.cm){
       R.events.push({ t, kind: m.tank ? "ct" : "main",
@@ -5068,7 +5076,7 @@ function teamTankNumbers(c, p = "ct"){
   const sup = p.startsWith("sd");   // a Support DPS card (hot swap): no quantity or charge-move count
   const who = sup ? `Support DPS ${k}: ` : teamTypeCount() > 1 ? `Catch Tank ${k}: ` : "";
   const T = { k, name: $("Name").value.trim(), qty: $("Qty") ? Math.max(1, Math.min(10, parseInt($("Qty").value, 10) || 1)) : 1,
-              doubleCatch: !sup && !!($("DoubleCatch") || {}).checked, dcFirstFMs: Math.max(0, parseInt(($("DcFMs") || {}).value, 10) || 0),
+              doubleCatch: !sup && !!($("DoubleCatch") || {}).checked, dodgeFM: !sup && !!($("DodgeFM") || {}).checked, dcFirstFMs: Math.max(0, parseInt(($("DcFMs") || {}).value, 10) || 0),
               casts: $("Casts") ? Math.max(1, Math.min(3, parseInt($("Casts").value, 10) || 1)) : 1 };
   const tank = T.name ? findPokemon(T.name) : null;
   if(!tank){ T.error = sup ? `${who}Enter a valid Pokémon to simulate.` : `${who}Enter a valid catch tank Pokémon to simulate.`; return T; }
@@ -5156,7 +5164,7 @@ function runTeamSim(c){
   plan.forEach(b => b.items.forEach(x => { if(x !== "s"){ const k = +x.split(".")[0]; if(!typeSeq.includes(k)) typeSeq.push(k); } }));
   const tanks = typeSeq.map(k => {
     const T = types[k - 1];
-    return { k, name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, qty: T.qty, casts: T.casts, doubleCatch: T.doubleCatch, dcFirstFMs: T.dcFirstFMs,
+    return { k, name: T.name, hp: T.hp, fm: T.fm, cm: T.cm, cmCost: T.cmCost, qty: T.qty, casts: T.casts, doubleCatch: T.doubleCatch, dodgeFM: T.dodgeFM, dcFirstFMs: T.dcFirstFMs,
              fmDmg: T.fmDmg, cmDmg: T.cmDmg, bossFmDmg: T.bossFmDmg, bossCmDmg: T.bossCmDmg };
   });
   // every catch tank in plan order: its type, number, the attacker it serves (block) and its place
@@ -5332,6 +5340,7 @@ function teamMoveRow(move, dmg){
       <b>${dmg} dmg</b>
     </div>`;
 }
+document.addEventListener("change", e => { if(e.target && /^ct\d?DodgeFM$/.test(e.target.id) && typeof updateTeamPreview === "function") updateTeamPreview(); });
 function updateTeamPreview(){
   if(!document.body.classList.contains("ct-mode-team")) return;
   const c = teamBossContextFromDom();
@@ -5367,15 +5376,16 @@ function updateTeamPreviewFor(p, c){
     const dcOn = !!(document.getElementById(p + "DoubleCatch") || {}).checked;
     const dcK = Math.max(0, parseInt((document.getElementById(p + "DcFMs") || {}).value, 10) || 0);
     const dcSafe = dcOn && doubleCatchSafe(T, c.bossFMMove.ad);
+    const dfm = !!(document.getElementById(p + "DodgeFM") || {}).checked;   // this catch tank's Dodge FM: one fast move dodged
     const rows = [0, 1, 2].map(n => dcSafe
       ? doubleCtRow(n, { k: dcK, numCM: casts, cmEnergyCost: T.cmCost, energyFromCM: eCM, energyFromBossFM: energyFromDamage(T.bossFmDmg),
           fm: T.fm, cm: T.cm, bossFMAD_ticks: c.bossFMMove.ad, chargeDamage: T.cmDmg, fastDamage: T.fmDmg,
-          bossCMDamage: T.bossCmDmg, bossFMDamage: T.bossFmDmg, playerHp: T.hp })
+          bossCMDamage: T.bossCmDmg, bossFMDamage: T.bossFmDmg, playerHp: T.hp, dodgeOneFM: dfm })
       : singleCtRow(n, {
       numCM: casts, cmEnergyCost: T.cmCost, effectiveBuffer: false, energyFromCM: eCM,
       energyFromBossFM: energyFromDamage(T.bossFmDmg), fm: T.fm, cm: T.cm, resolveNerf: false,
       bossFMAD_ticks: c.bossFMMove.ad, dodgeCM: false, dodgeFM: false,
-      chargeDamage: T.cmDmg, fastDamage: T.fmDmg, bossCMDamage: T.bossCmDmg, bossFMDamage: T.bossFmDmg, playerHp: T.hp,
+      chargeDamage: T.cmDmg, fastDamage: T.fmDmg, bossCMDamage: T.bossCmDmg, bossFMDamage: T.bossFmDmg, playerHp: T.hp, dodgeOneFM: dfm,
     }));
     const esc = v => String(v).replace(/"/g, "&quot;");
     const headSub = dcSafe ? `${casts} &times; ${T.cm.n} per double catch &middot; ${dcK} FM on the 1st swap`
@@ -5608,7 +5618,7 @@ function teamLogLine(P, e){
       + (v.ko ? ` <span class="team-dim">fainted</span>`
               : ` <span class="team-num pos">+${v.energy} energy</span>${v.over ? ` <span class="team-dim">(${v.over} overflow)</span>` : ""}`);
     case "cast": return `${ico(v.who)} <b>${v.move}</b> Cast${v.finish ? ` <span class="team-dim">&middot; finisher</span>` : ""}`;
-    case "chip": return `${teamIcon(P, "boss")} <b>${v.move}</b> ${v.n > 1 ? `&times;${v.n}` : "Hit"} <span class="team-arrow">&rarr;</span> ${ico(v.who)} <span class="team-num neg">&minus;${v.dmg} HP</span>`;
+    case "chip": return `${teamIcon(P, "boss")} <b>${v.move}</b> ${v.n > 1 ? `&times;${v.n}` : "Hit"} <span class="team-arrow">&rarr;</span> ${ico(v.who)}${v.dodged ? " dodged" : ""} <span class="team-num neg">&minus;${v.dmg} HP</span>`;
     case "cmHit": return `${ico(v.who)} <b>${v.move}</b> Hit <span class="team-num">${v.dmg} dmg</span>`;
     case "faint": return `${teamSym("faint", "Fainted")}${ico(v.who)} fainted`;
     case "dcHold": return `${ico(v.who)} keeps its ${v.energy} energy <span class="team-dim">for a 2nd catch</span>`;
@@ -6006,15 +6016,15 @@ function renderTeamSim(P, S, R){
   const flushFm = () => {
     if(!grp) return;
     const st = R.state[grp.t] || [];
-    events.push({ t: grp.t, kind: "fm", ev: { type: "chip", who: grp.who, n: grp.n, dmg: grp.dmg, move: P.bossFM.n },
+    events.push({ t: grp.t, kind: "fm", ev: { type: "chip", who: grp.who, n: grp.n, dmg: grp.dmg, move: P.bossFM.n, dodged: grp.dodged },
       mainHp: st[0] ? st[0].hp : null, tankWho: grp.who > 0 ? grp.who : null, tankHp: grp.who > 0 && st[grp.who] ? st[grp.who].hp : null,
       att: grp.who === 0 ? (grp.att || 0) : (R.segs.filter(x => x.who === 0 && x.t <= grp.t).pop() || {}).att || 0 });
     grp = null;
   };
   items.forEach(it => {
     if(it.h){
-      if(grp && (grp.who !== it.h.who || grp.att !== it.h.att)) flushFm();
-      if(!grp) grp = { who: it.h.who, att: it.h.att, n: 0, dmg: 0 };
+      if(grp && (grp.who !== it.h.who || grp.att !== it.h.att || it.h.dodged || grp.dodged)) flushFm();
+      if(!grp) grp = { who: it.h.who, att: it.h.att, n: 0, dmg: 0, dodged: !!it.h.dodged };
       grp.n++; grp.dmg += it.h.dmg; grp.t = it.t;
     } else { flushFm(); events.push(it.e); }
   });
@@ -6161,7 +6171,7 @@ function doubleCtRow(n, x){
   const { k, numCM, cmEnergyCost, energyFromCM, energyFromBossFM, fm, cm, bossFMAD_ticks, chargeDamage, fastDamage, bossCMDamage, bossFMDamage, playerHp } = x;
   const totalCost = numCM * cmEnergyCost;
   const held = Math.min(100, energyFromCM + k * fm.energy);            // after swap 1
-  const atStart = Math.min(100, held + energyFromCM) + n * energyFromBossFM;   // after the 2nd catch
+  const atStart = Math.min(100, held + energyFromCM) + fmEnergyN(x, n);   // after the 2nd catch
   const energyNeeded = Math.max(totalCost - atStart, 0);
   const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad;
   const mandatoryFMBonus = (totalCost > 0 && atStart >= totalCost) ? fm.ad : 0;   // the one tap
@@ -6170,12 +6180,13 @@ function doubleCtRow(n, x){
   const bossFMFloor = n === 0 ? 0 : n === 1 ? bossFMAD_ticks : bossFMLandingTicks(bossFMAD_ticks, n)[n - 1];
   let ticks = swap1FMTicks + Math.max(swap2Ticks, bossFMFloor);
   ticks = Math.max(bossFMAD_ticks + 1, ticks);
+  if(x.dodgeOneFM && n > 0) ticks += 2;   // Battle Simulator Dodge FM: one fast move dodged
   const battleTicks = ticks;
   ticks += 4;   // 2 round trips: 4 one-way swaps x 0.5s
   const seconds = ticks / 2;
   const fastMoves = (buildupTicks + mandatoryFMBonus) / fm.ad + k;
   const numerator = chargeDamage * numCM + fastMoves * fastDamage;
-  const cumulativeDamage = 2 * bossCMDamage + n * bossFMDamage;
+  const cumulativeDamage = 2 * bossCMDamage + fmDamageN(x, n);
   const fainted = cumulativeDamage >= playerHp;
   const ctDPS = fainted ? 0 : numerator / Math.max(seconds, 0.1);
   return { n, ctDPS, ctSeconds: seconds, cumulativeDamage, fainted, risky: false, battleTicks };
@@ -6190,6 +6201,10 @@ function doubleCatchSafe(T, bossFMAD_ticks){
   return hpAfter1 > T.bossCmDmg + bossFms * T.bossFmDmg;
 }
 
+// n boss fast moves taken: their energy and damage. With the Battle Simulator's Dodge FM, one of them
+// is dodged - 25% of its damage, and the energy that damage gives.
+function fmEnergyN(x, n){ return x.dodgeOneFM && n > 0 ? (n - 1) * x.energyFromBossFM + energyFromDamage(Math.floor(x.bossFMDamage * 0.25)) : n * x.energyFromBossFM; }
+function fmDamageN(x, n){ return x.dodgeOneFM && n > 0 ? (n - 1) * x.bossFMDamage + Math.floor(x.bossFMDamage * 0.25) : n * x.bossFMDamage; }
 function singleCtRow(n, x){
   const { numCM, cmEnergyCost, effectiveBuffer, energyFromCM, energyFromBossFM, fm, cm, resolveNerf, bossFMAD_ticks, dodgeCM, dodgeFM, chargeDamage, fastDamage, bossCMDamage, bossFMDamage, playerHp } = x;
     const totalCostAllCasts = numCM * cmEnergyCost;
@@ -6209,7 +6224,7 @@ function singleCtRow(n, x){
 
     // energy available toward the remaining (non-buffered) casts: leftover credit from the
     // initial burst, plus energy from any boss fast moves tanked afterward.
-    const tankBonusForBuildup = leftoverBurstEnergy + n * energyFromBossFM;
+    const tankBonusForBuildup = leftoverBurstEnergy + fmEnergyN(x, n);
 
     const energyNeeded = Math.max(remainingCost - tankBonusForBuildup, 0);
     const buildupTicks = Math.ceil(energyNeeded / fm.energy) * fm.ad;
@@ -6289,7 +6304,7 @@ function singleCtRow(n, x){
     const lastLanding = n > 0 ? landings[n - 1] : 0;
 
     function castTickFor(k){
-      const bonus = leftoverBurstEnergy + k * energyFromBossFM;
+      const bonus = leftoverBurstEnergy + fmEnergyN(x, k);
       const need = Math.max(remainingCost - bonus, 0);
       const build = Math.ceil(need / fm.energy) * fm.ad;
       const mand = (remainingCost > 0 && bonus >= remainingCost) ? fm.ad : 0;
@@ -6311,7 +6326,7 @@ function singleCtRow(n, x){
 
     // dodge terms (in ticks); FM dodge is asymmetric per confirmed sheet behavior
     const dodgeCMTicks = dodgeCM ? 2 : 0;
-    const dodgeFMTicks = dodgeFM ? dodgeFMTicksFor(n) : 0;
+    const dodgeFMTicks = dodgeFM ? dodgeFMTicksFor(n) : (x.dodgeOneFM && n > 0 ? 2 : 0);   // (the simulator's Dodge FM: one fast move)
     ticks += dodgeCMTicks + dodgeFMTicks;
 
     // energy resolve nerf: 1 tick of dead time per nerfed cast, plus that cast's wasted fast move
@@ -6329,7 +6344,7 @@ function singleCtRow(n, x){
 
     // faint check: if the boss's charge move hit plus any tanked fast moves would exceed the player's HP,
     // the Pokemon doesn't survive to complete the rotation - DPS is 0, not a misleadingly high number
-    const cumulativeDamage = bossCMDamage + n * bossFMDamage;
+    const cumulativeDamage = bossCMDamage + fmDamageN(x, n);
     const fainted = cumulativeDamage >= playerHp;
 
     const trailingDPS = fainted ? 0 : numerator / Math.max(seconds + 0.5, 0.1);
@@ -7720,7 +7735,9 @@ async function findExistingSubmission(f, bossName, n, trailingDPSText){
 }
 
 // Returns the warnings that apply, as plain sentences.
-async function duplicateWarnings(f, bossName, n, row, trailingDPSText){
+// pre: the comparison rows already worked out (the Battle Simulator's Add CTs to Database works them
+// out in Catch Tank mode first); without it they are calculated here, from the page as it stands.
+async function duplicateWarnings(f, bossName, n, row, trailingDPSText, pre){
   const warnings = [];
 
   const existing = await findExistingSubmission(f, bossName, n, trailingDPSText);
@@ -7729,7 +7746,7 @@ async function duplicateWarnings(f, bossName, n, row, trailingDPSText){
   // IVs that change nothing. Stats are quantised, so a spread below 15/15/15 very often lands on
   // the same attack/defence values after the CPM multiplier, producing an identical result.
   if(!(f.ivAtk === 15 && f.ivDef === 15 && f.ivHp === 15)){
-    const variant = calcWithOverrides({ ivAtk: "15", ivDef: "15", ivHp: "15" });
+    const variant = pre ? pre.ivs : calcWithOverrides({ ivAtk: "15", ivDef: "15", ivHp: "15" });
     if(variant && sameOutcome(row, variant[n])){
       warnings.push(`These IVs (${f.ivAtk}/${f.ivDef}/${f.ivHp}) give exactly the same DPS and duration as 15/15/15, so the entry adds nothing a 15/15/15 entry would not.`);
     }
@@ -7738,9 +7755,10 @@ async function duplicateWarnings(f, bossName, n, row, trailingDPSText){
   // Weather that changes nothing - no boosted move on either side, so the entry duplicates the
   // neutral-weather one.
   if(String(f.weather).toLowerCase() !== "extreme"){
-    const variant = calcWithOverrides({ weatherSelect: "extreme" });
+    const variant = pre ? pre.weather : calcWithOverrides({ weatherSelect: "extreme" });
     if(variant && sameOutcome(row, variant[n])){
-      warnings.push(`${f.weather} weather gives exactly the same DPS and duration as Extreme (no boost) here - nothing in this matchup is weather-boosted.`);
+      const wx = String(f.weather || ""), wName = (document.querySelector(`#weatherSelect option[value="${wx}"]`) || {}).textContent || (wx.charAt(0).toUpperCase() + wx.slice(1));
+      warnings.push(`${wName.trim()} weather gives exactly the same DPS and duration as Extreme (no boost) here - the weather changes nothing for this catch tank.`);
     }
   }
   return warnings;
@@ -7834,7 +7852,7 @@ const SETUP_FIELD_IDS = [
   "ct2DoubleCatch","ct2DcFMs","ct3DoubleCatch","ct3DcFMs","ct4DoubleCatch","ct4DcFMs","ct5DoubleCatch","ct5DcFMs",
   "ct5Name","ct5Level","ct5IvAtk","ct5IvDef","ct5IvHp","ct5CM","ct5FM","ct5Qty","ct5Casts",
   // Hot swap: which attacker each catch tank type serves, and the support DPS
-  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign","ctJuice","ctB2B","ctParty",
+  "ctOwner","ct2Owner","ct3Owner","sdCount","ctMainRule","ctPlan","ctAssign","ctJuice","ctB2B","ctParty","ctDodgeFM","ct2DodgeFM","ct3DodgeFM","ct4DodgeFM","ct5DodgeFM",
   "sd1Name","sd1Qty","sd1Level","sd1IvAtk","sd1IvDef","sd1IvHp","sd1CM","sd1FM","sd1Sponge","sd1First","sd1Rule","sd1Dodge","sd1DodgeLimit",
   "sd2Name","sd2Qty","sd2Level","sd2IvAtk","sd2IvDef","sd2IvHp","sd2CM","sd2FM","sd2Sponge","sd2First","sd2Rule","sd2Dodge","sd2DodgeLimit",
   "sd3Name","sd3Qty","sd3Level","sd3IvAtk","sd3IvDef","sd3IvHp","sd3CM","sd3FM","sd3Sponge","sd3First","sd3Rule","sd3Dodge","sd3DodgeLimit",
@@ -9091,7 +9109,15 @@ function ctDbPrepare(){
       const c = lastCalcContext; if(!c) return;
       const bar = submitThresholdFor(c.bossName);
       const rows = Object.entries(c.rowsByN || {}).map(([n, r]) => ({ n: +n, r })).filter(o => o.r && !o.r.fainted && o.r.ctDPS >= bar).sort((a2, b2) => b2.r.ctDPS - a2.r.ctDPS);
-      out.push({ x, f: c.fields, boss: c.bossName, rows, pick: 0 });
+      // The duplicate check's comparisons (the same catch tank in Extreme weather, and at 15/15/15),
+      // worked out here while the page is still in Catch Tank mode. Done later, back in the Battle
+      // Simulator, they recalculated the simulator instead and compared the row with itself - so
+      // every entry read as "the same as Extreme".
+      const variant = o => { applySetup(Object.assign({}, S, o)); runCalculation(); return lastCalcContext && lastCalcContext !== c ? lastCalcContext.rowsByN : null; };
+      const f = c.fields, variants = {
+        weather: rows.length && String(f.weather).toLowerCase() !== "extreme" ? variant({ weatherSelect: "extreme" }) : null,
+        ivs: rows.length && !(f.ivAtk === 15 && f.ivDef === 15 && f.ivHp === 15) ? variant({ ivAtk: "15", ivDef: "15", ivHp: "15" }) : null };
+      out.push({ x, f, boss: c.bossName, rows, pick: 0, variants });
     });
   } finally {
     applySetup(party);
@@ -9127,7 +9153,7 @@ function ctDbOpenPanel(){
   const showWarn = async (e, el) => {   // the duplicate check Catch Tank mode does, and its risky flag
     const o = e.rows[e.pick], w = el.querySelector(".db-warn"); const notes = [];
     if(o.r.risky) notes.push("\u26a0\ufe0f Risky: " + (o.r.riskyNote || "flagged for the reviewer"));
-    try{ const d = await duplicateWarnings(e.f, e.boss, o.n, o.r, e.f.doubleCT ? "N/A (Double CT)" : o.r.trailingDPS.toFixed(1)); d.forEach(t => notes.push("Possible duplicate: " + t)); }catch(err){}
+    try{ const d = await duplicateWarnings(e.f, e.boss, o.n, o.r, e.f.doubleCT ? "N/A (Double CT)" : o.r.trailingDPS.toFixed(1), e.variants || {}); d.forEach(t => notes.push("Possible duplicate: " + t)); }catch(err){}
     w.hidden = !notes.length; w.textContent = notes.join("  \u00b7  ");
   };
   ov.querySelectorAll(".db-row[data-i]").forEach(el => {
@@ -9273,7 +9299,7 @@ const SETUP_SHORT_KEYS = {
   ct2DoubleCatch:"t2dc", ct2DcFMs:"t2df", ct3DoubleCatch:"t3dc", ct3DcFMs:"t3df", ct4DoubleCatch:"t4dc", ct4DcFMs:"t4df", ct5DoubleCatch:"t5dc", ct5DcFMs:"t5df",
   ct4Name:"t4n", ct4Level:"t4l", ct4IvAtk:"t4a", ct4IvDef:"t4d", ct4IvHp:"t4h", ct4CM:"t4c", ct4FM:"t4f", ct4Qty:"t4q", ct4Casts:"t4x",
   ct5Name:"t5n", ct5Level:"t5l", ct5IvAtk:"t5a", ct5IvDef:"t5d", ct5IvHp:"t5h", ct5CM:"t5c", ct5FM:"t5f", ct5Qty:"t5q", ct5Casts:"t5x",
-  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas", ctJuice:"tju", ctB2B:"tbb", ctParty:"tpo",
+  ctOwner:"to", ct2Owner:"t2o", ct3Owner:"t3o", sdCount:"hc", ctMainRule:"tmr", ctPlan:"tpl", ctAssign:"tas", ctJuice:"tju", ctB2B:"tbb", ctParty:"tpo", ctDodgeFM:"tdfm", ct2DodgeFM:"t2dfm", ct3DodgeFM:"t3dfm", ct4DodgeFM:"t4dfm", ct5DodgeFM:"t5dfm",
   sd1Name:"h1n", sd1Qty:"h1q", sd1Level:"h1l", sd1IvAtk:"h1a", sd1IvDef:"h1d", sd1IvHp:"h1h", sd1CM:"h1c", sd1FM:"h1f", sd1Sponge:"h1s", sd1First:"h1p", sd1Rule:"h1r", sd1Dodge:"h1g", sd1DodgeLimit:"h1x",
   sd2Name:"h2n", sd2Qty:"h2q", sd2Level:"h2l", sd2IvAtk:"h2a", sd2IvDef:"h2d", sd2IvHp:"h2h", sd2CM:"h2c", sd2FM:"h2f", sd2Sponge:"h2s", sd2First:"h2p", sd2Rule:"h2r", sd2Dodge:"h2g", sd2DodgeLimit:"h2x",
   sd3Name:"h3n", sd3Qty:"h3q", sd3Level:"h3l", sd3IvAtk:"h3a", sd3IvDef:"h3d", sd3IvHp:"h3h", sd3CM:"h3c", sd3FM:"h3f", sd3Sponge:"h3s", sd3First:"h3p", sd3Rule:"h3r", sd3Dodge:"h3g", sd3DodgeLimit:"h3x",
@@ -9519,6 +9545,7 @@ function buildTeamCard(k){
   const $c = id => card.querySelector("#" + p + id);
   $c("Name").value = ""; $c("Level").value = "50"; ["IvAtk", "IvDef", "IvHp"].forEach(id => $c(id).value = "15");
   $c("Qty").value = "1"; $c("Casts").value = "1";   // one to start: five kinds share the party's six slots
+  if($c("DodgeFM")) $c("DodgeFM").checked = false;
   if($c("DoubleCatch")){ $c("DoubleCatch").checked = false; $c("DcFMs").value = "1"; $c("DcFMs").disabled = true; $c("DcFMsWrap").classList.add("is-off"); }
   ["FM", "CM"].forEach(m => { $c(m + "_select").innerHTML = ""; $c(m).value = ""; const cu = $c(m + "_custom"); cu.value = ""; cu.style.display = "none"; });
   ["Preview", "MovePreview", "Verdict", "Outcomes"].forEach(id => $c(id).innerHTML = "");
@@ -11738,7 +11765,7 @@ updateCTMode();
     bar.addEventListener("click", e => {
       const t = e.target.closest(".mq-tab");
       if(t){ const sec = sections()[+t.dataset.sec]; if(sec) scrollToCard(sec[1]); return; }
-      const ed = e.target.closest("[data-ed]"); if(ed){ openProfile(ed.dataset.ed); return; }   // the pencil: its profile
+      const ed = e.target.closest("[data-ed]"); if(ed){ e.stopPropagation(); openProfile(ed.dataset.ed); return; }   // the pencil: its profile (once - the page's own pencil handler mustn't open it again)
       const b = e.target.closest(".mq-slot"); if(!b) return;
       const slotNo = [...b.parentNode.children].indexOf(b) + 1;
       // a filled slot: the picker with its role; an empty one: the role first
@@ -12161,6 +12188,7 @@ updateCTMode();
       onPick: name => { putInSlot("m.1", "main", name); setTimeout(() => openProfile("m.1"), 50); } });
   }
   function openProfile(tok){
+    document.querySelectorAll(".mq-sheet.pp").forEach(sh => { const w = sh.closest(".mq-sheet-wrap"); if(w) w.remove(); });
     const wrap = openSheetShell('<div class="pp-body"></div>'), body = wrap.querySelector(".pp-body");
     wrap.querySelector(".mq-sheet").classList.add("pp");
     let timer = 0;
