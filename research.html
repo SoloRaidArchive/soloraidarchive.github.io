@@ -1090,6 +1090,35 @@ if ("serviceWorker" in navigator) {
   @media (max-width:600px){ .type-filter{ min-height:83px !important; } }
   .tf-measure .type-filter{ min-height:0 !important; }
 
+  /* ---- Meta Tier List without containers ---- */
+  #tierContainer{ max-width:1120px !important; padding:12px 20px 40px; box-sizing:border-box; }
+  #tierContainer:not(:empty){ }
+  .tier-board{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:2px 18px; }
+  .tier-band{ border:0; border-radius:0; background:none; margin:0; overflow:visible; align-items:flex-start; gap:14px;
+    padding:10px 0; border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent); }
+  .tier-band:last-child{ border-bottom:0; }
+  .tier-label{ flex:none; width:58px; min-width:0 !important; height:28px; padding:0 6px; border-radius:6px; box-sizing:border-box;
+    font-size:13px !important; margin-top:calc((var(--tm-h, 48px) - 28px) / 2); }
+  .tier-mons{ padding:0; gap:2px 4px; }
+  .tier-mon, .tier-mon.is-shadow, [data-theme="dark"] .tier-mon.is-shadow, .tier-mon:not(.is-shadow){
+    border:0 !important; background:none; box-shadow:none !important; border-radius:8px; padding:2px 4px 2px 2px; gap:2px; transform:none; }
+  .tier-mon:hover, .tier-mon.is-shadow:hover, .tier-mon:not(.is-shadow):hover{ background:color-mix(in srgb, var(--text) 8%, transparent); transform:none; }
+  .tier-mon:focus-visible{ outline:2px solid var(--blue); outline-offset:0; }
+  .tier-mon > img{ width:44px; height:44px; }
+  .tier-mon > img.shadow-mist{ border-radius:50%; }
+  .tier-mon-type{ width:16px; height:16px; border-radius:50%; align-self:flex-end; margin:0 0 4px -10px; box-shadow:0 0 0 1.5px var(--card); }
+  .tier-mon-type img{ width:10px; height:10px; }
+  .tier-mon-fallback{ width:58px; max-width:58px; white-space:normal; font-size:9.5px; line-height:1.15; text-align:center; overflow:hidden; padding-right:8px; box-sizing:border-box; }
+  #tierContainer{ --tm-h:48px; }
+  @media (max-width:700px){
+    #tierContainer{ padding:8px 12px 30px; --tm-h:42px; }
+    .tier-board{ padding:0 10px; border-radius:8px; }
+    .tier-band{ gap:8px; padding:8px 0; }
+    .tier-label{ width:44px; font-size:12px !important; }
+    .tier-mon > img{ width:38px; height:38px; }
+    .tier-mon-fallback{ width:52px; max-width:52px; font-size:8.5px; }
+  }
+
   /* ---- Layout: tabs, a 2x9 type grid, one control bar, and ranked rows in two columns ---- */
   .view-switch-row, .type-filter, .rb-bar, #container{ max-width:1120px; box-sizing:border-box; }
   .view-switch-row{ margin:4px auto 0; }
@@ -2264,7 +2293,7 @@ function renderTierList(){
     byTier.get(r.tier).push(r);
   }
   const tiers = [...byTier.keys()].sort(tierCompare);
-  el.innerHTML = tiers.map(tier => `
+  el.innerHTML = `<div class="tier-board">` + tiers.map(tier => `
     <div class="tier-band tier-${tierLetter(tier)}">
       <div class="tier-label">${tier}</div>
       <div class="tier-mons">
@@ -2275,13 +2304,13 @@ function renderTierList(){
                  ${SPRITE_IO ? `src="${SPRITE_BLANK}" data-src="${spriteUrl(m.name)}"`
                              : `src="${spriteUrl(m.name)}" loading="lazy"`}
                  alt="" width="48" height="48" decoding="async"
-                 onerror="if(!trySpriteShadowFallback(this, '${m.name.replace(/'/g, "\\'")}')) { this.replaceWith(Object.assign(document.createElement('span'), { className: 'tier-mon-fallback', textContent: '${m.name.replace(/'/g, "\\'")}'.slice(0, 12) })); }">
+                 onerror="if(!trySpriteShadowFallback(this, '${m.name.replace(/'/g, "\\'")}')) { this.replaceWith(Object.assign(document.createElement('span'), { className: 'tier-mon-fallback', textContent: '${m.name.replace(/'/g, "\\'")}' })); }">
             <span class="tier-mon-type" style="background:${TYPE_COLORS[m.type] || TYPE_COLORS.unknown};"
                   title="${m.type}"><img src="${TYPE_ICON_BASE}${m.type}.svg" alt="${m.type}"
                   loading="lazy" onerror="this.remove();"></span>
           </button>`).join("")}
       </div>
-    </div>`).join("");
+    </div>`).join("") + `</div>`;
 
   // Same deferred loading as the leaderboard: the board rebuilds on every type-chip click,
   // so sprites that were never fetched have to be re-observed each time.
