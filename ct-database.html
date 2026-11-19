@@ -1297,8 +1297,6 @@ header{ padding: 12px 24px 10px; text-align:center; }
   <div class="view-tabs-inner">
     <input type="radio" name="dbView" id="viewBest" value="best" checked>
     <label for="viewBest">Most Used Catch Tanks</label>
-    <input type="radio" name="dbView" id="viewByBoss" value="byboss">
-    <label for="viewByBoss">Bosses with Most Catch Tanks</label>
   </div>
 </div>
 <div class="type-filter" id="typeFilter" role="group" aria-label="Filter by type"></div>
@@ -1326,18 +1324,15 @@ header{ padding: 12px 24px 10px; text-align:center; }
 <div class="container">
 <div class="c1">
   <div class="c1-head">
-    <button type="button" class="c1-title" id="viewTitle" aria-haspopup="menu" aria-expanded="false"><span class="t-best">Most Used Catch Tanks</span><span class="t-boss">Bosses with Most Catch Tanks</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <h2 class="c1-title">Most Used Catch Tanks</h2>
     <span class="c1-sp"></span>
     <span class="c1-src"><em>Source</em><span class="ct-seg" id="srcSeg"><button type="button" data-src="db" class="on" aria-pressed="true">Database</button><button type="button" data-src="solo" aria-pressed="false">Solo runs</button></span></span>
     <span class="ct-seg" id="poolSeg"><button type="button" data-pool="legendary" class="on" aria-pressed="true">Legendary</button><button type="button" data-pool="mega" aria-pressed="false">Mega</button></span>
     <span class="ct-sorts" data-for="sortBest"><button type="button" data-v="entries" class="on">Entries</button><button type="button" data-v="dps">Avg DPS</button><button type="button" data-v="az">A–Z</button></span>
     <span class="ct-sorts" data-for="soloBestSort"><button type="button" data-v="runs" class="on">Runs</button><button type="button" data-v="bosses">Bosses</button><button type="button" data-v="az">A–Z</button></span>
-    <span class="ct-sorts" data-for="soloBossSort"><button type="button" data-v="tanks" class="on">Most tanks</button><button type="button" data-v="runs">Runs</button><button type="button" data-v="az">A–Z</button></span>
     <select id="soloBestSort" hidden><option value="runs">Runs</option><option value="bosses">Bosses</option><option value="az">A–Z</option></select>
     <select id="soloBossSort" hidden><option value="tanks">Most tanks</option><option value="runs">Runs</option><option value="az">A–Z</option></select>
-    <span class="ct-sorts" data-for="sortByBoss"><button type="button" data-v="tanks" class="on">Most tanks</button><button type="button" data-v="az">A–Z</button></span>
   </div>
-  <div class="c1-menu" id="viewMenu" role="menu" hidden><button type="button" role="menuitemradio" data-view="best">Most Used Catch Tanks</button><button type="button" role="menuitemradio" data-view="byboss">Bosses with Most Catch Tanks</button></div>
   <div class="views-grid">
     <section class="view-col" id="col-best">
       <div class="view-col-head">
@@ -2447,10 +2442,7 @@ function canonicalName(names){
   )[0][0];
 }
 
-function currentView(){
-  const el = document.querySelector('input[name="dbView"]:checked');
-  return el ? el.value : "byboss";
-}
+function currentView(){ return "best"; }   // Most Used Catch Tanks is the page's one list
 
 
 function ctCols(head, rows){
@@ -3117,6 +3109,7 @@ document.getElementById("sortByBoss").addEventListener("change", render);
 document.getElementById("sortBest").addEventListener("change", render);
 (function(){
   const btn = document.getElementById("viewTitle"), menu = document.getElementById("viewMenu");
+  if(!btn || !menu) return;
   const mark = () => menu.querySelectorAll("button").forEach(b => { const on = b.dataset.view === currentView(); b.classList.toggle("on", on); b.setAttribute("aria-checked", String(on)); });
   const setOpen = open => { menu.hidden = !open; btn.setAttribute("aria-expanded", String(open)); if(open){ mark(); (menu.querySelector(".on") || menu.querySelector("button")).focus(); } };
   btn.addEventListener("click", e => { e.stopPropagation(); setOpen(menu.hidden); });
