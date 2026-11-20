@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- SEASON: the regular pages rotate their colours with the seasons (assets/seasons.css), picked
+     from today's date in Pacific time - Dec-Feb winter, Mar-May spring, Jun-Aug summer, Sep-Nov fall.
+     Set before anything is drawn, so there's no flash of the old colours. ?season=winter (etc.)
+     in the address previews another season. The menu's "Default theme" button turns it off. -->
+<script>(function(){try{
+  var m=+new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",month:"numeric"}).format(new Date());
+  var s=(m===12||m<=2)?"winter":m<=5?"spring":m<=8?"summer":"fall";
+  var q=/[?&]season=(winter|spring|summer|fall)\b/.exec(location.search); if(q) s=q[1];
+  // A visitor can switch to the site's default colours (remembered on this device, like light/dark);
+  // a ?season= preview link always shows the season.
+  var off=false; try{ off=localStorage.getItem("raidArchiveSeasonal")==="off"; }catch(e){}
+  if(!off||q) document.documentElement.setAttribute("data-season",s);
+  // The switch: a button in the menu panel, beside the light/dark one, naming what it switches to.
+  var icon={winter:"\u2744\uFE0F",spring:"\uD83C\uDF38",summer:"\u2600\uFE0F",fall:"\uD83C\uDF42"}[s];
+  document.addEventListener("DOMContentLoaded",function(){
+    var dark=document.querySelector("#hamburgerPanel .hamburger-theme-toggle")||document.querySelector(".hamburger-panel .hamburger-theme-toggle");
+    if(!dark||document.getElementById("seasonToggle")) return;
+    var b=document.createElement("button"); b.type="button"; b.id="seasonToggle"; b.className=dark.className;
+    var root=document.documentElement;
+    function label(){ var on=root.hasAttribute("data-season");
+      b.textContent=on?"\uD83C\uDFA8 Default theme":icon+" Seasonal theme";
+      b.title=on?"Switch to the site's default colours":"Switch to this season's colours";
+      b.setAttribute("aria-pressed",String(on)); }
+    b.addEventListener("click",function(){
+      if(root.hasAttribute("data-season")){ root.removeAttribute("data-season"); try{localStorage.setItem("raidArchiveSeasonal","off");}catch(e){} }
+      else { root.setAttribute("data-season",s); try{localStorage.removeItem("raidArchiveSeasonal");}catch(e){} }
+      label(); });
+    label(); dark.parentNode.insertBefore(b,dark.nextSibling);
+  });
+}catch(e){}})();</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokémon Stats — Raid Boss & Raider Reference</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+<!-- PWA install support -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3d9dff">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
+}
+</script>
+<!-- /PWA install support -->
+<meta name="description" content="Raid boss and raider stats for Pokémon GO — base attack, defence and stamina, typing, movepools and the derived raid values used throughout the Solo Raid Archive.">
+<link rel="canonical" href="https://soloraidarchive.github.io/pokemon-stats.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Pokémon Stats Reference | Solo Raid Archive">
+<meta property="og:description" content="Base stats reference for every Pokémon used in Pokémon GO solo raid strategies, including Mega Evolutions.">
+<meta property="og:url" content="https://soloraidarchive.github.io/pokemon-stats.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Pokémon Stats Reference | Solo Raid Archive">
+<meta name="twitter:description" content="Base stats reference for every Pokémon used in Pokémon GO solo raid strategies, including Mega Evolutions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce; --bg: #ffffff; --card: #ffffff; --border: #e7edf5;
+    --ink: #2d3142; --ink-muted: #6b7280; --ink-dim: #9aa3b2;
+    --accent: #3d9dff; --accent-soft: #eaf4ff; --accent-dark: #2b7fd6;
+  }
+  [data-theme="dark"]{
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024; --bg: #10131d; --card: #1c2030; --border: #323850;
+    --ink: #eef1f7; --ink-muted: #a7afc0; --ink-dim: #767f96;
+    --accent: #5aa9ff; --accent-soft: #232840; --accent-dark: #8cc7ff;
+  }
+  [data-theme="dark"] body{
+    background: #16131f;
+  }
+  *{ box-sizing:border-box; }
+  html{ max-width:100vw; }
+
+  body{ margin:0; background: #fff3e6; color: var(--ink); font-family: 'Inter', sans-serif; min-height:100vh; }
+
+  [data-theme="dark"] body{ background: #16131f; }
+
+    
+  header{ padding: 12px 24px 10px; text-align:center; }
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-title-row{ position:relative; text-align:center; margin-bottom:0; min-height:44px;
+    display:flex; align-items:center; justify-content:center; }
+  .sticky-header-title-row .header-buttons{ position:absolute; right:0; top:50%; transform:translateY(-50%); }
+  /* Search moved out of the sticky header so the title is not competing with it for space in a
+     bar that stays on screen. Aligned left to the content container (1100px/20px) because the
+     data below is left-indexed - a centred control over left-aligned rows reads as misaligned. */
+  .page-search-row{ max-width:1100px; margin:12px auto 10px; padding:0 20px;
+    display:flex; justify-content:flex-start; }
+  /* These inputs carried `margin: 0 auto` from their old life centred in the sticky header, which
+     re-centres them inside the flex row and defeats justify-content. Reset explicitly. */
+  .page-search-row > *, .page-search-row input{ margin-left:0 !important; margin-right:auto !important; }
+  .page-search-row > *{ flex:0 1 340px; min-width:0; }
+  .page-search-row input{ width:100%; font-size:13px; padding:7px 11px; border-radius:10px; box-sizing:border-box; }
+  .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
+  .header-buttons{ display:flex; gap:8px; flex-shrink:0; }
+  @media (min-width:700px){
+    .sticky-header-row{ display:grid; grid-template-columns: 1fr auto 1fr; gap:8px; }
+    #searchInput{ grid-column:2; width:100%; max-width:400px; margin:0 auto; }
+    .header-buttons{ grid-column:3; justify-self:end; }
+  }
+  h1{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:clamp(20px, 4.2vw, 26px); color: var(--ink);
+    margin:0;
+  }
+
+  .controls{
+    max-width: 1100px; margin: 16px auto 0; padding: 0 20px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
+  }
+  #searchInput{
+    flex:1; min-width:0; max-width:400px;
+    background: var(--card); border: 1px solid var(--border); color: var(--ink);
+    font-family:'Inter', sans-serif; font-size:16px; padding: 10px 14px; border-radius: 10px; outline:none;
+  }
+  #searchInput:focus{ border-color: var(--accent); }
+  .vertical-toggle{ display:flex; flex-direction:column; gap:2px; }
+  .hamburger-item{
+    display:flex; align-items:center; width:100%; padding:10px 8px; font-family:'Manrope', sans-serif;
+    font-weight:700; font-size:13.5px; color: var(--ink); background:none; border:none;
+    border-radius:10px; cursor:pointer; text-align:left; min-height:40px; box-sizing:border-box;
+  }
+  .hamburger-item:hover{ background: var(--ink-soft, var(--card)); }
+  .hamburger-item.active{ background: var(--accent); color:#fff; }
+  .level-control{
+    display:flex; align-items:center; gap:8px; background: var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:6px 12px;
+  }
+  .level-control label{ font-size:11px; font-weight:800; color: var(--ink-dim); text-transform:uppercase; letter-spacing:0.04em; }
+  .cpm-toggle{
+    display:flex; align-items:center; gap:7px; background: var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:6px 12px; cursor:pointer; font-size:12.5px; font-weight:700; color: var(--ink-muted);
+  }
+  .cpm-toggle input{ width:15px; height:15px; accent-color: var(--accent); cursor:pointer; }
+  .level-control.disabled{ opacity:0.45; pointer-events:none; }
+  .level-control input{
+    width:52px; background:none; border:none; color: var(--accent); font-family:'Manrope', sans-serif;
+    font-weight:800; font-size:14px; text-align:center; outline:none;
+  }
+  .stats-blurb{
+    max-width:700px; margin:14px auto 0; padding:10px 16px; text-align:center;
+    font-size:12px; color: var(--ink-dim); line-height:1.5;
+  }
+.container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 45px; }
+  .count{
+    text-align:center; font-family:'Inter', sans-serif; font-size:12px;
+    color: var(--ink-dim); margin-bottom:14px;
+  }
+  .pkmn-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap:12px; align-items:start; }
+  .pkmn-card{
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding: 14px 16px; box-shadow: 0 1px 2px rgba(26,29,41,0.04); min-width:0;
+    display:flex; flex-direction:column;
+  }
+  .pkmn-card-main{ display:flex; align-items:center; gap:12px; }
+  .pkmn-sprite{
+    width:52px; height:52px; border-radius:10px; flex-shrink:0;
+    background: #f0f0f2; border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  [data-theme="dark"] .pkmn-sprite{ background:#eaeaec; border-color:#3a3f56; }
+  .pkmn-sprite img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .pkmn-sprite-fallback{
+    display:none; width:100%; height:100%; align-items:center; justify-content:center;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:22px; color: var(--ink-dim);
+  }
+  .pkmn-info{ flex:1; min-width:0; }
+  .pkmn-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:6px; }
+  .stat-row{ margin-bottom:7px; }
+  .stat-row:last-child{ margin-bottom:0; }
+  .stat-label-row{ display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; color: var(--ink-muted); margin-bottom:2px; }
+  .stat-label-row b{ color: var(--ink); font-family:'Inter', sans-serif; font-variant-numeric:tabular-nums; font-size:11.5px; font-weight:700; }
+  .bar-track{ height:7px; background: var(--bg1); border-radius:999px; overflow:hidden; }
+  [data-theme="dark"] .bar-track{ background:#161a28; }
+  .bar-fill{ height:100%; border-radius:999px; }
+  .bar-fill.atk{ background: linear-gradient(90deg,#ff7a7a,#ff5b5b); }
+  .bar-fill.def{ background: linear-gradient(90deg,#5aa9ff,#3d9dff); }
+  .bar-fill.hp{ background: linear-gradient(90deg,#6fe0a0,#4cd08a); }
+
+  .move-toggle-btn{
+    width:100%; margin-top:10px; border:1.5px solid var(--border); background:transparent;
+    border-radius:8px; padding:6px; font-size:12px; color: var(--ink-muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+    font-family:'Inter', sans-serif;
+  }
+  .move-toggle-btn:hover{ background: var(--bg1); }
+  [data-theme="dark"] .move-toggle-btn:hover{ background:#161a28; }
+  .move-panel{
+    display:none; height:150px; overflow-y:auto; margin-top:10px; padding-top:10px;
+    border-top:1.5px solid var(--border);
+  }
+  .move-panel.open{ display:block; }
+  .move-cat-label{
+    font-size:10px; font-weight:800; color: var(--ink-dim); text-transform:uppercase;
+    letter-spacing:0.04em; margin-bottom:5px; font-family:'Manrope', sans-serif;
+  }
+  .move-chip-row{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+  .move-chip-row:last-child{ margin-bottom:0; }
+  .move-chip{
+    display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:2px 8px;
+    border-radius:999px; white-space:nowrap; background: var(--bg1); color: var(--ink);
+    border:1px solid var(--border);
+  }
+  .move-chip.charge{ font-weight:600; }
+  .move-chip-icon{ width:13px; height:13px; flex-shrink:0; object-fit:contain; }
+  .move-various{ font-size:11px; color: var(--ink-dim); font-style:italic; }
+  .move-note{
+    font-size:10.5px; color: var(--ink-dim); font-style:italic; margin-top:8px;
+    display:flex; align-items:flex-start; gap:4px; line-height:1.35;
+  }
+  .move-note svg{ flex-shrink:0; margin-top:1px; }
+
+  .empty{ text-align:center; color: var(--ink-dim); padding:60px 20px; font-family:'Inter', sans-serif; }
+
+  .hamburger-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){
+    .hamburger-btn:hover{ transform: translateY(-2px); }
+  }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:absolute; top:calc(100% + 1px); right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 99px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
+  .gear-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .gear-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){
+    .gear-btn:hover{ transform: translateY(-2px); }
+  }
+  .filter-line{ display:block; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); }
+  .filter-line-1{ width:16px; }
+  .filter-line-2{ width:11px; }
+  .filter-line-3{ width:6px; }
+  .gear-panel{
+    /* opens under the filter button, which sits at the header's left */
+    display:none; position:absolute; top:calc(100% + 1px); left:0; right:auto; z-index:19;
+    width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:12px; max-height:calc(100vh - 99px); overflow-y:auto; overflow-x:hidden;
+  }
+  .gear-panel.open{ display:flex; }
+  /* The CPM note used to sit permanently between the search box and the grid, pushing the data
+     down on every visit to say something a reader needs once. It is now behind an info button,
+     using the same slide-out geometry as .gear-panel so the two panels feel like one mechanism. */
+  .info-btn{
+    display:flex; align-items:center; justify-content:center;
+    width:44px; height:44px; flex-shrink:0; padding:0;
+    background: var(--card); border:2px solid var(--border); border-radius:12px;
+    color: var(--text); cursor:pointer; box-sizing:border-box;
+  }
+  .info-btn[aria-expanded="true"]{ border-color: var(--blue, #3d9dff); }
+  .info-panel{
+    display:none; position:absolute; top:calc(100% + 1px); right:16px; z-index:19;
+    width:min(360px, calc(100vw - 48px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:6px; text-align:left;
+  }
+  .info-panel.open{ display:flex; }
+  .info-panel-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; color: var(--text);
+  }
+  /* Inside the panel the note is left-aligned body copy, not a centred page banner. */
+  .info-panel .stats-blurb{ max-width:none; margin:0; padding:0; text-align:left; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text, var(--ink)); background: var(--card, var(--ink-soft)); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--accent); color: var(--accent-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim, var(--ink-dim)); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text, var(--ink)); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1, var(--ink-soft)); color: var(--accent-dark); }
+  .hamburger-section a.current{ background: var(--accent); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  .hamburger-section a.hamburger-featured.current{
+    background-image:
+      linear-gradient(var(--accent), var(--accent)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+
+/* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator.
+   The dropdown is appended to <body> and positioned with position:fixed from the input's
+   own bounding box. An earlier version wrapped the input in a span to anchor the list,
+   which changed the field's placement: these bars are centred by their parent row on
+   desktop, and the extra element pushed them hard left. Nothing wraps the input now, so
+   layout is byte-identical to before the autocomplete existed. */
+.ac-list{
+  position:fixed; z-index:2000; display:none;
+  background: var(--card, #fff); border:1px solid var(--border, #d8dbe6);
+  border-radius:10px; overflow:hidden;
+  box-shadow:0 8px 22px rgba(0,0,0,.12);
+}
+.ac-list.open{ display:block; }
+.ac-item{ padding:8px 12px; font-size:14px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
+[data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
+.ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
+
+
+
+  /* info button beside the search box, its panel opening just below it */
+  .page-search-row{ position:relative; align-items:center; gap:8px; }
+  .page-search-row .info-btn{ flex:none; width:34px; height:34px; border-radius:10px; margin:0 !important; }
+  .page-search-row .info-btn svg{ width:16px; height:16px; }
+  .page-search-row .info-panel{ top:calc(100% + 6px); left:20px; right:auto; }
+  /* Same header as every other page: the menu button alone at the top right, this page's filter
+     button mirrored at the top left, the title centred between them. (With both at the right, the
+     menu button sat 52px further in than elsewhere and the title was pushed off centre.) */
+  .sticky-header-title-row .header-buttons-left{ left:0; right:auto; }
+  /* The filter panel opens flush against the left edge of the screen, like the menu on the right */
+  .gear-panel{ border-left:none !important; border-top-left-radius:0 !important; border-bottom-left-radius:0 !important; }
+</style>
+<link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
+<script src="assets/seasons.js" defer></script><!-- falling season particles in the margins -->
+</head>
+<body>
+
+<div class="sticky-header">
+  <div class="sticky-header-title-row">
+    <div class="header-buttons header-buttons-left">
+      <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
+        <span class="filter-line filter-line-1"></span>
+        <span class="filter-line filter-line-2"></span>
+        <span class="filter-line filter-line-3"></span>
+      </button>
+    </div>
+    <h1 class="page-title-sm">Pokémon Stats</h1>
+    <div class="header-buttons">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- NAV:START - generated by generate_nav.py from data/nav-partial.html. Do not edit by hand. -->
+<!-- Shortcut links to the most-used pages, and one header-title size for every page. Defined
+     here once; generate_nav.py stamps it into every page, and marks the link to the page itself
+     "current" (as it does in the menu). The links are placed into the page's header bar by the
+     script below - this partial sits at the very top of <body>, before the header exists - and
+     stay hidden until then so they never flash at the top of the page. -->
+<style>
+  /* Header titles were 26px on some pages, 22px on the raid archives, 18px on others, and 15px
+     Inter on boss collection pages. One size everywhere: */
+  body .sticky-header .page-title-sm, body .sticky-header h1{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:22px; line-height:1.2; letter-spacing:-0.01em;
+  }
+  body .sticky-header .crumb-header #crumbBoss{ font-family:'Manrope', sans-serif; font-weight:800; font-size:22px; color:var(--text); }
+  @media (max-width:600px){
+    body .sticky-header .page-title-sm, body .sticky-header h1, body .sticky-header .crumb-header #crumbBoss{ font-size:18px; }
+  }
+  .qlinks[hidden]{ display:none !important; }
+  /* Own colour settings, borrowing the page's variables where it has them: not every page defines
+     --text-dim / --blue (Top Catch Tanks doesn't), and without these the links took the header's
+     text colour and the current-page highlight vanished. */
+  #quickLinks{ --ql-dim: var(--text-dim, #8a93a6); --ql-text: var(--text, #e6e9f0); --ql-accent: var(--blue, #3d9dff); }
+  .qlinks{ display:flex; justify-content:center; gap:2px; padding:6px 0 0; overflow-x:auto; scrollbar-width:none; }
+  .qlinks::-webkit-scrollbar{ display:none; }
+  #quickLinks a{ font:700 12.5px 'Manrope', sans-serif; color:var(--ql-dim); padding:5px 11px; border-radius:999px;
+    white-space:nowrap; text-decoration:none; background:none; }
+  #quickLinks a:hover{ color:var(--ql-text); }
+  #quickLinks a.current{ color:var(--ql-accent); background:color-mix(in srgb, var(--ql-accent) 13%, transparent); }
+  .qlinks .ql-short{ display:none; }
+  /* Submit a VOD / Submit a Guide are on the landing page only, at the end of the same row */
+  #quickLinks .ql-home-only{ display:none; }
+  #quickLinks.qlinks-home .ql-home-only{ display:inline-block; }
+  #quickLinks.qlinks-home{ flex-wrap:wrap; }
+  /* pages without a header bar (Home, Difficulty & Roles, the Guide Editor): a row at the top */
+  #quickLinks.qlinks-standalone{ padding:12px 64px 4px; }
+  @media (max-width:600px){
+    .qlinks{ justify-content:space-between; gap:0; }
+    #quickLinks a{ font-size:11.5px; padding:5px 4px; letter-spacing:-0.01em; }
+    .qlinks .ql-full{ display:none; } .qlinks .ql-short{ display:inline; }
+    /* Header rows whose menu button is pinned to the right (raid guides, CT Calculator) were only as
+       tall as the title, so the 44px button hung down over the links. */
+    body .sticky-header .sticky-header-row{ min-height:44px; }
+    /* no header bar: the menu button floats at the top right, so the row goes just below it */
+    #quickLinks.qlinks-standalone{ padding:62px 8px 4px; }
+    /* the landing page's seven links don't fit one phone row: centred, wrapping onto a second */
+    #quickLinks.qlinks-home{ justify-content:center; row-gap:2px; }
+  }
+  /* The menu opens flush against the right edge of the screen: no gap, no border or rounded
+     corners on that side. Every page positions it from a full-width header or the window. */
+  body .hamburger-panel{ right:0 !important; border-right:none !important;
+    border-top-right-radius:0 !important; border-bottom-right-radius:0 !important; }
+  /* phones up to 380px wide, down to 320px: all six still fit without cutting off "Mechanics" */
+  @media (max-width:380px){
+    #quickLinks a{ font-size:10px; padding:5px 2px; letter-spacing:-0.02em; }
+    #quickLinks.qlinks-standalone{ padding:62px 6px 4px; }
+  }
+</style>
+<nav class="qlinks" id="quickLinks" aria-label="Shortcuts" hidden>
+  <a href="/"><span class="ql-full">Home</span><span class="ql-short">Home</span></a>
+  <a href="progression.html"><span class="ql-full">Progression</span><span class="ql-short">Progress</span></a>
+  <a href="dps-calculator.html"><span class="ql-full">DPS Calculator</span><span class="ql-short">DPS Calc</span></a>
+  <a href="research.html"><span class="ql-full">Top Raiders</span><span class="ql-short">Raiders</span></a>
+  <a href="ct-database.html"><span class="ql-full">Top Catch Tanks</span><span class="ql-short">Catch Tanks</span></a>
+  <a href="solo-raid-mechanics.html"><span class="ql-full">Solo Mechanics</span><span class="ql-short">Mechanics</span></a>
+  <!-- the landing page only: its old Submit buttons now live here, as plain links like the rest -->
+  <a href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" class="ql-home-only" target="_blank" rel="noopener noreferrer"><span class="ql-full">Submit a VOD</span><span class="ql-short">Submit VOD</span></a>
+  <a href="editor.html" class="ql-home-only" title="Requires a GitHub account"><span class="ql-full">Submit a Guide</span><span class="ql-short">Submit Guide</span></a>
+</nav>
+<script>
+(function(){
+  function place(){
+    var nav = document.getElementById("quickLinks");
+    if(!nav) return;
+    // The landing page gets the same row (Home highlighted), plus its Submit a VOD / Submit a Guide
+    // links at the end; it has no header bar, so the row sits at the top like the editor's.
+    if(/(^|\/)(index\.html)?$/.test(location.pathname)) nav.classList.add("qlinks-home");
+    var hdr = document.querySelector(".sticky-header");
+    if(hdr){
+      hdr.appendChild(nav);
+    } else {
+      nav.classList.add("qlinks-standalone");
+      document.body.insertBefore(nav, document.body.firstChild);
+    }
+    var cur = nav.querySelector("a.current");
+    if(cur) cur.setAttribute("aria-current", "page");
+    nav.hidden = false;
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", place); else place();
+})();
+</script>
+<div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="/"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">PVE Meta</div>
+    <a href="research.html" class="hamburger-featured">Top Raiders</a>
+    <a href="ct-database.html" class="hamburger-featured">Top Catch Tanks</a>
+    <a href="meta-battle-parties.html">Battle Parties</a>
+  </div>
+    <div class="hamburger-section">
+    <div class="hamburger-section-label">Research</div>
+    <a href="dps-calculator.html" class="hamburger-featured">DPS Calculator</a>
+    <a href="solo-raid-mechanics.html" class="hamburger-featured">Solo Mechanics</a>
+    <a href="guides.html" class="hamburger-featured">Raid Guides</a>
+    <a href="articles.html">Articles</a>
+    <a href="move-data.html">Move Stats</a>
+    <a href="pokemon-stats.html" class="current">Pokémon Stats</a>
+    <a href="reference.html">Difficulty &amp; Roles</a>
+    <a href="progression.html">Progression</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Archives</div>
+    <a href="tier4-raids.html">Mega</a>
+    <a href="tier5-raids.html">Legendary</a>
+    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Resources</div>
+    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+  </div>
+</div>
+
+<script>
+/* The nav panel: opens and closes with the hamburger button, and closes again on its own - when
+   you go to another page (it starts closed on every page), click or tap outside it, press Escape,
+   or pick one of its links. Coming back with the browser's back button closes it too (the browser
+   can restore a page exactly as it was left, panel open included).
+
+   It used to stay open from page to page (kept in sessionStorage) so moving between pages didn't
+   mean reopening it each time; with the shortcut row now on every page that is no longer needed.
+
+   Each page ships its own hamburger handler inline, outside the NAV markers this file is injected
+   between, so those can't be edited from here. The button is replaced with a clone (dropping the
+   page's listener) and the page's closeHamburger() is pointed at this one, so every page behaves
+   the same. */
+(function(){
+  try { sessionStorage.removeItem("sra-nav-open"); } catch(e){ /* the old open-state flag */ }
+  document.addEventListener("DOMContentLoaded", function(){
+    var panel = document.getElementById("hamburgerPanel");
+    var btn = document.getElementById("hamburgerBtn");
+    if(!panel || !btn) return;
+
+    var fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+    btn = fresh;
+
+    function setOpen(open){
+      panel.classList.toggle("open", open);
+      btn.setAttribute("aria-expanded", String(open));
+    }
+    window.closeHamburger = function(){ setOpen(false); };
+    setOpen(false);
+
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      setOpen(!panel.classList.contains("open"));
+    });
+    document.addEventListener("click", function(e){
+      if(!panel.classList.contains("open")) return;
+      if(e.target.closest && e.target.closest("#hamburgerPanel a")){ setOpen(false); return; }
+      if(!panel.contains(e.target) && !btn.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape" && panel.classList.contains("open")){ setOpen(false); btn.focus(); }
+    });
+    window.addEventListener("pageshow", function(){ setOpen(false); });
+  });
+})();
+</script>
+<!-- NAV:END -->
+
+
+  <div class="gear-panel" id="gearPanel">
+  <div class="controls">
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Sort</div>
+
+
+    <div class="vertical-toggle" id="sortList">
+      <button class="hamburger-item active" data-sort="name">Name (A–Z)</button>
+      <button class="hamburger-item" data-sort="atk">Attack (High–Low)</button>
+      <button class="hamburger-item" data-sort="def">Defense (High–Low)</button>
+      <button class="hamburger-item" data-sort="hp">HP (High–Low)</button>
+    </div>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Show</div>
+    <div class="vertical-toggle" id="showLimitList">
+      <button class="hamburger-item active" data-n="30">Top 30</button>
+      <button class="hamburger-item" data-n="100">Top 100</button>
+      <button class="hamburger-item" data-n="0">Show All</button>
+    </div>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Display</div>
+    <div class="level-control">
+      <label for="levelInput">Level</label>
+      <input id="levelInput" type="number" value="40" min="40" max="53" step="0.5">
+    </div>
+    <label class="cpm-toggle">
+      <input id="noCpmToggle" type="checkbox">
+      <span>Base stats (no CPM)</span>
+    </label>
+  </div>
+</div>
+  </div>
+</div>
+
+<div class="page-search-row">
+  <input id="searchInput" type="text" placeholder="Search Pokémon name…" autocomplete="off">
+  <!-- "About these stats" sits beside the search box (it used to be in the header, next to the
+       title, which pushed the title off-centre); its panel opens just below it. -->
+  <button class="info-btn" id="infoBtn" aria-label="About these stats" aria-expanded="false" aria-controls="infoPanel">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6h.01"/>
+        </svg>
+      </button>
+  <div class="info-panel" id="infoPanel" role="dialog" aria-label="About these stats">
+    <div class="info-panel-title">About these stats</div>
+    <div class="stats-blurb" id="statsBlurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
+  </div>
+</div>
+
+
+
+<div class="container">
+  <div class="count" id="count"></div>
+  <div class="pkmn-grid" id="pkmnGrid"></div>
+</div>
+
+<script src="/csv/csv-utils.js"></script>
+<script>
+// Stats are loaded from csv/pokemon-stats.csv - the same file the calculator and the raid
+// archives read. This page previously inlined all 1193 entries, a second copy of that data
+// that had to be edited in lockstep with the CSV.
+let POKEMON_DB = [];
+
+// ============ MOVE DATA (loaded from CSV - single source of truth) ============
+// Movepool, move types, and elite-move list all come from data/*.csv so editing the sheet
+// updates every page. Elite-TM-exclusive moves are stripped here because this page is used to
+// assess raid bosses, which can never have an Elite move - matching the DPS Calculator's boss
+// dropdown and the guide pages' Boss Info.
+const MOVEPOOL = {};        // lowercase name -> {fast:[], charge:[]}
+const MOVE_TYPES = {};      // move name -> type string
+const ELITE_BY_POKEMON = {};// lowercase name -> Set of elite move names
+const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
+const CHARGE_CAP = 12;      // above this many charge moves, show "(various)" (only Mew + Smeargle)
+let moveDataReady = false;
+
+async function loadMoveData(){
+  // Load each CSV independently so one missing/broken file doesn't kill the others. Movepool and
+  // move types are essential (no panels without them); the elite list is optional - if it fails,
+  // moves still show, just unfiltered, rather than the whole feature going dark.
+  const [movepoolRows, moveRows, statsRows] = await Promise.all([
+    fetchCSV("/csv/pokemon-movepool.csv"),
+    fetchCSV("/csv/moves.csv"),
+    fetchCSV("/csv/pokemon-stats.csv"),
+  ]);
+  POKEMON_DB = statsRows
+    .filter(r => r.name)
+    .map(r => ({ n: r.name, hp: parseFloat(r.hp), atk: parseFloat(r.atk), def: parseFloat(r.def) }))
+    .filter(p => !isNaN(p.atk) && !isNaN(p.def) && !isNaN(p.hp));
+  recomputeMaxStat();
+  moveRows.forEach(r => { MOVE_TYPES[r.name] = r.type; });
+  // Elite-TM status comes from the `elite` flag on pokemon-movepool.csv now; the separate
+  // elite-moves.csv listed the same (pokemon, move) pairs and had to be kept in sync.
+  movepoolRows.forEach(r => {
+    if(String(r.elite || "").trim() !== "1") return;
+    const k = r.pokemon.toLowerCase();
+    (ELITE_BY_POKEMON[k] = ELITE_BY_POKEMON[k] || new Set()).add(r.move);
+  });
+  movepoolRows.forEach(r => {
+    const k = r.pokemon.toLowerCase();
+    if(!MOVEPOOL[k]) MOVEPOOL[k] = { fast: [], charge: [] };
+    const bucket = r.category === "charge" ? "charge" : "fast";
+    MOVEPOOL[k][bucket].push(r.move);
+  });
+  moveDataReady = true;
+}
+
+// Collapse the 18 "Hidden Power <type>" variants into a single chip - they otherwise blow up the
+// fast-move list (Togekiss, Starmie, etc. show 18-20 fast moves) and break the fixed card height.
+function collapseHiddenPower(list){
+  const out = []; let seen = false;
+  for(const m of list){
+    if(m.indexOf("Hidden Power") === 0){ if(!seen){ out.push("Hidden Power"); seen = true; } }
+    else out.push(m);
+  }
+  return out;
+}
+
+// Returns the boss-legal movepool for a name (elite moves removed), or null if none on file.
+function bossMovepoolFor(name){
+  const key = name.toLowerCase();
+  const mp = MOVEPOOL[key];
+  if(!mp) return null;
+  const baseKey = key.replace(/^(mega |primal |shadow |alolan |galarian |hisuian )/, "");
+  const elite = ELITE_BY_POKEMON[key] || ELITE_BY_POKEMON[baseKey] || null;
+  const strip = list => elite ? list.filter(m => !elite.has(m)) : list;
+  return { fast: strip(mp.fast), charge: strip(mp.charge) };
+}
+
+function moveChipHtml(name, isCharge){
+  const type = MOVE_TYPES[name];
+  const icon = type
+    ? `<img class="move-chip-icon" src="${TYPE_ICON_BASE}${type.toLowerCase()}.svg" alt="${type}" title="${type}" onerror="this.remove();">`
+    : "";
+  return `<span class="move-chip${isCharge ? " charge" : ""}">${icon}${name}</span>`;
+}
+
+function movePanelHtml(name){
+  const mp = bossMovepoolFor(name);
+  if(!mp || (!mp.fast.length && !mp.charge.length)){
+    return `<div class="move-various">No move data on file.</div>`;
+  }
+  const capped = mp.charge.length > CHARGE_CAP || mp.fast.length > 40;
+  if(capped){
+    return `
+      <div class="move-cat-label">Fast</div>
+      <div class="move-chip-row"><span class="move-various">various</span></div>
+      <div class="move-cat-label">Charge</div>
+      <div class="move-chip-row"><span class="move-various">various</span></div>
+      <div class="move-note"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Learns almost every move - full list omitted.</div>`;
+  }
+  const fast = collapseHiddenPower(mp.fast);
+  return `
+    <div class="move-cat-label">Fast</div>
+    <div class="move-chip-row">${fast.map(m => moveChipHtml(m, false)).join("")}</div>
+    <div class="move-cat-label">Charge</div>
+    <div class="move-chip-row">${mp.charge.map(m => moveChipHtml(m, true)).join("")}</div>`;
+}
+
+function toggleMoves(btn){
+  const panel = btn.nextElementSibling;
+  const open = !panel.classList.contains("open");
+  // Build the panel's chip HTML on first open, not during render(). Rendering ~1200 cards was
+  // eagerly building every (collapsed) card's full move list - type-icon lookups and all - for
+  // content nobody was looking at. Deferring it here keeps render() cheap and only does the work
+  // when a card is actually expanded. Cached after the first open via the data-built flag.
+  if(open && !panel.dataset.built){
+    panel.innerHTML = movePanelHtml(panel.dataset.pkmn);
+    panel.dataset.built = "1";
+  }
+  panel.classList.toggle("open", open);
+  btn.querySelector(".move-toggle-caret").innerHTML = open ? "&#9650;" : "&#9660;";
+  btn.querySelector(".move-toggle-text").textContent = open ? "Hide moves" : "Show moves";
+}
+
+// ============ SPRITE LOOKUP (same approach as the raid archives / calculator) ============
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
+  "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zamazenta hero":"zamazenta", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane",
+  "ndm":"necrozma-dusk-mane", "ndw":"necrozma-dawn-wings",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
+const DEX_MAP = {
+  "dialga":483, "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "groudon":383, "mamoswine":473, "salamence":373, "gengar":94,
+  "tyrantrum":697, "rhyperior":464, "kyogre":382, "mewtwo":150,
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  // PokemonDB uses a suffix for regional forms (e.g. "raichu-alolan"), not a prefix
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
+}
+// Very recent Legends: Z-A Mega Evolutions - use PokemonGoHub direct artwork instead of guessing PokemonDB slugs
+const GOHUB_OVERRIDES = {
+  // The Origin formes have no animated sprite on the CDN - "dialga-origin.gif" and
+  // "palkia-origin.gif" both 404 - so they fall back to the static pogo-256 art. Giratina
+  // Origin does have a .gif, which is why it never showed this problem.
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://i.pokebase.app/pokemongo/l5WJLysbWg_FeD9rwaZAx.png",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "mega heatran": "https://i.pokebase.app/pokemongo/1NEIKLeb_FEopFvUGwWNi.png",
+  "mega lucario z": "/assets/sprites/lucario-megaz.png",
+  "mega absol z": "/assets/sprites/absol-megaz.png",
+  "mega complete zygarde": "https://i.pokebase.app/pokemongo/QgUu3Rg6oE0JsS8iVvBVo.png",
+  "mega garchomp z": "/assets/sprites/garchomp-megaz.png",
+  "mega chimecho": "https://i.pokebase.app/pokemongo/-Zsr6tz6C3QfHAxo30gzS.png",
+  "mega eternal floette": "https://i.pokebase.app/pokemongo/e0XY7wZGgOPSr9AGRQoTH.png",
+  "mega excadrill": "https://i.pokebase.app/pokemongo/DYPljoJKgiAKIb3gx5-jm.png",
+  "mega victreebel": "https://i.pokebase.app/pokemongo/A-nxEKJxh6WHZN6SETHsB.png",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+// Filenames in the animated GIF repo don't always match PokemonDB's own slug convention -
+// e.g. Crowned formes append "sword"/"shield" with no hyphen, Necrozma fusions drop the
+// internal hyphen in the form suffix, and the Tapu deities have no hyphen at all.
+const ANI_OVERRIDES = {
+  // Regional forms whose CDN filename does not follow the "<name>-<region>" rule the generic
+  // regional branch produces. Each of these 404s without an entry here; the names were confirmed
+  // against the sprite CDN rather than guessed.
+  "galarian farfetch'd": "farfetchd-galarian",
+  "galarian mr. mime": "mrmime-galarian",
+  "hisuian basculin": "basculin-whitestriped",
+  "hisuian zoroark": "zoroark-hisuian",
+  "paldean wooper": "wooper-paldea",
+  // Galarian Darmanitan's two forms. Without these the regional rule produces
+  // "darmanitan-galarian" and "darmanitan-zen-galarian", both 404 on the sprite CDN - the real
+  // names are "-galarianstandard" and "-galarianzen". The Shadow variants resolve through here
+  // too, since the lookup strips a leading "shadow ".
+  "galarian darmanitan": "darmanitan-galarianstandard",
+  "galarian darmanitan zen": "darmanitan-galarianzen",
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  // Aegislash's two forms. Shield is the CDN's base file, so the generic rule's
+  // "aegislash-shield" 404s; Blade does have its own file. Both confirmed against the CDN.
+  "aegislash shield": "aegislash", "aegislash": "aegislash",
+  "aegislash blade": "aegislash-blade",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
+  // Shorthand names used elsewhere on the site (e.g. the CT calculator's Pokemon list) for the
+  // same Incarnate/Therian formes already covered above by their full names - same Pokemon, same GIF.
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+// A few Origin formes aren't in the animated "ani" set at all - they live as static
+// PNGs in a differently-named directory with no per-Pokemon slug pattern to guess from.
+const ANI_URL_OVERRIDES = {
+  // Self-hosted: the external fallback host sends no CORS header, so the canvas export
+  // ("Copy as image") could not draw it. Same-origin removes that constraint.
+  // Mega Z forms: self-hosted (assets/sprites), from PokeAPI's sprites - the animated set has none.
+  "mega lucario z": "/assets/sprites/lucario-megaz.png",
+  "mega absol z": "/assets/sprites/absol-megaz.png",
+  "mega garchomp z": "/assets/sprites/garchomp-megaz.png",
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+
+// ---- Sprite source priority: local -> mgrann03 -> pokemongohub (fallback) ----
+// GOHUB_OVERRIDES is no longer consulted up front. mgrann03 only carries 8 of the 35
+// override names, so the rest still need pokemongohub - but only after the preferred
+// source actually fails, not instead of it. spriteUrl() registers the fallback here and
+// this listener applies it. Capture phase runs before each element's inline onerror, so
+// stopPropagation() keeps the page's own "hide the image" handler from winning first.
+const SPRITE_FALLBACK = Object.create(null);
+document.addEventListener("error", function (e) {
+  const img = e.target;
+  if (!img || img.tagName !== "IMG" || img.dataset.spriteFallbackUsed) return;
+  const fb = SPRITE_FALLBACK[img.getAttribute("src")];
+  if (!fb) return;
+  img.dataset.spriteFallbackUsed = "1";
+  img.src = fb;
+  e.stopPropagation();
+  e.preventDefault();
+}, true);
+
+function spriteUrl(name){
+  const key = name.trim().toLowerCase();
+  // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
+  const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+  // The shadow-stripped key is tried too, matching how ANI_OVERRIDES is resolved above.
+  // Without it "Shadow Mega Lucario Z" registered no fallback and stayed broken even once the
+  // base form was fixed.
+  const gohub = GOHUB_OVERRIDES[key] || GOHUB_OVERRIDES[key.replace(/^shadow\s+/, "")];
+  if (gohub) SPRITE_FALLBACK[url] = gohub;
+  return url;
+}
+
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+// No longer swaps to a fallback sprite on error - spriteUrl() already resolves shadow names
+// to their base sprite directly now, so there's nothing left to fall back to. Kept as a
+// pass-through rather than touching every onerror call site that still references it.
+function trySpriteShadowFallback(img, name){
+  return false;
+}
+
+// Applies to every shadow Pokemon unconditionally, regardless of whether a dedicated
+// shadow-tinted sprite exists and loads successfully - simpler than checking DEX_MAP, and
+// matches the intent that shadow status should always be visually obvious.
+function needsShadowMist(name){
+  return /^shadow\s+/i.test(name.trim());
+}
+
+const CPM = {
+  "40":0.7903, "40.5":0.792803968, "41":0.79530001, "41.5":0.797800015, "42":0.8003,
+  "42.5":0.802799995, "43":0.8053, "43.5":0.8078, "44":0.81029999, "44.5":0.812799985,
+  "45":0.8153, "45.5":0.81779999, "46":0.820299990, "46.5":0.822799990, "47":0.825299990,
+  "47.5":0.827799990, "48":0.830299990, "48.5":0.832799990, "49":0.835299990,
+  "49.5":0.837799990, "50":0.840299990, "50.5":0.842799990, "51":0.845300000,
+  "51.5":0.847803686002838, "52":0.85030, "52.5":0.852803664391751, "53":0.85530,
+};
+// Recomputed once POKEMON_DB is loaded - see recomputeMaxStat(). It used to be a const
+// evaluated at module scope, which worked only while the data was inlined; against an
+// async load it would have run on an empty array and produced -Infinity, silently making
+// every stat bar full-width.
+let MAX_STAT = { atk: 1, def: 1, hp: 1 };
+function recomputeMaxStat(){
+  if(!POKEMON_DB.length) return;
+  MAX_STAT = {
+    atk: Math.max(...POKEMON_DB.map(p => p.atk)),
+    def: Math.max(...POKEMON_DB.map(p => p.def)),
+    hp: Math.max(...POKEMON_DB.map(p => p.hp)),
+  };
+}
+
+function statBarHtml(kind, label, adjustedValue){
+  const pct = Math.min(100, (adjustedValue / MAX_STAT[kind]) * 100).toFixed(1);
+  return `
+    <div class="stat-row">
+      <div class="stat-label-row"><span>${label}</span><b>${adjustedValue}</b></div>
+      <div class="bar-track"><div class="bar-fill ${kind}" style="width:${pct}%;"></div></div>
+    </div>`;
+}
+
+function cardHtml(p){
+  const noCpm = document.getElementById("noCpmToggle").checked;
+  const level = String(document.getElementById("levelInput").value);
+  const cpm = noCpm ? 1 : (CPM[level] || CPM["40"]);
+  const adjAtk = Math.round((p.atk + 15) * cpm * 10) / 10;
+  const adjDef = Math.round((p.def + 15) * cpm * 10) / 10;
+  const adjHp = Math.floor((p.hp + 15) * cpm);
+  return `
+  <div class="pkmn-card">
+    <div class="pkmn-card-main">
+      <div class="pkmn-sprite">
+        <img class="${needsShadowMist(p.n) ? 'shadow-mist' : ''}" src="${spriteUrl(p.n)}" alt="${p.n}" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${p.n}')) { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
+        <div class="pkmn-sprite-fallback">?</div>
+      </div>
+      <div class="pkmn-info">
+        <div class="pkmn-name">${p.n}</div>
+        ${statBarHtml("atk", "ATK", adjAtk)}
+        ${statBarHtml("def", "DEF", adjDef)}
+        ${statBarHtml("hp", "HP", adjHp)}
+      </div>
+    </div>
+    <button type="button" class="move-toggle-btn" onclick="toggleMoves(this)"><span class="move-toggle-caret">&#9660;</span> <span class="move-toggle-text">Show moves</span></button>
+    <div class="move-panel" data-pkmn="${p.n.replace(/"/g, '&quot;')}"></div>
+  </div>`;
+}
+
+const grid = document.getElementById("pkmnGrid");
+const countEl = document.getElementById("count");
+const searchInput = document.getElementById("searchInput");
+let currentSort = "name";
+let currentLimit = 30;
+
+function render(){
+  const q = searchInput.value.trim().toLowerCase();
+  let list = POKEMON_DB.filter(p => !q || p.n.toLowerCase().includes(q));
+
+  const sort = currentSort;
+  if(sort === "name") list.sort((a,b) => a.n.localeCompare(b.n));
+  else list.sort((a,b) => b[sort] - a[sort]);
+
+  const noCpm = document.getElementById("noCpmToggle").checked;
+  document.getElementById("levelInput").closest(".level-control").classList.toggle("disabled", noCpm);
+  document.getElementById("statsBlurb").textContent = noCpm
+    ? "Stats shown are base stats with perfect IVs (15/15/15) applied — no Combat Power Multiplier (CPM), so these values don't change with level. Each bar is scaled against the highest value for that stat across every Pokémon tracked."
+    : "Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.";
+
+  const totalMatches = list.length;
+  if(currentLimit > 0) list = list.slice(0, currentLimit);
+
+  countEl.textContent = currentLimit > 0 && totalMatches > currentLimit
+    ? `Showing ${list.length} of ${totalMatches} Pokémon`
+    : `${totalMatches} Pokémon`;
+  grid.innerHTML = list.length
+    ? list.map(cardHtml).join("")
+    : `<div class="empty">No Pokémon match your search.</div>`;
+}
+
+// Debounce search: render() rebuilds the whole card grid (up to ~1200 cards), which costs
+// hundreds of ms with the full list shown. Without debouncing, that full rebuild fired on every
+// keystroke, making typing visibly janky. Waiting ~140ms after the last keypress collapses a
+// burst of typing into a single render while still feeling instant.
+let searchDebounceTimer = null;
+searchInput.addEventListener("input", () => {
+  clearTimeout(searchDebounceTimer);
+  searchDebounceTimer = setTimeout(render, 140);
+});
+document.querySelectorAll("#sortList .hamburger-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#sortList .hamburger-item").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentSort = btn.dataset.sort;
+    render();
+  });
+});
+document.querySelectorAll("#showLimitList .hamburger-item").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#showLimitList .hamburger-item").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentLimit = parseInt(btn.dataset.n);
+    render();
+  });
+});
+document.getElementById("levelInput").addEventListener("input", render);
+document.getElementById("noCpmToggle").addEventListener("change", render);
+render();
+
+// Move data loads asynchronously - render stats immediately (unchanged), then re-render once the
+// CSVs are in so the move panels populate. If the CSVs fail to load, the stats page still works;
+// panels just show "No move data on file."
+loadMoveData().then(render).catch(e => console.error("Move data failed to load:", e));
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+const gearBtn = document.getElementById("gearBtn");
+const gearPanel = document.getElementById("gearPanel");
+const hamburgerBtn = document.getElementById("hamburgerBtn");
+const hamburgerPanel = document.getElementById("hamburgerPanel");
+
+function closeHamburger(){
+  hamburgerPanel.classList.remove("open");
+  hamburgerBtn.setAttribute("aria-expanded", "false");
+}
+function closeGear(){
+  gearPanel.classList.remove("open");
+  gearBtn.setAttribute("aria-expanded", "false");
+}
+const infoBtn = document.getElementById("infoBtn");
+const infoPanel = document.getElementById("infoPanel");
+function closeInfo(){
+  infoPanel.classList.remove("open");
+  infoBtn.setAttribute("aria-expanded", "false");
+}
+infoBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = infoPanel.classList.contains("open");
+  closeHamburger(); closeGear();
+  infoPanel.classList.toggle("open", !isOpen);
+  infoBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+// Esc closes it, matching what a reader expects from a dialog-ish popover.
+document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeInfo(); });
+
+gearBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = gearPanel.classList.contains("open");
+  closeHamburger(); closeInfo();
+  gearPanel.classList.toggle("open", !isOpen);
+  gearBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+hamburgerBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const isOpen = hamburgerPanel.classList.contains("open");
+  closeGear(); closeInfo();
+  hamburgerPanel.classList.toggle("open", !isOpen);
+  hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
+});
+document.addEventListener("click", (e) => {
+  if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
+    closeHamburger();
+  }
+  if(!gearPanel.contains(e.target) && e.target !== gearBtn){
+    closeGear();
+  }
+  if(!infoPanel.contains(e.target) && !infoBtn.contains(e.target)){
+    closeInfo();
+  }
+});
+</script>
+<script>
+
+// ---- Search autocomplete (ported from dps-calculator.html) ----------------------------
+// Capped at 8 so the list can never run past the field into neighbouring content, which
+// is the same reason the calculator caps it. Names come from this page's own dataset via
+// a getter, because that dataset is filled by an async CSV load that has not run yet when
+// this script parses.
+function initSearchAutocomplete(inputId, getNames){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  // Appended to <body>, never wrapped around the input - see the .ac-list CSS note.
+  const list = document.createElement("div");
+  list.className = "ac-list";
+  document.body.appendChild(list);
+  function place(){
+    const b = input.getBoundingClientRect();
+    list.style.left  = b.left + "px";
+    list.style.top   = (b.bottom + 4) + "px";
+    list.style.width = b.width + "px";
+  }
+  let highlighted = -1;
+
+  function matches(query){
+    const q = (query || "").trim().toLowerCase();
+    if(!q) return [];
+    const seen = new Set(), starts = [], contains = [];
+    for(const raw of (getNames() || [])){
+      if(!raw) continue;
+      const name = String(raw);
+      const lower = name.toLowerCase();
+      if(seen.has(lower)) continue;
+      if(lower.startsWith(q)){ seen.add(lower); starts.push(name); }
+      else if(lower.includes(q)){ seen.add(lower); contains.push(name); }
+      if(starts.length >= 8) break;
+    }
+    return [...starts, ...contains].slice(0, 8);
+  }
+  function highlight(name, query){
+    const q = (query || "").trim();
+    const i = name.toLowerCase().indexOf(q.toLowerCase());
+    if(i === -1 || !q) return name;
+    return name.slice(0,i) + "<mark>" + name.slice(i, i+q.length) + "</mark>" + name.slice(i+q.length);
+  }
+  function close(){ list.classList.remove("open"); highlighted = -1; }
+  function select(name){
+    input.value = name;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+  }
+  function render(){
+    const found = matches(input.value);
+    if(!found.length){ close(); return; }
+    list.innerHTML = found.map((n,i) =>
+      `<div class="ac-item${i===highlighted?' hi':''}" data-name="${String(n).replace(/"/g,'&quot;')}">${highlight(String(n), input.value)}</div>`
+    ).join("");
+    place();
+    list.classList.add("open");
+    list.querySelectorAll(".ac-item").forEach(el => {
+      // mousedown, not click: it fires before the input's blur, so picking an item does
+      // not close the dropdown out from under the pointer.
+      el.addEventListener("mousedown", e => { e.preventDefault(); select(el.dataset.name); });
+    });
+  }
+  input.addEventListener("input", () => { highlighted = -1; render(); });
+  input.addEventListener("focus", render);
+  window.addEventListener("scroll", () => { if(list.classList.contains("open")) place(); }, true);
+  window.addEventListener("resize", () => { if(list.classList.contains("open")) place(); });
+  input.addEventListener("blur", () => setTimeout(close, 120));
+  input.addEventListener("keydown", e => {
+    const items = list.querySelectorAll(".ac-item");
+    if(!list.classList.contains("open") || !items.length) return;
+    if(e.key === "ArrowDown"){ e.preventDefault(); highlighted = Math.min(highlighted+1, items.length-1); render(); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); highlighted = Math.max(highlighted-1, 0); render(); }
+    else if(e.key === "Enter" && highlighted >= 0){ e.preventDefault(); select(items[highlighted].dataset.name); }
+    else if(e.key === "Escape"){ close(); }
+  });
+}
+
+initSearchAutocomplete('searchInput', () => (typeof POKEMON_DB!=='undefined'?POKEMON_DB.map(p=>p.n||p.name):[]));
+</script>
+</body>
+</html>
