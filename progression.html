@@ -198,7 +198,7 @@ if ("serviceWorker" in navigator) {
   .rg-prio{ font:700 11px 'Manrope',sans-serif; letter-spacing:.02em; text-align:right; }
   .rg-prio.core{ color:#c98a00; } .rg-prio.niche{ color:var(--blue-dark); } .rg-prio.lowroi{ color:var(--text-dim); }
   [data-theme="dark"] .rg-prio.core{ color:#f0c24c; }
-  .rg-n{ font:700 12.5px 'IBM Plex Mono',monospace; color:var(--text); text-align:right; white-space:nowrap; }
+  .rg-n{ font:700 12.5px 'Inter',sans-serif; font-variant-numeric:tabular-nums; color:var(--text); text-align:right; white-space:nowrap; }
   @media (min-width:1200px){ .page-wrap{ max-width:min(1180px, 90vw); } }
   @media (max-width:700px){
     .page-wrap{ padding:16px 12px 48px; }
@@ -866,7 +866,7 @@ function spriteUrl(name){
         if(sub){ x.fillStyle = C.muted; x.font = "500 12px Inter, sans-serif"; x.fillText(fit(sub, tw), nx, Y + 36); }
         const tr = tierOf(e); x.textAlign = "right";
         if(tr){ x.fillStyle = PRIO[tr]; x.font = "700 11.5px Manrope, sans-serif"; x.fillText(TIERS[tr].label, X + colW - (roster ? 40 : 0), Y + 28); }
-        if(roster){ x.fillStyle = C.text; x.font = "700 13px 'IBM Plex Mono', monospace"; x.fillText(num(e.count), X + colW, Y + 28); }
+        if(roster){ x.fillStyle = C.text; x.font = "700 13px Inter, sans-serif"; x.fillText(num(e.count), X + colW, Y + 28); }
         x.textAlign = "left";
       });
       y = y0 + Math.ceil(L.length / 2) * RH + GG;
