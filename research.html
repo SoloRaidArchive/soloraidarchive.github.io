@@ -69,7 +69,7 @@ if ("serviceWorker" in navigator) {
 <link rel="preload" as="fetch" type="text/csv" href="csv/moves.csv" crossorigin>
 <link rel="preload" as="fetch" type="text/csv" href="csv/pokemon-stats.csv" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
     /* Top-level view switch: the usage board and the curated tier list are two different answers
      to "what should I use", so they get equal billing rather than one being a filter of the
@@ -538,7 +538,7 @@ if ("serviceWorker" in navigator) {
   }
   .lb-rank-number{ width:20px; flex-shrink:0; text-align:center; }
   .lb-rank-change{
-    font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:10.5px;
+    font-family:'Inter', sans-serif; font-variant-numeric:tabular-nums; font-weight:700; font-size:10.5px;
     display:flex; align-items:center; gap:1px; line-height:1;
   }
   .lb-rank-change.up{ color:#1f9d55; }
@@ -627,7 +627,7 @@ if ("serviceWorker" in navigator) {
     width:0; transition: width 0.8s cubic-bezier(.2,.8,.3,1);
   }
   .lb-count{
-    font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:15px; color: var(--blue-dark);
+    font-family:'Inter', sans-serif; font-variant-numeric:tabular-nums; font-weight:700; font-size:15px; color: var(--blue-dark);
     flex-shrink:0; width:70px; text-align:right;
   }
   .lb-count span{ font-size:10.5px; color: var(--text-dim); font-weight:700; display:block; }
@@ -642,7 +642,7 @@ if ("serviceWorker" in navigator) {
   .lb-boss-icon:first-child{ margin-left:0; }
   .lb-boss-icon img{ width:100%; height:100%; object-fit:contain; padding:1px; }
   .lb-boss-more{
-    font-family:'IBM Plex Mono', monospace; font-size:9.5px; font-weight:700; color: var(--text-dim);
+    font-family:'Inter', sans-serif; font-variant-numeric:tabular-nums; font-size:9.5px; font-weight:700; color: var(--text-dim);
     margin-left:4px; align-self:center;
   }
 
@@ -698,7 +698,7 @@ if ("serviceWorker" in navigator) {
   }
   .bd-ae-icon[data-tooltip]:hover::after{ opacity:1; pointer-events:auto; }
   .bd-dupe-badge{
-    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:10px; font-weight:700;
+    display:inline-block; font-family:'Inter', sans-serif; font-variant-numeric:tabular-nums; font-size:10px; font-weight:700;
     color: var(--text-dim); background: var(--bg1); border-radius:999px; padding:1px 6px;
     position:relative; cursor:help; vertical-align:middle;
   }
@@ -1178,7 +1178,7 @@ if ("serviceWorker" in navigator) {
   .lbg-x .lb-row.rr-row.rr-noroles{ grid-template-columns:24px 16px 32px minmax(0,1fr) 40px; }
   .lbg-x .lb-row.rr-row:hover{ background:color-mix(in srgb, var(--text) 4%, transparent); }
   .lbg-x .lb-row.rr-row:focus-visible{ outline:2px solid var(--blue); outline-offset:-2px; }
-  .rr-rk{ font:700 12px 'IBM Plex Mono',monospace; color:var(--text-dim); text-align:right; }
+  .rr-rk{ font:700 12px 'Inter',sans-serif; font-variant-numeric:tabular-nums; color:var(--text-dim); text-align:right; }
   .rr-rk.t1{ color:#ffb300; } .rr-rk.t2{ color:#9aa3b2; } .rr-rk.t3{ color:#c97b3d; }
   .rr-ti{ width:16px; height:16px; border-radius:50%; display:grid; place-items:center; }
   .rr-ti img{ width:10px; height:10px; filter:brightness(0) invert(1); }
@@ -1189,7 +1189,7 @@ if ("serviceWorker" in navigator) {
   .rr-ris{ display:flex; gap:3px; justify-content:flex-end; }
   .rr-ris .rr-ri{ width:18px; height:18px; } .rr-ris .rr-ri svg{ width:11px; height:11px; }
   .rr-ris .rr-ri.minor{ opacity:.45; }
-  .rr-n{ font:700 12.5px 'IBM Plex Mono',monospace; color:var(--text); text-align:right; }
+  .rr-n{ font:700 12.5px 'Inter',sans-serif; font-variant-numeric:tabular-nums; color:var(--text); text-align:right; }
   .rr-grp + .rr-grp{ margin-top:18px; }
   .rr-gh{ display:flex; align-items:center; gap:7px; margin:0 0 2px; padding:0 0 8px; border-bottom:1px solid var(--border);
     font:800 12px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text); }
