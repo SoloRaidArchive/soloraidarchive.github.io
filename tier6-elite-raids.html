@@ -78,7 +78,7 @@ if ("serviceWorker" in navigator) {
     --divider-contrast: rgba(255,255,255,0.35);
   }
   [data-theme="dark"] body{
-    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
+    background: #16131f;
   }
   [data-theme="dark"] #search,
   [data-theme="dark"] .count,
@@ -115,9 +115,9 @@ body{ background:#20263a; color: var(--text-muted); }
   .home-link-bottom:hover{ transform: translateY(-2px); }
   *{box-sizing:border-box;}
   body{
-    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%);
+    margin:0; background: #fff3e6;
 
-  [data-theme="dark"] body{ background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 80%, var(--bg4) 100%); }
+  [data-theme="dark"] body{ background: #16131f; }
     color: var(--text); font-family: 'Inter', sans-serif; min-height:100vh; padding-bottom: 60px;
   }
   .sticky-header{
@@ -577,6 +577,7 @@ body{ background:#20263a; color: var(--text-muted); }
   .tier-switch .current{background:var(--blue);border-color:var(--blue);color:#fff;cursor:default}
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
+<script src="assets/seasons.js" defer></script><!-- falling season particles in the margins -->
 </head>
 <body>
 

@@ -66,15 +66,15 @@ if ("serviceWorker" in navigator) {
     --energy-yellow: #fbbf24;
   }
   [data-theme="dark"] body{
-    background: linear-gradient(180deg, #0c0e1c 0%, #2a1830 45%, #6b3324 80%, #9c5024 100%);
+    background: #16131f;
   }
   *{ box-sizing:border-box; }
   html{ max-width:100vw; }
 
   body{
-    margin:0; background: linear-gradient(160deg, var(--bg1) 0%, var(--bg2) 55%, var(--bg3) 100%); color: var(--ink);
+    margin:0; background: #fff3e6; color: var(--ink);
 
-  [data-theme="dark"] body{ background: linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 45%, var(--bg3) 80%, var(--bg4) 100%); }
+  [data-theme="dark"] body{ background: #16131f; }
     font-family: 'Manrope', sans-serif; min-height:100vh;
   }
 header{ padding: 12px 24px 10px; text-align:center; }
@@ -1091,6 +1091,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   @media (max-width:700px){ .c1-src em{ display:none; } }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
+<script src="assets/seasons.js" defer></script><!-- falling season particles in the margins -->
 </head>
 <body>
 
