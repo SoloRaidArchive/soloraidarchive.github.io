@@ -793,7 +793,7 @@ body{ background:#20263a; color: var(--text-muted); }
   .bl-right select{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card,#fff);
     border:1px solid var(--border,#d8dbe6); border-radius:8px; padding:6px 10px; }
   .bl-card{ background:var(--card,#fff); border:1px solid var(--border,#d8dbe6); border-radius:10px; padding:12px 18px 14px; }
-  .bl-h, .bl-row{ display:grid; grid-template-columns:36px minmax(0,1fr) 56px 64px 64px 72px 110px 14px; gap:12px; align-items:center; }
+  .bl-h, .bl-row{ display:grid; grid-template-columns:36px minmax(0,1fr) 56px 104px 72px 104px 14px; gap:12px; align-items:center; }
   .bl-h{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim,#767f96);
     padding:0 0 6px; border-bottom:1px solid var(--border,#d8dbe6); }
   .bl-h span:nth-child(n+3){ text-align:right; }
@@ -812,15 +812,21 @@ body{ background:#20263a; color: var(--text-muted); }
   .bl-ti img{ width:11px; height:11px; }
   .bl-st, .bl-n{ font:700 13px 'Inter',sans-serif; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
   .bl-st i{ font-style:normal; color:#ffb300; margin-left:2px; }
-  .bl-raiders{ display:flex; gap:2px; justify-content:flex-end; }
-  .bl-mini{ width:30px; height:30px; object-fit:contain; }
+  .bl-nmc{ display:flex; flex-direction:column; min-width:0; }
+  .bl-wx{ display:flex; gap:4px; justify-content:flex-end; align-items:center; }
+  .bl-wx img{ width:20px; height:20px; object-fit:contain; display:block; }
+  .bl-wx img.extreme{ filter:invert(1) grayscale(1) brightness(0.3); }
+  [data-theme="dark"] .bl-wx img.extreme{ filter:none; }
+  .bl-wxs{ display:none; }
   .bl-chev{ color:var(--ink-dim,#767f96); font-size:17px; text-align:center; }
   .bl-sm{ display:none; }
   @media (max-width:700px){
     .bl{ padding:0 12px; }
     .bl-seg a, .bl-seg span{ padding:6px 10px; font-size:12.5px; }
     .bl-card{ padding:8px 12px 10px; border-radius:8px; }
-    .bl-h, .bl-row{ grid-template-columns:34px minmax(0,1fr) 52px 28px; gap:8px; }
+    .bl-h, .bl-row{ grid-template-columns:34px minmax(0,1fr) 64px 28px; gap:8px; }
+    .bl-wxs{ display:flex; justify-content:flex-start; gap:3px; margin-top:2px; }
+    .bl-wxs img{ width:15px; height:15px; }
     .bl-h{ font-size:9px; letter-spacing:.04em; }
     .bl-x{ display:none; }
     .bl-lg{ display:none; } .bl-sm{ display:inline; }
@@ -859,7 +865,7 @@ body{ background:#20263a; color: var(--text-muted); }
     </div>
   </div>
   <div class="bl-card">
-    <div class="bl-h"><span></span><span>Boss</span><span class="bl-x">Type</span><span>Easiest</span><span class="bl-x">Hardest</span><span><i class="bl-lg" style="font-style:normal">Strategies</i><i class="bl-sm" style="font-style:normal">#</i></span><span class="bl-x">Most used</span><span class="bl-x"></span></div>
+    <div class="bl-h"><span></span><span>Boss</span><span class="bl-x">Type</span><span><i class="bl-lg" style="font-style:normal">Base difficulty</i><i class="bl-sm" style="font-style:normal">Base</i></span><span><i class="bl-lg" style="font-style:normal">Strategies</i><i class="bl-sm" style="font-style:normal">#</i></span><span class="bl-x">Weather</span><span class="bl-x"></span></div>
     <div class="bl-list" id="bossGrid"></div>
   </div>
 </div>
@@ -1083,16 +1089,15 @@ async function loadBossIndex(){
     const table = parseCSV(await res.text());
     const header = table.shift().map(h=>h.trim());
     const iName = header.indexOf("Boss Name"), iStar = header.indexOf("Star");
-    // the six "Pokemon N" columns, for the most-used column
-    const iMons = header.map((h, i) => /^Pokemon \d$/.test(h) ? i : -1).filter(i => i >= 0);
+    const iWx = header.indexOf("Weather");
     const byBoss = new Map();
     table.forEach(r => {
       const name = (r[iName]||"").trim();
       if(!name) return;
-      if(!byBoss.has(name)) byBoss.set(name, { name, count:0, lowest:Infinity, lowestLabel:"", highest:-Infinity, highestLabel:"", used:{} });
+      if(!byBoss.has(name)) byBoss.set(name, { name, count:0, lowest:Infinity, lowestLabel:"", highest:-Infinity, highestLabel:"", wx:{} });
       const b = byBoss.get(name);
       b.count++;
-      new Set(iMons.map(i => (r[i] || "").trim()).filter(Boolean)).forEach(p => { b.used[p] = (b.used[p] || 0) + 1; });
+      const w = weatherKey(r[iWx]); if(w) b.wx[w] = (b.wx[w] || 0) + 1;
       const v = starValue(r[iStar]);
       if(v < b.lowest){ b.lowest = v; b.lowestLabel = (r[iStar]||"").trim(); }
       // tracked separately: the card shows the LOWEST star a boss was solved at, but sorting
@@ -1116,7 +1121,7 @@ function sortedBosses(){
   const mode = (document.getElementById("sortSelect") || {}).value || "name";
   const list = ALL_BOSSES.slice();
   if(mode === "difficulty") list.sort((a,b) => a.lowest - b.lowest || a.name.localeCompare(b.name));
-  else if(mode === "difficulty-desc") list.sort((a,b) => b.highest - a.highest || a.name.localeCompare(b.name));
+  else if(mode === "difficulty-desc") list.sort((a,b) => b.lowest - a.lowest || a.name.localeCompare(b.name));   // the base star, the one the list shows
   else if(mode === "count")  list.sort((a,b) => b.count - a.count || a.name.localeCompare(b.name));
   else                        list.sort((a,b) => a.name.localeCompare(b.name));
   return list;
@@ -1155,6 +1160,19 @@ function rowSprite(name, cls){
   return '<img class="' + cls + (/^shadow\s/i.test(name) ? ' shadow-mist' : '') + '" src="' + spriteUrl(name) + '" alt="" title="' + escHtml(name) +
          '" loading="lazy" onerror="this.style.visibility=\'hidden\'">';
 }
+// The weathers a boss has been soloed in, most common first, up to four. Clear and Sunny are the
+// same weather (one icon).
+const WEATHER = { clear:["Clear","weather-clear"], cloudy:["Cloudy","weather-cloudy"], "partly cloudy":["Partly Cloudy","weather-partly-cloudy"],
+  windy:["Windy","weather-windy"], rainy:["Rainy","weather-rain"], snow:["Snow","weather-snow"], fog:["Fog","weather-fog"], extreme:["Extreme","weather-extreme"] };
+function weatherKey(v){
+  let k = String(v || "").trim().toLowerCase().replace(/\s+/g, " ");
+  if(k === "sunny") k = "clear"; if(k === "rain") k = "rainy"; if(k === "wind") k = "windy"; if(k === "partlycloudy") k = "partly cloudy";
+  return WEATHER[k] ? k : "";
+}
+function weatherIcons(b){
+  return Object.entries(b.wx).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([k]) =>
+    '<img src="assets/icons/' + WEATHER[k][1] + '.png" alt="' + WEATHER[k][0] + '" title="' + WEATHER[k][0] + '"' + (k === "extreme" ? ' class="extreme"' : '') + ' loading="lazy" onerror="this.remove()">').join("");
+}
 function starCell(v, cls){ return '<span class="bl-st' + (cls || '') + '">' + (isFinite(v) ? v : '\u2014') + '<i>\u2605</i></span>'; }
 
 function buildCardsOnce(){
@@ -1167,14 +1185,14 @@ function buildCardsOnce(){
     a.href = "collections/" + slugify(b.name) + ".html";
     const key = b.name.toLowerCase();
     const types = BOSS_TYPES[key] || BOSS_TYPES[key.replace(/^shadow\s+/, "")] || [];
-    const top = Object.entries(b.used).sort((x, y) => y[1] - x[1] || x[0].localeCompare(y[0])).slice(0, 3).map(x => x[0]);
+    const wx = weatherIcons(b);
     a.innerHTML =
       rowSprite(b.name, "bl-sp") +
-      '<span class="bl-nm">' + escHtml(b.name) + '</span>' +
+      '<span class="bl-nmc"><span class="bl-nm">' + escHtml(b.name) + '</span><span class="bl-wx bl-wxs">' + wx + '</span></span>' +
       '<span class="bl-tys bl-x">' + types.map(t => '<span class="bl-ti" style="background:' + (TYPE_COLOR[t] || "#888") + '" title="' + t + '"><img src="' + TYPE_ICONS + t + '.svg" alt=""></span>').join("") + '</span>' +
-      starCell(b.lowest) + starCell(b.highest, ' bl-x') +
+      starCell(b.lowest) +
       '<span class="bl-n">' + b.count + '</span>' +
-      '<span class="bl-raiders bl-x">' + top.map(n => rowSprite(n, "bl-mini")).join("") + '</span>' +
+      '<span class="bl-wx bl-x">' + wx + '</span>' +
       '<span class="bl-chev bl-x" aria-hidden="true">\u203a</span>';
     CARD_NODES.set(b.name, a);
     frag.appendChild(a);
