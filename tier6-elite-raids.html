@@ -793,10 +793,10 @@ body{ background:#20263a; color: var(--text-muted); }
   .bl-right select{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card,#fff);
     border:1px solid var(--border,#d8dbe6); border-radius:8px; padding:6px 10px; }
   .bl-card{ background:var(--card,#fff); border:1px solid var(--border,#d8dbe6); border-radius:10px; padding:12px 18px 14px; }
-  .bl-h, .bl-row{ display:grid; grid-template-columns:36px minmax(0,1fr) 56px 104px 72px 104px 14px; gap:12px; align-items:center; }
+  .bl-h, .bl-row{ display:grid; grid-template-columns:40px 36px minmax(0,1fr) 104px 72px 104px 14px; gap:12px; align-items:center; }
   .bl-h{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim,#767f96);
     padding:0 0 6px; border-bottom:1px solid var(--border,#d8dbe6); }
-  .bl-h span:nth-child(n+3){ text-align:right; }
+  .bl-h span:nth-child(n+4){ text-align:right; }
   /* The list ships empty and fills once the archive CSV loads; hold the space meanwhile so the
      footer doesn't jump (released as soon as the first row goes in). */
   .bl-list:empty{ min-height:85vh; }
@@ -807,7 +807,7 @@ body{ background:#20263a; color: var(--text-muted); }
   .bl-row:focus-visible{ outline:2px solid var(--blue,#3e6ae0); outline-offset:-2px; }
   .bl-sp{ width:36px; height:36px; object-fit:contain; display:block; }
   .bl-nm{ font:700 14px 'Manrope',sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
-  .bl-tys{ display:flex; gap:3px; justify-content:flex-end; }
+  .bl-tys{ display:flex; gap:3px; justify-content:flex-start; }
   .bl-ti{ width:18px; height:18px; border-radius:50%; display:inline-grid; place-items:center; flex:none; }
   .bl-ti img{ width:11px; height:11px; }
   .bl-st, .bl-n{ font:700 13px 'Inter',sans-serif; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
@@ -824,7 +824,8 @@ body{ background:#20263a; color: var(--text-muted); }
     .bl{ padding:0 12px; }
     .bl-seg a, .bl-seg span{ padding:6px 10px; font-size:12.5px; }
     .bl-card{ padding:8px 12px 10px; border-radius:8px; }
-    .bl-h, .bl-row{ grid-template-columns:34px minmax(0,1fr) 64px 28px; gap:8px; }
+    .bl-h, .bl-row{ grid-template-columns:38px 34px minmax(0,1fr) 44px 24px; gap:8px; }
+    .bl-ti{ width:17px; height:17px; } .bl-ti img{ width:10px; height:10px; }
     .bl-wxs{ display:flex; justify-content:flex-start; gap:3px; margin-top:2px; }
     .bl-wxs img{ width:15px; height:15px; }
     .bl-h{ font-size:9px; letter-spacing:.04em; }
@@ -861,11 +862,12 @@ body{ background:#20263a; color: var(--text-muted); }
         <option value="difficulty">Lowest difficulty</option>
         <option value="difficulty-desc">Highest difficulty</option>
         <option value="count">Number of strategies</option>
+        <option value="type">Type</option>
       </select>
     </div>
   </div>
   <div class="bl-card">
-    <div class="bl-h"><span></span><span>Boss</span><span class="bl-x">Type</span><span><i class="bl-lg" style="font-style:normal">Base difficulty</i><i class="bl-sm" style="font-style:normal">Base</i></span><span><i class="bl-lg" style="font-style:normal">Strategies</i><i class="bl-sm" style="font-style:normal">#</i></span><span class="bl-x">Weather</span><span class="bl-x"></span></div>
+    <div class="bl-h"><span>Type</span><span></span><span>Boss</span><span><i class="bl-lg" style="font-style:normal">Base difficulty</i><i class="bl-sm" style="font-style:normal">Base</i></span><span><i class="bl-lg" style="font-style:normal">Strategies</i><i class="bl-sm" style="font-style:normal">#</i></span><span class="bl-x">Weather</span><span class="bl-x"></span></div>
     <div class="bl-list" id="bossGrid"></div>
   </div>
 </div>
@@ -1123,6 +1125,7 @@ function sortedBosses(){
   if(mode === "difficulty") list.sort((a,b) => a.lowest - b.lowest || a.name.localeCompare(b.name));
   else if(mode === "difficulty-desc") list.sort((a,b) => b.lowest - a.lowest || a.name.localeCompare(b.name));   // the base star, the one the list shows
   else if(mode === "count")  list.sort((a,b) => b.count - a.count || a.name.localeCompare(b.name));
+  else if(mode === "type")   list.sort((a,b) => typeRank(a) - typeRank(b) || a.name.localeCompare(b.name));
   else                        list.sort((a,b) => a.name.localeCompare(b.name));
   return list;
 }
@@ -1150,6 +1153,16 @@ async function loadBossTypes(){
     const iN = h.indexOf("name"), i1 = h.indexOf("type1"), i2 = h.indexOf("type2");
     t.forEach(r => { const n = (r[iN] || "").trim().toLowerCase(); if(n) BOSS_TYPES[n] = [r[i1], r[i2]].filter(Boolean).map(x => x.trim().toLowerCase()); });
   }catch(e){ console.warn("Boss types unavailable:", e); }
+}
+const TYPE_ORDER = ["normal","fire","water","electric","grass","ice","fighting","poison","ground","flying","psychic","bug","rock","ghost","dragon","dark","steel","fairy"];
+function bossTypes(b){
+  const key = b.name.toLowerCase();
+  return BOSS_TYPES[key] || BOSS_TYPES[key.replace(/^shadow\s+/, "")] || [];
+}
+// Type sort: primary type in the usual type order, then secondary (single types first), then name
+function typeRank(b){
+  const t = bossTypes(b), i = x => { const k = TYPE_ORDER.indexOf(x); return k < 0 ? 99 : k; };
+  return t.length ? i(t[0]) * 100 + (t[1] ? i(t[1]) + 1 : 0) : 9999;
 }
 const TYPE_COLOR = { normal:"#9199A1", fire:"#E2661C", water:"#3E8DE0", electric:"#E0B316", grass:"#4E9A3A", ice:"#5AC9C9",
   fighting:"#A2402A", poison:"#8A3F94", ground:"#6B4423", flying:"#8B93E0", psychic:"#E0426E", bug:"#7B9A1E", rock:"#B5651D",
@@ -1184,12 +1197,12 @@ function buildCardsOnce(){
     a.className = "bl-row";
     a.href = "collections/" + slugify(b.name) + ".html";
     const key = b.name.toLowerCase();
-    const types = BOSS_TYPES[key] || BOSS_TYPES[key.replace(/^shadow\s+/, "")] || [];
+    const types = bossTypes(b);
     const wx = weatherIcons(b);
     a.innerHTML =
+      '<span class="bl-tys">' + types.map(t => '<span class="bl-ti" style="background:' + (TYPE_COLOR[t] || "#888") + '" title="' + t + '"><img src="' + TYPE_ICONS + t + '.svg" alt=""></span>').join("") + '</span>' +
       rowSprite(b.name, "bl-sp") +
       '<span class="bl-nmc"><span class="bl-nm">' + escHtml(b.name) + '</span><span class="bl-wx bl-wxs">' + wx + '</span></span>' +
-      '<span class="bl-tys bl-x">' + types.map(t => '<span class="bl-ti" style="background:' + (TYPE_COLOR[t] || "#888") + '" title="' + t + '"><img src="' + TYPE_ICONS + t + '.svg" alt=""></span>').join("") + '</span>' +
       starCell(b.lowest) +
       '<span class="bl-n">' + b.count + '</span>' +
       '<span class="bl-wx bl-x">' + wx + '</span>' +
