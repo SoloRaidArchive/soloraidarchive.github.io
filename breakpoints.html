@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- SEASON: the regular pages rotate their colours with the seasons (assets/seasons.css), picked
+     from today's date in Pacific time - Dec-Feb winter, Mar-May spring, Jun-Aug summer, Sep-Nov fall.
+     Set before anything is drawn, so there's no flash of the old colours. ?season=winter (etc.)
+     in the address previews another season. The menu's "Default theme" button turns it off. -->
+<script>(function(){try{
+  var m=+new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",month:"numeric"}).format(new Date());
+  var s=(m===12||m<=2)?"winter":m<=5?"spring":m<=8?"summer":"fall";
+  var q=/[?&]season=(winter|spring|summer|fall)\b/.exec(location.search); if(q) s=q[1];
+  // A visitor can switch to the site's default colours (remembered on this device, like light/dark);
+  // a ?season= preview link always shows the season.
+  var off=false; try{ off=localStorage.getItem("raidArchiveSeasonal")==="off"; }catch(e){}
+  if(!off||q) document.documentElement.setAttribute("data-season",s);
+  // The switch: a button in the menu panel, beside the light/dark one, naming what it switches to.
+  var icon={winter:"\u2744\uFE0F",spring:"\uD83C\uDF38",summer:"\u2600\uFE0F",fall:"\uD83C\uDF42"}[s];
+  document.addEventListener("DOMContentLoaded",function(){
+    var dark=document.querySelector("#hamburgerPanel .hamburger-theme-toggle")||document.querySelector(".hamburger-panel .hamburger-theme-toggle");
+    if(!dark||document.getElementById("seasonToggle")) return;
+    var b=document.createElement("button"); b.type="button"; b.id="seasonToggle"; b.className=dark.className;
+    var root=document.documentElement;
+    function label(){ var on=root.hasAttribute("data-season");
+      b.textContent=on?"\uD83C\uDFA8 Default theme":icon+" Seasonal theme";
+      b.title=on?"Switch to the site's default colours":"Switch to this season's colours";
+      b.setAttribute("aria-pressed",String(on)); }
+    b.addEventListener("click",function(){
+      if(root.hasAttribute("data-season")){ root.removeAttribute("data-season"); try{localStorage.setItem("raidArchiveSeasonal","off");}catch(e){} }
+      else { root.setAttribute("data-season",s); try{localStorage.removeItem("raidArchiveSeasonal");}catch(e){} }
+      label(); });
+    label(); dark.parentNode.insertBefore(b,dark.nextSibling);
+  });
+}catch(e){}})();</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Best Buddy Breakpoints — Solo Raid Archive</title>
+<link rel="icon" href="assets/icons/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/favicon-180.png">
+<!-- PWA install support -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#3d9dff">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js"));
+}
+</script>
+<!-- /PWA install support -->
+<meta name="description" content="Best buddy breakpoints and bulkpoints for Pokémon GO raids: the bosses where level 51 adds a point of fast move damage, or takes one off the boss's.">
+<link rel="canonical" href="https://soloraidarchive.github.io/breakpoints.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Best Buddy Breakpoints | Solo Raid Archive">
+<meta property="og:description" content="Where best buddy adds a point of damage against popular raid bosses.">
+<meta property="og:url" content="https://soloraidarchive.github.io/breakpoints.html">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Best Buddy Breakpoints | Solo Raid Archive">
+<meta name="twitter:description" content="Where best buddy adds a point of damage against popular raid bosses.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1: #ffffff; --bg2: #ffe4c9; --bg3: #f6c9ce; --bg: #ffffff; --card: #ffffff; --border: #e7edf5;
+    --ink: #2d3142; --ink-muted: #6b7280; --ink-dim: #9aa3b2;
+    --accent: #3d9dff; --accent-soft: #eaf4ff; --accent-dark: #2b7fd6;
+  }
+  [data-theme="dark"]{
+    --bg1: #0c0e1c; --bg2: #2a1830; --bg3: #6b3324; --bg4: #9c5024; --bg: #10131d; --card: #1c2030; --border: #323850;
+    --ink: #eef1f7; --ink-muted: #a7afc0; --ink-dim: #767f96;
+    --accent: #5aa9ff; --accent-soft: #232840; --accent-dark: #8cc7ff;
+  }
+  [data-theme="dark"] body{
+    background: #16131f;
+  }
+  *{ box-sizing:border-box; }
+  html{ max-width:100vw; }
+
+  body{ margin:0; background: #fff3e6; color: var(--ink); font-family: 'Inter', sans-serif; min-height:100vh; }
+
+  [data-theme="dark"] body{ background: #16131f; }
+
+    
+  header{ padding: 12px 24px 10px; text-align:center; }
+  .sticky-header{
+    position:sticky; top:0; z-index:15; background: var(--bg1);
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sticky-header-title-row{ position:relative; text-align:center; margin-bottom:0; min-height:44px;
+    display:flex; align-items:center; justify-content:center; }
+  .sticky-header-title-row .header-buttons{ position:absolute; right:0; top:50%; transform:translateY(-50%); }
+  /* Search moved out of the sticky header so the title is not competing with it for space in a
+     bar that stays on screen. Aligned left to the content container (1100px/20px) because the
+     data below is left-indexed - a centred control over left-aligned rows reads as misaligned. */
+  .page-search-row{ max-width:1100px; margin:12px auto 10px; padding:0 20px;
+    display:flex; justify-content:flex-start; }
+  /* These inputs carried `margin: 0 auto` from their old life centred in the sticky header, which
+     re-centres them inside the flex row and defeats justify-content. Reset explicitly. */
+  .page-search-row > *, .page-search-row input{ margin-left:0 !important; margin-right:auto !important; }
+  .page-search-row > *{ flex:0 1 340px; min-width:0; }
+  .page-search-row input{ width:100%; font-size:13px; padding:7px 11px; border-radius:10px; box-sizing:border-box; }
+  .sticky-header-row{ display:flex; align-items:center; gap:8px; width:100%; }
+  .header-buttons{ display:flex; gap:8px; flex-shrink:0; }
+  @media (min-width:700px){
+    .sticky-header-row{ display:grid; grid-template-columns: 1fr auto 1fr; gap:8px; }
+    #searchInput{ grid-column:2; width:100%; max-width:400px; margin:0 auto; }
+    .header-buttons{ grid-column:3; justify-self:end; }
+  }
+  h1{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:clamp(20px, 4.2vw, 26px); color: var(--ink);
+    margin:0;
+  }
+
+  .controls{
+    max-width: 1100px; margin: 16px auto 0; padding: 0 20px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;
+  }
+  #searchInput{
+    flex:1; min-width:0; max-width:400px;
+    background: var(--card); border: 1px solid var(--border); color: var(--ink);
+    font-family:'Inter', sans-serif; font-size:16px; padding: 10px 14px; border-radius: 10px; outline:none;
+  }
+  #searchInput:focus{ border-color: var(--accent); }
+  .vertical-toggle{ display:flex; flex-direction:column; gap:2px; }
+  .hamburger-item{
+    display:flex; align-items:center; width:100%; padding:10px 8px; font-family:'Manrope', sans-serif;
+    font-weight:700; font-size:13.5px; color: var(--ink); background:none; border:none;
+    border-radius:10px; cursor:pointer; text-align:left; min-height:40px; box-sizing:border-box;
+  }
+  .hamburger-item:hover{ background: var(--ink-soft, var(--card)); }
+  .hamburger-item.active{ background: var(--accent); color:#fff; }
+  .level-control{
+    display:flex; align-items:center; gap:8px; background: var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:6px 12px;
+  }
+  .level-control label{ font-size:11px; font-weight:800; color: var(--ink-dim); text-transform:uppercase; letter-spacing:0.04em; }
+  .cpm-toggle{
+    display:flex; align-items:center; gap:7px; background: var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:6px 12px; cursor:pointer; font-size:12.5px; font-weight:700; color: var(--ink-muted);
+  }
+  .cpm-toggle input{ width:15px; height:15px; accent-color: var(--accent); cursor:pointer; }
+  .level-control.disabled{ opacity:0.45; pointer-events:none; }
+  .level-control input{
+    width:52px; background:none; border:none; color: var(--accent); font-family:'Manrope', sans-serif;
+    font-weight:800; font-size:14px; text-align:center; outline:none;
+  }
+  .stats-blurb{
+    max-width:700px; margin:14px auto 0; padding:10px 16px; text-align:center;
+    font-size:12px; color: var(--ink-dim); line-height:1.5;
+  }
+.container{ max-width: 1100px; margin: 0 auto; padding: 20px 20px 45px; }
+  .count{
+    text-align:center; font-family:'Inter', sans-serif; font-size:12px;
+    color: var(--ink-dim); margin-bottom:14px;
+  }
+  .pkmn-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap:12px; align-items:start; }
+  .pkmn-card{
+    background: var(--card); border:2px solid var(--border); border-radius:14px;
+    padding: 14px 16px; box-shadow: 0 1px 2px rgba(26,29,41,0.04); min-width:0;
+    display:flex; flex-direction:column;
+  }
+  .pkmn-card-main{ display:flex; align-items:center; gap:12px; }
+  .pkmn-sprite{
+    width:52px; height:52px; border-radius:10px; flex-shrink:0;
+    background: #f0f0f2; border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  [data-theme="dark"] .pkmn-sprite{ background:#eaeaec; border-color:#3a3f56; }
+  .pkmn-sprite img{ width:100%; height:100%; object-fit:contain; padding:1px; }
+  .pkmn-sprite-fallback{
+    display:none; width:100%; height:100%; align-items:center; justify-content:center;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:22px; color: var(--ink-dim);
+  }
+  .pkmn-info{ flex:1; min-width:0; }
+  .pkmn-name{ font-family:'Manrope', sans-serif; font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:6px; }
+  .stat-row{ margin-bottom:7px; }
+  .stat-row:last-child{ margin-bottom:0; }
+  .stat-label-row{ display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; color: var(--ink-muted); margin-bottom:2px; }
+  .stat-label-row b{ color: var(--ink); font-family:'Inter', sans-serif; font-variant-numeric:tabular-nums; font-size:11.5px; font-weight:700; }
+  .bar-track{ height:7px; background: var(--bg1); border-radius:999px; overflow:hidden; }
+  [data-theme="dark"] .bar-track{ background:#161a28; }
+  .bar-fill{ height:100%; border-radius:999px; }
+  .bar-fill.atk{ background: linear-gradient(90deg,#ff7a7a,#ff5b5b); }
+  .bar-fill.def{ background: linear-gradient(90deg,#5aa9ff,#3d9dff); }
+  .bar-fill.hp{ background: linear-gradient(90deg,#6fe0a0,#4cd08a); }
+
+  .move-toggle-btn{
+    width:100%; margin-top:10px; border:1.5px solid var(--border); background:transparent;
+    border-radius:8px; padding:6px; font-size:12px; color: var(--ink-muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:5px;
+    font-family:'Inter', sans-serif;
+  }
+  .move-toggle-btn:hover{ background: var(--bg1); }
+  [data-theme="dark"] .move-toggle-btn:hover{ background:#161a28; }
+  .move-panel{
+    display:none; height:150px; overflow-y:auto; margin-top:10px; padding-top:10px;
+    border-top:1.5px solid var(--border);
+  }
+  .move-panel.open{ display:block; }
+  .move-cat-label{
+    font-size:10px; font-weight:800; color: var(--ink-dim); text-transform:uppercase;
+    letter-spacing:0.04em; margin-bottom:5px; font-family:'Manrope', sans-serif;
+  }
+  .move-chip-row{ display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+  .move-chip-row:last-child{ margin-bottom:0; }
+  .move-chip{
+    display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:2px 8px;
+    border-radius:999px; white-space:nowrap; background: var(--bg1); color: var(--ink);
+    border:1px solid var(--border);
+  }
+  .move-chip.charge{ font-weight:600; }
+  .move-chip-icon{ width:13px; height:13px; flex-shrink:0; object-fit:contain; }
+  .move-various{ font-size:11px; color: var(--ink-dim); font-style:italic; }
+  .move-note{
+    font-size:10.5px; color: var(--ink-dim); font-style:italic; margin-top:8px;
+    display:flex; align-items:flex-start; gap:4px; line-height:1.35;
+  }
+  .move-note svg{ flex-shrink:0; margin-top:1px; }
+
+  .empty{ text-align:center; color: var(--ink-dim); padding:60px 20px; font-family:'Inter', sans-serif; }
+
+  .hamburger-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:4px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .hamburger-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){
+    .hamburger-btn:hover{ transform: translateY(-2px); }
+  }
+  .hamburger-btn span{ display:block; width:17px; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); transition: transform .2s ease, opacity .2s ease; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(1){ transform: translateY(6.5px) rotate(45deg); }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(2){ opacity:0; }
+  .hamburger-btn[aria-expanded="true"] span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg); }
+  .hamburger-panel{
+    position:absolute; top:calc(100% + 1px); right:16px; z-index:19; width:min(240px, calc(100vw - 32px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    display:none; flex-direction:column; gap:14px; max-height:calc(100vh - 99px); overflow-y:auto;
+  }
+  .hamburger-panel.open{ display:flex; }
+  .gear-panel .controls{ display:flex; flex-direction:column; gap:12px; margin:0; padding:0; max-width:none; align-items:stretch; justify-content:flex-start; }
+  .gear-btn{
+    flex-shrink:0; z-index:20; -webkit-tap-highlight-color:transparent;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--card); border:2px solid var(--border);
+    cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:3px; box-shadow: 0 3px 0 rgba(0,0,0,0.06); transition: transform .15s;
+  }
+  .gear-btn:active{ transform: scale(0.92); }
+  @media (hover:hover){
+    .gear-btn:hover{ transform: translateY(-2px); }
+  }
+  .filter-line{ display:block; height:2.5px; border-radius:2px; background: var(--text, var(--ink)); }
+  .filter-line-1{ width:16px; }
+  .filter-line-2{ width:11px; }
+  .filter-line-3{ width:6px; }
+  .gear-panel{
+    /* opens under the filter button, which sits at the header's left */
+    display:none; position:absolute; top:calc(100% + 1px); left:0; right:auto; z-index:19;
+    width:fit-content; min-width:120px; max-width:calc(100vw - 48px);
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:12px; max-height:calc(100vh - 99px); overflow-y:auto; overflow-x:hidden;
+  }
+  .gear-panel.open{ display:flex; }
+  /* The CPM note used to sit permanently between the search box and the grid, pushing the data
+     down on every visit to say something a reader needs once. It is now behind an info button,
+     using the same slide-out geometry as .gear-panel so the two panels feel like one mechanism. */
+  .info-btn{
+    display:flex; align-items:center; justify-content:center;
+    width:44px; height:44px; flex-shrink:0; padding:0;
+    background: var(--card); border:2px solid var(--border); border-radius:12px;
+    color: var(--text); cursor:pointer; box-sizing:border-box;
+  }
+  .info-btn[aria-expanded="true"]{ border-color: var(--blue, #3d9dff); }
+  .info-panel{
+    display:none; position:absolute; top:calc(100% + 1px); right:16px; z-index:19;
+    width:min(360px, calc(100vw - 48px));
+    background: var(--card); border:2px solid var(--border); border-radius:16px;
+    padding:14px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    flex-direction:column; gap:6px; text-align:left;
+  }
+  .info-panel.open{ display:flex; }
+  .info-panel-title{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:13px; color: var(--text);
+  }
+  /* Inside the panel the note is left-aligned body copy, not a centred page banner. */
+  .info-panel .stats-blurb{ max-width:none; margin:0; padding:0; text-align:left; }
+  .hamburger-theme-toggle{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:12px 10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:14px; color: var(--text, var(--ink)); background: var(--card, var(--ink-soft)); border:2px solid var(--border);
+    border-radius:10px; cursor:pointer; min-height:44px; box-sizing:border-box;
+  }
+  .hamburger-theme-toggle:hover{ border-color: var(--accent); color: var(--accent-dark); }
+  .hamburger-section-label{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:11px; text-transform:uppercase;
+    letter-spacing:0.05em; color: var(--text-dim, var(--ink-dim)); padding:6px 10px 4px;
+  }
+  .hamburger-section a{
+    display:flex; align-items:center; padding:10px; font-family:'Manrope', sans-serif; font-weight:700;
+    font-size:13.5px; color: var(--text, var(--ink)); text-decoration:none; border-radius:10px;
+    min-height:40px; box-sizing:border-box; word-break:break-word; line-height:1.3;
+  }
+  .hamburger-section a:hover{ background: var(--bg1, var(--ink-soft)); color: var(--accent-dark); }
+  .hamburger-section a.current{ background: var(--accent); color:#fff; }
+  .hamburger-section a.hamburger-featured{
+    border: 2px solid transparent !important;
+    background-image:
+      linear-gradient(var(--card), var(--card)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+    background-origin: padding-box, border-box;
+    background-clip: padding-box, border-box;
+    background-size: 100% 100%, 300% 100%;
+    animation: hamburgerShine 4s linear infinite;
+  }
+  .hamburger-section a.hamburger-featured.current{
+    background-image:
+      linear-gradient(var(--accent), var(--accent)),
+      linear-gradient(90deg, #3d9dff, #b5d4f4, #ffd77a, #3d9dff, #b5d4f4, #ffd77a);
+  }
+  @keyframes hamburgerShine{
+    0%{ background-position: 0 0, 0% 0; }
+    100%{ background-position: 0 0, 100% 0; }
+  }
+
+  img.shadow-mist{ border-radius:50%; background: radial-gradient(circle, rgba(58,12,92,0.85) 0%, rgba(30,6,54,0.7) 55%, rgba(12,4,24,0.55) 100%); box-shadow: 0 0 8px rgba(88,28,135,0.7), inset 0 0 8px rgba(0,0,0,0.45); }
+
+/* Search autocomplete - same look and 8-entry cap as the Catch Tank Calculator.
+   The dropdown is appended to <body> and positioned with position:fixed from the input's
+   own bounding box. An earlier version wrapped the input in a span to anchor the list,
+   which changed the field's placement: these bars are centred by their parent row on
+   desktop, and the extra element pushed them hard left. Nothing wraps the input now, so
+   layout is byte-identical to before the autocomplete existed. */
+.ac-list{
+  position:fixed; z-index:2000; display:none;
+  background: var(--card, #fff); border:1px solid var(--border, #d8dbe6);
+  border-radius:10px; overflow:hidden;
+  box-shadow:0 8px 22px rgba(0,0,0,.12);
+}
+.ac-list.open{ display:block; }
+.ac-item{ padding:8px 12px; font-size:14px; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
+[data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
+.ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
+
+
+
+  /* info button beside the search box, its panel opening just below it */
+  .page-search-row{ position:relative; align-items:center; gap:8px; }
+  .page-search-row .info-btn{ flex:none; width:34px; height:34px; border-radius:10px; margin:0 !important; }
+  .page-search-row .info-btn svg{ width:16px; height:16px; }
+  .page-search-row .info-panel{ top:calc(100% + 6px); left:20px; right:auto; }
+  /* Same header as every other page: the menu button alone at the top right, this page's filter
+     button mirrored at the top left, the title centred between them. (With both at the right, the
+     menu button sat 52px further in than elsewhere and the title was pushed off centre.) */
+  .sticky-header-title-row .header-buttons-left{ left:0; right:auto; }
+  /* The filter panel opens flush against the left edge of the screen, like the menu on the right */
+  .gear-panel{ border-left:none !important; border-top-left-radius:0 !important; border-bottom-left-radius:0 !important; }
+
+  /* ---- Best Buddy Breakpoints ---- */
+  :root{
+    --normal:#9199A1; --fire:#E2661C; --water:#3E8DE0; --electric:#E0B316; --grass:#4E9A3A; --ice:#5AC9C9;
+    --fighting:#A2402A; --poison:#8A3F94; --ground:#6B4423; --flying:#8B93E0; --psychic:#E0426E; --bug:#7B9A1E;
+    --rock:#B5651D; --ghost:#5B4B8A; --dragon:#5B3FE0; --dark:#4A4238; --steel:#7A8A9A; --fairy:#E091C9;
+  }
+  .bk{ max-width:1060px; margin:0 auto; padding:16px 20px 45px; box-sizing:border-box; display:flex; flex-direction:column; gap:18px; }
+  .bk-card{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px 12px; }
+  .bk-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+  .bk-head h2{ font:800 17px 'Manrope',sans-serif; color:var(--ink); margin:0; }
+  .bk-sub{ font:600 12.5px 'Inter',sans-serif; color:var(--ink-dim); }
+  .bk-form{ display:grid; grid-template-columns:minmax(0,1.4fr) repeat(3, minmax(0,1fr)); gap:10px; }
+  .bk-f{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .bk-f > span{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); }
+  .bk-f input, .bk-f select{ width:100%; box-sizing:border-box; font:500 14px 'Inter',sans-serif; color:var(--ink); background:var(--card);
+    border:1px solid var(--border); border-radius:8px; padding:8px 10px; min-width:0; }
+  .bk-f input:focus, .bk-f select:focus{ outline:none; border-color:var(--accent); }
+  .bk-two{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:28px; margin-top:14px; }
+  .bk-two h3{ font:800 13px 'Manrope',sans-serif; color:var(--ink); margin:0 0 2px; }
+  .bk-two h3.t-bp{ color:#f08a3c; } .bk-two h3.t-bk{ color:#4a90e2; }
+  .bk-seg{ display:inline-flex; border:1px solid var(--border); border-radius:999px; padding:3px; gap:2px; }
+  .bk-seg button{ border:0; background:none; font:700 12.5px 'Manrope',sans-serif; color:var(--ink-muted); padding:5px 12px; border-radius:999px; cursor:pointer; }
+  .bk-seg button[aria-pressed="true"]{ background:#f08a3c; color:#fff; }
+  .bk-h, .bk-r{ display:grid; grid-template-columns:minmax(0,1fr) 92px; gap:12px; align-items:center; }
+  .bk-h.k, .bk-r.k{ grid-template-columns:minmax(0,1fr) minmax(0,0.8fr) 80px; }
+  .bk-h{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); padding:8px 0 6px; border-bottom:1px solid var(--border); }
+  .bk-h .n, .bk-r .n{ text-align:right; }
+  .bk-r{ padding:5px 0; border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); font:500 13px 'Inter',sans-serif; color:var(--ink); }
+  .bk-r:last-child{ border-bottom:0; }
+  .bk-mon{ display:flex; align-items:center; gap:8px; min-width:0; }
+  .bk-mon img{ width:32px; height:32px; object-fit:contain; flex:none; }
+  .bk-mon img.shadow-mist{ border-radius:50%; background:radial-gradient(circle, rgba(140,90,200,.35), transparent 70%); }
+  .bk-mon b{ font:700 14px 'Manrope',sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bk-d{ font:700 13px 'Inter',sans-serif; font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--ink-muted); }
+  .bk-d.up{ color:#f08a3c; } .bk-d.down{ color:#4a90e2; }
+  .bk-d i{ font-style:normal; font-size:11px; margin-left:4px; }
+  .bk-bm{ font:500 12.5px 'Inter',sans-serif; color:var(--ink-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bk-empty{ padding:18px 0; color:var(--ink-dim); font:600 13px 'Inter',sans-serif; }
+  /* popular bosses */
+  .bk-ph, .bk-pr{ display:grid; grid-template-columns:minmax(170px, 0.9fr) minmax(0, 2fr); gap:14px; align-items:center; }
+  .bk-ph{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); padding:8px 0 6px; border-bottom:1px solid var(--border); }
+  .bk-pr{ padding:6px 0; border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+  .bk-pr:last-child{ border-bottom:0; }
+  .bk-atk{ display:flex; flex-wrap:wrap; gap:2px 4px; align-items:center; }
+  .bk-atk button{ all:unset; cursor:pointer; display:inline-grid; place-items:center; width:36px; height:36px; border-radius:8px; }
+  .bk-atk button:hover{ background:color-mix(in srgb, var(--ink) 8%, transparent); }
+  .bk-atk button:focus-visible{ outline:2px solid var(--accent); }
+  .bk-atk img{ width:34px; height:34px; object-fit:contain; }
+  .bk-atk img.shadow-mist{ border-radius:50%; background:radial-gradient(circle, rgba(140,90,200,.35), transparent 70%); }
+  @media (max-width:820px){ .bk-form{ grid-template-columns:repeat(2, minmax(0,1fr)); } .bk-f-mon, .bk-f-fm{ grid-column:1 / -1; } }
+  @media (max-width:700px){
+    .bk-head{ flex-direction:column; align-items:flex-start; gap:2px; }   /* the level line under the title */
+    .bk-form{ gap:12px 10px; }
+    .bk-two h3{ margin-bottom:4px; }
+    .bk-r{ padding:7px 0; }
+  }
+  @media (max-width:700px){
+    .bk{ padding:12px 12px 30px; }
+    .bk-card{ padding:12px 12px 10px; }
+    .bk-two{ grid-template-columns:minmax(0,1fr); gap:20px; }
+    .bk-h.k, .bk-r.k{ grid-template-columns:minmax(0,1fr) auto 70px; }
+    .bk-ph{ display:none; }
+    .bk-pr{ grid-template-columns:minmax(0,1fr); gap:4px; padding:8px 0; }
+    .bk-atk button{ width:32px; height:32px; } .bk-atk img{ width:30px; height:30px; }
+  }
+</style>
+<link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
+<script src="assets/seasons.js" defer></script><!-- falling season particles in the margins -->
+</head>
+<body>
+
+<div class="sticky-header">
+  <div class="sticky-header-title-row">
+    <h1 class="page-title-sm">Best Buddy Breakpoints</h1>
+    <div class="header-buttons">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+  <!-- NAV:START - generated by generate_nav.py from data/nav-partial.html. Do not edit by hand. -->
+<!-- Shortcut links to the most-used pages, and one header-title size for every page. Defined
+     here once; generate_nav.py stamps it into every page, and marks the link to the page itself
+     "current" (as it does in the menu). The links are placed into the page's header bar by the
+     script below - this partial sits at the very top of <body>, before the header exists - and
+     stay hidden until then so they never flash at the top of the page. -->
+<style>
+  /* Header titles were 26px on some pages, 22px on the raid archives, 18px on others, and 15px
+     Inter on boss collection pages. One size everywhere: */
+  body .sticky-header .page-title-sm, body .sticky-header h1{
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:22px; line-height:1.2; letter-spacing:-0.01em;
+  }
+  body .sticky-header .crumb-header #crumbBoss{ font-family:'Manrope', sans-serif; font-weight:800; font-size:22px; color:var(--text); }
+  @media (max-width:600px){
+    body .sticky-header .page-title-sm, body .sticky-header h1, body .sticky-header .crumb-header #crumbBoss{ font-size:18px; }
+  }
+  .qlinks[hidden]{ display:none !important; }
+  /* Own colour settings, borrowing the page's variables where it has them: not every page defines
+     --text-dim / --blue (Top Catch Tanks doesn't), and without these the links took the header's
+     text colour and the current-page highlight vanished. */
+  #quickLinks{ --ql-dim: var(--text-dim, #8a93a6); --ql-text: var(--text, #e6e9f0); --ql-accent: var(--blue, #3d9dff); }
+  .qlinks{ display:flex; justify-content:center; gap:2px; padding:6px 0 0; overflow-x:auto; scrollbar-width:none; }
+  .qlinks::-webkit-scrollbar{ display:none; }
+  #quickLinks a{ font:700 12.5px 'Manrope', sans-serif; color:var(--ql-dim); padding:5px 11px; border-radius:999px;
+    white-space:nowrap; text-decoration:none; background:none; }
+  #quickLinks a:hover{ color:var(--ql-text); }
+  #quickLinks a.current{ color:var(--ql-accent); background:color-mix(in srgb, var(--ql-accent) 13%, transparent); }
+  .qlinks .ql-short{ display:none; }
+  /* Submit a VOD / Submit a Guide are on the landing page only, at the end of the same row */
+  #quickLinks .ql-home-only{ display:none; }
+  #quickLinks.qlinks-home .ql-home-only{ display:inline-block; }
+  #quickLinks.qlinks-home{ flex-wrap:wrap; }
+  #quickLinks.qlinks-home{ align-items:center; }
+  #quickLinks.qlinks-home a.ql-discord{ display:inline-grid; place-items:center; width:26px; height:26px; padding:0; margin-left:4px; border-radius:50%;
+    background:#5865F2; color:#fff; flex:none; }
+  #quickLinks.qlinks-home a.ql-discord:hover{ background:#6d78f5; color:#fff; }
+  #quickLinks a.ql-discord svg{ width:15px; height:12px; }
+  /* pages without a header bar (Home, Difficulty & Roles, the Guide Editor): a row at the top */
+  #quickLinks.qlinks-standalone{ padding:12px 64px 4px; }
+  @media (max-width:600px){
+    .qlinks{ justify-content:space-between; gap:0; }
+    #quickLinks a{ font-size:11.5px; padding:5px 4px; letter-spacing:-0.01em; }
+    .qlinks .ql-full{ display:none; } .qlinks .ql-short{ display:inline; }
+    /* Header rows whose menu button is pinned to the right (raid guides, CT Calculator) were only as
+       tall as the title, so the 44px button hung down over the links. */
+    body .sticky-header .sticky-header-row{ min-height:44px; }
+    /* no header bar: the menu button floats at the top right, so the row goes just below it */
+    #quickLinks.qlinks-standalone{ padding:62px 8px 4px; }
+    /* the landing page's seven links don't fit one phone row: centred, wrapping onto a second */
+    #quickLinks.qlinks-home{ justify-content:center; row-gap:2px; }
+  }
+  /* The menu opens flush against the right edge of the screen: no gap, no border or rounded
+     corners on that side. Every page positions it from a full-width header or the window. */
+  body .hamburger-panel{ right:0 !important; border-right:none !important;
+    border-top-right-radius:0 !important; border-bottom-right-radius:0 !important; }
+  /* phones up to 380px wide, down to 320px: all six still fit without cutting off "Mechanics" */
+  @media (max-width:380px){
+    #quickLinks a{ font-size:10px; padding:5px 2px; letter-spacing:-0.02em; }
+    #quickLinks.qlinks-standalone{ padding:62px 6px 4px; }
+  }
+</style>
+<nav class="qlinks" id="quickLinks" aria-label="Shortcuts" hidden>
+  <a href="/"><span class="ql-full">Home</span><span class="ql-short">Home</span></a>
+  <a href="progression.html"><span class="ql-full">Raid Budget Advice</span><span class="ql-short">Budget</span></a>
+  <a href="dps-calculator.html"><span class="ql-full">DPS Calculator</span><span class="ql-short">DPS Calc</span></a>
+  <a href="research.html"><span class="ql-full">Top Raiders</span><span class="ql-short">Raiders</span></a>
+  <a href="ct-database.html"><span class="ql-full">Top Catch Tanks</span><span class="ql-short">Catch Tanks</span></a>
+  <a href="solo-raid-mechanics.html"><span class="ql-full">Solo Mechanics</span><span class="ql-short">Mechanics</span></a>
+  <!-- the landing page only: its old Submit buttons now live here, as plain links like the rest -->
+  <a href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" class="ql-home-only" target="_blank" rel="noopener noreferrer"><span class="ql-full">Submit a VOD</span><span class="ql-short">Submit VOD</span></a>
+  <a href="editor.html" class="ql-home-only" title="Requires a GitHub account"><span class="ql-full">Submit a Guide</span><span class="ql-short">Submit Guide</span></a>
+  <a href="https://discord.gg/mt3EVv6CTP" class="ql-home-only ql-discord" target="_blank" rel="noopener noreferrer" aria-label="Join the Discord" title="Join the Discord"><svg viewBox="0 0 127 96" aria-hidden="true" focusable="false"><path fill="#fff" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15ZM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69Zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69Z"/></svg></a>
+</nav>
+<script>
+(function(){
+  function place(){
+    var nav = document.getElementById("quickLinks");
+    if(!nav) return;
+    // The landing page gets the same row (Home highlighted), plus its Submit a VOD / Submit a Guide
+    // links at the end; it has no header bar, so the row sits at the top like the editor's.
+    if(/(^|\/)(index\.html)?$/.test(location.pathname)) nav.classList.add("qlinks-home");
+    var hdr = document.querySelector(".sticky-header");
+    if(hdr){
+      hdr.appendChild(nav);
+    } else {
+      nav.classList.add("qlinks-standalone");
+      document.body.insertBefore(nav, document.body.firstChild);
+    }
+    var cur = nav.querySelector("a.current");
+    if(cur) cur.setAttribute("aria-current", "page");
+    nav.hidden = false;
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", place); else place();
+})();
+</script>
+<div class="hamburger-panel" id="hamburgerPanel">
+  <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <div class="hamburger-section">
+    <a href="/"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">PVE Meta</div>
+    <a href="research.html" class="hamburger-featured">Top Raiders</a>
+    <a href="ct-database.html" class="hamburger-featured">Top Catch Tanks</a>
+    <a href="meta-battle-parties.html">Battle Parties</a>
+  </div>
+    <div class="hamburger-section">
+    <div class="hamburger-section-label">Research</div>
+    <a href="dps-calculator.html" class="hamburger-featured">DPS Calculator</a>
+    <a href="solo-raid-mechanics.html" class="hamburger-featured">Solo Mechanics</a>
+    <a href="guides.html" class="hamburger-featured">Raid Guides</a>
+    <a href="articles.html">Articles</a>
+    <a href="pokemon-stats.html" class="current">Pokémon &amp; Moves</a>
+    <a href="reference.html">Difficulty &amp; Roles</a>
+    <a href="progression.html">Raid Budget Advice</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Archives</div>
+    <a href="tier4-raids.html">Mega</a>
+    <a href="tier5-raids.html">Legendary</a>
+    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+  </div>
+  <div class="hamburger-section">
+    <div class="hamburger-section-label">Resources</div>
+    <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
+  </div>
+</div>
+
+<script>
+/* The nav panel: opens and closes with the hamburger button, and closes again on its own - when
+   you go to another page (it starts closed on every page), click or tap outside it, press Escape,
+   or pick one of its links. Coming back with the browser's back button closes it too (the browser
+   can restore a page exactly as it was left, panel open included).
+
+   It used to stay open from page to page (kept in sessionStorage) so moving between pages didn't
+   mean reopening it each time; with the shortcut row now on every page that is no longer needed.
+
+   Each page ships its own hamburger handler inline, outside the NAV markers this file is injected
+   between, so those can't be edited from here. The button is replaced with a clone (dropping the
+   page's listener) and the page's closeHamburger() is pointed at this one, so every page behaves
+   the same. */
+(function(){
+  try { sessionStorage.removeItem("sra-nav-open"); } catch(e){ /* the old open-state flag */ }
+  document.addEventListener("DOMContentLoaded", function(){
+    var panel = document.getElementById("hamburgerPanel");
+    var btn = document.getElementById("hamburgerBtn");
+    if(!panel || !btn) return;
+
+    var fresh = btn.cloneNode(true);
+    btn.parentNode.replaceChild(fresh, btn);
+    btn = fresh;
+
+    function setOpen(open){
+      panel.classList.toggle("open", open);
+      btn.setAttribute("aria-expanded", String(open));
+    }
+    window.closeHamburger = function(){ setOpen(false); };
+    setOpen(false);
+
+    btn.addEventListener("click", function(e){
+      e.stopPropagation();
+      setOpen(!panel.classList.contains("open"));
+    });
+    document.addEventListener("click", function(e){
+      if(!panel.classList.contains("open")) return;
+      if(e.target.closest && e.target.closest("#hamburgerPanel a")){ setOpen(false); return; }
+      if(!panel.contains(e.target) && !btn.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape" && panel.classList.contains("open")){ setOpen(false); btn.focus(); }
+    });
+    window.addEventListener("pageshow", function(){ setOpen(false); });
+  });
+})();
+</script>
+<!-- NAV:END -->
+</div>
+
+<main class="bk">
+  <section class="bk-card" aria-labelledby="bkCalcH">
+    <div class="bk-head"><h2 id="bkCalcH">Calculator</h2><span class="bk-sub">Level 50 → 51 (best buddy) · 15/15/15</span></div>
+    <div class="bk-form">
+      <label class="bk-f bk-f-mon"><span>Pokémon</span><input id="bkMon" type="search" placeholder="e.g. Kyurem White" autocomplete="off" spellcheck="false"></label>
+      <label class="bk-f bk-f-fm"><span>Fast move</span><select id="bkFm"></select></label>
+      <label class="bk-f"><span>Weather</span><select id="bkWx">
+        <option value="">No boost (Extreme)</option><option value="sunny">Sunny / Clear</option><option value="partlycloudy">Partly Cloudy</option>
+        <option value="cloudy">Cloudy</option><option value="rain">Rainy</option><option value="snow">Snow</option><option value="windy">Windy</option><option value="fog">Fog</option>
+      </select></label>
+      <label class="bk-f"><span>Mega boost</span><select id="bkMega"><option value="1">None</option><option value="1.1">1.1×</option><option value="1.3">1.3× (same type)</option></select></label>
+    </div>
+    <div class="bk-two">
+      <div><h3 class="t-bp">Breakpoints</h3><div id="bkBreak"><div class="bk-empty">Loading…</div></div></div>
+      <div><h3 class="t-bk">Bulkpoints</h3><div id="bkBulk"><div class="bk-empty">Loading…</div></div></div>
+    </div>
+  </section>
+
+  <section class="bk-card" aria-labelledby="bkPopH">
+    <div class="bk-head"><h2 id="bkPopH">Popular bosses</h2>
+      <div class="bk-seg" role="group" aria-label="Weather"><button type="button" data-w="0" aria-pressed="true">No weather boost</button><button type="button" data-w="1" aria-pressed="false">Weather boosted</button></div>
+    </div>
+    <div id="bkPop"><div class="bk-empty">Loading…</div></div>
+  </section>
+</main>
+
+<script>
+// ============ SPRITE LOOKUP (same approach as the raid archives / calculator) ============
+const DB_OVERRIDES = {
+  "mega lucario":"lucario-mega", "mega rayquaza":"rayquaza-mega", "mega mewtwo y":"mewtwo-mega-y", "mega mewtwo x":"mewtwo-mega-x", "mega charizard x":"charizard-mega-x", "mega charizard y":"charizard-mega-y",
+  "mega beedrill":"beedrill-mega", "mega blaziken":"blaziken-mega", "mega gengar":"gengar-mega",
+  "mega diancie":"diancie-mega", "mega alakazam":"alakazam-mega", "mega sceptile":"sceptile-mega",
+  "mega gardevoir":"gardevoir-mega", "mega heracross":"heracross-mega",
+  "primal groudon":"groudon-primal", "primal kyogre":"kyogre-primal",
+  "zacian crown":"zacian-crowned", "zamazenta hero":"zamazenta", "zamazenta crown":"zamazenta-crowned",
+  "necrozma dawn wings":"necrozma-dawn-wings", "necrozma dusk mane":"necrozma-dusk-mane",
+  "ndm":"necrozma-dusk-mane", "ndw":"necrozma-dawn-wings",
+  "giratina altered":"giratina-altered", "giratina origin":"giratina-origin",
+  "tornadus therian":"tornadus-therian", "tornadus incarnate":"tornadus-incarnate",
+  "thundurus incarnate":"thundurus-incarnate", "enamorus therian":"enamorus-therian",
+  "enamorus incarnate":"enamorus-incarnate", "kyurem white":"kyurem-white", "kyurem black":"kyurem-black",
+  "palkia origin":"palkia-origin",
+  "mega raichu x":"raichu-mega-x", "mega raichu y":"raichu-mega-y", "mega complete zygarde":"zygarde-complete-mega",
+};
+const DEX_MAP = {
+  "dialga":483, "regigigas":486, "rampardos":409, "reshiram":643, "garchomp":445,
+  "palkia":484, "groudon":383, "mamoswine":473, "salamence":373, "gengar":94,
+  "tyrantrum":697, "rhyperior":464, "kyogre":382, "mewtwo":150,
+};
+function toDbSlug(name){
+  let n = name.trim().toLowerCase();
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  n = n.replace(/^shadow\s+/, "");
+  if (DB_OVERRIDES[n]) return DB_OVERRIDES[n];
+  const megaMatch = n.match(/^mega\s+(.+)$/);
+  if (megaMatch) return `${megaMatch[1].replace(/\s+/g, "-")}-mega`;
+  // PokemonDB uses a suffix for regional forms (e.g. "raichu-alolan"), not a prefix
+  const regionalMatch = n.match(/^(alolan|galarian|hisuian|paldean)\s+(.+)$/);
+  if (regionalMatch) return `${regionalMatch[2].replace(/\s+/g, "-")}-${regionalMatch[1]}`;
+  return n.replace(/\s+/g, "-");
+}
+// Very recent Legends: Z-A Mega Evolutions - use PokemonGoHub direct artwork instead of guessing PokemonDB slugs
+const GOHUB_OVERRIDES = {
+  // The Origin formes have no animated sprite on the CDN - "dialga-origin.gif" and
+  // "palkia-origin.gif" both 404 - so they fall back to the static pogo-256 art. Giratina
+  // Origin does have a .gif, which is why it never showed this problem.
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+  "mega raichu x": "https://db.pokemongohub.net/images/official/full/026_mega_x_with_bg.webp",
+  "mega raichu y": "https://db.pokemongohub.net/images/official/full/026_mega_y_with_bg.webp",
+  "mega complete zygarde": "https://db.pokemongohub.net/images/official/full/718_mega_with_bg.webp",
+  "mega clefable": "https://db.pokemongohub.net/images/official/full/036_mega_with_bg.webp",
+  "mega meganium": "https://db.pokemongohub.net/images/official/full/154_mega_with_bg.webp",
+  "mega feraligatr": "https://db.pokemongohub.net/images/official/full/160_mega_with_bg.webp",
+  "mega staraptor": "https://db.pokemongohub.net/images/official/full/398_mega_with_bg.webp",
+  "mega froslass": "https://db.pokemongohub.net/images/official/full/478_mega_with_bg.webp",
+  "mega darkrai": "https://db.pokemongohub.net/images/official/full/491_mega_with_bg.webp",
+  "mega emboar": "https://db.pokemongohub.net/images/official/full/500_mega_with_bg.webp",
+  "mega scolipede": "https://db.pokemongohub.net/images/official/full/545_mega_with_bg.webp",
+  "mega scrafty": "https://db.pokemongohub.net/images/official/full/560_mega_with_bg.webp",
+  "mega eelektross": "https://db.pokemongohub.net/images/official/full/604_mega_with_bg.webp",
+  "mega chandelure": "https://db.pokemongohub.net/images/official/full/609_mega_with_bg.webp",
+  "mega golurk": "https://db.pokemongohub.net/images/official/full/623_mega_with_bg.webp",
+  "mega chesnaught": "https://db.pokemongohub.net/images/official/full/652_mega_with_bg.webp",
+  "mega delphox": "https://db.pokemongohub.net/images/official/full/655_mega_with_bg.webp",
+  "mega greninja": "https://db.pokemongohub.net/images/official/full/658_mega_with_bg.webp",
+  "mega pyroar": "https://db.pokemongohub.net/images/official/full/668_mega_with_bg.webp",
+  "mega meowstic": "https://db.pokemongohub.net/images/official/full/678_mega_with_bg.webp",
+  "mega malamar": "https://db.pokemongohub.net/images/official/full/687_mega_with_bg.webp",
+  "mega barbaracle": "https://db.pokemongohub.net/images/official/full/689_mega_with_bg.webp",
+  "mega dragalge": "https://db.pokemongohub.net/images/official/full/691_mega_with_bg.webp",
+  "mega hawlucha": "https://db.pokemongohub.net/images/official/full/701_mega_with_bg.webp",
+  "mega crabominable": "https://db.pokemongohub.net/images/official/full/740_mega_with_bg.webp",
+  "mega golisopod": "https://db.pokemongohub.net/images/official/full/768_mega_with_bg.webp",
+  "mega drampa": "https://db.pokemongohub.net/images/official/full/780_mega_with_bg.webp",
+  "mega magearna": "https://db.pokemongohub.net/images/official/full/801_mega_with_bg.webp",
+  "mega zeraora": "https://db.pokemongohub.net/images/official/full/807_mega_with_bg.webp",
+  "mega falinks": "https://db.pokemongohub.net/images/official/full/870_mega_with_bg.webp",
+  "mega scovillain": "https://db.pokemongohub.net/images/official/full/952_mega_with_bg.webp",
+  "mega glimmora": "https://db.pokemongohub.net/images/official/full/970_mega_with_bg.webp",
+  "mega tatsugiri": "https://i.pokebase.app/pokemongo/l5WJLysbWg_FeD9rwaZAx.png",
+  "mega baxcalibur": "https://db.pokemongohub.net/images/official/full/998_mega_with_bg.webp",
+  "mega heatran": "https://i.pokebase.app/pokemongo/1NEIKLeb_FEopFvUGwWNi.png",
+  "mega lucario z": "/assets/sprites/lucario-megaz.png",
+  "mega absol z": "/assets/sprites/absol-megaz.png",
+  "mega complete zygarde": "https://i.pokebase.app/pokemongo/QgUu3Rg6oE0JsS8iVvBVo.png",
+  "mega garchomp z": "/assets/sprites/garchomp-megaz.png",
+  "mega chimecho": "https://i.pokebase.app/pokemongo/-Zsr6tz6C3QfHAxo30gzS.png",
+  "mega eternal floette": "https://i.pokebase.app/pokemongo/e0XY7wZGgOPSr9AGRQoTH.png",
+  "mega excadrill": "https://i.pokebase.app/pokemongo/DYPljoJKgiAKIb3gx5-jm.png",
+  "mega victreebel": "https://i.pokebase.app/pokemongo/A-nxEKJxh6WHZN6SETHsB.png",
+  "shadow gengar": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSjRque3TzjSxZGqw3ug2O_Ujz2z_Je30JziCMLHpD5KA&s",
+};
+// Filenames in the animated GIF repo don't always match PokemonDB's own slug convention -
+// e.g. Crowned formes append "sword"/"shield" with no hyphen, Necrozma fusions drop the
+// internal hyphen in the form suffix, and the Tapu deities have no hyphen at all.
+const ANI_OVERRIDES = {
+  // Regional forms whose CDN filename does not follow the "<name>-<region>" rule the generic
+  // regional branch produces. Each of these 404s without an entry here; the names were confirmed
+  // against the sprite CDN rather than guessed.
+  "galarian farfetch'd": "farfetchd-galarian",
+  "galarian mr. mime": "mrmime-galarian",
+  "hisuian basculin": "basculin-whitestriped",
+  "hisuian zoroark": "zoroark-hisuian",
+  "paldean wooper": "wooper-paldea",
+  // Galarian Darmanitan's two forms. Without these the regional rule produces
+  // "darmanitan-galarian" and "darmanitan-zen-galarian", both 404 on the sprite CDN - the real
+  // names are "-galarianstandard" and "-galarianzen". The Shadow variants resolve through here
+  // too, since the lookup strips a leading "shadow ".
+  "galarian darmanitan": "darmanitan-galarianstandard",
+  "galarian darmanitan zen": "darmanitan-galarianzen",
+  "zacian crown": "zacian-crownedsword",
+  "zamazenta crown": "zamazenta-crownedshield",
+  "tapu koko": "tapukoko", "tapu lele": "tapulele", "tapu bulu": "tapubulu", "tapu fini": "tapufini",
+  // Aegislash's two forms. Shield is the CDN's base file, so the generic rule's
+  // "aegislash-shield" 404s; Blade does have its own file. Both confirmed against the CDN.
+  "aegislash shield": "aegislash", "aegislash": "aegislash",
+  "aegislash blade": "aegislash-blade",
+  "necrozma dusk mane": "necrozma-duskmane", "ndm": "necrozma-duskmane",
+  "necrozma dawn wings": "necrozma-dawnwings",
+  "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
+  "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
+  "ho-oh": "hooh",
+  "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
+  "zygarde 10%": "zygarde-tenpercent",
+  "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
+  // Shorthand names used elsewhere on the site (e.g. the CT calculator's Pokemon list) for the
+  // same Incarnate/Therian formes already covered above by their full names - same Pokemon, same GIF.
+  "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
+  "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
+  "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
+};
+// A few Origin formes aren't in the animated "ani" set at all - they live as static
+// PNGs in a differently-named directory with no per-Pokemon slug pattern to guess from.
+const ANI_URL_OVERRIDES = {
+  // Self-hosted: the external fallback host sends no CORS header, so the canvas export
+  // ("Copy as image") could not draw it. Same-origin removes that constraint.
+  // Mega Z forms: self-hosted (assets/sprites), from PokeAPI's sprites - the animated set has none.
+  "mega lucario z": "/assets/sprites/lucario-megaz.png",
+  "mega absol z": "/assets/sprites/absol-megaz.png",
+  "mega garchomp z": "/assets/sprites/garchomp-megaz.png",
+  "palkia origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/palkia-origin.png",
+  "dialga origin": "https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/pogo-256/dialga-origin.png",
+};
+const LOCAL_SPRITES = new Set(["abomasnow-mega", "absol-mega", "aerodactyl-mega", "aggron-mega", "alakazam-mega", "altaria-mega", "ampharos-mega", "articuno", "audino-mega", "azelf", "banette-mega", "baxcalibur", "beedrill-mega", "blacephalon", "blastoise-mega", "blaziken", "blaziken-mega", "buzzwole", "camerupt-mega", "celesteela", "charizard-megax", "charizard-megay", "darkrai", "deoxys", "deoxys-attack", "dialga", "diancie-mega", "dragonite-mega", "enamorus-incarnate", "enamorus-therian", "entei", "eternatus", "excadrill", "gallade-mega", "garchomp", "garchomp-mega", "gardevoir-mega", "genesect", "gengar", "gengar-mega", "giratina-altered", "giratina-origin", "glalie-mega", "groudon", "groudon-primal", "guzzlord", "gyarados-mega", "heatran", "heracross-mega", "hooh", "houndoom-mega", "kangaskhan-mega", "kartana", "keldeo", "keldeo-resolute", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "landorus-incarnate", "landorus-therian", "latios", "lopunny-mega", "lucario-mega", "mamoswine", "manectric-mega", "mawile-mega", "medicham-mega", "metagross-mega", "mewtwo", "mewtwo-megay", "necrozma", "necrozma-dawnwings", "necrozma-duskmane", "nihilego", "palkia", "pheromosa", "pidgeot-mega", "pinsir-mega", "rampardos", "rayquaza-mega", "regidrago", "regieleki", "regigigas", "reshiram", "rhyperior", "sableye-mega", "salamence", "salamence-mega", "sceptile-mega", "scizor-mega", "sharpedo-mega", "skarmory-mega", "slowbro-mega", "solgaleo", "stakataka", "starmie-mega", "steelix-mega", "swampert-mega", "tapubulu", "tapukoko", "tapulele", "terrakion", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "tyranitar-mega", "tyrantrum", "venusaur-mega", "virizion", "xerneas", "xurkitree", "yveltal", "zacian-crownedsword", "zamazenta-crownedshield", "zamazenta-hero", "zapdos", "zekrom"]);
+
+// ---- Sprite source priority: local -> mgrann03 -> pokemongohub (fallback) ----
+// GOHUB_OVERRIDES is no longer consulted up front. mgrann03 only carries 8 of the 35
+// override names, so the rest still need pokemongohub - but only after the preferred
+// source actually fails, not instead of it. spriteUrl() registers the fallback here and
+// this listener applies it. Capture phase runs before each element's inline onerror, so
+// stopPropagation() keeps the page's own "hide the image" handler from winning first.
+const SPRITE_FALLBACK = Object.create(null);
+document.addEventListener("error", function (e) {
+  const img = e.target;
+  if (!img || img.tagName !== "IMG" || img.dataset.spriteFallbackUsed) return;
+  const fb = SPRITE_FALLBACK[img.getAttribute("src")];
+  if (!fb) return;
+  img.dataset.spriteFallbackUsed = "1";
+  img.src = fb;
+  e.stopPropagation();
+  e.preventDefault();
+}, true);
+
+function spriteUrl(name){
+  const key = name.trim().toLowerCase();
+  // this repo drops the trailing "n" on Alolan forms (e.g. "raichu-alola", not "raichu-alolan")
+  const slug = (ANI_OVERRIDES[key] || ANI_OVERRIDES[key.replace(/^shadow\s+/, "")] || toDbSlug(name)).replace(/-alolan$/, "-alola");
+  if (LOCAL_SPRITES.has(slug)) return `assets/sprites/${slug}.gif`;
+  const url = ANI_URL_OVERRIDES[key] || `https://raw.githubusercontent.com/mgrann03/pokemon-resources/main/graphics/ani/${slug}.gif`;
+  // The shadow-stripped key is tried too, matching how ANI_OVERRIDES is resolved above.
+  // Without it "Shadow Mega Lucario Z" registered no fallback and stayed broken even once the
+  // base form was fixed.
+  const gohub = GOHUB_OVERRIDES[key] || GOHUB_OVERRIDES[key.replace(/^shadow\s+/, "")];
+  if (gohub) SPRITE_FALLBACK[url] = gohub;
+  return url;
+}
+
+// Not every shadow Pokemon has a dedicated shadow-tinted sprite available. When that specific
+// image fails to load, fall back to the regular (non-shadow) sprite for that species, but add a
+// purple mist background so the icon still visually reads as "this is a shadow" even without a
+// properly shadow-tinted image. Returns true if it applied the fallback (caller should not run
+// its own failure handling in that case), false if there's nothing shadow-specific to do.
+// No longer swaps to a fallback sprite on error - spriteUrl() already resolves shadow names
+// to their base sprite directly now, so there's nothing left to fall back to. Kept as a
+// pass-through rather than touching every onerror call site that still references it.
+function trySpriteShadowFallback(img, name){
+  return false;
+}
+
+// Applies to every shadow Pokemon unconditionally, regardless of whether a dedicated
+// shadow-tinted sprite exists and loads successfully - simpler than checking DEX_MAP, and
+// matches the intent that shadow status should always be visually obvious.
+function needsShadowMist(name){
+  return /^shadow\s+/i.test(name.trim());
+}
+
+
+// ============ DAMAGE (the DPS Calculator's formulas) ============
+const CPM = { 50: 0.84029999, 51: 0.8453 };
+const BOSS_CPM = 0.7903, SHADOW_BOSS_CPM = 0.82, ELITE_CPM = 1.0;
+const TYPE_CHART = {
+  normal:   { rock:0.625, steel:0.625, ghost:0.39 },
+  fire:     { grass:1.6, ice:1.6, bug:1.6, steel:1.6, fire:0.625, water:0.625, rock:0.625, dragon:0.625 },
+  water:    { fire:1.6, ground:1.6, rock:1.6, water:0.625, grass:0.625, dragon:0.625 },
+  electric: { water:1.6, flying:1.6, electric:0.625, grass:0.625, dragon:0.625, ground:0.39 },
+  grass:    { water:1.6, ground:1.6, rock:1.6, fire:0.625, grass:0.625, poison:0.625, flying:0.625, bug:0.625, dragon:0.625, steel:0.625 },
+  ice:      { grass:1.6, ground:1.6, flying:1.6, dragon:1.6, fire:0.625, water:0.625, ice:0.625, steel:0.625 },
+  fighting: { normal:1.6, ice:1.6, rock:1.6, dark:1.6, steel:1.6, poison:0.625, flying:0.625, psychic:0.625, bug:0.625, fairy:0.625, ghost:0.39 },
+  poison:   { grass:1.6, fairy:1.6, poison:0.625, ground:0.625, rock:0.625, ghost:0.625, steel:0.39 },
+  ground:   { fire:1.6, electric:1.6, poison:1.6, rock:1.6, steel:1.6, grass:0.625, bug:0.625, flying:0.39 },
+  flying:   { grass:1.6, fighting:1.6, bug:1.6, electric:0.625, rock:0.625, steel:0.625 },
+  psychic:  { fighting:1.6, poison:1.6, psychic:0.625, steel:0.625, dark:0.39 },
+  bug:      { grass:1.6, psychic:1.6, dark:1.6, fire:0.625, fighting:0.625, poison:0.625, flying:0.625, ghost:0.625, steel:0.625, fairy:0.625 },
+  rock:     { fire:1.6, ice:1.6, flying:1.6, bug:1.6, fighting:0.625, ground:0.625, steel:0.625 },
+  ghost:    { ghost:1.6, psychic:1.6, dark:0.625, normal:0.39 },
+  dragon:   { dragon:1.6, steel:0.625, fairy:0.39 },
+  dark:     { ghost:1.6, psychic:1.6, fighting:0.625, dark:0.625, fairy:0.625 },
+  steel:    { ice:1.6, rock:1.6, fairy:1.6, fire:0.625, water:0.625, electric:0.625, steel:0.625 },
+  fairy:    { fighting:1.6, dragon:1.6, dark:1.6, fire:0.625, poison:0.625, steel:0.625 },
+};
+const WEATHER_BOOST = { sunny:["fire","grass","ground"], partlycloudy:["normal","rock"], cloudy:["fairy","fighting","poison"],
+  windy:["dragon","flying","psychic"], rain:["water","electric","bug"], snow:["ice","steel"], fog:["dark","ghost"] };
+const isShadow = n => /^shadow\s/i.test(n || "");
+const eff = (t, types) => types.reduce((m, d) => m * ((TYPE_CHART[t] || {})[d] ?? 1), 1);
+// damage = floor(0.5 * power * modifiers * atk / def) + 1
+function hit(power, mult, atk, def){ return Math.floor(0.5 * power * mult * atk / def) + 1; }
+
+// ============ DATA ============
+const DEX = {}, TYPES = {}, MOVES = {}, POOL = {};
+let META = [], POPULAR = [];
+const key = n => String(n || "").trim().toLowerCase();
+function parse(text){
+  const rows = []; let row = [], cell = "", q = false;
+  text = String(text).replace(/^﻿/, "");
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(q){ if(c === '"'){ if(text[i + 1] === '"'){ cell += '"'; i++; } else q = false; } else cell += c; }
+    else if(c === '"') q = true; else if(c === ","){ row.push(cell); cell = ""; }
+    else if(c === "\n" || c === "\r"){ if(c === "\r" && text[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+    else cell += c;
+  }
+  if(cell || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r => r.some(x => x.trim()));
+}
+const get = url => fetch(url).then(r => { if(!r.ok) throw new Error(url + " " + r.status); return r.text(); }).then(parse);
+// a Pokémon's entry, falling back from "Shadow X" to X (same stats and typing)
+const mon = n => DEX[key(n)] || DEX[key(n).replace(/^shadow\s+/, "")] || null;
+const typesOf = n => TYPES[key(n)] || TYPES[key(n).replace(/^shadow\s+/, "")] || [];
+function poolOf(n){
+  for(const k of [key(n), key(n).replace(/^shadow\s+/, "")]) if(POOL[k]) return POOL[k];
+  return { fast: [], charged: [] };
+}
+function bossStats(name, elite){
+  const b = mon(name); if(!b) return null;
+  if(elite) return { atk: (b.atk + 15) * ELITE_CPM, def: (b.def + 15) * ELITE_CPM };
+  if(isShadow(name)) return { atk: (b.atk + 15) * SHADOW_BOSS_CPM * 1.2, def: (b.def + 15) * SHADOW_BOSS_CPM * 5 / 6 };
+  return { atk: (b.atk + 15) * BOSS_CPM, def: (b.def + 15) * BOSS_CPM };
+}
+// The attacker's move against the boss at level 50 and 51
+function attack(name, move, boss, opt){
+  const p = mon(name); if(!p || !move || !boss.stats) return null;
+  const m = MOVES[key(move)]; if(!m) return null;
+  const mult = (isShadow(name) ? 1.2 : 1) * eff(m.type, boss.types) * (opt.boostAll || (WEATHER_BOOST[opt.wx] || []).includes(m.type) ? 1.2 : 1)
+    * (typesOf(name).includes(m.type) ? 1.2 : 1) * (opt.mega || 1);
+  return [50, 51].map(L => hit(m.dmg, mult, (p.atk + 15) * CPM[L], boss.stats.def));
+}
+// The boss's fast move against the attacker at level 50 and 51
+function taken(name, boss, opt){
+  const p = mon(name), m = MOVES[key(boss.fm)]; if(!p || !m || !boss.stats) return null;
+  const mult = eff(m.type, typesOf(name)) * ((WEATHER_BOOST[opt.wx] || []).includes(m.type) ? 1.2 : 1) * (isShadow(name) ? 1.2 : 1)
+    * (boss.types.includes(m.type) ? 1.2 : 1);
+  return [50, 51].map(L => hit(m.dmg, mult, boss.stats.atk, (p.def + 15) * CPM[L]));
+}
+
+async function load(){
+  const [stats, moves, pool, tiers, t4, t5, t6] = await Promise.all(["/csv/pokemon-stats.csv", "/csv/moves.csv", "/csv/pokemon-movepool.csv",
+    "/csv/tier-list.csv", "/csv/tier4-data.csv", "/csv/tier5-merged.csv", "/csv/tier6-data.csv"].map(get));
+  let h = stats[0].map(key);
+  stats.slice(1).forEach(r => { const n = (r[h.indexOf("name")] || "").trim(); if(!n) return;
+    DEX[key(n)] = { n, atk: +r[h.indexOf("atk")], def: +r[h.indexOf("def")] };
+    TYPES[key(n)] = [r[h.indexOf("type1")], r[h.indexOf("type2")]].filter(Boolean).map(key); });
+  h = moves[0].map(key);
+  moves.slice(1).forEach(r => { const n = (r[h.indexOf("name")] || "").trim(); if(!n) return;
+    MOVES[key(n)] = { n, dmg: +r[h.indexOf("damage")], type: key(r[h.indexOf("type")]), fast: key(r[h.indexOf("category")]) === "fast" }; });
+  h = pool[0].map(key);
+  pool.slice(1).forEach(r => { const k = key(r[h.indexOf("pokemon")]), mv = (r[h.indexOf("move")] || "").trim(), m = MOVES[key(mv)]; if(!k || !m) return;
+    const P = POOL[k] = POOL[k] || { fast: [], charged: [] }; const L = m.fast ? P.fast : P.charged;
+    if(!L.some(x => x.n === m.n)) L.push({ n: m.n, elite: String(r[h.indexOf("elite")] || "").trim() === "1" }); });
+  // meta attackers: the tier list, each with its first fast move
+  const th = tiers.findIndex(r => key(r[0]) === "type" && r.map(key).includes("pokemon"));
+  const tc = tiers[th].map(key);
+  tiers.slice(th + 1).forEach(r => { const n = (r[tc.indexOf("pokemon")] || "").trim(), fm = (r[tc.indexOf("fast move")] || "").trim(), cm = (r[tc.indexOf("charge move")] || "").trim();
+    if(n && fm && mon(n) && MOVES[key(fm)] && !META.some(x => x.n === n)) META.push({ n, fm, cm }); });
+  // popular bosses: the most archived solos, with the fast move used against them most often
+  const solos = {};
+  [[t4, false], [t5, false], [t6, true]].forEach(([rows, hasCat]) => {
+    const hh = rows[0].map(x => x.trim()), ib = hh.indexOf("Boss Name"), ifm = hh.indexOf("FM", ib), ic = hh.indexOf("Category");
+    rows.slice(1).forEach(r => { const b = (r[ib] || "").trim(); if(!b || !mon(b)) return;
+      const s = solos[b] = solos[b] || { n: b, count: 0, fms: {}, elite: false };
+      s.count++; if(ic >= 0 && key(r[ic]) === "elite") s.elite = true;
+      const fm = (r[ifm] || "").trim(); if(MOVES[key(fm)] && MOVES[key(fm)].fast) s.fms[fm] = (s.fms[fm] || 0) + 1; });
+  });
+  POPULAR = Object.values(solos).sort((a, b) => b.count - a.count || a.n.localeCompare(b.n)).slice(0, 30).map(s => ({
+    n: s.n, elite: s.elite, fm: Object.entries(s.fms).sort((a, b) => b[1] - a[1])[0]?.[0] || "", types: typesOf(s.n), stats: bossStats(s.n, s.elite) }));
+}
+
+// ============ CALCULATOR ============
+const $ = id => document.getElementById(id);
+const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const sprite = (n, cls) => `<img class="${needsShadowMist(n) ? "shadow-mist" : ""}${cls ? " " + cls : ""}" src="${esc(spriteUrl(n))}" alt="" loading="lazy" onerror="if(!trySpriteShadowFallback(this, '${esc(n).replace(/'/g, "\\'")}')) this.style.visibility='hidden'">`;
+
+function fillMoves(){
+  const p = poolOf($("bkMon").value), opt = L => L.map(m => `<option value="${esc(m.n)}">${esc(m.n)}${m.elite ? " (Elite)" : ""}</option>`).join("");
+  const keepF = $("bkFm").value;
+  $("bkFm").innerHTML = opt(p.fast) || `<option value="">—</option>`;
+  // a new Pokémon starts on its tier list moveset when it has one
+  const meta = META.find(a => key(a.n) === key($("bkMon").value));
+  const want = (L, keep, fav) => [keep, fav].find(n => n && L.some(m => m.n === n));
+  const f = want(p.fast, keepF, meta && meta.fm);
+  if(f) $("bkFm").value = f;
+}
+// Only the bosses where level 51 changes something: its fast move doing one more (breakpoint),
+// the boss's fast move doing one less to it (bulkpoint). Two separate lists.
+function calc(){
+  const name = $("bkMon").value.trim();
+  if(!mon(name)){ $("bkBreak").innerHTML = `<div class="bk-empty">${name ? "No Pokémon by that name." : "Pick a Pokémon."}</div>`; $("bkBulk").innerHTML = ""; return; }
+  const opt = { wx: $("bkWx").value, mega: parseFloat($("bkMega").value) || 1 };
+  const brk = POPULAR.map(b => ({ b, d: attack(name, $("bkFm").value, b, opt) })).filter(r => r.d && r.d[1] > r.d[0]);
+  const blk = POPULAR.map(b => ({ b, d: taken(name, b, opt) })).filter(r => r.d && r.d[1] < r.d[0]);
+  const none = `<div class="bk-empty">None against the popular bosses.</div>`;
+  $("bkBreak").innerHTML = brk.length ? `<div class="bk-h"><span>Boss</span><span class="n">Lv 50 → 51</span></div>`
+    + brk.map(r => `<div class="bk-r"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span><span class="bk-d n up">${r.d[0]} → ${r.d[1]}</span></div>`).join("") : none;
+  $("bkBulk").innerHTML = blk.length ? `<div class="bk-h k"><span>Boss</span><span>Fast move</span><span class="n">Lv 50 → 51</span></div>`
+    + blk.map(r => `<div class="bk-r k"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span><span class="bk-bm">${esc(r.b.fm)}</span><span class="bk-d n down">${r.d[0]} → ${r.d[1]}</span></div>`).join("") : none;
+  try{ history.replaceState(null, "", "?p=" + encodeURIComponent(name) + "&fm=" + encodeURIComponent($("bkFm").value)
+    + (opt.wx ? "&w=" + opt.wx : "") + (opt.mega !== 1 ? "&mega=" + opt.mega : "")); }catch(e){}
+}
+function pick(name){ $("bkMon").value = name; lastMon = key(name); $("bkFm").innerHTML = ""; fillMoves(); calc(); }
+
+// ============ POPULAR BOSSES ============
+let boosted = false;
+function popular(){
+  $("bkPop").innerHTML = `<div class="bk-ph"><span>Boss</span><span>Gains a fast move breakpoint as a best buddy</span></div>` + POPULAR.map(b => {
+    const who = META.filter(a => { const d = attack(a.n, a.fm, b, { wx: "", boostAll: boosted, mega: 1 }); return d && d[1] > d[0]; });
+    return `<div class="bk-pr"><span class="bk-mon">${sprite(b.n)}<b>${esc(b.n)}</b></span><span class="bk-atk">${who.length
+      ? who.map(a => { const d = attack(a.n, a.fm, b, { wx: "", boostAll: boosted, mega: 1 });
+          return `<button type="button" data-p="${esc(a.n)}" title="${esc(a.n)} · ${esc(a.fm)} ${d[0]} → ${d[1]}">${sprite(a.n)}</button>`; }).join("")
+      : `<span class="bk-sub">—</span>`}</span></div>`; }).join("");
+}
+document.querySelectorAll(".bk-seg button").forEach(b => b.addEventListener("click", () => {
+  boosted = b.dataset.w === "1";
+  document.querySelectorAll(".bk-seg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  popular();
+}));
+$("bkPop").addEventListener("click", e => { const b = e.target.closest("button[data-p]"); if(!b) return;
+  pick(b.dataset.p); $("bkMon").scrollIntoView({ behavior: "smooth", block: "center" }); });
+
+let monTimer = null;
+let lastMon = "";
+function monChanged(){ const k = key($("bkMon").value); if(k !== lastMon){ lastMon = k; $("bkFm").innerHTML = ""; } fillMoves(); calc(); }
+$("bkMon").addEventListener("input", () => { clearTimeout(monTimer); monTimer = setTimeout(monChanged, 150); });
+$("bkMon").addEventListener("change", monChanged);
+["bkFm", "bkWx", "bkMega"].forEach(id => $(id).addEventListener("change", calc));
+
+load().then(() => {
+  const q = new URLSearchParams(location.search);
+  $("bkMon").value = q.get("p") || (META[0] ? META[0].n : "");
+  lastMon = key($("bkMon").value);
+  fillMoves();
+  if(q.get("fm")) $("bkFm").value = q.get("fm");
+  if(q.get("w")) $("bkWx").value = q.get("w");
+  if(q.get("mega")) $("bkMega").value = q.get("mega");
+  calc(); popular();
+}).catch(e => { console.error(e); $("bkBreak").innerHTML = $("bkPop").innerHTML = `<div class="bk-empty">The data couldn't be loaded. Try refreshing the page.</div>`; });
+
+const themeToggle = document.getElementById("themeToggle");
+function applyTheme(theme){
+  document.documentElement.setAttribute("data-theme", theme);
+  themeToggle.textContent = theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+  try{ localStorage.setItem("raidArchiveTheme", theme); }catch(e){}
+}
+themeToggle.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  applyTheme(current === "dark" ? "light" : "dark");
+});
+let initialTheme = "light";
+try{
+  const saved = localStorage.getItem("raidArchiveTheme");
+  if(saved){ initialTheme = saved; }
+  else if(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches){ initialTheme = "dark"; }
+}catch(e){}
+applyTheme(initialTheme);
+
+</script>
+<script>
+// ---- Search autocomplete (ported from dps-calculator.html) ----------------------------
+// Capped at 8 so the list can never run past the field into neighbouring content, which
+// is the same reason the calculator caps it. Names come from this page's own dataset via
+// a getter, because that dataset is filled by an async CSV load that has not run yet when
+// this script parses.
+function initSearchAutocomplete(inputId, getNames){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  // Appended to <body>, never wrapped around the input - see the .ac-list CSS note.
+  const list = document.createElement("div");
+  list.className = "ac-list";
+  document.body.appendChild(list);
+  function place(){
+    const b = input.getBoundingClientRect();
+    list.style.left  = b.left + "px";
+    list.style.top   = (b.bottom + 4) + "px";
+    list.style.width = b.width + "px";
+  }
+  let highlighted = -1;
+
+  function matches(query){
+    const q = (query || "").trim().toLowerCase();
+    if(!q) return [];
+    const seen = new Set(), starts = [], contains = [];
+    for(const raw of (getNames() || [])){
+      if(!raw) continue;
+      const name = String(raw);
+      const lower = name.toLowerCase();
+      if(seen.has(lower)) continue;
+      if(lower.startsWith(q)){ seen.add(lower); starts.push(name); }
+      else if(lower.includes(q)){ seen.add(lower); contains.push(name); }
+      if(starts.length >= 8) break;
+    }
+    return [...starts, ...contains].slice(0, 8);
+  }
+  function highlight(name, query){
+    const q = (query || "").trim();
+    const i = name.toLowerCase().indexOf(q.toLowerCase());
+    if(i === -1 || !q) return name;
+    return name.slice(0,i) + "<mark>" + name.slice(i, i+q.length) + "</mark>" + name.slice(i+q.length);
+  }
+  function close(){ list.classList.remove("open"); highlighted = -1; }
+  function select(name){
+    input.value = name;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    close();
+  }
+  function render(){
+    const found = matches(input.value);
+    if(!found.length){ close(); return; }
+    list.innerHTML = found.map((n,i) =>
+      `<div class="ac-item${i===highlighted?' hi':''}" data-name="${String(n).replace(/"/g,'&quot;')}">${highlight(String(n), input.value)}</div>`
+    ).join("");
+    place();
+    list.classList.add("open");
+    list.querySelectorAll(".ac-item").forEach(el => {
+      // mousedown, not click: it fires before the input's blur, so picking an item does
+      // not close the dropdown out from under the pointer.
+      el.addEventListener("mousedown", e => { e.preventDefault(); select(el.dataset.name); });
+    });
+  }
+  input.addEventListener("input", () => { highlighted = -1; render(); });
+  input.addEventListener("focus", render);
+  window.addEventListener("scroll", () => { if(list.classList.contains("open")) place(); }, true);
+  window.addEventListener("resize", () => { if(list.classList.contains("open")) place(); });
+  input.addEventListener("blur", () => setTimeout(close, 120));
+  input.addEventListener("keydown", e => {
+    const items = list.querySelectorAll(".ac-item");
+    if(!list.classList.contains("open") || !items.length) return;
+    if(e.key === "ArrowDown"){ e.preventDefault(); highlighted = Math.min(highlighted+1, items.length-1); render(); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); highlighted = Math.max(highlighted-1, 0); render(); }
+    else if(e.key === "Enter" && highlighted >= 0){ e.preventDefault(); select(items[highlighted].dataset.name); }
+    else if(e.key === "Escape"){ close(); }
+  });
+}
+
+
+initSearchAutocomplete('bkMon', () => Object.values(DEX).map(p => p.n));
+</script>
+</body>
+</html>
