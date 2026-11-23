@@ -1024,6 +1024,12 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .cr-best{ grid-template-columns:24px 32px minmax(0,1fr) 52px 48px; }
   .cr-boss{ grid-template-columns:16px 32px minmax(0,1fr) 44px; }
   .cr-h{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); padding:0 0 6px; border-bottom:1px solid var(--border); }
+  .cr-sort{ all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:3px; -webkit-tap-highlight-color:transparent; }
+  .cr-sort:hover{ color:var(--ink); }
+  .cr-sort:focus-visible{ outline:2px solid #f08a3c; outline-offset:2px; border-radius:3px; }
+  .cr-sort.on{ color:#f08a3c; }
+  .cr-sort.on::after{ content:"\25BE"; font-size:9px; }
+  .cr-sort.on.up::after{ content:"\25B4"; }
   .cr-h span:nth-last-child(-n+2):not(:nth-child(-n+3)){ text-align:right; }
   .cr-boss.cr-h span:last-child{ text-align:right; }
   button.cr-row{ all:unset; box-sizing:border-box; cursor:pointer; display:grid; gap:9px; align-items:center; width:100%; padding:5px 0;
@@ -1358,10 +1364,8 @@ header{ padding: 12px 24px 10px; text-align:center; }
     <span class="c1-sp"></span>
     <span class="c1-src"><em>Source</em><span class="ct-seg" id="srcSeg"><button type="button" data-src="db" class="on" aria-pressed="true">Database</button><button type="button" data-src="solo" aria-pressed="false">Solo runs</button></span></span>
     <span class="ct-seg" id="poolSeg"><button type="button" data-pool="legendary" class="on" aria-pressed="true">Legendary</button><button type="button" data-pool="mega" aria-pressed="false">Mega</button></span>
-    <span class="ct-sorts" data-for="sortBest"><button type="button" data-v="entries" class="on">Entries</button><button type="button" data-v="dps">Avg DPS</button><button type="button" data-v="az">A–Z</button></span>
-    <span class="ct-sorts" data-for="soloBestSort"><button type="button" data-v="runs" class="on">Runs</button><button type="button" data-v="bosses">Bosses</button><button type="button" data-v="az">A–Z</button></span>
-    <select id="soloBestSort" hidden><option value="runs">Runs</option><option value="bosses">Bosses</option><option value="az">A–Z</option></select>
-    <select id="soloBossSort" hidden><option value="tanks">Most tanks</option><option value="runs">Runs</option><option value="az">A–Z</option></select>
+    <select id="soloBestSort" hidden><option value="runs">Runs</option><option value="bosses">Bosses</option><option value="az">A–Z</option><option value="za">Z–A</option></select>
+    <select id="soloBossSort" hidden><option value="tanks">Most tanks</option><option value="runs">Runs</option><option value="az">A–Z</option><option value="za">Z–A</option></select>
   </div>
   <div class="views-grid">
     <section class="view-col" id="col-best">
@@ -2517,17 +2521,29 @@ function loadSolo(){
 }
 function soloRows(){ return (SOLO || []).filter(inCurrentPool).filter(r => matchesTypeFilter(r)); }
 function soloMost(arr, key){ const c = new Map(); arr.forEach(x => { const v = key(x); if(v) c.set(v, (c.get(v) || 0) + 1); }); return ([...c.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0] || [""])[0]; }
+// A column heading that sorts its list when tapped. Names go A-Z, then Z-A on a second tap; counts and
+// DPS go highest first. The list's own (hidden) select holds the choice.
+function sortHead(sel, v, label){
+  const cur = (document.getElementById(sel) || {}).value, on = cur === v || (v === "az" && cur === "za");
+  return `<span><button type="button" class="cr-sort${on ? " on" : ""}${cur === "za" && v === "az" ? " up" : ""}" data-sel="${sel}" data-v="${v}">${label}</button></span>`;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest(".cr-sort"); if(!b) return;
+  const sel = document.getElementById(b.dataset.sel); if(!sel) return;
+  sel.value = b.dataset.v === "az" && sel.value === "az" ? "za" : b.dataset.v;
+  sel.dispatchEvent(new Event("change"));
+});
 function soloSprite(n){ return `<span class="cr-sp"><img class="${needsShadowMist(n) ? 'shadow-mist' : ''}" src="${spriteUrl(n)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></span>`; }
 function renderSoloBest(){
   if(!SOLO) return `<div class="empty">Loading solo runs…</div>`;
   const by = new Map();
   soloRows().forEach(r => { const k = r.pokemon.toLowerCase(); if(!by.has(k)) by.set(k, { name: r.pokemon, runs: [], bosses: new Set() }); const t = by.get(k); t.runs.push(r); t.bosses.add(r.boss.toLowerCase()); });
   const sort = document.getElementById("soloBestSort").value;
-  const list = [...by.values()].sort(sort === "az" ? (a, b) => a.name.localeCompare(b.name)
+  const list = [...by.values()].sort(sort === "az" ? (a, b) => a.name.localeCompare(b.name) : sort === "za" ? (a, b) => b.name.localeCompare(a.name)
     : sort === "bosses" ? (a, b) => b.bosses.size - a.bosses.size || b.runs.length - a.runs.length || a.name.localeCompare(b.name)
     : (a, b) => b.runs.length - a.runs.length || b.bosses.size - a.bosses.size || a.name.localeCompare(b.name));
   if(!list.length) return `<div class="empty">No solo runs match these filters.</div>`;
-  const head = `<div class="cr-h cr-best so"><span>#</span><span></span><span>Catch tank</span><span>Bosses</span><span>Runs</span></div>`;
+  const head = `<div class="cr-h cr-best so"><span>#</span><span></span>${sortHead("soloBestSort", "az", "Catch tank")}${sortHead("soloBestSort", "bosses", "Bosses")}${sortHead("soloBestSort", "runs", "Runs")}</div>`;
   return ctCols(head, list.map((t, i) => { const mv = soloMost(t.runs, r => r.playerMoveset);
     return `<div class="cr-row cr-best so"><span class="cr-rk${i < 3 ? " t" + (i + 1) : ""}">${i + 1}</span>${soloSprite(t.name)}<span class="cr-nm"><b>${escapeHtml(t.name)}</b>${mv ? `<span>${escapeHtml(mv)}</span>` : ""}</span><span class="cr-v">${t.bosses.size}</span><span class="cr-n">${t.runs.length}</span></div>`; }));
 }
@@ -2536,11 +2552,11 @@ function renderSoloBoss(){
   const by = new Map();
   soloRows().forEach(r => { const k = r.boss.toLowerCase(); if(!by.has(k)) by.set(k, { boss: r.boss, runs: new Set(), tanks: new Map() }); const g = by.get(k); g.runs.add(r.id); g.tanks.set(r.pokemon.toLowerCase(), r.pokemon); g.all = (g.all || []).concat(r); });
   const sort = document.getElementById("soloBossSort").value;
-  const list = [...by.values()].sort(sort === "az" ? (a, b) => a.boss.localeCompare(b.boss)
+  const list = [...by.values()].sort(sort === "az" ? (a, b) => a.boss.localeCompare(b.boss) : sort === "za" ? (a, b) => b.boss.localeCompare(a.boss)
     : sort === "runs" ? (a, b) => b.runs.size - a.runs.size || b.tanks.size - a.tanks.size || a.boss.localeCompare(b.boss)
     : (a, b) => b.tanks.size - a.tanks.size || b.runs.size - a.runs.size || a.boss.localeCompare(b.boss));
   if(!list.length) return `<div class="empty">No solo runs match these filters.</div>`;
-  const head = `<div class="cr-h cr-boss so"><span></span><span></span><span>Boss</span><span>Tanks</span><span>Runs</span></div>`;
+  const head = `<div class="cr-h cr-boss so"><span></span><span></span>${sortHead("soloBossSort", "az", "Boss")}${sortHead("soloBossSort", "tanks", "Tanks")}${sortHead("soloBossSort", "runs", "Runs")}</div>`;
   return ctCols(head, list.map(g => {
     const t = ((typesOf(g.boss) || [])[0] || "").toLowerCase(), mu = soloMost(g.all, r => r.pokemon);
     return `<div class="cr-row cr-boss so"><span class="cr-ti" style="background:${TYPE_COLORS[t] || "#888"}" title="${t}">${t ? `<img src="${TYPE_ICON_BASE}${t}.svg" alt="" loading="lazy" onerror="this.remove();">` : ""}</span>${soloSprite(g.boss)}<span class="cr-nm"><b>${escapeHtml(g.boss)}</b>${mu ? `<span>Most used: ${escapeHtml(mu)}</span>` : ""}</span><span class="cr-v">${g.tanks.size}</span><span class="cr-n">${g.runs.size}</span></div>`; }));
@@ -2593,7 +2609,7 @@ function renderByBoss(list){
 
   // Ranked rows: boss, its best catch tank and that CT DPS, and how many catch tanks have been logged
   // for it. Clicking opens the boss's entries table (toggleBossGroup -> openBossEntriesTable).
-  const head = `<div class="cr-h cr-boss"><span></span><span></span><span>Boss</span><span>Tanks</span></div>`;
+  const head = `<div class="cr-h cr-boss"><span></span><span></span>${sortHead("sortByBoss", "az", "Boss")}${sortHead("sortByBoss", "tanks", "Tanks")}</div>`;
   return ctCols(head, groups.map((g, gi) => {
     const best = g.scenarios.flatMap(sc => sc.entries).sort((a, b) => parseFloat(b.ctDPS) - parseFloat(a.ctDPS))[0];
     const t = ((typesOf(g.boss) || [])[0] || "").toLowerCase();
@@ -2739,7 +2755,7 @@ function renderBest(list){
     m.entries.forEach(e => { const k = (e.playerMoveset || "").trim(); if(k) c.set(k, (c.get(k) || 0) + 1); });
     return ([...c.entries()].sort((a, b) => b[1] - a[1])[0] || [""])[0];
   };
-  const head = `<div class="cr-h cr-best"><span>#</span><span></span><span>Catch tank</span><span>Avg DPS</span><span>Entries</span></div>`;
+  const head = `<div class="cr-h cr-best"><span>#</span><span></span>${sortHead("sortBest", "az", "Catch tank")}${sortHead("sortBest", "dps", "Avg DPS")}${sortHead("sortBest", "entries", "Entries")}</div>`;
   return ctCols(head, ranked.map((m, i) => {
     const n = m.entries.length, mv = usual(m);
     return `<button type="button" class="cr-row cr-best" id="leaderGroup-${i}" onclick="toggleLeaderGroup(${i})" aria-haspopup="dialog">
