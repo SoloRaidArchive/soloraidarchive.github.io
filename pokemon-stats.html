@@ -375,7 +375,21 @@ if ("serviceWorker" in navigator) {
   .pm-seg button{ border:0; background:none; color:var(--ink-dim); font:700 13px 'Manrope',sans-serif; padding:6px 14px; border-radius:999px; cursor:pointer; }
   .pm-seg button[aria-pressed="true"]{ background:#f08a3c; color:#fff; }
   .pm-seg small{ font:600 11.5px 'Inter',sans-serif; font-variant-numeric:tabular-nums; opacity:.8; margin-left:4px; }
-  .pm-count{ font:600 12.5px 'Inter',sans-serif; color:var(--ink-dim); }
+  .pm-count{ font:600 12.5px 'Inter',sans-serif; color:var(--ink-dim); margin-left:auto; }
+  .pm-bar{ justify-content:flex-start; }
+  .pm-k .k-short{ display:none; }
+  /* the filter: beside the switch, its panel opening just under it */
+  .pm-show{ position:relative; display:flex; }
+  .pm-show .gear-btn{ width:36px; height:36px; box-shadow:none; }
+  .pm-show .gear-panel{ top:calc(100% + 6px); left:0; z-index:40; min-width:110px; padding:10px;
+    border-left:2px solid var(--border) !important; border-radius:12px !important; }
+  /* tap a column heading to sort by it; again to reverse */
+  .pm-sort{ all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:3px; -webkit-tap-highlight-color:transparent; }
+  .pm-sort:hover{ color:var(--ink); }
+  .pm-sort:focus-visible{ outline:2px solid var(--accent, #f08a3c); outline-offset:2px; border-radius:4px; }
+  .pm-sort.on{ color:#f08a3c; }
+  .pm-sort.on::after{ content:"\25BE"; font-size:10px; }
+  .pm-sort.on.up::after{ content:"\25B4"; }
   .pm-types{ display:grid; grid-template-columns:repeat(9, 1fr); gap:6px; margin:0 0 14px; }
   .pm-types button{ display:flex; align-items:center; justify-content:center; gap:5px; height:28px; border:0; border-radius:7px; color:#fff;
     font:700 11.5px 'Manrope',sans-serif; text-transform:capitalize; opacity:.5; cursor:pointer; -webkit-tap-highlight-color:transparent; }
@@ -430,8 +444,11 @@ if ("serviceWorker" in navigator) {
     .pm-pl, .pm-ph{ grid-template-columns:36px minmax(0,1fr) 46px 46px 40px; gap:8px; }
     .pm-pl .pm-chev, .pm-ph .x{ display:none; }
     .pm-stat i, .pm-tys{ display:none; }
-    .pm-ml, .pm-mh, .pm-dr, .pm-dh{ grid-template-columns:minmax(0,1fr) 40px 40px 26px 42px; gap:6px; }
-    .pm-ml .pm-chev, .pm-mh .x, .pm-dr .x, .pm-dh .x, .pm-k{ display:none; }
+    .pm-dr, .pm-dh{ grid-template-columns:minmax(0,1fr) 40px 40px 26px 42px; gap:6px; }
+    .pm-ml, .pm-mh{ grid-template-columns:minmax(0,1fr) 30px 38px 38px 24px 40px; gap:5px; }
+    .pm-ml .pm-chev, .pm-mh .x, .pm-dr .x, .pm-dh .x{ display:none; }
+    .pm-ml .pm-k{ font-size:11px; }
+    .pm-k .k-full{ display:none; } .pm-k .k-short{ display:inline; }
     .pm-ph, .pm-mh, .pm-dh{ font-size:9px; letter-spacing:0; }
     .pm-det, .pm-ml + .pm-det{ padding-left:0; }
     .pm-ml{ font-size:12.5px; } .pm-dr{ font-size:12px; }
@@ -445,13 +462,6 @@ if ("serviceWorker" in navigator) {
 
 <div class="sticky-header">
   <div class="sticky-header-title-row">
-    <div class="header-buttons header-buttons-left">
-      <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
-        <span class="filter-line filter-line-1"></span>
-        <span class="filter-line filter-line-2"></span>
-        <span class="filter-line filter-line-3"></span>
-      </button>
-    </div>
     <h1 class="page-title-sm">Pokémon &amp; Moves</h1>
     <div class="header-buttons">
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
@@ -666,55 +676,7 @@ if ("serviceWorker" in navigator) {
 <!-- NAV:END -->
 
 
-  <div class="gear-panel" id="gearPanel">
-  <div class="controls">
-  <div class="hamburger-section" data-tab="pokemon">
-    <div class="hamburger-section-label">Sort</div>
-    <div class="vertical-toggle" id="sortList">
-      <button class="hamburger-item active" data-sort="name">Name (A–Z)</button>
-      <button class="hamburger-item" data-sort="atk">Attack (High–Low)</button>
-      <button class="hamburger-item" data-sort="def">Defense (High–Low)</button>
-      <button class="hamburger-item" data-sort="hp">HP (High–Low)</button>
-    </div>
-  </div>
-  <div class="hamburger-section" data-tab="moves" hidden>
-    <div class="hamburger-section-label">Sort</div>
-    <div class="vertical-toggle" id="moveSortList">
-      <button class="hamburger-item active" data-sort="name">Name (A–Z)</button>
-      <button class="hamburger-item" data-sort="score">Score (High–Low)</button>
-      <button class="hamburger-item" data-sort="type">Type</button>
-    </div>
-  </div>
-  <div class="hamburger-section" data-tab="moves" hidden>
-    <div class="hamburger-section-label">Move Kind</div>
-    <div class="vertical-toggle" id="kindToggleList">
-      <button class="hamburger-item active" data-kind="All">All</button>
-      <button class="hamburger-item" data-kind="Fast">Fast</button>
-      <button class="hamburger-item" data-kind="Charge">Charge</button>
-    </div>
-  </div>
-  <div class="hamburger-section">
-    <div class="hamburger-section-label">Show</div>
-    <div class="vertical-toggle" id="showLimitList">
-      <button class="hamburger-item active" data-n="30">Top 30</button>
-      <button class="hamburger-item" data-n="100">Top 100</button>
-      <button class="hamburger-item" data-n="0">Show All</button>
-    </div>
-  </div>
-  <div class="hamburger-section" data-tab="pokemon">
-    <div class="hamburger-section-label">Display</div>
-    <div class="level-control">
-      <label for="levelInput">Level</label>
-      <input id="levelInput" type="number" value="40" min="40" max="53" step="0.5">
-    </div>
-    <label class="cpm-toggle">
-      <input id="noCpmToggle" type="checkbox">
-      <span>Base stats (no CPM)</span>
-    </label>
-  </div>
-</div>
-  </div>
-</div>
+<div class="level-control" style="display:none"><input id="levelInput" type="hidden" value="40"><input id="noCpmToggle" type="checkbox"></div>
 
 <div class="page-search-row">
   <input id="searchInput" type="text" placeholder="Search Pokémon name…" autocomplete="off">
@@ -738,6 +700,21 @@ if ("serviceWorker" in navigator) {
     <div class="pm-seg" role="group" aria-label="Show Pokémon or moves">
       <button type="button" data-tab="pokemon" aria-pressed="true">Pokémon<small id="pokeTotal"></small></button>
       <button type="button" data-tab="moves" aria-pressed="false">Moves<small id="moveTotal"></small></button>
+    </div>
+    <div class="pm-show">
+      <button class="gear-btn" id="gearBtn" aria-label="How many to show" aria-expanded="false">
+        <span class="filter-line filter-line-1"></span>
+        <span class="filter-line filter-line-2"></span>
+        <span class="filter-line filter-line-3"></span>
+      </button>
+      <div class="gear-panel" id="gearPanel">
+        <div class="hamburger-section-label">Show</div>
+        <div class="vertical-toggle" id="showLimitList">
+          <button class="hamburger-item active" data-n="30">30</button>
+          <button class="hamburger-item" data-n="100">100</button>
+          <button class="hamburger-item" data-n="0">All</button>
+        </div>
+      </div>
     </div>
     <span class="pm-count" id="count"></span>
   </div>
@@ -763,6 +740,7 @@ const ELITE_BY_POKEMON = {};// lowercase name -> Set of elite move names
 let MOVES = [];             // every move with its numbers (csv/moves.csv)
 const MOVE_BY_NAME = {};    // move name -> MOVES entry
 const LEARNERS = {};        // move name -> [lowercase Pokémon names] (no Elite TM moves)
+const ELITE_LEARNERS = {};  // move name -> [lowercase Pokémon names] with the move flagged elite (signature and Mega-boosted moves too)
 const TYPE_ICON_BASE = "https://duiker101.github.io/pokemon-type-svg-icons/icons/";
 const CHARGE_CAP = 12;      // above this many charge moves, show "(various)" (only Mew + Smeargle)
 let moveDataReady = false;
@@ -799,6 +777,7 @@ async function loadMoveData(){
     const bucket = r.category === "charge" ? "charge" : "fast";
     MOVEPOOL[k][bucket].push(r.move);
     if(String(r.elite || "").trim() !== "1") (LEARNERS[r.move] = LEARNERS[r.move] || []).push(k);
+    else (ELITE_LEARNERS[r.move] = ELITE_LEARNERS[r.move] || []).push(k);
   });
   moveDataReady = true;
 }
@@ -866,7 +845,9 @@ const NAME_BY_KEY = {};
 const LEARN_SHOWN = 40;
 function learnersHtml(moveName, all){
   if(!Object.keys(NAME_BY_KEY).length) POKEMON_DB.forEach(p => { NAME_BY_KEY[p.n.toLowerCase()] = p.n; });
-  const names = [...new Set((LEARNERS[moveName] || []).map(k => NAME_BY_KEY[k]).filter(Boolean))];
+  // A move only flagged elite (Acid Spray++++, Sacred Fire, Behemoth Blade…): the Pokémon that have it
+  const keys = (LEARNERS[moveName] || []).length ? LEARNERS[moveName] : (ELITE_LEARNERS[moveName] || []);
+  const names = [...new Set(keys.map(k => NAME_BY_KEY[k]).filter(Boolean))];
   if(!names.length) return `<div class="pm-note">No Pokémon on file learn this move.</div>`;
   const shown = all ? names : names.slice(0, LEARN_SHOWN);
   return `<div class="pm-sub">Learned by ${names.length} Pokémon</div><div class="pm-learn">`
@@ -1107,7 +1088,7 @@ function pokeRowHtml(p){
 }
 function moveRowHtml(m){
   return `<div class="pm-row" data-move="${esc(m.n)}"><button type="button" class="pm-line pm-ml" aria-expanded="false">
-    <span class="pm-nm">${typeDot(m.t)}<b>${esc(m.n)}</b></span><span class="pm-k">${m.kind}</span>${moveCells(m)}<span class="pm-chev" aria-hidden="true">›</span>
+    <span class="pm-nm">${typeDot(m.t)}<b>${esc(m.n)}</b></span><span class="pm-k">${m.kind === "Charge" ? '<span class="k-full">Charge</span><span class="k-short">Chg</span>' : "Fast"}</span>${moveCells(m)}<span class="pm-chev" aria-hidden="true">›</span>
   </button><div class="pm-det"></div></div>`;
 }
 
@@ -1116,7 +1097,12 @@ const countEl = document.getElementById("count");
 const searchInput = document.getElementById("searchInput");
 const TAB_PARAM = /[?&]tab=moves\b/.test(location.search) ? "moves" : "pokemon";
 let tab = TAB_PARAM;
-let currentSort = "name", moveSort = "name", activeKind = "All", currentLimit = 30;
+// Sorting: the key and its direction for each list. Names sort A-Z first; numbers high to low;
+// Kind puts fast moves first. Tapping the same heading again reverses it.
+const sortBy = { pokemon: { k: "name", up: true }, moves: { k: "name", up: true } };
+let currentLimit = 30;
+const sortHead = (key, label, extra) => { const s = sortBy[tab], on = s.k === key;
+  return `<button type="button" class="pm-sort${on ? " on" : ""}${on && s.up ? " up" : ""}${extra ? " " + extra : ""}" data-sort="${key}">${label}</button>`; };
 const activeTypes = new Set();
 const searchText = { pokemon: "", moves: "" };
 
@@ -1149,17 +1135,22 @@ function render(){
   const typeOk = ts => !activeTypes.size || ts.some(t => activeTypes.has(t));
   let list, head, row, noun;
   if(tab === "moves"){
-    list = MOVES.filter(m => (!q || m.n.toLowerCase().includes(q)) && (activeKind === "All" || m.kind === activeKind) && typeOk([m.t]));
-    if(moveSort === "score") list.sort((a, b) => moveScore(b) - moveScore(a));
-    else if(moveSort === "type") list.sort((a, b) => TYPE_ORDER.indexOf(a.t) - TYPE_ORDER.indexOf(b.t) || a.n.localeCompare(b.n));
-    else list.sort((a, b) => a.n.localeCompare(b.n));
-    head = `<div class="pm-mh"><span>Move</span><span class="pm-k">Kind</span><span>Power</span><span>Energy</span><span>AD</span><span>Score</span><span class="x"></span></div>`;
+    list = MOVES.filter(m => (!q || m.n.toLowerCase().includes(q)) && typeOk([m.t]));
+    const s = sortBy.moves, dir = s.up ? 1 : -1, byName = (a, b) => a.n.localeCompare(b.n);
+    const val = { power: m => m.dmg, energy: m => m.energy, ad: m => m.ad, score: m => moveScore(m) }[s.k];
+    if(s.k === "name") list.sort((a, b) => dir * byName(a, b));
+    else if(s.k === "kind") list.sort((a, b) => dir * ((a.kind === "Fast" ? 0 : 1) - (b.kind === "Fast" ? 0 : 1)) || byName(a, b));
+    else list.sort((a, b) => dir * (val(a) - val(b)) || byName(a, b));
+    head = `<div class="pm-mh"><span>${sortHead("name", "Move")}</span><span class="pm-k">${sortHead("kind", "Kind")}</span><span>${sortHead("power", "Power")}</span>`
+      + `<span>${sortHead("energy", "Energy")}</span><span>${sortHead("ad", "AD")}</span><span>${sortHead("score", "Score")}</span><span class="x"></span></div>`;
     row = moveRowHtml; noun = "moves";
   } else {
     list = POKEMON_DB.filter(p => (!q || p.n.toLowerCase().includes(q)) && typeOk(p.t || []));
-    if(currentSort === "name") list.sort((a, b) => a.n.localeCompare(b.n));
-    else list.sort((a, b) => b[currentSort] - a[currentSort]);
-    head = `<div class="pm-ph"><span></span><span>Pokémon</span><span>Attack</span><span>Defense</span><span>HP</span><span class="x"></span></div>`;
+    const s = sortBy.pokemon, dir = s.up ? 1 : -1;
+    if(s.k === "name") list.sort((a, b) => dir * a.n.localeCompare(b.n));
+    else list.sort((a, b) => dir * (a[s.k] - b[s.k]) || a.n.localeCompare(b.n));
+    head = `<div class="pm-ph"><span></span><span>${sortHead("name", "Pokémon")}</span><span>${sortHead("atk", "Attack")}</span>`
+      + `<span>${sortHead("def", "Defense")}</span><span>${sortHead("hp", "HP")}</span><span class="x"></span></div>`;
     row = pokeRowHtml; noun = "Pokémon";
   }
   const total = list.length;
@@ -1170,6 +1161,10 @@ function render(){
 
 // Rows open in place; their details are built on first open
 listEl.addEventListener("click", e => {
+  const sb = e.target.closest(".pm-sort");
+  if(sb){ const s = sortBy[tab], k = sb.dataset.sort;
+    if(s.k === k) s.up = !s.up; else { s.k = k; s.up = k === "name" || k === "kind"; }
+    render(); const f = listEl.querySelector(`.pm-sort[data-sort="${k}"]`); if(f) f.focus(); return; }
   const more = e.target.closest(".pm-more");
   if(more){ more.closest(".pm-det").innerHTML = learnersHtml(more.dataset.all, true); return; }
   const lp = e.target.closest(".pm-lp");
@@ -1193,7 +1188,6 @@ function setTab(next, query){
   searchInput.value = query != null ? query : searchText[tab];
   searchInput.placeholder = tab === "moves" ? "Search move name…" : "Search Pokémon name…";
   document.querySelectorAll(".pm-seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tab === tab)));
-  document.querySelectorAll("#gearPanel [data-tab]").forEach(sec => { sec.hidden = sec.dataset.tab !== tab; });
   try{ history.replaceState(null, "", tab === "moves" ? "?tab=moves" : location.pathname); }catch(e){}
   render();
   // from a "Learned by" sprite: search for that Pokémon and open its row
@@ -1222,9 +1216,6 @@ function bindList(id, apply){
     });
   });
 }
-bindList("sortList", b => { currentSort = b.dataset.sort; });
-bindList("moveSortList", b => { moveSort = b.dataset.sort; });
-bindList("kindToggleList", b => { activeKind = b.dataset.kind; });
 bindList("showLimitList", b => { currentLimit = parseInt(b.dataset.n, 10); });
 document.getElementById("levelInput").addEventListener("input", render);
 document.getElementById("noCpmToggle").addEventListener("change", render);
@@ -1301,7 +1292,7 @@ document.addEventListener("click", (e) => {
   if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
     closeHamburger();
   }
-  if(!gearPanel.contains(e.target) && e.target !== gearBtn){
+  if(!gearPanel.contains(e.target) && !gearBtn.contains(e.target)){
     closeGear();
   }
   if(!infoPanel.contains(e.target) && !infoBtn.contains(e.target)){

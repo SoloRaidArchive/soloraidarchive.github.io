@@ -34,7 +34,7 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Boss Guides — Solo Raid Archive</title>
+<title>Guides &amp; Articles — Solo Raid Archive</title>
 <link rel="icon" href="assets/icons/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="assets/icons/favicon-16.png">
@@ -48,15 +48,15 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <!-- /PWA install support -->
-<meta name="description" content="Step-by-step solo strategies for every raid boss currently covered in the archive, with real recorded battle parties.">
+<meta name="description" content="Step-by-step solo strategies for raid bosses in the archive, and community research articles on solo raiding.">
 <link rel="canonical" href="https://soloraidarchive.github.io/guides.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Boss Guides | Solo Raid Archive">
-<meta property="og:description" content="Step-by-step solo strategies for every raid boss currently covered in the archive, with real recorded battle parties.">
+<meta property="og:title" content="Guides &amp; Articles | Solo Raid Archive">
+<meta property="og:description" content="Step-by-step solo strategies for raid bosses in the archive, and community research articles on solo raiding.">
 <meta property="og:url" content="https://soloraidarchive.github.io/guides.html">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Boss Guides | Solo Raid Archive">
-<meta name="twitter:description" content="Step-by-step solo strategies for every raid boss currently covered in the archive, with real recorded battle parties.">
+<meta name="twitter:title" content="Guides &amp; Articles | Solo Raid Archive">
+<meta name="twitter:description" content="Step-by-step solo strategies for raid bosses in the archive, and community research articles on solo raiding.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -150,6 +150,17 @@ if ("serviceWorker" in navigator) {
   }
 
   .guide-grid{ display:grid; grid-template-columns: 1fr; gap:12px; }
+  /* Raid Guides / Articles */
+  .ga-seg{ display:flex; width:max-content; margin:0 auto 18px; border:1px solid var(--border); border-radius:999px; padding:3px; gap:2px;
+    background:color-mix(in srgb, var(--card) 70%, transparent); }
+  .ga-seg button{ border:0; background:none; color:var(--text-dim); font:700 13px 'Manrope',sans-serif; padding:6px 16px; border-radius:999px; cursor:pointer; }
+  .ga-seg button[aria-pressed="true"]{ background:#f08a3c; color:#fff; }
+  .ga-seg small{ font:600 11.5px 'Inter',sans-serif; font-variant-numeric:tabular-nums; opacity:.8; margin-left:4px; }
+  .ga-faq{ text-align:center; font:600 13px 'Inter',sans-serif; color:var(--text-dim); margin:26px 0 0; }
+  .ga-faq a{ color:var(--blue-dark); font-weight:700; }
+  /* the search bar: no glow or inner box from the seasonal colours */
+  html[data-season] body .boss-search-wrap .boss-search-box, html body .boss-search-wrap .boss-search-box{ box-shadow:none !important; }
+  html body .boss-search-box #guideSearch{ background:transparent !important; border:0 !important; box-shadow:none !important; padding:0; }
   @media (min-width:560px){ .guide-grid{ grid-template-columns: 1fr 1fr; } }
 
   .guide-card{
@@ -458,7 +469,7 @@ if ("serviceWorker" in navigator) {
 
 <div class="sticky-header">
   <div class="sticky-header-row">
-    <h1 class="page-title-sm">Raid Guides</h1>
+    <h1 class="page-title-sm">Guides</h1>
     <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
@@ -466,7 +477,11 @@ if ("serviceWorker" in navigator) {
 </div>
 
 <div class="container">
-  <div class="page-eyebrow">Boss Guides</div>
+  <div class="ga-seg" role="group" aria-label="Show raid guides or articles">
+    <button type="button" data-ga="guides" aria-pressed="true">Raid Guides<small id="gaGuideTotal"></small></button>
+    <button type="button" data-ga="articles" aria-pressed="false">Articles<small id="gaArticleTotal"></small></button>
+  </div>
+  <div id="gaGuides">
   <div class="boss-search-wrap">
     <div class="boss-search-box">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true">
@@ -477,7 +492,6 @@ if ("serviceWorker" in navigator) {
     </div>
     <div class="boss-search-results" id="guideSearchResults" role="listbox"></div>
   </div>
-  <h3 class="page-title" style="font-size: 1.17em;">For questions about guides, see our <a href="https://soloraidarchive.github.io/articles/faq-s.html">FAQ's</a> page</h3>
   <div class="guide-controls" id="guideControls" hidden>
     <div class="guide-filters" role="group" aria-label="Filter guides by category">
       <button type="button" class="guide-chip is-on" data-cat="all">All</button>
@@ -495,6 +509,11 @@ if ("serviceWorker" in navigator) {
     <span class="guide-count" id="guideCount"></span>
   </div>
   <div class="guide-grid" id="guideGrid"></div>
+  <p class="ga-faq">For questions about guides, see our <a href="articles/faq-s.html">FAQ's</a> page</p>
+  </div>
+  <div id="gaArticles" hidden>
+    <div class="guide-grid" id="articleGrid"></div>
+  </div>
 </div>
 
 <footer>Terms are defined as used within this archive; abbreviations match those shown on raid cards.</footer>
@@ -689,6 +708,39 @@ function escapeHtml(s){
 
 const guideGrid = document.getElementById("guideGrid");
 loadGuideList();
+loadArticleList();
+
+// ---- Raid Guides / Articles ----
+function setGuideTab(t){
+  document.querySelectorAll(".ga-seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.ga === t)));
+  document.getElementById("gaGuides").hidden = t !== "guides";
+  document.getElementById("gaArticles").hidden = t !== "articles";
+  try{ history.replaceState(null, "", t === "articles" ? "?tab=articles" : location.pathname); }catch(e){}
+}
+document.querySelectorAll(".ga-seg button").forEach(b => b.addEventListener("click", () => setGuideTab(b.dataset.ga)));
+setGuideTab(/[?&]tab=articles\b/.test(location.search) ? "articles" : "guides");
+
+async function loadArticleList(){
+  const grid = document.getElementById("articleGrid");
+  let articles = [];
+  try{
+    const res = await fetch("articles/index.json", { cache: "no-store" });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    articles = (await res.json()).articles || [];
+  }catch(e){
+    grid.innerHTML = `<div class="empty-state">Couldn't load the article list. Try refreshing the page.</div>`;
+    console.error("Failed to load article index:", e);
+    return;
+  }
+  document.getElementById("gaArticleTotal").textContent = articles.length || "";
+  grid.innerHTML = articles.length ? articles.map(a => `
+    <a class="guide-card" href="articles/${escapeAttr(a.slug)}.html">
+      <div>
+        <div class="guide-card-name">${escapeAttr(a.title)}</div>
+        <div class="guide-card-cta">${escapeAttr(a.category)} &middot; Read article &rarr;</div>
+      </div>
+    </a>`).join("") : `<div class="empty-state">No articles published yet - check back soon.</div>`;
+}
 
 async function loadGuideList(){
   let bosses = [];
@@ -703,6 +755,7 @@ async function loadGuideList(){
     return;
   }
 
+  document.getElementById("gaGuideTotal").textContent = bosses.length || "";
   if(bosses.length === 0){
     guideGrid.innerHTML = `<div class="empty-state">No guides published yet - check back soon.</div>`;
     return;
