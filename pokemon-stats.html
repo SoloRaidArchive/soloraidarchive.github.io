@@ -749,6 +749,10 @@ if ("serviceWorker" in navigator) {
 // archives read. This page previously inlined all 1193 entries, a second copy of that data
 // that had to be edited in lockstep with the CSV.
 let POKEMON_DB = [];
+// Left out for now: shadow Megas and Primals, shadow fusions (Necrozma Dusk Mane / Dawn Wings, Ultra
+// Necrozma, Kyurem Black / White, Calyrex Ice / Shadow Rider), shadow Crowned forms, shadow Origin forms
+// and the shadow Galarian legendary birds.
+const HIDDEN_SHADOW = /^shadow\s+(?:(?:mega|primal)\s|necrozma\s+(?:dusk\s+mane|dawn\s+wings)$|ultra\s+necrozma$|kyurem\s+(?:black|white)$|calyrex\s+(?:ice|shadow)\s+rider$|(?:zacian|zamazenta)\s+crown|\S+\s+origin$|galarian\s+(?:articuno|zapdos|moltres)$)/i;
 
 // ============ MOVE DATA (loaded from CSV - single source of truth) ============
 // Movepool, move types, and elite-move list all come from data/*.csv so editing the sheet
@@ -779,7 +783,8 @@ async function loadMoveData(){
     .filter(r => r.name)
     .map(r => ({ n: r.name, hp: parseFloat(r.hp), atk: parseFloat(r.atk), def: parseFloat(r.def),
                  t: [r.type1, r.type2].filter(Boolean).map(x => x.trim().toLowerCase()) }))
-    .filter(p => !isNaN(p.atk) && !isNaN(p.def) && !isNaN(p.hp));
+    .filter(p => !isNaN(p.atk) && !isNaN(p.def) && !isNaN(p.hp))
+    .filter(p => !HIDDEN_SHADOW.test(p.n));
   recomputeMaxStat();
   moveRows.forEach(r => { MOVE_TYPES[r.name] = r.type; });
   MOVES = moveRows.filter(r => r.name).map(r => ({ n: r.name, dmg: parseFloat(r.damage), energy: parseFloat(r.energy),
