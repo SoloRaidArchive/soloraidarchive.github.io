@@ -380,9 +380,27 @@ if ("serviceWorker" in navigator) {
   .pm-k .k-short{ display:none; }
   /* the filter: beside the switch, its panel opening just under it */
   .pm-show{ position:relative; display:flex; }
-  .pm-show .gear-btn{ width:36px; height:36px; box-shadow:none; }
-  .pm-show .gear-panel{ top:calc(100% + 6px); left:0; z-index:40; min-width:110px; padding:10px;
+  /* a pill like the switch beside it: the filter lines and what it shows now */
+  html body .pm-show .gear-btn, html[data-season] body .pm-show .gear-btn{ width:auto; height:auto; min-height:38px; box-sizing:border-box; flex-direction:row; gap:8px;
+    padding:0 14px 0 12px; border-radius:999px; border:1px solid var(--border) !important; box-shadow:none;
+    background:color-mix(in srgb, var(--card) 70%, transparent) !important; color:var(--ink); }
+  .pm-show .gear-btn:hover{ transform:none; border-color:color-mix(in srgb, var(--ink) 35%, var(--border)) !important; }
+  .pm-show .gear-btn[aria-expanded="true"]{ border-color:#f08a3c !important; }
+  .pm-fi{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .pm-show .filter-line{ height:2px; }
+  .pm-show .filter-line-1{ width:14px; } .pm-show .filter-line-2{ width:9px; } .pm-show .filter-line-3{ width:5px; }
+  .pm-fl{ font:700 13px 'Manrope',sans-serif; white-space:nowrap; }
+  .pm-show .gear-panel{ top:calc(100% + 6px); left:0; z-index:40; min-width:0; width:max-content; padding:8px 10px; gap:6px;
     border-left:2px solid var(--border) !important; border-radius:12px !important; }
+  /* one line per option: a label and its choices side by side */
+  .pm-opt{ display:flex; align-items:center; gap:8px; }
+  .pm-opt[hidden]{ display:none; }
+  .pm-ol{ width:36px; font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); }
+  .pm-oseg{ display:inline-flex; gap:2px; padding:2px; border:1px solid var(--border); border-radius:999px; }
+  .pm-oseg .hamburger-item{ width:auto; min-height:0; margin:0; padding:4px 11px; border:0; border-radius:999px; background:none;
+    font:700 12.5px 'Manrope',sans-serif; color:var(--ink-dim); cursor:pointer; }
+  .pm-oseg .hamburger-item.active{ background:#f08a3c; color:#fff; }
+  @media (max-width:700px){ .pm-show .gear-panel{ left:auto; right:0; } }
   /* tap a column heading to sort by it; again to reverse */
   .pm-sort{ all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:3px; -webkit-tap-highlight-color:transparent; }
   .pm-sort:hover{ color:var(--ink); }
@@ -605,6 +623,7 @@ if ("serviceWorker" in navigator) {
     <a href="dps-calculator.html">DPS Calculator</a>
     <a href="solo-raid-mechanics.html">Mechanics</a>
     <a href="guides.html">Guides</a>
+    <a href="articles.html">Articles</a>
     <a href="pokemon-stats.html" class="current">Stats &amp; Moves</a>
     <a href="breakpoints.html">Breakpoints</a>
     <a href="reference.html">Difficulty &amp; Roles</a>
@@ -701,17 +720,20 @@ if ("serviceWorker" in navigator) {
       <button type="button" data-tab="moves" aria-pressed="false">Moves<small id="moveTotal"></small></button>
     </div>
     <div class="pm-show">
-      <button class="gear-btn" id="gearBtn" aria-label="How many to show" aria-expanded="false">
-        <span class="filter-line filter-line-1"></span>
-        <span class="filter-line filter-line-2"></span>
-        <span class="filter-line filter-line-3"></span>
+      <button class="gear-btn" id="gearBtn" aria-label="Display options" aria-expanded="false">
+        <span class="pm-fi" aria-hidden="true"><span class="filter-line filter-line-1"></span><span class="filter-line filter-line-2"></span><span class="filter-line filter-line-3"></span></span>
+        <span class="pm-fl" id="showLabel">30</span>
       </button>
       <div class="gear-panel" id="gearPanel">
-        <div class="hamburger-section-label">Show</div>
-        <div class="vertical-toggle" id="showLimitList">
-          <button class="hamburger-item active" data-n="30">30</button>
-          <button class="hamburger-item" data-n="100">100</button>
-          <button class="hamburger-item" data-n="0">All</button>
+        <div class="pm-opt"><span class="pm-ol">Show</span>
+          <div class="pm-oseg" id="showLimitList">
+            <button class="hamburger-item active" data-n="30">30</button><button class="hamburger-item" data-n="100">100</button><button class="hamburger-item" data-n="0">All</button>
+          </div>
+        </div>
+        <div class="pm-opt" data-tab="pokemon"><span class="pm-ol">CPM</span>
+          <div class="pm-oseg" id="cpmList">
+            <button class="hamburger-item active" data-cpm="post">Post</button><button class="hamburger-item" data-cpm="pre">Pre</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1153,6 +1175,7 @@ function render(){
     row = pokeRowHtml; noun = "Pokémon";
   }
   const total = list.length;
+  document.getElementById("showLabel").textContent = (currentLimit > 0 ? currentLimit : "All");
   if(currentLimit > 0) list = list.slice(0, currentLimit);
   countEl.textContent = currentLimit > 0 && total > currentLimit ? `Showing ${list.length} of ${total}` : `${total} ${noun}`;
   listEl.innerHTML = list.length ? head + list.map(row).join("") : `<div class="empty">No ${noun} match your search.</div>`;
@@ -1187,6 +1210,7 @@ function setTab(next, query){
   searchInput.value = query != null ? query : searchText[tab];
   searchInput.placeholder = tab === "moves" ? "Search move name…" : "Search Pokémon name…";
   document.querySelectorAll(".pm-seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tab === tab)));
+  document.querySelectorAll("#gearPanel [data-tab]").forEach(sec => { sec.hidden = sec.dataset.tab !== tab; });
   try{ history.replaceState(null, "", tab === "moves" ? "?tab=moves" : location.pathname); }catch(e){}
   render();
   // from a "Learned by" sprite: search for that Pokémon and open its row
@@ -1216,6 +1240,7 @@ function bindList(id, apply){
   });
 }
 bindList("showLimitList", b => { currentLimit = parseInt(b.dataset.n, 10); });
+bindList("cpmList", b => { document.getElementById("noCpmToggle").checked = b.dataset.cpm === "pre"; });
 document.getElementById("levelInput").addEventListener("input", render);
 document.getElementById("noCpmToggle").addEventListener("change", render);
 renderTypeFilter();
