@@ -834,180 +834,99 @@ if ("serviceWorker" in navigator) {
     .type-filter{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap:5px; min-height:226px; }
     .type-chip{ font-size:11px; padding:6px 6px; }
   }
-  /* ---- Usage breakdown modal ----
-     Ported from ct-database so both research pages open detail the same way. The row used to be a
-     <details> that expanded inline, which pushed every row below it down the page - fine for two
-     entries, disorienting for twenty-six. */
+  /* ---- A raider's table: the same look as Top Catch Tanks' entries table ---- */
   .entries-overlay{
+    --ink: var(--text); --ink-muted: var(--text-muted); --ink-dim: var(--text-dim); --accent-dark: var(--blue-dark); --accent-soft: #eaf4ff;
     position:fixed; inset:0; background:rgba(20,24,38,0.45); z-index:80;
     display:flex; align-items:center; justify-content:center; padding:20px;
   }
+  [data-theme="dark"] .entries-overlay{ --accent-soft: #232840; }
   .entries-modal{
     background: var(--card); border:2px solid var(--border); border-radius:16px;
     width:min(860px, 100%); max-height:88vh; display:flex; flex-direction:column;
     box-shadow:0 12px 40px rgba(20,24,38,0.25); overflow:hidden;
   }
+  @media (min-width: 1100px){ .entries-modal{ width:min(1240px, 94vw); } }
+  @media (min-width: 1500px){ .entries-modal{ width:min(1360px, 90vw); } }
   .entries-head{
     display:flex; align-items:center; justify-content:space-between; gap:12px;
     padding:14px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0;
   }
   .entries-title{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .entries-title h3{ font-family:'Manrope', sans-serif; font-size:16px; margin:0; color:var(--ink); }
   .entries-sub{ font-size:11.5px; color: var(--ink-dim); font-weight:600; margin-top:1px; }
   .entries-icon{
     width:38px; height:38px; border-radius:50%; background: var(--accent-soft); flex-shrink:0;
     display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
+  .entries-icon img{ width:100%; height:100%; object-fit:contain; }
   .entries-close{ background:none; border:none; font-size:26px; line-height:1; cursor:pointer; color: var(--ink-dim); padding:0 4px; }
-  .entries-scroll{ overflow:auto; flex:1; }
-  .entries-table{ width:100%; border-collapse:collapse; font-size:11.5px; }
   .entries-controls{
     display:flex; gap:10px; align-items:center; flex-wrap:wrap;
     padding:10px 18px; border-bottom:1.5px solid var(--border); flex-shrink:0;
-  }
-  .entries-sort{
-    font-family:'Inter', sans-serif; font-size:11.5px; font-weight:600; color: var(--ink-muted);
-    padding:5px 8px; border-radius:8px; border:1.5px solid var(--border); background: var(--card); cursor:pointer;
   }
   .entries-toggle{
     display:inline-flex; align-items:center; gap:5px; font-size:11.5px; font-weight:600;
     color: var(--ink-muted); cursor:pointer; white-space:nowrap;
   }
+  .entries-scroll{ overflow:auto; flex:1; min-height:0; }
+  .entries-table{ width:100%; border-collapse:separate; border-spacing:0; font-size:11.5px; color:var(--ink); }
+  .entries-table th{
+    position:sticky; top:0; background: var(--card); text-align:left; font-family:'Manrope', sans-serif;
+    font-weight:800; font-size:10px; text-transform:uppercase; letter-spacing:0.04em;
+    color: var(--ink-dim); padding:8px 12px; white-space:nowrap; z-index:3; box-shadow: inset 0 -1px 0 var(--border);
+  }
+  .entries-table td{ padding:7px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .entries-table tr:hover td{ background: var(--accent-soft); }
+  .entries-table td.dim{ color: var(--ink-muted); }
+  .entries-table .col-cond{ width:1%; white-space:nowrap; text-align:center; }
   .entries-boss-icon{
     display:inline-flex; width:30px; height:30px; border-radius:50%; background: var(--accent-soft);
     align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; vertical-align:middle;
   }
-  .entries-boss-name{ vertical-align:middle; margin-left:6px; }
-  .entries-overlay{ padding:0; }
-  .entries-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; }
-  .entries-modal{ max-height:100dvh; height:100dvh; }
-  .entries-head{ position:sticky; top:0; z-index:2; background:var(--card); }
-  .entries-close{ min-width:44px; min-height:44px; display:flex; align-items:center;
-                    justify-content:center; margin:-8px -8px -8px 0; }
-  .entries-boss-name{ display:none; }
-  .entries-table{ table-layout:fixed; width:100%; }
-  .entries-boss-icon{ width:26px; height:26px; }
-  .entries-controls{ padding:8px 12px; gap:8px; }
-  .entries-head{ padding:10px 12px; }
-  .entries-scroll{ overflow-x:hidden; }
-@media (max-width:600px){
+  .entries-boss-icon img{ width:100%; height:100%; object-fit:contain; }
+  .boss-cell{ white-space:nowrap; }
+  .boss-cell a{ color:inherit; text-decoration:none; }
+  .boss-cell a:hover .entries-boss-name{ color: var(--blue); }
+  .entries-boss-name{ vertical-align:middle; margin-left:6px; font-weight:700; }
+  .move-type-icon-wrap{
+    display:inline-flex; align-items:center; justify-content:center; width:15px; height:15px;
+    border-radius:50%; margin-right:4px; flex-shrink:0; vertical-align:-3px;
+  }
+  .move-type-icon{ width:10px; height:10px; object-fit:contain; filter: brightness(0) invert(1); }
+  .move-inline{ display:inline-flex; align-items:center; white-space:nowrap; }
+  .move-sep{ margin:0 5px; color: var(--ink-dim); }
+  .entries-table .bd-wicon{ width:20px; height:20px; }
+  .usage-ae-icon{ width:18px; height:18px; object-fit:contain; display:inline-block; vertical-align:middle; }
+  /* tap a heading to sort by it */
+  .cr-sort{ all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:3px; -webkit-tap-highlight-color:transparent; }
+  .cr-sort:hover{ color:var(--ink); }
+  .cr-sort:focus-visible{ outline:2px solid #f08a3c; outline-offset:2px; border-radius:3px; }
+  .cr-sort.on{ color:#f08a3c; }
+  .cr-sort.on::after{ content:"\25BE"; font-size:9px; }
+  .cr-sort.on.up::after{ content:"\25B4"; }
+  .h-sm{ display:none; }
+  @media (max-width:600px){
+    .h-lg{ display:none; } .h-sm{ display:inline; }
     .entries-overlay{ padding:0; }
-    /* 100vh is the LAYOUT viewport on mobile - it includes the space under the browser's
-       address/toolbar, so a 100vh sheet is taller than what is actually visible and its top gets
-       pushed off-screen, taking the close button with it. 100dvh tracks the visible area and
-       shrinks as the toolbars appear; the vh line stays first as the fallback for older engines. */
     .entries-modal{ max-height:100vh; height:100vh; border-radius:0; border:none; width:100%; }
     .entries-modal{ max-height:100dvh; height:100dvh; }
-    /* Header pinned so the close button is always reachable, however far the table is scrolled. */
-    .entries-head{ position:sticky; top:0; z-index:2; background:var(--card); }
-    /* 23x26px was below any reasonable touch target. Padding brings it to 44x44 without
-       changing the glyph size. */
-    .entries-close{ min-width:44px; min-height:44px; display:flex; align-items:center;
-                    justify-content:center; margin:-8px -8px -8px 0; }
-    /* Sprite replaces the boss name, which is what actually frees the width - the moveset then
-       fits on one line without shrinking type past legibility. Used/Build stay hidden: for a
-       single Pokemon they're near-identical on every row. */
-    .entries-table th:nth-child(1){ width:44px; }
-    .entries-boss-name{ display:none; }
-    .col-used, .col-build{ display:none; }
+    .entries-head{ position:sticky; top:0; z-index:2; background:var(--card); padding:10px 12px; }
+    .entries-close{ min-width:44px; min-height:44px; display:flex; align-items:center; justify-content:center; margin:-8px -8px -8px 0; }
+    .entries-controls{ padding:8px 12px; gap:8px; }
+    /* the sprite stands in for the boss name; the raider's own moveset and AE are left off */
+    .entries-table{ table-layout:fixed; width:100%; }
     .entries-table th, .entries-table td{ padding:6px 5px; font-size:10.5px; }
     .entries-table th{ white-space:normal; }
-    .entries-table{ table-layout:fixed; width:100%; }
-    .entries-table td:nth-child(5), .entries-table th:nth-child(5){ width:52px; }
-    /* Individual move names stay unbroken, but the cell may wrap BETWEEN them. The longest
-       movesets ("Dragon Breath / Draco Meteor" plus type icons) need ~427px of content against
-       ~294px of available width - one line isn't reachable at a legible size, so wrapping is
-       preferable to a horizontal scroll. Most movesets still fit on a single line. */
-    .entries-table .move-inline{ white-space:nowrap; }
+    .entries-table th:nth-child(1){ width:44px; }
+    .entries-boss-name, .bd-dupe-badge{ display:none; }
+    .col-ae, .col-used{ display:none; }
+    .entries-table th.col-cond{ width:62px; } .entries-table th.col-tier{ width:50px; } .entries-table th.col-role{ width:66px; }
     .entries-table td:nth-child(2){ white-space:normal; }
     .entries-table .move-sep{ margin:0 2px; }
     .entries-table .move-type-icon-wrap{ width:13px; height:13px; margin-right:2px; }
     .entries-boss-icon{ width:26px; height:26px; }
-    .double-ct-badge{ font-size:8px; padding:1px 4px; margin-left:2px; }
-    .entries-controls{ padding:8px 12px; gap:8px; }
-    .entries-head{ padding:10px 12px; }
-    /* Everything already fits within the viewport, but the fixed-layout table still reports a
-       wider intrinsic box, which left a sideways drag the user could trigger by accident on a
-       touch screen. Nothing lives out there, so the axis is locked off. */
     .entries-scroll{ overflow-x:hidden; }
-    /* The detail row spans all columns, and its content forced the fixed-layout table wider than
-       the viewport - which squeezed the real columns into half the screen. There isn't room for
-       it at this width, so it's dropped entirely on mobile and rows stay non-interactive. */
-    .entry-detail{ display:none !important; }
-    .entries-table tbody tr:not(.entry-detail){ cursor:default; }
-  }
-  /* The modal head sprite and the move chips both needed sizing here: entries-head-sprite is a
-     class this modal introduces (ct-database's head markup differs), and .bd-move-chip is
-     display:flex, so inside a table cell it stretched to the full column width. */
-  .entries-head-sprite{ width:44px; height:44px; object-fit:contain; flex:none; }
-  .entries-table td .bd-move-chip{ display:inline-flex; width:auto; }
-  .entries-table td{ vertical-align:middle; }
-  /* .entries-body carried no CSS at all - it grew to the full height of its content instead of
-     clipping to the modal, so the modal's own overflow:hidden just hid the excess and the
-     PAGE scrolled to reach it instead of the panel scrolling internally. min-height:0 is needed
-     alongside overflow:auto because a flex child otherwise refuses to shrink below its content
-     size, which would defeat the scroll before it starts. */
-  .entries-body{ overflow-y:auto; overflow-x:hidden; flex:1; min-height:0; }
-  /* Side by side on wide viewports, matching the request; the mobile behaviour below is
-     untouched. Previously this was column (stacked) at every width above 600px and row only
-     below it - backwards from the comment's own stated intent, and from what was actually shown
-     in every wide-viewport preview in this thread. */
-  .usage-moves{ display:flex; flex-wrap:wrap; gap:4px; align-items:flex-start; }
-  .entries-table th{ text-align:left; }
-  .entries-table th, .entries-table td{ padding:8px 10px; vertical-align:middle; }
-  /* Five columns now: Boss | Boss Moveset | Weather | Difficulty | Pokemon moveset. Rebalanced
-     from the old four-column split rather than just adding a fifth slice, so no column gets
-     uncomfortably narrow. */
-  /* Six columns now: Boss | Boss Moveset | Weather | Difficulty | Adventure Effect | <Raider>
-     Moveset. AE gets a narrow fixed column of its own rather than a slice of a percentage - it is
-     one 18px icon or nothing, never wrapping text, so it does not need to scale with the table. */
-  /* Seven columns now: Boss | Boss Moveset | Weather | Difficulty | Role | AE | <Raider>
-     Moveset. Role grouped next to AE and the player moveset - all three describe what THIS
-     raider did in THIS strategy, as opposed to the boss/weather/difficulty columns which
-     describe the fight itself. */
-  .entries-table col.c-boss{ width:20%; }
-  .entries-table col.c-moves{ width:18%; }
-  .entries-table col.c-weather{ width:12%; }
-  .entries-table col.c-tier{ width:9%; }
-  .entries-table col.c-role{ width:14%; }
-  .entries-table col.c-ae{ width:44px; }
-  .entries-table col.c-player-moves{ width:27%; }
-  .usage-ae-icon{ width:18px; height:18px; object-fit:contain; display:block; }
-  .usage-weather{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
-  .bd-move-icon{ width:11px; height:11px; flex:none; filter:brightness(0) invert(1); }
-  .bd-move-chip.on-light{ color:#1b1f2a; }
-  .bd-move-chip.on-light .bd-move-icon{ filter:none; }
-  @media (max-width:600px){
-    /* Four columns cannot hold a boss name, a weather label, a difficulty and two move pills at
-       390px - the headers ran into each other and every chip wrapped onto two lines. Each row
-       becomes a stacked block instead: name, then weather and difficulty on one line, then the
-       moves. Same data, no truncation, no horizontal scrolling. */
-    .entries-table, .entries-table tbody{ display:block; width:auto; }
-    .entries-table thead, .entries-table colgroup{ display:none; }
-    /* tr is a flex container (not the plain block it was) so CSS order can decouple mobile's
-       visual sequence from the desktop DOM order added above - the two now genuinely disagree
-       (Boss Moveset moved to 2nd place in the DOM for desktop), and per-cell order is what lets
-       mobile keep its original layout without a second copy of the row markup. */
-    .entries-table tr{
-      display:flex; flex-direction:row; flex-wrap:wrap; width:auto;
-      border:1px solid var(--border); border-radius:10px;
-      padding:9px 11px; margin-bottom:8px; background:var(--card);
-    }
-    .entries-table td{ padding:0; border:none; }
-    .entries-table td.td-boss{ order:1; width:100%; }
-    /* Weather and difficulty share a line - both are short, and apart they wasted a row each. */
-    .entries-table td.td-weather{ order:2; display:inline-block; margin-right:14px; margin-top:6px; }
-    .entries-table td.td-tier{ order:2; display:inline-block; margin-top:6px; }
-    .entries-table td.td-moves{ order:3; width:100%; margin-top:6px; }
-    /* The new column is desktop-only per the request - there is no room for a fifth data group
-       in the mobile card without it turning back into the cramped layout this fix replaced. */
-    .entries-table td.td-player-moves{ display:none; }
-    .entries-table td.td-ae{ display:none; }
-    .entries-table td.td-role{ display:none; }
-    /* Mobile is deliberately left alone per request - this duplicates the (now row-based) base
-       rule rather than overriding it, so a future change to the desktop layout does not silently
-       change mobile as a side effect. */
-    .usage-moves{ display:flex; flex-direction:row; flex-wrap:wrap; gap:4px; }
-    .entries-table td .bd-move-chip{ font-size:10.5px; }
   }
   .usage-boss-link{ display:inline-flex; align-items:center; gap:7px; text-decoration:none; color:inherit; font-weight:700; }
   .usage-boss-link img{ width:26px; height:26px; object-fit:contain; }
@@ -2963,13 +2882,23 @@ function renderTypeFilter(){
 // expanding in place, so opening one entry does not shove the twenty-five below it down the page.
 let LAST_RENDERED = [];
 
+// a sortable heading in a raider's table
+function rrHead(v, label){ return `<button type="button" class="cr-sort" data-v="${v}">${label}</button>`; }
+// moves as Top Catch Tanks shows them: a type icon, then the name ("Any" when not recorded)
+function rrMovesHtml(fast, charge){
+  return [fast, charge].flatMap(m => { const L = splitMoves(m); return L.length ? L : [""]; }).map(m => {
+    const raw = (m || "").trim() || "Any", type = getMoveType(raw), color = type ? TYPE_COLORS[type] : TYPE_COLORS.unknown;
+    const icon = type ? `<span class="move-type-icon-wrap" style="background:${color}"><img class="move-type-icon" src="${TYPE_ICON_BASE}${type}.svg" alt="" loading="lazy" onerror="this.remove();"></span>` : "";
+    return `<span class="move-inline">${icon}${normalizeHiddenPower(raw)}</span>`;
+  }).join(' <span class="move-sep">/</span> ');
+}
 function openUsageTable(idx){
   const r = LAST_RENDERED[idx];
   if(!r) return;
   const grouped = groupInstances(r.instances);
 
   // Sort state lives with the open modal, so reopening a row starts from the default again.
-  const state = { sort: "boss", extremeFirst: false };
+  const state = { sort: "boss", extremeFirst: false };   // boss / za, weather, tier-desc / tier-asc, role
   const tierNum = t => { const m = String(t || "").match(/[\d.]+/); return m ? parseFloat(m[0]) : -1; };
 
   function sortedRows(){
@@ -2978,6 +2907,8 @@ function openUsageTable(idx){
     if(state.sort === "tier-desc")      rows.sort((a, b) => tierNum(b.inst.tier) - tierNum(a.inst.tier) || byBoss(a, b));
     else if(state.sort === "tier-asc")  rows.sort((a, b) => tierNum(a.inst.tier) - tierNum(b.inst.tier) || byBoss(a, b));
     else if(state.sort === "weather")   rows.sort((a, b) => (a.inst.weather || "").localeCompare(b.inst.weather || "") || byBoss(a, b));
+    else if(state.sort === "role")      rows.sort((a, b) => cleanRoleText(a.inst.prole || "").localeCompare(cleanRoleText(b.inst.prole || "")) || byBoss(a, b));
+    else if(state.sort === "za")        rows.sort((a, b) => byBoss(b, a));
     else                                rows.sort(byBoss);
     // Applied last so it wins over the chosen sort, which is the point of a "first" toggle.
     if(state.extremeFirst){
@@ -2990,23 +2921,15 @@ function openUsageTable(idx){
   function rowsHtml(){
     return sortedRows().map(({inst, count}) => `
             <tr>
-              <td class="td-boss"><a class="usage-boss-link" href="collections/${bossSlug(inst.boss)}.html">
-                <img class="${needsShadowMist(inst.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(inst.boss)}" alt="" loading="lazy"
-                     onerror="this.style.visibility='hidden'">${inst.boss}${count > 1 ? ` <span class="bd-dupe-badge">&times;${count}</span>` : ""}</a></td>
-              <td class="td-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.fast)}${bdMoveChipHtml("Charge", inst.charge)}</span></td>
-              <td class="td-weather"><span class="usage-weather">${smallWeatherIconHtml(inst.weather)}<span>${inst.weather || "&mdash;"}</span></span></td>
-              <td class="td-tier">${tierLabel(inst.tier)}</td>
-              <!-- inst.prole is this raider's own role for THIS strategy - can differ from the
-                   leaderboard row's aggregate role list, since the same raider may be Main DPS in
-                   one route and Catch Tank in another. -->
-              <td class="td-role">${cleanRoleText(inst.prole) || "&mdash;"}</td>
-              <!-- inst.ae is already captured per-instance (sword/shield/blank), same field the
-                   collection pages read - nothing new to derive, just never surfaced here. -->
-              <td class="td-ae">${aeIconCellHtml(inst.ae)}</td>
-              <!-- inst.pfast/pcharge are THIS raider's own moves for the instance, captured
-                   alongside the boss's - desktop has the width to show both sides of the
-                   matchup, so this surfaces data that was already collected but never shown. -->
-              <td class="td-player-moves"><span class="usage-moves">${bdMoveChipHtml("Fast", inst.pfast)}${bdMoveChipHtml("Charge", inst.pcharge)}</span></td>
+              <td class="boss-cell"><a href="collections/${bossSlug(inst.boss)}.html">
+                <span class="entries-boss-icon"><img class="${needsShadowMist(inst.boss) ? 'shadow-mist' : ''}" src="${spriteUrl(inst.boss)}" alt="${inst.boss}" title="${inst.boss}" loading="lazy"
+                     onerror="this.style.visibility='hidden'"></span><span class="entries-boss-name">${inst.boss}</span></a>${count > 1 ? ` <span class="bd-dupe-badge">&times;${count}</span>` : ""}</td>
+              <td class="dim">${rrMovesHtml(inst.fast, inst.charge)}</td>
+              <td class="col-cond" title="${inst.weather || ""}">${smallWeatherIconHtml(inst.weather) || "&mdash;"}</td>
+              <td class="dim col-tier">${tierLabel(inst.tier)}</td>
+              <td class="dim col-role">${cleanRoleText(inst.prole) || "&mdash;"}</td>
+              <td class="col-cond col-ae">${aeIconCellHtml(inst.ae)}</td>
+              <td class="dim col-used">${rrMovesHtml(inst.pfast, inst.pcharge)}</td>
             </tr>`).join("");
   }
 
@@ -3015,31 +2938,21 @@ function openUsageTable(idx){
   overlay.innerHTML = `
     <div class="entries-modal" role="dialog" aria-modal="true" aria-label="${r.name} usage">
       <div class="entries-head">
-        <img class="entries-head-sprite ${needsShadowMist(r.name) ? 'shadow-mist' : ''}" src="${spriteUrl(r.name)}" alt=""
-             onerror="this.style.visibility='hidden'">
-        <div class="entries-head-text">
-          <div class="entries-title">${displayName(r.name)}</div>
-          <div class="entries-sub">${grouped.length} boss${grouped.length===1?"":"es"} &middot; ${r.instances.length} recorded use${r.instances.length===1?"":"s"}</div>
+        <div class="entries-title">
+          <span class="entries-icon"><img class="${needsShadowMist(r.name) ? 'shadow-mist' : ''}" src="${spriteUrl(r.name)}" alt="" onerror="this.parentElement.remove();"></span>
+          <div>
+            <h3>${displayName(r.name)}</h3>
+            <div class="entries-sub">${grouped.length} boss${grouped.length===1?"":"es"} &middot; ${r.instances.length} recorded use${r.instances.length===1?"":"s"}</div>
+          </div>
         </div>
         <button type="button" class="entries-close" aria-label="Close">&times;</button>
       </div>
       <div class="entries-controls">
-        <select class="entries-sort" aria-label="Sort rows">
-          <option value="boss">Boss A&ndash;Z</option>
-          <option value="tier-desc">Difficulty high&ndash;low</option>
-          <option value="tier-asc">Difficulty low&ndash;high</option>
-          <option value="weather">Weather A&ndash;Z</option>
-        </select>
         <label class="entries-toggle"><input type="checkbox" class="prio-extreme"> Extreme weather first</label>
       </div>
-      <div class="entries-body">
+      <div class="entries-scroll">
         <table class="entries-table">
-          <colgroup><col class="c-boss"><col class="c-moves"><col class="c-weather"><col class="c-tier"><col class="c-role"><col class="c-ae"><col class="c-player-moves"></colgroup>
-          <!-- displayName(r.name) rather than a generic "Pokemon moveset" - the table is scoped to
-               one raider already (it opened from that raider's row), so naming the column after
-               them reads less like a placeholder and matches how the Boss column is already
-               boss-specific rather than saying "Raid boss". -->
-          <thead><tr><th>Boss</th><th>Boss Moveset</th><th>Weather</th><th>Difficulty</th><th>Role</th><th>AE</th><th>${displayName(r.name)} Moveset</th></tr></thead>
+          <thead><tr><th>${rrHead("boss", "Boss")}</th><th>Boss moveset</th><th class="col-cond">${rrHead("weather", "Weather")}</th><th class="col-tier">${rrHead("tier-desc", '<span class="h-lg">Difficulty</span><span class="h-sm">Diff</span>')}</th><th class="col-role">${rrHead("role", "Role")}</th><th class="col-cond col-ae">AE</th><th class="col-used">${displayName(r.name)} moveset</th></tr></thead>
           <tbody>${rowsHtml()}
           </tbody>
         </table>
@@ -3048,7 +2961,18 @@ function openUsageTable(idx){
   document.body.appendChild(overlay);
   const tbody = overlay.querySelector("tbody");
   const redraw = () => { tbody.innerHTML = rowsHtml(); };
-  overlay.querySelector(".entries-sort").addEventListener("change", e => { state.sort = e.target.value; redraw(); });
+  // the headings: Boss and Difficulty reverse on a second tap
+  const mark = () => overlay.querySelectorAll("thead .cr-sort").forEach(b => {
+    const v = b.dataset.v, on = state.sort === v || (v === "boss" && state.sort === "za") || (v === "tier-desc" && state.sort === "tier-asc");
+    b.classList.toggle("on", on); b.classList.toggle("up", state.sort === "za" && v === "boss" || state.sort === "tier-asc" && v === "tier-desc");
+  });
+  overlay.querySelector("thead").addEventListener("click", e => {
+    const b = e.target.closest(".cr-sort"); if(!b) return;
+    const v = b.dataset.v;
+    state.sort = v === "boss" && state.sort === "boss" ? "za" : v === "tier-desc" && state.sort === "tier-desc" ? "tier-asc" : v;
+    redraw(); mark();
+  });
+  mark();
   overlay.querySelector(".prio-extreme").addEventListener("change", e => { state.extremeFirst = e.target.checked; redraw(); });
 
   const close = () => overlay.remove();
