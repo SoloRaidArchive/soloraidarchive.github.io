@@ -237,6 +237,11 @@ if ("serviceWorker" in navigator) {
      corners on that side. Every page positions it from a full-width header or the window. */
   body .hamburger-panel{ right:0 !important; border-right:none !important;
     border-top-right-radius:0 !important; border-bottom-right-radius:0 !important; }
+  /* above the DPS Calculator's sticky party bar and floating Calculate button */
+  body .hamburger-panel{ z-index:70; }
+  /* as wide as its longest link; the theme buttons line up with the links */
+  body .hamburger-panel{ width:max-content !important; min-width:150px; max-width:calc(100vw - 32px); }
+  body .hamburger-panel .hamburger-theme-toggle{ justify-content:flex-start; gap:8px; padding:9px 10px; font-size:13.5px; min-height:40px; }
   /* phones up to 380px wide, down to 320px: all six still fit without cutting off "Mechanics" */
   @media (max-width:380px){
     #quickLinks a{ font-size:10px; padding:5px 2px; letter-spacing:-0.02em; }
@@ -263,8 +268,10 @@ if ("serviceWorker" in navigator) {
     // The landing page gets the same row (Home highlighted), plus its Submit a VOD / Submit a Guide
     // links at the end; it has no header bar, so the row sits at the top like the editor's.
     if(/(^|\/)(index\.html)?$/.test(location.pathname)) nav.classList.add("qlinks-home");
-    var hdr = document.querySelector(".sticky-header");
-    if(hdr){
+    var hdr = document.querySelector(".sticky-header"), slot = document.getElementById("quickLinksSlot");
+    if(slot){
+      slot.appendChild(nav);   // the landing page: under its title
+    } else if(hdr){
       hdr.appendChild(nav);
     } else {
       nav.classList.add("qlinks-standalone");
@@ -275,6 +282,23 @@ if ("serviceWorker" in navigator) {
     nav.hidden = false;
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", place); else place();
+})();
+// Short labels for the menu's theme buttons ("Light", "Dark", "Default", "Seasonal"). Each page's
+// own script names them "Light Mode", "Default theme" and so on, and renames them on every click.
+(function(){
+  function trim(){
+    var bs = document.querySelectorAll("#hamburgerPanel .hamburger-theme-toggle");
+    for(var i = 0; i < bs.length; i++){
+      var t = bs[i].textContent, n = t.replace(/ (Mode|theme)\s*$/, "");
+      if(n !== t) bs[i].textContent = n;
+    }
+  }
+  function start(){
+    var panel = document.getElementById("hamburgerPanel"); if(!panel) return;
+    trim();
+    if(window.MutationObserver) new MutationObserver(trim).observe(panel, { childList:true, subtree:true, characterData:true });
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
 </script>
 <div class="hamburger-panel" id="hamburgerPanel">
@@ -291,25 +315,25 @@ if ("serviceWorker" in navigator) {
     <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
     <a href="dps-calculator.html">DPS Calculator</a>
-    <a href="solo-raid-mechanics.html">Solo Mechanics</a>
-    <a href="guides.html">Raid Guides</a>
+    <a href="solo-raid-mechanics.html">Mechanics</a>
+    <a href="guides.html">Guides</a>
     <a href="articles.html" class="current">Articles</a>
-    <a href="pokemon-stats.html">Pokémon &amp; Moves</a>
-    <a href="breakpoints.html">Best Buddy Breakpoints</a>
+    <a href="pokemon-stats.html">Stats &amp; Moves</a>
+    <a href="breakpoints.html">Breakpoints</a>
     <a href="reference.html">Difficulty &amp; Roles</a>
-    <a href="progression.html">Raid Budget Advice</a>
+    <a href="progression.html">Budget Advice</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Archives</div>
-    <a href="tier4-raids.html">Mega</a>
-    <a href="tier5-raids.html">Legendary</a>
-    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+    <a href="tier4-raids.html">Tier 4</a>
+    <a href="tier5-raids.html">Tier 5</a>
+    <a href="tier6-elite-raids.html">Tier 6</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Resources</div>
     <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
-    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
-    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Sheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Rotation Calculator</a>
     <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
   </div>
 </div>
