@@ -372,7 +372,7 @@ if ("serviceWorker" in navigator) {
   .bk-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
   .bk-head h2{ font:800 17px 'Manrope',sans-serif; color:var(--ink); margin:0; }
   .bk-sub{ font:600 12.5px 'Inter',sans-serif; color:var(--ink-dim); }
-  .bk-form{ display:grid; grid-template-columns:minmax(0,1.4fr) repeat(3, minmax(0,1fr)); gap:10px; }
+  .bk-form{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 96px repeat(2, minmax(0,1fr)); gap:10px; }
   .bk-f{ display:flex; flex-direction:column; gap:4px; min-width:0; }
   .bk-f > span{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); }
   .bk-f input, .bk-f select{ width:100%; box-sizing:border-box; font:500 14px 'Inter',sans-serif; color:var(--ink); background:var(--card);
@@ -399,7 +399,7 @@ if ("serviceWorker" in navigator) {
   .bk-d i{ font-style:normal; font-size:11px; margin-left:4px; }
   .bk-bm{ font:500 12.5px 'Inter',sans-serif; color:var(--ink-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .bk-empty{ padding:18px 0; color:var(--ink-dim); font:600 13px 'Inter',sans-serif; }
-  @media (max-width:820px){ .bk-form{ grid-template-columns:repeat(2, minmax(0,1fr)); } .bk-f-mon, .bk-f-fm{ grid-column:1 / -1; } }
+  @media (max-width:820px){ .bk-form{ grid-template-columns:96px repeat(2, minmax(0,1fr)); } .bk-f-mon, .bk-f-fm{ grid-column:1 / -1; } }
   @media (max-width:700px){
     .bk-head{ flex-direction:column; align-items:flex-start; gap:2px; }   /* the level line under the title */
     .bk-form{ gap:12px 10px; }
@@ -637,12 +637,13 @@ if ("serviceWorker" in navigator) {
 
 <main class="bk">
   <section class="bk-card" aria-labelledby="bkCalcH">
-    <div class="bk-head"><h2 id="bkCalcH">Calculator</h2><span class="bk-sub">Level 50 → 51 (best buddy) · 15/15/15</span></div>
+    <div class="bk-head"><h2 id="bkCalcH">Calculator</h2><span class="bk-sub" id="bkLvLine">Level 50.5 → 51 · 15/15/15</span></div>
     <div class="bk-form">
       <label class="bk-f bk-f-mon"><span>Pokémon</span><input id="bkMon" type="search" placeholder="e.g. Kyurem White" autocomplete="off" spellcheck="false"></label>
       <label class="bk-f bk-f-fm"><span>Fast move</span><select id="bkFm"></select></label>
+      <label class="bk-f bk-f-lv"><span>Level</span><select id="bkLv"></select></label>
       <label class="bk-f"><span>Weather</span><select id="bkWx">
-        <option value="">No boost (Extreme)</option><option value="sunny">Sunny / Clear</option><option value="partlycloudy">Partly Cloudy</option>
+        <option value="">None</option><option value="sunny">Sunny / Clear</option><option value="partlycloudy">Partly Cloudy</option>
         <option value="cloudy">Cloudy</option><option value="rain">Rainy</option><option value="snow">Snow</option><option value="windy">Windy</option><option value="fog">Fog</option>
       </select></label>
       <label class="bk-f"><span>Adventure effect</span><select id="bkAe"><option value="">None</option><option value="blade">Blade Boost</option><option value="shield">Shield Boost</option><option value="punch">Dynamic Punch+</option></select></label>
@@ -848,7 +849,24 @@ function needsShadowMist(name){
 
 
 // ============ DAMAGE (the DPS Calculator's formulas) ============
-const CPM = { 50: 0.84029999, 51: 0.8453 };
+// the DPS Calculator's CPM table (levels 20-53; half levels from 30; past 51 its +0.0025 steps)
+const CPM = {
+  "20":0.59740001, "21":0.61215729, "22":0.62656713, "23":0.64065295, "24":0.65443563,
+  "25":0.66793400, "26":0.68116492, "27":0.69414365, "28":0.70688421, "29":0.71939909,
+  "30":0.73170000, "30.5":0.73474101, "31":0.73776948, "31.5":0.74078557, "32":0.74378943,
+  "32.5":0.74678120, "33":0.74976104, "33.5":0.75272910, "34":0.75568551, "34.5":0.75863037,
+  "35":0.76156384, "35.5":0.76448607, "36":0.76739717, "36.5":0.77029727, "37":0.77318650,
+  "37.5":0.77606494, "38":0.77893275, "38.5":0.78179006, "39":0.78463697, "39.5":0.78747358,
+  "40":0.79030001, "40.5":0.792803968, "41":0.79530001, "41.5":0.797800015, "42":0.8003,
+  "42.5":0.802799995, "43":0.8053, "43.5":0.8078, "44":0.81029999, "44.5":0.812799985,
+  "45":0.8153, "45.5":0.81779999, "46":0.820299990, "46.5":0.822799990, "47":0.825299990,
+  "47.5":0.827799990, "48":0.830299990, "48.5":0.832799990, "49":0.835299990,
+  "49.5":0.837799990, "50":0.840299990, "50.5":0.842799990, "51":0.845300000,
+  "51.5":0.847803686002838, "52":0.85030, "52.5":0.852803664391751, "53":0.85530,
+};
+// the level picked and the one before it: a half level back from 30.5 up, a whole level back up to 30
+const levelPair = L => [L > 30 ? L - 0.5 : L - 1, L];
+const LEVELS = Object.keys(CPM).map(Number).filter(L => L > 20).sort((a, b) => a - b);
 const BOSS_CPM = 0.7903, SHADOW_BOSS_CPM = 0.82, ELITE_CPM = 1.0;
 const TYPE_CHART = {
   normal:   { rock:0.625, steel:0.625, ghost:0.39 },
@@ -916,14 +934,14 @@ function attack(name, move, boss, opt){
     * (typesOf(name).includes(m.type) ? 1.2 : 1)
     // adventure effects (as the DPS Calculator): Blade Boost x1.1; Dynamic Punch+ x1.15, Mega and Primal raids only
     * (opt.ae === "blade" ? 1.1 : opt.ae === "punch" && /^(mega|primal)\s/i.test(boss.n) ? 1.15 : 1);
-  return [50, 51].map(L => hit(m.dmg, mult, (p.atk + 15) * CPM[L], boss.stats.def));
+  return levelPair(opt.lv).map(L => hit(m.dmg, mult, (p.atk + 15) * CPM[L], boss.stats.def));
 }
 // The boss's fast move against the attacker at level 50 and 51
 function taken(name, boss, opt){
   const p = mon(name), m = MOVES[key(boss.fm)]; if(!p || !m || !boss.stats) return null;
   const mult = eff(m.type, typesOf(name)) * ((WEATHER_BOOST[opt.wx] || []).includes(m.type) ? 1.2 : 1) * (isShadow(name) ? 1.2 : 1)
     * (boss.types.includes(m.type) ? 1.2 : 1) * (opt.ae === "shield" ? 0.9 : 1);   // Shield Boost: x0.9 damage taken
-  return [50, 51].map(L => hit(m.dmg, mult, boss.stats.atk, (p.def + 15) * CPM[L]));
+  return levelPair(opt.lv).map(L => hit(m.dmg, mult, boss.stats.atk, (p.def + 15) * CPM[L]));
 }
 
 async function load(){
@@ -978,16 +996,18 @@ function fillMoves(){
 function calc(){
   const name = $("bkMon").value.trim();
   if(!mon(name)){ $("bkBreak").innerHTML = `<div class="bk-empty">${name ? "No Pokémon by that name." : "Pick a Pokémon."}</div>`; $("bkBulk").innerHTML = ""; return; }
-  const opt = { wx: $("bkWx").value, ae: $("bkAe").value };
+  const opt = { wx: $("bkWx").value, ae: $("bkAe").value, lv: parseFloat($("bkLv").value) || 51 };
+  const [from, to] = levelPair(opt.lv), lvHead = `Lv ${from} → ${to}`;
+  $("bkLvLine").textContent = `Level ${from} → ${to} · 15/15/15`;
   const brk = POPULAR.map(b => ({ b, d: attack(name, $("bkFm").value, b, opt) })).filter(r => r.d && r.d[1] > r.d[0]);
   const blk = POPULAR.map(b => ({ b, d: taken(name, b, opt) })).filter(r => r.d && r.d[1] < r.d[0]);
   const none = `<div class="bk-empty">None.</div>`;
-  $("bkBreak").innerHTML = brk.length ? `<div class="bk-h"><span>Boss</span><span class="n">Lv 50 → 51</span></div>`
+  $("bkBreak").innerHTML = brk.length ? `<div class="bk-h"><span>Boss</span><span class="n">${lvHead}</span></div>`
     + brk.map(r => `<div class="bk-r"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span><span class="bk-d n up">${r.d[0]} → ${r.d[1]}</span></div>`).join("") : none;
-  $("bkBulk").innerHTML = blk.length ? `<div class="bk-h k"><span>Boss</span><span>Fast move</span><span class="n">Lv 50 → 51</span></div>`
+  $("bkBulk").innerHTML = blk.length ? `<div class="bk-h k"><span>Boss</span><span>Fast move</span><span class="n">${lvHead}</span></div>`
     + blk.map(r => `<div class="bk-r k"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span><span class="bk-bm">${esc(r.b.fm)}</span><span class="bk-d n down">${r.d[0]} → ${r.d[1]}</span></div>`).join("") : none;
   try{ history.replaceState(null, "", "?p=" + encodeURIComponent(name) + "&fm=" + encodeURIComponent($("bkFm").value)
-    + (opt.wx ? "&w=" + opt.wx : "") + (opt.ae ? "&ae=" + opt.ae : "")); }catch(e){}
+    + (opt.lv !== 51 ? "&lv=" + opt.lv : "") + (opt.wx ? "&w=" + opt.wx : "") + (opt.ae ? "&ae=" + opt.ae : "")); }catch(e){}
 }
 function pick(name){ $("bkMon").value = name; lastMon = key(name); $("bkFm").innerHTML = ""; fillMoves(); calc(); }
 
@@ -996,7 +1016,8 @@ let lastMon = "";
 function monChanged(){ const k = key($("bkMon").value); if(k !== lastMon){ lastMon = k; $("bkFm").innerHTML = ""; } fillMoves(); calc(); }
 $("bkMon").addEventListener("input", () => { clearTimeout(monTimer); monTimer = setTimeout(monChanged, 150); });
 $("bkMon").addEventListener("change", monChanged);
-["bkFm", "bkWx", "bkAe"].forEach(id => $(id).addEventListener("change", calc));
+$("bkLv").innerHTML = LEVELS.map(L => `<option value="${L}"${L === 51 ? " selected" : ""}>${L}</option>`).join("");
+["bkFm", "bkLv", "bkWx", "bkAe"].forEach(id => $(id).addEventListener("change", calc));
 
 load().then(() => {
   const q = new URLSearchParams(location.search);
@@ -1006,6 +1027,7 @@ load().then(() => {
   if(q.get("fm")) $("bkFm").value = q.get("fm");
   if(q.get("w")) $("bkWx").value = q.get("w");
   if(q.get("ae")) $("bkAe").value = q.get("ae");
+  if(q.get("lv") && LEVELS.includes(parseFloat(q.get("lv")))) $("bkLv").value = String(parseFloat(q.get("lv")));
   calc();
 }).catch(e => { console.error(e); $("bkBreak").innerHTML = `<div class="bk-empty">The data couldn't be loaded. Try refreshing the page.</div>`; });
 
