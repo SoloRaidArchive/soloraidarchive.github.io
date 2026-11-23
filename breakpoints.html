@@ -372,7 +372,7 @@ if ("serviceWorker" in navigator) {
   .bk-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
   .bk-head h2{ font:800 17px 'Manrope',sans-serif; color:var(--ink); margin:0; }
   .bk-sub{ font:600 12.5px 'Inter',sans-serif; color:var(--ink-dim); }
-  .bk-form{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 96px repeat(2, minmax(0,1fr)); gap:10px; }
+  .bk-form{ display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 96px 96px repeat(2, minmax(0,1fr)); gap:10px; align-items:end; }
   .bk-f{ display:flex; flex-direction:column; gap:4px; min-width:0; }
   .bk-f > span{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); }
   .bk-f input, .bk-f select{ width:100%; box-sizing:border-box; font:500 14px 'Inter',sans-serif; color:var(--ink); background:var(--card);
@@ -399,7 +399,50 @@ if ("serviceWorker" in navigator) {
   .bk-d i{ font-style:normal; font-size:11px; margin-left:4px; }
   .bk-bm{ font:500 12.5px 'Inter',sans-serif; color:var(--ink-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .bk-empty{ padding:18px 0; color:var(--ink-dim); font:600 13px 'Inter',sans-serif; }
-  @media (max-width:820px){ .bk-form{ grid-template-columns:96px repeat(2, minmax(0,1fr)); } .bk-f-mon, .bk-f-fm{ grid-column:1 / -1; } }
+  /* level slider */
+  .bk-lv{ display:flex; align-items:center; gap:12px; margin:14px 0 0; max-width:420px; }
+  /* IV steppers: the DPS Calculator's party panel's */
+  .bk-ivstep{ display:flex; align-items:center; height:40px; box-sizing:border-box; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--card); }
+  .bk-ivstep button{ flex:0 0 26px; height:100%; border:0; background:none; color:#f08a3c; font:800 16px 'Manrope',sans-serif; cursor:pointer; padding:0; }
+  .bk-ivstep button:disabled{ opacity:.3; cursor:default; }
+  html body .bk-ivstep input#bkAtk, html body .bk-ivstep input#bkDef{ flex:1 1 0; min-width:0; width:100%; height:100%; border:0 !important; background:none !important; box-shadow:none !important; text-align:center; font:800 14px 'Manrope',sans-serif; color:var(--ink); padding:0 !important; outline:none; }
+  .bk-ivstep:focus-within{ border-color:#f08a3c; }
+  .bk-lv-l{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); }
+  .bk-lv input{ flex:1; min-width:0; accent-color:#f08a3c; height:24px; }
+  .bk-lv b{ min-width:38px; text-align:right; font:800 16px 'Manrope',sans-serif; color:var(--ink); font-variant-numeric:tabular-nums; }
+  /* list rows: Boss | IV | Dmg; a row opens the boss's chart */
+  .bk-h, .bk-r{ grid-template-columns:minmax(0,1fr) 56px 84px; }
+  .bk-r{ cursor:pointer; border-radius:6px; }
+  .bk-r:hover{ background:color-mix(in srgb, var(--ink) 5%, transparent); }
+  .bk-r:focus-visible{ outline:2px solid #f08a3c; outline-offset:1px; }
+  .bk-iv{ text-align:right; font:600 13px 'Inter',sans-serif; color:var(--ink-muted); font-variant-numeric:tabular-nums; }
+  /* the chart */
+  .bk-ov{ position:fixed; inset:0; z-index:90; background:rgba(20,24,38,.5); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .bk-ov[hidden]{ display:none; }
+  .bk-ovc{ background:var(--card); border:1px solid var(--border); border-radius:14px; width:min(1100px, 100%); max-height:90vh; overflow:auto; padding:14px 18px 16px; box-sizing:border-box; }
+  .bk-ovh{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .bk-ovh .bk-mon b{ font-size:16px; }
+  .bk-ovx{ background:none; border:0; font-size:26px; line-height:1; color:var(--ink-dim); cursor:pointer; padding:0 4px; }
+  .bk-ovbar{ display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 6px; }
+  #bkOvKind button[data-k="bk"][aria-pressed="true"]{ background:#4a90e2; }
+  .bk-ovs{ font:600 12.5px 'Inter',sans-serif; color:var(--ink-dim); margin:4px 0 10px; }
+  .bk-ovg{ overflow-x:auto; padding-right:8px; }
+  .bk-hm{ display:grid; gap:1px; min-width:100%; font:600 10px 'Inter',sans-serif; color:var(--ink-dim); }
+  .bk-hm .c{ height:22px; border-radius:2px; display:flex; align-items:center; justify-content:center; font:700 10px 'Inter',sans-serif; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .bk-hm.all .c{ font-size:0; }   /* (all levels: too narrow for numbers; hover for them) */
+  .bk-hm .c.me{ outline:2px solid var(--ink); outline-offset:-1px; position:relative; z-index:1; }
+  .bk-hm .rl{ text-align:right; padding-right:5px; align-self:stretch; display:flex; align-items:center; justify-content:flex-end; font-variant-numeric:tabular-nums;
+    position:sticky; left:0; z-index:2; background:var(--card); }   /* the IVs stay in view when it scrolls */
+  .bk-hm .cl{ text-align:center; font-variant-numeric:tabular-nums; padding-top:3px; }
+  .bk-hm .ax{ font:800 9.5px 'Manrope',sans-serif; letter-spacing:.06em; text-transform:uppercase; }
+  .bk-legend{ display:flex; gap:12px; flex-wrap:wrap; margin:10px 0 0; font:600 12px 'Inter',sans-serif; color:var(--ink-muted); }
+  .bk-legend i{ display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:-2px; margin-right:4px; }
+  @media (max-width:820px){ .bk-form{ grid-template-columns:repeat(2, minmax(0,1fr)); } .bk-f-mon, .bk-f-fm{ grid-column:1 / -1; } }
+  @media (max-width:700px){
+    .bk-ov{ padding:0; } .bk-ovc{ border-radius:0; border:0; height:100%; max-height:none; padding:12px; }
+    .bk-hm .c{ height:15px; font-size:0; } .bk-hm{ font-size:8.5px; }
+    .bk-hm.all{ min-width:780px; }
+  }
   @media (max-width:700px){
     .bk-head{ flex-direction:column; align-items:flex-start; gap:2px; }   /* the level line under the title */
     .bk-form{ gap:12px 10px; }
@@ -410,7 +453,7 @@ if ("serviceWorker" in navigator) {
     .bk{ padding:12px 12px 30px; }
     .bk-card{ padding:12px 12px 10px; }
     .bk-two{ grid-template-columns:minmax(0,1fr); gap:20px; }
-    .bk-h.k, .bk-r.k{ grid-template-columns:minmax(0,1fr) auto 70px; }
+    .bk-h, .bk-r{ grid-template-columns:minmax(0,1fr) 48px 76px; }
     .bk-ph{ display:none; }
     .bk-pr{ grid-template-columns:minmax(0,1fr); gap:4px; padding:8px 0; }
     .bk-atk button{ width:32px; height:32px; } .bk-atk img{ width:30px; height:30px; }
@@ -636,17 +679,22 @@ if ("serviceWorker" in navigator) {
 </div>
 
 <main class="bk">
-  <section class="bk-card" aria-labelledby="bkCalcH">
-    <div class="bk-head"><h2 id="bkCalcH">Calculator</h2><span class="bk-sub" id="bkLvLine">Level 50.5 → 51 · 15/15/15</span></div>
+  <section class="bk-card" aria-label="Breakpoint calculator">
     <div class="bk-form">
       <label class="bk-f bk-f-mon"><span>Pokémon</span><input id="bkMon" type="search" placeholder="e.g. Kyurem White" autocomplete="off" spellcheck="false"></label>
       <label class="bk-f bk-f-fm"><span>Fast move</span><select id="bkFm"></select></label>
-      <label class="bk-f bk-f-lv"><span>Level</span><select id="bkLv"></select></label>
+      <div class="bk-f bk-f-iv"><span>Attack IV</span><div class="bk-ivstep"><button type="button" data-iv="bkAtk" data-d="-1" aria-label="Attack IV lower">&minus;</button><input id="bkAtk" inputmode="numeric" value="15" aria-label="Attack IV"><button type="button" data-iv="bkAtk" data-d="1" aria-label="Attack IV higher">+</button></div></div>
+      <div class="bk-f bk-f-iv"><span>Defense IV</span><div class="bk-ivstep"><button type="button" data-iv="bkDef" data-d="-1" aria-label="Defense IV lower">&minus;</button><input id="bkDef" inputmode="numeric" value="15" aria-label="Defense IV"><button type="button" data-iv="bkDef" data-d="1" aria-label="Defense IV higher">+</button></div></div>
       <label class="bk-f"><span>Weather</span><select id="bkWx">
         <option value="">None</option><option value="sunny">Sunny / Clear</option><option value="partlycloudy">Partly Cloudy</option>
         <option value="cloudy">Cloudy</option><option value="rain">Rainy</option><option value="snow">Snow</option><option value="windy">Windy</option><option value="fog">Fog</option>
       </select></label>
       <label class="bk-f"><span>Adventure effect</span><select id="bkAe"><option value="">None</option><option value="blade">Blade Boost</option><option value="shield">Shield Boost</option><option value="punch">Dynamic Punch+</option></select></label>
+    </div>
+    <div class="bk-lv">
+      <span class="bk-lv-l">Level</span>
+      <input type="range" id="bkLv" min="0" max="0" step="1" aria-label="Level">
+      <b id="bkLvVal">51</b>
     </div>
     <div class="bk-two">
       <div><h3 class="t-bp">Breakpoints</h3><div id="bkBreak"><div class="bk-empty">Loading…</div></div></div>
@@ -655,6 +703,18 @@ if ("serviceWorker" in navigator) {
   </section>
 
 </main>
+
+<div class="bk-ov" id="bkOv" hidden>
+  <div class="bk-ovc" role="dialog" aria-modal="true" aria-labelledby="bkOvMon">
+    <div class="bk-ovh"><span class="bk-mon" id="bkOvMon"></span><button type="button" class="bk-ovx" id="bkOvX" aria-label="Close">&times;</button></div>
+    <div class="bk-ovbar">
+      <div class="bk-seg" id="bkOvKind"><button type="button" data-k="bp" aria-pressed="true">Breakpoints</button><button type="button" data-k="bk" aria-pressed="false">Bulkpoints</button></div>
+      <div class="bk-seg" id="bkOvRange"><button type="button" data-r="all" aria-pressed="true">All levels</button><button type="button" data-r="40" aria-pressed="false">Level 40–53</button></div>
+    </div>
+    <div class="bk-ovg" id="bkOvG"></div>
+    <div class="bk-legend" id="bkOvL"></div>
+  </div>
+</div>
 
 <script>
 // ============ SPRITE LOOKUP (same approach as the raid archives / calculator) ============
@@ -849,8 +909,12 @@ function needsShadowMist(name){
 
 
 // ============ DAMAGE (the DPS Calculator's formulas) ============
-// the DPS Calculator's CPM table (levels 20-53; half levels from 30; past 51 its +0.0025 steps)
+// the game's CPM values for levels 1-19, then the DPS Calculator's table (20-53; half levels from 30;
+// past 51 its +0.0025 steps)
 const CPM = {
+  "1":0.094, "2":0.16639787, "3":0.21573247, "4":0.25572005, "5":0.29024988, "6":0.3210876, "7":0.34921268,
+  "8":0.3752356, "9":0.39956728, "10":0.42250001, "11":0.44310755, "12":0.46279839, "13":0.48168495,
+  "14":0.49985844, "15":0.51739395, "16":0.53435433, "17":0.55079269, "18":0.56675452, "19":0.58227891,
   "20":0.59740001, "21":0.61215729, "22":0.62656713, "23":0.64065295, "24":0.65443563,
   "25":0.66793400, "26":0.68116492, "27":0.69414365, "28":0.70688421, "29":0.71939909,
   "30":0.73170000, "30.5":0.73474101, "31":0.73776948, "31.5":0.74078557, "32":0.74378943,
@@ -866,7 +930,7 @@ const CPM = {
 };
 // the level picked and the one before it: a half level back from 30.5 up, a whole level back up to 30
 const levelPair = L => [L > 30 ? L - 0.5 : L - 1, L];
-const LEVELS = Object.keys(CPM).map(Number).filter(L => L > 20).sort((a, b) => a - b);
+const LEVELS = Object.keys(CPM).map(Number).filter(L => L >= 2).sort((a, b) => a - b);
 const BOSS_CPM = 0.7903, SHADOW_BOSS_CPM = 0.82, ELITE_CPM = 1.0;
 const TYPE_CHART = {
   normal:   { rock:0.625, steel:0.625, ghost:0.39 },
@@ -926,22 +990,32 @@ function bossStats(name, elite){
   if(isShadow(name)) return { atk: (b.atk + 15) * SHADOW_BOSS_CPM * 1.2, def: (b.def + 15) * SHADOW_BOSS_CPM * 5 / 6 };
   return { atk: (b.atk + 15) * BOSS_CPM, def: (b.def + 15) * BOSS_CPM };
 }
-// The attacker's move against the boss at level 50 and 51
-function attack(name, move, boss, opt){
+// The attacker's move against the boss: dealtAt() at any Attack IV and level; attack() at the level
+// before the one picked and the one picked
+function dealtAt(name, move, boss, opt, iv, L){
   const p = mon(name); if(!p || !move || !boss.stats) return null;
   const m = MOVES[key(move)]; if(!m) return null;
   const mult = (isShadow(name) ? 1.2 : 1) * eff(m.type, boss.types) * (opt.boostAll || (WEATHER_BOOST[opt.wx] || []).includes(m.type) ? 1.2 : 1)
     * (typesOf(name).includes(m.type) ? 1.2 : 1)
     // adventure effects (as the DPS Calculator): Blade Boost x1.1; Dynamic Punch+ x1.15, Mega and Primal raids only
     * (opt.ae === "blade" ? 1.1 : opt.ae === "punch" && /^(mega|primal)\s/i.test(boss.n) ? 1.15 : 1);
-  return levelPair(opt.lv).map(L => hit(m.dmg, mult, (p.atk + 15) * CPM[L], boss.stats.def));
+  return hit(m.dmg, mult, (p.atk + iv) * CPM[L], boss.stats.def);
 }
-// The boss's fast move against the attacker at level 50 and 51
-function taken(name, boss, opt){
+function attack(name, move, boss, opt){
+  const d = levelPair(opt.lv).map(L => dealtAt(name, move, boss, opt, opt.atk, L));
+  return d[0] == null ? null : d;
+}
+// The boss's fast move against the attacker: takenAt() at any Defense IV and level; taken() at the
+// level before the one picked and the one picked
+function takenAt(name, boss, opt, iv, L){
   const p = mon(name), m = MOVES[key(boss.fm)]; if(!p || !m || !boss.stats) return null;
   const mult = eff(m.type, typesOf(name)) * ((WEATHER_BOOST[opt.wx] || []).includes(m.type) ? 1.2 : 1) * (isShadow(name) ? 1.2 : 1)
     * (boss.types.includes(m.type) ? 1.2 : 1) * (opt.ae === "shield" ? 0.9 : 1);   // Shield Boost: x0.9 damage taken
-  return levelPair(opt.lv).map(L => hit(m.dmg, mult, boss.stats.atk, (p.def + 15) * CPM[L]));
+  return hit(m.dmg, mult, boss.stats.atk, (p.def + iv) * CPM[L]);
+}
+function taken(name, boss, opt){
+  const d = levelPair(opt.lv).map(L => takenAt(name, boss, opt, opt.def, L));
+  return d[0] == null ? null : d;
 }
 
 async function load(){
@@ -991,24 +1065,81 @@ function fillMoves(){
   const f = want(p.fast, keepF, meta && meta.fm);
   if(f) $("bkFm").value = f;
 }
-// Only the bosses where level 51 changes something: its fast move doing one more (breakpoint),
-// the boss's fast move doing one less to it (bulkpoint). Two separate lists.
+// Only the bosses where the level picked changes something against the level before it, at the IVs
+// picked: its fast move doing one more (breakpoint), the boss's fast move doing one less to it
+// (bulkpoint). The IV column: the lowest IV that still gets the new number at this level.
+let SHOWN = { brk: [], blk: [] };
+const readOpt = () => ({ wx: $("bkWx").value, ae: $("bkAe").value, lv: LEVELS[+$("bkLv").value] || 51,
+  atk: ivOf("bkAtk"), def: ivOf("bkDef") });
 function calc(){
-  const name = $("bkMon").value.trim();
+  const name = $("bkMon").value.trim(), opt = readOpt(), fm = $("bkFm").value;
+  const [from, to] = levelPair(opt.lv);
+  $("bkLvVal").textContent = opt.lv;
   if(!mon(name)){ $("bkBreak").innerHTML = `<div class="bk-empty">${name ? "No Pokémon by that name." : "Pick a Pokémon."}</div>`; $("bkBulk").innerHTML = ""; return; }
-  const opt = { wx: $("bkWx").value, ae: $("bkAe").value, lv: parseFloat($("bkLv").value) || 51 };
-  const [from, to] = levelPair(opt.lv), lvHead = `Lv ${from} → ${to}`;
-  $("bkLvLine").textContent = `Level ${from} → ${to} · 15/15/15`;
-  const brk = POPULAR.map(b => ({ b, d: attack(name, $("bkFm").value, b, opt) })).filter(r => r.d && r.d[1] > r.d[0]);
-  const blk = POPULAR.map(b => ({ b, d: taken(name, b, opt) })).filter(r => r.d && r.d[1] < r.d[0]);
+  const brk = POPULAR.map(b => ({ b, d: attack(name, fm, b, opt) })).filter(r => r.d && r.d[1] > r.d[0])
+    .map(r => { let iv = opt.atk; while(iv > 0 && dealtAt(name, fm, r.b, opt, iv - 1, to) >= r.d[1]) iv--; return { ...r, iv }; });
+  const blk = POPULAR.map(b => ({ b, d: taken(name, b, opt) })).filter(r => r.d && r.d[1] < r.d[0])
+    .map(r => { let iv = opt.def; while(iv > 0 && takenAt(name, r.b, opt, iv - 1, to) <= r.d[1]) iv--; return { ...r, iv }; });
+  SHOWN = { brk, blk };
   const none = `<div class="bk-empty">None.</div>`;
-  $("bkBreak").innerHTML = brk.length ? `<div class="bk-h"><span>Boss</span><span class="n">${lvHead}</span></div>`
-    + brk.map(r => `<div class="bk-r"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span><span class="bk-d n up">${r.d[0]} → ${r.d[1]}</span></div>`).join("") : none;
-  $("bkBulk").innerHTML = blk.length ? `<div class="bk-h k"><span>Boss</span><span>Fast move</span><span class="n">${lvHead}</span></div>`
-    + blk.map(r => `<div class="bk-r k"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span><span class="bk-bm">${esc(r.b.fm)}</span><span class="bk-d n down">${r.d[0]} → ${r.d[1]}</span></div>`).join("") : none;
-  try{ history.replaceState(null, "", "?p=" + encodeURIComponent(name) + "&fm=" + encodeURIComponent($("bkFm").value)
-    + (opt.lv !== 51 ? "&lv=" + opt.lv : "") + (opt.wx ? "&w=" + opt.wx : "") + (opt.ae ? "&ae=" + opt.ae : "")); }catch(e){}
+  const row = (r, i, k) => `<div class="bk-r" role="button" tabindex="0" data-k="${k}" data-i="${i}"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span>`
+    + `<span class="bk-iv">${r.iv}+</span><span class="bk-d n ${k === "bp" ? "up" : "down"}">${r.d[0]} → ${r.d[1]}</span></div>`;
+  $("bkBreak").innerHTML = brk.length ? `<div class="bk-h"><span>Boss</span><span class="n">Atk IV</span><span class="n">Dmg</span></div>` + brk.map((r, i) => row(r, i, "bp")).join("") : none;
+  $("bkBulk").innerHTML = blk.length ? `<div class="bk-h"><span>Boss</span><span class="n">Def IV</span><span class="n">Taken</span></div>` + blk.map((r, i) => row(r, i, "bk")).join("") : none;
+  if(!$("bkOv").hidden) drawChart();
+  try{ history.replaceState(null, "", "?p=" + encodeURIComponent(name) + "&fm=" + encodeURIComponent(fm)
+    + (opt.lv !== 51 ? "&lv=" + opt.lv : "") + (opt.atk !== 15 ? "&a=" + opt.atk : "") + (opt.def !== 15 ? "&d=" + opt.def : "")
+    + (opt.wx ? "&w=" + opt.wx : "") + (opt.ae ? "&ae=" + opt.ae : "")); }catch(e){}
 }
+
+// ---- a boss's chart: IV down the side, level across, the number in each cell; colour by damage.
+// Breakpoints: Attack IV and damage dealt. Bulkpoints: Defense IV and damage taken. The IVs and level
+// picked are outlined; it follows the slider while open.
+const CHART = { boss: null, kind: "bp", range: "all" };
+function openChart(boss, kind){
+  CHART.boss = boss; CHART.kind = kind;
+  $("bkOvMon").innerHTML = `${sprite(boss.n)}<b>${esc(boss.n)}</b>`;
+  $("bkOv").hidden = false; drawChart(); $("bkOvX").focus();
+}
+function drawChart(){
+  const b = CHART.boss, k = CHART.kind, opt = readOpt(), name = $("bkMon").value.trim(), fm = $("bkFm").value;
+  if(!b || !mon(name)) return;
+  $("bkOvKind").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.k === k)));
+  $("bkOvRange").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.r === CHART.range)));
+  const lvs = LEVELS.filter(L => CHART.range === "all" || L >= 40);
+  const f = k === "bp" ? (iv, L) => dealtAt(name, fm, b, opt, iv, L) : (iv, L) => takenAt(name, b, opt, iv, L);
+  const me = k === "bp" ? opt.atk : opt.def, color = k === "bp" ? "#f08a3c" : "#4a90e2";
+  const vals = []; for(let iv = 15; iv >= 0; iv--) for(const L of lvs) vals.push(f(iv, L));
+  if(vals.some(v => v == null)){ $("bkOvG").innerHTML = `<div class="bk-empty">No fast move on file for this boss.</div>`; $("bkOvL").innerHTML = ""; return; }
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  // more damage dealt is darker for breakpoints; less damage taken is darker for bulkpoints
+  const pct = d => (hi === lo ? 60 : 18 + 62 * (k === "bp" ? (d - lo) : (hi - d)) / (hi - lo)) + (d % 2 ? 0 : -10);   // (alternate bands, so each boundary shows)
+  const shade = d => `color-mix(in srgb, ${color} ${pct(d)}%, var(--card))`;
+  let g = `<div class="bk-hm${CHART.range === "all" ? " all" : ""}" style="grid-template-columns:30px repeat(${lvs.length}, minmax(${CHART.range === "all" ? 14 : 0}px, 1fr))">`;
+  for(let iv = 15; iv >= 0; iv--){
+    g += `<span class="rl">${iv}</span>`;
+    for(const L of lvs){ const d = f(iv, L);
+      g += `<span class="c${iv === me && L === opt.lv ? " me" : ""}" style="background:${shade(d)}" title="${k === "bp" ? "Attack" : "Defense"} IV ${iv} · Level ${L}: ${d}">${d}</span>`; }
+  }
+  const step = CHART.range === "all" ? 5 : 1;
+  g += `<span class="rl ax">${k === "bp" ? "Atk" : "Def"}</span>` + lvs.map(L => `<span class="cl">${Number.isInteger(L) && L % step === 0 && (step > 1 || L % 1 === 0) ? L : ""}</span>`).join("") + `</div>`;
+  $("bkOvG").innerHTML = g;
+  const ds = [...new Set(vals)].sort((a, c) => a - c);
+  $("bkOvL").innerHTML = (ds.length > 10 ? [ds[0], ds[ds.length - 1]] : ds).map((d, i) => `${i && ds.length > 10 ? "<span>…</span>" : ""}<span><i style="background:${shade(d)}"></i>${d}</span>`).join("");
+  // keep your IVs and level in view when the chart scrolls sideways
+  const meCell = $("bkOvG").querySelector(".c.me");
+  if(meCell){ const g = $("bkOvG"); g.scrollLeft = Math.max(0, meCell.offsetLeft - g.clientWidth / 2); }
+}
+const closeChart = () => { $("bkOv").hidden = true; };
+$("bkOvX").addEventListener("click", closeChart);
+$("bkOv").addEventListener("click", e => { if(e.target === $("bkOv")) closeChart(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("bkOv").hidden) closeChart(); });
+$("bkOvKind").addEventListener("click", e => { const x = e.target.closest("button"); if(x){ CHART.kind = x.dataset.k; drawChart(); } });
+$("bkOvRange").addEventListener("click", e => { const x = e.target.closest("button"); if(x){ CHART.range = x.dataset.r; drawChart(); } });
+const rowOpen = e => { const r = e.target.closest(".bk-r[data-k]"); if(!r) return;
+  const L = r.dataset.k === "bp" ? SHOWN.brk : SHOWN.blk, it = L[+r.dataset.i]; if(it) openChart(it.b, r.dataset.k); };
+["bkBreak", "bkBulk"].forEach(id => { $(id).addEventListener("click", rowOpen);
+  $(id).addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); rowOpen(e); } }); });
 function pick(name){ $("bkMon").value = name; lastMon = key(name); $("bkFm").innerHTML = ""; fillMoves(); calc(); }
 
 let monTimer = null;
@@ -1016,8 +1147,16 @@ let lastMon = "";
 function monChanged(){ const k = key($("bkMon").value); if(k !== lastMon){ lastMon = k; $("bkFm").innerHTML = ""; } fillMoves(); calc(); }
 $("bkMon").addEventListener("input", () => { clearTimeout(monTimer); monTimer = setTimeout(monChanged, 150); });
 $("bkMon").addEventListener("change", monChanged);
-$("bkLv").innerHTML = LEVELS.map(L => `<option value="${L}"${L === 51 ? " selected" : ""}>${L}</option>`).join("");
-["bkFm", "bkLv", "bkWx", "bkAe"].forEach(id => $(id).addEventListener("change", calc));
+$("bkLv").max = LEVELS.length - 1; $("bkLv").value = LEVELS.indexOf(51);
+// IV steppers: - and + step by one (0-15); typing works too
+const ivOf = id => { const v = parseInt($(id).value, 10); return isNaN(v) ? 15 : Math.max(0, Math.min(15, v)); };
+const ivMarks = () => document.querySelectorAll(".bk-ivstep button").forEach(b => { const v = ivOf(b.dataset.iv); b.disabled = b.dataset.d < 0 ? v <= 0 : v >= 15; });
+document.querySelectorAll(".bk-ivstep button").forEach(b => b.addEventListener("click", () => {
+  $(b.dataset.iv).value = Math.max(0, Math.min(15, ivOf(b.dataset.iv) + +b.dataset.d)); ivMarks(); calc(); }));
+["bkAtk", "bkDef"].forEach(id => { $(id).addEventListener("input", () => { ivMarks(); calc(); });
+  $(id).addEventListener("change", () => { $(id).value = ivOf(id); ivMarks(); calc(); }); });
+$("bkLv").addEventListener("input", calc);   // live as it moves
+["bkFm", "bkWx", "bkAe"].forEach(id => $(id).addEventListener("change", calc));
 
 load().then(() => {
   const q = new URLSearchParams(location.search);
@@ -1027,7 +1166,9 @@ load().then(() => {
   if(q.get("fm")) $("bkFm").value = q.get("fm");
   if(q.get("w")) $("bkWx").value = q.get("w");
   if(q.get("ae")) $("bkAe").value = q.get("ae");
-  if(q.get("lv") && LEVELS.includes(parseFloat(q.get("lv")))) $("bkLv").value = String(parseFloat(q.get("lv")));
+  if(q.get("lv") && LEVELS.includes(parseFloat(q.get("lv")))) $("bkLv").value = LEVELS.indexOf(parseFloat(q.get("lv")));
+  ["a", "d"].forEach((p, i) => { const v = parseInt(q.get(p), 10); if(v >= 0 && v <= 15) $(i ? "bkDef" : "bkAtk").value = v; });
+  ivMarks();
   calc();
 }).catch(e => { console.error(e); $("bkBreak").innerHTML = `<div class="bk-empty">The data couldn't be loaded. Try refreshing the page.</div>`; });
 
