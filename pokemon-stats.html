@@ -378,8 +378,16 @@ if ("serviceWorker" in navigator) {
   .pm-count{ font:600 12.5px 'Inter',sans-serif; color:var(--ink-dim); margin-left:auto; }
   .pm-bar{ justify-content:flex-start; }
   .pm-k .k-short{ display:none; }
+  /* search: under the type buttons, left-aligned with the table */
+  .pm-search{ display:flex; align-items:center; gap:8px; width:100%; max-width:300px; box-sizing:border-box; margin:0 0 12px;
+    padding:0 12px; height:36px; border:1px solid var(--border); border-radius:10px; background:var(--card); color:var(--ink-dim); }
+  .pm-search:focus-within{ border-color:var(--accent, #f08a3c); }
+  html body .pm-search #searchInput, html[data-season] body .pm-search #searchInput{ flex:1; min-width:0; max-width:none; height:100%; margin:0; padding:0;
+    border:0 !important; background:transparent !important; box-shadow:none !important; outline:none; font:500 14px 'Inter',sans-serif; color:var(--ink); }
+  @media (max-width:700px){ .pm-search{ max-width:none; } html body .pm-search #searchInput{ font-size:16px; } }
   /* the filter: beside the switch, its panel opening just under it */
   .pm-show{ position:relative; display:flex; }
+  .pm-show .gear-btn{ z-index:auto; }   /* (20 put it over the open menu) */
   /* a pill like the switch beside it: the filter lines and what it shows now */
   html body .pm-show .gear-btn, html[data-season] body .pm-show .gear-btn{ width:auto; height:auto; min-height:38px; box-sizing:border-box; flex-direction:row; gap:8px;
     padding:0 14px 0 12px; border-radius:999px; border:1px solid var(--border) !important; box-shadow:none;
@@ -695,23 +703,7 @@ if ("serviceWorker" in navigator) {
 
 
 <div class="level-control" style="display:none"><input id="levelInput" type="hidden" value="40"><input id="noCpmToggle" type="checkbox"></div>
-
-<div class="page-search-row">
-  <input id="searchInput" type="text" placeholder="Search Pokémon name…" autocomplete="off">
-  <!-- "About these stats" sits beside the search box (it used to be in the header, next to the
-       title, which pushed the title off-centre); its panel opens just below it. -->
-  <button class="info-btn" id="infoBtn" aria-label="About these stats" aria-expanded="false" aria-controls="infoPanel">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
-          <circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6h.01"/>
-        </svg>
-      </button>
-  <div class="info-panel" id="infoPanel" role="dialog" aria-label="About these stats">
-    <div class="info-panel-title" id="infoTitle">About these stats</div>
-    <div class="stats-blurb" id="statsBlurb">Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.</div>
-  </div>
 </div>
-
-
 
 <div class="pm-wrap">
   <div class="pm-bar">
@@ -740,6 +732,10 @@ if ("serviceWorker" in navigator) {
     <span class="pm-count" id="count"></span>
   </div>
   <div class="pm-types" id="typeFilter" role="group" aria-label="Filter by type"></div>
+  <label class="pm-search">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.2-3.2"></path></svg>
+    <input id="searchInput" type="text" placeholder="Search Pokémon name…" autocomplete="off" aria-label="Search">
+  </label>
   <div class="pm-card" id="pmList"><div class="empty">Loading&hellip;</div></div>
 </div>
 
@@ -1147,12 +1143,6 @@ document.getElementById("typeFilter").addEventListener("click", e => {
 function render(){
   const noCpm = document.getElementById("noCpmToggle").checked;
   document.getElementById("levelInput").closest(".level-control").classList.toggle("disabled", noCpm);
-  document.getElementById("infoTitle").textContent = tab === "moves" ? "About these numbers" : "About these stats";
-  document.getElementById("statsBlurb").textContent = tab === "moves"
-    ? "Power and Energy are per use in raids; AD is the move's duration in turns (half a second each). Score ranks moves of the same kind: charged moves are DPS × DPE, fast moves are EPS × DPS. A Pokémon's movepool leaves out Elite TM moves."
-    : noCpm
-      ? "Stats shown are base stats with perfect IVs (15/15/15) applied — no Combat Power Multiplier (CPM), so these values don't change with level. Each bar is scaled against the highest value for that stat across every Pokémon tracked."
-      : "Stats shown reflect Combat Power Multiplier (CPM) at the selected level with perfect IVs (15/15/15) applied. Each bar is scaled against the highest value for that stat across every Pokémon tracked.";
   document.getElementById("pokeTotal").textContent = POKEMON_DB.length || "";
   document.getElementById("moveTotal").textContent = MOVES.length || "";
   if(!moveDataReady){ return; }
@@ -1287,33 +1277,17 @@ function closeGear(){
   gearPanel.classList.remove("open");
   gearBtn.setAttribute("aria-expanded", "false");
 }
-const infoBtn = document.getElementById("infoBtn");
-const infoPanel = document.getElementById("infoPanel");
-function closeInfo(){
-  infoPanel.classList.remove("open");
-  infoBtn.setAttribute("aria-expanded", "false");
-}
-infoBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  const isOpen = infoPanel.classList.contains("open");
-  closeHamburger(); closeGear();
-  infoPanel.classList.toggle("open", !isOpen);
-  infoBtn.setAttribute("aria-expanded", String(!isOpen));
-});
-// Esc closes it, matching what a reader expects from a dialog-ish popover.
-document.addEventListener("keydown", (e) => { if(e.key === "Escape") closeInfo(); });
-
 gearBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = gearPanel.classList.contains("open");
-  closeHamburger(); closeInfo();
+  closeHamburger();
   gearPanel.classList.toggle("open", !isOpen);
   gearBtn.setAttribute("aria-expanded", String(!isOpen));
 });
 hamburgerBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = hamburgerPanel.classList.contains("open");
-  closeGear(); closeInfo();
+  closeGear();
   hamburgerPanel.classList.toggle("open", !isOpen);
   hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
 });
@@ -1323,9 +1297,6 @@ document.addEventListener("click", (e) => {
   }
   if(!gearPanel.contains(e.target) && !gearBtn.contains(e.target)){
     closeGear();
-  }
-  if(!infoPanel.contains(e.target) && !infoBtn.contains(e.target)){
-    closeInfo();
   }
 });
 </script>
