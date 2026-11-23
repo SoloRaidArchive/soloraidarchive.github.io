@@ -12765,5 +12765,71 @@ updateCTMode();
 })();
 </script>
 
+<style>
+  /* IV steppers (Atk / Def / HP), built like the Level box beside them: the box itself is the input
+     (same colours, border and font as Level), with a - and a + laid over its ends */
+  .iv-group.iv-steps{ display:grid !important; grid-template-columns:repeat(3, minmax(0,1fr)); gap:4px; }
+  .iv-step{ position:relative; display:block; min-width:0; }
+  html body .iv-group .iv-step input:not(#iv-x){ width:100% !important; height:34px !important; margin:0 !important; box-sizing:border-box;
+    border-radius:10px !important; padding-left:16px !important; padding-right:16px !important; text-align:center; }
+  .iv-btn{ position:absolute; top:0; bottom:0; width:16px; display:flex; align-items:center; justify-content:center; border:0; background:transparent;
+    color:var(--accent, #ff8a3d); font:800 14px/1 'Manrope',sans-serif; cursor:pointer; padding:0; z-index:1; }
+  .iv-btn.dn{ left:1px; } .iv-btn.up{ right:1px; }
+  .iv-btn:hover{ filter:brightness(1.2); }
+  .iv-btn:disabled{ opacity:.3; cursor:default; }
+  /* Level and the three IVs: four boxes of one width and height. Desktop: 68px each. Phones: Level
+     takes one share and the IVs three (plus their two 4px gaps), so all four come out equal. */
+  html body .name-iv-row > .mq-lvfield{ flex:0 0 68px !important; width:68px !important; min-width:0 !important; }
+  html body .name-iv-row > .iv-group-field{ flex:0 0 212px !important; width:212px !important; }
+  html body .mq-lvfield input:not(#iv-x){ width:100% !important; height:34px !important; box-sizing:border-box; padding-left:16px !important; padding-right:16px !important; }
+  html body .mq-lvfield .mq-lvbtn{ width:16px !important; }
+  html body .mq-lvfield .mq-lvbtn.dn{ left:1px !important; } html body .mq-lvfield .mq-lvbtn.up{ right:1px !important; }
+  @media (max-width:560px){
+    html body .name-iv-row > .mq-lvfield{ flex:1 1 0 !important; width:auto !important; }
+    html body .name-iv-row > .iv-group-field{ flex:3 1 8px !important; width:auto !important; min-width:0; }
+    html body .mq-lvfield input:not(#iv-x), html body .iv-group .iv-step input:not(#iv-x){ height:40px !important; padding-left:18px !important; padding-right:18px !important; }
+    html body .mq-lvfield .mq-lvbtn, .iv-btn{ width:18px !important; font-size:15px; }
+  }
+  @media (max-width:360px){
+    html body .mq-lvfield input:not(#iv-x), html body .iv-group .iv-step input:not(#iv-x){ padding-left:14px !important; padding-right:14px !important; }
+    html body .mq-lvfield .mq-lvbtn, .iv-btn{ width:14px !important; }
+  }
+</style>
+<script>
+// ---- IV steppers: a - and a + on each IV box (0-15); typing still works. The buttons fire the box's
+// own input and change events, so everything that listens to the box carries on as before.
+(function(){
+  const clamp = v => Math.max(0, Math.min(15, v));
+  const marks = st => { const inp = st.querySelector("input"), v = parseInt(inp.value, 10);
+    st.querySelector(".iv-btn.dn").disabled = !isNaN(v) && v <= 0; st.querySelector(".iv-btn.up").disabled = !isNaN(v) && v >= 15; };
+  function wrap(g){
+    if(g.classList.contains("iv-steps")) return;
+    g.classList.add("iv-steps");
+    [...g.querySelectorAll(":scope > input")].forEach(inp => {
+      const st = document.createElement("span"); st.className = "iv-step";
+      const lab = inp.getAttribute("aria-label") || "IV";
+      inp.before(st); st.appendChild(inp);
+      st.insertAdjacentHTML("afterbegin", `<button type="button" class="iv-btn dn" data-ivd="-1" aria-label="${lab} lower">&minus;</button>`);
+      st.insertAdjacentHTML("beforeend", `<button type="button" class="iv-btn up" data-ivd="1" aria-label="${lab} higher">+</button>`);
+      marks(st);
+    });
+  }
+  const all = () => document.querySelectorAll(".iv-group").forEach(wrap);
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".iv-btn"); if(!b) return;
+    const st = b.closest(".iv-step"), inp = st.querySelector("input"), v = parseInt(inp.value, 10);
+    inp.value = clamp((isNaN(v) ? 15 : v) + parseInt(b.dataset.ivd, 10));
+    ["input", "change"].forEach(t => inp.dispatchEvent(new Event(t, { bubbles: true })));
+    marks(st);
+  });
+  document.addEventListener("input", e => { const st = e.target.closest && e.target.closest(".iv-step"); if(st) marks(st); });
+  all();
+  // copies made later (Catch Tank 2-5, support attackers), and values set by a shared link or a setup
+  if(window.MutationObserver) new MutationObserver(muts => {
+    if(muts.some(m => [...m.addedNodes].some(n => n.nodeType === 1 && (n.matches(".iv-group") || n.querySelector(".iv-group:not(.iv-steps)"))))) all();
+  }).observe(document.body, { childList: true, subtree: true });
+  setInterval(() => document.querySelectorAll(".iv-step").forEach(marks), 1000);
+})();
+</script>
 </body>
 </html>
