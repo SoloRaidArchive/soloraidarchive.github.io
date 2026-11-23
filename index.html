@@ -470,12 +470,14 @@ if ("serviceWorker" in navigator) {
 <style id="home-layout">
   /* ---- Home layout: egg chips, search beside the raids heading, flat boss tiles ---- */
   h1.site-title, [data-theme] h1.site-title{
-    font-size:clamp(34px, 5vw, 54px); letter-spacing:-0.02em; margin:30px 0 14px; gap:16px;
+    font-size:clamp(34px, 5vw, 54px); letter-spacing:-0.02em; margin:30px 0 10px; gap:16px;
     text-shadow:0 2px 0 rgba(0,0,0,.25), 0 0 28px rgba(240,138,60,.35);
   }
   .site-title-icon{ width:56px; height:56px; }
 
-  .archive-chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:820px; margin:0 auto 6px; padding:0 12px; }
+  #quickLinksSlot{ padding:0 64px; }
+  #quickLinksSlot .qlinks{ padding:0; }
+  .archive-chips{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; max-width:820px; margin:18px auto 6px; padding:0 12px; }
   .archive-chips .archive-pill{ width:auto; display:inline-flex; align-items:center; gap:8px; height:40px; box-sizing:border-box;
     padding:0 14px 0 6px; border-radius:999px; border:1px solid var(--border); background:color-mix(in srgb, var(--card) 85%, transparent);
     font:700 13.5px 'Manrope',sans-serif; color:var(--text); text-decoration:none; }
@@ -564,7 +566,9 @@ if ("serviceWorker" in navigator) {
   .credits-toggle .credits-list{ margin-top:8px; }
 
   @media (max-width:700px){
-    h1.site-title, [data-theme] h1.site-title{ font-size:clamp(22px, 7.4vw, 29px); gap:8px; margin:22px 0 12px; padding:0; }
+    h1.site-title, [data-theme] h1.site-title{ font-size:clamp(22px, 7.4vw, 29px); gap:8px; margin:66px 0 8px; padding:0; }
+    #quickLinksSlot{ padding:0 8px; }
+    .archive-chips{ margin-top:12px; }
     .site-title-icon{ width:clamp(24px, 7.7vw, 30px); height:clamp(24px, 7.7vw, 30px); }
     .archive-chips .archive-pill{ height:36px; font-size:12.5px; padding:0 11px 0 4px; }
     .archive-chips .archive-pill-icon{ width:24px; height:24px; }
@@ -572,6 +576,25 @@ if ("serviceWorker" in navigator) {
     main > .boss-search-wrap .boss-search-box{ padding:7px 13px; }
     .live-boss-row-grid{ grid-template-columns:repeat(4, 1fr); gap:10px 6px; }
     .live-boss-row-grid .live-boss-item{ width:auto; }
+  }
+  /* phones: the shortcut row on one line (Submit links and Discord move to the footer), the eggs on one line */
+  .footer-submit{ display:none; }
+  @media (max-width:600px){
+    #quickLinksSlot #quickLinks .ql-home-only{ display:none; }
+    #quickLinksSlot #quickLinks.qlinks-home{ justify-content:space-between; flex-wrap:nowrap; }
+    .archive-chips{ gap:6px; padding:0 8px; margin-top:10px; }
+    .archive-chips .archive-pill{ height:34px; padding:0 10px 0 3px; gap:5px; font-size:12.5px; }
+    .archive-chips .egg-long{ display:none; }
+    .footer-submit{ display:flex; justify-content:center; align-items:center; gap:6px; margin:4px 0 14px; }
+    .footer-submit a{ font:700 12px 'Manrope',sans-serif; color:var(--text-dim); text-decoration:none; padding:5px 10px;
+      border:1px solid var(--border); border-radius:999px; }
+    .footer-submit a.fs-discord{ display:inline-grid; place-items:center; width:26px; height:26px; padding:0; border:0; border-radius:50%; background:#5865F2; }
+    .footer-submit a.fs-discord svg{ width:15px; height:12px; }
+  }
+  @media (max-width:360px){
+    .archive-chips{ gap:4px; padding:0 4px; }
+    .archive-chips .archive-pill{ height:32px; padding:0 8px 0 2px; gap:4px; font-size:11.5px; }
+    .archive-chips .archive-pill-icon{ width:20px; height:20px; }
   }
 </style>
 </head>
@@ -635,6 +658,11 @@ if ("serviceWorker" in navigator) {
      corners on that side. Every page positions it from a full-width header or the window. */
   body .hamburger-panel{ right:0 !important; border-right:none !important;
     border-top-right-radius:0 !important; border-bottom-right-radius:0 !important; }
+  /* above the DPS Calculator's sticky party bar and floating Calculate button */
+  body .hamburger-panel{ z-index:70; }
+  /* as wide as its longest link; the theme buttons line up with the links */
+  body .hamburger-panel{ width:max-content !important; min-width:150px; max-width:calc(100vw - 32px); }
+  body .hamburger-panel .hamburger-theme-toggle{ justify-content:flex-start; gap:8px; padding:9px 10px; font-size:13.5px; min-height:40px; }
   /* phones up to 380px wide, down to 320px: all six still fit without cutting off "Mechanics" */
   @media (max-width:380px){
     #quickLinks a{ font-size:10px; padding:5px 2px; letter-spacing:-0.02em; }
@@ -661,8 +689,10 @@ if ("serviceWorker" in navigator) {
     // The landing page gets the same row (Home highlighted), plus its Submit a VOD / Submit a Guide
     // links at the end; it has no header bar, so the row sits at the top like the editor's.
     if(/(^|\/)(index\.html)?$/.test(location.pathname)) nav.classList.add("qlinks-home");
-    var hdr = document.querySelector(".sticky-header");
-    if(hdr){
+    var hdr = document.querySelector(".sticky-header"), slot = document.getElementById("quickLinksSlot");
+    if(slot){
+      slot.appendChild(nav);   // the landing page: under its title
+    } else if(hdr){
       hdr.appendChild(nav);
     } else {
       nav.classList.add("qlinks-standalone");
@@ -673,6 +703,23 @@ if ("serviceWorker" in navigator) {
     nav.hidden = false;
   }
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", place); else place();
+})();
+// Short labels for the menu's theme buttons ("Light", "Dark", "Default", "Seasonal"). Each page's
+// own script names them "Light Mode", "Default theme" and so on, and renames them on every click.
+(function(){
+  function trim(){
+    var bs = document.querySelectorAll("#hamburgerPanel .hamburger-theme-toggle");
+    for(var i = 0; i < bs.length; i++){
+      var t = bs[i].textContent, n = t.replace(/ (Mode|theme)\s*$/, "");
+      if(n !== t) bs[i].textContent = n;
+    }
+  }
+  function start(){
+    var panel = document.getElementById("hamburgerPanel"); if(!panel) return;
+    trim();
+    if(window.MutationObserver) new MutationObserver(trim).observe(panel, { childList:true, subtree:true, characterData:true });
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
 </script>
 <div class="hamburger-panel" id="hamburgerPanel">
@@ -689,25 +736,25 @@ if ("serviceWorker" in navigator) {
     <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
     <a href="dps-calculator.html">DPS Calculator</a>
-    <a href="solo-raid-mechanics.html">Solo Mechanics</a>
-    <a href="guides.html">Raid Guides</a>
+    <a href="solo-raid-mechanics.html">Mechanics</a>
+    <a href="guides.html">Guides</a>
     <a href="articles.html">Articles</a>
-    <a href="pokemon-stats.html">Pokémon &amp; Moves</a>
-    <a href="breakpoints.html">Best Buddy Breakpoints</a>
+    <a href="pokemon-stats.html">Stats &amp; Moves</a>
+    <a href="breakpoints.html">Breakpoints</a>
     <a href="reference.html">Difficulty &amp; Roles</a>
-    <a href="progression.html">Raid Budget Advice</a>
+    <a href="progression.html">Budget Advice</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Archives</div>
-    <a href="tier4-raids.html">Mega</a>
-    <a href="tier5-raids.html">Legendary</a>
-    <a href="tier6-elite-raids.html">Mega Legendary &amp; Elite</a>
+    <a href="tier4-raids.html">Tier 4</a>
+    <a href="tier5-raids.html">Tier 5</a>
+    <a href="tier6-elite-raids.html">Tier 6</a>
   </div>
   <div class="hamburger-section">
     <div class="hamburger-section-label">Resources</div>
     <a href="https://pokechespin.net/" target="_blank" rel="noopener noreferrer">Pokéchespin</a>
-    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Spreadsheet</a>
-    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Raid Rotation Calculator</a>
+    <a href="https://docs.google.com/spreadsheets/d/1iT8T894SOM72vlWIC-43oQw3wUYfdtpgCUT2zvHkj0Y/edit?gid=1654946465#gid=1654946465" target="_blank" rel="noopener noreferrer">Solo Raid Sheet</a>
+    <a href="https://docs.google.com/spreadsheets/d/1LwHHk97yMIz2UC4VurEoZxdtXYrN_LdEiGI9JdmQSC0/edit?gid=1018733201#gid=1018733201" target="_blank" rel="noopener noreferrer">Rotation Calculator</a>
     <a href="https://www.pokebattler.com/" target="_blank" rel="noopener noreferrer">Pokébattler</a>
   </div>
 </div>
@@ -766,22 +813,20 @@ if ("serviceWorker" in navigator) {
   Solo Raid Archive
   <img src="assets/icons/favicon-192.png" alt="" class="site-title-icon favicon-jumping" onerror="this.style.display='none'">
 </h1>
+<div id="quickLinksSlot"></div><!-- the shortcut links (data/nav-partial.html) go here, under the title -->
 
 <nav class="archive-chips" aria-label="Raid archives">
       <a class="archive-pill" href="tier4-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier4-egg.png" alt="Mega egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Mega</span>
-        <span class="archive-pill-pct" id="pct-tier4-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier5-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier5-egg.png" alt="Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
         <span class="archive-pill-label">Legendary</span>
-        <span class="archive-pill-pct" id="pct-tier5-raids.html">…</span>
       </a>
       <a class="archive-pill" href="tier6-elite-raids.html">
         <div class="archive-pill-icon"><img src="assets/icons/tier6-egg.png" alt="Mega Legendary egg" onerror="this.parentElement.textContent='🥚'"></div>
-        <span class="archive-pill-label">Mega Legendary &amp; Elite</span>
-        <span class="archive-pill-pct" id="pct-tier6-elite-raids.html">…</span>
+        <span class="archive-pill-label">Mega Legendary<span class="egg-long"> &amp; Elite</span></span>
       </a>
 </nav>
 
@@ -821,6 +866,12 @@ if ("serviceWorker" in navigator) {
 </div>
 
 <footer>
+  <!-- phones: the Submit links and Discord, which sit in the shortcut row on wider screens -->
+  <div class="footer-submit">
+    <a href="https://docs.google.com/forms/d/1Am307IjL251ZbiwyOybhiu-bPmEpd8-V84U1W3Sf4lY/viewform" target="_blank" rel="noopener noreferrer">Submit VOD</a>
+    <a href="editor.html" title="Requires a GitHub account">Submit Guide</a>
+    <a href="https://discord.gg/mt3EVv6CTP" class="fs-discord" target="_blank" rel="noopener noreferrer" aria-label="Join the Discord" title="Join the Discord"><svg viewBox="0 0 127 96" aria-hidden="true" focusable="false"><path fill="#fff" d="M107.7 8.07A105.15 105.15 0 0 0 81.47 0a72.06 72.06 0 0 0-3.36 6.83 97.68 97.68 0 0 0-29.11 0A72.37 72.37 0 0 0 45.64 0a105.89 105.89 0 0 0-26.25 8.09C2.79 32.65-1.71 56.6.54 80.21a105.73 105.73 0 0 0 32.17 16.15 77.7 77.7 0 0 0 6.89-11.11 68.42 68.42 0 0 1-10.85-5.18c.91-.66 1.8-1.34 2.66-2a75.57 75.57 0 0 0 64.32 0c.87.71 1.76 1.39 2.66 2a68.68 68.68 0 0 1-10.87 5.19 77 77 0 0 0 6.89 11.1 105.25 105.25 0 0 0 32.19-16.14c2.64-27.38-4.51-51.11-18.9-72.15ZM42.45 65.69C36.18 65.69 31 60 31 53s5-12.74 11.43-12.74S54 46 53.89 53s-5.05 12.69-11.44 12.69Zm42.24 0C78.41 65.69 73.25 60 73.25 53s5-12.74 11.44-12.74S96.23 46 96.12 53s-5.04 12.69-11.43 12.69Z"/></svg></a>
+  </div>
   <div class="footer-credit">Created by Spiritedbloom</div>
   <div class="special-appreciation">
     Special appreciation to CreatorBeastGD (PokéChespin), KoalaMauve (Dev Contributor), Celandro (Pokebattler) & Lead Contributors
