@@ -163,6 +163,39 @@ if ("serviceWorker" in navigator) {
   .rg-tab{ font:700 14px 'Manrope',sans-serif; color:var(--text-muted); background:none; border:0; border-bottom:2px solid transparent; margin-bottom:-1px; padding:9px 14px; cursor:pointer; white-space:nowrap; }
   .rg-tab:hover{ color:var(--text); }
   .rg-tab[aria-selected="true"]{ color:var(--text); border-bottom-color:var(--text); }
+  .rg-tab-sep{ flex:none; width:1px; background:var(--border); margin:8px 6px; }
+  .rg-tab.buddy{ display:inline-flex; align-items:center; gap:6px; }
+  .rg-tab.buddy svg{ width:13px; height:13px; flex:none; }
+  @media (max-width:420px){ .rg-tabs .rg-tab{ padding:9px 8px; font-size:13px; } .rg-tabs .rg-tab-sep{ margin:8px 2px; } }   /* all four tabs fit a phone */
+  .rg-sm{ display:none; }
+  /* Best Buddy: Pokemon | Breakpoints | Bulkpoints, each list as boss sprites */
+  .rg-bud{ display:grid; grid-template-columns:minmax(280px, 1.25fr) minmax(0, 1.4fr) minmax(0, 1fr); column-gap:24px; }
+  .rg-bh, .rg-br{ display:contents; }
+  .rg-bh span{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); padding:4px 0 7px; border-bottom:1px solid var(--border); }
+  .rg-br > span{ padding:7px 0; border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); min-width:0; }
+  .rg-br:last-child > span{ border-bottom:0; }
+  .rg-bn{ display:flex; align-items:center; gap:9px; }
+  .rg-bn b{ font:700 14px 'Manrope',sans-serif; color:var(--text); }
+  .rg-bt{ display:flex; flex-direction:column; min-width:0; }
+  .rg-go{ margin-left:auto; flex:none; font:700 11px 'Manrope',sans-serif; color:var(--text-muted); text-decoration:none; border:1px solid var(--border); border-radius:999px; padding:3px 9px; white-space:nowrap; }
+  .rg-go:hover{ color:var(--text); border-color:color-mix(in srgb, var(--text) 30%, var(--border)); }
+  .rg-acts{ display:flex; align-items:center; gap:8px; flex:none; }
+  a.rg-copy{ text-decoration:none; }
+  @media (max-width:700px){ .rg-sec-head:has(.rg-acts){ flex-wrap:wrap; } .rg-sec-head .rg-acts{ width:100%; } }
+  .rg-bb{ display:flex; flex-wrap:wrap; align-items:center; gap:2px 4px; }
+  .rg-bb img{ width:32px; height:32px; object-fit:contain; }
+  .rg-bb img.sh{ border-radius:50%; background:radial-gradient(circle, rgba(140,90,200,.35), transparent 70%); }
+  .rg-bb .none{ color:var(--text-dim); font:500 13px 'Inter',sans-serif; }
+  @media (max-width:700px){
+    .rg-bud{ grid-template-columns:minmax(0,1fr); }
+    .rg-bh{ display:none; }
+    .rg-br{ display:block; padding:8px 0; border-bottom:1px solid color-mix(in srgb, var(--border) 55%, transparent); }
+    .rg-br:last-child{ border-bottom:0; }
+    .rg-br > span{ padding:0; border:0; }
+    .rg-bb:not(:has(img)){ display:none; }
+    .rg-bb::before{ content:attr(data-l); flex-basis:100%; font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--text-dim); margin:6px 0 1px; }
+  }
+  @media (max-width:380px){ .rg-tabs .rg-tab{ padding:9px 6px; } .rg-lg{ display:none; } .rg-sm{ display:inline; } }
   /* a section: a plain card of rows */
   .rg-card{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 18px 16px; margin-bottom:18px; }
   .rg-sec-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
@@ -437,6 +470,7 @@ if ("serviceWorker" in navigator) {
   <section class="rg-card" id="rgStageCard"><p class="rg-lede">Loading…</p></section>
   <section class="rg-card" id="rgCatchCard"></section>
   <section class="rg-card" id="rgRaidCard"></section>
+  <section class="rg-card" id="rgBuddyCard" hidden></section>
 </div>
 
 <script>
@@ -647,7 +681,11 @@ function spriteUrl(name){
     { id: "starting-off", name: "Starting Off", sheet: "csv/Progression-Chart - starting-off.csv" },
     { id: "mid-game",     name: "Mid-Game",     sheet: "csv/Progression-Chart - mid-game.csv" },
     { id: "end-game",     name: "End-Game",     sheet: "csv/Progression-Chart - end-game.csv" },
+    // Not a stage: Pokemon worth making a best buddy when there's time. Its own tab after the stages,
+    // and one plain list of Pokemon.
+    { id: "best-buddy",   name: "Best Buddy",   sheet: "csv/Progression-Chart - best-buddy.csv", kinds: ["buddy"] },
   ];
+  const kindsOf = s => s.kinds || ["roster", "catch", "raids"];
   const OLD_FILES = { roster: "roadmap", catch: "catching", raids: "raids" };
   const oldFile = (s, kind) => `csv/Progression-Chart - ${OLD_FILES[kind]}-${s.id}.csv`;
   const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -673,6 +711,8 @@ function spriteUrl(name){
       info: "Caught for their candy, and to evolve into the counters above." },
     raids: { card: "rgRaidCard", match: /raid|rocket/i, title: () => "Catch from Raids &amp; Rocket", row: catchRow,
       info: "Investments for the future, or stronger variants of the counters above. Also caught for their candy." },
+    buddy: { card: "rgBuddyCard", match: /buddy/i, title: () => "Best Buddy", row: f => ({ name: f.pokemon || f.name }),
+      info: "Known breakpoints and bulkpoints from archived solos." },
   };
   // Builds Into: the Pokemon it evolves into, and/or "Candy" when it's caught for its candy ("Mega
   // Blaziken + Candy"). Split by "+", "&", "/", "," or ";" ("and" too). The Pokemon itself ("Shadow
@@ -706,10 +746,11 @@ function spriteUrl(name){
   const moveLine = e => [splitMoves(e.fm).join(", "), splitMoves(e.cm).join(", ")].filter(Boolean).map(esc).join(" / ");
 
   let stageIx = 0;
+  const HEART = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14s-5.5-3.4-5.5-7.4A3 3 0 0 1 8 4.3a3 3 0 0 1 5.5 2.3C13.5 10.6 8 14 8 14z" fill="currentColor"/></svg>`;
 
   function renderStages(){
-    document.getElementById("rgStages").innerHTML = STAGES.map((s, i) =>
-      `<button type="button" role="tab" class="rg-tab" aria-selected="${i === stageIx}" data-i="${i}">${esc(s.name)}</button>`).join("");
+    document.getElementById("rgStages").innerHTML = STAGES.map((s, i) => (s.kinds ? `<span class="rg-tab-sep" aria-hidden="true"></span>` : "") +
+      `<button type="button" role="tab" class="rg-tab${s.kinds ? " buddy" : ""}" aria-selected="${i === stageIx}" data-i="${i}">${s.kinds ? HEART + `<span class="rg-lg">${esc(s.name)}</span><span class="rg-sm">Buddy</span>` : esc(s.name)}</button>`).join("");
   }
   // The lineup: a group per role (a Pokemon with two roles is in both), each read down by type.
   // The catch sections: one list each, read down by type.
@@ -720,17 +761,22 @@ function spriteUrl(name){
     // (the lineup has no title: its button sits in the first group's heading row)
     const head = kind === "roster" ? ""
 
-      : `<div class="rg-sec-head"><div><h2>${K.title(s)}</h2>${K.info ? `<p class="rg-info">${K.info}</p>` : ""}</div>${copy}</div>`;
-    if(!list.length){ el.innerHTML = (head || `<div class="rg-sec-head"><div></div></div>`) + `<p class="rg-lede">${failed === 404 || (types && !failed) ? "Nothing listed for this stage yet." : failed ? "This list couldn't be loaded. Try refreshing the page." : "Loading…"}</p>`; return; }
+      : `<div class="rg-sec-head"><div><h2>${K.title(s)}</h2>${K.info ? `<p class="rg-info">${K.info}</p>` : ""}</div>${kind === "buddy"
+          ? `<div class="rg-acts"><a class="rg-copy" href="breakpoints.html">Breakpoint Calculator</a>${copy}</div>` : copy}</div>`;
+    if(!list.length){ el.innerHTML = (head || `<div class="rg-sec-head"><div></div></div>`) + `<p class="rg-lede">${failed === 404 || (types && !failed) ? (kind === "buddy" ? "Nothing listed yet." : "Nothing listed for this stage yet.") : failed ? "This list couldn't be loaded. Try refreshing the page." : "Loading…"}</p>`; return; }
     if(kind === "roster"){
       const groups = Object.keys(ROLE_NAME).map(r => [r, ROLE_NAME[r], list.filter(e => rolesOf(e).includes(r))])
         .concat([["", "Other", list.filter(e => !rolesOf(e).length)]]).filter(g => g[2].length);
       el.innerHTML = head + groups.map(([r, name, L], gi) => `<div class="rg-grp"><h3 class="rg-gh">${r ? roleIco(r) : ""}${name}${gi === 0 ? copy : ""}</h3><div class="rg-rows">${L.map(e => row(e, moveLine(e), esc(num(e.count)))).join("")}</div></div>`).join("");
     } else {
-      el.innerHTML = head + `<div class="rg-rows">${list.map(e => row(e, esc(intoLine(e)))).join("")}</div>`;
+      el.innerHTML = head + (kind === "buddy"
+        ? `<div class="rg-bud"><div class="rg-bh"><span>Pokémon</span><span>Breakpoints</span><span>Bulkpoints</span></div>${list.map(e =>
+            `<div class="rg-br"><span class="rg-bn">${spr(e.name)}<span class="rg-bt"><b>${esc(e.name)}</b>${e.fm ? `<span class="rg-sub2">${esc(e.fm)}</span>` : ""}</span><a class="rg-go" href="breakpoints.html?p=${encodeURIComponent(e.name)}${e.fm ? "&fm=" + encodeURIComponent(e.fm) : ""}" title="Check ${esc(e.name)} against every boss in the Breakpoint Calculator">Calc ›</a></span>${bossCell("Breakpoints", e.bp, e.pending)}${bossCell("Bulkpoints", e.bk, e.pending)}</div>`).join("")}</div>`
+        : `<div class="rg-rows">${list.map(e => row(e, esc(intoLine(e)))).join("")}</div>`);
     }
   }
-  const renderStage = () => Object.keys(KINDS).forEach(renderChart);
+  const renderStage = () => { const ks = kindsOf(STAGES[stageIx]);
+    Object.keys(KINDS).forEach(k => { const el = document.getElementById(KINDS[k].card); el.hidden = !ks.includes(k); if(ks.includes(k)) renderChart(k); }); };
   document.addEventListener("click", ev => {
     const st = ev.target.closest(".rg-tab"); if(st){ stageIx = +st.dataset.i; renderStages(); renderStage(); history.replaceState(null, "", "#" + STAGES[stageIx].id); return; }
     const cp = ev.target.closest(".rg-copy"); if(cp){ copySectionImage(cp, cp.dataset.kind); return; }
@@ -790,6 +836,116 @@ function spriteUrl(name){
     });
     return out;
   }
+  // the Best Buddy file: "Pokemon" and "Fast Move", in the order written; a Pokémon run with two fast
+  // moves is two rows. Each row's breakpoints and bulkpoints are worked out below from the
+  // archived solos it was used in.
+  function buddyList(text){
+    const out = []; let col = 0, fmCol = 1;
+    csvRows(text).filter(r => r.some(Boolean)).forEach(r => {
+      const h = r.map(key), at = h.findIndex(x => x === "pokemon" || x === "pokémon" || x === "name");
+      if(at >= 0){   // the header row
+        col = at; fmCol = h.findIndex(x => /^fast/.test(x)); return; }
+      const name = String(r[col] || "").trim(), cell = i => i >= 0 ? String(r[i] || "").trim() : "";
+      if(name && !/^best\s*buddy$/i.test(name)) out.push({ name, fm: cell(fmCol), bp: [], bk: [], pending: true, at: out.length });
+    });
+    return { All: out };
+  }
+
+  // ---- Best Buddy points, from the archived solos ----
+  // For every archived solo a Pokémon was used in (level 50, 15/15/15, against level 51 as a best buddy):
+  //   breakpoint: the row's fast move does 1 more damage to the boss (with no fast move in the row, the
+  //               solo's, else the tier list's). Solos where it ran another fast move don't count for the row.
+  //   bulkpoint:  the boss's fast move in that solo does 1 less damage to it, for hits of 10 or less
+  // with that solo's weather, a Mega or Primal in the party (x1.3 on its types, else x1.1), shadow
+  // attack and defence, and the boss's CPM (Elite, shadow or normal). The DPS Calculator's formula.
+  // Bosses are listed by how many solos the Pokémon was used in against them.
+  const BUDDY = (() => {
+    const CPM = { 50: 0.84029999, 51: 0.8453 }, BOSS_CPM = 0.7903, SHADOW_BOSS_CPM = 0.82, ELITE_CPM = 1.0;
+    const TC = {
+      normal:{ rock:0.625, steel:0.625, ghost:0.39 },
+      fire:{ grass:1.6, ice:1.6, bug:1.6, steel:1.6, fire:0.625, water:0.625, rock:0.625, dragon:0.625 },
+      water:{ fire:1.6, ground:1.6, rock:1.6, water:0.625, grass:0.625, dragon:0.625 },
+      electric:{ water:1.6, flying:1.6, electric:0.625, grass:0.625, dragon:0.625, ground:0.39 },
+      grass:{ water:1.6, ground:1.6, rock:1.6, fire:0.625, grass:0.625, poison:0.625, flying:0.625, bug:0.625, dragon:0.625, steel:0.625 },
+      ice:{ grass:1.6, ground:1.6, flying:1.6, dragon:1.6, fire:0.625, water:0.625, ice:0.625, steel:0.625 },
+      fighting:{ normal:1.6, ice:1.6, rock:1.6, dark:1.6, steel:1.6, poison:0.625, flying:0.625, psychic:0.625, bug:0.625, fairy:0.625, ghost:0.39 },
+      poison:{ grass:1.6, fairy:1.6, poison:0.625, ground:0.625, rock:0.625, ghost:0.625, steel:0.39 },
+      ground:{ fire:1.6, electric:1.6, poison:1.6, rock:1.6, steel:1.6, grass:0.625, bug:0.625, flying:0.39 },
+      flying:{ grass:1.6, fighting:1.6, bug:1.6, electric:0.625, rock:0.625, steel:0.625 },
+      psychic:{ fighting:1.6, poison:1.6, psychic:0.625, steel:0.625, dark:0.39 },
+      bug:{ grass:1.6, psychic:1.6, dark:1.6, fire:0.625, fighting:0.625, poison:0.625, flying:0.625, ghost:0.625, steel:0.625, fairy:0.625 },
+      rock:{ fire:1.6, ice:1.6, flying:1.6, bug:1.6, fighting:0.625, ground:0.625, steel:0.625 },
+      ghost:{ ghost:1.6, psychic:1.6, dark:0.625, normal:0.39 },
+      dragon:{ dragon:1.6, steel:0.625, fairy:0.39 },
+      dark:{ ghost:1.6, psychic:1.6, fighting:0.625, dark:0.625, fairy:0.625 },
+      steel:{ ice:1.6, rock:1.6, fairy:1.6, fire:0.625, water:0.625, electric:0.625, steel:0.625 },
+      fairy:{ fighting:1.6, dragon:1.6, dark:1.6, fire:0.625, poison:0.625, steel:0.625 },
+    };
+    const WB = { sunny:["fire","grass","ground"], partlycloudy:["normal","rock"], cloudy:["fairy","fighting","poison"],
+      windy:["dragon","flying","psychic"], rain:["water","electric","bug"], snow:["ice","steel"], fog:["dark","ghost"] };
+    const WX = { clear:"sunny", sunny:"sunny", "partly cloudy":"partlycloudy", cloudy:"cloudy", windy:"windy", rainy:"rain", rain:"rain", snow:"snow", fog:"fog" };
+    const k = n => String(n || "").trim().toLowerCase();
+    const shadow = n => /^shadow\s/i.test(n || "");
+    const eff = (t, types) => types.reduce((m, d) => m * ((TC[t] || {})[d] ?? 1), 1);
+    const hit = (power, mult, atk, def) => Math.floor(0.5 * power * mult * atk / def) + 1;
+    const DEX = {}, MOVES = {}, TIER_FM = {}, SOLOS = [];
+    const mon = n => DEX[k(n)] || DEX[k(n).replace(/^shadow\s+/, "")] || null;
+    let ready = null;
+    function load(){
+      return ready = ready || Promise.all(["csv/pokemon-stats.csv", "csv/moves.csv", "csv/tier-list.csv", "csv/tier4-data.csv", "csv/tier5-merged.csv", "csv/tier6-data.csv"]
+        .map(u => getText(u).then(csvRows))).then(([stats, moves, tiers, ...solos]) => {
+        let h = stats[0].map(k);
+        stats.slice(1).forEach(r => { const n = (r[h.indexOf("name")] || "").trim(); if(n) DEX[k(n)] = { n, atk: +r[h.indexOf("atk")], def: +r[h.indexOf("def")],
+          types: [r[h.indexOf("type1")], r[h.indexOf("type2")]].filter(Boolean).map(k) }; });
+        h = moves[0].map(k);
+        moves.slice(1).forEach(r => { const n = (r[h.indexOf("name")] || "").trim(); if(n) MOVES[k(n)] = { n, dmg: +r[h.indexOf("damage")], type: k(r[h.indexOf("type")]), fast: k(r[h.indexOf("category")]) === "fast" }; });
+        const th = tiers.findIndex(r => k(r[0]) === "type" && r.map(k).includes("pokemon")), tc = th >= 0 ? tiers[th].map(k) : [];
+        if(th >= 0) tiers.slice(th + 1).forEach(r => { const n = k(r[tc.indexOf("pokemon")]), fm = MOVES[k(r[tc.indexOf("fast move")])]; if(n && fm && fm.fast && !TIER_FM[n]) TIER_FM[n] = fm; });
+        solos.forEach(rows => { const hh = rows[0].map(x => x.trim()), ib = hh.indexOf("Boss Name"), ifm = hh.indexOf("FM", ib), iw = hh.indexOf("Weather"), ic = hh.indexOf("Category");
+          const mons = hh.map((x, i) => /^pokemon \d/i.test(x) ? i : -1).filter(i => i >= 0);
+          rows.slice(1).forEach(r => { const boss = (r[ib] || "").trim(); if(!boss) return;
+            SOLOS.push({ boss, bossFM: (r[ifm] || "").trim(), wx: WX[k(r[iw])] || "", elite: ic >= 0 && k(r[ic]) === "elite",
+              party: mons.map(i => [(r[i] || "").trim(), (r[i + 2] || "").trim()]).filter(x => x[0]) }); }); });
+      });
+    }
+    function points(name, rowFm){
+      const p = mon(name); if(!p) return { bp: [], bk: [] };
+      const bp = {}, bk = {}, me = k(name);
+      SOLOS.forEach(s => { const user = s.party.find(x => k(x[0]) === me); if(!user) return;
+        const b = mon(s.boss); if(!b) return;
+        const bs = s.elite ? { atk: (b.atk + 15) * ELITE_CPM, def: (b.def + 15) * ELITE_CPM }
+          : shadow(s.boss) ? { atk: (b.atk + 15) * SHADOW_BOSS_CPM * 1.2, def: (b.def + 15) * SHADOW_BOSS_CPM * 5 / 6 }
+          : { atk: (b.atk + 15) * BOSS_CPM, def: (b.def + 15) * BOSS_CPM };
+        const wx = WB[s.wx] || [];
+        // its fast move: the one written for that solo, else the tier list's ("Varies", a charged move typed in, blanks)
+        let fm = MOVES[k(user[1].split(/[\/,]/)[0])]; if(fm && !fm.fast) fm = null;
+        const want = MOVES[k(rowFm)];
+        if(want && want.fast){ if(fm && fm !== want) return; fm = want; }   // (another fast move in that solo: not this row's, so it doesn't count)
+        else if(!fm) fm = TIER_FM[me] || TIER_FM[me.replace(/^shadow\s+/, "")];
+        if(fm){
+          const megas = s.party.map(x => x[0]).filter(n => /^(mega|primal)\s/i.test(n)).map(n => (mon(n) || {}).types || []);
+          const boost = megas.length ? (megas.some(t => t.includes(fm.type)) ? 1.3 : 1.1) : 1;
+          const mult = (shadow(name) ? 1.2 : 1) * eff(fm.type, b.types) * (wx.includes(fm.type) ? 1.2 : 1) * (p.types.includes(fm.type) ? 1.2 : 1) * boost;
+          const [d50, d51] = [50, 51].map(L => hit(fm.dmg, mult, (p.atk + 15) * CPM[L], bs.def));
+          if(d51 > d50) bp[s.boss] = (bp[s.boss] || 0) + 1;
+        }
+        const bf = MOVES[k(s.bossFM)];
+        if(bf && bf.fast){
+          const mult = eff(bf.type, p.types) * (wx.includes(bf.type) ? 1.2 : 1) * (shadow(name) ? 1.2 : 1) * (b.types.includes(bf.type) ? 1.2 : 1);
+          const [t50, t51] = [50, 51].map(L => hit(bf.dmg, mult, bs.atk, (p.def + 15) * CPM[L]));
+          if(t51 < t50 && t51 <= 10) bk[s.boss] = (bk[s.boss] || 0) + 1;
+        }
+      });
+      const order = o => Object.keys(o).sort((a, c) => o[c] - o[a] || a.localeCompare(c));
+      return { bp: order(bp), bk: order(bk) };
+    }
+    // fills in each entry's bosses, then calls back
+    return (list, then) => load().then(() => { list.forEach(e => { Object.assign(e, points(e.name, e.fm)); e.pending = false; }); then(); })
+      .catch(err => { console.error("Best Buddy points", err); list.forEach(e => e.pending = false); then(); });
+  })();
+  const bossCell = (label, bosses, pending) => `<span class="rg-bb" data-l="${label}">${bosses.length
+    ? bosses.map(b => `<img class="${needsShadowMist(b) ? "sh" : ""}" src="${esc(spriteUrl(b))}" alt="${esc(b)}" title="${esc(b)}" loading="lazy" onerror="this.style.visibility='hidden'">`).join("")
+    : `<span class="none">${pending ? "…" : "—"}</span>`}</span>`;
   // a section's rows -> { Type: [rows in the order written] }; the header's case and spacing don't matter
   function toTypes(rows, kind){
     const types = {}; let n = 0;
@@ -810,11 +966,14 @@ function spriteUrl(name){
   STAGES.forEach((s, i) => { s.data = {}; s.failed = {};
     const done = () => { if(i === stageIx) renderStage(); };
     // (also found under the name a download or chat upload gives it, with "_" for the spaces)
-    getText(s.sheet).catch(err => { if(err.status !== 404) throw err; return getText(s.sheet.replace(/ /g, "_")); }).then(text => { const S = splitSections(text); Object.keys(KINDS).forEach(k => s.data[k] = toTypes(S[k], k)); done(); })
+    getText(s.sheet).catch(err => { if(err.status !== 404) throw err; return getText(s.sheet.replace(/ /g, "_")); })
+      .then(text => { if(s.kinds){ s.data.buddy = buddyList(text); BUDDY(s.data.buddy.All, () => { if(STAGES[stageIx] === s) renderChart("buddy"); }); return done(); }
+        const S = splitSections(text); kindsOf(s).forEach(k => s.data[k] = toTypes(S[k], k)); done(); })
       .catch(err => {
-        if(err.status !== 404){ console.error(s.sheet, err); Object.keys(KINDS).forEach(k => s.failed[k] = true); return done(); }
+        if(err.status !== 404){ console.error(s.sheet, err); kindsOf(s).forEach(k => s.failed[k] = true); return done(); }
+        if(s.kinds){ s.failed[s.kinds[0]] = 404; return done(); }   // (no older files for this one)
         // no combined sheet for this stage yet: its old separate files
-        Object.keys(KINDS).forEach(k => getText(oldFile(s, k)).then(text => { s.data[k] = toTypes(splitSections(text, k)[k], k); })
+        kindsOf(s).forEach(k => getText(oldFile(s, k)).then(text => { s.data[k] = toTypes(splitSections(text, k)[k], k); })
           .catch(e => { if(e.status !== 404) console.error(oldFile(s, k), e); s.failed[k] = e.status || true; }).then(() => { if(i === stageIx) renderChart(k); }));
       });
   });
@@ -880,14 +1039,15 @@ function spriteUrl(name){
       L.forEach((e, i) => {
         const col = i < half ? 0 : 1, X = PAD + col * (colW + GAP), Y = y0 + (col ? i - half : i) * RH;
         x.fillStyle = C.line; x.globalAlpha = .6; x.fillRect(X, Y + RH - 1, colW, 1); x.globalAlpha = 1;
-        const t = String(e.types || "").split(/\s*,\s*/)[0], tc = COLORS[key(t)] || "#888888";
-        x.beginPath(); x.arc(X + 8, Y + RH / 2, 8, 0, Math.PI * 2); x.fillStyle = tc; x.fill();
-        const ti = tIcons.get(t); if(ti) x.drawImage(tinted(ti, "#ffffff", 40), X + 3, Y + RH / 2 - 5, 10, 10);
-        const sx = X + 26, sy = Y + (RH - 34) / 2;
+        const bud = kind === "buddy";   // (Best Buddy: sprite and name only)
+        if(!bud){ const t = String(e.types || "").split(/\s*,\s*/)[0], tc = COLORS[key(t)] || "#888888";
+          x.beginPath(); x.arc(X + 8, Y + RH / 2, 8, 0, Math.PI * 2); x.fillStyle = tc; x.fill();
+          const ti = tIcons.get(t); if(ti) x.drawImage(tinted(ti, "#ffffff", 40), X + 3, Y + RH / 2 - 5, 10, 10); }
+        const sx = X + (bud ? 0 : 26), sy = Y + (RH - 34) / 2;
         if(needsShadowMist(e.name)){ x.beginPath(); x.arc(sx + 17, sy + 17, 17, 0, Math.PI * 2); x.fillStyle = "rgba(58,12,92,.55)"; x.fill(); }
         const im = sprites.get(e.name); if(im){ const sc = Math.min(34 / im.naturalWidth, 34 / im.naturalHeight), w = im.naturalWidth * sc, h = im.naturalHeight * sc; x.drawImage(im, sx + (34 - w) / 2, sy + (34 - h) / 2, w, h); }
-        const nx = X + 70, rightW = roster ? 96 : 60, tw = colW - 70 - rightW;
-        const sub = roster ? [splitMoves(e.fm).join(", "), splitMoves(e.cm).join(", ")].filter(Boolean).join(" / ") : intoLine(e);
+        const nx = X + (bud ? 44 : 70), rightW = roster ? 96 : 60, tw = colW - 70 - rightW;
+        const sub = bud ? [e.fm, e.bp.length ? "Breakpoints: " + e.bp.join(", ") : "", e.bk.length ? "Bulkpoints: " + e.bk.join(", ") : ""].filter(Boolean).join("  ·  ") : roster ? [splitMoves(e.fm).join(", "), splitMoves(e.cm).join(", ")].filter(Boolean).join(" / ") : intoLine(e);
         x.fillStyle = C.text; x.font = "700 14px Manrope, sans-serif"; x.fillText(fit(e.name, tw), nx, Y + (sub ? 20 : 28));
         if(sub){ x.fillStyle = C.muted; x.font = "500 12px Inter, sans-serif"; x.fillText(fit(sub, tw), nx, Y + 36); }
         const tr = tierOf(e); x.textAlign = "right";
@@ -901,7 +1061,7 @@ function spriteUrl(name){
   }
   // copy to the clipboard (the image built inside the click, as Safari needs), or download it
   async function copySectionImage(btn, kind){
-    const old = btn.textContent, name = `progression-${STAGES[stageIx].id}-${kind === "roster" ? "lineup" : kind === "catch" ? "wild" : "raids-rocket"}.png`;
+    const old = btn.textContent, name = kind === "buddy" ? "progression-best-buddy.png" : `progression-${STAGES[stageIx].id}-${kind === "roster" ? "lineup" : kind === "catch" ? "wild" : "raids-rocket"}.png`;
     btn.disabled = true; btn.textContent = "Copying…";
     try{
       if(typeof ClipboardItem !== "undefined" && navigator.clipboard && navigator.clipboard.write){
