@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-11-24T07:18:47.900313+00:00",
+  "generatedAt": "2026-11-24T19:45:29.432779+00:00",
   "sources": {
     "pokebattlerSchedule": 30,
     "pokebattlerScheduleWindows": 30,
     "scrapedDuck": 1,
-    "pokebattlerApiStartDates": 5,
+    "pokebattlerApiStartDates": 0,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 35
+    "pokebattlerApi": 30
   },
   "dateGroups": [
     {
@@ -86,7 +86,7 @@
           "weather": "Extreme"
         }
       ],
-      "status": "future"
+      "status": "active"
     },
     {
       "startDate": "Oct 7, 2026",
