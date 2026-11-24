@@ -70,3 +70,20 @@ async function fetchCSV(url) {
   const text = await res.text();
   return parseCSV(text);
 }
+
+// A Shadow Pokemon knows its regular form's moves. Every regular form's rows are copied to
+// "shadow <name>", unless the Shadow form lists that move itself (its own row and Elite TM flag win),
+// so a moveset only has to be kept up to date under the regular form. A move only the Shadow form
+// has can still be listed under the Shadow name. (Copies for Pokemon with no Shadow form are never
+// looked up, so they do no harm.)
+function inheritShadowMoves(rows){
+  const nm = r => String(r.pokemon || "").trim().toLowerCase(), mv = r => String(r.move || "").trim().toLowerCase();
+  const own = new Set(rows.filter(r => /^shadow\s/.test(nm(r))).map(r => nm(r) + "|" + mv(r)));
+  const add = [];
+  for(const r of rows){
+    const n = nm(r);
+    if(!n || /^shadow\s/.test(n) || own.has("shadow " + n + "|" + mv(r))) continue;
+    add.push(Object.assign({}, r, { pokemon: "shadow " + n }));
+  }
+  return rows.concat(add);
+}
