@@ -569,6 +569,10 @@ body{ background:#20263a; color: var(--text-muted); }
 .ac-item:hover, .ac-item.hi{ background: var(--accent-soft, #eef1fb); }
 [data-theme="dark"] .ac-item:hover, [data-theme="dark"] .ac-item.hi{ background:#22283c; }
 .ac-item mark{ background:none; color: var(--blue, #3e6ae0); font-weight:800; }
+  /* Boss moveset under Weak to / Resists, set a little apart from them */
+  .bm-moves{ display:flex; flex-direction:column; gap:7px; margin-top:10px; }
+  .tb-matchups > .bm-moves:first-child{ margin-top:0; }
+  .bm-row .st-mv{ display:inline-flex; align-items:center; gap:5px; font:700 13px 'Inter',sans-serif; color:var(--ink, var(--text)); margin:0 12px 2px 0; }
 </style>
 <style>
   :root{
@@ -1480,7 +1484,7 @@ async function load(){
   document.getElementById("bossSub").textContent = `${ROWS.length} strateg${ROWS.length===1?"y":"ies"}`;
   // Typing + weaknesses/resistances. Not awaited: the page renders without them if the stats CSV is slow.
   TypeBadges.mount({ name: boss, badges: document.getElementById("bossTypes"),
-                     matchups: document.getElementById("bossMatchups") });
+                     matchups: document.getElementById("bossMatchups") }).then(() => mountBossMoves(boss));
   injectGuideLink(boss);
   buildFilters(); render();
   // Top counters (assets/boss-counters.js): the attackers and catch tanks its runs use most, topped
@@ -1512,6 +1516,34 @@ function buildFilters(){
 }
 
 
+// ---- Boss moveset (Fast / Charged), under Weak to / Resists ----
+// From csv/pokemon-movepool.csv. Elite TM moves are left out (a raid boss doesn't use them, as in the
+// DPS Calculator's boss move lists). A Shadow boss knows its regular form's moves unless the Shadow
+// form lists the move itself - the same rule as inheritShadowMoves() in csv/csv-utils.js.
+async function mountBossMoves(boss){
+  try{
+    const res = await fetch("/csv/pokemon-movepool.csv");
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const low = x => String(x || "").trim().toLowerCase();
+    const lines = (await res.text()).split(/\r?\n/).filter(l => l.trim()).map(l => l.split(","));
+    const h = lines.shift().map(low), ip = h.indexOf("pokemon"), im = h.indexOf("move"), ic = h.indexOf("category"), ie = h.indexOf("elite");
+    const name = low(boss), base = name.replace(/^shadow\s+/, "");
+    const own = lines.filter(c => low(c[ip]) === name);
+    const ownMoves = new Set(own.map(c => low(c[im])));
+    const rows = name === base ? own : own.concat(lines.filter(c => low(c[ip]) === base && !ownMoves.has(low(c[im]))));
+    const pick = kind => [...new Map(rows.filter(c => low(c[ic]) === kind && low(c[ie]) !== "1")
+      .map(c => [low(c[im]), c[im].trim()])).values()];
+    const fast = pick("fast"), charge = pick("charge");
+    if(!fast.length && !charge.length) return;
+    const row = (lab, l) => l.length ? `<div class="tb-row bm-row"><div class="tb-label">${lab}</div><span class="tb-badges">${l.map(moveHtml).join("")}</span></div>` : "";
+    const html = `<div class="bm-moves">${row("Fast", fast)}${row("Charged", charge)}</div>`;
+    const box = document.querySelector("#bossMatchups .tb-matchups");
+    if(box) box.insertAdjacentHTML("beforeend", html);
+    else document.getElementById("bossMatchups").innerHTML = `<div class="tb-matchups">${html}</div>`;
+  }catch(e){
+    console.error("Boss moveset unavailable:", e);
+  }
+}
 // ---- Move chips ----
 // Type colour + white type icon, matching the guide pages' boss-move treatment. Types come from
 // csv/moves.csv, which is already the single source for move data across the site.
