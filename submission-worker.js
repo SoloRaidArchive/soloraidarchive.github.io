@@ -538,7 +538,7 @@ const ANI_OVERRIDES = {
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
   "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
-  "ho-oh": "hooh",
+  "ho-oh": "hooh", "god king bidoof": "bidoof",
   "landorus i": "landorus-incarnate", "landorus-t": "landorus-therian",
   "thundurus i": "thundurus-incarnate", "thundurus t": "thundurus-therian",
   "tornadus i": "tornadus-incarnate", "tornadus t": "tornadus-therian",
@@ -1514,7 +1514,7 @@ async function getPokemonRaidDb(gh){
   const movepoolMap = new Map();
   const mpRows = await fetchRepoCsv(gh, "csv/pokemon-movepool.csv");
   if(mpRows){
-    for(const r of mpRows){
+    for(const r of inheritShadowMoves(mpRows)){
       const key = (r.pokemon || "").trim().toLowerCase();
       const move = (r.move || "").trim();
       if(!key || !move) continue;
@@ -2393,4 +2393,21 @@ function corsResponse(response){
   headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   headers.set("Access-Control-Allow-Headers", "Content-Type");
   return new Response(response.body, { status: response.status, headers });
+}
+
+// A Shadow Pokemon knows its regular form's moves. Every regular form's rows are copied to
+// "shadow <name>", unless the Shadow form lists that move itself (its own row and Elite TM flag win),
+// so a moveset only has to be kept up to date under the regular form. A move only the Shadow form
+// has can still be listed under the Shadow name. (Copies for Pokemon with no Shadow form are never
+// looked up, so they do no harm.)
+function inheritShadowMoves(rows){
+  const nm = r => String(r.pokemon || "").trim().toLowerCase(), mv = r => String(r.move || "").trim().toLowerCase();
+  const own = new Set(rows.filter(r => /^shadow\s/.test(nm(r))).map(r => nm(r) + "|" + mv(r)));
+  const add = [];
+  for(const r of rows){
+    const n = nm(r);
+    if(!n || /^shadow\s/.test(n) || own.has("shadow " + n + "|" + mv(r))) continue;
+    add.push(Object.assign({}, r, { pokemon: "shadow " + n }));
+  }
+  return rows.concat(add);
 }
