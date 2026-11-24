@@ -3099,7 +3099,7 @@ const ANI_OVERRIDES = {
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
   "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
-  "ho-oh": "hooh",
+  "ho-oh": "hooh", "god king bidoof": "bidoof",
   "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
   "zygarde 10%": "zygarde-tenpercent",
   "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
@@ -3412,6 +3412,22 @@ function parseCSV(text){
 // swapping the return shape under the two existing raw-row consumers below (tier5-bosses.csv
 // and elite-moves.csv) would break them in ways that look like working software. Anything new
 // in this file should use parseCSVObjects().
+// A Shadow Pokemon knows its regular form's moves. Every regular form's rows are copied to
+// "shadow <name>", unless the Shadow form lists that move itself (its own row and Elite TM flag win),
+// so a moveset only has to be kept up to date under the regular form. A move only the Shadow form
+// has can still be listed under the Shadow name. (Copies for Pokemon with no Shadow form are never
+// looked up, so they do no harm.)
+function inheritShadowMoves(rows){
+  const nm = r => String(r.pokemon || "").trim().toLowerCase(), mv = r => String(r.move || "").trim().toLowerCase();
+  const own = new Set(rows.filter(r => /^shadow\s/.test(nm(r))).map(r => nm(r) + "|" + mv(r)));
+  const add = [];
+  for(const r of rows){
+    const n = nm(r);
+    if(!n || /^shadow\s/.test(n) || own.has("shadow " + n + "|" + mv(r))) continue;
+    add.push(Object.assign({}, r, { pokemon: "shadow " + n }));
+  }
+  return rows.concat(add);
+}
 function parseCSVObjects(text){
   const rows = parseCSV(text);
   if(!rows.length) return [];
@@ -3674,11 +3690,14 @@ async function fetchCSVRows(path){
 // the calculator able to name a Pokemon it has no stats for, which is worse than a clean failure.
 async function loadCoreDataFromCSV(){
   try{
-    const [statsRows, moveRows, movepoolRows] = await Promise.all([
+    const [statsRows, moveRows, movepoolCsv] = await Promise.all([
       fetchCSVRows("/csv/pokemon-stats.csv"),
       fetchCSVRows("/csv/moves.csv"),
       fetchCSVRows("/csv/pokemon-movepool.csv"),
     ]);
+    // Shadow forms get their regular form's moves (csv/csv-utils.js), which also gives a Shadow
+    // raid boss its Elite TM filtering
+    const movepoolRows = inheritShadowMoves(movepoolCsv);
 
     POKEMON_DB = statsRows.map(r => ({ n: r.name, hp: parseFloat(r.hp), atk: parseFloat(r.atk), def: parseFloat(r.def) }));
     // Typing now lives in csv/pokemon-stats.csv alongside the stats, as type1/type2. That

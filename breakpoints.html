@@ -832,7 +832,7 @@ const ANI_OVERRIDES = {
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
   "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
-  "ho-oh": "hooh",
+  "ho-oh": "hooh", "god king bidoof": "bidoof",
   "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
   "zygarde 10%": "zygarde-tenpercent",
   "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
@@ -1029,6 +1029,11 @@ async function load(){
   moves.slice(1).forEach(r => { const n = (r[h.indexOf("name")] || "").trim(); if(!n) return;
     MOVES[key(n)] = { n, dmg: +r[h.indexOf("damage")], type: key(r[h.indexOf("type")]), fast: key(r[h.indexOf("category")]) === "fast" }; });
   h = pool[0].map(key);
+  // A Shadow form gets its regular form's moves unless it lists the move itself (as csv/csv-utils.js)
+  { const ip = h.indexOf("pokemon"), im = h.indexOf("move"), body = pool.slice(1);
+    const own = new Set(body.filter(r => /^shadow\s/.test(key(r[ip]))).map(r => key(r[ip]) + "|" + key(r[im])));
+    body.forEach(r => { const n = key(r[ip]); if(!n || /^shadow\s/.test(n) || own.has("shadow " + n + "|" + key(r[im]))) return;
+      const c = r.slice(); c[ip] = "shadow " + n; pool.push(c); }); }
   pool.slice(1).forEach(r => { const k = key(r[h.indexOf("pokemon")]), mv = (r[h.indexOf("move")] || "").trim(), m = MOVES[key(mv)]; if(!k || !m) return;
     const P = POOL[k] = POOL[k] || { fast: [], charged: [] }; const L = m.fast ? P.fast : P.charged;
     if(!L.some(x => x.n === m.n)) L.push({ n: m.n, elite: String(r[h.indexOf("elite")] || "").trim() === "1" }); });

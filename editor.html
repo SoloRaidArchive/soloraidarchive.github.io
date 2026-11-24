@@ -1663,7 +1663,7 @@ const ANI_OVERRIDES = {
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
   "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
-  "ho-oh": "hooh",
+  "ho-oh": "hooh", "god king bidoof": "bidoof",
   "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
   "zygarde 10%": "zygarde-tenpercent",
   "zygarde 50%": "zygarde-fiftypercent",
@@ -1982,8 +1982,13 @@ function loadEditorMovepool(){
     .then(r => r.ok ? r.text() : "")
     .then(t => {
       const map = {};
-      t.split(/\r?\n/).slice(1).forEach(line => {
-        const [n, m, kind, elite] = line.split(",");
+      // A Shadow form gets its regular form's moves unless it lists the move itself (as csv/csv-utils.js)
+      const lines = t.split(/\r?\n/).slice(1).filter(Boolean).map(l => l.split(","));
+      const low = x => String(x || "").trim().toLowerCase();
+      const own = new Set(lines.filter(c => /^shadow\s/.test(low(c[0]))).map(c => low(c[0]) + "|" + low(c[1])));
+      lines.slice().forEach(c => { const n = low(c[0]); if(n && !/^shadow\s/.test(n) && !own.has("shadow " + n + "|" + low(c[1]))) lines.push(["shadow " + n].concat(c.slice(1))); });
+      lines.forEach(c => {
+        const [n, m, kind, elite] = c;
         if(!n || !m) return;
         const k = n.trim().toLowerCase();
         map[k] = map[k] || { fast: [], charge: [] };

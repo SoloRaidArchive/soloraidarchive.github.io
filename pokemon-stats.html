@@ -770,7 +770,7 @@ async function loadMoveData(){
   // Load each CSV independently so one missing/broken file doesn't kill the others. Movepool and
   // move types are essential (no panels without them); the elite list is optional - if it fails,
   // moves still show, just unfiltered, rather than the whole feature going dark.
-  const [movepoolRows, moveRows, statsRows] = await Promise.all([
+  let [movepoolRows, moveRows, statsRows] = await Promise.all([
     fetchCSV("/csv/pokemon-movepool.csv"),
     fetchCSV("/csv/moves.csv"),
     fetchCSV("/csv/pokemon-stats.csv"),
@@ -782,6 +782,7 @@ async function loadMoveData(){
     .filter(p => !isNaN(p.atk) && !isNaN(p.def) && !isNaN(p.hp))
     .filter(p => !HIDDEN_SHADOW.test(p.n));
   recomputeMaxStat();
+  movepoolRows = inheritShadowMoves(movepoolRows);   // Shadow forms get their regular form's moves (csv/csv-utils.js)
   moveRows.forEach(r => { MOVE_TYPES[r.name] = r.type; });
   MOVES = moveRows.filter(r => r.name).map(r => ({ n: r.name, dmg: parseFloat(r.damage), energy: parseFloat(r.energy),
     ad: parseFloat(r.turns), kind: r.category, t: String(r.type || "").trim().toLowerCase() }));
@@ -993,7 +994,7 @@ const ANI_OVERRIDES = {
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
   "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
-  "ho-oh": "hooh",
+  "ho-oh": "hooh", "god king bidoof": "bidoof",
   "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
   "zygarde 10%": "zygarde-tenpercent",
   "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one

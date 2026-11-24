@@ -425,6 +425,7 @@ header{ padding: 12px 24px 10px; text-align:center; }
   .entries-table th{ white-space:normal; }
     .entries-table{ table-layout:fixed; width:100%; }
     .entries-table td:nth-child(5), .entries-table th:nth-child(5){ width:52px; }
+    .entries-table th.col-cond{ width:62px; } .entries-table th.num{ width:58px; }
     /* Individual move names stay unbroken, but the cell may wrap BETWEEN them. The longest
        movesets ("Dragon Breath / Draco Meteor" plus type icons) need ~427px of content against
        ~294px of available width - one line isn't reachable at a legible size, so wrapping is
@@ -1524,7 +1525,7 @@ const ANI_OVERRIDES = {
   "necrozma dawn wings": "necrozma-dawnwings",
   "mega charizard x": "charizard-megax", "mega charizard y": "charizard-megay",
   "mega mewtwo x": "mewtwo-megax", "mega mewtwo y": "mewtwo-megay",
-  "ho-oh": "hooh",
+  "ho-oh": "hooh", "god king bidoof": "bidoof",
   "calyrex shadow rider": "calyrex-shadowrider", "calyrex ice rider": "calyrex-icerider",
   "zygarde 10%": "zygarde-tenpercent",
   "zygarde 50%": "zygarde-fiftypercent", // inferred from the confirmed "tenpercent" pattern - unverified, spot-check this one
@@ -2829,6 +2830,8 @@ function entriesTableRowsHtml(m, sort, priorities){
     const ps = score(a) - score(b);
     if(ps) return ps;
     if(sort === "dps") return parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
+    if(sort === "weather") return (a.weather || "").localeCompare(b.weather || "") || parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
+    if(sort === "za") return b.boss.localeCompare(a.boss) || parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
     return a.boss.localeCompare(b.boss) || parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
   });
   return rows.map(e => `
@@ -2848,6 +2851,22 @@ function entriesTableRowsHtml(m, sort, priorities){
 
 // Boss-side equivalent: same shell, but pivoted - the boss is fixed, so the first column is the
 // catch tank and the moveset column describes what the boss was using in that particular result.
+// An entries table's sortable heading; wireEntriesHeads() keeps it in step with the table's sort.
+// Names (Boss, CT) go A-Z, then Z-A on a second tap; Weather goes A-Z; CT DPS highest first.
+function etHead(v, label){ return `<button type="button" class="cr-sort" data-v="${v}">${label}</button>`; }
+function wireEntriesHeads(overlay, state, redraw){
+  const mark = () => overlay.querySelectorAll("thead .cr-sort").forEach(b => {
+    const v = b.dataset.v, on = state.sort === v || (state.sort === "za" && (v === "boss" || v === "name"));
+    b.classList.toggle("on", on); b.classList.toggle("up", on && (state.sort === "za"));
+  });
+  overlay.querySelector("thead").addEventListener("click", e => {
+    const b = e.target.closest(".cr-sort"); if(!b) return;
+    const v = b.dataset.v;
+    state.sort = (v === "boss" || v === "name") && state.sort === v ? "za" : v;
+    redraw(); mark();
+  });
+  mark();
+}
 function openBossEntriesTable(idx){
   const g = (window.__byBossGroups || [])[idx];
   if(!g) return;
@@ -2866,6 +2885,8 @@ function openBossEntriesTable(idx){
       const ps = score(a) - score(b);
       if(ps) return ps;
       if(state.sort === "name") return a.pokemon.localeCompare(b.pokemon) || parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
+      if(state.sort === "za") return b.pokemon.localeCompare(a.pokemon) || parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
+      if(state.sort === "weather") return (a.weather || "").localeCompare(b.weather || "") || parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
       return parseFloat(b.ctDPS) - parseFloat(a.ctDPS);
     });
     return rows.map(e => `
@@ -2898,17 +2919,13 @@ function openBossEntriesTable(idx){
         <button type="button" class="entries-close" aria-label="Close">&times;</button>
       </div>
       <div class="entries-controls">
-        <select class="entries-sort" aria-label="Sort entries">
-          <option value="dps">CT DPS high&ndash;low</option>
-          <option value="name">Catch tank A&ndash;Z</option>
-        </select>
         <label class="entries-toggle"><input type="checkbox" class="prio-extreme"> Extreme weather first</label>
         <label class="entries-toggle"><input type="checkbox" class="prio-blade"> Blade Boost first</label>
       </div>
       <div class="entries-scroll">
         <table class="entries-table">
           <thead>
-            <tr><th>CT</th><th>Boss moveset</th><th class="col-cond">Weather</th><th class="col-cond">Effect</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
+            <tr><th>${etHead("name", "CT")}</th><th>Boss moveset</th><th class="col-cond">${etHead("weather", "Weather")}</th><th class="col-cond">Effect</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">${etHead("dps", "CT DPS")}</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -2919,7 +2936,7 @@ function openBossEntriesTable(idx){
   const redraw = () => { tbody.innerHTML = rowsHtml(); };
   redraw();
   wireEntryRowExpansion(overlay);
-  overlay.querySelector(".entries-sort").addEventListener("change", e => { state.sort = e.target.value; redraw(); });
+  wireEntriesHeads(overlay, state, redraw);
   overlay.querySelector(".prio-extreme").addEventListener("change", e => { state.priorities.extreme = e.target.checked; redraw(); });
   overlay.querySelector(".prio-blade").addEventListener("change", e => { state.priorities.blade = e.target.checked; redraw(); });
   const close = () => overlay.remove();
@@ -2950,17 +2967,13 @@ function openEntriesTable(idx){
         <button type="button" class="entries-close" aria-label="Close">&times;</button>
       </div>
       <div class="entries-controls">
-        <select class="entries-sort" aria-label="Sort entries">
-          <option value="boss">Boss A&ndash;Z</option>
-          <option value="dps">CT DPS high&ndash;low</option>
-        </select>
         <label class="entries-toggle"><input type="checkbox" class="prio-extreme"> Extreme weather first</label>
         <label class="entries-toggle"><input type="checkbox" class="prio-blade"> Blade Boost first</label>
       </div>
       <div class="entries-scroll">
         <table class="entries-table">
           <thead>
-            <tr><th>Boss</th><th>Boss moveset</th><th class="col-cond">Weather</th><th class="col-cond">Effect</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">CT DPS</th></tr>
+            <tr><th>${etHead("boss", "Boss")}</th><th>Boss moveset</th><th class="col-cond">${etHead("weather", "Weather")}</th><th class="col-cond">Effect</th><th class="col-used">Used</th><th class="col-build">Build</th><th class="num">${etHead("dps", "CT DPS")}</th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -2972,7 +2985,7 @@ function openEntriesTable(idx){
   const redraw = () => { tbody.innerHTML = entriesTableRowsHtml(m, state.sort, state.priorities); };
   redraw();
   wireEntryRowExpansion(overlay);
-  overlay.querySelector(".entries-sort").addEventListener("change", e => { state.sort = e.target.value; redraw(); });
+  wireEntriesHeads(overlay, state, redraw);
   overlay.querySelector(".prio-extreme").addEventListener("change", e => { state.priorities.extreme = e.target.checked; redraw(); });
   overlay.querySelector(".prio-blade").addEventListener("change", e => { state.priorities.blade = e.target.checked; redraw(); });
   const close = () => overlay.remove();
@@ -3172,6 +3185,10 @@ document.getElementById("srcSeg").addEventListener("click", e => {
   const b = e.target.closest("button[data-src]");
   if(!b || b.dataset.src === SOURCE) return;
   SOURCE = b.dataset.src;
+  { const db = document.getElementById("sortBest"), so = document.getElementById("soloBestSort");
+    const from = SOURCE === "solo" ? db.value : so.value;
+    if(SOURCE === "solo") so.value = /^(az|za)$/.test(from) ? from : "runs";
+    else db.value = /^(az|za)$/.test(from) ? from : from === "runs" ? "entries" : db.value; }
   document.querySelectorAll("#srcSeg button").forEach(x => { x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", String(x === b)); });
   if(SOURCE === "solo" && !SOLO) loadSolo().then(() => { renderTypeFilter(); render(); });
   renderTypeFilter();
