@@ -118,9 +118,11 @@ shadow squirtle,Aqua Tail,charge,0
 shadow squirtle,Water Pulse,charge,0
 wartortle,Bite,fast,0
 wartortle,Water Gun,fast,0
+wartortle,Waterfall,fast,0
 wartortle,Aqua Jet,charge,0
 wartortle,Hydro Pump,charge,0
 wartortle,Ice Beam,charge,0
+shadow wartortle,Waterfall,fast,0
 shadow wartortle,Bite,fast,0
 shadow wartortle,Water Gun,fast,0
 shadow wartortle,Aqua Jet,charge,0
@@ -568,6 +570,7 @@ clefable,Moonblast,charge,0
 clefable,Psychic,charge,0
 clefable,Swift,charge,0
 clefable,Draining Kiss,charge,0
+clefable,Mystical Fire,charge,0
 Mega clefable,Charge Beam,fast,0
 Mega clefable,Pound,fast,1
 Mega clefable,Zen Headbutt,fast,0
@@ -579,6 +582,7 @@ Mega clefable,Moonblast,charge,0
 Mega clefable,Psychic,charge,0
 Mega clefable,Swift,charge,0
 Mega clefable,Draining Kiss,charge,0
+Mega clefable,Mystical Fire,charge,0
 Mega clefable,Moonblast+,charge,1
 Mega clefable,Moonblast++,charge,1
 Mega clefable,Moonblast+++,charge,1
@@ -1166,6 +1170,8 @@ graveler,Stone Edge,charge,0
 alolan graveler,Rock Throw,fast,0
 alolan graveler,Volt Switch,fast,0
 alolan graveler,Rock Blast,charge,0
+alolan graveler,Earth Power,charge,0
+alolan graveler,Rock Slide,charge,0
 alolan graveler,Stone Edge,charge,0
 alolan graveler,Thunderbolt,charge,0
 shadow graveler,Mud Shot,fast,0
@@ -1188,6 +1194,7 @@ alolan golem,Rollout,fast,0
 alolan golem,Rock Blast,charge,0
 alolan golem,Stone Edge,charge,0
 alolan golem,Wild Charge,charge,0
+alolan golem,Brick Break,charge,0
 shadow golem,Mud Shot,fast,0
 shadow golem,Mud Slap,fast,0
 shadow golem,Rock Throw,fast,0
@@ -1894,6 +1901,7 @@ starmie,Psychic,charge,0
 starmie,Thunder,charge,0
 starmie,Surf,charge,0
 starmie,Aqua Jet,charge,0
+starmie,Triple Axel,charge,0
 mega starmie,Hidden Power Bug,fast,0
 mega starmie,Hidden Power Dark,fast,0
 mega starmie,Hidden Power Dragon,fast,0
@@ -1922,6 +1930,7 @@ mega starmie,Psychic,charge,0
 mega starmie,Thunder,charge,0
 mega starmie,Surf,charge,0
 mega starmie,Aqua Jet,charge,0
+mega starmie,Triple Axel,charge,0
 mega starmie,Liquidation+,charge,1
 mega starmie,Liquidation++,charge,1
 mega starmie,Liquidation+++,charge,1
@@ -1953,6 +1962,7 @@ shadow starmie,Psychic,charge,0
 shadow starmie,Thunder,charge,0
 shadow starmie,Surf,charge,0
 shadow starmie,Aqua Jet,charge,0
+shadow starmie,Triple Axel,charge,0
 mr mime,Confusion,fast,0
 mr mime,Zen Headbutt,fast,0
 mr mime,Magical Leaf,fast,0
@@ -1991,13 +2001,19 @@ jynx,Focus Blast,charge,0
 jynx,Ice Punch,charge,1
 jynx,Psyshock,charge,0
 electabuzz,Low Kick,fast,0
+electabuzz,karate chop,fast,0
 electabuzz,Thunder Shock,fast,0
 electabuzz,Thunder,charge,0
+electabuzz,Wild Charge,charge,0
+electabuzz,Cross Chop,charge,0
 electabuzz,Thunder Punch,charge,0
 electabuzz,Thunderbolt,charge,0
 shadow electabuzz,Low Kick,fast,0
 shadow electabuzz,Thunder Shock,fast,0
+shadow electabuzz,Volt Switch,fast,0
 shadow electabuzz,Thunder,charge,0
+shadow electabuzz,Wild Charge,charge,0
+shadow electabuzz,Cross Chop,charge,0
 shadow electabuzz,Thunder Punch,charge,0
 shadow electabuzz,Thunderbolt,charge,0
 magmar,Ember,fast,0
@@ -2215,6 +2231,7 @@ omastar,Ancient Power,charge,0
 omastar,Hydro Pump,charge,0
 omastar,Rock Blast,charge,0
 omastar,Rock Slide,charge,1
+omastar,Scald,charge,0
 shadow omastar,Mud Shot,fast,0
 shadow omastar,Rock Throw,fast,0
 shadow omastar,Water Gun,fast,0
@@ -2222,6 +2239,7 @@ shadow omastar,Ancient Power,charge,0
 shadow omastar,Hydro Pump,charge,0
 shadow omastar,Rock Blast,charge,0
 shadow omastar,Rock Slide,charge,0
+shadow omastar,scald,charge,0
 kabuto,Mud Shot,fast,0
 kabuto,Scratch,fast,0
 kabuto,Ancient Power,charge,0
@@ -2868,12 +2886,14 @@ shadow mareep,Thunderbolt,charge,0
 shadow mareep,Trailblaze,charge,0
 flaaffy,Charge Beam,fast,0
 flaaffy,Tackle,fast,0
+flaaffy,Thunder Shock,fast,0
 flaaffy,Discharge,charge,0
 flaaffy,Power Gem,charge,0
 flaaffy,Thunderbolt,charge,0
 flaaffy,Trailblaze,charge,0
 shadow flaaffy,Charge Beam,fast,0
 shadow flaaffy,Tackle,fast,0
+shadow flaaffy,Thunder Shock,fast,0
 shadow flaaffy,Discharge,charge,0
 shadow flaaffy,Power Gem,charge,0
 shadow flaaffy,Thunderbolt,charge,0
@@ -2933,6 +2953,7 @@ azumarill,Hydro Pump,charge,0
 azumarill,Ice Beam,charge,0
 azumarill,Play Rough,charge,0
 sudowoodo,Counter,fast,0
+sudowoodo,Low Kick,fast,0
 sudowoodo,Rock Throw,fast,0
 sudowoodo,Earthquake,charge,0
 sudowoodo,Rock Slide,charge,0
@@ -4515,6 +4536,7 @@ hariyama,Close Combat,charge,0
 hariyama,Dynamic Punch,charge,0
 hariyama,Heavy Slam,charge,0
 hariyama,Superpower,charge,0
+hariyama,Chilling Water,charge,0
 shadow hariyama,Bullet Punch,fast,0
 shadow hariyama,Counter,fast,0
 shadow hariyama,Force Palm,fast,0
@@ -4522,6 +4544,7 @@ shadow hariyama,Close Combat,charge,0
 shadow hariyama,Dynamic Punch,charge,0
 shadow hariyama,Heavy Slam,charge,0
 shadow hariyama,Superpower,charge,0
+shadow hariyama,Chilling Water,charge,0
 azurill,Bubble,fast,0
 azurill,Splash,fast,0
 azurill,Body Slam,charge,0
@@ -5149,12 +5172,14 @@ armaldo,Cross Poison,charge,0
 armaldo,Rock Blast,charge,0
 armaldo,Water Pulse,charge,0
 armaldo,Liquidation,charge,0
+armaldo,Rock Slide,charge,0
 shadow armaldo,Fury Cutter,fast,0
 shadow armaldo,Struggle Bug,fast,0
 shadow armaldo,Cross Poison,charge,0
 shadow armaldo,Rock Blast,charge,0
 shadow armaldo,Water Pulse,charge,0
 shadow armaldo,Liquidation,charge,0
+shadow armaldo,Rock Slide,charge,0
 feebas,Splash,fast,0
 feebas,Tackle,fast,0
 feebas,Mirror Coat,charge,0
@@ -5476,6 +5501,7 @@ regirock,Focus Blast,charge,0
 regirock,Stone Edge,charge,0
 regirock,Zap Cannon,charge,0
 regirock,Earthquake,charge,1
+regirock,Meteor Beam,charge,0
 shadow regirock,Rock Smash,fast,0
 shadow regirock,Rock Throw,fast,0
 shadow regirock,Lock On,fast,0
@@ -5483,6 +5509,7 @@ shadow regirock,Focus Blast,charge,0
 shadow regirock,Stone Edge,charge,0
 shadow regirock,Zap Cannon,charge,0
 shadow regirock,Earthquake,charge,0
+shadow regirock,Meteor Beam,charge,0
 regice,Frost Breath,fast,0
 regice,Rock Smash,fast,0
 regice,Lock On,fast,0
@@ -5490,6 +5517,7 @@ regice,Blizzard,charge,0
 regice,Earthquake,charge,0
 regice,Focus Blast,charge,0
 regice,Thunder,charge,1
+regice,Ice Beam,charge,0
 shadow regice,Frost Breath,fast,0
 shadow regice,Rock Smash,fast,0
 shadow regice,Lock On,fast,0
@@ -5497,6 +5525,7 @@ shadow regice,Blizzard,charge,0
 shadow regice,Earthquake,charge,0
 shadow regice,Focus Blast,charge,0
 shadow regice,Thunder,charge,0
+shadow regice,Ice Beam,charge,0
 registeel,Metal Claw,fast,0
 registeel,Rock Smash,fast,0
 registeel,Lock On,fast,0
@@ -5780,6 +5809,7 @@ staraptor,Brave Bird,charge,0
 staraptor,Close Combat,charge,0
 staraptor,Heat Wave,charge,0
 staraptor,Fly,charge,0
+staraptor,Blaze Kick,charge,0
 mega staraptor,Quick Attack,fast,0
 mega staraptor,Wing Attack,fast,0
 mega staraptor,Gust,fast,1
@@ -5792,6 +5822,7 @@ mega staraptor,Brave Bird++++,charge,1
 mega staraptor,Close Combat,charge,0
 mega staraptor,Heat Wave,charge,0
 mega staraptor,Fly,charge,0
+mega staraptor,Blaze Kick,charge,0
 shadow staraptor,Quick Attack,fast,0
 shadow staraptor,Wing Attack,fast,0
 shadow staraptor,Gust,fast,0
@@ -5800,6 +5831,7 @@ shadow staraptor,Brave Bird,charge,0
 shadow staraptor,Close Combat,charge,0
 shadow staraptor,Heat Wave,charge,0
 shadow staraptor,Fly,charge,0
+shadow staraptor,Blaze Kick,charge,0
 bidoof,Tackle,fast,0
 bidoof,Take Down,fast,0
 bidoof,Crunch,charge,0
@@ -6459,6 +6491,7 @@ abomasnow,Energy Ball,charge,0
 abomasnow,Outrage,charge,0
 abomasnow,Weather Ball (Ice),charge,0
 abomasnow,Icy Wind,charge,0
+abomasnow,Chilling Water,charge,0
 mega abomasnow,Powder Snow,fast,0
 mega abomasnow,Razor Leaf,fast,0
 mega abomasnow,Leafage,fast,0
@@ -6467,6 +6500,7 @@ mega abomasnow,Energy Ball,charge,0
 mega abomasnow,Outrage,charge,0
 mega abomasnow,Weather Ball (Ice),charge,0
 mega abomasnow,Icy Wind,charge,0
+mega abomasnow,Chilling Water,charge,0
 shadow abomasnow,Powder Snow,fast,0
 shadow abomasnow,Razor Leaf,fast,0
 shadow abomasnow,Leafage,fast,0
@@ -6475,6 +6509,7 @@ shadow abomasnow,Energy Ball,charge,0
 shadow abomasnow,Outrage,charge,0
 shadow abomasnow,Weather Ball (Ice),charge,0
 shadow abomasnow,Icy Wind,charge,0
+shadow abomasnow,Chilling Water,charge,0
 weavile,Feint Attack,fast,0
 weavile,Ice Shard,fast,0
 weavile,Snarl,fast,0
@@ -7790,17 +7825,21 @@ shadow tirtouga,Surf,charge,0
 shadow tirtouga,Ancient Power,charge,0
 shadow tirtouga,Body Slam,charge,0
 carracosta,Water Gun,fast,0
+carracosta,Low Kick,fast,0
 carracosta,Rock Throw,fast,0
 carracosta,Surf,charge,0
 carracosta,Ancient Power,charge,0
 carracosta,Body Slam,charge,0
 carracosta,Liquidation,charge,0
+carracosta,Rock Slide,charge,0
+shadow carracosta,Low Kick,fast,0
 shadow carracosta,Water Gun,fast,0
 shadow carracosta,Rock Throw,fast,0
 shadow carracosta,Surf,charge,0
 shadow carracosta,Ancient Power,charge,0
 shadow carracosta,Body Slam,charge,0
 shadow carracosta,Liquidation,charge,0
+shadow carracosta,Rock Slide,charge,0
 archen,Quick Attack,fast,0
 archen,Wing Attack,fast,0
 archen,Dragon Claw,charge,0
@@ -8236,10 +8275,14 @@ klinklang,Flash Cannon,charge,0
 klinklang,Zap Cannon,charge,0
 klinklang,Mirror Shot,charge,0
 eelektrik,Acid,fast,0
+eelektrik,Volt Switch,fast,0
 eelektrik,Spark,fast,0
 eelektrik,Crunch,charge,0
 eelektrik,Thunderbolt,charge,0
 eelektrik,Discharge,charge,0
+eelektrik,Scald,charge,0
+eelektrik,aqua tail,charge,0
+eelektrik,lunge,charge,0
 eelektross,Acid,fast,0
 eelektross,Spark,fast,0
 eelektross,Volt Switch,fast,1
@@ -8248,6 +8291,8 @@ eelektross,Thunderbolt,charge,0
 eelektross,Acid Spray,charge,0
 eelektross,Dragon Claw,charge,0
 eelektross,Liquidation,charge,0
+eelektross,Lunge,charge,0
+eelektross,psychic fangs,charge,0
 elgyem,Confusion,fast,0
 elgyem,Astonish,fast,0
 elgyem,Psybeam,charge,0
@@ -8353,6 +8398,7 @@ beartic,Ice Punch,charge,0
 beartic,Surf,charge,0
 beartic,Play Rough,charge,0
 beartic,Liquidation,charge,0
+beartic,Brick Break,charge,0
 cryogonal,Ice Shard,fast,0
 cryogonal,Frost Breath,fast,0
 cryogonal,Aurora Beam,charge,0
@@ -8966,6 +9012,7 @@ litleo,Incinerate,fast,0
 litleo,Flame Charge,charge,0
 litleo,Flamethrower,charge,0
 litleo,Crunch,charge,0
+litleo,Swift,charge,0
 pyroar,Fire Fang,fast,0
 pyroar,Take Down,fast,0
 pyroar,Incinerate,fast,0
@@ -8974,6 +9021,7 @@ pyroar,Flame Charge,charge,0
 pyroar,Solar Beam,charge,0
 pyroar,Dark Pulse,charge,0
 pyroar,Overheat,charge,0
+pyroar,Swift,charge,0
 flabebe,Vine Whip,fast,0
 flabebe,Tackle,fast,0
 flabebe,Dazzling Gleam,charge,0
@@ -9188,6 +9236,7 @@ tyrunt,Stomp,charge,0
 tyrunt,Ancient Power,charge,0
 tyrunt,Dragon Claw,charge,0
 tyrunt,Rock Tomb,charge,0
+tyrunt,psychic fangs,charge,0
 shadow tyrunt,Dragon Tail,fast,0
 shadow tyrunt,Tackle,fast,0
 shadow tyrunt,Stomp,charge,0
@@ -9379,6 +9428,7 @@ avalugg,Earthquake,charge,0
 avalugg,Body Slam,charge,0
 avalugg,Mirror Coat,charge,0
 avalugg,Icy Wind,charge,0
+avalugg,Chilling Water,charge,0
 hisuian avalugg,Bite,fast,0
 hisuian avalugg,Tackle,fast,0
 hisuian avalugg,Powder Snow,fast,0
@@ -9913,6 +9963,7 @@ palossand,Sand Tomb,charge,0
 palossand,Shadow Ball,charge,0
 palossand,Earth Power,charge,0
 palossand,Scorching Sands,charge,0
+palossand,Chilling Water,charge,0
 pyukumuku,Counter,fast,0
 pyukumuku,Mirror Coat,charge,0
 type null,Tackle,fast,0
@@ -10098,6 +10149,14 @@ drampa,Outrage,charge,0
 drampa,Dragon Pulse,charge,0
 drampa,Fly,charge,0
 drampa,Swift,charge,0
+drampa,Heat Wave,charge,0
+mega drampa,Dragon Breath,fast,0
+mega drampa,Extrasensory,fast,0
+mega drampa,Outrage,charge,0
+mega drampa,Dragon Pulse,charge,0
+mega drampa,Fly,charge,0
+mega drampa,Swift,charge,0
+mega drampa,Heat Wave,charge,0
 dhelmise,Astonish,fast,0
 dhelmise,Shadow Claw,fast,0
 dhelmise,Metal Sound,fast,0
@@ -10453,8 +10512,11 @@ yamper,Crunch,charge,0
 yamper,Thunder,charge,0
 boltund,Spark,fast,0
 boltund,Bite,fast,0
+boltund,volt switch,fast,0
 boltund,Crunch,charge,0
 boltund,Thunder,charge,0
+boltund,Dig,charge,0
+boltund,Psychic Fangs,charge,0
 rolycoly,Smack Down,fast,0
 rolycoly,Tackle,fast,0
 rolycoly,Rock Blast,charge,0
@@ -11130,6 +11192,7 @@ garganacl,Mud Shot,fast,0
 garganacl,Rock Blast,charge,0
 garganacl,Rock Tomb,charge,0
 garganacl,Ancient Power,charge,0
+garganacl,Dynamic Punch,charge,0
 charcadet,Ember,fast,0
 charcadet,Incinerate,fast,0
 charcadet,Flame Charge,charge,0
@@ -11356,6 +11419,7 @@ flamigo,Wing Attack,fast,0
 flamigo,Double Kick,fast,0
 flamigo,Aerial Ace,charge,0
 flamigo,Brave Bird,charge,0
+flamigo,Triple Axel,charge,0
 cetoddle,Ice Shard,fast,0
 cetoddle,Tackle,fast,0
 cetoddle,Powder Snow,fast,0
