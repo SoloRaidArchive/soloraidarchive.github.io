@@ -707,19 +707,21 @@ function spriteUrl(name){
     roster: { card: "rgStageCard", match: /road\s*map|roster|build/i, title: s => `Stage ${STAGES.indexOf(s) + 1} · ${esc(s.name)}`,
       row: f => ({ name: f.pokemon || f.name, fm: f["fast moves"] || f["fast move"] || f.fm, cm: f["charge moves"] || f["charge move"] || f.cm,
         count: f.copies || f.count, tier: f.prio || f.priority || f.tier, role: f.role, note: f.note }) },
-    catch: { card: "rgCatchCard", match: /wild/i, title: () => "Catch in the Wild or Hatch", row: catchRow,
-      info: "Caught for their candy, and to evolve into the counters above." },
-    raids: { card: "rgRaidCard", match: /raid|rocket/i, title: () => "Catch from Raids &amp; Rocket", row: catchRow,
-      info: "Investments for the future, or stronger variants of the counters above. Also caught for their candy." },
+    catch: { card: "rgCatchCard", match: /wild/i, title: () => "Catch in the Wild or Hatch", row: catchRow },
+    raids: { card: "rgRaidCard", match: /raid|rocket/i, title: () => "Caught/Raided in Rocket/Raids", row: catchRow },
     buddy: { card: "rgBuddyCard", match: /buddy/i, title: () => "Best Buddy", row: f => ({ name: f.pokemon || f.name }),
       info: "Breakpoints and bulkpoints at Lv 51/53 15/15/15 IV's." },
   };
   // Builds Into: the Pokemon it evolves into, and/or "Candy" when it's caught for its candy ("Mega
-  // Blaziken + Candy"). Split by "+", "&", "/", "," or ";" ("and" too). The Pokemon itself ("Shadow
+  // Blaziken + Candy"), and/or "Energy" when it's raided for the energy that fuses Pokemon ("Zacian
+  // Crown + Energy", "Candy + Energy"). Split by "+", "&", "/", "," or ";" ("and" too). The Pokemon itself ("Shadow
   // Groudon" for Shadow Groudon) or a blank cell shows nothing.
   const intoOf = e => { const parts = String(e.into || "").split(/\s*(?:[+&\/,;]|\band\b)\s*/i).map(x => x.trim()).filter(Boolean);
-    return { candy: parts.some(x => /^candy$/i.test(x)), mons: parts.filter(x => !/^candy$/i.test(x) && key(x) !== key(e.name)) }; };
-  const intoLine = e => { const I = intoOf(e); return [I.mons.length ? "→ " + I.mons.join(", ") : "", I.candy ? (I.mons.length ? "and candy" : "For candy") : ""].filter(Boolean).join(" "); };
+    const res = x => /^(candy|energy)$/i.test(x);
+    return { candy: parts.some(x => /^candy$/i.test(x)), energy: parts.some(x => /^energy$/i.test(x)), mons: parts.filter(x => !res(x) && key(x) !== key(e.name)) }; };
+  const intoLine = e => { const I = intoOf(e), r = [I.candy ? "candy" : "", I.energy ? "energy" : ""].filter(Boolean).join(" and ");
+    if(!I.mons.length) return r ? "For " + r : "";
+    return "→ " + I.mons.join(", ") + (r ? ", for " + r : ""); };
   // Roles: the line-art marks the DPS Calculator uses, by each group's heading
   const ROLE_SVG = {
     main: `<path d="M13.6 2.4 6.2 9.8M13.6 2.4l-.5 3.1M13.6 2.4l-3.1.5M4.2 8.6l3.2 3.2M5.8 10.2l-3.4 3.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`,
