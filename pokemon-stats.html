@@ -442,6 +442,8 @@ if ("serviceWorker" in navigator) {
   .pm-sp.shadow-mist{ border-radius:50%; background:radial-gradient(circle, rgba(140,90,200,.35), transparent 70%); }
   .pm-nm{ display:flex; align-items:center; gap:8px; min-width:0; }
   .pm-nm b{ font:700 14px 'Manrope',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pm-el{ flex:none; font:800 9.5px 'Manrope',sans-serif; font-style:normal; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-dim); border:1px solid var(--border); border-radius:5px; padding:1px 5px; }
+  @media (max-width:560px){ .pm-dr .pm-nm b{ white-space:normal; overflow-wrap:anywhere; line-height:1.2; } .pm-el{ font-size:8.5px; padding:1px 4px; } }
   .pm-tys{ display:inline-flex; gap:3px; flex:none; }
   .pm-ti{ width:18px; height:18px; border-radius:50%; display:inline-grid; place-items:center; flex:none; }
   .pm-ti img{ width:11px; height:11px; }
@@ -845,8 +847,19 @@ function moveCells(m){
 
 // A Pokémon's movepool with each move's numbers, best score first. The 18 Hidden Power variants
 // share their numbers, so they show as one row.
+// Moves a Pokemon gets another way, labelled in its movepool. Flagged elite in pokemon-movepool.csv:
+// "Special" for a signature move learned by fusing (or Rayquaza's Dragon Ascent, learned with a
+// Meteorite) and for a Mega's "+" moves, "Elite" for the others (an Elite TM).
+const SPECIAL_MOVES = new Set(["Sunsteel Strike", "Moongeist Beam", "Freeze Shock", "Ice Burn", "Behemoth Blade",
+  "Behemoth Bash", "Glacial Lance", "Astral Barrage", "Dragon Ascent"].map(m => m.toLowerCase()));
+function moveTag(name, move){
+  const key = name.toLowerCase();
+  const elite = ELITE_BY_POKEMON[key] || ELITE_BY_POKEMON[key.replace(/^(mega |primal |shadow |alolan |galarian |hisuian )/, "")];
+  if(!elite || !elite.has(move)) return "";
+  return SPECIAL_MOVES.has(move.toLowerCase()) || /\+$/.test(move) ? `<i class="pm-el">Special</i>` : `<i class="pm-el">Elite</i>`;
+}
 function movePanelHtml(name){
-  const mp = bossMovepoolFor(name);
+  const mp = MOVEPOOL[name.toLowerCase()];   // the whole movepool, Elite TM and fusion moves included
   if(!mp || (!mp.fast.length && !mp.charge.length)) return `<div class="pm-note">No move data on file.</div>`;
   if(mp.charge.length > CHARGE_CAP || mp.fast.length > 40) return `<div class="pm-note">Learns almost every move - full list omitted.</div>`;
   const rows = list => {
@@ -856,7 +869,7 @@ function movePanelHtml(name){
       if(MOVE_BY_NAME[n]) out.push(MOVE_BY_NAME[n]);
     });
     return out.sort((a, b) => moveScore(b) - moveScore(a))
-      .map(m => `<div class="pm-dr"><span class="pm-nm">${typeDot(m.t)}<b>${esc(m.n)}</b></span>${moveCells(m)}<span class="x"></span></div>`).join("");
+      .map(m => `<div class="pm-dr"><span class="pm-nm">${typeDot(m.t)}<b>${esc(m.n)}</b>${moveTag(name, m.n)}</span>${moveCells(m)}<span class="x"></span></div>`).join("");
   };
   return `<div class="pm-dh"><span>Move</span><span>Power</span><span>Energy</span><span>AD</span><span>Score</span><span class="x"></span></div>`
     + (mp.fast.length ? `<div class="pm-sub">Fast</div>${rows(mp.fast)}` : "")
