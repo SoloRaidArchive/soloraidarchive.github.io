@@ -886,7 +886,7 @@ function learnersHtml(moveName, all){
   const names = [...new Set(keys.map(k => NAME_BY_KEY[k]).filter(Boolean))];
   if(!names.length) return `<div class="pm-note">No Pokémon on file learn this move.</div>`;
   const shown = all ? names : names.slice(0, LEARN_SHOWN);
-  return `<div class="pm-sub">Learned by ${names.length} Pokémon</div><div class="pm-learn">`
+  return `<div class="pm-learn">`
     + shown.map(n => `<button type="button" class="pm-lp" data-poke="${esc(n)}" title="${esc(n)}">${spriteImg(n)}<small>${esc(n)}</small></button>`).join("")
     + (names.length > shown.length ? `<button type="button" class="pm-more" data-all="${esc(moveName)}">+${names.length - shown.length} more</button>` : "")
     + `</div>`;
@@ -1167,10 +1167,12 @@ function render(){
   if(tab === "moves"){
     list = MOVES.filter(m => (!q || m.n.toLowerCase().includes(q)) && typeOk([m.t]));
     const s = sortBy.moves, dir = s.up ? 1 : -1, byName = (a, b) => a.n.localeCompare(b.n);
+    // ties on the sorted column go by Score (highest first), then by name
+    const tie = (a, b) => (moveScore(b) - moveScore(a)) || byName(a, b);
     const val = { power: m => m.dmg, energy: m => m.energy, ad: m => m.ad, score: m => moveScore(m) }[s.k];
     if(s.k === "name") list.sort((a, b) => dir * byName(a, b));
-    else if(s.k === "kind") list.sort((a, b) => dir * ((a.kind === "Fast" ? 0 : 1) - (b.kind === "Fast" ? 0 : 1)) || byName(a, b));
-    else list.sort((a, b) => dir * (val(a) - val(b)) || byName(a, b));
+    else if(s.k === "kind") list.sort((a, b) => dir * ((a.kind === "Fast" ? 0 : 1) - (b.kind === "Fast" ? 0 : 1)) || tie(a, b));
+    else list.sort((a, b) => dir * (val(a) - val(b)) || tie(a, b));
     head = `<div class="pm-mh"><span>${sortHead("name", "Move")}</span><span class="pm-k">${sortHead("kind", "Kind")}</span><span>${sortHead("power", "Power")}</span>`
       + `<span>${sortHead("energy", "Energy")}</span><span>${sortHead("ad", "AD")}</span><span>${sortHead("score", "Score")}</span><span class="x"></span></div>`;
     row = moveRowHtml; noun = "moves";
