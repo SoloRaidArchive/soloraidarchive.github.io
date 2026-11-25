@@ -4,10 +4,13 @@
    (which removes data-season) need nothing from here.
    The margins are measured from the page itself: everything that isn't fixed and isn't a full-width
    wrapper counts as content, so particles never cross a card, a heading or a table. A side narrower
-   than MIN_GUTTER gets none, which on phones and narrow windows means none at all. */
+   than MIN_GUTTER gets none. When neither side is wide enough (smaller desktop windows), particles
+   fall across the whole window instead, behind the content (the layer sits under the page), so they
+   show between and around the cards. Phones (narrower than MIN_WINDOW) get none. */
 (function(){
   if(!document.documentElement) return;
   var MIN_GUTTER = 56, PAD = 24, PER_PX = 1 / 11.5, MAX_PER_SIDE = 16;
+  var MIN_WINDOW = 700, BEHIND_PER_PX = 1 / 48, MAX_BEHIND = 26;
   var SPIN = { winter: 25, spring: 70, summer: 30, fall: 80 };
   var layer = null, lastKey = "";
 
@@ -52,9 +55,12 @@
     lastKey = key;
     var season = document.documentElement.getAttribute("data-season") || "fall";
     var spin = SPIN[season] || 40, html = "";
-    [["l", gl, 0], ["r", gr, e.vw - gr]].forEach(function(side){
+    var sides = [["l", gl, 0], ["r", gr, e.vw - gr]];
+    // no room beside the content: the whole window, behind it (not on phones)
+    if(gl < MIN_GUTTER && gr < MIN_GUTTER) sides = e.vw >= MIN_WINDOW ? [["all", e.vw, 0, MAX_BEHIND, BEHIND_PER_PX]] : [];
+    sides.forEach(function(side){
       var w = side[1]; if(w < MIN_GUTTER) return;
-      var n = Math.min(MAX_PER_SIDE, Math.max(3, Math.round(w * PER_PX)));
+      var n = Math.min(side[3] || MAX_PER_SIDE, Math.max(3, Math.round(w * (side[4] || PER_PX))));
       for(var i = 0; i < n; i++){
         var size = rnd(11, 22), amp = rnd(6, 16);
         var room = w - size - 2 * amp - 8;                       // keep the sway inside the margin
