@@ -1,13 +1,13 @@
 {
-  "generatedAt": "2026-11-24T19:45:29.432779+00:00",
+  "generatedAt": "2026-11-25T03:50:41.991521+00:00",
   "sources": {
-    "pokebattlerSchedule": 30,
-    "pokebattlerScheduleWindows": 30,
-    "scrapedDuck": 1,
+    "pokebattlerSchedule": 35,
+    "pokebattlerScheduleWindows": 35,
+    "scrapedDuck": 2,
     "pokebattlerApiStartDates": 0,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
-    "pokebattlerApi": 30
+    "pokebattlerApi": 35
   },
   "dateGroups": [
     {
@@ -57,6 +57,60 @@
       "status": "future"
     },
     {
+      "startDate": "Dec 30, 2026",
+      "endDate": "Jan 5, 2027",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Landorus Therian",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Thundurus Therian",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Snow"
+        },
+        {
+          "name": "Tornadus Therian",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5.5 \u2b50",
+          "weather": "Snow"
+        },
+        {
+          "name": "Mega Falinks",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "label": "In-person",
+      "status": "future"
+    },
+    {
+      "startDate": "Dec 2, 2026",
+      "endDate": "Dec 8, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Regidrago",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Slowbro",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        }
+      ],
+      "label": "In-person",
+      "status": "future"
+    },
+    {
       "startDate": "Nov 24, 2026",
       "endDate": "Nov 30, 2026",
       "category": "rotation",
@@ -89,6 +143,51 @@
       "status": "active"
     },
     {
+      "startDate": "Dec 9, 2026",
+      "endDate": "Dec 15, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Mega Gengar",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "label": "In-person",
+      "status": "future"
+    },
+    {
+      "startDate": "Dec 23, 2026",
+      "endDate": "Dec 29, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Mega Glalie",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "label": "In-person",
+      "status": "future"
+    },
+    {
+      "startDate": "Dec 16, 2026",
+      "endDate": "Dec 22, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Mega Skarmory",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "label": "In-person",
+      "status": "future"
+    },
+    {
       "startDate": "Oct 7, 2026",
       "endDate": "Nov 3, 2026",
       "category": "rotation",
@@ -101,6 +200,20 @@
         }
       ],
       "status": "passed"
+    },
+    {
+      "startDate": "Dec 16, 2026",
+      "endDate": "Dec 22, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Ho-Oh",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Partly Cloudy"
+        }
+      ],
+      "status": "future"
     },
     {
       "startDate": "Nov 15, 2026",
