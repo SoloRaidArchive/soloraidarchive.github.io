@@ -1,35 +1,15 @@
 {
-  "generatedAt": "2026-11-25T03:50:41.991521+00:00",
+  "generatedAt": "2026-11-25T16:18:31.941131+00:00",
   "sources": {
-    "pokebattlerSchedule": 35,
-    "pokebattlerScheduleWindows": 35,
+    "pokebattlerSchedule": 32,
+    "pokebattlerScheduleWindows": 32,
     "scrapedDuck": 2,
-    "pokebattlerApiStartDates": 0,
+    "pokebattlerApiStartDates": 3,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
     "pokebattlerApi": 35
   },
   "dateGroups": [
-    {
-      "startDate": "Nov 16, 2026",
-      "endDate": "Nov 24, 2026",
-      "category": "rotation",
-      "bosses": [
-        {
-          "name": "Darkrai",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Partly Cloudy"
-        },
-        {
-          "name": "Mega Banette",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "2 \u2b50",
-          "weather": "Extreme"
-        }
-      ],
-      "status": "active"
-    },
     {
       "startDate": "Nov 25, 2026",
       "endDate": "Dec 1, 2026",
@@ -54,6 +34,27 @@
           "weather": "Extreme"
         }
       ],
+      "status": "active"
+    },
+    {
+      "startDate": "Dec 2, 2026",
+      "endDate": "Dec 8, 2026",
+      "category": "event",
+      "bosses": [
+        {
+          "name": "Regidrago",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Mega Slowbro",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Clear"
+        }
+      ],
+      "label": "In-person",
       "status": "future"
     },
     {
@@ -84,27 +85,6 @@
           "archivePage": "tier4-raids.html",
           "difficulty": "2 \u2b50",
           "weather": "Extreme"
-        }
-      ],
-      "label": "In-person",
-      "status": "future"
-    },
-    {
-      "startDate": "Dec 2, 2026",
-      "endDate": "Dec 8, 2026",
-      "category": "event",
-      "bosses": [
-        {
-          "name": "Regidrago",
-          "archivePage": "tier5-raids.html",
-          "difficulty": "3 \u2b50",
-          "weather": "Extreme"
-        },
-        {
-          "name": "Mega Slowbro",
-          "archivePage": "tier4-raids.html",
-          "difficulty": "4 \u2b50",
-          "weather": "Clear"
         }
       ],
       "label": "In-person",
@@ -214,6 +194,26 @@
         }
       ],
       "status": "future"
+    },
+    {
+      "startDate": "Nov 16, 2026",
+      "endDate": "Nov 24, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Darkrai",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Partly Cloudy"
+        },
+        {
+          "name": "Mega Banette",
+          "archivePage": "tier4-raids.html",
+          "difficulty": "2 \u2b50",
+          "weather": "Extreme"
+        }
+      ],
+      "status": "passed"
     },
     {
       "startDate": "Nov 15, 2026",
