@@ -3699,7 +3699,8 @@ async function loadCoreDataFromCSV(){
     // raid boss its Elite TM filtering
     const movepoolRows = inheritShadowMoves(movepoolCsv);
 
-    POKEMON_DB = statsRows.map(r => ({ n: r.name, hp: parseFloat(r.hp), atk: parseFloat(r.atk), def: parseFloat(r.def) }));
+    POKEMON_DB = statsRows.filter(r => !HIDDEN_SHADOW.test(String(r.name || "").trim()))
+      .map(r => ({ n: r.name, hp: parseFloat(r.hp), atk: parseFloat(r.atk), def: parseFloat(r.def) }));
     // Typing now lives in csv/pokemon-stats.csv alongside the stats, as type1/type2. That
     // file is the authority: it states a Pokemon's typing explicitly instead of the site
     // deriving it from a base species and patching the exceptions by hand, which is how
@@ -3712,7 +3713,7 @@ async function loadCoreDataFromCSV(){
     // 2286 selectable names still resolves a type with that file gone.
     const typesByName = new Map();
     statsRows.forEach(r => {
-      if(r.name && r.type1) typesByName.set(r.name.trim().toLowerCase(), { n: r.name, t1: r.type1, t2: r.type2 || "" });
+      if(r.name && r.type1 && !HIDDEN_SHADOW.test(r.name.trim())) typesByName.set(r.name.trim().toLowerCase(), { n: r.name, t1: r.type1, t2: r.type2 || "" });
     });
     POKEMON_TYPES = [...typesByName.values()];
     MOVE_DB = moveRows.map(r => ({
@@ -3798,8 +3799,14 @@ document.getElementById("pokemonLevelOptions").innerHTML = Object.keys(CPM)
 const BOSS_CPM_T4T7 = 0.7903;
 
 // ============ LOOKUPS ============
+// Left out, as on Stats & Moves: shadow Megas and Primals, shadow fusions (Necrozma Dusk Mane / Dawn
+// Wings, Ultra Necrozma, Kyurem Black / White, Calyrex Ice / Shadow Rider), shadow Crowned forms, shadow
+// Origin forms and the shadow Galarian legendary birds. Not in any name search, and not recognised if
+// typed (a "Shadow X" would otherwise fall back to X's stats below).
+const HIDDEN_SHADOW = /^shadow\s+(?:(?:mega|primal)\s|necrozma\s+(?:dusk\s+mane|dawn\s+wings)$|ultra\s+necrozma$|kyurem\s+(?:black|white)$|calyrex\s+(?:ice|shadow)\s+rider$|(?:zacian|zamazenta)\s+crown|\S+\s+origin$|galarian\s+(?:articuno|zapdos|moltres)$)/i;
 function findPokemon(name){
   const key = (name||"").trim().toLowerCase();
+  if(HIDDEN_SHADOW.test(key)) return null;
   const exact = POKEMON_DB.find(p => p.n.toLowerCase() === key);
   if (exact) return exact;
   // Shadow Pokemon share identical base stats with their non-shadow form (only the
