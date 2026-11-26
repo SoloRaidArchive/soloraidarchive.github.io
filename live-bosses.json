@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-11-25T16:18:31.941131+00:00",
+  "generatedAt": "2026-11-26T01:13:40.133466+00:00",
   "sources": {
     "pokebattlerSchedule": 32,
     "pokebattlerScheduleWindows": 32,
-    "scrapedDuck": 2,
+    "scrapedDuck": 9,
     "pokebattlerApiStartDates": 3,
     "pokebattlerApiStartsUsed": 0,
     "pokebattlerApiUpcomingWithoutEndDate": [],
@@ -180,6 +180,50 @@
         }
       ],
       "status": "passed"
+    },
+    {
+      "startDate": "Dec 9, 2026",
+      "endDate": "Dec 15, 2026",
+      "category": "rotation",
+      "bosses": [
+        {
+          "name": "Latios",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "Windy"
+        },
+        {
+          "name": "Heatran",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Clear"
+        },
+        {
+          "name": "Cobalion",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "5 \u2b50",
+          "weather": "Cloudy"
+        },
+        {
+          "name": "Terrakion",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "4 \u2b50",
+          "weather": "Snow"
+        },
+        {
+          "name": "Virizion",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Extreme"
+        },
+        {
+          "name": "Regieleki",
+          "archivePage": "tier5-raids.html",
+          "difficulty": "3 \u2b50",
+          "weather": "Clear"
+        }
+      ],
+      "status": "future"
     },
     {
       "startDate": "Dec 16, 2026",
