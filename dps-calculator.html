@@ -7747,7 +7747,9 @@ function sameOutcome(a, b){
 // Exact match against what is already in the sheet. Compares the fields that define a run; the
 // computed outputs are deliberately NOT compared, since two identical setups must produce
 // identical outputs anyway and comparing them would only mask a genuine duplicate.
-async function findExistingSubmission(f, bossName, n, trailingDPSText){
+// sameResult (r: the row being sent): instead of an exact match, the same setup with a DIFFERENT number
+// of fast moves tanked whose CT DPS and duration (as the sheet stores them) equal this row's.
+async function findExistingSubmission(f, bossName, n, trailingDPSText, sameResult){
   try{
     const res = await fetch("/csv/ct-database.csv", { cache: "no-store" });
     if(!res.ok) return null;
@@ -7758,6 +7760,7 @@ async function findExistingSubmission(f, bossName, n, trailingDPSText){
     const iB = col("Boss"), iW = col("Weather"), iBM = col("Boss Moveset"), iFM = col("Boss FM Tanked");
     const iBlade = col("Zacian Blade boost"), iShield = col("Zamazenta Shield Boost");
     const iCM = col("# of Charge moves cast");
+    const iT = col("Trailing DPS"), iD = col("Dodges"), iTM = col("Timing Modifiers"), iCT = col("CT DPS"), iS = col("Seconds");
     if(iP < 0 || iB < 0) return null;
 
     const norm = (x) => String(x == null ? "" : x).trim().toLowerCase();
@@ -7766,16 +7769,30 @@ async function findExistingSubmission(f, bossName, n, trailingDPSText){
       pm: norm(`${f.playerFM} / ${f.playerCM}`), b: norm(bossName), w: norm(f.weather),
       bm: norm(`${f.bossFM} / ${f.bossCM}`), fm: norm(n),
       blade: f.zacianBlade ? "yes" : "no", shield: f.shieldAE ? "yes" : "no", cm: norm(f.numCM),
+      // a double catch tank is sent with Trailing DPS "N/A (Double CT)"
+      dbl: /^n\/a/.test(norm(trailingDPSText)),
+      dodges: norm((f.dodgeCM && f.dodgeFM) ? "Both" : f.dodgeCM ? "CM" : f.dodgeFM ? "FM" : "None"),
+      timing: norm((f.cmBuffer && f.resolveNerf) ? "Both" : f.cmBuffer ? "CM Buffer" : f.resolveNerf ? "Resolve Nerf" : "None"),
     };
-    return rows.find(r =>
+    const num = x => parseFloat(String(x == null ? "" : x).replace(/[^0-9.\-]/g, ""));
+    const found = rows.find(r =>
       norm(r[iP]) === want.p && norm(r[iB]) === want.b &&
       (iL < 0 || norm(r[iL]) === want.l) && (iIV < 0 || norm(r[iIV]) === want.iv) &&
       (iPM < 0 || norm(r[iPM]) === want.pm) && (iW < 0 || norm(r[iW]) === want.w) &&
-      (iBM < 0 || norm(r[iBM]) === want.bm) && (iFM < 0 || norm(r[iFM]) === want.fm) &&
+      (iBM < 0 || norm(r[iBM]) === want.bm) &&
       (iBlade < 0 || norm(r[iBlade]) === want.blade) &&
       (iShield < 0 || norm(r[iShield]) === want.shield) &&
-      (iCM < 0 || norm(r[iCM]) === want.cm)
-    ) || null;
+      (iCM < 0 || norm(r[iCM]) === want.cm) &&
+      (iT < 0 || /^n\/a/.test(norm(r[iT])) === want.dbl) &&
+      (iD < 0 || !norm(r[iD]) || norm(r[iD]) === want.dodges) &&
+      (iTM < 0 || !norm(r[iTM]) || norm(r[iTM]) === want.timing) &&
+      (sameResult
+        ? iFM >= 0 && norm(r[iFM]) !== want.fm && iCT >= 0 && iS >= 0
+          && Math.abs(num(r[iCT]) - num(sameResult.ctDPS.toFixed(1))) < 0.05 && Math.abs(num(r[iS]) - sameResult.seconds) < 0.05
+        : (iFM < 0 || norm(r[iFM]) === want.fm))
+    );
+    if(found && iFM >= 0) found.fmsTanked = String(found[iFM]).trim();
+    return found || null;
   }catch(e){
     // Never block a submission because the check itself failed.
     console.error("Duplicate check: could not read csv/ct-database.csv", e);
@@ -7791,6 +7808,13 @@ async function duplicateWarnings(f, bossName, n, row, trailingDPSText, pre){
 
   const existing = await findExistingSubmission(f, bossName, n, trailingDPSText);
   if(existing) warnings.push("This exact setup is already in the CT Database - same Pokemon, level, IVs, movesets, boss, weather and toggles.");
+  else if(row && row.ctDPS != null){
+    const other = await findExistingSubmission(f, bossName, n, trailingDPSText, row);
+    if(other){
+      const k = other.fmsTanked;
+      warnings.push(`The same setup with ${k} fast move${k === "1" ? "" : "s"} tanked is already in the CT Database with the same CT DPS and duration.`);
+    }
+  }
 
   // IVs that change nothing. Stats are quantised, so a spread below 15/15/15 very often lands on
   // the same attack/defence values after the CPM multiplier, producing an identical result.
@@ -9203,14 +9227,18 @@ function ctDbOpenPanel(){
   const showWarn = async (e, el) => {   // the duplicate check Catch Tank mode does, and its risky flag
     const o = e.rows[e.pick], w = el.querySelector(".db-warn"); const notes = [];
     if(o.r.risky) notes.push("\u26a0\ufe0f Risky: " + (o.r.riskyNote || "flagged for the reviewer"));
-    try{ const d = await duplicateWarnings(e.f, e.boss, o.n, o.r, e.f.doubleCT ? "N/A (Double CT)" : o.r.trailingDPS.toFixed(1), e.variants || {}); d.forEach(t => notes.push("Possible duplicate: " + t)); }catch(err){}
+    let d = [];
+    try{ d = await duplicateWarnings(e.f, e.boss, o.n, o.r, e.f.doubleCT ? "N/A (Double CT)" : o.r.trailingDPS.toFixed(1), e.variants || {}); d.forEach(t => notes.push("Possible duplicate: " + t)); }catch(err){}
     w.hidden = !notes.length; w.textContent = notes.join("  \u00b7  ");
+    // a possible duplicate: left out of Open all (it can be ticked back), and Open form asks first
+    e.dupes = d; el.querySelector("input[type=checkbox]").checked = !d.length;
   };
+  const confirmDupes = e => !(e.dupes && e.dupes.length) || confirm("This looks like a duplicate:\n\n" + e.dupes.map(t => "\u2022 " + t).join("\n\n") + "\n\nOpen the form anyway?");
   ov.querySelectorAll(".db-row[data-i]").forEach(el => {
     const e = list[+el.dataset.i];
     showWarn(e, el);
     el.querySelector(".db-sel").addEventListener("change", ev => { e.pick = +ev.target.value; showWarn(e, el); });
-    el.querySelector(".db-open").addEventListener("click", ev => { const w = window.open(ctDbRowUrl(e), "_blank"); if(w){ ev.target.textContent = "Opened \u2713"; ev.target.classList.add("done"); } });
+    el.querySelector(".db-open").addEventListener("click", ev => { if(!confirmDupes(e)) return; const w = window.open(ctDbRowUrl(e), "_blank"); if(w){ ev.target.textContent = "Opened \u2713"; ev.target.classList.add("done"); } });
   });
   const close = () => ov.remove();
   ov.addEventListener("click", ev => { if(ev.target === ov || ev.target.closest(".db-x")) close(); });
