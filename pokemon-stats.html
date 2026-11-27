@@ -1152,7 +1152,7 @@ function pokeRowHtml(p){
     ${statHtml("atk", a.atk, a.cpm)}${statHtml("def", a.def, a.cpm)}${statHtml("hp", a.hp, a.cpm)}<span class="pm-chev" aria-hidden="true">›</span>
   </button><div class="pm-det"></div></div>`;
 }
-// Learned by (desktop, charge moves): up to 5 of the Pokemon that learn it (Elite TM included), hardest hitters first
+// Learned by (desktop, fast and charge moves): up to 5 of the Pokemon that learn it (Elite TM included), hardest hitters first
 const LEARN_ROW = 5;
 function learnedBy(moveName){
   if(!Object.keys(NAME_BY_KEY).length) POKEMON_DB.forEach(p => { NAME_BY_KEY[p.n.toLowerCase()] = p.n; });
@@ -1161,7 +1161,6 @@ function learnedBy(moveName){
   return [...new Set(keys.map(k => NAME_BY_KEY[k]).filter(Boolean))].sort((a, b) => atk(b) - atk(a));
 }
 function learnCell(m){
-  if(m.kind !== "Charge") return `<span class="pm-lrn"></span>`;
   const names = learnedBy(m.n);
   const sp = (n, more) => `<span class="pm-lrs${more ? " more" : ""}" title="${esc(n)}">${spriteImg(n)}</span>`;
   return `<span class="pm-lrn">${names.map((n, i) => sp(n, i >= LEARN_ROW)).join("")}`
