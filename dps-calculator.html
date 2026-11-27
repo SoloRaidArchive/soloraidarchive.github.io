@@ -2693,7 +2693,7 @@ if ("serviceWorker" in navigator) {
       <div class="team-behavior-row" id="mainBehaviorRow">
       <!-- the main DPS's Dodge / Sponge (desktop): they set the same switches as its row under Catch Tank & Hot Swap Order -->
       <label class="check-item dt-main-tg" title="The main DPS dodges the boss's charge moves (up to Max Dodges)"><input type="checkbox" data-main-toggle="dodge"> Dodge</label>
-      <label class="check-item dt-main-tg" title="The main DPS sponges a charge move when no catch tank is left for it"><input type="checkbox" data-main-toggle="sponge"> Sponge</label>
+      <label class="check-item dt-main-tg" hidden style="display:none !important"><input type="checkbox" data-main-toggle="sponge"> Sponge</label><!-- the main DPS always sponges -->
       <label class="check-item team-dodge-limit" id="ctDodgeLimitWrap" title="How many boss charge moves the main DPS dodges over the whole run. Once they are used, catch tanks catch as usual; the main DPS only bails (the run ends) when it can't safely continue even with them.">Max Dodges
         <span class="mq-step mb-dl-step"><button type="button" data-dodge-step="-1" aria-label="Fewer">&minus;</button><b id="ctDodgeLimitOut">1</b><button type="button" data-dodge-step="1" aria-label="More">+</button></span>
         <select id="ctDodgeLimit">
@@ -4200,8 +4200,22 @@ function teamStep(S, R, P, snap){
   const benched = () => !P.doubleBack ? [] : Object.keys(S.bench || {}).map(Number).filter(k => {
     if(k === (S.att || 0)) return false;
     const st = S.bench[k], A = P.attackers[k];
-    return st.hp > 0 && (st.hp > A.bossCmDmg || (st.energy >= A.cmCost && st.hp > A.bossFmDmg));
+    return st.hp > 0 && (canReturn(k) || (st.energy >= A.cmCost && st.hp > A.bossFmDmg));
   });
+  // a benched attacker can carry on once back in: it takes the boss's charge move (dodges it, if it can
+  // dodge and has dodges left), then builds and lands its own charge move through the boss's fast moves
+  // (as teamMainCanKeepGoing)
+  const canReturn = (k) => {
+    const st = S.bench[k], A = P.attackers[k];
+    const lim = A.dodgeLimit !== undefined ? A.dodgeLimit : (P.dodgeLimitMain !== undefined ? P.dodgeLimitMain : P.dodgeLimit);
+    const dodge = A.dodges && (lim === 0 || ((S.dodgesBy || {})[k] || 0) < lim);
+    if(!A.absorbs && !dodge) return false;
+    const hit = dodge ? A.bossCmDmgDodged : A.bossCmDmg, hpAfter = st.hp - hit;
+    if(hpAfter <= 0) return false;
+    const e = Math.min(100, st.energy + energyFromDamage(hit)), missing = Math.max(0, A.cmCost - e);
+    const win = Math.ceil(missing / A.fm.energy) * A.fm.ad + A.cm.ad;
+    return hpAfter > Math.ceil(win / (P.bossFM.ad + 4)) * A.bossFmDmg;
+  };
   const freshNext = () => !!P.attackers && (S.attMax || 0) < P.attackers.length - 1 ? (S.attMax || 0) + 1 : -1;
   const hasNext = () => !S.probe && !!P.attackers && (freshNext() >= 0 || benched().length > 0);
   // Double back: who should take a boss charge move landing at `land` instead of the attacker in,
@@ -4396,6 +4410,30 @@ function teamStep(S, R, P, snap){
       // Priority: main-first tries the sponge before a tank; tanks-first only falls back to it once
       // the tanks are gone. Either way the sponge needs the safety checks to pass.
       const tanksLeft = !noTankLeft();
+      // Whose turn it is: the main DPS's sponge is listed ahead of the next catch tank in its own list (a
+      // borrowed catch tank is never ahead of its own sponge), or no catch tank is left
+      const nextIn = primedTank() || nextFresh();
+      const nm = S.mons[nextIn];
+      const mainAhead = !tanksLeft || nm.owner !== blk() || (P.main.spongePos ?? -1) < nm.pos;
+      // Dodge first. Main allowed to dodge: while it has dodges left (the set number, over the whole
+      // run) and is free in time to dodge -
+      //  - on its turn: whenever it has the health to keep going after the dodged hit (teamMainCanKeepGoing),
+      //    before it would sponge;
+      //  - with a catch tank still ahead of it: only when the dodge earns its place over that catch - it
+      //    survives the dodged hit, fires its own charge move before the boss's next one and lives to see
+      //    it land (teamMainCanDodge). Otherwise the catch tank catches.
+      // Once its dodges are used it sponges, and the priority list carries on as usual.
+      const dodgesLeft = P.mainDodges && (P.dodgeLimit === 0 || S.mainDodges < P.dodgeLimit);
+      const dodgeFree = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0) + TEAM_DODGE_TICKS <= land;
+      if(dodgesLeft && dodgeFree && snap && (mainAhead ? teamMainCanKeepGoing(S, P, t, land, true) : teamMainCanDodge(snap, P, t, land))){
+        dec.outcome = "main-dodge";
+        S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
+        S.mainDodges++;
+        S.awaitMainCM = true;
+        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} dodges it (${S.mainDodges}${P.dodgeLimit ? ` of ${P.dodgeLimit}` : ""})`,
+          ev: { type: "bossCM", to: 0, how: "dodge", n: S.mainDodges, of: P.dodgeLimit } });
+        return;
+      }
       // Double back: no catch tank for this one, and sponging it would waste much of its energy (over
       // 10% overflow). If another attacker - on the bench, or not yet in - can take it with little
       // waste and live, swap to it now and keep this one's energy for later (it comes back to fire).
@@ -4423,31 +4461,11 @@ function teamStep(S, R, P, snap){
       const mainSafe = () => (safe === null ? (safe = !!(P.mainAbsorbs && (tanksLeft && P.spongeRule !== "survive"
         ? (snap && teamMainCanAbsorb(snap, P, t, land))
         : teamMainCanKeepGoing(S, P, t, land)))) : safe);
-      const nextIn = primedTank() || nextFresh();
-      // its sponge comes first when it is listed ahead of that catch tank in its own list (a borrowed
-      // catch tank is never ahead of its own sponge)
-      const nm = S.mons[nextIn];
-      const mainAhead = !tanksLeft || nm.owner !== blk() || (P.main.spongePos ?? -1) < nm.pos;
+      // (its sponge comes first when it is listed ahead of that catch tank - mainAhead, above)
       if(P.mainAbsorbs && mainAhead && mainSafe()){
         dec.outcome = "main";
         S.awaitMainCM = true;
         R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} sponges it`, ev: { type: "bossCM", to: 0, how: "sponge" } });
-        return;
-      }
-      // Main allowed to dodge: while it has dodges left (the set number, over the whole run), the
-      // main DPS dodges instead of a catch tank coming in - only when it is free in time to dodge,
-      // survives the dodged hit, and fires its own charge move before the boss's next one and lives
-      // to see it land (teamMainCanDodge). Otherwise the priority list carries on as usual: catch
-      // tanks catch, and the main DPS only drops out (the run ends) when nothing can keep it safe.
-      const dodgesLeft = P.mainDodges && (P.dodgeLimit === 0 || S.mainDodges < P.dodgeLimit);
-      const dodgeFree = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0) + TEAM_DODGE_TICKS <= land;
-      if(dodgesLeft && dodgeFree && snap && teamMainCanDodge(snap, P, t, land)){
-        dec.outcome = "main-dodge";
-        S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
-        S.mainDodges++;
-        S.awaitMainCM = true;
-        R.events.push({ t, kind: "boss", text: `${P.bossCM.n} → ${P.main.name} dodges it (${S.mainDodges}${P.dodgeLimit ? ` of ${P.dodgeLimit}` : ""})`,
-          ev: { type: "bossCM", to: 0, how: "dodge", n: S.mainDodges, of: P.dodgeLimit } });
         return;
       }
       // Back-to-back: no catch tank left and this hit would knock the attacker in out - it dodges if
@@ -4672,6 +4690,7 @@ function teamStep(S, R, P, snap){
     // (a pass-through by the game's auto-swap isn't that attacker's turn in the hot swap order)
     const autoPass = !!S.swap.auto;
     S.swap = null;
+    const prevAtt = S.att || 0;
     S.att = target; S.attFrom = t; if(!autoPass) S.attMax = Math.max(S.attMax || 0, target);
     teamApplyAttacker(P, S);
     const back = S.bench && S.bench[target];
@@ -4684,7 +4703,9 @@ function teamStep(S, R, P, snap){
       if(i >= 0) R.decisions.splice(i, 1);
       if(rd.land > t && !S.hotSwap){ onBossCM(rd.land, rd.cast); if(S.ended) return; }
     }
-    S.mainDodges = 0;
+    // Max dodges counts over the whole run for each attacker: kept while it is out, picked up on its return
+    S.dodgesBy = Object.assign({}, S.dodgesBy, { [prevAtt]: S.mainDodges });
+    S.mainDodges = S.dodgesBy[target] || 0;
     S.active = 0;
     R.segs.push({ t, who: 0, att: S.att });
   } else if(S.swap && S.swap.until === t){
@@ -5011,13 +5032,15 @@ function teamMainCanAbsorb(snap, P, cast, land){
 // builds the energy it is missing (charge move first, if it already has the energy before the hit
 // lands) and casts its charge move. Energy going over the cap doesn't matter here: going all in
 // takes the very same hit, and only ends the run afterwards.
-function teamMainCanKeepGoing(S, P, t, land){
-  const m = S.mons[0], M = P.main;
-  const hpAfter = m.hp - M.bossCmDmg;
+// dodged: the same check for dodging it - the dodged damage, and the 1s dodge taken out of the time it
+// has to attack before the hit lands
+function teamMainCanKeepGoing(S, P, t, land, dodged){
+  const m = S.mons[0], M = P.main, hit = dodged ? M.bossCmDmgDodged : M.bossCmDmg;
+  const hpAfter = m.hp - hit;
   if(hpAfter <= 0) return false;
-  let e = m.energy + Math.floor(Math.max(0, land - Math.max(t, m.busyUntil)) / M.fm.ad) * M.fm.energy;
+  let e = m.energy + Math.floor(Math.max(0, land - Math.max(t, m.busyUntil) - (dodged ? TEAM_DODGE_TICKS : 0)) / M.fm.ad) * M.fm.energy;
   if(e >= M.cmCost) e -= M.cmCost;                       // fires before the hit lands
-  e = Math.min(100, e + energyFromDamage(M.bossCmDmg));
+  e = Math.min(100, e + energyFromDamage(hit));
   const missing = Math.max(0, M.cmCost - e);
   const windowTicks = Math.ceil(missing / M.fm.energy) * M.fm.ad + M.cm.ad;
   const bossFms = Math.ceil(windowTicks / (P.bossFM.ad + 4));
@@ -5249,7 +5272,8 @@ function runTeamSim(c){
     juice: !!(document.getElementById("ctJuice") || {}).checked,
     doubleBack: true,   // doubling back is part of every rotation with a support DPS (no setting)
     b2b: false,   // back-to-back charge moves: off while the logic is reassessed (the setting is ignored)
-    qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: $("ctMainAbsorb").checked,
+    // the main DPS always sponges (when its place in the order comes, after its dodges)
+    qty: monMeta.length - 1, aggro: c.aggro, mainAbsorbs: true,
     cmBuffer: false,   // CM Buffer isn't part of the Beta any more (removed from its card); old links' value is ignored
     // Main allowed to dodge: how many charge moves it may dodge over the whole run (0 = no limit).
     // Once they are used, catch tanks catch as usual.
@@ -7979,6 +8003,7 @@ function applySetup(setup){
   try{ return applySetupNow(setup); } finally { window.__applyingSetup--; }
 }
 function applySetupNow(setup){
+  setup = Object.assign({}, setup, { ctMainAbsorb: true });   // the main DPS always sponges (older setups and links may say otherwise)
   // the Catch Tank 2/3 and Support DPS cards have to exist before their fields can be filled in
   const savedTypes = parseInt(setup.ctTypes, 10);
   // (before "no catch tanks" was its own setting, a support DPS with the one catch tank card left
@@ -12601,7 +12626,7 @@ updateCTMode();
       return `<div class="mq-att" data-blk="${bi}" data-att="${b.att}"><img${shadowCls(att)} src="${esc(sprite(att))}" alt="" draggable="false" onerror="this.style.visibility='hidden'">
         <span class="mq-att-n"><b>${esc(att)}</b><small>${role}</small>${b.att !== "m" && dodge ? supDodgeLine(b.att) : ""}</span>
         <label class="mq-att-t"><input type="checkbox" data-att-dodge="${b.att}" ${dodge ? "checked" : ""}><i></i>Dodge</label>
-        <label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label>${b.att === "m" && dodge ? dodgeLine() : ""}</div>`;
+        ${b.att === "m" ? "" : `<label class="mq-att-t"><input type="checkbox" data-att-sponge="${b.att}" ${sponge ? "checked" : ""}><i></i>Sponge</label>`}${b.att === "m" && dodge ? dodgeLine() : ""}</div>`;
     }).join("");
     box.innerHTML = `<div class="mq-plan-row">${cells.join("") || '<div class="mq-none">No catch tanks - hot swaps and sponges only.</div>'}</div>
       <div class="mq-plan-note">Who takes each ${esc(cm)}, in order. Click or tap and hold a Pok\u00e9mon to move it.</div>
