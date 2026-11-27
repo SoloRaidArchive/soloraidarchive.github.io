@@ -142,6 +142,46 @@ if ("serviceWorker" in navigator) {
     font-family:'Inter', sans-serif; font-size:12.5px;
   }
   .guide-count{ font-size:11.5px; color: var(--text-dim); font-weight:600; }
+  /* ---- guides by difficulty: the Legendary / Mega switch, the (i), and a coloured bar per difficulty */
+  :root{ --t4:#e2661c; --t5:#ff5b5b; --t55:#b0203a; --t6:#9b7bf0; --t7:#5aa9ff; --t3:#e0b316; --t2:#4cbf6f; --t1:#e091c9; }
+  [data-theme="dark"]{ --t55:#e2546b; }
+  .gt-bar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:0 0 6px; }
+  .gt-bar[hidden]{ display:none; }
+  .gt-flip{ position:relative; display:inline-grid; grid-template-columns:1fr 1fr; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:3px; }
+  .gt-flip button{ position:relative; z-index:1; appearance:none; border:0; background:none; cursor:pointer;
+    font:700 13.5px 'Manrope',sans-serif; color:var(--text-dim); padding:8px 18px; transition:color .2s ease; }
+  .gt-flip button.on{ color:#fff; }
+  .gt-flip i{ position:absolute; top:3px; bottom:3px; left:3px; width:calc(50% - 3px); border-radius:9px; background:#f08a3c; transition:transform .2s ease; }
+  .gt-flip.mega i{ transform:translateX(100%); }
+  .gt-info-wrap{ position:relative; display:inline-flex; }
+  .gt-info{ appearance:none; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--text-dim); background:none; color:var(--text-dim);
+    font:800 12px/1 'Manrope',serif; font-style:italic; cursor:pointer; display:grid; place-items:center; padding:0; }
+  .gt-info:hover, .gt-info[aria-expanded="true"]{ color:var(--text); border-color:var(--text); }
+  .gt-tip{ position:absolute; right:0; top:calc(100% + 8px); z-index:20; width:min(290px, 80vw); padding:10px 12px; border-radius:10px;
+    background:var(--card); border:1px solid var(--border); box-shadow:0 8px 22px rgba(0,0,0,.12);
+    font:500 12.5px/1.45 'Inter',sans-serif; color:var(--text); visibility:hidden; opacity:0; transition:opacity .12s ease; }
+  .gt-info-wrap:hover .gt-tip, .gt-info[aria-expanded="true"] + .gt-tip{ visibility:visible; opacity:1; }
+  .gt-sec{ border-left:4px solid var(--tc); padding:4px 0 8px 14px; margin-top:18px; }
+  .gt-sec.t7{--tc:var(--t7)} .gt-sec.t6{--tc:var(--t6)} .gt-sec.t55{--tc:var(--t55)} .gt-sec.t5{--tc:var(--t5)}
+  .gt-sec.t4{--tc:var(--t4)} .gt-sec.t3{--tc:var(--t3)} .gt-sec.t2{--tc:var(--t2)} .gt-sec.t1{--tc:var(--t1)}
+  .gt-h{ display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px; margin:0 0 6px; }
+  .gt-h b{ font:800 17px 'Manrope',sans-serif; color:var(--tc); }
+  .gt-h .gt-star{ margin-right:7px; }
+  .gt-h .gt-d{ font:500 12.5px 'Inter',sans-serif; color:var(--text-dim); }
+  .gt-list{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:0 8px; }
+  .gt-row{ display:grid; grid-template-columns:34px minmax(0,1fr); align-items:center; gap:8px; padding:5px 6px; border-radius:10px; text-decoration:none; color:var(--text); }
+  .gt-row:hover{ background:color-mix(in srgb, var(--text) 5%, transparent); }
+  .gt-row:hover b{ text-decoration:underline; text-underline-offset:3px; }
+  .gt-row .sp{ width:34px; height:34px; display:grid; place-items:center; }
+  .gt-row .sp img{ max-width:34px; max-height:34px; }
+  .gt-row b{ font:800 14px 'Manrope',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  @media (max-width:820px){ .gt-list{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+  @media (max-width:560px){ .gt-list{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:0 4px; } .gt-h .gt-d{ display:none; }
+    .gt-sec{ padding-left:10px; }
+    .gt-row{ grid-template-columns:28px minmax(0,1fr); gap:6px; padding:5px 3px; }
+    .gt-row .sp, .gt-row .sp img{ width:28px; height:28px; max-width:28px; max-height:28px; }
+    .gt-row b{ font-size:13px; white-space:normal; line-height:1.2; } }
+  @media (max-width:340px){ .gt-list{ grid-template-columns:minmax(0,1fr); } }
   @media (max-width:560px){
     /* The sort control drops onto its own line rather than squeezing the chips. */
     .guide-sort{ margin-left:0; width:100%; }
@@ -491,23 +531,16 @@ if ("serviceWorker" in navigator) {
     </div>
     <div class="boss-search-results" id="guideSearchResults" role="listbox"></div>
   </div>
-  <div class="guide-controls" id="guideControls" hidden>
-    <div class="guide-filters" role="group" aria-label="Filter guides by category">
-      <button type="button" class="guide-chip is-on" data-cat="all">All</button>
-      <button type="button" class="guide-chip" data-cat="mega">Mega</button>
-      <button type="button" class="guide-chip" data-cat="legendary">Legendary</button>
+  <div class="gt-bar" id="guideControls" hidden>
+    <div class="gt-flip legendary" role="group" aria-label="Legendary or Mega guides"><i aria-hidden="true"></i>
+      <button type="button" data-cat="legendary" class="on" aria-pressed="true">Legendary</button><button type="button" data-cat="mega" aria-pressed="false">Mega</button>
     </div>
-    <label class="guide-sort">
-      <span>Sort</span>
-      <select id="guideSort">
-        <option value="default">Newest first</option>
-        <option value="az">Name (A&ndash;Z)</option>
-        <option value="za">Name (Z&ndash;A)</option>
-      </select>
-    </label>
-    <span class="guide-count" id="guideCount"></span>
+    <span class="gt-info-wrap">
+      <button type="button" class="gt-info" id="gtInfo" aria-label="How guides are grouped" aria-expanded="false" aria-controls="gtTip">i</button>
+      <span class="gt-tip" id="gtTip" role="note">Guides are grouped by their base ranking &mdash; the lowest star rating among their routes. Other routes in a guide are typically harder.</span>
+    </span>
   </div>
-  <div class="guide-grid" id="guideGrid"></div>
+  <div class="gt-wrap" id="guideGrid"></div>
   <p class="ga-faq">For questions about guides, see our <a href="articles/faq-s.html">FAQ's</a> page</p>
   </div>
   <div id="gaArticles" hidden>
@@ -774,51 +807,66 @@ function guideCategory(name){
   return /^(mega|primal)\s/i.test(String(name || "").trim()) ? "mega" : "legendary";
 }
 
-function initGuideControls(bosses){
-  const controls = document.getElementById("guideControls");
-  const sortSel = document.getElementById("guideSort");
-  const countEl = document.getElementById("guideCount");
-  const chips = [...document.querySelectorAll(".guide-chip")];
-  let category = "all";
+// Difficulty names and descriptions as on the Difficulty & Roles page, hardest first
+const GT_TIERS = [
+  [7, "Special", "t7", "Perfect execution required — under 0.5% win chance."],
+  [6, "Nightmare", "t6", "Perfect execution — roughly 1–2.5% win chance."],
+  [5.5, "Very Hard", "t55", "Excellent execution — roughly 10–20% win chance."],
+  [5, "Hard", "t5", "Good execution, favorable weather & movesets recommended."],
+  [4, "Challenging", "t4", "Some strategic execution — Level 40+ with select movesets."],
+  [3, "Moderate", "t3", "Various counters work — Level 40+."],
+  [2, "Easy", "t2", "Various counters work — Level 30+."],
+  [1, "Very Easy", "t1", "Lots of counters work — Level 30."]];
 
-  // The order index.json ships in is the publication order, so it is preserved as "Newest first"
-  // rather than being lost the moment a sort is applied.
-  const original = bosses.map((b, i) => ({ b, i }));
+// A guide's base ranking: the lowest star rating among its routes (read from data/guides/<slug>.json)
+async function guideBase(b){
+  try{
+    const res = await fetch(`data/guides/${encodeURIComponent(b.slug)}.json`);
+    if(!res.ok) return 0;
+    const d = await res.json();
+    const st = (d.strategies || []).map(x => parseFloat(String(x.difficulty || "").replace(/[^\d.]/g, ""))).filter(v => v > 0);
+    return st.length ? Math.min(...st) : 0;
+  }catch(e){ return 0; }
+}
+
+async function initGuideControls(bosses){
+  const controls = document.getElementById("guideControls");
+  const flip = controls.querySelector(".gt-flip");
+  const btns = [...flip.querySelectorAll("button")];
+  let category = "legendary";
+
+  guideGrid.innerHTML = `<div class="empty-state">Loading…</div>`;
+  const bases = await Promise.all(bosses.map(guideBase));
+  const all = bosses.map((b, i) => ({ b, base: bases[i] }));
 
   function draw(){
-    let list = original.filter(x => category === "all" || guideCategory(x.b.name) === category);
-    const mode = sortSel.value;
-    if(mode === "az") list = list.slice().sort((x, y) => x.b.name.localeCompare(y.b.name));
-    else if(mode === "za") list = list.slice().sort((x, y) => y.b.name.localeCompare(x.b.name));
-    else list = list.slice().sort((x, y) => x.i - y.i);
-
-    countEl.textContent = list.length + (list.length === 1 ? " guide" : " guides");
-
-    if(!list.length){
-      guideGrid.innerHTML = `<div class="empty-state">No ${category} guides yet.</div>`;
-      return;
-    }
-    guideGrid.innerHTML = list.map(({ b }) => `
-      <a class="guide-card" href="data/guides/${escapeAttr(b.slug)}.html">
-        <div class="guide-card-sprite"><img src="${monSpriteUrl(b.name)}" alt="" loading="lazy" onerror="this.remove();"></div>
-        <div>
-          <div class="guide-card-name">${b.name}</div>
-          <div class="guide-card-cta">View solo strategies &rarr;</div>
-        </div>
-      </a>
-    `).join("");
+    const list = all.filter(x => guideCategory(x.b.name) === category);
+    if(!list.length){ guideGrid.innerHTML = `<div class="empty-state">No ${category} guides yet.</div>`; return; }
+    const row = ({ b }) => `<a class="gt-row" href="data/guides/${escapeAttr(b.slug)}.html">`
+      + `<span class="sp"><img src="${monSpriteUrl(b.name)}" alt="" loading="lazy" onerror="this.remove();"></span><b>${escapeAttr(b.name)}</b></a>`;
+    // a guide with no rating on file goes under the lowest difficulty
+    const tierOf = v => (GT_TIERS.find(t => v >= t[0]) || GT_TIERS[GT_TIERS.length - 1])[0];
+    guideGrid.innerHTML = GT_TIERS.map(([v, name, c, desc]) => {
+      const G = list.filter(x => tierOf(x.base) === v).sort((x, y) => x.b.name.localeCompare(y.b.name));
+      if(!G.length) return "";
+      return `<section class="gt-sec ${c}"><div class="gt-h"><b><span class="gt-star">${v}★</span>${name}</b><span class="gt-d">${desc}</span></div>`
+        + `<div class="gt-list">${G.map(row).join("")}</div></section>`;
+    }).join("");
   }
 
-  chips.forEach(chip => chip.addEventListener("click", () => {
-    category = chip.dataset.cat;
-    chips.forEach(c => {
-      const on = c === chip;
-      c.classList.toggle("is-on", on);
-      c.setAttribute("aria-pressed", String(on));
-    });
+  btns.forEach(btn => btn.addEventListener("click", () => {
+    category = btn.dataset.cat;
+    flip.classList.toggle("mega", category === "mega");
+    flip.classList.toggle("legendary", category === "legendary");
+    btns.forEach(x => { const on = x === btn; x.classList.toggle("on", on); x.setAttribute("aria-pressed", String(on)); });
     draw();
   }));
-  sortSel.addEventListener("change", draw);
+
+  // (i): hover on desktop; tap (or Enter) to open and close, and a tap elsewhere closes it
+  const info = document.getElementById("gtInfo");
+  info.addEventListener("click", e => { e.stopPropagation(); info.setAttribute("aria-expanded", String(info.getAttribute("aria-expanded") !== "true")); });
+  document.addEventListener("click", () => info.setAttribute("aria-expanded", "false"));
+  document.addEventListener("keydown", e => { if(e.key === "Escape") info.setAttribute("aria-expanded", "false"); });
 
   controls.hidden = false;
   draw();
