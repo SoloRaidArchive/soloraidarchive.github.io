@@ -1623,6 +1623,8 @@ if ("serviceWorker" in navigator) {
   .team-stat-table table.team-ro tr.team-ro-tot td:first-child{ width:auto; }
   .team-stat-table table.team-ro tr.team-ro-note td{ text-align:left; color:var(--text-dim); font-weight:600; white-space:normal; padding-top:6px; }
   .team-stat-table table.team-ro .team-dim{ font-weight:600; }
+  /* Attackers: the FM / CM counts in narrow columns */
+  .team-stat-table table.team-ro-att tr th:nth-child(n+5), .team-stat-table table.team-ro-att tr td:nth-child(n+5){ width:34px; }
   @media (max-width: 560px){ .team-stat-table tr.team-ro-row:not(.dps-stat-group) > td:only-child{ flex:1 1 100%; } }
   /* going all in: marked above the timeline where it happened */
   .tl-allin{ position:relative; height:26px; margin-top:6px; }
@@ -2420,7 +2422,7 @@ if ("serviceWorker" in navigator) {
       <p class="beta-h">Your party</p>
       <ul>
         <li>A main DPS, up to five support DPS, and up to three kinds of catch tank - or no catch tanks at all (Remove on Catch Tank 1), for hot swapping only.</li>
-        <li>A catch tank swaps in as the boss's charge move lands, uses one fast move, fires the charge moves set on its card, and swaps back. With <b>Double catch</b>, it catches twice: after the first it uses the set fast moves and swaps out holding its energy, then comes back for the boss's next charge move and fires on both catches' energy (only when it has the HP for the second catch).</li>
+        <li>A catch tank swaps in as the boss's charge move lands, uses one fast move, fires the charge moves set on its card, and swaps back. Once the fresh ones are used, a catch tank with the HP for another catch comes back and does it again. With <b>Double catch</b>, it catches twice: after the first it uses the set fast moves and swaps out holding its energy, then comes back for the boss's next charge move and fires on both catches' energy (only when it has the HP for the second catch).</li>
         <li>Swaps take 0.5s. Each swap to a catch tank is timed for the highest DPS: the fight is run for every swap time, 0.5s apart, and the best is kept.</li>
       </ul>
       <p class="beta-h">The boss</p>
@@ -4182,9 +4184,22 @@ function teamStep(S, R, P, snap){
   const nextFresh = () => {   // the next catch tank the attacker in would call in (0 = none)
     const a = blk();
     for(let i = 1; i < S.mons.length; i++){ const m = S.mons[i]; if(!m.used && m.owner === a) return i; }
-    if(P.assign === "strict") return 0;
-    for(let i = S.mons.length - 1; i >= 1; i--){ if(!S.mons[i].used) return i; }
-    return 0;
+    if(P.assign !== "strict") for(let i = S.mons.length - 1; i >= 1; i--){ if(!S.mons[i].used) return i; }
+    return reusable();
+  };
+  // A catch tank that has caught already comes back when it has the HP for another catch (safeSecond:
+  // the boss's charge move and the fast moves that land while it's in) - once the fresh ones are used.
+  // Its own attacker's first (the healthiest), then (soft) any other's. Not one that's in, on its way
+  // in, holding a Double catch, or still owing charge moves from its last catch.
+  const reusable = () => {
+    const a = blk(), ok = i => { const m = S.mons[i], tp = P.tanks[m.type];
+      return m.used && m.hp > 0 && !m.primed && !tp.doubleCatch && m.cmCasts >= tp.casts && i !== S.active
+        && !(S.swap && (S.swap.to === i || S.swap.from === i)) && !(S.pendingSwap && S.pendingSwap.to === i) && safeSecond(m); };
+    let best = 0;
+    for(let i = 1; i < S.mons.length; i++) if(S.mons[i].owner === a && ok(i) && (!best || S.mons[i].hp > S.mons[best].hp)) best = i;
+    if(best || P.assign === "strict") return best;
+    for(let i = 1; i < S.mons.length; i++) if(ok(i) && (!best || S.mons[i].hp > S.mons[best].hp)) best = i;
+    return best;
   };
   const primedTank = () => {
     if(!P.doubleCatch) return 0;
@@ -4392,6 +4407,7 @@ function teamStep(S, R, P, snap){
       const pr = primedTank();   // double catch: a primed tank comes back for its 2nd catch first
       const to = pr || nextFresh();
       if(pr) S.mons[pr].primed = false;
+      if(!pr && S.mons[to].used){ S.mons[to].cmCasts = 0; S.mons[to].catches = (S.mons[to].catches || 1) + 1; }   // a catch tank catching again
       S.mons[to].used = true;
       if(P._cps && !S.probe && !S.shadow) P._cpMark = S.catchNo;   // (the search can resume a run here)
       S.pendingSwap = { to, latest: teamSwapLatest(P, t, land, freeAt, S.catchNo++), second: !!pr };
@@ -5968,6 +5984,7 @@ function renderTeamSim(P, S, R){
   // an attacker's charge moves landed within the results (main / support DPS, not catch tanks),
   // beside its uptime - e.g. "4 Dynamax Cannons · 42.2% uptime"
   const castsOf = k => { const A = ATT[k] || P.main; return dmg.filter(d => d.who === 0 && (d.att || 0) === k && d.mv === A.cm.n).length; };
+  const fastOf = k => { const A = ATT[k] || P.main; return dmg.filter(d => d.who === 0 && (d.att || 0) === k && d.mv === A.fm.n).length; };
   const attUptime = (k, ticks) => {
     if(!(E > 0)) return "";
     const n = castsOf(k), A = ATT[k] || P.main;
@@ -6078,23 +6095,27 @@ function renderTeamSim(P, S, R){
   // Attackers: DPS | Damage | Uptime. Boss Rotation: the boss's own row (its totals), then how many
   // of each move every Pokemon took - the charge move with how it was handled (caught / sponged /
   // dodged). Pokemon that took neither are left out of the boss's table.
+  const zero = `<span class="team-dim">&ndash;</span>`;
   const roster = (() => {
     const fmOf = (pred) => bossFmHits.filter(pred).length;
-    const att = (multi ? ATT.map((A, k) => ({ ico: attIco(k), dps: attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;", dmg: attDmg[k], up: pctIn(attTicks[k]),
+    const att = (multi ? ATT.map((A, k) => ({ ico: attIco(k), dps: attTicks[k] ? ownDps(attDmg[k], attTicks[k]) : "&mdash;", dmg: attDmg[k], up: pctIn(attTicks[k]), nFm: fastOf(k), nCm: castsOf(k),
         fm: fmOf(b => b.who === 0 && (b.att || 0) === k), cmC: 0, sp: sponged[k][1], dg: dodgedBy[k] ? dodgedBy[k][1] : 0 }))
-      : [{ ico: teamIcon(P, 0), dps: (fieldTicks.get(0) || 0) ? ownDps(mainDmg, fieldTicks.get(0) || 0) : "&mdash;", dmg: mainDmg, up: pctIn(onField.get(0) || 0),
+      : [{ ico: teamIcon(P, 0), dps: (fieldTicks.get(0) || 0) ? ownDps(mainDmg, fieldTicks.get(0) || 0) : "&mdash;", dmg: mainDmg, up: pctIn(onField.get(0) || 0), nFm: fastOf(0), nCm: castsOf(0),
         fm: fmOf(b => b.who === 0), cmC: 0, sp: sponged[0][1], dg: dodgedBy[0] ? dodgedBy[0][1] : 0 }]);
     const tanks = P.tanks.map((tp, i) => { let ticks = 0, up = 0;
       fieldTicks.forEach((v, who) => { if(who > 0 && typeOf(who) === i) ticks += v; });
       onField.forEach((v, who) => { if(who > 0 && typeOf(who) === i) up += v; });
+      const mine = dmg.filter(d => d.who > 0 && typeOf(d.who) === i);
       return { ico: typeIcos[i], dps: ticks ? ownDps(dmgByType[i], ticks) : "&mdash;", dmg: dmgByType[i], up: pctIn(up),
+        nFm: mine.filter(d => d.mv === tp.fm.n).length, nCm: mine.filter(d => d.mv === tp.cm.n).length,
         fm: fmOf(b => b.who > 0 && typeOf(b.who) === i), cmC: caughtByType[i] || 0, sp: 0, dg: 0 }; });
     return att.concat(tanks);
   })();
-  const zero = `<span class="team-dim">&ndash;</span>`;
-  const attRoster = `<table class="team-ro team-ro-att"><thead><tr><th></th><th>DPS</th><th>Damage</th><th>Uptime</th></tr></thead><tbody>`
-    + roster.map(m => `<tr><td>${m.ico}</td><td>${m.dps}</td><td>${m.dmg.toLocaleString()}</td><td>${m.up}%</td></tr>`).join("")
-    + `<tr class="team-ro-tot"><td colspan="2">Total</td><td><b class="team-total">${total.toLocaleString()}</b></td><td></td></tr></tbody></table>`;
+  // FM / CM: the fast and charge moves each one landed
+  const attRoster = `<table class="team-ro team-ro-att"><thead><tr><th></th><th>DPS</th><th>Damage</th><th>Uptime</th><th title="Fast moves">FM</th><th title="Charge moves">CM</th></tr></thead><tbody>`
+    + roster.map(m => `<tr><td>${m.ico}</td><td>${m.dps}</td><td>${m.dmg.toLocaleString()}</td><td>${m.up}%</td><td>${m.nFm || zero}</td><td>${m.nCm || zero}</td></tr>`).join("")
+    + `<tr class="team-ro-tot"><td colspan="2">Total</td><td><b class="team-total">${total.toLocaleString()}</b></td><td></td>`
+    + `<td>${roster.reduce((a, m) => a + (m.nFm || 0), 0)}</td><td>${roster.reduce((a, m) => a + (m.nCm || 0), 0)}</td></tr></tbody></table>`;
   const cmCell = m => [m.cmC ? teamHow("caught", m.cmC) : "", m.sp ? teamHow("sponged", m.sp) : "", m.dg ? teamHow("dodged", m.dg) : ""].filter(Boolean).join(" ") || zero;
   const bossRoster = `<table class="team-ro team-ro-boss"><thead><tr><th></th><th>${P.bossFM.n}</th><th>${P.bossCM.n}${cmLegend ? teamTipHtml(cmLegend, "What the icons mean") : ""}</th></tr></thead><tbody>`
     + `<tr class="team-ro-boss-row"><td>${teamIcon(P, "boss")}</td><td><b class="team-total">${bossFmHits.length}</b></td><td><b class="team-total">${decs.length}</b></td></tr>`
