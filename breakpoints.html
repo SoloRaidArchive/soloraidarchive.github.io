@@ -399,6 +399,9 @@ if ("serviceWorker" in navigator) {
   .bk-d i{ font-style:normal; font-size:11px; margin-left:4px; }
   .bk-bm{ font:500 12.5px 'Inter',sans-serif; color:var(--ink-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .bk-empty{ padding:18px 0; color:var(--ink-dim); font:600 13px 'Inter',sans-serif; }
+  /* what a higher IV would get: its own small heading, the rows a little quieter */
+  .bk-sub{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); padding:12px 0 4px; border-bottom:1px solid var(--border); }
+  .bk-r.bk-more .bk-mon b, .bk-r.bk-more .bk-iv{ color:var(--ink-muted); }
   /* level slider */
   .bk-lv{ display:flex; align-items:center; gap:12px; margin:14px 0 0; max-width:420px; }
   /* IV steppers: the DPS Calculator's party panel's */
@@ -415,6 +418,33 @@ if ("serviceWorker" in navigator) {
   .bk-r{ cursor:pointer; border-radius:6px; }
   .bk-r:hover{ background:color-mix(in srgb, var(--ink) 5%, transparent); }
   .bk-r:focus-visible{ outline:2px solid #f08a3c; outline-offset:1px; }
+  /* Breakpoints and Bulkpoints side by side on the left, each only as wide as its longest boss name and
+     number (Boss | Dmg), the mini chart on the right */
+  .bk-two.bk-split{ grid-template-columns:max-content minmax(0,1fr); gap:32px; align-items:start; }
+  .bk-lists{ display:grid; grid-template-columns:max-content max-content; gap:28px; align-items:start; min-width:0; }
+  .bk-lists #bkBreak, .bk-lists #bkBulk{ width:max-content; min-width:150px; max-width:300px; }
+  .bk-split .bk-h, .bk-split .bk-r{ grid-template-columns:minmax(0,1fr) auto; column-gap:18px; padding-right:4px; }
+  .bk-sub:first-child{ padding-top:6px; }
+  .bk-r.on{ background:color-mix(in srgb, var(--ink) 7%, transparent); }
+  .bk-side{ position:sticky; top:90px; min-width:0; }
+  .bk-side-h, .bk-mini-row .bk-side-h{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 8px; }
+  .bk-side-k{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; }
+  .bk-side-k.bp{ color:#f08a3c; } .bk-side-k.bk{ color:#4a90e2; }
+  .bk-mini .c{ height:22px; font-size:9.5px; }
+  .bk-mini .rl.on{ color:var(--ink); font-weight:800; }
+  .bk-mini-row{ padding:8px 0 12px; }
+  @media (max-width:1000px){
+    .bk-two.bk-split{ grid-template-columns:minmax(0,1fr); }
+    .bk-side{ position:static; }
+  }
+  @media (max-width:700px){
+    .bk-two.bk-split{ grid-template-columns:minmax(0,1fr); }
+    .bk-lists{ grid-template-columns:minmax(0,1fr); gap:22px; }
+    .bk-lists #bkBreak, .bk-lists #bkBulk{ width:auto; max-width:none; }
+    .bk-side{ display:none; }
+    .bk-mini-row .bk-mini .c{ height:18px; font-size:7.5px; letter-spacing:-.02em; }
+    .bk-mini-row .bk-side-h .bk-mon{ display:none; }
+  }
   .bk-iv{ text-align:right; font:600 13px 'Inter',sans-serif; color:var(--ink-muted); font-variant-numeric:tabular-nums; }
   /* the chart */
   .bk-ov{ position:fixed; inset:0; z-index:90; background:rgba(20,24,38,.5); display:flex; align-items:center; justify-content:center; padding:20px; }
@@ -696,9 +726,12 @@ if ("serviceWorker" in navigator) {
       <input type="range" id="bkLv" min="0" max="0" step="1" aria-label="Level">
       <b id="bkLvVal">51</b>
     </div>
-    <div class="bk-two">
-      <div><h3 class="t-bp">Breakpoints</h3><div id="bkBreak"><div class="bk-empty">Loading…</div></div></div>
-      <div><h3 class="t-bk">Bulkpoints</h3><div id="bkBulk"><div class="bk-empty">Loading…</div></div></div>
+    <div class="bk-two bk-split">
+      <div class="bk-lists">
+        <div><h3 class="t-bp">Breakpoints</h3><div id="bkBreak"><div class="bk-empty">Loading…</div></div></div>
+        <div><h3 class="t-bk">Bulkpoints</h3><div id="bkBulk"><div class="bk-empty">Loading…</div></div></div>
+      </div>
+      <aside class="bk-side" id="bkSide" aria-live="polite"></aside>
     </div>
   </section>
 
@@ -1081,16 +1114,33 @@ function calc(){
   const [from, to] = levelPair(opt.lv);
   $("bkLvVal").textContent = opt.lv;
   if(!mon(name)){ $("bkBreak").innerHTML = `<div class="bk-empty">${name ? "No Pokémon by that name." : "Pick a Pokémon."}</div>`; $("bkBulk").innerHTML = ""; return; }
-  const brk = POPULAR.map(b => ({ b, d: attack(name, fm, b, opt) })).filter(r => r.d && r.d[1] > r.d[0])
-    .map(r => { let iv = opt.atk; while(iv > 0 && dealtAt(name, fm, r.b, opt, iv - 1, to) >= r.d[1]) iv--; return { ...r, iv }; });
-  const blk = POPULAR.map(b => ({ b, d: taken(name, b, opt) })).filter(r => r.d && r.d[1] < r.d[0])
-    .map(r => { let iv = opt.def; while(iv > 0 && takenAt(name, r.b, opt, iv - 1, to) <= r.d[1]) iv--; return { ...r, iv }; });
+  // At the IV picked, then at each higher IV up to 15 (what one more IV point would get at this level).
+  // A boss already listed with the same new number isn't listed again.
+  const rows = (ivPicked, at, better) => {
+    const out = [], seen = new Set();
+    for(let v = ivPicked; v <= 15; v++){
+      POPULAR.forEach(b => {
+        const d = [at(b, v, from), at(b, v, to)];
+        if(d[0] == null || !better(d[1], d[0]) || seen.has(b.n + "|" + d[1])) return;
+        seen.add(b.n + "|" + d[1]);
+        let iv = v; while(iv > 0 && !better(d[1], at(b, iv - 1, to))) iv--;   // the lowest IV that gets it at this level
+        out.push({ b, d, iv, at: v });
+      });
+    }
+    return out;
+  };
+  const brk = rows(opt.atk, (b, v, L) => dealtAt(name, fm, b, opt, v, L), (x, y) => x > y);
+  const blk = rows(opt.def, (b, v, L) => takenAt(name, b, opt, v, L), (x, y) => x < y);
   SHOWN = { brk, blk };
   const none = `<div class="bk-empty">None.</div>`;
-  const row = (r, i, k) => `<div class="bk-r" role="button" tabindex="0" data-k="${k}" data-i="${i}"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span>`
-    + `<span class="bk-iv">${r.iv}+</span><span class="bk-d n ${k === "bp" ? "up" : "down"}">${r.d[0]} → ${r.d[1]}</span></div>`;
-  $("bkBreak").innerHTML = brk.length ? `<div class="bk-h"><span>Boss</span><span class="n">Atk IV</span><span class="n">Dmg</span></div>` + brk.map((r, i) => row(r, i, "bp")).join("") : none;
-  $("bkBulk").innerHTML = blk.length ? `<div class="bk-h"><span>Boss</span><span class="n">Def IV</span><span class="n">Taken</span></div>` + blk.map((r, i) => row(r, i, "bk")).join("") : none;
+  const row = (r, i, k) => `<div class="bk-r${r.at > (k === "bp" ? opt.atk : opt.def) ? " bk-more" : ""}" role="button" tabindex="0" data-k="${k}" data-i="${i}"><span class="bk-mon">${sprite(r.b.n)}<b>${esc(r.b.n)}</b></span>`
+    + `<span class="bk-d n ${k === "bp" ? "up" : "down"}">${r.d[0]} → ${r.d[1]}</span></div>`;
+  // each IV under its own heading: the IV picked, then each higher one
+  const list = (L, k, stat) => L.map((r, i) => (i === 0 || L[i - 1].at !== r.at ? `<div class="bk-sub">${r.at} ${stat}</div>` : "") + row(r, i, k)).join("");
+  const mine = (L, v) => L.some(r => r.at === v);
+  $("bkBreak").innerHTML = brk.length ? (mine(brk, opt.atk) ? "" : `<div class="bk-sub">${opt.atk} Atk</div>` + none) + list(brk, "bp", "Atk") : none;
+  $("bkBulk").innerHTML = blk.length ? (mine(blk, opt.def) ? "" : `<div class="bk-sub">${opt.def} Def</div>` + none) + list(blk, "bk", "Def") : none;
+  sideAfterCalc();
   if(!$("bkOv").hidden) drawChart();
   try{ history.replaceState(null, "", "?p=" + encodeURIComponent(name) + "&fm=" + encodeURIComponent(fm)
     + (opt.lv !== 51 ? "&lv=" + opt.lv : "") + (opt.atk !== 15 ? "&a=" + opt.atk : "") + (opt.def !== 15 ? "&d=" + opt.def : "")
@@ -1141,8 +1191,50 @@ $("bkOv").addEventListener("click", e => { if(e.target === $("bkOv")) closeChart
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("bkOv").hidden) closeChart(); });
 $("bkOvKind").addEventListener("click", e => { const x = e.target.closest("button"); if(x){ CHART.kind = x.dataset.k; drawChart(); } });
 $("bkOvRange").addEventListener("click", e => { const x = e.target.closest("button"); if(x){ CHART.range = x.dataset.r; drawChart(); } });
+// ---- the mini chart: the row picked (the first, to begin with) - on the right, or under the row on phones
+const SIDE = { k: null, n: null };
+const PHONE = window.matchMedia("(max-width:700px)");
+function drawMini(host, bossName, k){
+  const b = POPULAR.find(x => x.n === bossName), opt = readOpt(), name = $("bkMon").value.trim(), fm = $("bkFm").value;
+  if(!b || !mon(name)){ host.innerHTML = ""; return; }
+  const lvs = LEVELS.filter(L => L >= 40 && L <= 53), me = k === "bp" ? opt.atk : opt.def, color = k === "bp" ? "#f08a3c" : "#4a90e2";
+  const ivs = []; for(let iv = 15; iv >= Math.min(10, me); iv--) ivs.push(iv);
+  const f = k === "bp" ? (iv, L) => dealtAt(name, fm, b, opt, iv, L) : (iv, L) => takenAt(name, b, opt, iv, L);
+  const vals = ivs.flatMap(iv => lvs.map(L => f(iv, L)));
+  if(vals.some(v => v == null)){ host.innerHTML = `<div class="bk-empty">No fast move on file for this boss.</div>`; return; }
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  const pct = d => (hi === lo ? 60 : 18 + 62 * (k === "bp" ? (d - lo) : (hi - d)) / (hi - lo)) + (d % 2 ? 0 : -10);
+  const shade = d => `color-mix(in srgb, ${color} ${pct(d)}%, var(--card))`;
+  let g = `<div class="bk-hm bk-mini" style="grid-template-columns:24px repeat(${lvs.length}, minmax(0, 1fr))">`;
+  ivs.forEach(iv => { g += `<span class="rl${iv === me ? " on" : ""}">${iv}</span>`;
+    lvs.forEach(L => { const d = f(iv, L); g += `<span class="c${iv === me && L === opt.lv ? " me" : ""}" style="background:${shade(d)}" title="${k === "bp" ? "Attack" : "Defense"} IV ${iv} · Level ${L}: ${d}">${d}</span>`; }); });
+  g += `<span class="rl ax">${k === "bp" ? "Atk" : "Def"}</span>` + lvs.map(L => `<span class="cl">${Number.isInteger(L) && (L % 2 === 0 || L === 53) ? L : ""}</span>`).join("") + `</div>`;
+  host.innerHTML = `<div class="bk-side-h"><span class="bk-mon">${sprite(b.n)}<b>${esc(b.n)}</b></span><span class="bk-side-k ${k}">${k === "bp" ? "Damage dealt" : "Damage taken"}</span></div>` + g;
+}
+function showSide(n, k){
+  SIDE.n = n; SIDE.k = k;
+  document.querySelectorAll(".bk-r.on").forEach(x => x.classList.remove("on"));
+  document.querySelectorAll(".bk-mini-row").forEach(x => x.remove());
+  const r = [...document.querySelectorAll(`.bk-r[data-k="${k}"]`)].find(x => (k === "bp" ? SHOWN.brk : SHOWN.blk)[+x.dataset.i]?.b.n === n);
+  if(r) r.classList.add("on");
+  if(PHONE.matches){
+    $("bkSide").innerHTML = "";
+    if(r){ const box = document.createElement("div"); box.className = "bk-mini-row"; r.after(box); drawMini(box, n, k); }
+  } else drawMini($("bkSide"), n, k);
+}
+function sideAfterCalc(){
+  const all = SHOWN.brk.map(x => ["bp", x]).concat(SHOWN.blk.map(x => ["bk", x]));
+  const keep = all.find(([k, x]) => k === SIDE.k && x.b.n === SIDE.n);
+  if(keep) showSide(SIDE.n, SIDE.k);
+  else if(all.length && !PHONE.matches) showSide(all[0][1].b.n, all[0][0]);
+  else { SIDE.n = SIDE.k = null; $("bkSide").innerHTML = all.length ? "" : ""; }
+}
+PHONE.addEventListener && PHONE.addEventListener("change", () => { if(SIDE.n) showSide(SIDE.n, SIDE.k); });
 const rowOpen = e => { const r = e.target.closest(".bk-r[data-k]"); if(!r) return;
-  const L = r.dataset.k === "bp" ? SHOWN.brk : SHOWN.blk, it = L[+r.dataset.i]; if(it) openChart(it.b, r.dataset.k); };
+  const L = r.dataset.k === "bp" ? SHOWN.brk : SHOWN.blk, it = L[+r.dataset.i]; if(!it) return;
+  // on a phone, tapping the open row closes it
+  if(PHONE.matches && SIDE.n === it.b.n && SIDE.k === r.dataset.k){ SIDE.n = SIDE.k = null; r.classList.remove("on"); document.querySelectorAll(".bk-mini-row").forEach(x => x.remove()); return; }
+  showSide(it.b.n, r.dataset.k); };
 ["bkBreak", "bkBulk"].forEach(id => { $(id).addEventListener("click", rowOpen);
   $(id).addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); rowOpen(e); } }); });
 function pick(name){ $("bkMon").value = name; lastMon = key(name); $("bkFm").innerHTML = ""; fillMoves(); calc(); }

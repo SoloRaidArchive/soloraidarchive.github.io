@@ -4295,7 +4295,7 @@ function teamStep(S, R, P, snap){
     if(out.hp <= 0) S.hits = S.hits.filter(h => h.who !== 0);   // a fainted attacker's move never lands
     S.gains = S.gains.filter(g => g.who !== 0);
     S.hotSwap = null; S.juice = false; S.finishing = false; S.finishDeadline = null; S.finishAt = null; S.allIn = false;
-    S.pendingDodge = null; S.dodging = null; S.awaitMainCM = false;
+    S.pendingDodge = null; S.dodging = null; S.fmDodge = null; S.awaitMainCM = false;
     S.swap = { from: 0, to: 0, until: t + TEAM_SWAP_TICKS, hot: true, toAtt: target };
     R.segs.push({ t, who: -1 });
     R.swaps.push({ t, until: t + TEAM_SWAP_TICKS, from: 0, to: 0, hot: true, fromAtt: S.att, toAtt: target });
@@ -4740,13 +4740,16 @@ function teamStep(S, R, P, snap){
     if(dodged && who === 0) S.dodging = null;
     // Dodge FM: the first boss fast move to land on a catch tank since it came in is dodged
     const fmDodged = !mv.cm && m.tank && m.fmDodge && !S.swap && m.hp > 0;
+    // (All in: the main DPS dodging the fast move that would have knocked it out mid-charge-move)
+    const mainFmDodged = !mv.cm && who === 0 && !S.swap && S.fmDodge && S.fmDodge.cast === mv.cast;
+    if(mainFmDodged) S.fmDodge = null;
     if(fmDodged) m.fmDodge = false;
     const dmg = mv.cm ? (dodged ? (who === 0 ? P.main.bossCmDmgDodged : Math.floor(side.bossCmDmg * 0.25)) : side.bossCmDmg)
-      : fmDodged ? Math.floor(side.bossFmDmg * 0.25) : side.bossFmDmg;
+      : (fmDodged || mainFmDodged) ? Math.floor(side.bossFmDmg * 0.25) : side.bossFmDmg;
     m.hp -= dmg;
     if(fmDodged) m.busyUntil = Math.max(m.busyUntil || 0, t) + TEAM_DODGE_TICKS;   // 1.0s spent dodging
     const over = teamBank(m, energyFromDamage(dmg));
-    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged: dodged || fmDodged, att: who === 0 ? S.att : undefined, elig: !!mv.elig });
+    R.bossMoves.push({ cast: mv.cast, t, cm: mv.cm, who, dmg, over, dodged: dodged || fmDodged || mainFmDodged, att: who === 0 ? S.att : undefined, elig: !!mv.elig });
     R.hp.push({ t, who, hp: m.hp, att: who === 0 ? S.att : undefined });
     if(mv.cm){
       R.events.push({ t, kind: m.tank ? "ct" : "main",
@@ -4869,6 +4872,36 @@ function teamStep(S, R, P, snap){
         const cmDone = t + need * side.fm.ad + side.cm.ad;
         // ...unless it can take the hit and still land it (greed): then it stays, fires, and swaps after
         if(S.hotSwap.fired || (cmDone + TEAM_SWAP_TICKS > S.hotSwap.deadline && !S.hotSwap.greed)){ startHotSwap(S.hotSwap.to); return; }
+      }
+      // All in: about to fire its last charge move with nobody left, but the boss's fast move in the air
+      // would land mid-animation and knock it out. It dodges that fast move first (its last 1.0s, 25% of
+      // the damage) and fires as it lands - when it survives the dodged hit and the charge move then
+      // lands before the boss's next move can (2s after the fast move, plus that move's own time).
+      if(who === 0 && !S.probe && P.allIn && !m.tank && m.energy >= side.cmCost && !S.pendingDodge && !S.dodging && !S.fmDodge
+         && noTankLeft() && !hasNext() && B.inFlight && !B.inFlight.cm && B.inFlight.land > t && B.inFlight.land <= t + side.cm.ad
+         && m.hp <= side.bossFmDmg){
+        const land = B.inFlight.land, hit = Math.floor(side.bossFmDmg * 0.25);
+        const bossCmReady = B.energy >= (P.bossCM.cost || 100);
+        const nextHit = land + 4 + (bossCmReady ? Math.min(P.bossFM.ad, P.bossCM.ad) : P.bossFM.ad);
+        const nextDmg = bossCmReady ? Math.max(side.bossFmDmg, side.bossCmDmg) : side.bossFmDmg;
+        if(land - TEAM_DODGE_TICKS >= t && m.hp > hit && (land + side.cm.ad <= nextHit || m.hp - hit > nextDmg)){
+          S.fmDodge = { cast: B.inFlight.cast, land };
+          m.busyUntil = land;
+          R.dodges.push({ t, start: land - TEAM_DODGE_TICKS, until: land, cast: B.inFlight.cast, fm: true });
+          R.events.push({ t, kind: "main", text: `${P.main.name} dodges ${P.bossFM.n} to land its ${side.cm.n} (${m.hp} HP)`,
+            ev: { type: "fmDodge", move: P.bossFM.n, cm: side.cm.n, hp: m.hp } });
+          return;
+        }
+      }
+      // ...and the same when the boss is about to pick its next move: a fast move picked then would land
+      // mid-animation, so it holds its charge move until the boss has picked (a fast move is dodged as
+      // above; a charge move goes to the all-in decision as usual)
+      if(who === 0 && !S.probe && P.allIn && !m.tank && m.energy >= side.cmCost && !S.pendingDodge && !S.dodging && !S.fmDodge
+         && noTankLeft() && !hasNext() && (!B.inFlight || B.inFlight.land <= t) && B.nextCast > t
+         && P.bossFM.ad >= TEAM_DODGE_TICKS && B.nextCast + P.bossFM.ad <= t + side.cm.ad && m.hp <= side.bossFmDmg
+         && m.hp > Math.floor(side.bossFmDmg * 0.25)){
+        m.busyUntil = B.nextCast;
+        return;
       }
       if(who === 0 && S.pendingDodge && t + nextDur > S.pendingDodge.latest){
         // Main allowed to dodge: its next move wouldn't finish before the dodge has to start, so it
@@ -5706,6 +5739,7 @@ function teamLogLine(P, e){
     case "tankBack": return `${ico(v.who)} doubles back to fire its charge move`;
     case "doubleBack": return `${ico(0)} doubles back to ${aIco(v.toAtt)} <span class="team-dim">(${v.energy} energy)</span>`;
     case "juice": return `${ico(0)} juices for another <b>${v.move}</b> <span class="team-dim">(${v.hp} HP, ${v.energy} energy)</span>`;
+    case "fmDodge": return `${ico(0)} dodges <b>${v.move}</b> to land its <b>${v.cm}</b> <span class="team-dim">(${v.hp} HP)</span>`;
     case "doomed": return `${ico(0)} can't live to land another <b>${v.move}</b> <span class="team-dim">(${v.hp} HP, ${v.energy} energy) &middot; hot swap</span>`;
     case "hotswap": return `${teamSym("swap", "Hot swap")}${aIco(v.fromAtt)} Out${v.fainted ? " (fainted)" : ""}, ${aIco(v.toAtt)} In <span class="team-dim">(hot swap)</span>`;
     default: return e.text;
