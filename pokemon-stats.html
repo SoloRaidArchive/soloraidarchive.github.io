@@ -1172,6 +1172,9 @@ function learnCell(m){
 document.addEventListener("error", e => {
   const img = e.target; if(!(img instanceof HTMLImageElement)) return;
   const sp = img.closest(".pm-lrs"); if(!sp) return;
+  // the sprite listener above has just swapped in this Pokemon's backup image: wait and see if it loads
+  if(img.dataset.spriteFallbackUsed === "1"){ img.dataset.spriteFallbackUsed = "2"; return; }
+  if(!img.dataset.spriteFallbackUsed && SPRITE_FALLBACK[img.getAttribute("src")]) return;
   const cell = sp.parentElement, wasMore = sp.classList.contains("more"); sp.remove();
   const btn = cell.querySelector(".pm-lrm");
   if(!wasMore){ const next = cell.querySelector(".pm-lrs.more"); if(next) next.classList.remove("more"); else return; }
