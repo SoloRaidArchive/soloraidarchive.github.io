@@ -410,6 +410,9 @@ if ("serviceWorker" in navigator) {
   .bk-ivstep button:disabled{ opacity:.3; cursor:default; }
   html body .bk-ivstep input#bkAtk, html body .bk-ivstep input#bkDef{ flex:1 1 0; min-width:0; width:100%; height:100%; border:0 !important; background:none !important; box-shadow:none !important; text-align:center; font:800 14px 'Manrope',sans-serif; color:var(--ink); padding:0 !important; outline:none; }
   .bk-ivstep:focus-within{ border-color:#f08a3c; }
+  .bk-lv-mon{ flex:none; width:56px; height:56px; display:grid; place-items:center; }
+  .bk-lv-mon:empty, .bk-lv-mon[hidden]{ display:none; }
+  .bk-lv-mon img{ max-width:56px; max-height:56px; width:auto; height:auto; object-fit:contain; }
   .bk-lv-l{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim); }
   .bk-lv input{ flex:1; min-width:0; accent-color:#f08a3c; height:24px; }
   .bk-lv b{ min-width:38px; text-align:right; font:800 16px 'Manrope',sans-serif; color:var(--ink); font-variant-numeric:tabular-nums; }
@@ -722,6 +725,7 @@ if ("serviceWorker" in navigator) {
       <label class="bk-f"><span>Adventure effect</span><select id="bkAe"><option value="">None</option><option value="blade">Blade Boost</option><option value="shield">Shield Boost</option><option value="punch">Dynamic Punch+</option></select></label>
     </div>
     <div class="bk-lv">
+      <span class="bk-lv-mon" id="bkLvMon" aria-hidden="true"></span>
       <span class="bk-lv-l">Level</span>
       <input type="range" id="bkLv" min="0" max="0" step="1" aria-label="Level">
       <b id="bkLvVal">51</b>
@@ -1113,6 +1117,12 @@ function calc(){
   const name = $("bkMon").value.trim(), opt = readOpt(), fm = $("bkFm").value;
   const [from, to] = levelPair(opt.lv);
   $("bkLvVal").textContent = opt.lv;
+  // the Pokemon picked, beside the slider (redrawn only when it changes, so the gif doesn't restart)
+  { const box = $("bkLvMon"), want = mon(name) ? mon(name).n : "";
+    if(box.dataset.n !== want){ box.dataset.n = want; box.innerHTML = want ? sprite(want) : ""; box.hidden = false;
+      // no gif for it (and no fallback): the space closes up
+      const img = box.querySelector("img");
+      if(img) img.addEventListener("error", () => setTimeout(() => { if(img.style.visibility === "hidden") box.hidden = true; }, 0)); } }
   if(!mon(name)){ $("bkBreak").innerHTML = `<div class="bk-empty">${name ? "No Pokémon by that name." : "Pick a Pokémon."}</div>`; $("bkBulk").innerHTML = ""; return; }
   // At the IV picked, then at each higher IV up to 15 (what one more IV point would get at this level).
   // A boss already listed with the same new number isn't listed again.
