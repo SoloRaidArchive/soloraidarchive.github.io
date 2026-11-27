@@ -2441,7 +2441,7 @@ if ("serviceWorker" in navigator) {
       </ul>
       <p class="beta-h">The end of the run</p>
       <ul>
-        <li>The run ends when the last attacker can't continue. With <b>All in final move</b> it keeps fighting once no catch tank is left - dodging or taking the boss's charge moves - until it faints; results stop at its last charge move that landed. Without it, it bails, and results stop at its last charge move.</li>
+        <li>The run ends when the last attacker can't continue. With <b>All in final move</b> it keeps fighting once no catch tank is left - doing whatever it takes to get its last charge move off: dodging the boss's charge moves whenever there's time, and dodging a fast move that would knock it out - until it faints; results stop at its last charge move that landed. Without it, it bails, and results stop at its last charge move.</li>
       </ul>
       <p class="beta-h">Rejoins and results</p>
       <ul>
@@ -4515,7 +4515,8 @@ function teamStep(S, R, P, snap){
         // Otherwise it takes the hit. The run ends when that charge move lands; if the main DPS faints first,
         // results stop at the last charge move that landed, exactly as a bail would.
         S.finishing = true; S.allIn = true;
-        const canDodge = P.mainDodges && Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0) + TEAM_DODGE_TICKS <= land;
+        // (whatever it takes: it dodges whenever there's time, whether it was set to dodge or not)
+        const canDodge = Math.max(t, hm.busyUntil, S.swap ? S.swap.until : 0) + TEAM_DODGE_TICKS <= land;
         if(canDodge){
           S.pendingDodge = { cast: t, land, latest: land - TEAM_DODGE_TICKS };
           S.mainDodges++;
@@ -4740,7 +4741,7 @@ function teamStep(S, R, P, snap){
     if(dodged && who === 0) S.dodging = null;
     // Dodge FM: the first boss fast move to land on a catch tank since it came in is dodged
     const fmDodged = !mv.cm && m.tank && m.fmDodge && !S.swap && m.hp > 0;
-    // (All in: the main DPS dodging the fast move that would have knocked it out mid-charge-move)
+    // (All in: the attacker in dodging the boss fast move that would have knocked it out)
     const mainFmDodged = !mv.cm && who === 0 && !S.swap && S.fmDodge && S.fmDodge.cast === mv.cast;
     if(mainFmDodged) S.fmDodge = null;
     if(fmDodged) m.fmDodge = false;
@@ -4873,35 +4874,35 @@ function teamStep(S, R, P, snap){
         // ...unless it can take the hit and still land it (greed): then it stays, fires, and swaps after
         if(S.hotSwap.fired || (cmDone + TEAM_SWAP_TICKS > S.hotSwap.deadline && !S.hotSwap.greed)){ startHotSwap(S.hotSwap.to); return; }
       }
-      // All in: about to fire its last charge move with nobody left, but the boss's fast move in the air
-      // would land mid-animation and knock it out. It dodges that fast move first (its last 1.0s, 25% of
-      // the damage) and fires as it lands - when it survives the dodged hit and the charge move then
-      // lands before the boss's next move can (2s after the fast move, plus that move's own time).
-      if(who === 0 && !S.probe && P.allIn && !m.tank && m.energy >= side.cmCost && !S.pendingDodge && !S.dodging && !S.fmDodge
-         && noTankLeft() && !hasNext() && B.inFlight && !B.inFlight.cm && B.inFlight.land > t && B.inFlight.land <= t + side.cm.ad
-         && m.hp <= side.bossFmDmg){
-        const land = B.inFlight.land, hit = Math.floor(side.bossFmDmg * 0.25);
-        const bossCmReady = B.energy >= (P.bossCM.cost || 100);
-        const nextHit = land + 4 + (bossCmReady ? Math.min(P.bossFM.ad, P.bossCM.ad) : P.bossFM.ad);
-        const nextDmg = bossCmReady ? Math.max(side.bossFmDmg, side.bossCmDmg) : side.bossFmDmg;
-        if(land - TEAM_DODGE_TICKS >= t && m.hp > hit && (land + side.cm.ad <= nextHit || m.hp - hit > nextDmg)){
-          S.fmDodge = { cast: B.inFlight.cast, land };
-          m.busyUntil = land;
-          R.dodges.push({ t, start: land - TEAM_DODGE_TICKS, until: land, cast: B.inFlight.cast, fm: true });
-          R.events.push({ t, kind: "main", text: `${P.main.name} dodges ${P.bossFM.n} to land its ${side.cm.n} (${m.hp} HP)`,
-            ev: { type: "fmDodge", move: P.bossFM.n, cm: side.cm.n, hp: m.hp } });
-          return;
+      // All in, nobody left: whatever it takes to land its last charge move. A boss fast move that would
+      // knock it out is dodged (its last 1.0s, 25% of the damage) unless its charge move, fired now, lands
+      // first; and it holds back rather than start a move that would leave it unable to dodge the boss's
+      // next fast move in time.
+      const lastPush = who === 0 && !S.probe && P.allIn && !m.tank && noTankLeft() && !hasNext() && !S.pendingDodge && !S.dodging && !S.fmDodge;
+      const fmHit = Math.floor(side.bossFmDmg * 0.25);
+      if(lastPush && m.hp <= side.bossFmDmg && m.hp > fmHit && P.bossFM.ad >= TEAM_DODGE_TICKS){
+        const canFire = m.energy >= side.cmCost;
+        const inAir = B.inFlight && !B.inFlight.cm && B.inFlight.land > t ? B.inFlight : null;
+        if(inAir && !(canFire && t + side.cm.ad <= inAir.land)){
+          if(inAir.land - TEAM_DODGE_TICKS >= t){
+            if(t + nextDur <= inAir.land - TEAM_DODGE_TICKS && !canFire){ /* a fast move that ends in time: carry on */ }
+            else {
+              S.fmDodge = { cast: inAir.cast, land: inAir.land };
+              m.busyUntil = inAir.land;
+              R.dodges.push({ t, start: inAir.land - TEAM_DODGE_TICKS, until: inAir.land, cast: inAir.cast, fm: true });
+              R.events.push({ t, kind: "main", text: `${P.main.name} dodges ${P.bossFM.n} to land its ${side.cm.n} (${m.hp} HP)`,
+                ev: { type: "fmDodge", move: P.bossFM.n, cm: side.cm.n, hp: m.hp } });
+              return;
+            }
+          }
+        } else if(!inAir && (!B.inFlight || B.inFlight.land <= t) && B.nextCast > t){
+          // the boss picks its next move at B.nextCast: a fast move then has to be dodged from
+          // B.nextCast + its time - 1.0s. Hold back if this move would still be running then (and,
+          // firing, if that fast move would land mid-animation).
+          const dodgeAt = B.nextCast + P.bossFM.ad - TEAM_DODGE_TICKS;
+          const landsMid = canFire && B.nextCast + P.bossFM.ad <= t + side.cm.ad;
+          if((canFire && landsMid) || (!canFire && t + nextDur > dodgeAt)){ m.busyUntil = B.nextCast; return; }
         }
-      }
-      // ...and the same when the boss is about to pick its next move: a fast move picked then would land
-      // mid-animation, so it holds its charge move until the boss has picked (a fast move is dodged as
-      // above; a charge move goes to the all-in decision as usual)
-      if(who === 0 && !S.probe && P.allIn && !m.tank && m.energy >= side.cmCost && !S.pendingDodge && !S.dodging && !S.fmDodge
-         && noTankLeft() && !hasNext() && (!B.inFlight || B.inFlight.land <= t) && B.nextCast > t
-         && P.bossFM.ad >= TEAM_DODGE_TICKS && B.nextCast + P.bossFM.ad <= t + side.cm.ad && m.hp <= side.bossFmDmg
-         && m.hp > Math.floor(side.bossFmDmg * 0.25)){
-        m.busyUntil = B.nextCast;
-        return;
       }
       if(who === 0 && S.pendingDodge && t + nextDur > S.pendingDodge.latest){
         // Main allowed to dodge: its next move wouldn't finish before the dodge has to start, so it
