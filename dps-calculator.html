@@ -868,7 +868,7 @@ if ("serviceWorker" in navigator) {
     font:800 12px 'Manrope',sans-serif; color:var(--blue); }
   .boss-ct-btn:hover{ background:color-mix(in srgb, var(--blue) 18%, transparent); }
   .ct-info-i{ display:inline-flex; align-items:center; justify-content:center; width:17px; height:17px; border-radius:50%;
-    background:var(--blue); color:#fff; font:italic 800 11px Georgia, 'Times New Roman', serif; flex:none; }
+    background:var(--blue); color:#fff; font:800 11px 'Manrope',sans-serif; font-style:normal; flex:none; }
   .team-ct-link .boss-ct-btn{ margin-top:4px; }
   .boss-ct-btn:focus-visible{ outline:2px solid var(--blue); outline-offset:2px; }
   .boss-ct-count{ font-weight:700; font-size:12px; color:var(--text-dim); }
@@ -1384,7 +1384,7 @@ if ("serviceWorker" in navigator) {
   .step-head > .step-num{ display:none !important; }
   /* (i) bubbles: tap (phone) or click (desktop) to open; anywhere else closes */
   .info-wrap{ position:relative; display:inline-flex; vertical-align:middle; margin-left:6px; }
-  .info-i{ width:20px; height:20px; border-radius:50%; border:1.5px solid var(--border); background:var(--card); color:var(--text-dim); font:800 11px/1 Georgia, serif; font-style:italic; cursor:pointer; padding:0; }
+  .info-i{ width:20px; height:20px; border-radius:50%; border:1.5px solid var(--border); background:var(--card); color:var(--text-dim); font:800 11px/1 'Manrope',sans-serif; font-style:normal; cursor:pointer; padding:0; }
   .info-i[aria-expanded="true"], .info-i:hover{ border-color:var(--blue); color:var(--blue); }
   .info-pop{ display:none; position:absolute; z-index:60; top:calc(100% + 8px); left:50%; transform:translateX(-50%); width:min(270px, 78vw); padding:10px 12px; border-radius:12px;
     background:var(--bg1); border:1.5px solid var(--border); box-shadow:0 10px 26px rgba(0,0,0,.35); font:600 12px/1.45 'Manrope',sans-serif; color:var(--text); text-align:left; }
@@ -1547,7 +1547,7 @@ if ("serviceWorker" in navigator) {
   /* a suggested catch tank's (i), and what it opens: its uses against this boss */
   .mq-tile{ position:relative; }
   .mq-ti{ position:absolute; top:4px; right:4px; width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    font:italic 800 10.5px Georgia, serif; color:var(--text-dim); border:1.5px solid var(--border); background:var(--card); cursor:pointer; }
+    font:800 10.5px 'Manrope',sans-serif; font-style:normal; color:var(--text-dim); border:1.5px solid var(--border); background:var(--card); cursor:pointer; }
   .mq-ti:hover{ color:var(--accent, #ff8a3d); border-color:var(--accent, #ff8a3d); }
   .mq-usage{ grid-column:1 / -1; border:1.5px solid var(--accent, #ff8a3d); border-radius:12px; padding:8px 10px; background:var(--card); }
   .mq-usage-h{ display:flex; align-items:center; gap:6px; font:700 12px 'Manrope',sans-serif; color:var(--text-dim); margin-bottom:4px; } .mq-usage-h b{ color:var(--text); }
@@ -1987,6 +1987,12 @@ if ("serviceWorker" in navigator) {
   /* Main DPS's Boss aggression and Optimal DPS checkboxes: the height of a box, level with the boxes
      beside them (under where a heading would be), not the full height of a heading and its box */
   body.ct-mode-maindps .mod-consolidated-grid > label.check-item.maindps-fmcm-aggro{ height:50px !important; min-height:0 !important; align-self:end; box-sizing:border-box; padding-top:0; padding-bottom:0; }
+
+  /* every (i) icon looks the same: a 20px outlined circle with an upright bold lowercase i */
+  .info-i, .ct-info-i, .mq-ti, .beta-i{ width:20px; height:20px; border-radius:50%; border:1.5px solid var(--border); background:var(--card);
+    color:var(--text-dim); font:800 11px/1 'Manrope',sans-serif; font-style:normal; display:inline-flex; align-items:center;
+    justify-content:center; padding:0; box-sizing:border-box; flex:none; text-transform:none; letter-spacing:0; }
+  .info-i:hover, .ct-info-i:hover, .mq-ti:hover, .beta-i:hover, .info-i[aria-expanded="true"], .ct-info-i[aria-expanded="true"], .mq-ti[aria-expanded="true"], .beta-i[aria-expanded="true"]{ border-color:var(--blue); color:var(--blue); }
 </style>
 <style>
   /* A Pokemon's profile at every width: on desktop it opens straight after a Pokemon is picked for the
@@ -2418,42 +2424,23 @@ if ("serviceWorker" in navigator) {
     <summary class="mod-summary"><span class="beta-i" aria-hidden="true">i</span>About this beta</summary>
     <div class="beta-about-body">
       <p class="beta-build">Build 2026-11-18 · catch tank Dodge FM, phone Double CT</p>
-      <p>A turn-by-turn simulation of your battle party in one raid, using simple rules. Use it to compare setups - it is a guide, not a prediction of a real run.</p>
-      <p class="beta-h">Your party</p>
+      <p>A turn-by-turn simulation of one raid with your battle party - a guide for comparing setups, not a prediction of a real run. Each Calculate is a new random fight.</p>
+      <p class="beta-h">How the fight plays out</p>
       <ul>
-        <li>A main DPS, up to five support DPS, and up to three kinds of catch tank - or no catch tanks at all (Remove on Catch Tank 1), for hot swapping only.</li>
-        <li>A catch tank swaps in as the boss's charge move lands, uses one fast move, fires the charge moves set on its card, and swaps back. Once the fresh ones are used, a catch tank with the HP for another catch comes back and does it again. With <b>Double catch</b>, it catches twice: after the first it uses the set fast moves and swaps out holding its energy, then comes back for the boss's next charge move and fires on both catches' energy (only when it has the HP for the second catch).</li>
-        <li>Swaps take 0.5s. Each swap to a catch tank is timed for the highest DPS: the fight is run for every swap time, 0.5s apart, and the best is kept.</li>
+        <li><b>Party</b>: a main DPS, up to five support DPS and up to five kinds of catch tank (or none, for hot swaps only). Swaps take 0.5s.</li>
+        <li><b>Boss</b>: starts on 0 energy and gains it from its fast moves and half the damage it takes. Once it has the energy it uses its charge move at the Aggression chance, never twice in a row.</li>
+        <li><b>Catch tanks</b> swap in as the boss's charge move lands, fire their set charge moves and swap back, each swap timed for the best DPS. Once the fresh ones are used, a healthy one can catch again. <b>Double catch</b> catches twice and fires on both catches' energy; <b>Dodge FM</b> dodges the fast move after each catch.</li>
+        <li><b>Attackers</b> sponge a charge move when it's safe: they survive it, keep at least 90% of its energy while catch tanks remain, and can fire before the boss's next one. With <b>Can dodge</b> they dodge first, up to <b>Max Dodges</b> (25% of the damage, 1.0s).</li>
+        <li><b>Hot swaps</b>: when the attacker in can't safely take the next charge move or live to land its own, it fires what it's building if it can, and the next attacker comes in with full HP and no energy. <b>Soft</b> lets attackers borrow each other's unused catch tanks; <b>Strict</b> doesn't. <b>Doubling back</b> swaps to a support to avoid overflow when that deals more damage; <b>Juice main DPS</b> goes in for one more charge move when it can live to land it.</li>
+        <li><b>The end</b>: the run ends when the last attacker can't continue, and results stop at its last charge move that landed. <b>All in final move</b> does whatever it takes to land that move - dodging charge moves, and any fast move that would knock it out.</li>
       </ul>
-      <p class="beta-h">The boss</p>
+      <p class="beta-h">Results</p>
       <ul>
-        <li>It starts with 0 energy and gains it from its fast moves and from half the damage it takes, up to 100. On each move it has the aggression slider's chance of using its charge move once it has that move's energy (33 for a 3-bar move, 50 for a 2-bar, 100 for a 1-bar), and it never casts two in a row. Each Calculate is a new random fight.</li>
-      </ul>
-      <p class="beta-h">Who takes each charge move</p>
-      <ul>
-        <li><b>Catch Tank &amp; Hot Swap Order</b> lists the attackers in the order they come in, and under each one, in order, who takes the boss's charge moves while it is in: its own catch tanks and its own sponge. <b>Soft</b> lets an attacker borrow an unused catch tank from another before it hot swaps; <b>Strict</b> keeps each to its own.</li>
-        <li><b>Sponging</b> follows the situation. While the attacker has catch tanks, it only sponges when it absorbs at least 90% of the hit's energy (no more than 10% overflow), survives, and can fire before the boss's next charge move - otherwise a catch tank takes it. With none left, it sponges whenever its HP covers another full rotation: the hit, then the boss's fast moves while it builds and casts its next charge move.</li>
-        <li><b>Can dodge</b> (on each attacker): it dodges instead, up to <b>Max Dodges</b>, when it keeps at least 85% of the dodged hit's energy, survives it, and can fire before the boss's next charge move. A dodge takes 25% of the damage and 1.0s.</li>
-      </ul>
-      <p class="beta-h">Hot swaps</p>
-      <ul>
-        <li>An attacker hot swaps to the next one when it can't safely take the boss's next charge move (no catch tank left, and a sponge or dodge isn't safe), or when it can't live to land its next charge move. It fires the charge move it is building first if that lands in time - or stays in, takes the hit, and lands it, when it can survive to. The next attacker comes in with full HP and no energy; attackers never come back.</li>
-        <li><b>Doubling back</b>: when an incoming charge move would make the attacker in overflow and a support DPS could absorb it fully, the simulator plays the fight forward both ways and swaps to the support if that deals more damage. The support is used until it is done, then the attacker comes back - with the HP and energy it left with - ahead of any new one.</li>
-        <li><b>Juice main DPS</b>: before hot swapping, the attacker goes in for one more charge move whenever the boss's moves let it live to land it - the gamble a run needing every last charge move takes. When they wouldn't, it hot swaps as if it never tried.</li>
-      </ul>
-      <p class="beta-h">The end of the run</p>
-      <ul>
-        <li>The run ends when the last attacker can't continue. With <b>All in final move</b> it keeps fighting once no catch tank is left - doing whatever it takes to get its last charge move off: dodging the boss's charge moves whenever there's time, and dodging a fast move that would knock it out - until it faints; results stop at its last charge move that landed. Without it, it bails, and results stop at its last charge move.</li>
-      </ul>
-      <p class="beta-h">Rejoins and results</p>
-      <ul>
-        <li><b>Rejoin time</b> (7.0s by default, down to 5.5s) is how long each rejoin takes. <b>Expected rejoins</b> is how many the party needs before the 300s timer runs out, counting each rejoin's own time: 98.5s cycles with 7.0s rejoins need 2, as the third cycle runs past 300s. Minimum DPS and Cumulative DPS allow for those rejoins.</li>
-        <li>The result shows each attacker's and catch tank's DPS and time in, a timeline of every move, and a tick-by-tick CSV.</li>
+        <li>DPS, time in and fast / charge moves for each attacker and catch tank, a timeline of every move and a tick-by-tick CSV. Minimum and Cumulative DPS allow for the rejoins (<b>Rejoin time</b>, 7.0s by default) needed within the 300s timer.</li>
       </ul>
       <p class="beta-h">Not modelled yet</p>
       <ul>
-        <li>Multi-player Buffs, including the Primal / Mega boost (switched off in this mode, and hidden).</li>
-        <li>Resolve Nerf; dodging fast moves; dodging by catch tanks; trailing catch tanks.</li>
+        <li>Multi-player buffs (including the Primal / Mega boost), back-to-back boss charge moves and trailing catch tanks.</li>
       </ul>
     </div>
   </details>
