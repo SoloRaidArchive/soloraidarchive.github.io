@@ -815,7 +815,29 @@ body{ background:#20263a; color: var(--text-muted); }
   .bl-right select{ font:700 12.5px 'Manrope',sans-serif; color:var(--text); background:var(--card,#fff);
     border:1px solid var(--border,#d8dbe6); border-radius:8px; padding:6px 10px; }
   .bl-card{ background:var(--card,#fff); border:1px solid var(--border,#d8dbe6); border-radius:10px; padding:12px 18px 14px; }
-  .bl-h, .bl-row{ display:grid; grid-template-columns:40px 36px minmax(0,1fr) 104px 72px 104px 14px; gap:12px; align-items:center; }
+  /* the boss a set width so Type starts close beside it (Type takes the spare width) */
+  .bl-h, .bl-row{ display:grid; grid-template-columns:36px minmax(110px,230px) minmax(150px,1fr) 60px 60px 64px 96px 68px 96px 14px; gap:10px; align-items:center; }
+  .bl-tys{ flex-wrap:wrap; gap:3px 12px; }
+  .bl-tyc{ display:inline-flex; align-items:center; gap:5px; font:600 12.5px 'Inter',sans-serif; color:var(--text); white-space:nowrap; }
+  /* smaller desktop windows: the boss name narrows first, then the fixed columns tighten - Type keeps
+     the room for both types on one line */
+  @media (max-width:1000px) and (min-width:701px){
+    .bl-h, .bl-row{ grid-template-columns:34px minmax(100px,1fr) minmax(150px,auto) 52px 52px 56px 64px 48px 86px 12px; gap:8px; }
+    .bl-h{ font-size:9.5px; letter-spacing:.04em; }
+    .bl-sv{ font-size:12.5px; }
+    .bl-row .bl-nm{ white-space:normal; line-height:1.2; }   /* long names wrap rather than cut */
+  }
+  /* the narrowest desktop windows: long names wrap rather than cut, smaller weather icons */
+  @media (max-width:860px) and (min-width:701px){
+    .bl-h, .bl-row{ grid-template-columns:32px minmax(86px,1fr) minmax(150px,auto) 48px 48px 52px 58px 40px 76px 10px; gap:7px; }
+    .bl-row .bl-wx img{ width:16px; height:16px; }
+  }
+  /* just above phone width: the two types stack */
+  @media (max-width:760px) and (min-width:701px){
+    .bl-h, .bl-row{ grid-template-columns:32px minmax(80px,1fr) 84px 48px 48px 52px 58px 40px 76px 10px; }
+  }
+  .bl-sv{ font:600 13px 'Inter',sans-serif; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; color:var(--text); }
+  .bl-svs{ display:none; }
   .bl-h{ font:800 10px 'Manrope',sans-serif; letter-spacing:.07em; text-transform:uppercase; color:var(--ink-dim,#767f96);
     padding:0 0 6px; border-bottom:1px solid var(--border,#d8dbe6); }
   .bl-h span:nth-child(n+4){ text-align:right; }
@@ -846,9 +868,11 @@ body{ background:#20263a; color: var(--text-muted); }
     .bl{ padding:0 12px; }
     .bl-seg a, .bl-seg span{ padding:6px 10px; font-size:12.5px; }
     .bl-card{ padding:8px 12px 10px; border-radius:8px; }
-    .bl-h, .bl-row{ grid-template-columns:38px 34px minmax(0,1fr) 44px 24px; gap:8px; }
+    .bl-h, .bl-row{ grid-template-columns:34px minmax(0,1fr) 40px 44px 24px; gap:8px; }
+    .bl-tyn{ display:none; } .bl-tys{ gap:3px; flex-wrap:nowrap; }
     .bl-ti{ width:17px; height:17px; } .bl-ti img{ width:10px; height:10px; }
     .bl-wxs{ display:flex; justify-content:flex-start; gap:3px; margin-top:2px; }
+    .bl-svs{ display:block; font:600 11px 'Inter',sans-serif; font-variant-numeric:tabular-nums; color:var(--ink-dim,#767f96); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .bl-wxs img{ width:15px; height:15px; }
     .bl-h{ font-size:9px; letter-spacing:.04em; }
     .bl-x{ display:none; }
@@ -889,7 +913,7 @@ body{ background:#20263a; color: var(--text-muted); }
     </div>
   </div>
   <div class="bl-card">
-    <div class="bl-h"><span>Type</span><span></span><span>Boss</span><span><i class="bl-lg" style="font-style:normal">Base difficulty</i><i class="bl-sm" style="font-style:normal">Base</i></span><span><i class="bl-lg" style="font-style:normal">Strategies</i><i class="bl-sm" style="font-style:normal">#</i></span><span class="bl-x">Weather</span><span class="bl-x"></span></div>
+    <div class="bl-h"><span></span><span>Boss</span><span>Type</span><span class="bl-x" title="Effective Attack">Atk</span><span class="bl-x" title="Effective Defense">Def</span><span class="bl-x">HP</span><span><i class="bl-lg" style="font-style:normal">Base difficulty</i><i class="bl-sm" style="font-style:normal">Base</i></span><span><i class="bl-lg" style="font-style:normal">Strategies</i><i class="bl-sm" style="font-style:normal">#</i></span><span class="bl-x">Weather</span><span class="bl-x"></span></div>
     <div class="bl-list" id="bossGrid"></div>
   </div>
 </div>
@@ -1167,12 +1191,15 @@ function starLabelFor(b){
 // Each boss's types, from the same stats file the other pages use. Optional: without it the
 // Type column is just empty.
 const BOSS_TYPES = {};
+const BOSS_BASE = {};   // name -> { atk, def } base stats
 async function loadBossTypes(){
   try{
     const res = await fetch("/csv/pokemon-stats.csv");
     if(!res.ok) return;
     const t = parseCSV(await res.text()); const h = t.shift().map(x => x.trim());
     const iN = h.indexOf("name"), i1 = h.indexOf("type1"), i2 = h.indexOf("type2");
+    const iA = h.indexOf("atk"), iD = h.indexOf("def");
+    t.forEach(r => { const n = (r[iN] || "").trim().toLowerCase(); if(n && iA >= 0) BOSS_BASE[n] = { atk: +r[iA], def: +r[iD] }; });
     t.forEach(r => { const n = (r[iN] || "").trim().toLowerCase(); if(n) BOSS_TYPES[n] = [r[i1], r[i2]].filter(Boolean).map(x => x.trim().toLowerCase()); });
   }catch(e){ console.warn("Boss types unavailable:", e); }
 }
@@ -1208,6 +1235,28 @@ function weatherIcons(b){
   return Object.entries(b.wx).sort((x, y) => y[1] - x[1]).slice(0, 4).map(([k]) =>
     '<img src="assets/icons/' + WEATHER[k][1] + '.png" alt="' + WEATHER[k][0] + '" title="' + WEATHER[k][0] + '"' + (k === "extreme" ? ' class="extreme"' : '') + ' loading="lazy" onerror="this.remove()">').join("");
 }
+// The boss's raid stats: effective Attack / Defense = (base + 15) x CPM, and its HP
+const PAGE_TIER = "mega";
+function bossRaidStats(name){
+  const k = name.toLowerCase(), base = BOSS_BASE[k] || BOSS_BASE[k.replace(/^shadow\s+/, "")];
+  if(!base) return null;
+  const shadow = /^shadow\s/.test(k), mega = /^(mega|primal)\s/.test(k.replace(/^shadow\s+/, ""));
+  let cpm = 0.7903, hp = 15000, am = 1, dm = 1;
+  if(PAGE_TIER === "mega"){ hp = 9000; }
+  else if(PAGE_TIER === "megalegendary"){ if(mega) hp = 22500; else { cpm = 1.0; hp = 20000; } }   // not a Mega: Elite
+  if(shadow){ cpm = 0.82; am = 1.2; dm = 5 / 6; }
+  return { atk: (base.atk + 15) * cpm * am, def: (base.def + 15) * cpm * dm, hp };
+}
+function statCells(name){
+  const st = bossRaidStats(name), f = v => v.toFixed(1);
+  if(!st) return '<span class="bl-sv bl-x">\u2014</span><span class="bl-sv bl-x">\u2014</span><span class="bl-sv bl-x">\u2014</span>';
+  return '<span class="bl-sv bl-x">' + f(st.atk) + '</span><span class="bl-sv bl-x">' + f(st.def) + '</span><span class="bl-sv bl-x">' + st.hp.toLocaleString() + '</span>';
+}
+function statLine(name){
+  const st = bossRaidStats(name);
+  // (phones: whole numbers and the HP in thousands, so the line fits under the name)
+  return st ? '<span class="bl-svs">' + Math.round(st.atk) + ' Atk \u00b7 ' + Math.round(st.def) + ' Def \u00b7 ' + (st.hp / 1000) + 'k HP</span>' : '';
+}
 function starCell(v, cls){ return '<span class="bl-st' + (cls || '') + '">' + (isFinite(v) ? v : '\u2014') + '<i>\u2605</i></span>'; }
 
 function buildCardsOnce(){
@@ -1222,9 +1271,10 @@ function buildCardsOnce(){
     const types = bossTypes(b);
     const wx = weatherIcons(b);
     a.innerHTML =
-      '<span class="bl-tys">' + types.map(t => '<span class="bl-ti" style="background:' + (TYPE_COLOR[t] || "#888") + '" title="' + t + '"><img src="' + TYPE_ICONS + t + '.svg" alt=""></span>').join("") + '</span>' +
       rowSprite(b.name, "bl-sp") +
-      '<span class="bl-nmc"><span class="bl-nm">' + escHtml(b.name) + '</span><span class="bl-wx bl-wxs">' + wx + '</span></span>' +
+      '<span class="bl-nmc"><span class="bl-nm">' + escHtml(b.name) + '</span>' + statLine(b.name) + '<span class="bl-wx bl-wxs">' + wx + '</span></span>' +
+      '<span class="bl-tys">' + types.map(t => '<span class="bl-tyc"><span class="bl-ti" style="background:' + (TYPE_COLOR[t] || "#888") + '" title="' + t + '"><img src="' + TYPE_ICONS + t + '.svg" alt=""></span><span class="bl-tyn">' + t.charAt(0).toUpperCase() + t.slice(1) + '</span></span>').join("") + '</span>' +
+      statCells(b.name) +
       starCell(b.lowest) +
       '<span class="bl-n">' + b.count + '</span>' +
       '<span class="bl-wx bl-x">' + wx + '</span>' +
