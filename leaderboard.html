@@ -198,11 +198,20 @@ if ("serviceWorker" in navigator) {
   .lb-how summary{ cursor:pointer; padding:11px 14px; font:800 13px 'Manrope',sans-serif; color:var(--text); list-style:none; }
   .lb-how summary::-webkit-details-marker{ display:none; }
   .lb-how summary::before{ content:"▸ "; color:var(--text-dim); } .lb-how[open] summary::before{ content:"▾ "; }
-  .lb-how-body{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px 24px; padding:0 14px 14px; font:500 12px/1.5 'Inter',sans-serif; color:var(--text); }
-  .lb-how-body b{ display:block; font:800 12.5px 'Manrope',sans-serif; }
-  .lb-how-body p{ margin:2px 0 6px; color:var(--text-dim); }
-  .lb-how-body table{ width:100%; border-collapse:collapse; }
-  .lb-how-body td{ padding:1px 0; } .lb-how-body td:last-child{ text-align:right; font-weight:700; }
+  /* one grid: a heading row, then a row per rank / star rating - so the three columns line up */
+  .lb-how-body{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:2px 28px; padding:0 14px 14px; font:500 12px/1.5 'Inter',sans-serif; color:var(--text); }
+  .lb-hh{ display:flex; align-items:center; gap:6px; font:800 12.5px 'Manrope',sans-serif; padding-bottom:4px; position:relative; }
+  .lb-c{ display:flex; justify-content:space-between; gap:8px; white-space:nowrap; }
+  .lb-c b{ font-weight:700; }
+  .lb-i{ appearance:none; width:20px; height:20px; border-radius:50%; border:1.5px solid var(--border); background:var(--card); color:var(--text-dim);
+    font:800 11px/1 'Manrope',sans-serif; font-style:normal; display:inline-flex; align-items:center; justify-content:center; padding:0; box-sizing:border-box; flex:none; cursor:pointer; }
+  .lb-i:hover, .lb-i[aria-expanded="true"]{ border-color:var(--blue); color:var(--blue); }
+  .lb-tip{ position:absolute; left:0; top:calc(100% + 4px); z-index:20; width:min(260px, 78vw); padding:10px 12px; border-radius:10px;
+    background:var(--card); border:1px solid var(--border); box-shadow:0 8px 22px rgba(0,0,0,.12);
+    font:500 12.5px/1.45 'Inter',sans-serif; color:var(--text); visibility:hidden; opacity:0; transition:opacity .12s ease; }
+  .lb-hh-r .lb-tip{ left:auto; right:0; }
+  .lb-i[aria-expanded="true"] + .lb-tip{ visibility:visible; opacity:1; }
+  @media (hover:hover){ .lb-i:hover + .lb-tip{ visibility:visible; opacity:1; } }
   .lb-band{ display:grid; grid-template-columns:150px minmax(0,1fr); gap:16px; padding:14px 0; border-top:1px solid var(--border); --tc:var(--c-ro); }
   .lb-band:first-of-type{ border-top:0; }
   .lb-rail{ border-left:4px solid var(--tc); padding-left:12px; align-self:start; }
@@ -213,8 +222,10 @@ if ("serviceWorker" in navigator) {
   .lb-p b{ display:block; font:800 14px 'Manrope',sans-serif; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .lb-p small{ display:block; font:600 11.5px 'Inter',sans-serif; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .lb-p:hover b{ text-decoration:underline; text-underline-offset:3px; }
-  @media (max-width:820px){ .lb-names{ grid-template-columns:repeat(2, minmax(0,1fr)); } .lb-how-body{ grid-template-columns:1fr 1fr; } }
-  @media (max-width:560px){ .lb-band{ grid-template-columns:1fr; gap:8px; } .lb-how-body{ grid-template-columns:1fr; } }
+  @media (max-width:820px){ .lb-names{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+  @media (max-width:560px){ .lb-band{ grid-template-columns:1fr; gap:8px; } .lb-how-body{ grid-template-columns:max-content minmax(0,1fr) minmax(0,1fr); gap:2px 12px; font-size:11.5px; position:relative; }
+    .lb-hh{ font-size:12px; align-items:flex-end; position:static; }
+    .lb-tip, .lb-hh-r .lb-tip{ left:14px; right:14px; width:auto; } }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 <script src="assets/seasons.js" defer></script><!-- falling season particles in the margins -->
@@ -516,16 +527,26 @@ applyTheme(initialTheme);
   const get = u => fetch(u, { cache: "no-cache" }).then(r => r.ok ? r.text() : "").then(csv).catch(() => []);
   const norm = h => String(h).toLowerCase().replace(/[^0-9a-z\u0080-￿]/g, "");
 
-  function rows(list){ return list.map(([s, p]) => `<tr><td>${s}</td><td>${p}</td></tr>`).join(""); }
+  const cell = (a, b) => `<div class="lb-c"><span>${a}</span><b>${b}</b></div>`;
+  const head = (t, tip, id, cls) => `<div class="lb-hh${cls ? " " + cls : ""}"><span>${t}</span>` + (tip ? `<button type="button" class="lb-i" aria-label="About ${t}" aria-expanded="false" aria-controls="${id}">i</button><span class="lb-tip" id="${id}" role="note">${tip}</span>` : "") + `</div>`;
   function how(){
-    return `<details class="lb-how"><summary>How rankings work</summary><div class="lb-how-body">
-      <div><b>Ranks</b><table>${rows(TIERS.map(([t, m]) => [t, m + "+"]))}</table></div>
-      <div><b>Base Points per Submission</b><p>Points earned per submission difficulty. 4 star or lower runs capped at 10 submissions each. (total of 100 points)</p>
-        <table>${rows(STARS.map(s => [s + "★", BASE[s] + " pts"]))}</table></div>
-      <div><b>One Time Bonus</b><p>These are bonus points awarded to the highest difficulty submission. Only rewarded once.</p>
-        <table>${rows(STARS.map(s => [s + "★", BONUS[s] + " pts"]))}</table></div>
-    </div></details>`;
+    return `<details class="lb-how"><summary>How rankings work</summary><div class="lb-how-body">`
+      + head("Ranks") + head("Base Points per Submission", "Points earned per submission difficulty. 4 star or lower runs capped at 10 submissions each. (total of 100 points)", "lbTipBase")
+      + head("One Time Bonus", "These are bonus points awarded to the highest difficulty submission. Only rewarded once.", "lbTipBonus", "lb-hh-r")
+      + TIERS.map(([t, m], i) => cell(t, m + "+") + cell(STARS[i] + "★", BASE[STARS[i]] + " pts") + cell(STARS[i] + "★", BONUS[STARS[i]] + " pts")).join("")
+      + `</div></details>`;
   }
+  // the (i) pop-ups: a tap opens one (and closes the other), a tap anywhere else closes it
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest(".lb-i");
+    document.querySelectorAll(".lb-i[aria-expanded='true']").forEach(x => { if(x !== b) x.setAttribute("aria-expanded", "false"); });
+    if(!b) return;
+    e.preventDefault();
+    const open = b.getAttribute("aria-expanded") !== "true", hh = b.closest(".lb-hh"), tip = b.nextElementSibling;
+    // phones: the pop-up spans the panel, just under the headings
+    tip.style.top = getComputedStyle(hh).position === "static" ? (hh.offsetTop + hh.offsetHeight + 4) + "px" : "";
+    b.setAttribute("aria-expanded", open ? "true" : "false");
+  });
 
   Promise.all([get("csv/vod-runs.csv"), get("csv/vod-authors.csv"), get("csv/player-aliases.csv")]).then(([runs, authors, aliases]) => {
     const host = document.getElementById("lb");

@@ -2325,7 +2325,6 @@ if ("serviceWorker" in navigator) {
     <a href="research.html">Top Raiders</a>
     <a href="ct-database.html">Top Catch Tanks</a>
     <a href="meta-battle-parties.html">Battle Parties</a>
-    <a href="leaderboard.html">Leaderboard</a>
   </div>
     <div class="hamburger-section">
     <div class="hamburger-section-label">Research</div>
@@ -10924,9 +10923,10 @@ function bossStats(boss, cpmVal, mods){
     def *= SHADOW_DEF_MULT;
   }
   if(!mods.shadowEnraged && mods.t7){
-    // The original T7 enrage. Kept separate: the two enrage types do not stack.
-    def *= 4;
-    atk *= 1.5;
+    // Super Mega (T7) enrage: +3x defence and +0.8x attack, each a floored share of the effective
+    // stat added on top. The two enrage types do not stack.
+    def = def + Math.floor(3.0 * def);
+    atk = atk + Math.floor(0.8 * atk);
   }
   return { atk, def, hp };
 }
