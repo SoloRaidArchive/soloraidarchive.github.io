@@ -1,0 +1,54 @@
+name: Generate VOD runs (leaderboard)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # A new or changed VOD in the archives: find who ran it, and update the run list the
+      # Raider Leaderboard (leaderboard.html) scores.
+      - "csv/tier4-data.csv"
+      - "csv/tier5-merged.csv"
+      - "csv/tier6-data.csv"
+      - "generate_vod_runs.py"
+  workflow_dispatch: {}
+    # ^ run it from the Actions tab to retry links whose lookup failed last time.
+
+permissions:
+  contents: write
+
+concurrency:
+  # Shared with the other bots that commit to main, so pushes queue instead of racing.
+  group: commit-to-main
+  cancel-in-progress: false
+
+jobs:
+  generate-vod-runs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+        # standard library only - no pip install step.
+
+      - name: Find each VOD's player and rebuild the run list
+        # New YouTube links are looked up through YouTube's public oEmbed (the channel's @handle);
+        # X links name their poster in the URL. Links already in csv/vod-authors.csv are kept.
+        run: python generate_vod_runs.py
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "VOD runs already up to date, nothing to commit."
+          else
+            git status --short
+            git add csv/vod-runs.csv csv/vod-authors.csv
+            git commit -m "Update VOD runs and players for the leaderboard"
+            git pull --rebase
+            git push
+          fi
