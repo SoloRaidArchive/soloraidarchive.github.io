@@ -155,7 +155,7 @@ if ("serviceWorker" in navigator) {
   .gt-flip.mega i{ transform:translateX(100%); }
   .gt-info-wrap{ position:relative; display:inline-flex; }
   .gt-info{ appearance:none; width:22px; height:22px; border-radius:50%; border:1.5px solid var(--text-dim); background:none; color:var(--text-dim);
-    font:800 12px/1 'Manrope',serif; font-style:italic; cursor:pointer; display:grid; place-items:center; padding:0; }
+    font:800 12px/1 'Manrope',sans-serif; font-style:normal; cursor:pointer; display:grid; place-items:center; padding:0; }
   .gt-info:hover, .gt-info[aria-expanded="true"]{ color:var(--text); border-color:var(--text); }
   .gt-tip{ position:absolute; right:0; top:calc(100% + 8px); z-index:20; width:min(290px, 80vw); padding:10px 12px; border-radius:10px;
     background:var(--card); border:1px solid var(--border); box-shadow:0 8px 22px rgba(0,0,0,.12);
@@ -296,6 +296,12 @@ if ("serviceWorker" in navigator) {
     0%{ background-position: 0 0, 0% 0; }
     100%{ background-position: 0 0, 100% 0; }
   }
+
+  /* every (i) icon looks the same: a 20px outlined circle with an upright bold lowercase i */
+  .gt-info{ width:20px; height:20px; border-radius:50%; border:1.5px solid var(--border); background:var(--card);
+    color:var(--text-dim); font:800 11px/1 'Manrope',sans-serif; font-style:normal; display:inline-flex; align-items:center;
+    justify-content:center; padding:0; box-sizing:border-box; flex:none; text-transform:none; letter-spacing:0; }
+  .gt-info:hover, .gt-info[aria-expanded="true"]{ border-color:var(--blue); color:var(--blue); }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 <script src="assets/seasons.js" defer></script><!-- falling season particles in the margins -->
@@ -421,8 +427,13 @@ if ("serviceWorker" in navigator) {
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
 </script>
+<!-- Language: the 🌐 button in the menu switches the site's Pokemon, move and type names and its short
+     labels to Japanese (assets/lang.js, data/lang/ja.json), and lets search boxes take Japanese -->
+<script src="assets/lang.js" defer></script>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <!-- Language: English / 日本語 (assets/lang.js) -->
+  <button type="button" class="hamburger-theme-toggle" id="langToggle" lang="ja" data-no-ja>🌐 日本語</button>
   <div class="hamburger-section">
     <a href="/"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
   </div>
@@ -690,6 +701,7 @@ function initGuideSearch(bosses){
     // before something that merely contains the letters later in its name.
     const matched = bosses
       .map(b => ({ b, i: b.name.toLowerCase().indexOf(q) }))
+      .map(x => x.i === -1 && (window.langHit && langHit(x.b.name, q)) ? { b: x.b, i: 0 } : x)   // Japanese typed
       .filter(x => x.i !== -1)
       .sort((x, y) => x.i - y.i || x.b.name.localeCompare(y.b.name))
       .slice(0, GUIDE_SEARCH_LIMIT);

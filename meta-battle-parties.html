@@ -451,8 +451,13 @@ if ("serviceWorker" in navigator) {
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
 </script>
+<!-- Language: the 🌐 button in the menu switches the site's Pokemon, move and type names and its short
+     labels to Japanese (assets/lang.js, data/lang/ja.json), and lets search boxes take Japanese -->
+<script src="assets/lang.js" defer></script>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <!-- Language: English / 日本語 (assets/lang.js) -->
+  <button type="button" class="hamburger-theme-toggle" id="langToggle" lang="ja" data-no-ja>🌐 日本語</button>
   <div class="hamburger-section">
     <a href="/"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
   </div>
@@ -1340,7 +1345,7 @@ function updateActiveFilterRow(){
 function buildContent(filterQuery){
   const el = document.getElementById("content");
   const filtered = PARTIES.filter(p =>
-    (!filterQuery || p.slots.some(s => s.n.toLowerCase().includes(filterQuery))) &&
+    (!filterQuery || p.slots.some(s => s.n.toLowerCase().includes(filterQuery) || (window.langHit && langHit(s.n, filterQuery)))) &&
     matchesTypeFilter(p)
   );
   el.innerHTML = filtered.length
@@ -1570,8 +1575,8 @@ function initSearchAutocomplete(inputId, getNames){
       const name = String(raw);
       const lower = name.toLowerCase();
       if(seen.has(lower)) continue;
-      if(lower.startsWith(q)){ seen.add(lower); starts.push(name); }
-      else if(lower.includes(q)){ seen.add(lower); contains.push(name); }
+      if(lower.startsWith(q) || (window.langStarts && langStarts(name, q))){ seen.add(lower); starts.push(name); }
+      else if(lower.includes(q) || (window.langHit && langHit(name, q))){ seen.add(lower); contains.push(name); }
       if(starts.length >= 8) break;
     }
     return [...starts, ...contains].slice(0, 8);

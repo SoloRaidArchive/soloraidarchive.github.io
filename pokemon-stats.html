@@ -636,8 +636,13 @@ if ("serviceWorker" in navigator) {
   if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
 </script>
+<!-- Language: the 🌐 button in the menu switches the site's Pokemon, move and type names and its short
+     labels to Japanese (assets/lang.js, data/lang/ja.json), and lets search boxes take Japanese -->
+<script src="assets/lang.js" defer></script>
 <div class="hamburger-panel" id="hamburgerPanel">
   <button type="button" class="hamburger-theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+  <!-- Language: English / 日本語 (assets/lang.js) -->
+  <button type="button" class="hamburger-theme-toggle" id="langToggle" lang="ja" data-no-ja>🌐 日本語</button>
   <div class="hamburger-section">
     <a href="/"><img src="assets/icons/favicon-32.png" alt="" style="width:18px;height:18px;border-radius:4px;margin-right:8px;flex-shrink:0;">Home</a>
   </div>
@@ -652,7 +657,6 @@ if ("serviceWorker" in navigator) {
     <a href="dps-calculator.html">DPS Calculator</a>
     <a href="solo-raid-mechanics.html">Mechanics</a>
     <a href="guides.html">Guides</a>
-    <a href="articles.html">Articles</a>
     <a href="pokemon-stats.html" class="current">Stats &amp; Moves</a>
     <a href="breakpoints.html">Breakpoints</a>
     <a href="reference.html">Difficulty &amp; Roles</a>
@@ -1230,7 +1234,7 @@ function render(){
   const typeOk = ts => !activeTypes.size || ts.some(t => activeTypes.has(t));
   let list, head, row, noun;
   if(tab === "moves"){
-    list = MOVES.filter(m => (!q || m.n.toLowerCase().includes(q)) && typeOk([m.t]));
+    list = MOVES.filter(m => (!q || m.n.toLowerCase().includes(q) || (window.langHit && langHit(m.n, q))) && typeOk([m.t]));
     const s = sortBy.moves, dir = s.up ? 1 : -1, byName = (a, b) => a.n.localeCompare(b.n);
     // ties on the sorted column go by Score (highest first), then by name
     const tie = (a, b) => (moveScore(b) - moveScore(a)) || byName(a, b);
@@ -1242,7 +1246,7 @@ function render(){
       + `<span>${sortHead("energy", "Energy")}</span><span>${sortHead("ad", "AD")}</span><span>${sortHead("score", "Score")}</span><span class="x"></span></div>`;
     row = moveRowHtml; noun = "moves";
   } else {
-    list = POKEMON_DB.filter(p => (!q || p.n.toLowerCase().includes(q)) && typeOk(p.t || []));
+    list = POKEMON_DB.filter(p => (!q || p.n.toLowerCase().includes(q) || (window.langHit && langHit(p.n, q))) && typeOk(p.t || []));
     const s = sortBy.pokemon, dir = s.up ? 1 : -1;
     if(s.k === "name") list.sort((a, b) => dir * a.n.localeCompare(b.n));
     else list.sort((a, b) => dir * (a[s.k] - b[s.k]) || a.n.localeCompare(b.n));
@@ -1412,8 +1416,8 @@ function initSearchAutocomplete(inputId, getNames){
       const name = String(raw);
       const lower = name.toLowerCase();
       if(seen.has(lower)) continue;
-      if(lower.startsWith(q)){ seen.add(lower); starts.push(name); }
-      else if(lower.includes(q)){ seen.add(lower); contains.push(name); }
+      if(lower.startsWith(q) || (window.langStarts && langStarts(name, q))){ seen.add(lower); starts.push(name); }
+      else if(lower.includes(q) || (window.langHit && langHit(name, q))){ seen.add(lower); contains.push(name); }
       if(starts.length >= 8) break;
     }
     return [...starts, ...contains].slice(0, 8);
