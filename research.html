@@ -95,7 +95,7 @@ if ("serviceWorker" in navigator) {
     appearance:none; cursor:pointer; flex:none;
     width:30px; height:30px; border-radius:50%; border:2px solid var(--border);
     background: var(--card); color: var(--text-dim);
-    font-family:'Manrope', sans-serif; font-weight:900; font-size:14px; font-style:italic;
+    font-family:'Manrope', sans-serif; font-weight:800; font-size:14px; font-style:normal;
     line-height:1; display:inline-flex; align-items:center; justify-content:center;
   }
   .tier-info-btn:hover{ border-color: var(--blue); color: var(--blue-dark); }
@@ -1125,6 +1125,12 @@ if ("serviceWorker" in navigator) {
     .rb-bar{ padding:0 12px; }
     .rb-rc{ padding:0 5px; } .rb-rc > span:not(.rr-ri){ display:none; }
   }
+
+  /* every (i) icon looks the same: a 20px outlined circle with an upright bold lowercase i */
+  .tier-info-btn{ width:20px; height:20px; border-radius:50%; border:1.5px solid var(--border); background:var(--card);
+    color:var(--text-dim); font:800 11px/1 'Manrope',sans-serif; font-style:normal; display:inline-flex; align-items:center;
+    justify-content:center; padding:0; box-sizing:border-box; flex:none; text-transform:none; letter-spacing:0; }
+  .tier-info-btn:hover, .tier-info-btn[aria-expanded="true"]{ border-color:var(--blue); color:var(--blue); }
 </style>
 <link rel="stylesheet" href="assets/seasons.css"><!-- seasonal colours: after the page's own styles -->
 <script src="assets/seasons.js" defer></script><!-- falling season particles in the margins -->
@@ -1135,13 +1141,6 @@ if ("serviceWorker" in navigator) {
 
 <div class="sticky-header">
   <div class="sticky-header-title-row">
-    <div class="header-buttons header-buttons-left">
-      <button class="gear-btn" id="gearBtn" aria-label="Open search and filter settings" aria-expanded="false">
-        <span class="filter-line filter-line-1"></span>
-        <span class="filter-line filter-line-2"></span>
-        <span class="filter-line filter-line-3"></span>
-      </button>
-    </div>
     <h1 class="page-title-sm">Top Raiders</h1>
     <div class="header-buttons">
       <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu" aria-expanded="false">
@@ -1356,28 +1355,6 @@ if ("serviceWorker" in navigator) {
 </script>
 <!-- NAV:END -->
 
-  <div class="gear-panel" id="gearPanel">
-  <div class="controls">
-    <div class="hamburger-section">
-      <div class="hamburger-section-label">Show</div>
-      <div class="vertical-toggle" id="viewToggleList">
-        <button class="hamburger-item" data-n="20">Top 20</button>
-        <button class="hamburger-item active" data-n="50">Top 50</button>
-        <button class="hamburger-item" data-n="0">Show All</button>
-      </div>
-    </div>
-    <div class="hamburger-section">
-      <div class="hamburger-section-label">Role</div>
-      <div class="vertical-toggle" id="roleFilterList">
-        <button class="hamburger-item active" data-role="">All Roles</button>
-        <button class="hamburger-item" data-role="Catch Tank">Catch Tank</button>
-        <button class="hamburger-item" data-role="Main DPS">Main DPS</button>
-        <button class="hamburger-item" data-role="Support DPS">Support DPS</button>
-        <button class="hamburger-item" data-role="Executor">Executor</button>
-      </div>
-    </div>
-  </div>
-  </div>
 </div>
 
 
@@ -3197,42 +3174,21 @@ function renderLeaderboard(){
   observeSprites(container);
 }
 
-// The bar's controls. Role and Top N press the filter panel's own buttons, so the two always agree.
+// The bar's controls: mode, role and Top N.
 document.getElementById("lbBar").addEventListener("click", e => {
   const b = e.target.closest("button");
   if(!b) return;
   if(b.dataset.mode){ LB_MODE = b.dataset.mode; renderLeaderboard(); return; }
   if(b.dataset.rn !== undefined){ ROLE_LIMIT = parseInt(b.dataset.rn, 10); renderLeaderboard(); return; }
   if(b.dataset.n !== undefined){
-    const g = document.querySelector(`#viewToggleList .hamburger-item[data-n="${b.dataset.n}"]`);
-    if(g) g.click(); else { currentLimit = parseInt(b.dataset.n, 10); renderLeaderboard(); }
+    currentLimit = parseInt(b.dataset.n, 10); renderLeaderboard();
     return;
   }
   if(b.dataset.role !== undefined){
     const role = b.dataset.role === currentRole ? "" : b.dataset.role;   // pressing the active role again shows all roles
-    const g = document.querySelector(`#roleFilterList .hamburger-item[data-role="${role}"]`);
-    if(g) g.click(); else { currentRole = role; renderLeaderboard(); }
+    currentRole = role; renderLeaderboard();
   }
 });
-document.querySelectorAll("#viewToggleList .hamburger-item").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("#viewToggleList .hamburger-item").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentLimit = parseInt(btn.dataset.n);
-    renderLeaderboard();
-    if(VIEW === "tier") renderTierList();   // chips drive both views
-  });
-});
-document.querySelectorAll("#roleFilterList .hamburger-item").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("#roleFilterList .hamburger-item").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    currentRole = btn.dataset.role;
-    renderLeaderboard();
-    if(VIEW === "tier") renderTierList();   // chips drive both views
-  });
-});
-
 loadAllData();
 loadRankHistory();
 renderLeaderboard();
@@ -3256,8 +3212,6 @@ try{
 }catch(e){}
 applyTheme(initialTheme);
 
-const gearBtn = document.getElementById("gearBtn");
-const gearPanel = document.getElementById("gearPanel");
 const hamburgerBtn = document.getElementById("hamburgerBtn");
 const hamburgerPanel = document.getElementById("hamburgerPanel");
 
@@ -3265,31 +3219,15 @@ function closeHamburger(){
   hamburgerPanel.classList.remove("open");
   hamburgerBtn.setAttribute("aria-expanded", "false");
 }
-function closeGear(){
-  gearPanel.classList.remove("open");
-  gearBtn.setAttribute("aria-expanded", "false");
-}
-
-gearBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  const isOpen = gearPanel.classList.contains("open");
-  closeHamburger();
-  gearPanel.classList.toggle("open", !isOpen);
-  gearBtn.setAttribute("aria-expanded", String(!isOpen));
-});
 hamburgerBtn.addEventListener("click", (e) => {
   e.stopPropagation();
   const isOpen = hamburgerPanel.classList.contains("open");
-  closeGear();
   hamburgerPanel.classList.toggle("open", !isOpen);
   hamburgerBtn.setAttribute("aria-expanded", String(!isOpen));
 });
 document.addEventListener("click", (e) => {
   if(!hamburgerPanel.contains(e.target) && e.target !== hamburgerBtn){
     closeHamburger();
-  }
-  if(!gearPanel.contains(e.target) && e.target !== gearBtn){
-    closeGear();
   }
 });
 
